@@ -2,11 +2,9 @@ import { defineSubscriberSingleton } from './subscriber.factory'
 import { SubscriberRoute, TeamSubscriber } from './team-subscriber.contract'
 
 import { useMqttExpertTopicHelper } from '@/composables/services/MqttExpertTopicHelper'
-import getAppOrchestrator from '@/services/app.orchestrator'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
-import { createMqttTransport } from '@/transport/mqtt.transport'
-import type { CreateSubscriberOptions, TeamRef, TeamSubscriberI } from '@/types/subscribers/subscriber.types'
+import type { CreateSubscriberOptions, TeamSubscriberI } from '@/types/subscribers/subscriber.types'
 import type { TransportMessagePacket, TransportSubscribeOptions } from '@/types/transport/transport.types'
 
 const INFLIGHT_CHANNEL = 'mcp'
@@ -92,22 +90,6 @@ class McpInflightSubscriber extends TeamSubscriber implements TeamSubscriberI {
 }
 
 const { create: createMcpInflightSubscriber, destroy: destroyMcpInflightSubscriber } = defineSubscriberSingleton(McpInflightSubscriber)
-
-export function startMcpInflight (team: TeamRef): McpInflightSubscriber {
-    const orchestrator = getAppOrchestrator()
-    const transport = createMqttTransport(orchestrator.$services.mqtt)
-    const subscriber = createMcpInflightSubscriber({
-        app: orchestrator.$app,
-        router: orchestrator.$router,
-        transport
-    })
-    subscriber.connect(team)
-    return subscriber
-}
-
-export async function stopMcpInflight (): Promise<void> {
-    await destroyMcpInflightSubscriber()
-}
 
 export { createMcpInflightSubscriber, destroyMcpInflightSubscriber }
 

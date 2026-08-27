@@ -79,8 +79,13 @@ export default {
         }
     },
     watch: {
-        async team () {
+        async team (team, previousTeam) {
             if (!this.mcpActive) {
+                return
+            }
+            // The first team resolving is not a switch.
+            if (!previousTeam?.id) {
+                this.resumeMcp(team)
                 return
             }
             // Straight to the store action rather than stopMcp(), which announces the close
@@ -93,16 +98,11 @@ export default {
         }
     },
     mounted () {
-        // The flag survives a reload, the comms do not. Counted rather than per instance:
-        // the header mounts two, and only the last to leave should take the comms down.
-        this.retainMcp(this.team)
-    },
-    beforeUnmount () {
-        this.releaseMcp()
+        this.resumeMcp(this.team)
     },
     methods: {
         ...mapActions(useProductExpertStore, ['openAssistantDrawer']),
-        ...mapActions(useProductMcpStore, { enableMcp: 'enable', disableMcp: 'disable', retainMcp: 'retain', releaseMcp: 'release' }),
+        ...mapActions(useProductMcpStore, { enableMcp: 'enable', disableMcp: 'disable', resumeMcp: 'resume' }),
         onExpertClick () {
             this.openAssistantDrawer({ openPinned: this.rightDrawer.expertState.pinned })
         },

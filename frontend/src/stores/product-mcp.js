@@ -1,9 +1,21 @@
 import { defineStore } from 'pinia'
 
-import { startTabPresence, stopTabPresence } from '@/publishers/tab-presence.publisher'
 import alerts from '@/services/alerts.js'
-import { startMcpInflight, stopMcpInflight } from '@/subscribers/mcp-inflight.subscriber'
-import { startMcpSession, stopMcpSession } from '@/subscribers/mcp-session.subscriber'
+import getAppOrchestrator from '@/services/app.orchestrator'
+
+/**
+ * The three comms this store drives. They are created once by the orchestrator and live
+ * as long as the app does, so this only ever connects and disconnects them - it never
+ * creates or destroys one.
+ */
+function comms () {
+    const orchestrator = getAppOrchestrator()
+    return {
+        presence: orchestrator.$publishers.tabPresence,
+        inflight: orchestrator.$subscribers.mcpInflight,
+        session: orchestrator.$subscribers.mcpSession
+    }
+}
 
 /**
  * Whether this tab is exposed to third-party MCP agents, and the comms that go with it:
@@ -28,12 +40,6 @@ export const useProductMcpStore = defineStore('product-mcp', {
          * continuously. Outranks everything else: `clients` cannot be trusted while it holds.
          */
         interrupted: false,
-        /**
-         * Mounted toggles. The header renders two, and without this the first to unmount
-         * tears down comms the second is still showing as live. Lifecycle, not user intent,
-         * so it is kept apart from `active` and never persisted.
-         */
-        mounts: 0,
         /**
          * Whether the platform has answered yet. The first answer is catching up, not an
          * event, so it sets the count silently - otherwise every reload of a held tab
@@ -63,28 +69,16 @@ export const useProductMcpStore = defineStore('product-mcp', {
     actions: {
         enable (team) {
             if (!team) return
-            startTabPresence(team)
-            startMcpInflight(team)
-            startMcpSession(team)
             this.active = true
             // Exposing says nothing about who has taken it - the first heartbeat answers that
             this.clients = []
             this.synced = false
             this.interrupted = false
+            this._connect(team)
         },
-        /** A toggle mounted. Comms are singletons, so only the first one starts them. */
-        retain (team) {
-            this.mounts += 1
-            if (this.mounts === 1 && this.active && team) {
-                this.enable(team)
-            }
-        },
-        /** A toggle unmounted. Only the last one leaving takes the comms down. */
-        async release () {
-            this.mounts = Math.max(0, this.mounts - 1)
-            if (this.mounts === 0 && this.active) {
-                await this.teardown()
-            }
+        resume (team) {
+            if (!this.active || !team) return
+            this._connect(team)
         },
         async disable () {
             // Both toggles' watchers fire in the same tick. Clearing the flag before the first
@@ -96,26 +90,23 @@ export const useProductMcpStore = defineStore('product-mcp', {
             this.clients = []
             this.synced = false
             this.interrupted = false
-            await stopMcpSession()
-            await stopMcpInflight()
-            // A real opt-out: drop the session entry now rather than leaving it listed
-            await stopTabPresence({ announceClose: true })
+            const { presence, inflight, session } = comms()
+            await session?.disconnect()
+            await inflight?.disconnect()
+            await presence?.disconnect()
             return true
         },
-        /**
-         * Drops the comms but leaves the flag, so an unmounting button comes back exposed.
-         *
-         * Silent by design: the platform reads a close notice as opting out and deletes the
-         * session entry, un-listing a tab that is still open. A tab really going away is
-         * covered by its connection's last will.
-         */
-        async teardown () {
-            this.clients = []
-            this.synced = false
-            this.interrupted = false
-            await stopMcpSession()
-            await stopMcpInflight()
-            await stopTabPresence({ announceClose: false })
+        announcePresence () {
+            comms().presence?.announcePresence()
+        },
+        _connect (team) {
+            const { presence, inflight, session } = comms()
+            const warn = (err) => console.warn('Failed to bring up MCP comms:', err)
+            inflight?.connect(team).catch(warn)
+            session?.connect(team).catch(warn)
+            presence?.connect(team)
+                .then(() => presence.announcePresence())
+                .catch(warn)
         },
         markInterrupted () {
             this.interrupted = true

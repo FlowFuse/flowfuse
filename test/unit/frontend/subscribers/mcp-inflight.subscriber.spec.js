@@ -18,7 +18,6 @@ vi.mock('@/stores/product-expert.js', () => ({ useProductExpertStore }))
 vi.mock('@/stores/context.js', () => ({ useContextStore }))
 // the topic helper reaches for the stores through the barrel
 vi.mock('@/stores', () => ({ useAccountAuthStore, useProductExpertStore, useContextStore }))
-vi.mock('@/services/app.orchestrator', () => ({ default: () => ({ $app: {}, $router: {}, $services: { mqtt: {} } }) }))
 
 function makeTransport () {
     return {

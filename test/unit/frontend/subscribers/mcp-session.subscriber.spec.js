@@ -2,10 +2,10 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 const getTeamCommsCreds = vi.fn()
 const setClients = vi.fn()
-const announceTabPresence = vi.fn()
+const announcePresence = vi.fn()
 
 const authStore = { user: { id: 'user-hashid-1' }, getSessionId: () => 'browser-session-1' }
-const mcpStore = { setClients }
+const mcpStore = { setClients, announcePresence }
 
 const useAccountAuthStore = vi.fn(() => authStore)
 const useProductMcpStore = vi.fn(() => mcpStore)
@@ -15,10 +15,6 @@ vi.mock('@/api/team.js', () => ({
 }))
 vi.mock('@/stores/account-auth.js', () => ({ useAccountAuthStore }))
 vi.mock('@/stores/product-mcp.js', () => ({ useProductMcpStore }))
-vi.mock('@/publishers/tab-presence.publisher', () => ({
-    announceTabPresence: (...args) => announceTabPresence(...args)
-}))
-vi.mock('@/services/app.orchestrator', () => ({ default: () => ({ $app: {}, $router: {}, $services: { mqtt: {} } }) }))
 
 function makeTransport () {
     return {
@@ -51,7 +47,7 @@ describe('McpSessionSubscriber', async () => {
     beforeEach(async () => {
         getTeamCommsCreds.mockReset()
         setClients.mockReset()
-        announceTabPresence.mockReset()
+        announcePresence.mockReset()
         await destroyMcpSessionSubscriber()
     })
 
@@ -75,7 +71,7 @@ describe('McpSessionSubscriber', async () => {
 
         test('asks for a fresh heartbeat once subscribed, so no answer is missed', async () => {
             await connected()
-            expect(announceTabPresence).toHaveBeenCalled()
+            expect(announcePresence).toHaveBeenCalled()
         })
 
         test('detaches on destroy', async () => {
