@@ -46,7 +46,7 @@ Ask your agent what it can do in a given team or instance if you want the curren
 
 An agent with read access has no ability to change anything.
 
-FlowFuse Tables is read-only through the platform tools, for the time being, so an agent can query your data to answer a question but not write to it directly. A flow is a different route. An agent with editing rights can build a flow containing a [Query Node](/docs/user/ff-tables/#query-nodes), and that flow writes to your tables like any other flow you would have written yourself.
+An agent can query your FlowFuse Tables data to answer questions. With editing rights it can go further and build a flow with a [Query Node](/docs/user/ff-tables/#query-nodes) that reads and writes your tables, exactly like a flow you would build yourself.
 
 ### Deleting, and deploying
 
@@ -84,7 +84,7 @@ On Team and Enterprise plans an owner adds the connector for the organisation fi
 
 ### Command-line and editor agents
 
-Claude Code, Cursor, Visual Studio Code and Gemini CLI all connect to the same address. Where a client offers a sign-in flow, use it. Where it does not, see [clients without a sign-in flow](#clients-without-a-sign-in-flow).
+Claude Code, Cursor, Visual Studio Code and Gemini CLI all connect to the same address. Where a client supports OAuth, sign in; otherwise use a token, see [clients without a sign-in flow](#clients-without-a-sign-in-flow).
 
 For Claude Code:
 
@@ -98,7 +98,7 @@ Use any HTTP-capable MCP client, such as LM Studio, LibreChat or Open WebUI, poi
 
 ## Clients without a sign-in flow
 
-Signing in is the intended route, and the one to use wherever your client supports it. A client that has no sign-in flow takes a token in its configuration file instead. Both routes reach the same FlowFuse with the same enforcement.
+Where your client does not support OAuth, give it a token in its configuration file instead. Both routes reach the same FlowFuse with the same enforcement.
 
 Create a [Personal Access Token](/docs/user/user-settings/#personal-access-tokens) and [scope it](/docs/user/user-settings/#scoping-a-token) the same way you would when signing in, to the team you want the agent working in rather than to everything you can reach. Then give the client the FlowFuse address together with that token as a bearer token in an `Authorization` header.
 
