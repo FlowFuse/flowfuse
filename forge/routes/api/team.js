@@ -508,7 +508,10 @@ module.exports = async function (app) {
                 projects: result
             })
         } else {
-            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+            return reply.send({
+                count: 0,
+                projects: []
+            })
         }
     })
 
