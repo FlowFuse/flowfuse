@@ -11025,9 +11025,9 @@ export interface components {
                 gitTokenId: string;
                 url: string;
                 branch: string;
-                pullBranch: string;
-                pushPath: string;
-                pullPath: string;
+                pullBranch: string | null;
+                pushPath: string | null;
+                pullPath: string | null;
                 lastPushAt: string | null;
                 lastPullAt: string | null;
                 status: string | null;
