@@ -97,6 +97,7 @@
         "handlebars": "^4.7.7",
         "hashids": "^2.3.0",
         "highlight.js": "^11.11.1",
+        "inquirer": "^14.1.0",
         "jsonwebtoken": "^9.0.0",
         "ldapts": "^8.1.8",
         "lottie-web-vue": "^2.0.7",
@@ -205,5 +206,12 @@
         "no-code",
         "low-code",
         "node-red"
-    ]
+    ],
+    "overrides": {
+        "serialize-javascript@<7.0.7": "7.0.7",
+        "minimatch@>=9 <9.0.9": "9.0.9",
+        "uuid@8": "11.1.1",
+        "uuid@9": "11.1.1",
+        "vite": "6.4.3"
+    }
 }

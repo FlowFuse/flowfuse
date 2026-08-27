@@ -1,5 +1,6 @@
 const { z } = require('zod')
 
+const { teamId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, appendQuery } = require('../schemas')
 const { PLATFORM_UI_TOOL_NAMES, SESSION_GATED_GROUPS, noBrowserSessionGuidance } = require('../sessionGatedTools')
 
 function getProperty (properties, key) {
@@ -33,22 +34,22 @@ module.exports = [
             By default only creatable types are returned - pass creatableOnly: false to also see types the team cannot currently create.
             Pass projectType to look up one specific instance type and only see its stacks.
             Each type includes a defaultStack, which is the recommended (latest) stack for that type.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            teamId: z.string().describe('The hashid of the team to check instance type availability for'),
+            teamId: teamId.describe('The hashid of the team to check instance type availability for'),
             projectType: z.string().optional().describe('Optional ID of one hosted instance type to look up, to only return that type and its stacks'),
             creatableOnly: z.boolean().default(true).optional().describe('Whether to only include instance types the team can currently create. Defaults to true.')
         },
         handler: async (args, { inject }) => {
             const teamResponse = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}` })
             if (teamResponse.statusCode >= 400) {
-                return { content: teamResponse.json(), code: teamResponse.statusCode, isError: true }
+                return teamResponse
             }
             const team = teamResponse.json()
 
             const typesResponse = await inject({ method: 'GET', url: '/api/v1/project-types' })
             if (typesResponse.statusCode >= 400) {
-                return { content: typesResponse.json(), code: typesResponse.statusCode, isError: true }
+                return typesResponse
             }
 
             let types = typesResponse.json().types
@@ -83,7 +84,7 @@ module.exports = [
         name: 'platform_list_templates',
         title: 'List Templates',
         description: 'FlowFuse platform automation tool: List all available templates. When creating a hosted instance, if only one template exists, use it automatically. If multiple templates exist, ask the user which one to use.',
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {},
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: '/api/v1/templates' })
@@ -94,10 +95,79 @@ module.exports = [
         name: 'platform_list_blueprints',
         title: 'List Blueprints',
         description: 'FlowFuse platform automation tool: List all available flow blueprints. Blueprints provide starter flows that can be used when creating a new hosted instance.',
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {},
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: '/api/v1/flow-blueprints' })
+            return response
+        }
+    },
+    {
+        name: 'platform_get_template',
+        title: 'Get Template',
+        description: 'FlowFuse platform automation tool: Get a single template by id. Hidden environment variable values are blanked in the response; visible ones are returned as set.',
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            templateId: z.string().describe('Template hashid')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/templates/${args.templateId}` })
+            return response
+        }
+    },
+    {
+        name: 'platform_get_blueprint',
+        title: 'Get Blueprint',
+        description: 'FlowFuse platform automation tool: Get a single flow blueprint by id. By default the flow content is omitted from the response.',
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            flowBlueprintId: z.string().describe('Flow blueprint hashid'),
+            includeFlow: z.boolean().default(false).optional().describe('Whether to include the full flow JSON in the response. Omitted by default to keep the response small; set true to fetch it, e.g. to deploy it.')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/flow-blueprints/${args.flowBlueprintId}` })
+            if (response.statusCode >= 400) {
+                return response
+            }
+            const blueprint = response.json()
+            if (!args.includeFlow) {
+                blueprint.flows = 'Flow content omitted to keep the response small. Call this tool again with includeFlow: true to fetch the full flow JSON.'
+            }
+            return blueprint
+        }
+    },
+    {
+        name: 'platform_list_team_types',
+        title: 'List Team Types',
+        description: `FlowFuse platform automation tool:
+            Lists the team types (tiers/plans) available on the platform, with name search, active-state filtering and pagination.
+            Use this to see what team types exist before creating a team or to look up a team's current type.
+            Each type carries a long description field holding the raw HTML used to render the plan's feature list in
+            the UI. It is presentation markup, not data: ignore it, and read plan limits from properties instead.`,
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            ...basePagination,
+            ...searchQuery,
+            filter: z.enum(['all', 'active', 'inactive']).optional().describe('Which team types to include by active state (default active only)')
+        },
+        handler: async (args, { inject }) => {
+            const url = appendQuery('/api/v1/team-types', args, [...basePaginationKeys, ...searchQueryKeys, 'filter'])
+            const response = await inject({ method: 'GET', url })
+            return response
+        }
+    },
+    {
+        name: 'platform_get_team_type',
+        title: 'Get Team Type',
+        description: `FlowFuse platform automation tool:
+            Gets the details of a single team type by its hashid.
+            Use this to inspect the tier/plan a team is on, or to check a team type before assigning it to a new team.`,
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamTypeId: z.string().describe('Team type hashid')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/team-types/${args.teamTypeId}` })
             return response
         }
     },
@@ -111,7 +181,7 @@ module.exports = [
             The returned sessions include the tab's current context (what page the user is viewing, which team/instance/device is selected, editor state, and capabilities).
             Pick a session_id from the results and pass it as the target for subsequent tool invocations.
             If no sessions are returned, ask the user to open the FlowFuse platform in their browser and enable the MCP toggle (the plug icon next to the Expert button in the header).`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: { }, // future - consider adding userId so that admin users can ask "what sessions does user X have?"
         handler: async (args, { app, user }) => {
             if (!app.db.controllers.BrowserSession) {
@@ -130,7 +200,7 @@ module.exports = [
                     sessions: [],
                     message: 'No active browser sessions found for this user. ' +
                         'Please let the user know they need to: ' +
-                        `1. Open the [FlowFuse platform](${baseUrl}) in their browser.` +
+                        `1. Open the [FlowFuse platform](${baseUrl}) in their browser. ` +
                         '2. Click the MCP toggle button (plug icon next to the Expert button in the header). ' +
                         'Once enabled, the browser tab will appear in this list. ' +
                         'Share these instructions with the user and retry once they confirm the toggle is on.'
@@ -157,7 +227,7 @@ module.exports = [
             platform_ui and flow_building tool calls, so you don't need to pass a session id with every call.
             Call platform_list_browser_sessions first to get a valid session_id.
             The pin is remembered for this MCP connection until changed, the tab closes, or it expires.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             session_id: z.string().describe('The sessionId of the browser tab to target, from platform_list_browser_sessions')
         },
@@ -224,9 +294,12 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Returns the browser tab currently pinned as the active target for platform_ui and flow_building tool calls,
             as set by platform_set_active_browser_session.
+            The capabilities array reports which browser-bound tool groups this tab can actually serve: a plain platform
+            page carries platform_ui but not flow_building, which needs a tab open on a Node-RED editor. Read it before
+            assuming a flow_building call will work.
             If none is set, or the pinned tab is no longer live, call platform_list_browser_sessions and
             platform_set_active_browser_session to pick one.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {},
         handler: async (args, { app, user, mcpSessionId }) => {
             if (!app.db.controllers.BrowserSession) {
@@ -242,7 +315,11 @@ module.exports = [
                 }
             }
 
-            return { activeSessionId: activeSession.sessionId, context: activeSession.context || null }
+            return {
+                activeSessionId: activeSession.sessionId,
+                capabilities: activeSession.capabilities || [],
+                context: activeSession.context || null
+            }
         }
     }
 ]

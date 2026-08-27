@@ -37,6 +37,9 @@ module.exports = fp(async function (app, _opts) {
             if (key === 'telemetry:enabled' && app.license.active()) {
                 return true
             }
+            if (key === 'telemetry:anonymize') {
+                return app.config.telemetry.anonymize
+            }
             return settings[key]
         },
         set: async (key, value) => {

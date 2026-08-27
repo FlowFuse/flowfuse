@@ -30,6 +30,44 @@ function patAllowsWrite (pat, scope) {
     const permission = Permissions[scope]
     return !permission || permission.access === 'read'
 }
+
+/**
+ * Build a predicate that drops out-of-scope teams from user-scoped list
+ * responses, where there is no single team for the preHandler PAT check to
+ * gate on.
+ * @param {object} request - The Fastify request
+ * @returns {((teamHashId: string) => boolean)|null} a predicate returning true
+ *   for in-scope teams, or null when the caller is not a team-scoped PAT
+ */
+function patTeamScopeFilter (request) {
+    const pat = request.session.pat
+    if (!pat || !pat.teamScopes) {
+        return null
+    }
+    return (teamHashId) => patAllowsTeam(pat, teamHashId)
+}
+
+/**
+ * Resolve the team hashid a request is acting on.
+ *
+ * PATs are team-scoped, but entity-addressed routes set the entity, not
+ * request.team, so resolve the team from whatever the route loaded (the entity's
+ * team, falling back to the team membership).
+ * @param {object} app - The forge app instance
+ * @param {object} request - The Fastify request
+ * @returns {string|null} the team hashid, or null when there is no team context
+ */
+function resolveRequestTeamHashid (app, request) {
+    const loadedTeam = request.team || request.application?.Team || request.project?.Team || request.device?.Team
+    if (loadedTeam?.hashid) {
+        return loadedTeam.hashid
+    }
+    const teamId = request.teamMembership?.TeamId ?? request.owner?.TeamId ?? request.teamId
+    if (teamId !== undefined && teamId !== null) {
+        return app.db.models.Team.encodeHashid(teamId)
+    }
+    return null
+}
 // For device/project tokens, list the scopes they implicitly have.
 // This will allow us to add scopes to existing tokens without having to update
 // them (as that requires reprovisioning of devices and restaging of projects)
@@ -91,6 +129,23 @@ module.exports = fp(async function (app, opts) {
             throw new Error(`Unrecognised scope requested: '${scope}'`)
         }
         return async (request, reply) => {
+            // Third-party MCP callers may only act on teams with the AI feature
+            // enabled. The team comes from whatever the route already resolved
+            // (directly, or via an application, instance, or device), never from
+            // the tool arguments; a request with no team context is not gated.
+            if (requestContext.get('sourceContext')?.source === 'mcp') {
+                const loadedTeam = request.team || request.application?.Team || request.project?.Team || request.device?.Team
+                const teamId = loadedTeam?.id ?? request.teamMembership?.TeamId
+                if (teamId !== undefined && teamId !== null) {
+                    // getFeatureProperty falls back to the team type, so ensure the
+                    // type is loaded, re-fetching only when it isn't already.
+                    const team = loadedTeam?.TeamType ? loadedTeam : await app.db.models.Team.byId(teamId)
+                    if (team && !team.getFeatureProperty('ai', true)) {
+                        reply.code(403).send({ code: 'unauthorized', error: 'AI features are disabled for this team' })
+                        throw new Error()
+                    }
+                }
+            }
             if (!request.session.scope && request.session.User && request.session.User.admin) {
                 // Admins get to have all the fun - as long as they are logged in and not
                 // using an access-token which has a reduced scope.
@@ -103,7 +158,8 @@ module.exports = fp(async function (app, opts) {
                             reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
                             throw new Error()
                         }
-                        if (request.team && !patAllowsTeam(request.session.pat, request.team.hashid)) {
+                        const teamHashid = resolveRequestTeamHashid(app, request)
+                        if (teamHashid && !patAllowsTeam(request.session.pat, teamHashid)) {
                             reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
                             throw new Error()
                         }
@@ -170,7 +226,8 @@ module.exports = fp(async function (app, opts) {
             // This runs after the standard permission checks pass, as an
             // additional restriction layer for PAT-authenticated requests.
             if (request.session.pat) {
-                if (request.team && !patAllowsTeam(request.session.pat, request.team.hashid)) {
+                const teamHashid = resolveRequestTeamHashid(app, request)
+                if (teamHashid && !patAllowsTeam(request.session.pat, teamHashid)) {
                     reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
                     throw new Error()
                 }
@@ -196,4 +253,5 @@ module.exports = fp(async function (app, opts) {
 
     app.decorate('hasPermission', hasPermission)
     app.decorate('needsPermission', needsPermission)
+    app.decorate('patTeamScopeFilter', patTeamScopeFilter)
 }, { name: 'app.routes.auth.permissions' })

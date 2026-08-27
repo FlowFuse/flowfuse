@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { isInstanceOnNR5Plus } from '../../../../frontend/src/utils/instanceVersion.ts'
+import { isInstanceOnNR5Plus, meetsMinLauncherVersion } from '../../../../frontend/src/utils/instanceVersion.ts'
 
 describe('isInstanceOnNR5Plus', () => {
     test('returns false for null / undefined / empty objects', () => {
@@ -51,5 +51,29 @@ describe('isInstanceOnNR5Plus', () => {
             meta: { versions: { 'node-red': '4.1.8' } },
             nodeRedVersion: '5.0.0'
         })).toBe(false)
+    })
+})
+
+describe('meetsMinLauncherVersion', () => {
+    const MIN = '2.33.0'
+
+    test('returns true when the launcher version is unknown or unparseable', () => {
+        expect(meetsMinLauncherVersion(null, MIN)).toBe(true)
+        expect(meetsMinLauncherVersion(undefined, MIN)).toBe(true)
+        expect(meetsMinLauncherVersion({}, MIN)).toBe(true)
+        expect(meetsMinLauncherVersion({ meta: { versions: {} } }, MIN)).toBe(true)
+        expect(meetsMinLauncherVersion({ meta: { versions: { launcher: 'not-a-version' } } }, MIN)).toBe(true)
+    })
+
+    test('returns false when the launcher is below the minimum', () => {
+        expect(meetsMinLauncherVersion({ meta: { versions: { launcher: '2.32.1' } } }, MIN)).toBe(false)
+        expect(meetsMinLauncherVersion({ meta: { versions: { launcher: '2.8.0' } } }, MIN)).toBe(false)
+        expect(meetsMinLauncherVersion({ meta: { versions: { launcher: '1.0.0' } } }, MIN)).toBe(false)
+    })
+
+    test('returns true when the launcher is at or above the minimum', () => {
+        expect(meetsMinLauncherVersion({ meta: { versions: { launcher: '2.33.0' } } }, MIN)).toBe(true)
+        expect(meetsMinLauncherVersion({ meta: { versions: { launcher: '2.33.2' } } }, MIN)).toBe(true)
+        expect(meetsMinLauncherVersion({ meta: { versions: { launcher: '3.0.0' } } }, MIN)).toBe(true)
     })
 })

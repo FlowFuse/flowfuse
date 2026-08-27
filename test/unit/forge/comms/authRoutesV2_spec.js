@@ -1671,6 +1671,65 @@ describe('Broker Auth v2 API', async function () {
                     topic: `$share/browser/ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/heartbeat`
                 })
             })
+
+            // MCP client events, published by the platform to one tab:
+            // ff/v1/<team>/u/<user>/s/<session>/mcp/<event>
+            it('allows fe-team to subscribe to the mcp clients event for its own session', async function () {
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/mcp/clients`
+                })
+            })
+            // The filter is matched literally, so a wildcard needs a rule permissive enough to
+            // admit any event. There is only one event, so it is named and the wildcard denied.
+            it('denies fe-team from wildcarding the mcp event', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/mcp/+`
+                })
+            })
+            it('denies fe-team from subscribing to an mcp event that is not published', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/mcp/heartbeat`
+                })
+            })
+            it('denies fe-team from subscribing to another tab mcp events', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-abc12345/mcp/clients`
+                })
+            })
+            it('denies fe-team from wildcarding the session on mcp events', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/+/mcp/clients`
+                })
+            })
+            it('denies fe-team from subscribing to another user mcp events', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${bob.hashid}/s/session-1234567890/mcp/clients`
+                })
+            })
+            it('denies fe-team from subscribing to mcp events on another team', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${otherTeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/mcp/clients`
+                })
+            })
+            it('denies fe-team from publishing mcp events, they come from the platform', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/mcp/clients`
+                })
+            })
+            it('allows forge_platform to publish an mcp event to a tab', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/mcp/clients`
+                })
+            })
         })
 
         describe('MCP In-flight (fe-team)', async function () {

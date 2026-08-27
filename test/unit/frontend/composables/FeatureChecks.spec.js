@@ -126,6 +126,45 @@ describe('buildFeatureChecks', () => {
         })
     })
 
+    describe('platformSource: settingsRoot', () => {
+        function platformStateWithSettings (settings = {}) {
+            return { features: {}, settings, posthogFlags: {} }
+        }
+
+        // isTelemetryEnabled -> platformKey 'telemetry:enabled' from the settings root
+        test('reads the platform flag from the settings root', () => {
+            const checks = buildFeatureChecks(platformStateWithSettings({ 'telemetry:enabled': true }), team())
+            expect(checks.isTelemetryEnabled).toBe(true)
+        })
+
+        test('defaults to false when the key is missing', () => {
+            const checks = buildFeatureChecks(platformStateWithSettings({}), team())
+            expect(checks.isTelemetryEnabled).toBe(false)
+        })
+    })
+
+    describe('platformDefault', () => {
+        function platformStateWithSettings (settings = {}) {
+            return { features: {}, settings, posthogFlags: {} }
+        }
+
+        // isTelemetryAnonymized -> platformKey 'telemetry:anonymize', platformDefault: true
+        test('defaults to true when the key is missing', () => {
+            const checks = buildFeatureChecks(platformStateWithSettings({}), team())
+            expect(checks.isTelemetryAnonymized).toBe(true)
+        })
+
+        test('is false only when the key is explicitly false', () => {
+            const checks = buildFeatureChecks(platformStateWithSettings({ 'telemetry:anonymize': false }), team())
+            expect(checks.isTelemetryAnonymized).toBe(false)
+        })
+
+        test('is true when the key is explicitly true', () => {
+            const checks = buildFeatureChecks(platformStateWithSettings({ 'telemetry:anonymize': true }), team())
+            expect(checks.isTelemetryAnonymized).toBe(true)
+        })
+    })
+
     describe('dependency gates', () => {
         // isExpertAssistantFeatureEnabled -> optOut, dependsOnPlatform 'ai', dependsOnTeam 'ai' (optOut)
         const enabledState = platformState({ features: { expertAssistant: true, ai: true } })
