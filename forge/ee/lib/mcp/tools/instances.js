@@ -1,5 +1,7 @@
 const { z } = require('zod')
 
+const { teamId, applicationId, hostedInstanceId, searchQuery, sortParams, limitParam, pageParam, toolError } = require('../schemas')
+
 // Mirrors the runningStates/errorStates/stoppedStates groups in frontend/src/composables/InstanceStates.js,
 // the same grouping the dashboard's own Running/Error/Not Running status filter uses (frontend/src/pages/team/Instances.vue).
 const STATE_GROUPS = {
@@ -19,26 +21,54 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Lists hosted instances, either across a whole team or narrowed down to one application.
             A hosted instance is a Node-RED that runs on the same environment as the FlowFuse platform.
-            Pass applicationId to list only the instances inside one application (unpaginated, no live status unless includeLiveStatus is set).
-            Omit applicationId to list every hosted instance in the team (paginated with page/limit, each result includes its instance type, stack, and template).
+            Provide exactly one scope: applicationId to list the instances inside one application (unpaginated, no live status unless includeLiveStatus is set), or teamId to list every hosted instance in the team (paginated with page/limit, each result includes its instance type, stack, and template). Passing both, or neither, is rejected.
             Use state to filter by high-level status group ("running", "error", or "notRunning", the same groups as the dashboard's Running/Error/Not Running filter).
             Set includeLiveStatus to true to also fetch each instance's real-time running state (running, stopped, deploying, etc) - this is slower since it queries the underlying containers, so only set it when the user actually needs to know what's happening right now.
+            count means different things per scope: team-wide it is the total across all pages, so compare it against the
+            length of the instances array and page with page/limit; scoped to an application the listing is unpaginated,
+            so count is simply how many instances came back.
+            sort and orderByMostRecentFlows are not interchangeable and cannot be combined. sort orders purely by the
+            field you name. orderByMostRecentFlows sorts by health first (errored, then running, then stopped, then the
+            rest) and only uses recent flow activity to break ties within each bucket, so reach for it when the user
+            wants "what needs attention" rather than a plain ordering.
             To read the full settings of one specific instance, call platform_get_hosted_instance with its ID.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            teamId: z.string().describe('The ID or hashid of the team'),
-            applicationId: z.string().optional().describe('Restrict results to hosted instances inside this application. Omit to list every hosted instance in the team.'),
-            query: z.string().optional().describe('Search hosted instances by name'),
+            teamId: teamId.optional().describe('List every hosted instance in this team. Provide either this or applicationId, not both.'),
+            applicationId: applicationId.optional().describe('List only the hosted instances inside this application. Provide either this or teamId, not both.'),
+            query: searchQuery.query.describe('Search hosted instances by name'),
             state: z.array(z.enum(['running', 'error', 'notRunning'])).optional()
                 .describe('Filter by high-level status group, matching the dashboard\'s own status filter: "running" (includes starting/warning/deploying-type states), "error" (error/crashed), "notRunning" (stopped/suspended/offline/unknown, i.e. "Not Running" in the dashboard - note this is broader than just the "stopped" state). Team-wide, this filters on the last-known cached state. Scoped to an application, this requires a live status fetch, so it is applied after fetching (implies includeLiveStatus).'),
             includeLiveStatus: z.boolean().optional()
                 .describe('If true, also fetch each instance\'s real-time running state. Slower than filtering by state, since it queries every matching instance\'s container.'),
-            page: z.number().min(1).default(1).optional().describe('Page number to fetch (1-based). Ignored when applicationId is set, since that listing is not paginated.'),
-            limit: z.number().min(1).max(10).default(10).describe('How many results to return per page. Ignored when applicationId is set.')
+            page: pageParam.page.describe('Page number to fetch (1-based). Ignored when applicationId is set, since that listing is not paginated.'),
+            limit: limitParam.limit.describe('How many results to return per page (1-50, default 10). Ignored when applicationId is set.'),
+            sort: z.enum(['name', 'createdAt', 'updatedAt', 'application.name', 'flowLastUpdatedAt']).optional().describe('Field to sort the team-wide instance list by (ignored when applicationId is set). The "flowLastUpdatedAt" option additionally requires includeLiveStatus to be set; without it the list falls back to its default order. Cannot be combined with orderByMostRecentFlows.'),
+            dir: sortParams.dir,
+            orderByMostRecentFlows: z.boolean().optional().describe('Order the team-wide list by health first (errored, then running, then stopped, then the rest), using most recent flow activity to break ties within each group. Use this for a "what needs attention first" ordering. Requires includeLiveStatus, is ignored when applicationId is set, and cannot be combined with sort.')
         },
         handler: async (args, { inject }) => {
+            if (args.teamId && args.applicationId) {
+                return toolError(400, 'invalid_request', 'Provide either teamId to list a whole team or applicationId to list a single application, not both.')
+            }
+            if (!args.teamId && !args.applicationId) {
+                return toolError(400, 'invalid_request', 'Provide teamId to list a whole team, or applicationId to list a single application.')
+            }
             if (args.applicationId) {
+                const teamOnly = ['sort', 'dir', 'orderByMostRecentFlows'].filter((key) => args[key] !== undefined)
+                if (teamOnly.length > 0) {
+                    return toolError(400, 'invalid_request', `${teamOnly.join(', ')} can only be used when listing across a whole team. Drop applicationId to sort the team-wide list, or remove these parameters to list this application.`)
+                }
                 return listApplicationHostedInstances(args, { inject })
+            }
+            // Team path only: both of these are team-wide ordering controls.
+            if (args.sort !== undefined && args.orderByMostRecentFlows !== undefined) {
+                // The route applies orderByMostRecentFlows only when sort produced no ordering, so
+                // passing both silently drops the health-first ordering the caller asked for.
+                return toolError(400, 'invalid_request', 'sort and orderByMostRecentFlows are different orderings and cannot be combined - sort would win and orderByMostRecentFlows would be ignored. Pick one: sort for a plain field ordering, orderByMostRecentFlows for health-first.')
+            }
+            if (args.orderByMostRecentFlows && !args.includeLiveStatus) {
+                return toolError(400, 'invalid_request', 'orderByMostRecentFlows requires includeLiveStatus, since the ordering is computed from live state. Set includeLiveStatus: true or drop orderByMostRecentFlows.')
             }
             return listTeamHostedInstances(args, { inject })
         }
@@ -54,9 +84,9 @@ module.exports = [
             Read the specification from this tool whenever you need to know or compare what an existing instance is running, for example to duplicate it.
             If you need to list all hosted instances first, call platform_list_hosted_instances.
             To check the live running status, call platform_get_hosted_instance_status instead.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            hostedInstanceId: z.string().describe('The ID or hashid of the hosted instance')
+            hostedInstanceId
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}` })
@@ -71,9 +101,9 @@ module.exports = [
             This is different from platform_get_hosted_instance: that tool gives you metadata and settings,
             this tool tells you what the instance is doing right now.
             Use this when the user asks if an instance is running, or when you need to check before performing an action that requires it to be online.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            hostedInstanceId: z.string().describe('The ID or hashid of the hosted instance')
+            hostedInstanceId
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/status` })
@@ -87,12 +117,20 @@ module.exports = [
             Gets the runtime logs for a hosted instance.
             These are the Node-RED console logs showing what happened while the instance was running.
             Use this when the user wants to debug a problem, check what happened after a restart, or look for errors.
-            Results come back newest first. Use cursor to page through older entries.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+            With no cursor you get the most recent entries, but WITHIN the returned page entries are ordered
+            oldest first, so log[0] is the earliest line of the page and the last element is the newest.
+            Paging goes in two directions and meta carries a cursor for each: meta.next_cursor moves towards NEWER
+            entries, and meta.previous_cursor moves towards OLDER ones. To read further back through history - the
+            usual case when debugging - follow previous_cursor, not next_cursor. Older cursors are prefixed with "-";
+            pass whichever cursor value meta gave you through unchanged rather than building one yourself.
+            meta.first_entry and meta.last_entry are the bounds of the whole retained log, so a page whose earliest
+            entry equals first_entry means there is nothing older to fetch.
+            A suspended instance has no logs to serve and returns a project_suspended error.`,
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            hostedInstanceId: z.string().describe('The ID or hashid of the hosted instance'),
-            limit: z.number().min(1).max(100).describe('Number of log entries to return'),
-            cursor: z.string().optional().describe('Cursor for pagination (the ID of the last entry from the previous page)')
+            hostedInstanceId,
+            limit: z.number().int().min(1).max(100).default(10).optional().describe('Number of log entries to return (1-100, default 10). Higher than other list tools because log lines are small.'),
+            cursor: z.string().optional().describe('Pagination cursor, taken verbatim from a previous response\'s meta.next_cursor (newer entries) or meta.previous_cursor (older entries). Omit to get the most recent page.')
         },
         handler: async (args, { inject }) => {
             const params = new URLSearchParams()
@@ -114,14 +152,30 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Checks if a name is available for a new hosted instance.
             Hosted instance names must be unique across the entire platform.
-            Use this before calling platform_create_hosted_instance to make sure the name the user picked is not already taken.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+            Use this before calling platform_create_hosted_instance to make sure the name the user picked is not already taken.
+            A name already in use is a normal answer, not a failure: it comes back as { available: false } with a reason,
+            so treat only a genuine error envelope as something going wrong.`,
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             name: z.string().regex(/^[a-zA-Z][a-zA-Z0-9-]*$/).describe('The hosted instance name to check')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'POST', url: '/api/v1/projects/check-name', payload: { name: args.name } })
-            return response
+            // A taken name is the answer this tool exists to give, so report it as
+            // available: false rather than passing the route's 409 back as an error.
+            if (response.statusCode === 409) {
+                return {
+                    statusCode: 200,
+                    json: () => ({ available: false, reason: response.json()?.error || 'name in use' })
+                }
+            }
+            if (response.statusCode >= 400) {
+                return response
+            }
+            return {
+                statusCode: 200,
+                json: () => ({ ...response.json(), available: true })
+            }
         }
     },
     {
@@ -137,10 +191,10 @@ module.exports = [
             5. Call platform_check_hosted_instance_name_availability to make sure the chosen name is not already taken. This step is required, not optional - skipping it is the most common cause of a failed creation. If the name is taken, do not silently pick a new one yourself - propose a few alternative options (e.g. with a suffix) and let the user choose, then check that chosen name's availability too.
             When generating a name, always use hyphens to separate multiple words (e.g. "my-new-instance" not "my new instance").
             After the instance is created, wait a few seconds to give it time to boot up, then ask the user if they want to be taken to it. If they do, use the ui_navigate tool with the route name "instance-overview" and params { id: <the new instance id> }.`,
-        annotations: { readOnlyHint: false, destructiveHint: false },
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             name: z.string().regex(/^[a-zA-Z][a-zA-Z0-9-]*$/).describe('Name for the new hosted instance. When generating a name, always use hyphens to separate multiple words (e.g. "my-new-instance" not "my new instance").'),
-            applicationId: z.string().describe('The ID or hashid of the application'),
+            applicationId,
             projectType: z.string().describe('The ID of the hosted instance type (use platform_list_hosted_instance_types to find valid values)'),
             stack: z.string().describe('The ID of the stack (use platform_list_hosted_instance_types to find valid values)'),
             template: z.string().describe('The ID of the template (use platform_list_templates to find valid values)'),
@@ -158,6 +212,149 @@ module.exports = [
                 payload.flowBlueprintId = args.flowBlueprintId
             }
             const response = await inject({ method: 'POST', url: '/api/v1/projects', payload })
+            if (response.statusCode >= 400) {
+                return response
+            }
+            // GET /projects/:id blanks hidden template env values before replying; the create
+            // route does not, so without this the same secrets that platform_get_hosted_instance
+            // and platform_get_template redact come back here in plaintext.
+            const project = response.json()
+            if (Array.isArray(project.template?.settings?.env)) {
+                project.template.settings.env = project.template.settings.env.map(
+                    (env) => (env?.hidden ? { ...env, value: '' } : env)
+                )
+            }
+            return { statusCode: response.statusCode, json: () => project }
+        }
+    },
+    {
+        name: 'platform_get_hosted_instance_config',
+        title: 'Get Hosted Instance Configuration',
+        description: `FlowFuse platform automation tool:
+            Returns configuration sections for a hosted instance, as a keyed object with one entry per requested section.
+            The available sections are:
+            "ha" - the High Availability configuration, which runs an instance across multiple replicas so it stays up if one replica fails (plan-gated: a team without it enabled gets a 404 for this section).
+            "protection" - the protected-instance configuration, which requires extra confirmation before destructive actions such as suspension or deletion (plan-gated: a team without it enabled gets a 404 for this section).
+            "autoUpdateStack" - the auto-update stack (weekly restart) schedule, controlling the windows in which the platform may automatically restart the instance to apply a stack update (no plan gate: a 404 means the instance does not exist).
+            Omit sections to return all three. Each section is reported independently as { statusCode, data }, where data holds that section's payload (an object for "ha" and "protection", an array of weekly restart windows for "autoUpdateStack"). One section being unavailable does not affect the others, and the call itself succeeds even when every section is unavailable - read each section's own statusCode rather than treating the whole call as failed.`,
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            hostedInstanceId,
+            sections: z.array(z.enum(['ha', 'protection', 'autoUpdateStack'])).optional().describe('Which configuration sections to return. Omit to return all sections.')
+        },
+        handler: async (args, { inject }) => {
+            const sectionRoutes = {
+                ha: 'ha',
+                protection: 'protectInstance',
+                autoUpdateStack: 'autoUpdateStack'
+            }
+            const requested = args.sections?.length ? args.sections : ['ha', 'protection', 'autoUpdateStack']
+            const responses = await Promise.all(
+                requested.map((section) => inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/${sectionRoutes[section]}` }))
+            )
+            const result = {}
+            requested.forEach((section, index) => {
+                const response = responses[index]
+                result[section] = { statusCode: response.statusCode, data: response.json() }
+            })
+            // Always a successful call, for the same reason as above: every section reports its
+            // own statusCode, so an error status on the envelope would only stringify the whole
+            // per-section report away - which is what happened when all requested sections 404'd.
+            return { statusCode: 200, json: () => result }
+        }
+    },
+    {
+        name: 'platform_get_hosted_instance_custom_hostname',
+        title: 'Get Hosted Instance Custom Hostname',
+        description: `FlowFuse platform automation tool:
+            Returns the custom hostname configured for a hosted instance.
+            Custom hostnames are a plan-gated feature: a team without it enabled gets a 404 error.
+            Set includeStatus to also fetch the live verification status of the hostname, i.e. whether the DNS
+            CNAME record has been set up correctly and points at the platform.
+            When includeStatus is set, the two parts are reported independently as { statusCode, data }, the same way
+            platform_get_hosted_instance_config reports its sections - one part failing does not hide the other.
+            For that status, a 200 means the hostname is verified, a 410 means a hostname is set but its CNAME
+            record does not resolve to the platform yet, and a 404 can mean no custom hostname is configured,
+            the platform does not support hostname verification, or the feature is not enabled for the team.`,
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            hostedInstanceId,
+            includeStatus: z.boolean().optional().describe('If true, also fetch the live verification status of the custom hostname')
+        },
+        handler: async (args, { inject }) => {
+            const hostnameResponse = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/customHostname` })
+            if (!args.includeStatus) {
+                return hostnameResponse
+            }
+            const statusResponse = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/customHostname/status` })
+            // Report each part with its own status, as get_hosted_instance_config does. Keeping the
+            // first response's error status here would send this composed body down formatResponse's
+            // error branch, where it gets stringified into a single unreadable `error` field.
+            const result = {
+                hostname: { statusCode: hostnameResponse.statusCode, data: hostnameResponse.json() },
+                status: { statusCode: statusResponse.statusCode, data: statusResponse.json() }
+            }
+            // Always a successful call: gathering the report worked, and each part carries its
+            // own statusCode to say how that part went. Returning an error status here instead
+            // sends this composed body down formatResponse's error branch, which stringifies the
+            // whole thing into one unreadable `error` field - including the ordinary "no custom
+            // hostname configured" case, where both parts are a 404.
+            return { statusCode: 200, json: () => result }
+        }
+    },
+    {
+        name: 'platform_list_hosted_instance_files',
+        title: 'List Hosted Instance Files',
+        description: `FlowFuse platform automation tool:
+            Lists the files and directories inside a hosted instance's file store at the given path.
+            Pass an empty string for the path to list the root of the file store.
+            The result has a "files" array, where each entry has a "name" (relative to the path just listed, not a full path) and a "type" of either "file" or "directory".
+            To descend into a directory, call again with path set to that directory's name, or joined onto the current path with a "/" separator when you are already in a subdirectory (for example "logs" then "logs/archive").
+            Static file storage is a plan-gated feature: a team without it enabled gets a 404 error.`,
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            hostedInstanceId,
+            path: z.string().describe('Directory path within the instance file store to list, relative to the file-store root (empty string for the root itself). Build deeper paths by joining directory names with "/".')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/files/_/${encodeURIComponent(args.path)}` })
+            return response
+        }
+    },
+    {
+        name: 'platform_get_hosted_instance_resources',
+        title: 'Get Hosted Instance Resources',
+        description: `FlowFuse platform automation tool:
+            Reads recent resource usage (CPU, memory) for a hosted instance as a time-series: a list of samples over time, each with a timestamp, rather than a single current reading.
+            Each sample uses short keys: ts is the sample time (epoch milliseconds), ps is resident memory in megabytes,
+            cpu is CPU use as a percentage of one core, and src is a short hash of the reporting replica's hostname,
+            which is what separates the replicas of an HA instance. cpu is absent on the first sample after a start,
+            because it is derived from the delta against the previous sample.
+            This is plan-gated on the instanceResources feature, which defaults to disabled; if the team's plan has this feature disabled, the call returns a not-found error.
+            This returns the stored usage history, not a live streaming feed.
+            The whole retained history comes back in one response and cannot be paged or narrowed, so it can be long for a
+            busy instance. Read the samples you need from the result rather than calling this repeatedly.`,
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            hostedInstanceId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/resources` })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_team_dashboard_instances',
+        title: 'List Team Dashboard Instances',
+        description: `FlowFuse platform automation tool:
+            Lists the hosted instances in a team that have the Node-RED dashboard module installed.
+            Use this to find instances that expose a dashboard rather than checking every instance individually.`,
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/dashboard-instances` })
             return response
         }
     }
@@ -216,6 +413,15 @@ async function listTeamHostedInstances (args, { inject }) {
     }
     if (args.includeLiveStatus) {
         params.set('includeMeta', 'true')
+    }
+    if (args.sort) {
+        params.set('sort', args.sort)
+    }
+    if (args.dir) {
+        params.set('dir', args.dir)
+    }
+    if (args.orderByMostRecentFlows) {
+        params.set('orderByMostRecentFlows', 'true')
     }
 
     const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/projects?${params}` })

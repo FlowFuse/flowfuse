@@ -86,6 +86,7 @@ import PasswordExpired from './pages/PasswordExpired.vue'
 import TermsAndConditions from './pages/TermsAndConditions.vue'
 import UnverifiedEmail from './pages/UnverifiedEmail.vue'
 
+import product from '@/services/product.js'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
@@ -118,7 +119,7 @@ export default {
         ...mapState(useAccountAuthStore, ['user']),
         ...mapState(useUxLoadingStore, ['appLoader', 'offline']),
         ...mapState(useAccountSettingsStore, ['settings']),
-        ...mapState(useContextStore, ['instance', 'device']),
+        ...mapState(useContextStore, ['instance', 'device', 'team']),
         pageTitleSignal () {
             return [this.instance?.id, this.instance?.name, this.device?.id, this.device?.name, this.$route.name]
         },
@@ -167,6 +168,21 @@ export default {
                 if (isEditorRoute(this.$route)) return
                 const title = computePageTitle(this.$route, { instance: this.instance, device: this.device })
                 if (title) document.title = title
+            }
+        },
+        'team.id': {
+            immediate: true,
+            handler (teamId, oldTeamId) {
+                // PostHog evaluates its flags as soon as it initialises, before we know
+                // which team the user is in - so anything targeting the team group comes
+                // back false. On a hard refresh the team is rehydrated from sessionStorage
+                // and account.setTeam early-returns, so nothing ever tells PostHog about
+                // it. Registering the group here triggers a re-evaluation. First team of
+                // this page load only: real team switches already go through
+                // product.setTeam.
+                if (!oldTeamId && teamId) {
+                    product.setTeam(this.team)
+                }
             }
         }
     },

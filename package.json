@@ -97,6 +97,7 @@
         "handlebars": "^4.7.7",
         "hashids": "^2.3.0",
         "highlight.js": "^11.11.1",
+        "inquirer": "^14.1.0",
         "jsonwebtoken": "^9.0.0",
         "ldapts": "^8.1.8",
         "lottie-web-vue": "^2.0.7",

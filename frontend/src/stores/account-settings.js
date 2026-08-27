@@ -43,6 +43,8 @@ export const useAccountSettingsStore = defineStore('account-settings', {
             checks.isExternalMqttBrokerFeatureEnabled =
                 checks.isExternalMqttBrokerFeatureEnabledForPlatform && checks.isMqttBrokerFeatureEnabledForTeam
 
+            checks.deployment = checks.isTelemetryAnonymized === false ? 'cloud' : 'self-hosted'
+
             return checks
         }
     },

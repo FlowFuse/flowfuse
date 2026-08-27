@@ -1,5 +1,7 @@
 const { z } = require('zod')
 
+const { teamId, applicationId, hostedInstanceId, remoteInstanceId, limitParam, pageParam, toolError } = require('../schemas')
+
 module.exports = [
     {
         name: 'platform_list_remote_instances',
@@ -8,22 +10,32 @@ module.exports = [
             Lists remote instances, either across a whole team, narrowed down to one application, or narrowed down to one hosted instance's device group.
             Remote instances are sometimes referred to as devices.
             A remote instance is a Node-RED that runs on the user's own hardware (like a Raspberry Pi or an edge server) rather than on the same environment as the FlowFuse platform.
-            Pass applicationId to list only the remote instances assigned to one application, or hostedInstanceId to list only the remote instances assigned to one hosted instance's device group. Omit both to list every remote instance in the team.
+            Provide exactly one scope: teamId to list every remote instance in the team, applicationId to list only those assigned to one application, or hostedInstanceId to list only those assigned to one hosted instance's device group. Passing more than one, or none, is rejected.
             You can search by name using the query parameter, filter by mode ("autonomous", i.e. Fleet Mode, or "developer", i.e. Developer Mode), and page through results using page and limit.
             To get the full details of one specific remote instance, call platform_get_remote_instance with its ID.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            teamId: z.string().describe('The ID or hashid of the team'),
-            applicationId: z.string().optional().describe('Restrict results to remote instances assigned to this application. Omit to list every remote instance in the team.'),
-            hostedInstanceId: z.string().optional()
-                .describe('Restrict results to remote instances assigned to this hosted instance\'s device group (i.e. remote instances whose ownerType is "instance"). Takes priority over applicationId if both are set.'),
+            teamId: teamId.optional().describe('List every remote instance in this team. Provide exactly one of teamId, applicationId or hostedInstanceId.'),
+            applicationId: applicationId.optional().describe('Restrict results to remote instances assigned to this application. Provide exactly one of teamId, applicationId or hostedInstanceId.'),
+            hostedInstanceId: hostedInstanceId.optional()
+                .describe('Restrict results to remote instances assigned to this hosted instance\'s device group (i.e. remote instances whose ownerType is "instance"). Provide exactly one of teamId, applicationId or hostedInstanceId.'),
             query: z.string().optional().describe('Search remote instances by name or type'),
             mode: z.enum(['autonomous', 'developer']).optional()
                 .describe('Filter by mode: "autonomous" (Fleet Mode, running its assigned snapshot independently) or "developer" (Developer Mode, connected to the editor for live development). Matches the dashboard\'s own mode filter.'),
-            page: z.number().min(1).default(1).optional().describe('Page number to fetch (1-based). Defaults to 1.'),
-            limit: z.number().min(1).max(10).default(10).describe('How many results to return per page')
+            ...pageParam,
+            ...limitParam
         },
         handler: async (args, { inject, app }) => {
+            // Only one of these reaches a route, so accepting more than one would let a
+            // caller pass a team that is silently ignored and read the result as scoped to it.
+            const scopes = ['teamId', 'applicationId', 'hostedInstanceId'].filter((key) => args[key] !== undefined)
+            if (scopes.length > 1) {
+                return toolError(400, 'invalid_request', `Provide exactly one of teamId, applicationId or hostedInstanceId - got ${scopes.join(', ')}. Only one scope is applied, so the others would be ignored.`)
+            }
+            if (scopes.length === 0) {
+                return toolError(400, 'invalid_request', 'Provide exactly one of teamId (whole team), applicationId (one application) or hostedInstanceId (one instance\'s device group).')
+            }
+
             const params = new URLSearchParams({
                 page: String(args.page || 1),
                 limit: String(args.limit || 10)
@@ -48,7 +60,7 @@ module.exports = [
 
             const body = response.json()
             const devices = await Promise.all((body.devices || []).map(async (device) => {
-                const cachedLiveState = app ? await app.db.controllers.Device.getLiveCachedState(args.hostedInstanceId) : null
+                const cachedLiveState = app ? await app.db.controllers.Device.getLiveCachedState(device.id) : null
 
                 return {
                     id: device.id,
@@ -84,9 +96,9 @@ module.exports = [
             its name, online/offline status, which application and team it belongs to, what device group it is in,
             what snapshot it is currently running, and what snapshot it should be running (the target).
             If you need to list all remote instances first, call platform_list_remote_instances.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            remoteInstanceId: z.string().describe('The ID or hashid of the remote instance')
+            remoteInstanceId
         },
         handler: async (args, { inject, app }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/devices/${args.remoteInstanceId}` })
@@ -116,27 +128,37 @@ module.exports = [
         name: 'platform_get_remote_instance_status',
         title: 'Get Remote Instance Status',
         description: `FlowFuse platform automation tool:
-            Gets the live running status of a remote instance by querying the device directly over MQTT.
-            This returns the real-time state of the Node-RED runtime on the device (running, stopped, installing, etc.),
-            not the last-known state stored on the platform.
+            Gets the running status of a remote instance: the state of the Node-RED runtime on the device
+            (running, stopped, installing, etc.).
+            The platform keeps a short-lived cache of each device's reported state. This tool returns that cached
+            value when one is present, and only queries the device directly over MQTT on a cache miss, so a result
+            can be a few seconds old rather than sampled at the instant you asked. The cached flag tells you which
+            happened; health and snapshot are only carried on the live path and come back null on a cache hit.
             The remote instance must be online and reachable for this to work. If the device is offline, the call will time out.
             Use this when you need to know what the device is actually doing right now.
-            Other tools like platform_create_remote_instance_snapshot require the device to be running.
+            Other tools like platform_create_instance_snapshot (for a remote instance) require the device to be running.
             Always call this tool first to verify the device is live before using those tools.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            teamId: z.string().describe('The hashid of the team that owns the remote instance. You can get this from platform_get_remote_instance or ui_get_context.'),
-            remoteInstanceId: z.string().describe('The hashid of the remote instance')
+            teamId: teamId.describe('The hashid of the team that owns the remote instance. You can get this from platform_get_remote_instance or ui_get_context.'),
+            remoteInstanceId
         },
         handler: async (args, { app }) => {
             if (!app.comms?.devices) {
-                return { error: 'Device communications not available' }
+                return toolError(503, 'unexpected_error', 'Device communications are not available on this platform.')
             }
             try {
-                if (app) {
-                    const liveCachedState = await app.db.controllers.Device.getLiveCachedState(args.remoteInstanceId)
-                    if (liveCachedState) {
-                        return liveCachedState
+                const liveCachedState = await app.db.controllers.Device.getLiveCachedState(args.remoteInstanceId)
+                if (liveCachedState) {
+                    // The cache holds the bare state string (see Device.updateLiveCachedState).
+                    // Wrap it in the same shape as the MQTT reply below, so a cache hit and a
+                    // cache miss are not two different response contracts. health and snapshot
+                    // are not cached, hence null rather than absent.
+                    return {
+                        state: liveCachedState,
+                        health: null,
+                        snapshot: null,
+                        cached: true
                     }
                 }
 
@@ -144,10 +166,11 @@ module.exports = [
                 return {
                     state: response?.state || 'unknown',
                     health: response?.health ?? null,
-                    snapshot: response?.snapshot ?? null
+                    snapshot: response?.snapshot ?? null,
+                    cached: false
                 }
             } catch (err) {
-                return { error: 'Device is not reachable. It may be offline or not connected to the platform.' }
+                return toolError(504, 'unexpected_error', 'Device is not reachable. It may be offline or not connected to the platform.')
             }
         }
     },
@@ -161,10 +184,10 @@ module.exports = [
             The response includes credentials that the user will need to configure on their device to connect it to the platform.
             If the user named an application for this device, call platform_assign_remote_instance_to_application immediately after creation. If not, ask before assigning. A best practice is to always assign the remote instance to an application.
             After the device is created, ask the user if they want to be taken to it. If they do, use the ui_navigate tool with the route name "device-overview" and params { id: <the new device id> }.`,
-        annotations: { readOnlyHint: false, destructiveHint: false },
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             name: z.string().describe('Name for the new remote instance'),
-            teamId: z.string().describe('The ID or hashid of the team to register the device in'),
+            teamId: teamId.describe('The hashid of the team to register the device in'),
             type: z.string().optional().describe('Optional label describing the device type (e.g. "Raspberry Pi 4", "Edge Gateway")')
         },
         handler: async (args, { inject }) => {
@@ -180,13 +203,28 @@ module.exports = [
             Assigns a remote instance to an application.
             Use this after creating a remote instance with platform_create_remote_instance, or to move an existing remote instance into a different application.
             The remote instance and the application must belong to the same team.`,
-        annotations: { readOnlyHint: false, destructiveHint: false },
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
         inputSchema: {
-            remoteInstanceId: z.string().describe('The ID or hashid of the remote instance'),
-            applicationId: z.string().describe('The ID or hashid of the application to assign it to')
+            remoteInstanceId,
+            applicationId: applicationId.describe('The hashid of the application to assign it to')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'PUT', url: `/api/v1/devices/${args.remoteInstanceId}`, payload: { application: args.applicationId } })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_team_provisioning_tokens',
+        title: 'List Team Provisioning Tokens',
+        description: `FlowFuse platform automation tool:
+            Lists a team's device provisioning tokens. This summary view omits the token secret.
+            Use this to see what provisioning tokens exist for a team without exposing their secrets.`,
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/devices/provisioning` })
             return response
         }
     }

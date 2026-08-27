@@ -7,4 +7,17 @@ function redactDatabaseCredentials (database) {
     return rest
 }
 
-module.exports = { redactDatabaseCredentials }
+// Blanks the value of hidden (secret) env vars, keeping the key and hidden flag.
+function blankHiddenEnvValues (env) {
+    const result = {}
+    for (const [key, value] of Object.entries(env)) {
+        if (value && typeof value === 'object' && value.hidden) {
+            result[key] = { ...value, value: '' }
+        } else {
+            result[key] = value
+        }
+    }
+    return result
+}
+
+module.exports = { redactDatabaseCredentials, blankHiddenEnvValues }
