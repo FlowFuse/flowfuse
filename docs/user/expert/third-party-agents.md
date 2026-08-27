@@ -64,6 +64,11 @@ When you ask for flow work, your agent will guide you to connect an editor sessi
 
 The agents below are the common ones and where their settings live. Every other AI Agent that supports MCP over HTTP connects the same way.
 
+Pick yours for the address and the steps that apply to it:
+
+::agent-setup-tabs{:exclude-expert="true" :signup="false" surface="docs"}
+::
+
 ### Microsoft Copilot
 
 In **Copilot Studio**, open your agent's **Tools** page, select **Add a tool**, then **New tool**, then **Model Context Protocol**. Give the server a name and a description saying what it is for, since the orchestrator uses that description to decide when to call it, and enter the FlowFuse MCP address as the server URL.
