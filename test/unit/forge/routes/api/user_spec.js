@@ -1447,6 +1447,95 @@ describe('User API', async function () {
                 response.statusCode.should.equal(403)
             })
 
+            it('team-scoped PAT sees only in-scope teams from /user/teams', async function () {
+                // bob belongs to ATeam and BTeam; scope the PAT to ATeam only
+                await login('bob', 'bbPassword')
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.bob },
+                    payload: { name: 'ATeam Only (teams)', scope: '', teamIds: [TestObjects.ATeam.hashid] }
+                })
+                createResponse.statusCode.should.equal(200)
+                const patToken = createResponse.json().token
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/user/teams',
+                    headers: { authorization: `Bearer ${patToken}` }
+                })
+                response.statusCode.should.equal(200)
+                response.json().teams.map(team => team.id).should.deepEqual([TestObjects.ATeam.hashid])
+            })
+
+            it('team-scoped PAT drops out-of-scope invitations from /user/invitations', async function () {
+                // grace is a member of BTeam only; invite her to ATeam
+                await login('grace', 'ggPassword')
+                await app.db.controllers.Invitation.createInvitations(TestObjects.alice, TestObjects.ATeam, ['grace'])
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.grace },
+                    payload: { name: 'BTeam Only (invites)', scope: '', teamIds: [TestObjects.BTeam.hashid] }
+                })
+                createResponse.statusCode.should.equal(200)
+                const patToken = createResponse.json().token
+
+                // The cookie session sees the ATeam invite; the BTeam-scoped PAT does not
+                const cookieResponse = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/user/invitations',
+                    cookies: { sid: TestObjects.tokens.grace }
+                })
+                cookieResponse.json().invitations.should.have.length(1)
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/user/invitations',
+                    headers: { authorization: `Bearer ${patToken}` }
+                })
+                response.statusCode.should.equal(200)
+                response.json().invitations.should.have.length(0)
+            })
+
+            it('team-scoped PAT hides an out-of-scope defaultTeam on /user', async function () {
+                await login('bob', 'bbPassword')
+                const originalDefault = TestObjects.bob.defaultTeamId
+                TestObjects.bob.defaultTeamId = TestObjects.BTeam.id
+                await TestObjects.bob.save()
+                try {
+                    const outOfScope = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/user/tokens',
+                        cookies: { sid: TestObjects.tokens.bob },
+                        payload: { name: 'ATeam Only (profile)', scope: '', teamIds: [TestObjects.ATeam.hashid] }
+                    })
+                    const outResponse = await app.inject({
+                        method: 'GET',
+                        url: '/api/v1/user',
+                        headers: { authorization: `Bearer ${outOfScope.json().token}` }
+                    })
+                    outResponse.statusCode.should.equal(200)
+                    outResponse.json().should.not.have.property('defaultTeam')
+
+                    const inScope = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/user/tokens',
+                        cookies: { sid: TestObjects.tokens.bob },
+                        payload: { name: 'BTeam Only (profile)', scope: '', teamIds: [TestObjects.BTeam.hashid] }
+                    })
+                    const inResponse = await app.inject({
+                        method: 'GET',
+                        url: '/api/v1/user',
+                        headers: { authorization: `Bearer ${inScope.json().token}` }
+                    })
+                    inResponse.json().should.have.property('defaultTeam', TestObjects.BTeam.hashid)
+                } finally {
+                    TestObjects.bob.defaultTeamId = originalDefault
+                    await TestObjects.bob.save()
+                }
+            })
+
             it('team-agnostic PAT (no teamScopes) can access any team the user belongs to', async function () {
                 await login('bob', 'bbPassword')
                 const createResponse = await app.inject({

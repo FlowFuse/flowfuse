@@ -32,6 +32,22 @@ function patAllowsWrite (pat, scope) {
 }
 
 /**
+ * Build a predicate that drops out-of-scope teams from user-scoped list
+ * responses, where there is no single team for the preHandler PAT check to
+ * gate on.
+ * @param {object} request - The Fastify request
+ * @returns {((teamHashId: string) => boolean)|null} a predicate returning true
+ *   for in-scope teams, or null when the caller is not a team-scoped PAT
+ */
+function patTeamScopeFilter (request) {
+    const pat = request.session.pat
+    if (!pat || !pat.teamScopes) {
+        return null
+    }
+    return (teamHashId) => patAllowsTeam(pat, teamHashId)
+}
+
+/**
  * Resolve the team hashid a request is acting on.
  *
  * PATs are team-scoped, but entity-addressed routes set the entity, not
@@ -237,4 +253,5 @@ module.exports = fp(async function (app, opts) {
 
     app.decorate('hasPermission', hasPermission)
     app.decorate('needsPermission', needsPermission)
+    app.decorate('patTeamScopeFilter', patTeamScopeFilter)
 }, { name: 'app.routes.auth.permissions' })
