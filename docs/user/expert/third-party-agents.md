@@ -14,7 +14,7 @@ is controlled by your agent, not by FlowFuse.
 
 ## Connect your agent
 
-Any MCP client that speaks HTTP can connect. That is the only requirement.
+Any MCP client that supports the HTTP transport can connect. That is the only requirement.
 
 1. **Add the FlowFuse MCP address in your agent's connector settings.** See
    [where to add it, per agent](#where-to-add-it-per-agent) if you are not sure where yours
@@ -97,8 +97,8 @@ ends it.
 
 ## Where to add it, per agent
 
-The agents below are the common ones and where their settings live. Anything else that speaks
-MCP over HTTP connects in the same way.
+The agents below are the common ones and where their settings live. Every other AI Agent that
+supports MCP over HTTP connects the same way.
 
 ### Microsoft Copilot
 
