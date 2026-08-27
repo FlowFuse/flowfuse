@@ -6,6 +6,7 @@
             class="flex-1"
         />
         <template v-else-if="team">
+            <FeatureUnavailable v-if="remoteInstancesDisabled" fullMessage="Remote Instances are not available for your platform." :class="{'mt-0': displayingTeam }" />
             <FeatureUnavailableToTeam v-if="teamDeviceLimitReached" fullMessage="You have reached the limit for Remote Instances in this team." :class="{'mt-0': displayingTeam }" />
             <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the limit for Instances in this team." :class="{'mt-0': displayingTeam }" />
             <div class="devices-status-bars-container">
@@ -101,7 +102,7 @@
                         class="font-normal ff-btn-icon"
                         data-action="register-device"
                         kind="primary"
-                        :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
+                        :disabled="remoteInstancesDisabled || teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                         @click="showCreateDeviceDialog"
                     >
                         <template #icon-left>
@@ -177,7 +178,7 @@
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
                                 class="font-normal ff-btn-icon"
                                 kind="primary"
-                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
+                                :disabled="remoteInstancesDisabled || teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                                 data-action="register-device"
                                 @click="showCreateDeviceDialog"
                             >
@@ -216,7 +217,7 @@
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
                                 class="font-normal ff-btn-icon"
                                 kind="primary"
-                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
+                                :disabled="remoteInstancesDisabled || teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                                 data-action="register-device"
                                 @click="showCreateDeviceDialog"
                             >
@@ -255,7 +256,7 @@
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
                                 class="font-normal ff-btn-icon"
                                 kind="primary"
-                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
+                                :disabled="remoteInstancesDisabled || teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                                 data-action="register-device"
                                 @click="showCreateDeviceDialog"
                             >
@@ -402,7 +403,10 @@ import { debounce } from '../utils/eventHandling.js'
 import { createPollTimer } from '../utils/timers.js'
 
 import EmptyState from './EmptyState.vue'
+
+import FeatureUnavailable from './banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from './banners/FeatureUnavailableToTeam.vue'
+
 import DevicesStatusBar from './charts/DeviceStatusBar.vue'
 import AddDeviceToGroupDialog from './dialogs/device-group-management/AddDeviceToGroupDialog.vue'
 import RemoveDeviceFromGroupDialog from './dialogs/device-group-management/RemoveDeviceFromGroupDialog.vue'
@@ -427,6 +431,7 @@ export default {
         DeviceAssignInstanceDialog,
         DeviceCredentialsDialog,
         DropdownMenu,
+        FeatureUnavailable,
         FeatureUnavailableToTeam,
         PlusSmallIcon,
         SnapshotAssignDialog,
@@ -581,6 +586,9 @@ export default {
         activeFilterCount () {
             const modeCount = (this.deviceModeFilters.fleetMode ? 1 : 0) + (this.deviceModeFilters.developerMode ? 1 : 0)
             return modeCount + this.selectedStatusGroups.length
+        },
+        remoteInstancesDisabled () {
+            return !this.featuresCheck?.isRemoteInstanceFeatureEnabledForPlatform
         },
         teamRuntimeLimitReached () {
             let teamTypeRuntimeLimit = getTeamProperty(this.team, 'runtimes.limit')

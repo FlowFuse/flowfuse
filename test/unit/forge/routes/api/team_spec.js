@@ -1053,7 +1053,7 @@ describe('Team API', function () {
             })
             response.statusCode.should.equal(401)
         })
-        it('Returns a 404 response when no instances are found', async () => {
+        it('Returns a 200 empty response when no instances are found', async () => {
             // GET /api/v1/team/:teamId/dashboard-instances
             const team = await app.db.models.Team.create({ name: 'mock-team-1', TeamTypeId: app.defaultTeamType.id })
             await app.factory.createApplication({ name: 'application-1' }, team)
@@ -1063,7 +1063,12 @@ describe('Team API', function () {
                 url: `/api/v1/teams/${team.hashid}/dashboard-instances`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
-            response.statusCode.should.equal(404)
+            response.statusCode.should.equal(200)
+            const reply = response.json()
+            should(reply).be.an.Object()
+            reply.should.have.property('count', 0)
+            reply.should.have.property('projects').and.be.Array()
+            reply.projects.should.have.property('length', 0)
         })
         it('Returns a 200 empty response when no dashboards are found', async () => {
             // GET /api/v1/team/:teamId/dashboard-instances
