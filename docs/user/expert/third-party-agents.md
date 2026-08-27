@@ -12,12 +12,6 @@ instances.
 Because the agent is yours, so is the model behind it. Which model or model provider you use
 is controlled by your agent, not by FlowFuse.
 
-> **Note:** This is separate from
-> [MCP server nodes](https://flowfuse.com/node-red/flowfuse/mcp/). Those let you build MCP
-> servers inside your flows, connected to anything you like, to give any AI a set of tools of
-> your own design. This page is about operating FlowFuse itself through MCP, where FlowFuse
-> is the server and your agent is the client.
-
 ## Connect your agent
 
 Any MCP client that speaks HTTP can connect. That is the only requirement.
@@ -45,9 +39,15 @@ Any MCP client that speaks HTTP can connect. That is the only requirement.
 3. **Choose what the agent may do.** As part of signing in you decide which teams the agent
    may act on, and whether it has editing rights or read access only.
 
-Your agent can now work your platform. Signing in is the intended route. A few clients cannot
-do it and take a token in a header instead, which is covered in
-[connecting a client that cannot sign in](#connecting-a-client-that-cannot-sign-in).
+Your agent can now work your platform. Signing in is the intended route. A client that has no
+sign-in flow takes a token instead, which is covered in
+[clients without a sign-in flow](#clients-without-a-sign-in-flow).
+
+> **Note:** This is separate from
+> [MCP server nodes](https://flowfuse.com/node-red/flowfuse/mcp/). Those let you build MCP
+> servers inside your flows, connected to anything you like, to give any AI a set of tools of
+> your own design. This page is about operating FlowFuse itself through MCP, where FlowFuse
+> is the server and your agent is the client.
 
 ## What your agent can do, and what you grant
 
@@ -132,7 +132,7 @@ each person connects and signs in individually.
 
 Claude Code, Cursor, Visual Studio Code and Gemini CLI all connect to the same address. Where
 a client offers a sign-in flow, use it. Where it does not, see
-[connecting a client that cannot sign in](#connecting-a-client-that-cannot-sign-in).
+[clients without a sign-in flow](#clients-without-a-sign-in-flow).
 
 For Claude Code:
 
@@ -146,54 +146,24 @@ Use any HTTP-capable MCP client, such as LM Studio, LibreChat or Open WebUI, poi
 own model, and add the FlowFuse address as a server in that client's configuration. Note that
 Ollama is a model runtime rather than an agent, so it needs an MCP client in front of it.
 
-## Connecting a client that cannot sign in
+## Clients without a sign-in flow
 
-Signing in is the intended route, and the one to use wherever your client supports it. A few
-clients do not: they take a token in a header instead, or their configuration file only
-accepts a local command rather than an address. This is a property of the client, not of the
-kind of agent, and both routes reach the same FlowFuse with the same enforcement.
+Signing in is the intended route, and the one to use wherever your client supports it. A client
+that has no sign-in flow takes a token in its configuration file instead. Both routes reach the
+same FlowFuse with the same enforcement.
 
 Create a [Personal Access Token](/docs/user/user-settings/#personal-access-tokens) and
-[scope it](/docs/user/user-settings/#scoping-a-token) the same way you would when signing in.
-Scope it to the team you want the agent working in rather than to everything you can reach.
+[scope it](/docs/user/user-settings/#scoping-a-token) the same way you would when signing in,
+to the team you want the agent working in rather than to everything you can reach. Then give
+the client the FlowFuse address together with that token as a bearer token in an
+`Authorization` header.
 
-### Clients that take a header
-
-Editor and command-line agents generally take the address and the header directly:
-
-```json
-{
-  "mcpServers": {
-    "flowfuse": {
-      "type": "http",
-      "url": "https://app.flowfuse.com/mcp",
-      "headers": { "Authorization": "Bearer <your-token>" }
-    }
-  }
-}
-```
-
-For Visual Studio Code, prompt for the token rather than committing it to the repository:
-
-```json
-{
-  "servers": {
-    "flowfuse": {
-      "type": "http",
-      "url": "https://app.flowfuse.com/mcp",
-      "headers": { "Authorization": "Bearer ${input:ff_token}" }
-    }
-  },
-  "inputs": [
-    {
-      "id": "ff_token",
-      "type": "promptString",
-      "password": true,
-      "description": "FlowFuse access token"
-    }
-  ]
-}
-```
+How that is written down belongs to the client rather than to FlowFuse. Two JSON shapes are in
+common use, one keyed on `servers` and one keyed on `mcpServers`, and clients also differ on
+where the file lives and whether they accept headers at all, so follow your own client's
+configuration reference. For the two shapes, see the
+[`servers` reference](https://code.visualstudio.com/docs/agents/reference/mcp-configuration)
+and the [`mcpServers` reference](https://modelcontextprotocol.io/docs/develop/connect-local-servers).
 
 ## Approvals and audit
 
