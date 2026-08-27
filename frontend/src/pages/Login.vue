@@ -1,9 +1,9 @@
 <template>
     <ff-layout-box class="ff-login">
         <div v-if="!appLoader" data-form="login">
-            <ff-loading v-if="loggingIn" message="Logging in..." />
+            <ff-loading v-if="loggingIn" :message="$t('auth.login.loggingIn')" />
             <template v-else-if="!mfaRequired">
-                <label>Username / E-Mail</label>
+                <label>{{ $t('auth.login.usernameOrEmail') }}</label>
                 <ff-text-input
                     ref="login-username"
                     v-model="input.username"
@@ -15,7 +15,7 @@
                 />
                 <span class="ff-error-inline" data-el="errors-username">{{ errors.username }}</span>
                 <div v-if="passwordRequired">
-                    <label>Password</label>
+                    <label>{{ $t('common.fields.password') }}</label>
                     <ff-text-input
                         ref="login-password"
                         v-model="input.password"
@@ -30,20 +30,20 @@
                 <label class="ff-error-inline" data-el="errors-general">{{ errors.general }}</label>
                 <div class="ff-actions">
                     <ff-button data-action="login" :disabled="loggingIn || tooManyRequests" @click="login()">
-                        <span>Login</span>
+                        <span>{{ $t('common.actions.login') }}</span>
                         <span v-if="loggingIn || tooManyRequests" class="w-4">
                             <SpinnerIcon class="ff-icon ml-3 w-3.5!" />
                         </span>
                     </ff-button>
-                    <ff-button v-if="settings['user:signup']" kind="tertiary" to="/account/create" data-action="sign-up">Sign Up</ff-button>
-                    <ff-button v-if="passwordRequired && settings['user:reset-password']" kind="tertiary" :to="{'name': 'forgot-password'}" data-action="forgot-password">Forgot your password?</ff-button>
-                    <GoogleLoginButton :disabled="loggingIn" />
+                    <ff-button v-if="settings['user:signup']" kind="tertiary" to="/account/create" data-action="sign-up">{{ $t('common.actions.signUp') }}</ff-button>
+                    <ff-button v-if="passwordRequired && settings['user:reset-password']" kind="tertiary" :to="{'name': 'forgot-password'}" data-action="forgot-password">{{ $t('auth.login.forgotPassword') }}</ff-button>
+                    <GoogleLoginButton :label="$t('auth.login.signInWithGoogle')" :disabled="loggingIn" />
                     <template v-if="directSSOEnabled">
                         <hr class="mb-4">
                         <ul>
                             <li v-for="{name, id} in settings['platform:sso:direct:list']" :key="id">
                                 <ff-button kind="secondary" :data-action="`direct-sso-${id}`" @click="directSSO(id)">
-                                    <span>SIGN IN WITH {{ name.toUpperCase() }}</span>
+                                    <span>{{ $t('auth.login.signInWith', { provider: name.toUpperCase() }) }}</span>
                                 </ff-button>
                             </li>
                         </ul>
@@ -51,11 +51,11 @@
                 </div>
             </template>
             <template v-else>
-                <label>Enter the 6-digit security code from your authenticator app</label>
+                <label>{{ $t('auth.login.mfaPrompt') }}</label>
                 <ff-text-input ref="login-mfa-token" v-model="input.token" maxlength="6" label="token" @enter="submitMFAToken" />
                 <div class="ff-actions">
                     <ff-button data-action="submit-token" :disabled="loggingIn || tokenInvalid" @click="submitMFAToken()">
-                        <span>Continue</span>
+                        <span>{{ $t('common.actions.continue') }}</span>
                         <span class="w-4">
                             <SpinnerIcon v-if="loggingIn" class="ff-icon ml-3 w-3.5!" />
                         </span>
@@ -160,12 +160,12 @@ export default {
                 this.mfaRequired = false
                 await this.$nextTick()
                 this.focusUsername()
-                this.errors.general = 'Login failed'
+                this.errors.general = this.$t('auth.login.errors.loginFailed')
             } else if (newError.statusCode === 429) {
                 this.loggingIn = false
                 await this.$nextTick()
                 this.focusUsername()
-                this.errors.general = 'Too many login attempts. Try again later.'
+                this.errors.general = this.$t('auth.login.errors.tooManyAttempts')
                 this.tooManyRequests = true
                 setTimeout(() => {
                     this.tooManyRequests = false
@@ -194,15 +194,15 @@ export default {
             this.errors.password = ''
             if (this.input.username === '') {
                 valid = false
-                this.errors.username = 'Required field'
+                this.errors.username = this.$t('common.errors.requiredField')
             }
             if (this.passwordRequired && this.input.password === '') {
                 valid = false
-                this.errors.password = 'Required field'
+                this.errors.password = this.$t('common.errors.requiredField')
             }
             if (this.input.password.length > 1024) {
                 valid = false
-                this.errors.password = 'Too long'
+                this.errors.password = this.$t('common.errors.tooLong')
             }
             if (valid) {
                 this.loggingIn = true

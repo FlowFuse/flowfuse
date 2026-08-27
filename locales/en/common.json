@@ -1,0 +1,8 @@
+{
+    "email": {
+        "greeting": "Hello %{name},",
+        "signOff": "Thanks,",
+        "sender": "The FlowFuse Team",
+        "ignoreIfUnexpected": "If you were not expecting this email you can safely ignore it."
+    }
+}

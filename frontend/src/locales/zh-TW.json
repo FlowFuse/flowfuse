@@ -1,0 +1,79 @@
+{
+    "common": {
+        "actions": {
+            "cancel": "取消",
+            "continue": "繼續",
+            "edit": "編輯",
+            "login": "登入",
+            "save": "儲存變更",
+            "signUp": "註冊"
+        },
+        "errors": {
+            "invalidEmail": "電子郵件地址無效",
+            "requiredField": "此欄位為必填",
+            "tooLong": "長度過長",
+            "unexpected": "發生非預期的錯誤,請稍後再試或聯繫技術支援。"
+        },
+        "fields": {
+            "confirmPassword": "確認密碼",
+            "email": "電子郵件地址",
+            "fullName": "姓名",
+            "password": "密碼",
+            "username": "使用者名稱"
+        }
+    },
+    "auth": {
+        "login": {
+            "forgotPassword": "忘記密碼?",
+            "loggingIn": "正在登入…",
+            "mfaPrompt": "請輸入驗證器應用程式顯示的 6 位數安全碼",
+            "signInWith": "使用 {provider} 登入",
+            "signInWithGoogle": "使用 Google 登入",
+            "usernameOrEmail": "使用者名稱 / 電子郵件",
+            "errors": {
+                "loginFailed": "登入失敗",
+                "tooManyAttempts": "登入嘗試次數過多,請稍後再試。"
+            }
+        },
+        "signUp": {
+            "alreadyRegistered": "已經有帳號了? {loginLink}",
+            "joinReason": "您使用 FlowFuse 的主要目的是什麼?",
+            "loginHere": "由此登入",
+            "signUpWithGoogle": "使用 Google 註冊",
+            "ssoCreated": "您現在可以透過 SSO 供應商登入。",
+            "tcs": "我接受 {termsLink}",
+            "tcsLink": "FlowFuse 服務條款。",
+            "reasons": {
+                "business": "商業需求",
+                "education": "教育用途",
+                "personal": "個人使用"
+            },
+            "errors": {
+                "checkFields": "請確認所有欄位皆填寫正確",
+                "emailInvalid": "請輸入有效的電子郵件地址",
+                "emailRequired": "請填寫電子郵件地址",
+                "invalidRequest": "請求無效",
+                "nameNotUrl": "姓名不可為網址",
+                "passwordComplexity": "密碼複雜度不足",
+                "passwordMatchEmail": "密碼不可與電子郵件相同",
+                "passwordMatchName": "密碼不可與姓名相同",
+                "passwordMatchUsername": "密碼不可與使用者名稱相同",
+                "passwordMismatch": "兩次輸入的密碼不一致",
+                "passwordRequired": "請填寫密碼",
+                "passwordTooLong": "密碼長度過長",
+                "passwordTooShort": "密碼長度須為 8 個字元以上",
+                "registrationDisabled": "系統未開放使用者註冊",
+                "tooManyAttempts": "嘗試次數過多,請稍後再試。",
+                "usernameCharset": "僅可包含 a-z A-Z 0-9 - _",
+                "usernameRequired": "請填寫使用者名稱"
+            }
+        }
+    },
+    "account": {
+        "settings": {
+            "language": "語言",
+            "languageDescription": "平台介面使用的語言",
+            "languageSystem": "跟隨瀏覽器設定"
+        }
+    }
+}

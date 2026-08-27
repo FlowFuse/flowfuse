@@ -21,6 +21,14 @@
                 <template #description>Light, dark, or follow your system preference</template>
             </FormRow>
 
+            <FormRow v-if="!editing" v-model="languageLabel" type="uneditable">
+                {{ $t('account.settings.language') }}
+            </FormRow>
+            <FormRow v-else v-model="input.language" :options="languageOptions">
+                {{ $t('account.settings.language') }}
+                <template #description>{{ $t('account.settings.languageDescription') }}</template>
+            </FormRow>
+
             <template v-if="editing">
                 <div class="flex space-x-4">
                     <ff-button :disabled="!formValid" @click="confirm">Save Changes</ff-button>
@@ -66,6 +74,7 @@ import userApi from '../../api/user.js'
 
 import FormHeading from '../../components/FormHeading.vue'
 import FormRow from '../../components/FormRow.vue'
+import { SUPPORTED_LOCALES, setLocale } from '../../i18n.js'
 import alerts from '../../services/alerts.js'
 import dialog from '../../services/dialog.js'
 import { RoleNames, Roles } from '../../utils/roles.js'
@@ -97,7 +106,12 @@ export default {
                 name: currentUser.name,
                 email: currentUser.email,
                 defaultTeam: currentUser.defaultTeam,
-                themeMode: useThemeStore().mode
+                themeMode: useThemeStore().mode,
+                // 'system' means "no preference stored" -> follow the browser.
+                // A named sentinel rather than '' because an empty option value
+                // reads as "nothing selected" to the select. Mapped to null for
+                // the API in confirm().
+                language: currentUser.language || 'system'
             },
             defaultTeamName,
             ownerCounts: {},
@@ -116,8 +130,18 @@ export default {
             const opt = this.themeOptions.find(o => o.value === useThemeStore().mode)
             return opt ? opt.label : ''
         },
+        languageOptions () {
+            return [
+                { label: this.$t('account.settings.languageSystem'), value: 'system' },
+                ...SUPPORTED_LOCALES
+            ]
+        },
+        languageLabel () {
+            const opt = this.languageOptions.find(o => o.value === (this.user.language || 'system'))
+            return opt ? opt.label : ''
+        },
         formValid () {
-            return (this.changed.name || this.changed.username || this.changed.email || this.changed.defaultTeam || this.changed.themeMode) &&
+            return (this.changed.name || this.changed.username || this.changed.email || this.changed.defaultTeam || this.changed.themeMode || this.changed.language) &&
                    (!this.emailEditingEnabled || (this.input.email && !this.errors.email)) &&
                    (this.input.username && !this.errors.username) &&
                    (this.input.name && !this.errors.name)
@@ -189,6 +213,9 @@ export default {
         },
         'input.themeMode': function (v) {
             this.changed.themeMode = (useThemeStore().mode !== v)
+        },
+        'input.language': function (v) {
+            this.changed.language = ((this.user.language || 'system') !== v)
         }
     },
     mounted () {
@@ -220,6 +247,7 @@ export default {
             this.input.email = this.user.email
             this.input.defaultTeam = this.user.defaultTeam
             this.input.themeMode = useThemeStore().mode
+            this.input.language = this.user.language || 'system'
             this.errors.email = ''
             this.editing = false
         },
@@ -247,6 +275,11 @@ export default {
                 opts.defaultTeam = this.input.defaultTeam
                 changed = true
             }
+            if (this.input.language !== (this.user.language || 'system')) {
+                // 'system' clears the stored preference
+                opts.language = this.input.language === 'system' ? null : this.input.language
+                changed = true
+            }
             const themeStore = useThemeStore()
             if (this.input.themeMode !== themeStore.mode) {
                 themeStore.setMode(this.input.themeMode)
@@ -261,6 +294,10 @@ export default {
             if (changed) {
                 userApi.updateUser(opts).then((response) => {
                     useAccountAuthStore().setUser(response)
+                    if (Object.hasOwn(opts, 'language')) {
+                        // Apply immediately rather than waiting for a reload
+                        setLocale(response.language || navigator.language)
+                    }
                     alerts.emit('User successfully updated.', 'confirmation', 3000)
                     if (response?.pendingEmailChange) {
                         // delay next alert for visual separation of concerns

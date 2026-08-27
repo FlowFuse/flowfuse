@@ -112,6 +112,12 @@ module.exports = {
             if (request.body.tcs_accepted) {
                 user.tcs_accepted = new Date()
             }
+            // Unlike the fields above, null is meaningful for `language` — it
+            // clears the preference so the platform negotiates a locale from
+            // the request instead. So test for presence, not truthiness.
+            if (Object.hasOwn(request.body, 'language')) {
+                user.language = request.body.language || null
+            }
             if (isAdmin) {
                 // Settings only an admin can modify
                 if (request.body.email_verified !== undefined) {

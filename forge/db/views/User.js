@@ -12,6 +12,7 @@ module.exports = function (app) {
             mfa_enabled: { type: 'boolean' },
             free_trial_available: { type: 'boolean' },
             tcs_accepted: { type: 'string' },
+            language: { type: 'string' },
             password_expired: { type: 'boolean' },
             pendingEmailChange: { type: 'boolean' },
             SSOGroups: { type: 'array' }
@@ -29,6 +30,9 @@ module.exports = function (app) {
         if (app.settings.get('user:tcs-required') && user.tcs_accepted) {
             // Only include the tcs_accepted date if 'tcs-required' is enabled
             result.tcs_accepted = user.tcs_accepted
+        }
+        if (user.language) {
+            result.language = user.language
         }
         result.email_verified = user.email_verified
         if (user.defaultTeamId) {

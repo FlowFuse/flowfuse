@@ -1,0 +1,8 @@
+{
+    "email": {
+        "greeting": "%{name} 您好,",
+        "signOff": "謝謝您,",
+        "sender": "FlowFuse 團隊",
+        "ignoreIfUnexpected": "若您並未預期收到這封信,可以直接忽略它。"
+    }
+}

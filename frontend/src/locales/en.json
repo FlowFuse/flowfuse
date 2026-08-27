@@ -1,0 +1,79 @@
+{
+    "common": {
+        "actions": {
+            "cancel": "Cancel",
+            "continue": "Continue",
+            "edit": "Edit",
+            "login": "Login",
+            "save": "Save Changes",
+            "signUp": "Sign Up"
+        },
+        "errors": {
+            "invalidEmail": "Invalid email address",
+            "requiredField": "Required field",
+            "tooLong": "Too long",
+            "unexpected": "An unexpected error occurred. Please try again later or contact support."
+        },
+        "fields": {
+            "confirmPassword": "Confirm Password",
+            "email": "E-Mail Address",
+            "fullName": "Full Name",
+            "password": "Password",
+            "username": "Username"
+        }
+    },
+    "auth": {
+        "login": {
+            "forgotPassword": "Forgot your password?",
+            "loggingIn": "Logging in...",
+            "mfaPrompt": "Enter the 6-digit security code from your authenticator app",
+            "signInWith": "SIGN IN WITH {provider}",
+            "signInWithGoogle": "Sign In with Google",
+            "usernameOrEmail": "Username / E-Mail",
+            "errors": {
+                "loginFailed": "Login failed",
+                "tooManyAttempts": "Too many login attempts. Try again later."
+            }
+        },
+        "signUp": {
+            "alreadyRegistered": "Already registered? {loginLink}",
+            "joinReason": "What brings you to FlowFuse?",
+            "loginHere": "Log in here",
+            "signUpWithGoogle": "Sign up with Google",
+            "ssoCreated": "You can now login using your SSO Provider.",
+            "tcs": "I accept the {termsLink}",
+            "tcsLink": "FlowFuse Terms & Conditions.",
+            "reasons": {
+                "business": "Business Needs",
+                "education": "Educational Use",
+                "personal": "Personal Use"
+            },
+            "errors": {
+                "checkFields": "Please check all fields are valid",
+                "emailInvalid": "Enter a valid email address",
+                "emailRequired": "Email is required",
+                "invalidRequest": "Invalid request",
+                "nameNotUrl": "Names can not be URLs",
+                "passwordComplexity": "Password needs to be more complex",
+                "passwordMatchEmail": "Password must not match email",
+                "passwordMatchName": "Password must not match name",
+                "passwordMatchUsername": "Password must not match username",
+                "passwordMismatch": "Passwords do not match",
+                "passwordRequired": "Password is required",
+                "passwordTooLong": "Password too long",
+                "passwordTooShort": "Password must be 8 characters or more",
+                "registrationDisabled": "User registration is not enabled",
+                "tooManyAttempts": "Too many attempts. Try again later.",
+                "usernameCharset": "Must only contain a-z A-Z 0-9 - _",
+                "usernameRequired": "Username is required"
+            }
+        }
+    },
+    "account": {
+        "settings": {
+            "language": "Language",
+            "languageDescription": "The language used across the platform",
+            "languageSystem": "Browser default"
+        }
+    }
+}
