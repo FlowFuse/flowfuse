@@ -1,29 +1,31 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const startTabPresence = vi.fn()
-const stopTabPresence = vi.fn()
-const startMcpInflight = vi.fn()
-const stopMcpInflight = vi.fn()
-const startMcpSession = vi.fn()
-const stopMcpSession = vi.fn()
 const emit = vi.fn()
 
-vi.mock('@/publishers/tab-presence.publisher', () => ({
-    startTabPresence: (...args) => startTabPresence(...args),
-    stopTabPresence: (...args) => stopTabPresence(...args),
-    announceTabPresence: vi.fn()
-}))
+// The comms are created by the orchestrator and outlive every component, so the store
+// only ever connects and disconnects them. These stand in for the live instances.
+const presence = {
+    connect: vi.fn(() => Promise.resolve()),
+    disconnect: vi.fn(() => Promise.resolve()),
+    announcePresence: vi.fn()
+}
+const inflight = {
+    connect: vi.fn(() => Promise.resolve()),
+    disconnect: vi.fn(() => Promise.resolve())
+}
+const session = {
+    connect: vi.fn(() => Promise.resolve()),
+    disconnect: vi.fn(() => Promise.resolve())
+}
 
-vi.mock('@/subscribers/mcp-inflight.subscriber', () => ({
-    startMcpInflight: (...args) => startMcpInflight(...args),
-    stopMcpInflight: (...args) => stopMcpInflight(...args)
-}))
-
-vi.mock('@/subscribers/mcp-session.subscriber', () => ({
-    startMcpSession: (...args) => startMcpSession(...args),
-    stopMcpSession: (...args) => stopMcpSession(...args)
-}))
+vi.mock('@/services/app.orchestrator', () => {
+    const orchestrator = () => ({
+        $publishers: { tabPresence: presence },
+        $subscribers: { mcpInflight: inflight, mcpSession: session }
+    })
+    return { default: orchestrator, getAppOrchestrator: orchestrator }
+})
 
 vi.mock('@/services/alerts.js', () => ({
     default: { emit: (...args) => emit(...args) }
@@ -81,14 +83,19 @@ describe('product-mcp store', () => {
     describe('enable', () => {
         it('brings up all three comms', () => {
             store.enable(TEAM)
-            expect(startTabPresence).toHaveBeenCalledWith(TEAM)
-            expect(startMcpInflight).toHaveBeenCalledWith(TEAM)
-            expect(startMcpSession).toHaveBeenCalledWith(TEAM)
+            expect(presence.connect).toHaveBeenCalledWith(TEAM)
+            expect(inflight.connect).toHaveBeenCalledWith(TEAM)
+            expect(session.connect).toHaveBeenCalledWith(TEAM)
+        })
+
+        it('announces presence rather than waiting out the interval', async () => {
+            store.enable(TEAM)
+            await vi.waitFor(() => expect(presence.announcePresence).toHaveBeenCalled())
         })
 
         it('does nothing without a team', () => {
             store.enable(null)
-            expect(startTabPresence).not.toHaveBeenCalled()
+            expect(presence.connect).not.toHaveBeenCalled()
             expect(store.active).toBe(false)
         })
 
@@ -112,9 +119,18 @@ describe('product-mcp store', () => {
 
             expect(closed).toBe(true)
             expect(store.active).toBe(false)
-            expect(stopMcpSession).toHaveBeenCalled()
-            expect(stopMcpInflight).toHaveBeenCalled()
-            expect(stopTabPresence).toHaveBeenCalledWith({ announceClose: true })
+            expect(session.disconnect).toHaveBeenCalled()
+            expect(inflight.disconnect).toHaveBeenCalled()
+            expect(presence.disconnect).toHaveBeenCalled()
+        })
+
+        it('leaves the comms in place to be reconnected, rather than destroying them', async () => {
+            store.enable(TEAM)
+            await store.disable()
+
+            store.enable(TEAM)
+
+            expect(presence.connect).toHaveBeenCalledTimes(2)
         })
 
         it('reports false on the second call, so one opt-out is announced once', async () => {
@@ -124,57 +140,34 @@ describe('product-mcp store', () => {
         })
     })
 
-    describe('teardown', () => {
-        it('drops the comms silently, leaving the tab exposed for a remount', async () => {
-            store.enable(TEAM)
-            await store.teardown()
-
-            expect(store.active).toBe(true)
-            expect(stopTabPresence).toHaveBeenCalledWith({ announceClose: false })
-        })
-    })
-
-    describe('mount refcount', () => {
-        it('starts the comms only on the first toggle', () => {
+    describe('resume', () => {
+        it('reconnects a tab whose exposure survived a reload', () => {
             store.active = true
-            store.retain(TEAM)
-            store.retain(TEAM)
+            store.resume(TEAM)
 
-            expect(startTabPresence).toHaveBeenCalledTimes(1)
-            expect(store.mounts).toBe(2)
+            expect(presence.connect).toHaveBeenCalledWith(TEAM)
+            expect(inflight.connect).toHaveBeenCalledWith(TEAM)
+            expect(session.connect).toHaveBeenCalledWith(TEAM)
         })
 
-        it('keeps the comms up while a second toggle is still mounted', async () => {
+        it('does nothing for a tab that was never exposed', () => {
+            store.resume(TEAM)
+            expect(presence.connect).not.toHaveBeenCalled()
+        })
+
+        it('does nothing before the team is known', () => {
             store.active = true
-            store.retain(TEAM)
-            store.retain(TEAM)
-            vi.clearAllMocks()
-
-            await store.release()
-
-            expect(store.mounts).toBe(1)
-            expect(stopTabPresence).not.toHaveBeenCalled()
+            store.resume(null)
+            expect(presence.connect).not.toHaveBeenCalled()
         })
 
-        it('tears down once the last toggle leaves', async () => {
+        it('leaves the reported clients alone, so a second toggle mounting does not blank the count', () => {
             store.active = true
-            store.retain(TEAM)
-            store.retain(TEAM)
-            await store.release()
-            await store.release()
+            store.setClients(['a'])
 
-            expect(store.mounts).toBe(0)
-            expect(stopTabPresence).toHaveBeenCalledWith({ announceClose: false })
-        })
+            store.resume(TEAM)
 
-        it('does not start the comms for a tab that was never exposed', () => {
-            store.retain(TEAM)
-            expect(startTabPresence).not.toHaveBeenCalled()
-        })
-
-        it('never counts below zero', async () => {
-            await store.release()
-            expect(store.mounts).toBe(0)
+            expect(store.clients).toEqual(['a'])
         })
     })
 

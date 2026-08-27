@@ -1,12 +1,9 @@
 import { defineSubscriberSingleton } from './subscriber.factory'
 import { SubscriberPayload, SubscriberRoute, TeamSubscriber } from './team-subscriber.contract'
 
-import { announceTabPresence } from '@/publishers/tab-presence.publisher'
-import getAppOrchestrator from '@/services/app.orchestrator'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useProductMcpStore } from '@/stores/product-mcp.js'
-import { createMqttTransport } from '@/transport/mqtt.transport'
-import type { CreateSubscriberOptions, TeamRef, TeamSubscriberI } from '@/types/subscribers/subscriber.types'
+import type { CreateSubscriberOptions, TeamSubscriberI } from '@/types/subscribers/subscriber.types'
 
 const escapeForPattern = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
@@ -57,7 +54,7 @@ class McpSessionSubscriber extends TeamSubscriber implements TeamSubscriberI {
      * on subscribe closes that window, on first enable and on every reconnect.
      */
     protected _onSubscribed (): void {
-        announceTabPresence()
+        useProductMcpStore().announcePresence()
     }
 
     protected _routes (): SubscriberRoute[] {
@@ -88,22 +85,6 @@ class McpSessionSubscriber extends TeamSubscriber implements TeamSubscriberI {
 }
 
 const { create: createMcpSessionSubscriber, destroy: destroyMcpSessionSubscriber } = defineSubscriberSingleton(McpSessionSubscriber)
-
-export function startMcpSession (team: TeamRef): McpSessionSubscriber {
-    const orchestrator = getAppOrchestrator()
-    const transport = createMqttTransport(orchestrator.$services.mqtt)
-    const subscriber = createMcpSessionSubscriber({
-        app: orchestrator.$app,
-        router: orchestrator.$router,
-        transport
-    })
-    subscriber.connect(team)
-    return subscriber
-}
-
-export async function stopMcpSession (): Promise<void> {
-    await destroyMcpSessionSubscriber()
-}
 
 export { createMcpSessionSubscriber, destroyMcpSessionSubscriber }
 
