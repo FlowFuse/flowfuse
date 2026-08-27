@@ -62,7 +62,7 @@ function resolveRequestTeamHashid (app, request) {
     if (loadedTeam?.hashid) {
         return loadedTeam.hashid
     }
-    const teamId = request.teamMembership?.TeamId
+    const teamId = request.teamMembership?.TeamId || request.teamId
     if (teamId !== undefined && teamId !== null) {
         return app.db.models.Team.encodeHashid(teamId)
     }
