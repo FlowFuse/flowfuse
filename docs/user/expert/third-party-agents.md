@@ -79,7 +79,7 @@ Access through Copilot Studio runs over Power Platform connectors, so any Power 
 
 ### ChatGPT
 
-Custom connectors live behind developer mode. A workspace administrator enables it under **Workspace Settings**, then **Permissions & Roles**, before anyone can add one. The connector itself is then added from the prompt dashboard, with the MCP address, and you sign in there.
+Custom connectors live behind developer mode. Turn it on under **Settings**, then **Apps & Connectors**, then **Advanced settings**, then add FlowFuse by URL and sign in. Developer mode needs a paid plan, so it is not available on the free tier.
 
 ### Claude
 
