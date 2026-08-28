@@ -1,25 +1,23 @@
 {
-    "common": {
-        "actions": {
-            "cancel": "取消",
-            "continue": "繼續",
-            "edit": "編輯",
-            "login": "登入",
-            "save": "儲存變更",
-            "signUp": "註冊"
-        },
-        "errors": {
-            "invalidEmail": "電子郵件地址無效",
-            "requiredField": "此欄位為必填",
-            "tooLong": "長度過長",
-            "unexpected": "發生非預期的錯誤,請稍後再試或聯繫技術支援。"
-        },
-        "fields": {
-            "confirmPassword": "確認密碼",
-            "email": "電子郵件地址",
-            "fullName": "姓名",
-            "password": "密碼",
-            "username": "使用者名稱"
+    "account": {
+        "settings": {
+            "defaultTeam": "預設團隊",
+            "defaultTeamDescription": "登入後預設進入的團隊",
+            "deleteAccount": "刪除帳號",
+            "deleteAccountBlocked": "刪除帳號前,你擁有的團隊必須先刪除,或至少再指定一位擁有者。",
+            "deleteTeam": "刪除團隊",
+            "emailSsoLocked": "啟用 SSO 的使用者無法修改電子郵件",
+            "language": "語言",
+            "languageDescription": "平台介面使用的語言",
+            "languageSystem": "跟隨瀏覽器設定",
+            "name": "姓名",
+            "pendingEmailChange": "請至信箱收取驗證信,以確認新的電子郵件地址。",
+            "theme": "佈景主題",
+            "themeDark": "深色",
+            "themeDescription": "淺色、深色,或跟隨系統設定",
+            "themeLight": "淺色",
+            "themeSystem": "系統",
+            "updated": "使用者資料已更新。"
         }
     },
     "auth": {
@@ -69,11 +67,74 @@
             }
         }
     },
-    "account": {
-        "settings": {
-            "language": "語言",
-            "languageDescription": "平台介面使用的語言",
-            "languageSystem": "跟隨瀏覽器設定"
+    "common": {
+        "actions": {
+            "cancel": "取消",
+            "continue": "繼續",
+            "edit": "編輯",
+            "login": "登入",
+            "save": "儲存變更",
+            "signUp": "註冊"
+        },
+        "errors": {
+            "invalidEmail": "電子郵件地址無效",
+            "requiredField": "此欄位為必填",
+            "tooLong": "長度過長",
+            "unexpected": "發生非預期的錯誤,請稍後再試或聯繫技術支援。"
+        },
+        "fields": {
+            "confirmPassword": "確認密碼",
+            "email": "電子郵件地址",
+            "fullName": "姓名",
+            "password": "密碼",
+            "username": "使用者名稱"
         }
+    },
+    "nav": {
+        "addMemberHint": "新增團隊成員,開始協作!",
+        "adminSettings": "管理員設定",
+        "applications": "應用程式",
+        "auditLog": "稽核日誌",
+        "backToDashboard": "返回主控台",
+        "billOfMaterials": "物料清單",
+        "billing": "帳務",
+        "blueprints": "藍圖",
+        "brokers": "MQTT Broker",
+        "connectDeviceAgent": "連接裝置代理程式",
+        "createNewTeam": "建立新團隊",
+        "dashboards": "儀表板",
+        "documentation": "說明文件",
+        "flowfuseNodes": "FlowFuse 節點",
+        "gettingStarted": "快速入門",
+        "groups": "群組",
+        "home": "首頁",
+        "hostedInstances": "託管實例",
+        "instanceTypes": "實例類型",
+        "library": "函式庫",
+        "members": "成員",
+        "notificationsHub": "通知中心",
+        "overview": "總覽",
+        "performance": "效能",
+        "pipelines": "部署管線",
+        "remoteInstances": "遠端實例",
+        "sectionAdmin": "管理",
+        "sectionGeneral": "一般",
+        "sectionInstances": "實例",
+        "sectionOperations": "營運",
+        "sectionSetup": "設定",
+        "sectionTeamAdmin": "進階管理",
+        "sectionTeamManagement": "團隊管理",
+        "security": "安全性",
+        "settings": "設定",
+        "signOut": "登出",
+        "stacks": "執行環境",
+        "tables": "資料表",
+        "teamSettings": "團隊設定",
+        "teamTypes": "團隊類型",
+        "teams": "團隊",
+        "templates": "範本",
+        "userSettings": "使用者設定",
+        "users": "使用者",
+        "welcomeTour": "導覽介紹"
     }
 }

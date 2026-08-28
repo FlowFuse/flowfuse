@@ -11,11 +11,20 @@ import PipelinesIcon from '../components/icons/Pipelines.js'
 import ProjectsIcon from '../components/icons/Projects.js'
 import QueueIcon from '../components/icons/Queue.js'
 import { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf, hasPermission } from '../composables/Permissions.js'
+import i18n from '../i18n.js'
 import { Roles } from '../utils/roles.js'
 
 import { useAccountSettingsStore } from './account-settings.js'
 import { useContextStore } from './context.js'
 import { useUxStore } from './ux.js'
+
+/**
+ * Nav labels are read through the active locale.
+ *
+ * These getters are computed, and `t` reads the locale ref, so switching
+ * language re-renders the sidebar without a reload.
+ */
+const t = key => i18n.global.t(key)
 
 export const useUxNavigationStore = defineStore('ux-navigation', {
     state: () => ({
@@ -44,7 +53,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                 {
                     entries: [
                         {
-                            label: 'Back to Dashboard',
+                            label: t('nav.backToDashboard'),
                             to: { name: 'home' },
                             tag: 'back',
                             icon: ChevronLeftIcon
@@ -52,34 +61,34 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                     ]
                 },
                 {
-                    title: 'Admin',
+                    title: t('nav.sectionAdmin'),
                     entries: [
                         {
-                            label: 'Overview',
+                            label: t('nav.overview'),
                             to: { name: 'admin-overview' },
                             tag: 'admin-overview',
                             icon: RectangleStackIcon
                         },
                         {
-                            label: 'Users',
+                            label: t('nav.users'),
                             to: { name: 'admin-users' },
                             tag: 'admin-users',
                             icon: UsersIcon
                         },
                         {
-                            label: 'Teams',
+                            label: t('nav.teams'),
                             to: { name: 'admin-teams' },
                             tag: 'admin-teams',
                             icon: UserGroupIcon
                         },
                         {
-                            label: 'Audit Log',
+                            label: t('nav.auditLog'),
                             to: { name: 'admin-audit-logs' },
                             tag: 'admin-auditlog',
                             icon: QueueIcon
                         },
                         {
-                            label: 'Notifications Hub',
+                            label: t('nav.notificationsHub'),
                             to: { name: 'admin-notifications-hub' },
                             tag: 'notifications-hub',
                             icon: ChatBubbleOvalLeftEllipsisIcon
@@ -87,41 +96,41 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                     ]
                 },
                 {
-                    title: 'Setup',
+                    title: t('nav.sectionSetup'),
                     entries: [
                         {
-                            label: 'Team Types',
+                            label: t('nav.teamTypes'),
                             to: { name: 'admin-team-types' },
                             tag: 'admin-teamtypes',
                             icon: SwatchIcon
                         },
                         {
-                            label: 'Instance Types',
+                            label: t('nav.instanceTypes'),
                             to: { name: 'admin-instance-types' },
                             tag: 'admin-instancetypes',
                             icon: SwatchIcon
                         },
                         {
-                            label: 'Stacks',
+                            label: t('nav.stacks'),
                             to: { name: 'admin-stacks' },
                             tag: 'admin-stacks',
                             icon: ComputerDesktopIcon
                         },
                         {
-                            label: 'Templates',
+                            label: t('nav.templates'),
                             to: { name: 'admin-templates' },
                             tag: 'admin-templates',
                             icon: RectangleGroupIcon
                         },
                         {
-                            label: 'Blueprints',
+                            label: t('nav.blueprints'),
                             to: { name: 'admin-flow-blueprints' },
                             tag: 'admin-flow-blueprints',
                             icon: RectangleGroupIcon,
                             featureUnavailable: !features.isBlueprintsFeatureEnabledForPlatform
                         },
                         {
-                            label: 'FlowFuse Nodes',
+                            label: t('nav.flowfuseNodes'),
                             to: { name: 'admin-certified-nodes' },
                             tag: 'admin-certified-nodes',
                             icon: RectangleStackIcon,
@@ -130,10 +139,10 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                     ]
                 },
                 {
-                    title: 'General',
+                    title: t('nav.sectionGeneral'),
                     entries: [
                         {
-                            label: 'Settings',
+                            label: t('nav.settings'),
                             to: { name: 'admin-settings' },
                             tag: 'admin-settings',
                             icon: Cog8ToothIcon
@@ -146,7 +155,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                 {
                     entries: [
                         {
-                            label: 'Back to Dashboard',
+                            label: t('nav.backToDashboard'),
                             to: { name: 'home' },
                             tag: 'back',
                             icon: ChevronLeftIcon
@@ -154,22 +163,22 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                     ]
                 },
                 {
-                    title: 'User Settings',
+                    title: t('nav.userSettings'),
                     entries: [
                         {
-                            label: 'Settings',
+                            label: t('nav.settings'),
                             to: { name: 'user-settings-overview' },
                             tag: 'account-settings',
                             icon: Cog8ToothIcon
                         },
                         {
-                            label: 'Teams',
+                            label: t('nav.teams'),
                             to: { name: 'user-settings-teams' },
                             tag: 'account-teams',
                             icon: UserGroupIcon
                         },
                         {
-                            label: 'Security',
+                            label: t('nav.security'),
                             to: { name: 'user-settings-security' },
                             tag: 'account-security',
                             icon: LockClosedIcon
@@ -185,7 +194,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                         hidden: !hasAMinimumTeamRoleOf(Roles.Viewer, teamMembership),
                         entries: [
                             {
-                                label: 'Home',
+                                label: t('nav.home'),
                                 to: {
                                     name: 'team-home',
                                     params: { team_slug: team.slug }
@@ -197,11 +206,11 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                         ]
                     },
                     {
-                        title: 'Instances',
+                        title: t('nav.sectionInstances'),
                         hidden: !hasAMinimumTeamRoleOf(Roles.Viewer, teamMembership),
                         entries: [
                             {
-                                label: 'Hosted Instances',
+                                label: t('nav.hostedInstances'),
                                 to: {
                                     name: 'team-hosted-instances',
                                     params: { team_slug: team.slug }
@@ -212,7 +221,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                 disabled: requiresBilling
                             },
                             {
-                                label: 'Remote Instances',
+                                label: t('nav.remoteInstances'),
                                 to: {
                                     name: 'team-remote-instances',
                                     params: { team_slug: team.slug }
@@ -222,7 +231,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                 disabled: requiresBilling,
                                 alert: isNewlyCreatedUser && !userActions.hasOpenedDeviceEditor
                                     ? {
-                                        title: 'Connect to Device Agent',
+                                        title: t('nav.connectDeviceAgent'),
                                         url: 'https://flowfuse.com/docs/device-agent/introduction/'
                                     }
                                     : null
@@ -230,11 +239,11 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                         ]
                     },
                     {
-                        title: 'Operations',
+                        title: t('nav.sectionOperations'),
                         hidden: !hasAMinimumTeamRoleOf(Roles.Viewer, teamMembership),
                         entries: [
                             {
-                                label: 'Applications',
+                                label: t('nav.applications'),
                                 to: {
                                     name: 'team-applications',
                                     params: { team_slug: team.slug }
@@ -244,7 +253,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                 disabled: requiresBilling
                             },
                             {
-                                label: 'Dashboards',
+                                label: t('nav.dashboards'),
                                 to: {
                                     name: 'team-dashboards',
                                     params: { team_slug: team.slug }
@@ -254,7 +263,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                 disabled: requiresBilling
                             },
                             {
-                                label: 'Groups',
+                                label: t('nav.groups'),
                                 to: {
                                     name: 'device-groups',
                                     params: { team_slug: team.slug }
@@ -266,7 +275,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                 hidden: hasALowerOrEqualTeamRoleThan(Roles.Member, teamMembership)
                             },
                             {
-                                label: 'Pipelines',
+                                label: t('nav.pipelines'),
                                 to: {
                                     name: 'team-pipelines',
                                     params: { team_slug: team.slug }
@@ -278,7 +287,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                 hidden: hasALowerOrEqualTeamRoleThan(Roles.Member, teamMembership)
                             },
                             {
-                                label: 'Bill Of Materials',
+                                label: t('nav.billOfMaterials'),
                                 to: {
                                     name: 'team-bom',
                                     params: { team_slug: team.slug }
@@ -290,7 +299,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                 hidden: hasALowerOrEqualTeamRoleThan(Roles.Owner, teamMembership)
                             },
                             {
-                                label: 'Brokers',
+                                label: t('nav.brokers'),
                                 to: { name: 'team-brokers', params: { team_slug: team.slug } },
                                 tag: 'team-brokers',
                                 icon: RssIcon,
@@ -299,7 +308,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                 hidden: hasALowerOrEqualTeamRoleThan(Roles.Member, teamMembership) && features.isMqttBrokerFeatureEnabledForPlatform
                             },
                             {
-                                label: 'Performance',
+                                label: t('nav.performance'),
                                 to: { name: 'team-performance', params: { team_slug: team.slug } },
                                 tag: 'team-performance',
                                 icon: ChartBarIcon,
@@ -308,7 +317,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                 hidden: hasALowerOrEqualTeamRoleThan(Roles.Member, teamMembership) && features.isInstanceResourcesFeatureEnabledForPlatform
                             },
                             {
-                                label: 'Tables',
+                                label: t('nav.tables'),
                                 to: { name: 'team-tables', params: { team_slug: team.slug } },
                                 tag: 'team-tables',
                                 icon: CircleStackIcon,
@@ -319,11 +328,11 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                         ]
                     },
                     {
-                        title: 'Team Management',
+                        title: t('nav.sectionTeamManagement'),
                         hidden: !hasAMinimumTeamRoleOf(Roles.Viewer, teamMembership),
                         entries: [
                             {
-                                label: 'Library',
+                                label: t('nav.library'),
                                 to: {
                                     name: 'team-library',
                                     params: { team_slug: team.slug }
@@ -334,7 +343,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                 featureUnavailable: !features.isSharedLibraryFeatureEnabledForPlatform || !features.isSharedLibraryFeatureEnabledForTeam
                             },
                             {
-                                label: 'Members',
+                                label: t('nav.members'),
                                 to: {
                                     name: 'team-members',
                                     params: { team_slug: team.slug }
@@ -351,7 +360,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
 
                                     if (team.memberCount === 1 && teamAge < fourteenDaysInMs) {
                                         return {
-                                            title: 'Add a team member and start collaborating!'
+                                            title: t('nav.addMemberHint')
                                         }
                                     }
 
@@ -361,12 +370,12 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                         ]
                     },
                     {
-                        title: 'Team Admin',
+                        title: t('nav.sectionTeamAdmin'),
                         hidden: !hasAMinimumTeamRoleOf(Roles.Viewer, teamMembership),
                         permission: '',
                         entries: [
                             {
-                                label: 'Audit Log',
+                                label: t('nav.auditLog'),
                                 to: {
                                     name: 'team-audit-log',
                                     params: { team_slug: team.slug }
@@ -377,7 +386,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                 permission: 'team:edit'
                             },
                             {
-                                label: 'Billing',
+                                label: t('nav.billing'),
                                 to: {
                                     name: 'team-billing',
                                     params: { team_slug: team.slug }
@@ -396,7 +405,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                 })()
                             },
                             {
-                                label: 'Team Settings',
+                                label: t('nav.teamSettings'),
                                 to: {
                                     name: 'team-settings',
                                     params: { team_slug: team.slug }

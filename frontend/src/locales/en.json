@@ -1,25 +1,23 @@
 {
-    "common": {
-        "actions": {
-            "cancel": "Cancel",
-            "continue": "Continue",
-            "edit": "Edit",
-            "login": "Login",
-            "save": "Save Changes",
-            "signUp": "Sign Up"
-        },
-        "errors": {
-            "invalidEmail": "Invalid email address",
-            "requiredField": "Required field",
-            "tooLong": "Too long",
-            "unexpected": "An unexpected error occurred. Please try again later or contact support."
-        },
-        "fields": {
-            "confirmPassword": "Confirm Password",
-            "email": "E-Mail Address",
-            "fullName": "Full Name",
-            "password": "Password",
-            "username": "Username"
+    "account": {
+        "settings": {
+            "defaultTeam": "Default Team",
+            "defaultTeamDescription": "The team you'll see when you log in",
+            "deleteAccount": "Delete Account",
+            "deleteAccountBlocked": "Before you can delete your account, teams you own must be deleted or have at least 1 other owner.",
+            "deleteTeam": "Delete Team",
+            "emailSsoLocked": "Cannot modify email for SSO enabled user",
+            "language": "Language",
+            "languageDescription": "The language used across the platform",
+            "languageSystem": "Browser default",
+            "name": "Name",
+            "pendingEmailChange": "Check your inbox for a link to verify your new Email Address.",
+            "theme": "Theme",
+            "themeDark": "Dark",
+            "themeDescription": "Light, dark, or follow your system preference",
+            "themeLight": "Light",
+            "themeSystem": "System",
+            "updated": "User successfully updated."
         }
     },
     "auth": {
@@ -69,11 +67,74 @@
             }
         }
     },
-    "account": {
-        "settings": {
-            "language": "Language",
-            "languageDescription": "The language used across the platform",
-            "languageSystem": "Browser default"
+    "common": {
+        "actions": {
+            "cancel": "Cancel",
+            "continue": "Continue",
+            "edit": "Edit",
+            "login": "Login",
+            "save": "Save Changes",
+            "signUp": "Sign Up"
+        },
+        "errors": {
+            "invalidEmail": "Invalid email address",
+            "requiredField": "Required field",
+            "tooLong": "Too long",
+            "unexpected": "An unexpected error occurred. Please try again later or contact support."
+        },
+        "fields": {
+            "confirmPassword": "Confirm Password",
+            "email": "E-Mail Address",
+            "fullName": "Full Name",
+            "password": "Password",
+            "username": "Username"
         }
+    },
+    "nav": {
+        "addMemberHint": "Add a team member and start collaborating!",
+        "adminSettings": "Admin Settings",
+        "applications": "Applications",
+        "auditLog": "Audit Log",
+        "backToDashboard": "Back to Dashboard",
+        "billOfMaterials": "Bill Of Materials",
+        "billing": "Billing",
+        "blueprints": "Blueprints",
+        "brokers": "Brokers",
+        "connectDeviceAgent": "Connect to Device Agent",
+        "createNewTeam": "Create New Team",
+        "dashboards": "Dashboards",
+        "documentation": "Documentation",
+        "flowfuseNodes": "FlowFuse Nodes",
+        "gettingStarted": "Getting Started",
+        "groups": "Groups",
+        "home": "Home",
+        "hostedInstances": "Hosted Instances",
+        "instanceTypes": "Instance Types",
+        "library": "Library",
+        "members": "Members",
+        "notificationsHub": "Notifications Hub",
+        "overview": "Overview",
+        "performance": "Performance",
+        "pipelines": "Pipelines",
+        "remoteInstances": "Remote Instances",
+        "sectionAdmin": "Admin",
+        "sectionGeneral": "General",
+        "sectionInstances": "Instances",
+        "sectionOperations": "Operations",
+        "sectionSetup": "Setup",
+        "sectionTeamAdmin": "Team Admin",
+        "sectionTeamManagement": "Team Management",
+        "security": "Security",
+        "settings": "Settings",
+        "signOut": "Sign Out",
+        "stacks": "Stacks",
+        "tables": "Tables",
+        "teamSettings": "Team Settings",
+        "teamTypes": "Team Types",
+        "teams": "Teams",
+        "templates": "Templates",
+        "userSettings": "User Settings",
+        "users": "Users",
+        "welcomeTour": "Welcome Tour"
     }
 }
