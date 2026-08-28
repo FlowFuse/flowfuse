@@ -5,11 +5,11 @@ export const id = 'welcome'
 export default [
     {
         title: t('ui.welcomeToFlowfuse'),
-        text: '<p>Welcome to FlowFuse, the complete platform for building, managing and deploying your Node-RED applications.</p><p><b>Let\'s take a quick tour to get you started.</b></p>'
+        text: t('ui.tourWelcomeIntro')
     },
     {
         title: t('ui.conceptHostedInstances'),
-        text: '<p><b>Hosted Instances</b> refer to instances of Node-RED running on the <i>same</i> host as FlowFuse.</p>',
+        text: t('ui.tourHostedInstances'),
         attachTo: {
             element: '[data-el="dashboard-section-hosted"]',
             on: 'bottom'
@@ -19,7 +19,7 @@ export default [
     },
     {
         title: t('ui.recentlyModifiedHostedInstances'),
-        text: '<p>Here, you can get quick access to your most recently modified Hosted Instances, jumping straight into editing or managing them.</p>',
+        text: t('ui.tourRecentlyModified'),
         attachTo: {
             element: '[data-el="dashboard-section-hosted"] .recently-modified',
             on: 'bottom'
@@ -29,7 +29,7 @@ export default [
     },
     {
         title: t('ui.conceptRemoteInstances'),
-        text: '<p><b>Remote Instances</b> are Node-RED instances that are managed and deployed <i>remotely</i>, most commonly used for deploying Node-RED to the Edge.</p><p>Example include hardware in factories or a Raspberry Pi on your desk. FlowFuse can manage thousands of remote Node-RED deployments.</p>',
+        text: t('ui.tourRemoteInstances'),
         attachTo: {
             element: '[data-el="dashboard-section-remote"]',
             on: 'bottom'
@@ -39,7 +39,7 @@ export default [
     },
     {
         title: t('ui.manageRecentRemoteActivity'),
-        text: '<p>Similarly, you can get quick access to your Remote Instances, with Remote Instances not fully setup, or in <b>Error</b> state getting flagged.</p>',
+        text: t('ui.tourRemoteQuickAccess'),
         attachTo: {
             element: '[data-el="dashboard-section-remote"] .recently-modified',
             on: 'bottom'
@@ -49,7 +49,7 @@ export default [
     },
     {
         title: t('ui.recentTeamActivity'),
-        text: '<p>FlowFuse keeps an Audit Log of all actions taken in the team so you can easily keep track of changes and actions taken by fellow team members.</p>',
+        text: t('ui.tourAuditLog'),
         attachTo: {
             element: '[data-el="dashboard-section-audit"]',
             on: 'bottom'

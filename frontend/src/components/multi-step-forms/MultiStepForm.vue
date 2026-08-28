@@ -67,7 +67,7 @@ export default {
         lastStepLabel: {
             type: String,
             required: false,
-            default: 'Finish'
+            default: () => t('ui.finish')
         },
         loadingOverlay: {
             type: Boolean,

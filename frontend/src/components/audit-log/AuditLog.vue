@@ -7,7 +7,7 @@
             </div>
             <ff-accordion v-for="(logEntries, date, $index) in logEntriesByDate" :key="date" :label="date" :set-open="$index < 3" data-el="accordion" :disabled="disableAccordion">
                 <template #meta>
-                    <span>{{ logEntries.length }} Event{{ logEntries.length === 1 ? '' : 's' }}</span>
+                    <span>{{ logEntries.length }} {{ $t('ui.plEvent', logEntries.length) }}</span>
                 </template>
                 <template #content>
                     <div v-for="entry in logEntries" :key="entry.id">

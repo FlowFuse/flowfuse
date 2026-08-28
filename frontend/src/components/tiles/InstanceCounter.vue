@@ -49,12 +49,12 @@ export default {
         title () {
             switch (this.state) {
             case 'running':
-                return 'Running'
+                return this.$t('ui.stateRunning')
             case 'error':
-                return 'Error'
+                return this.$t('ui.stateError')
             case 'stopped':
             default:
-                return 'Not Running'
+                return this.$t('ui.stateNotRunning')
             }
         },
         backgroundColor () {

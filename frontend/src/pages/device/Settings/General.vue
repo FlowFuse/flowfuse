@@ -80,7 +80,7 @@
                 <div class="flex flex-col gap-2">
                     <h3>{{ $t('ui.features') }}</h3>
                     <ul class="list-disc ml-6 space-y-2 max-w-xl">
-                        <li><label class="font-medium mr-2">{{ $t('ui.editingRemotely') }}</label>{{ $t('ui.youCanReadOurDocumentation') }} <a class="ff-link" href="https://flowfuse.com/docs/device-agent/deploy/#editing-the-node-red-flows-on-a-device-that-is-assigned-to-an-application">{{ $t('ui.here') }}</a> on how to remotely edit the flows on your Device. Make sure you create a Snapshot of your changes when in Developer Mode if you wish to keep them, any changes made inside "Developer Mode" will be undone when leaving "Developer Mode".</li>
+                        <li><label class="font-medium mr-2">{{ $t('ui.editingRemotely') }}</label>{{ $t('ui.youCanReadOurDocumentation') }} <a class="ff-link" href="https://flowfuse.com/docs/device-agent/deploy/#editing-the-node-red-flows-on-a-device-that-is-assigned-to-an-application">{{ $t('ui.here') }}</a> {{ $t('ui.onHowToRemotelyEditTheFlowsOnYourDevice') }}</li>
                     </ul>
                 </div>
             </section>
@@ -139,7 +139,7 @@
             <h3>{{ $t('ui.features') }}</h3>
             <ul class="list-disc ml-6 space-y-2 max-w-xl">
                 <li><label class="font-medium mr-2">{{ $t('ui.deployingRemotely') }}</label>{{ $t('ui.youCanReadOurDocumentation') }} <a class="ff-link" target="_blank" rel="noreferrer" href="https://flowfuse.com/docs/device-agent/deploy/#deploying-a-node-red-instance-to-the-device">{{ $t('ui.here') }}</a> {{ $t('ui.onHowToRemotelyDeployFlowsToYourDevice') }}</li>
-                <li><label class="font-medium mr-2">{{ $t('ui.editingRemotely') }}</label>{{ $t('ui.youCanReadOurDocumentation') }} <a class="ff-link" target="_blank" rel="noreferrer" href="https://flowfuse.com/docs/device-agent/deploy/#editing-the-node-red-flows-on-a-device-that-is-assigned-to-an-instance">{{ $t('ui.here') }}</a> on how to remotely edit the flows on your Device. Make sure you create a Snapshot of your changes when in Developer Mode if you wish to keep them, any changes made inside "Developer Mode" will be undone when leaving "Developer Mode".</li>
+                <li><label class="font-medium mr-2">{{ $t('ui.editingRemotely') }}</label>{{ $t('ui.youCanReadOurDocumentation') }} <a class="ff-link" target="_blank" rel="noreferrer" href="https://flowfuse.com/docs/device-agent/deploy/#editing-the-node-red-flows-on-a-device-that-is-assigned-to-an-instance">{{ $t('ui.here') }}</a> {{ $t('ui.onHowToRemotelyEditTheFlowsOnYourDevice') }}</li>
             </ul>
         </template>
     </form>
