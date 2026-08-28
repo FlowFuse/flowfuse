@@ -1,3 +1,5 @@
+import { t } from '../../i18n.js'
+
 import DeviceAuditLog from './AuditLog.vue'
 import DeviceDeveloperMode from './DeveloperMode/index.vue'
 import DeviceLogs from './Logs.vue'
@@ -28,7 +30,7 @@ const children = [
         name: 'device-settings',
         component: DeviceSettings,
         meta: {
-            title: 'Device - Settings'
+            title: t('ui.deviceSettings')
         },
         redirect: to => {
             return to.name.startsWith('device-editor-') ? { name: 'device-editor-settings-general' } : { name: 'device-settings-general' }
@@ -71,7 +73,7 @@ const children = [
         name: 'device-audit-log',
         component: DeviceAuditLog,
         meta: {
-            title: 'Device - Audit Log'
+            title: t('ui.deviceAuditLog')
         }
     },
     {
@@ -79,7 +81,7 @@ const children = [
         name: 'device-logs',
         component: DeviceLogs,
         meta: {
-            title: 'Device - Logs'
+            title: t('ui.deviceLogs')
         }
     },
     {
@@ -87,7 +89,7 @@ const children = [
         name: 'device-performance',
         component: DevicePerformance,
         meta: {
-            title: 'Device - Performance'
+            title: t('ui.devicePerformance')
         }
     },
     {
@@ -95,7 +97,7 @@ const children = [
         name: 'device-version-history',
         component: VersionHistory,
         meta: {
-            title: 'Device - Version History'
+            title: t('ui.deviceVersionHistory')
         },
         redirect: to => {
             const features = useAccountSettingsStore().featuresCheck
@@ -117,7 +119,7 @@ const children = [
         name: 'device-developer-mode',
         component: DeviceDeveloperMode,
         meta: {
-            title: 'Device - Developer Mode'
+            title: t('ui.deviceDeveloperMode')
         }
     }
 ]
@@ -136,7 +138,7 @@ export default [
         name: 'device',
         component: Device,
         meta: {
-            title: 'Device - Overview'
+            title: t('ui.deviceOverview')
         },
         children
     }

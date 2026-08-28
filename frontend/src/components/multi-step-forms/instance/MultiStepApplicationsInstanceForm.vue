@@ -21,6 +21,7 @@ import { mapActions, mapState } from 'pinia'
 
 import flowBlueprintsApi from '../../../api/flowBlueprints.js'
 import instanceApi from '../../../api/instances.js'
+import { t } from '../../../i18n.js'
 import Alerts from '../../../services/alerts.js'
 import MultiStepForm from '../MultiStepForm.vue'
 
@@ -54,7 +55,7 @@ export default {
         lastStepLabel: {
             required: false,
             type: String,
-            default: 'Create Instance'
+            default: t('ui.createInstance')
         },
         hasTeamStep: {
             required: false,

@@ -1,12 +1,12 @@
 <template>
-    <SectionTopMenu hero="Remote Instance Provisioning" help-header="Remote Instance Provisioning Tokens" info="A list of Remote Instance provisioning tokens that can be used to auto register devices to a team.">
+    <SectionTopMenu :hero="$t('ui.remoteInstanceProvisioning')" :help-header="$t('ui.remoteInstanceProvisioningTokens')" :info="$t('ui.aListOfRemoteInstanceProvisioningTokensThatCanBe')">
         <template #pictogram>
             <img src="../../../images/pictograms/devices_red.png">
         </template>
         <template #helptext>
-            <p>FlowFuse can be used to manage instances of Node-RED running on remote devices.</p>
-            <p>Each device must run the <a href="https://flowfuse.com/docs/user/devices/" target="_blank">FlowFuse Device Agent</a>, which connects back to the platform to receive updates.</p>
-            <p>Provisioning tokens can be created to allow Remote Instances to automatically join a team and to be auto assigned to an application or an instance if required.</p>
+            <p>{{ $t('ui.flowfuseCanBeUsedToManageInstancesOfNodeRedRunni2') }}</p>
+            <p>{{ $t('ui.eachDeviceMustRunThe') }} <a href="https://flowfuse.com/docs/user/devices/" target="_blank">{{ $t('ui.flowfuseDeviceAgent') }}</a>, which connects back to the platform to receive updates.</p>
+            <p>{{ $t('ui.provisioningTokensCanBeCreatedToAllowRemoteInsta') }}</p>
         </template>
     </SectionTopMenu>
 
@@ -19,22 +19,22 @@
                 <img src="../../../images/empty-states/team-devices.png">
             </template>
             <template #header>
-                <span>Remote Instance Provisioning</span>
+                <span>{{ $t('ui.remoteInstanceProvisioning') }}</span>
             </template>
             <template #message>
-                Remote Instance Provisioning is not available.
+                {{ $t('ui.remoteInstanceProvisioningIsNotAvailable') }}
             </template>
         </EmptyState>
-        <ff-loading v-else-if="loading" message="Loading Tokens..." />
-        <ff-loading v-else-if="creatingToken" message="Creating Token..." />
-        <ff-loading v-else-if="deletingItem" message="Deleting Token..." />
+        <ff-loading v-else-if="loading" :message="$t('ui.loadingTokens')" />
+        <ff-loading v-else-if="creatingToken" :message="$t('ui.creatingToken')" />
+        <ff-loading v-else-if="deletingItem" :message="$t('ui.deletingToken')" />
         <template v-else>
             <ff-data-table
                 data-el="provisioning-tokens"
                 :columns="columns"
                 :rows="Array.from(tokens?.values())"
                 :show-search="true"
-                search-placeholder="Search Tokens..."
+                :search-placeholder="$t('ui.searchTokens')"
                 :show-load-more="!!nextCursor"
                 @load-more="loadMore"
             >
@@ -49,16 +49,16 @@
                         <template #icon-left>
                             <PlusSmallIcon />
                         </template>
-                        Add Token
+                        {{ $t('ui.addToken') }}
                     </ff-button>
                 </template>
                 <template v-if="editEnabled || deleteEnabled" #context-menu="{row}">
-                    <ff-kebab-item :disabled="!editEnabled" label="Edit Details" @click="menuAction('edit', row.id)" />
-                    <ff-kebab-item :disabled="!deleteEnabled" kind="danger" label="Delete Token" @click="menuAction('delete', row.id)" />
+                    <ff-kebab-item :disabled="!editEnabled" :label="$t('ui.editDetails')" @click="menuAction('edit', row.id)" />
+                    <ff-kebab-item :disabled="!deleteEnabled" kind="danger" :label="$t('ui.deleteToken')" @click="menuAction('delete', row.id)" />
                 </template>
                 <template v-if="tokens.size === 0" #table>
                     <div class="ff-no-data ff-no-data-large">
-                        You don't have any tokens yet
+                        {{ $t('ui.youDonTHaveAnyTokensYet') }}
                     </div>
                 </template>
             </ff-data-table>
@@ -77,6 +77,7 @@ import teamApi from '../../../api/team.js'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import ProjectsIcon from '../../../components/icons/Projects.js'
 import usePermissions from '../../../composables/Permissions.js'
+import { t } from '../../../i18n.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -150,9 +151,9 @@ export default {
         },
         columns: function () {
             return [
-                { label: 'Token Name', class: ['w-64'], key: 'name', sortable: true, component: { is: markRaw(TokenFieldFormatter) } },
-                { label: 'Auto Assign', class: ['w-64'], key: 'instance', sortable: true, component: { is: markRaw(AutoAssignToFieldFormatter) } },
-                { label: 'Target Snapshot', class: ['w-64'], key: 'targetSnapshot', sortable: true }
+                { label: t('ui.tokenName'), class: ['w-64'], key: 'name', sortable: true, component: { is: markRaw(TokenFieldFormatter) } },
+                { label: t('ui.autoAssign'), class: ['w-64'], key: 'instance', sortable: true, component: { is: markRaw(AutoAssignToFieldFormatter) } },
+                { label: t('ui.targetSnapshot2'), class: ['w-64'], key: 'targetSnapshot', sortable: true }
             ]
         }
     },
@@ -243,9 +244,9 @@ export default {
                 this.showEditDialog(token)
             } else if (action === 'delete') {
                 Dialog.show({
-                    header: 'Delete Provisioning Token',
+                    header: t('ui.deleteProvisioningToken'),
                     kind: 'danger',
-                    text: 'Are you sure you want to delete this provisioning token? Once deleted, it can no longer be used to provision new devices to the team.',
+                    text: t('ui.areYouSureYouWantToDeleteThisProvisioningTokenOn'),
                     confirmLabel: 'Delete'
                 }, async () => {
                     this.deletingItem = true

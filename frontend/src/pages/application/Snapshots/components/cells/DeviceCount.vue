@@ -2,7 +2,7 @@
     <div class="flex items-center">
         <div
             v-if="active"
-            v-ff-tooltip="'This is the active snapshot, configured to deploy to all devices'"
+            v-ff-tooltip="$t('ui.thisIsTheActiveSnapshotConfiguredToDeployToAllDe')"
             class="flex border text-green-700 border-green-400 rounded-full bg-green-200 py-1 px-2 text-xs"
         >
             <CpuChipIcon class="w-4 mr-1" />
@@ -10,7 +10,7 @@
         </div>
         <div
             v-if="deviceCount > 0 && !active"
-            v-ff-tooltip="'This snapshot, despite no longer being the target snapshot, is deployed to some devices. Check the connectivity of these devices.'"
+            v-ff-tooltip="$t('ui.thisSnapshotDespiteNoLongerBeingTheTargetSnapsho')"
             class="flex border text-yellow-600 border-yellow-400 rounded-full bg-yellow-100 py-1 px-2 text-xs"
         >
             <ExclamationTriangleIcon class="w-4 mr-1" />

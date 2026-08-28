@@ -2,26 +2,25 @@
     <ff-layout-box class="ff-unverified-email ff--center-box">
         <form class="px-4 sm:px-6 lg:px-8 mt-8 mx-auto space-y-6 max-w-md" @submit.prevent>
             <p>
-                Before you can access the platform, we need to verify your email
-                address. We have sent a code in an email to:
+                {{ $t('ui.beforeYouCanAccessThePlatformWeNeedToVerifyYourE') }}
             </p>
             <p class="font-bold pl-4">
                 {{ user.email }}
             </p>
             <p>
-                Please enter the code below to continue.
+                {{ $t('ui.pleaseEnterTheCodeBelowToContinue') }}
             </p>
             <div>
-                <ff-text-input v-model="token" data-form="verify-token" maxlength="6" label="token" @enter="submitVerificationToken" />
+                <ff-text-input v-model="token" data-form="verify-token" maxlength="6" :label="$t('ui.token2')" @enter="submitVerificationToken" />
                 <span class="ff-error-inline" data-el="token-error">{{ error }}</span>
             </div>
 
-            <ff-button :disabled="token.length !== 6" data-action="submit-verify-token" @click="submitVerificationToken">Continue</ff-button>
+            <ff-button :disabled="token.length !== 6" data-action="submit-verify-token" @click="submitVerificationToken">{{ $t('ui.continue') }}</ff-button>
             <p>
                 <ff-button kind="tertiary" :disabled="resendTimeoutCount > 0" @click="resend">
-                    <span>Resend email <span v-if="resendTimeoutCount > 0">({{ resendTimeoutCount }})</span></span>
+                    <span>{{ $t('ui.resendEmail') }} <span v-if="resendTimeoutCount > 0">({{ resendTimeoutCount }})</span></span>
                 </ff-button>
-                <ff-button kind="tertiary" @click="logout">Log out</ff-button>
+                <ff-button kind="tertiary" @click="logout">{{ $t('ui.logOut') }}</ff-button>
             </p>
         </form>
     </ff-layout-box>

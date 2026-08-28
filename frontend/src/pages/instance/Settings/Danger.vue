@@ -1,21 +1,20 @@
 <template>
-    <ff-loading v-if="loading.deleting" message="Deleting Instance..." />
-    <ff-loading v-if="loading.duplicating" message="Copying Instance..." />
-    <ff-loading v-if="loading.changingStack" message="Changing Node-RED Version..." />
-    <ff-loading v-if="loading.settingType" message="Setting Type..." />
-    <ff-loading v-if="loading.suspend" message="Suspending Instance..." />
-    <ff-loading v-if="loading.importing" message="Importing Instance..." />
+    <ff-loading v-if="loading.deleting" :message="$t('ui.deletingInstance')" />
+    <ff-loading v-if="loading.duplicating" :message="$t('ui.copyingInstance')" />
+    <ff-loading v-if="loading.changingStack" :message="$t('ui.changingNodeRedVersion')" />
+    <ff-loading v-if="loading.settingType" :message="$t('ui.settingType')" />
+    <ff-loading v-if="loading.suspend" :message="$t('ui.suspendingInstance')" />
+    <ff-loading v-if="loading.importing" :message="$t('ui.importingInstance')" />
     <form v-if="!isLoading" class="space-y-6">
         <template v-if="hasPermission('project:edit', { application: instance.application })">
-            <FormHeading>Change Instance Node-RED Version</FormHeading>
+            <FormHeading>{{ $t('ui.changeInstanceNodeRedVersion') }}</FormHeading>
             <div ref="updateStack" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="grow">
                     <p v-if="instance.stack && instance.stack.replacedBy" class="max-w-sm mb-5">
-                        There is a new version of Node-RED available.
+                        {{ $t('ui.thereIsANewVersionOfNodeRedAvailable') }}
                     </p>
                     <p class="max-w-sm">
-                        Changing the Instances Node-RED Version requires the instance to be restarted.
-                        The flows will not be running while this happens.
+                        {{ $t('ui.changingTheInstancesNodeRedVersionRequiresTheIns') }}
                     </p>
                 </div>
                 <div class="min-w-fit shrink-0 flex-col gap-5">
@@ -28,7 +27,7 @@
                         kind="primary"
                         @click="upgradeStack()"
                     >
-                        Update Node-RED Version
+                        {{ $t('ui.updateNodeRedVersion') }}
                     </ff-button>
                     <ff-button
                         data-action="change-stack"
@@ -36,7 +35,7 @@
                         kind="secondary"
                         @click="showChangeStackDialog()"
                     >
-                        Change Node-RED Version
+                        {{ $t('ui.changeNodeRedVersion') }}
                     </ff-button>
                     <ChangeStackDialog ref="changeStackDialog" @confirm="changeStack" />
                 </div>
@@ -44,12 +43,12 @@
         </template>
 
         <template v-if="hasPermission('project:create', { application: instance.application })">
-            <FormHeading>Copy Instance</FormHeading>
+            <FormHeading>{{ $t('ui.copyInstance') }}</FormHeading>
 
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="grow">
                     <div class="max-w-sm">
-                        Add a new instance to your application, that is a copy of this instance.
+                        {{ $t('ui.addANewInstanceToYourApplicationThatIsACopyOfThi') }}
                     </div>
                 </div>
                 <div class="min-w-fit shrink-0">
@@ -61,70 +60,68 @@
                             params: { id: instance.id, team_slug: team.slug },
                         }"
                     >
-                        Duplicate Instance
+                        {{ $t('ui.duplicateInstance') }}
                     </ff-button>
                 </div>
             </div>
         </template>
 
         <template v-if="hasPermission('project:edit', { application: instance.application })">
-            <FormHeading>Import Instance</FormHeading>
+            <FormHeading>{{ $t('ui.importInstance') }}</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="grow">
                     <div class="max-w-sm">
-                        Import an existing Node-RED instance.
+                        {{ $t('ui.importAnExistingNodeRedInstance') }}
                     </div>
                 </div>
                 <div class="min-w-fit shrink-0">
-                    <ff-button data-action="import-instance" kind="secondary" @click="showImportInstanceDialog()">Import Instance</ff-button>
+                    <ff-button data-action="import-instance" kind="secondary" @click="showImportInstanceDialog()">{{ $t('ui.importInstance') }}</ff-button>
                     <ImportInstanceDialog ref="importInstanceDialog" data-el="dialog-import-instance" @confirm="importInstance" />
                 </div>
             </div>
         </template>
 
         <template v-if="hasPermission('project:edit', { application: instance.application })">
-            <FormHeading>Change Instance Type</FormHeading>
+            <FormHeading>{{ $t('ui.changeInstanceType') }}</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="grow">
                     <div class="max-w-sm">
-                        Changing the Instance Type will restart the instance.
-                        The flows will not be running while this happens.
+                        {{ $t('ui.changingTheInstanceTypeWillRestartTheInstanceThe') }}
                     </div>
                 </div>
                 <div class="min-w-fit shrink-0">
-                    <ff-button kind="secondary" data-nav="change-instance-settings" @click="showProjectChangeTypePage()">Change Instance Type</ff-button>
+                    <ff-button kind="secondary" data-nav="change-instance-settings" @click="showProjectChangeTypePage()">{{ $t('ui.changeInstanceType') }}</ff-button>
                 </div>
             </div>
         </template>
 
         <template v-if="hasPermission('project:change-status', { application: instance.application })">
-            <FormHeading class="text-red-700">Suspend Instance</FormHeading>
+            <FormHeading class="text-red-700">{{ $t('ui.suspendInstance') }}</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="grow">
                     <div v-if="instance?.meta?.state === 'suspended'" class="max-w-sm">
-                        Your instance is already suspended. To restart the instance, select "Start" from the Instance actions.
+                        {{ $t('ui.yourInstanceIsAlreadySuspendedToRestartTheInstan') }}
                     </div>
                     <div v-else class="max-w-sm">
-                        Once suspended, your instance will not be available until restarted.
-                        While suspended, the instance will consume no <span v-if="features.billing">billable</span> resources.
+                        {{ $t('ui.onceSuspendedYourInstanceWillNotBeAvailableUntil') }} <span v-if="features.billing">{{ $t('ui.billable') }}</span> {{ $t('ui.resources2') }}
                     </div>
                 </div>
                 <div class="min-w-fit shrink-0">
-                    <ff-button data-action="suspend-instance" kind="danger" :disabled="instance?.meta?.state === 'suspended'" @click="$emit('instance-confirm-suspend')">Suspend Instance</ff-button>
+                    <ff-button data-action="suspend-instance" kind="danger" :disabled="instance?.meta?.state === 'suspended'" @click="$emit('instance-confirm-suspend')">{{ $t('ui.suspendInstance') }}</ff-button>
                 </div>
             </div>
         </template>
 
         <template v-if="hasPermission('project:delete', { application: instance.application })">
-            <FormHeading class="text-red-700">Delete Instance</FormHeading>
+            <FormHeading class="text-red-700">{{ $t('ui.deleteInstance') }}</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="grow">
                     <div class="max-w-sm">
-                        Once deleted, your instance is gone. This cannot be undone.
+                        {{ $t('ui.onceDeletedYourInstanceIsGoneThisCannotBeUndone') }}
                     </div>
                 </div>
                 <div class="min-w-fit shrink-0">
-                    <ff-button data-action="delete-instance" kind="danger" @click="$emit('instance-confirm-delete')">Delete Instance</ff-button>
+                    <ff-button data-action="delete-instance" kind="danger" @click="$emit('instance-confirm-delete')">{{ $t('ui.deleteInstance') }}</ff-button>
                 </div>
             </div>
         </template>
@@ -141,6 +138,7 @@ import InstanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import usePermissions from '../../../composables/Permissions.js'
 import { scrollToAndJiggleHighlight } from '../../../composables/Ux.js'
+import { t } from '../../../i18n.js'
 import alerts from '../../../services/alerts.js'
 
 import ChangeStackDialog from './dialogs/ChangeStackDialog.vue'
@@ -216,10 +214,10 @@ export default {
             this.loading.duplicating = true
             InstanceApi.create(parts).then(result => {
                 this.$router.push({ name: 'instance', params: { id: result.id } })
-                alerts.emit('Instance successfully duplicated.', 'confirmation')
+                alerts.emit(t('ui.instanceSuccessfullyDuplicated'), 'confirmation')
             }).catch(err => {
                 console.error(err)
-                alerts.emit('Instance failed to duplicate.', 'warning')
+                alerts.emit(t('ui.instanceFailedToDuplicate'), 'warning')
             }).finally(() => {
                 this.loading.duplicating = false
             })
@@ -228,7 +226,7 @@ export default {
             this.loading.importing = true
             InstanceApi.importInstance(this.instance.id, parts).then(result => {
                 this.$router.push({ name: 'instance', params: { id: this.instance.id } })
-                alerts.emit('Instance flows imported.', 'confirmation')
+                alerts.emit(t('ui.instanceFlowsImported'), 'confirmation')
             }).catch(err => {
                 console.error(err)
                 alerts.emit(`Failed to import flows - ${err.response?.data?.error}`, 'warning')
@@ -242,10 +240,10 @@ export default {
                 InstanceApi.changeStack(this.instance.id, selectedStack).then(() => {
                     this.$router.push({ name: 'instance', params: { id: this.instance.id } })
                     this.$emit('instance-updated')
-                    alerts.emit('Instance Node-RED Version successfully updated.', 'confirmation')
+                    alerts.emit(t('ui.instanceNodeRedVersionSuccessfullyUpdated'), 'confirmation')
                 }).catch(err => {
                     console.warn(err)
-                    alerts.emit('Instance Node-RED Version was not updated due to an error.', 'warning')
+                    alerts.emit(t('ui.instanceNodeRedVersionWasNotUpdatedDueToAnError'), 'warning')
                 }).finally(() => {
                     this.loading.changingStack = false
                 })

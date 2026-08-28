@@ -1,20 +1,20 @@
 <template>
-    <ff-dialog ref="dialog" header="Edit User" confirm-label="Save" :closeOnConfirm="false" :disable-primary="disableSave" @confirm="confirm()">
+    <ff-dialog ref="dialog" :header="$t('ui.editUser')" :confirm-label="$t('ui.save')" :closeOnConfirm="false" :disable-primary="disableSave" @confirm="confirm()">
         <template #default>
             <form class="space-y-6" @submit.prevent>
-                <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
-                <FormRow v-model="input.name" :placeholder="input.username">Name</FormRow>
+                <FormRow v-model="input.username" :error="errors.username">{{ $t('ui.username') }}</FormRow>
+                <FormRow v-model="input.name" :placeholder="input.username">{{ $t('ui.name') }}</FormRow>
                 <FormRow v-model="input.email" :error="errors.email">
-                    Email
+                    {{ $t('ui.email') }}
                     <template v-if="user.sso_enabled" #description>
-                        <div>SSO is enabled for this user.</div>
+                        <div>{{ $t('ui.ssoIsEnabledForThisUser') }}</div>
                     </template>
                 </FormRow>
                 <FormRow id="email_verified" v-model="input.email_verified" wrapperClass="flex justify-between items-center" :disabled="email_verifiedLocked" type="checkbox">
-                    Verified
+                    {{ $t('ui.verified') }}
                     <template #append>
                         <ff-button v-if="email_verifiedLocked" kind="danger" size="small" @click="unlockEmailVerify()">
-                            Unlock
+                            {{ $t('ui.unlock') }}
                             <template #icon>
                                 <LockClosedIcon />
                             </template>
@@ -22,10 +22,10 @@
                     </template>
                 </FormRow>
                 <FormRow id="admin" v-model="input.admin" :error="errors.admin" wrapperClass="flex justify-between items-center" :disabled="adminLocked" type="checkbox">
-                    Administrator
+                    {{ $t('ui.administrator') }}
                     <template #append>
                         <ff-button v-if="adminLocked" kind="danger" size="small" @click="unlockAdmin()">
-                            Unlock
+                            {{ $t('ui.unlock') }}
                             <template #icon>
                                 <LockClosedIcon />
                             </template>
@@ -33,26 +33,26 @@
                     </template>
                 </FormRow>
                 <FormRow id="user_suspended" v-model="input.user_suspended" wrapperClass="flex justify-between items-center" :disabled="user_suspendedLocked" type="checkbox">
-                    Suspended
+                    {{ $t('ui.suspended') }}
                     <template #append>
                         <ff-button v-if="user_suspendedLocked" kind="danger" size="small" @click="unlockSuspended()">
-                            Unlock
+                            {{ $t('ui.unlock') }}
                             <template #icon>
                                 <LockClosedIcon />
                             </template>
                         </ff-button>
                     </template>
                 </FormRow>
-                <FormHeading class="text-red-700">Danger Zone</FormHeading>
+                <FormHeading class="text-red-700">{{ $t('ui.dangerZone') }}</FormHeading>
                 <FormRow v-if="features.mfa" :error="errors.disableMFA" wrapperClass="block">
                     <template #input>
                         <div class="flex justify-between items-center">
                             <ff-button :disabled="mfaLocked" :kind="mfaLocked?'secondary':'danger'" @click="disableMFA">
-                                <template v-if="user.mfa_enabled">Disable MFA</template>
-                                <template v-else>MFA not enabled</template>
+                                <template v-if="user.mfa_enabled">{{ $t('ui.disableMfa') }}</template>
+                                <template v-else>{{ $t('ui.mfaNotEnabled') }}</template>
                             </ff-button>
                             <ff-button v-if="mfaLocked && user.mfa_enabled" kind="danger" size="small" @click="unlockMFA()">
-                                Unlock
+                                {{ $t('ui.unlock') }}
                                 <template #icon>
                                     <LockClosedIcon />
                                 </template>
@@ -63,9 +63,9 @@
                 <FormRow :error="errors.expirePassword" wrapperClass="block">
                     <template #input>
                         <div class="flex justify-between items-center">
-                            <ff-button :disabled="expirePassLocked" :kind="expirePassLocked?'secondary':'danger'" @click="expirePassword">Expire password</ff-button>
+                            <ff-button :disabled="expirePassLocked" :kind="expirePassLocked?'secondary':'danger'" @click="expirePassword">{{ $t('ui.expirePassword') }}</ff-button>
                             <ff-button v-if="expirePassLocked" kind="danger" size="small" @click="unlockExpirePassword()">
-                                Unlock
+                                {{ $t('ui.unlock') }}
                                 <template #icon>
                                     <LockClosedIcon />
                                 </template>
@@ -76,9 +76,9 @@
                 <FormRow :error="errors.deleteUser" wrapperClass="block">
                     <template #input>
                         <div class="flex justify-between items-center">
-                            <ff-button :disabled="deleteLocked" :kind="deleteLocked?'secondary':'danger'" @click="deleteUser">Delete user</ff-button>
+                            <ff-button :disabled="deleteLocked" :kind="deleteLocked?'secondary':'danger'" @click="deleteUser">{{ $t('ui.deleteUser') }}</ff-button>
                             <ff-button v-if="deleteLocked" kind="danger" size="small" @click="unlockDelete()">
-                                Unlock
+                                {{ $t('ui.unlock') }}
                                 <template #icon>
                                     <LockClosedIcon />
                                 </template>
@@ -99,6 +99,7 @@ import { mapState } from 'pinia'
 import usersApi from '../../../../api/users.js'
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
+import { t } from '../../../../i18n.js'
 import Alerts from '../../../../services/alerts.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
@@ -156,14 +157,14 @@ export default {
     watch: {
         'input.username': function (v) {
             if (v && !/^[a-z0-9-_]+$/i.test(v)) {
-                this.errors.username = 'Must only contain a-z 0-9 - _'
+                this.errors.username = t('ui.mustOnlyContainAZ09')
             } else {
                 this.errors.username = ''
             }
         },
         'input.email': function (v) {
             if (v && !/.+@.+/.test(v)) {
-                this.errors.email = 'Enter a valid email address'
+                this.errors.email = t('ui.enterAValidEmailAddress')
             } else {
                 this.errors.email = ''
             }
@@ -226,11 +227,11 @@ export default {
                     if (err.response?.data) {
                         let showAlert = true
                         if (/username/.test(err.response.data.error)) {
-                            this.errors.username = 'Username unavailable'
+                            this.errors.username = t('ui.usernameUnavailable')
                             showAlert = false
                         }
                         if (/password/.test(err.response.data.error)) {
-                            this.errors.password = 'Invalid username'
+                            this.errors.password = t('ui.invalidUsername')
                             showAlert = false
                         }
                         if (/admin/i.test(err.response.data.error)) {
@@ -238,7 +239,7 @@ export default {
                             showAlert = false
                         }
                         if (err.response.data.error === 'email must be unique') {
-                            this.errors.email = 'Email already registered'
+                            this.errors.email = t('ui.emailAlreadyRegistered')
                             showAlert = false
                         }
                         if (showAlert) {

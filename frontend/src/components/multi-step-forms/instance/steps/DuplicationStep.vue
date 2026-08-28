@@ -1,14 +1,14 @@
 <template>
     <section class="ff-duplication-step text-center flex flex-col gap-4 pt-6" data-step="duplication">
-        <h2>Duplication Overview</h2>
+        <h2>{{ $t('ui.duplicationOverview') }}</h2>
 
         <div class="max-w-2xl m-auto text-left">
             <transition name="fade" mode="out-in">
-                <ff-loading v-if="loading" message="Loading data..." />
+                <ff-loading v-if="loading" :message="$t('ui.loadingData')" />
                 <div v-else class="flex flex-col gap-7" data-el="duplicate-wrapper">
                     <div class="form-group">
                         <div class="title">
-                            <label>Application</label>
+                            <label>{{ $t('ui.application') }}</label>
                             <div class="actions">
                                 <ff-button v-ff-tooltip="'Edit'" size="small" kind="tertiary" @click="goToStep(0)">
                                     <PencilIcon class="ff-icon ff-icon-sm" />
@@ -23,10 +23,10 @@
 
                     <div class="form-group">
                         <div class="title">
-                            <label>Instance Name</label>
+                            <label>{{ $t('ui.instanceName') }}</label>
                             <div class="actions">
                                 <ff-button
-                                    v-ff-tooltip="'Generate a new name'" size="small" kind="tertiary"
+                                    v-ff-tooltip="$t('ui.generateANewName')" size="small" kind="tertiary"
                                     @click="generateName"
                                 >
                                     <ArrowPathIcon class="ff-icon ff-icon-sm" />
@@ -41,7 +41,7 @@
 
                     <div class="form-group">
                         <div class="title">
-                            <label>Instance Type</label>
+                            <label>{{ $t('ui.instanceType') }}</label>
                             <div class="actions">
                                 <ff-button v-ff-tooltip="'Edit'" size="small" kind="tertiary" @click="goToStep(1)">
                                     <PencilIcon class="ff-icon ff-icon-sm" />
@@ -54,7 +54,7 @@
 
                     <div class="form-group">
                         <div class="title">
-                            <label>Node RED Version</label>
+                            <label>{{ $t('ui.nodeRedVersion2') }}</label>
                             <div class="actions">
                                 <ff-button v-ff-tooltip="'Edit'" size="small" kind="tertiary" @click="goToStep(1)">
                                     <PencilIcon class="ff-icon ff-icon-sm" />
@@ -66,7 +66,7 @@
 
                     <div v-if="instanceTemplates.length > 1" class="form-group">
                         <div class="title">
-                            <label>Template</label>
+                            <label>{{ $t('ui.template') }}</label>
                             <div class="actions">
                                 <ff-button v-ff-tooltip="'Edit'" size="small" kind="tertiary" @click="goToStep(1)">
                                     <PencilIcon class="ff-icon ff-icon-sm" />

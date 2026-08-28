@@ -1,39 +1,32 @@
 <template>
-    <ff-dialog ref="dialog" data-el="manual-billing-dialog" header="Setup Manual Billing" kind="danger" confirm-label="Setup manual billing" @confirm="confirm()">
+    <ff-dialog ref="dialog" data-el="manual-billing-dialog" :header="$t('ui.setupManualBilling')" kind="danger" :confirm-label="$t('ui.setupManualBilling2')" @confirm="confirm()">
         <template #default>
             <form v-if="team" class="space-y-6" @submit.prevent>
                 <div class="space-y-6">
                     <p>
-                        Are you sure you want to setup manual billing for this team?
+                        {{ $t('ui.areYouSureYouWantToSetupManualBillingForThisTeam') }}
                     </p>
                     <template v-if="trialMode">
-                        <p><b>This team is in trial mode.</b></p>
+                        <p><b>{{ $t('ui.thisTeamIsInTrialMode') }}</b></p>
                         <p>
-                            Setting up manual billing will allow this team to make
-                            full use of the platform without requiring them to
-                            configure their billing details.
+                            {{ $t('ui.settingUpManualBillingWillAllowThisTeamToMakeFul') }}
                         </p>
                     </template>
                     <template v-else-if="billingSetUp">
-                        <p><b>This team already has billing setup.</b></p>
+                        <p><b>{{ $t('ui.thisTeamAlreadyHasBillingSetup') }}</b></p>
                         <p>
-                            Setting up manual billing will cancel their existing
-                            subscription and allow this team to make full use of the
-                            platform without requiring them to configure their billing
-                            details.
+                            {{ $t('ui.settingUpManualBillingWillCancelTheirExistingSub') }}
                         </p>
                     </template>
                     <template v-else>
-                        <p><b>This team does not have billing setup.</b></p>
+                        <p><b>{{ $t('ui.thisTeamDoesNotHaveBillingSetup') }}</b></p>
                         <p>
-                            Enabling manual billing will allow this team to make full
-                            use of the platform without requiring them to configure
-                            their billing details.
+                            {{ $t('ui.enablingManualBillingWillAllowThisTeamToMakeFull') }}
                         </p>
                     </template>
                 </div>
 
-                <FormRow id="teamType" v-model="input.teamType" data-form="team-type" :options="teamTypes">Select the team type to apply:</FormRow>
+                <FormRow id="teamType" v-model="input.teamType" data-form="team-type" :options="teamTypes">{{ $t('ui.selectTheTeamTypeToApply') }}</FormRow>
             </form>
         </template>
     </ff-dialog>

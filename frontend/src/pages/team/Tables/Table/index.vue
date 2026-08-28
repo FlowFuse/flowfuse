@@ -8,6 +8,8 @@
 
 import { defineComponent } from 'vue'
 
+import { t } from '../../../../i18n.js'
+
 export default defineComponent({
     name: 'TeamTable',
     emits: ['set-tabs'],
@@ -20,7 +22,7 @@ export default defineComponent({
         tabs () {
             return [
                 {
-                    label: 'Explorer',
+                    label: t('ui.explorer'),
                     to: {
                         name: 'team-tables-table-explorer',
                         params: {
@@ -29,7 +31,7 @@ export default defineComponent({
                     }
                 },
                 {
-                    label: 'SQL Editor',
+                    label: t('ui.sqlEditor'),
                     to: {
                         name: 'team-tables-table-editor',
                         params: {
@@ -39,7 +41,7 @@ export default defineComponent({
                     hidden: true
                 },
                 {
-                    label: 'Credentials',
+                    label: t('ui.credentials'),
                     to: {
                         name: 'team-tables-table-credentials',
                         params: {

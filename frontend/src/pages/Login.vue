@@ -8,7 +8,7 @@
                     ref="login-username"
                     v-model="input.username"
                     autocomplete="username"
-                    label="username"
+                    :label="$t('ui.username3')"
                     :error="errors.username"
                     data-el="login-username"
                     @enter="login"
@@ -19,7 +19,7 @@
                     <ff-text-input
                         ref="login-password"
                         v-model="input.password"
-                        label="password"
+                        :label="$t('ui.password3')"
                         :error="errors.password"
                         type="password"
                         data-el="login-password"
@@ -52,7 +52,7 @@
             </template>
             <template v-else>
                 <label>{{ $t('auth.login.mfaPrompt') }}</label>
-                <ff-text-input ref="login-mfa-token" v-model="input.token" maxlength="6" label="token" @enter="submitMFAToken" />
+                <ff-text-input ref="login-mfa-token" v-model="input.token" maxlength="6" :label="$t('ui.token2')" @enter="submitMFAToken" />
                 <div class="ff-actions">
                     <ff-button data-action="submit-token" :disabled="loggingIn || tokenInvalid" @click="submitMFAToken()">
                         <span>{{ $t('common.actions.continue') }}</span>

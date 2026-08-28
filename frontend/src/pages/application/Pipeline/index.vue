@@ -1,6 +1,6 @@
 <template>
     <main v-if="!pipeline?.id">
-        <ff-loading message="Loading Pipeline..." />
+        <ff-loading :message="$t('ui.loadingPipeline')" />
     </main>
     <div v-else class="flex flex-col sm:flex-row" data-el="application-pipelines">
         <router-view

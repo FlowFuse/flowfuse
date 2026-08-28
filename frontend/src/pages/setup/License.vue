@@ -1,25 +1,25 @@
 <template>
     <form>
-        <FormHeading>2. Upload License</FormHeading>
+        <FormHeading>{{ $t('ui.n2UploadLicense') }}</FormHeading>
         <template v-if="!state.license">
-            <p class="mt-4">FlowFuse Community Edition is Open Source and can be used freely without a license.</p>
-            <p>If you have a FlowFuse commercial license, upload it here.</p>
-            <p>You can request a trial license <a href="https://flowfuse.com/docs/install/introduction/#request-a-trial-enterprise-license" target="_blank">here</a></p>
-            <FormRow v-model="input.license" class="max-w-full! mt-6" :error="errors.license">License Key</FormRow>
+            <p class="mt-4">{{ $t('ui.flowfuseCommunityEditionIsOpenSourceAndCanBeUsed') }}</p>
+            <p>{{ $t('ui.ifYouHaveAFlowfuseCommercialLicenseUploadItHere') }}</p>
+            <p>{{ $t('ui.youCanRequestATrialLicense') }} <a href="https://flowfuse.com/docs/install/introduction/#request-a-trial-enterprise-license" target="_blank">{{ $t('ui.here') }}</a></p>
+            <FormRow v-model="input.license" class="max-w-full! mt-6" :error="errors.license">{{ $t('ui.licenseKey') }}</FormRow>
             <div class="flex mt-8">
                 <ff-button kind="tertiary" @click="next()">
-                    Continue with FlowFuse CE
+                    {{ $t('ui.continueWithFlowfuseCe') }}
                 </ff-button>
                 <ff-button :disabled="!formValid" @click="addLicense()">
-                    Next
+                    {{ $t('ui.next') }}
                 </ff-button>
             </div>
         </template>
         <template v-else>
-            <p class="text-center">You have already applied a FlowFuse commercial license.</p>
-            <p class="text-center">To apply a different license, complete this setup then login as the administrator and go to Admin Settings.</p>
+            <p class="text-center">{{ $t('ui.youHaveAlreadyAppliedAFlowfuseCommercialLicense') }}</p>
+            <p class="text-center">{{ $t('ui.toApplyADifferentLicenseCompleteThisSetupThenLog') }}</p>
             <ff-button @click="next()">
-                Next
+                {{ $t('ui.next') }}
             </ff-button>
         </template>
     </form>

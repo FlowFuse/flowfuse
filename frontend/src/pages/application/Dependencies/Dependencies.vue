@@ -1,11 +1,11 @@
 <template>
     <div class="dependencies-wrapper" data-el="application-dependencies">
-        <SectionTopMenu hero="Dependencies" help-header="Node-RED Dependencies - Running in FlowFuse" info="Dependencies of Node-RED Instances belonging to this application.">
+        <SectionTopMenu :hero="$t('ui.dependencies')" :help-header="$t('ui.nodeRedDependenciesRunningInFlowfuse')" :info="$t('ui.dependenciesOfNodeRedInstancesBelongingToThisApp')">
             <template #pictogram>
                 <img src="../../../images/pictograms/instance_red.png">
             </template>
             <template #helptext>
-                <p>This is a list of Node-RED Dependencies in this Application, hosted on the same domain as FlowFuse.</p>
+                <p>{{ $t('ui.thisIsAListOfNodeRedDependenciesInThisApplicatio') }}</p>
             </template>
         </SectionTopMenu>
 
@@ -15,14 +15,14 @@
                 <FeatureUnavailableToTeam v-else-if="!featuresCheck.isBOMFeatureEnabledForTeam" />
             </div>
 
-            <ff-loading v-if="loading" message="Loading Snapshots..." />
+            <ff-loading v-if="loading" :message="$t('ui.loadingSnapshots')" />
 
             <div v-else-if="hasInstances">
                 <ff-text-input
                     v-model="searchTerm"
                     class="ff-data-table--search mb-5 mt-5"
                     data-form="search"
-                    placeholder="Search Package Dependency, Instance or Device"
+                    :placeholder="$t('ui.searchPackageDependencyInstanceOrDevice')"
                 >
                     <template #icon><MagnifyingGlassIcon /></template>
                 </ff-text-input>
@@ -33,13 +33,13 @@
                 <template #img>
                     <img src="../../../images/empty-states/application-instances.png">
                 </template>
-                <template #header>Your application doesn't contain any Instances or Devices</template>
+                <template #header>{{ $t('ui.yourApplicationDoesnTContainAnyInstancesOrDevice') }}</template>
                 <template #message>
                     <p>
-                        Applications in FlowFuse are used to manage groups of Node-RED Instances and Devices.
+                        {{ $t('ui.applicationsInFlowfuseAreUsedToManageGroupsOfNod2') }}
                     </p>
                     <p v-if="!featuresCheck.isBOMFeatureEnabled">
-                        Once you assign an Instance or Device to this application, you'll be able to view a complete list of their dependencies.
+                        {{ $t('ui.onceYouAssignAnInstanceOrDeviceToThisApplication') }}
                     </p>
                 </template>
             </EmptyState>

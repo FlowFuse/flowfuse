@@ -1,18 +1,17 @@
 <template>
     <section>
         <p>
-            Place the below configuration on your device.
-            See the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">Device Agent documentation</a> for instructions on how to do this.
+            {{ $t('ui.placeTheBelowConfigurationOnYourDeviceSeeThe') }} <a href="https://flowfuse.com/docs/device-agent/" target="_blank">{{ $t('ui.deviceAgentDocumentation') }}</a> {{ $t('ui.forInstructionsOnHowToDoThis') }}
         </p>
         <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded-sm ff-code-surface">{{ credentials }}</pre>
         <div class="flex flex-row justify-end space-x-2 -mt-1">
             <ff-button kind="tertiary" size="small" class="ml-4" @click="downloadCredentials()">
                 <template #icon-right><DocumentArrowDownIcon /></template>
-                <span class="">Download</span>
+                <span class="">{{ $t('ui.download') }}</span>
             </ff-button>
             <ff-button kind="tertiary" size="small" @click="copy(credentials)">
                 <template #icon-right><ClipboardDocumentIcon /></template>
-                <span class="">Copy</span>
+                <span class="">{{ $t('ui.copy') }}</span>
             </ff-button>
         </div>
     </section>

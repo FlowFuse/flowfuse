@@ -8,7 +8,7 @@
         </div>
     </template>
     <template v-else>
-        Please verify your email address to access teams
+        {{ $t('ui.pleaseVerifyYourEmailAddressToAccessTeams') }}
     </template>
 </template>
 

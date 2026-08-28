@@ -16,28 +16,28 @@
 
         <div v-if="effectiveStatus === 'pending'" class="tool-approval-actions">
             <ff-button kind="primary" size="small" :disabled="disabled" @click="decide('approve')">
-                Allow
+                {{ $t('ui.allow') }}
             </ff-button>
             <ff-button
                 kind="secondary"
                 size="small"
                 :disabled="disabled"
-                title="Allow this tool for the rest of this chat without asking again"
+                :title="$t('ui.allowThisToolForTheRestOfThisChatWithoutAskingAg')"
                 @click="decide('allow-always')"
             >
-                Always allow
+                {{ $t('ui.alwaysAllow') }}
             </ff-button>
             <ff-button kind="tertiary" size="small" :disabled="disabled" @click="decide('deny')">
-                Deny
+                {{ $t('ui.deny') }}
             </ff-button>
             <ff-button
                 kind="tertiary"
                 size="small"
                 :disabled="disabled"
-                title="Deny this tool for the rest of this chat without asking again"
+                :title="$t('ui.denyThisToolForTheRestOfThisChatWithoutAskingAga')"
                 @click="decide('deny-always')"
             >
-                Always deny
+                {{ $t('ui.alwaysDeny') }}
             </ff-button>
         </div>
         <p v-else class="tool-approval-outcome">

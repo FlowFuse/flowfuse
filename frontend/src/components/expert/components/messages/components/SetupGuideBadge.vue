@@ -1,6 +1,6 @@
 <template>
     <div class="setup-guide-badge">
-        <span>Setup Guide</span>
+        <span>{{ $t('ui.setupGuide') }}</span>
     </div>
 </template>
 

@@ -1,4 +1,5 @@
 import teamApi from '../../api/team.js'
+import { t } from '../../i18n.js'
 import ensurePermission from '../../utils/ensurePermission.js'
 import ApplicationRoutes from '../application/routes.js'
 
@@ -45,7 +46,7 @@ export default [
                 name: 'team',
                 component: Team,
                 meta: {
-                    title: 'Team - Overview'
+                    title: t('ui.teamOverview')
                 },
                 children: [
                     ...BrokersRoutes,
@@ -60,7 +61,7 @@ export default [
                         path: 'dashboards',
                         component: TeamDashboards,
                         meta: {
-                            title: 'Team - Dashboards'
+                            title: t('ui.teamDashboards')
                         }
                     },
                     {
@@ -71,7 +72,7 @@ export default [
                                 path: '',
                                 component: TeamApplications,
                                 meta: {
-                                    title: 'Team - Applications'
+                                    title: t('ui.teamApplications')
                                 }
                             },
                             {
@@ -79,7 +80,7 @@ export default [
                                 path: 'create',
                                 component: CreateApplication,
                                 meta: {
-                                    title: 'Team - Create Application',
+                                    title: t('ui.teamCreateApplication'),
                                     menu: 'back'
                                 }
                             },
@@ -94,7 +95,7 @@ export default [
                                 path: '',
                                 component: TeamInstances,
                                 meta: {
-                                    title: 'Team - Instances'
+                                    title: t('ui.teamInstances')
                                 }
                             },
                             {
@@ -102,12 +103,12 @@ export default [
                                 path: 'create',
                                 component: CreateInstance,
                                 meta: {
-                                    title: 'Team - Create Instance',
+                                    title: t('ui.teamCreateInstance'),
                                     menu: {
                                         type: 'back',
                                         backTo: (params) => {
                                             return {
-                                                label: 'Back to Instances',
+                                                label: t('ui.backToInstances'),
                                                 to: { name: 'team-hosted-instances', params }
                                             }
                                         }
@@ -121,7 +122,7 @@ export default [
                         path: 'devices',
                         component: TeamDevices,
                         meta: {
-                            title: 'Team - Devices'
+                            title: t('ui.teamDevices')
                         }
                     },
                     {
@@ -129,7 +130,7 @@ export default [
                         path: 'library',
                         component: Library,
                         meta: {
-                            title: 'Team - Library'
+                            title: t('ui.teamLibrary2')
                         },
                         redirect: { name: 'team-library-files' },
                         children: [...LibraryRoutes]
@@ -139,7 +140,7 @@ export default [
                         path: 'members',
                         component: TeamMembers,
                         meta: {
-                            title: 'Team - Members'
+                            title: t('ui.teamMembers')
                         },
                         redirect: { name: 'team-members-members' },
                         children: [
@@ -152,7 +153,7 @@ export default [
                         path: 'audit-log',
                         component: TeamAuditLog,
                         meta: {
-                            title: 'Team - Audit Log'
+                            title: t('ui.teamAuditLog')
                         }
                     },
                     {
@@ -163,7 +164,7 @@ export default [
                                 path: '',
                                 component: TeamSettings,
                                 meta: {
-                                    title: 'Team - Settings'
+                                    title: t('ui.teamSettings')
                                 },
                                 redirect: { name: 'team-settings-general' },
                                 children: [
@@ -179,7 +180,7 @@ export default [
                                 path: 'change-type',
                                 component: ChangeTeamType,
                                 meta: {
-                                    title: 'Team - Change Type'
+                                    title: t('ui.teamChangeType')
                                 }
                             }
                         ]
@@ -189,7 +190,7 @@ export default [
                         path: 'billing',
                         component: TeamBilling,
                         meta: {
-                            title: 'Team - Billing'
+                            title: t('ui.teamBilling2')
                         }
                     },
                     {
@@ -197,7 +198,7 @@ export default [
                         path: 'pipelines',
                         component: TeamPipelines,
                         meta: {
-                            title: 'Team - DevOps Pipelines'
+                            title: t('ui.teamDevopsPipelines')
                         }
                     },
                     {
@@ -205,7 +206,7 @@ export default [
                         path: 'bill-of-materials',
                         component: TeamBillOfMaterials,
                         meta: {
-                            title: 'Team - Bill of Materials'
+                            title: t('ui.teamBillOfMaterials')
                         }
                     },
                     {
@@ -213,7 +214,7 @@ export default [
                         path: 'groups',
                         component: DeviceGroups,
                         meta: {
-                            title: 'Team - Groups'
+                            title: t('ui.teamGroups')
                         }
                     },
                     {
@@ -221,7 +222,7 @@ export default [
                         path: 'performance',
                         component: TeamPerformance,
                         meta: {
-                            title: 'Team - Performance'
+                            title: t('ui.teamPerformance')
                         }
                     }
                 ]
@@ -232,12 +233,12 @@ export default [
                 beforeEnter: ensurePermission('team:create'),
                 component: CreateTeam,
                 meta: {
-                    title: 'Create Team',
+                    title: t('ui.createTeam2'),
                     menu: {
                         type: 'back',
                         backTo: ({ team }) => {
                             return {
-                                label: 'Back to Dashboard',
+                                label: t('ui.backToDashboard'),
                                 to: { name: 'team', params: { team_slug: team?.slug } }
                             }
                         }
@@ -251,7 +252,7 @@ export default [
         component: RegisterDevice,
         name: 'register-device',
         meta: {
-            title: 'Register Remote Instance',
+            title: t('ui.registerRemoteInstance'),
             layout: 'plain'
         }
     },
@@ -260,7 +261,7 @@ export default [
         path: '/team/:team_slug/dashboards/:instanceId',
         component: DashboardViewer,
         meta: {
-            title: 'Team - Dashboards',
+            title: t('ui.teamDashboards'),
             layout: 'immersive',
             scope: 'team'
         }
@@ -270,7 +271,7 @@ export default [
         path: '/team/:team_slug/applications/:id/dashboards/:instanceId',
         component: DashboardViewer,
         meta: {
-            title: 'Application - Dashboards',
+            title: t('ui.applicationDashboards'),
             layout: 'immersive',
             scope: 'application'
         }
@@ -280,12 +281,12 @@ export default [
         component: CreateInstance,
         name: 'deploy-blueprint',
         meta: {
-            title: 'Deploy Blueprint',
+            title: t('ui.deployBlueprint'),
             menu: {
                 type: 'back',
                 backTo: ({ team }) => {
                     return {
-                        label: 'Back to Dashboard',
+                        label: t('ui.backToDashboard'),
                         to: { name: 'team', params: { team_slug: team?.slug } }
                     }
                 }
@@ -317,7 +318,7 @@ export default [
             }
         },
         meta: {
-            title: 'Team - MQTT Broker Clients'
+            title: t('ui.teamMqttBrokerClients')
         }
     }
 ]

@@ -1,9 +1,9 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Dashboards">
+            <ff-page-header :title="$t('ui.dashboards')">
                 <template #context>
-                    A list of Node-RED instances with Dashboards belonging to this Team.
+                    {{ $t('ui.aListOfNodeRedInstancesWithDashboardsBelongingTo') }}
                 </template>
             </ff-page-header>
         </template>

@@ -1,24 +1,24 @@
 <template>
-    <ff-dialog ref="dialog" data-el="mfa-setup" header="Setup two-factor authentication">
+    <ff-dialog ref="dialog" data-el="mfa-setup" :header="$t('ui.setupTwoFactorAuthentication')">
         <template #default>
             <div class="space-y-4">
                 <template v-if="step === 0">
                     <template v-if="showQRCode">
                         <p>
-                            To get started, scan the following QR code into your Authenticator app, then click next to continue.
+                            {{ $t('ui.toGetStartedScanTheFollowingQrCodeIntoYourAuthen') }}
                         </p>
                         <div class="text-center mt-4">
                             <template v-if="!!qrcode">
                                 <img v-if="!!qrcode" :src="qrcode" class="m-auto border rounded-sm">
                                 <p>
-                                    <a class="cursor-pointer" @click="showSecret()">Can't scan QR code?</a>
+                                    <a class="cursor-pointer" @click="showSecret()">{{ $t('ui.canTScanQrCode') }}</a>
                                 </p>
                             </template>
                         </div>
                     </template>
                     <template v-else>
                         <p>
-                            To get started, enter the following code into your Authenticator app, then click next to continue.
+                            {{ $t('ui.toGetStartedEnterTheFollowingCodeIntoYourAuthent') }}
                         </p>
                         <div class="text-center mt-4">
                             <p class="text-2xl w-72 text-wrap font-mono tracking-wider mx-auto my-2">
@@ -27,14 +27,14 @@
                                 </template>
                             </p>
                             <p>
-                                <a class="cursor-pointer" @click="hideSecret()">Show QR code</a>
+                                <a class="cursor-pointer" @click="hideSecret()">{{ $t('ui.showQrCode') }}</a>
                             </p>
                         </div>
                     </template>
                 </template>
                 <template v-if="step === 1">
                     <p>
-                        Enter a code from your Authenticator app to check everything is working.
+                        {{ $t('ui.enterACodeFromYourAuthenticatorAppToCheckEveryth') }}
                     </p>
                     <div class="w-32">
                         <ff-text-input
@@ -48,22 +48,22 @@
                 </template>
                 <template v-if="step === 2">
                     <p>
-                        Two-factor authentication is now enabled.
+                        {{ $t('ui.twoFactorAuthenticationIsNowEnabled') }}
                     </p>
                     <p>
-                        You will need to provide a code from your Authenticator app each time you login from now on.
+                        {{ $t('ui.youWillNeedToProvideACodeFromYourAuthenticatorAp') }}
                     </p>
                 </template>
                 <template v-if="step === 3">
-                    Failed to verify the code. You will need to restart the setup to try again.
+                    {{ $t('ui.failedToVerifyTheCodeYouWillNeedToRestartTheSetu') }}
                 </template>
             </div>
         </template>
         <template #actions>
-            <ff-button v-if="step < 2" data-action="mfa-setup-cancel" kind="secondary" @click="cancel()">Cancel</ff-button>
-            <ff-button v-if="step < 2" data-action="mfa-setup-next" class="ml-4" :disabled="!canContinue" @click="next()">Next</ff-button>
-            <ff-button v-if="step===2" data-action="mfa-setup-done" class="ml-4" @click="complete()">Done</ff-button>
-            <ff-button v-if="step===3" data-action="mfa-setup-done" class="ml-4" @click="cancel()">Done</ff-button>
+            <ff-button v-if="step < 2" data-action="mfa-setup-cancel" kind="secondary" @click="cancel()">{{ $t('ui.cancel') }}</ff-button>
+            <ff-button v-if="step < 2" data-action="mfa-setup-next" class="ml-4" :disabled="!canContinue" @click="next()">{{ $t('ui.next') }}</ff-button>
+            <ff-button v-if="step===2" data-action="mfa-setup-done" class="ml-4" @click="complete()">{{ $t('ui.done') }}</ff-button>
+            <ff-button v-if="step===3" data-action="mfa-setup-done" class="ml-4" @click="cancel()">{{ $t('ui.done') }}</ff-button>
         </template>
     </ff-dialog>
 </template>

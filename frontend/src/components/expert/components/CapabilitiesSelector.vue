@@ -8,7 +8,7 @@
             multiple
             label-key="name"
             :value-key="['mcpServer']"
-            placeholder="Resources"
+            :placeholder="$t('ui.resources')"
             open-above
             :options-min-width="280"
             align-right
@@ -45,7 +45,7 @@
                                     {{ option.mcpServerName }}
                                 </p>
                             </div>
-                            <span class="tool-count-badge self-start" title="Tools">{{
+                            <span class="tool-count-badge self-start" :title="$t('ui.tools')">{{
                                 option.toolCount
                             }}</span>
                         </div>

@@ -1,7 +1,7 @@
 <template>
     <form>
-        <p class="text-lg text-center">Something went wrong setting up FlowFuse.</p>
-        <p class="text-center">Please check the application log for details</p>
+        <p class="text-lg text-center">{{ $t('ui.somethingWentWrongSettingUpFlowfuse') }}</p>
+        <p class="text-center">{{ $t('ui.pleaseCheckTheApplicationLogForDetails') }}</p>
     </form>
 </template>
 

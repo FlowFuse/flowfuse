@@ -1,6 +1,6 @@
 <template>
     <div class="recently-modified">
-        <p class="text-gray-400 text-sm">Recently Modified</p>
+        <p class="text-gray-400 text-sm">{{ $t('ui.recentlyModified') }}</p>
         <ul v-if="devices.length" class="flex flex-col gap-1">
             <li v-for="device in devices" :key="device.id" class="device-wrapper flex">
                 <DeviceTile
@@ -22,9 +22,9 @@
 
         <div v-else class="no-devices flex flex-col flex-1 justify-center text-gray-500 italic">
             <p class="text-center self-center">
-                No remote Node-RED Instances found.
-                <span class="text-indigo-500 cursor-pointer" @click.stop.prevent="openCreateDialog">Add a Remote Instance</span>
-                to get started.
+                {{ $t('ui.noRemoteNodeRedInstancesFound') }}
+                <span class="text-indigo-500 cursor-pointer" @click.stop.prevent="openCreateDialog">{{ $t('ui.addARemoteInstance') }}</span>
+                {{ $t('ui.toGetStarted') }}
             </p>
         </div>
 
@@ -41,8 +41,8 @@
         >
             <template #description>
                 <p class="my-4">
-                    Further info on Remote Instances can be found
-                    <a href="https://flowfuse.com/docs/user/devices/" target="_blank">here</a>.
+                    {{ $t('ui.furtherInfoOnRemoteInstancesCanBeFound') }}
+                    <a href="https://flowfuse.com/docs/user/devices/" target="_blank">{{ $t('ui.here') }}</a>.
                 </p>
             </template>
         </TeamDeviceCreateDialog>

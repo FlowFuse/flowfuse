@@ -28,39 +28,39 @@
                 <ff-kebab-menu v-if="snapshotExists" ref="kebab">
                     <ff-kebab-item
                         :disabled="!hasPermission('project:snapshot:rollback', applicationContext)"
-                        label="Restore Snapshot"
+                        :label="$t('ui.restoreSnapshot')"
                         @click="$emit('restore-snapshot', event.data.snapshot, applicationContext)"
                     />
                     <ff-kebab-item
-                        label="Edit Snapshot"
+                        :label="$t('ui.editSnapshot')"
                         :disabled="!hasPermission('snapshot:edit', applicationContext)"
                         @click="$emit('edit-snapshot', event.data.snapshot)"
                     />
                     <ff-kebab-item
                         :disabled="!hasPermission('snapshot:full', applicationContext)"
-                        label="View Snapshot"
+                        :label="$t('ui.viewSnapshot')"
                         @click="$emit('preview-snapshot', event.data.snapshot)"
                     />
                     <ff-kebab-item
                         :disabled="!hasPermission('project:snapshot:export', applicationContext)"
-                        label="Download Snapshot"
+                        :label="$t('ui.downloadSnapshot')"
                         @click="$emit('download-snapshot', event.data.snapshot)"
                     />
                     <ff-kebab-item
                         :disabled="!hasPermission('project:snapshot:read', applicationContext)"
-                        label="Download package.json"
+                        :label="$t('ui.downloadPackageJson')"
                         @click="$emit('download-package-json', event.data.snapshot)"
                     />
                     <!-- Only show this option for Application Snapshot, not at the Device Level -->
                     <ff-kebab-item
                         v-if="!isADeviceSnapshotEvent"
                         :disabled="!hasPermission('project:snapshot:set-target', applicationContext)"
-                        label="Set as Device Target"
+                        :label="$t('ui.setAsDeviceTarget')"
                         @click="$emit('set-device-target', event.data.snapshot)"
                     />
                     <ff-kebab-item
                         :disabled="!hasPermission('project:snapshot:delete', applicationContext)"
-                        label="Delete Snapshot"
+                        :label="$t('ui.deleteSnapshot')"
                         kind="danger"
                         @click="$emit('delete-snapshot', event.data.snapshot)"
                     />
@@ -70,7 +70,7 @@
 
         <template v-else>
             <div class="body flex flex-1 justify-between gap-2 items-center cursor-pointer text-center">
-                <h5 class="w-full">Load More</h5>
+                <h5 class="w-full">{{ $t('ui.loadMore2') }}</h5>
             </div>
         </template>
     </div>

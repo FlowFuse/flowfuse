@@ -6,18 +6,17 @@
         role="region"
         aria-label="Cookie consent"
     >
-        <h2 class="ff-cookie-consent--title">This site uses cookies</h2>
+        <h2 class="ff-cookie-consent--title">{{ $t('ui.thisSiteUsesCookies') }}</h2>
         <p class="ff-cookie-consent--text">
-            We use cookies to keep FlowFuse working and, with your permission, to understand
-            how you use the platform and improve your experience.
-            <a href="https://flowfuse.com/privacy-policy/" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+            {{ $t('ui.weUseCookiesToKeepFlowfuseWorkingAndWithYourPerm') }}
+            <a href="https://flowfuse.com/privacy-policy/" target="_blank" rel="noopener noreferrer">{{ $t('ui.privacyPolicy') }}</a>
         </p>
         <div class="ff-cookie-consent--actions">
             <ff-button kind="secondary" size="small" data-action="reject-cookies" @click="consent.reject()">
-                Reject all
+                {{ $t('ui.rejectAll') }}
             </ff-button>
             <ff-button kind="primary" size="small" data-action="accept-cookies" @click="consent.accept()">
-                Accept all
+                {{ $t('ui.acceptAll') }}
             </ff-button>
         </div>
     </div>

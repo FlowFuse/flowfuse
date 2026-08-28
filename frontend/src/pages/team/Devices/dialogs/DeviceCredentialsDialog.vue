@@ -4,11 +4,10 @@
             <form class="text-gray-800">
                 <template v-if="!hasCredentials">
                     <p>
-                        Are you sure you want to regenerate configuration for this device?
+                        {{ $t('ui.areYouSureYouWantToRegenerateConfigurationForThi') }}
                     </p>
                     <p class="mt-3 mb-6">
-                        The existing configuration will be reset and the device will not
-                        be able to reconnect until it has been given its new configuration.
+                        {{ $t('ui.theExistingConfigurationWillBeResetAndTheDeviceW') }}
                     </p>
                 </template>
                 <template v-else>
@@ -19,11 +18,11 @@
         </template>
         <template #actions>
             <template v-if="!hasCredentials">
-                <ff-button kind="secondary" @click="close">Cancel</ff-button>
-                <ff-button kind="danger" class="ml-4" @click="regenerateCredentials()">Regenerate configuration</ff-button>
+                <ff-button kind="secondary" @click="close">{{ $t('ui.cancel') }}</ff-button>
+                <ff-button kind="danger" class="ml-4" @click="regenerateCredentials()">{{ $t('ui.regenerateConfiguration2') }}</ff-button>
             </template>
             <template v-else>
-                <ff-button class="ml-4" @click="close">Done</ff-button>
+                <ff-button class="ml-4" @click="close">{{ $t('ui.done') }}</ff-button>
             </template>
         </template>
     </ff-dialog>
@@ -31,6 +30,8 @@
 
 <script>
 import { markRaw } from 'vue'
+
+import { t } from '../../../../i18n.js'
 
 import ManualInstall from './components/DeviceCredentialsDialog/ManualInstall.vue'
 import NpmInstallContent from './components/DeviceCredentialsDialog/NpmInstallContent.vue'
@@ -97,21 +98,21 @@ export default {
                     {
                         id: 'script',
                         component: markRaw(OptionTileSelector),
-                        props: { label: 'One-Line Install', title: 'Install & Run Device Agent' },
+                        props: { label: t('ui.oneLineInstall'), title: t('ui.installRunDeviceAgent') },
                         children: [
-                            { id: 'windows', component: markRaw(ScriptInstallContent), props: { label: 'Windows', icon: markRaw(WindowsIcon), device: this.device, os: 'windows' } },
-                            { id: 'macos', component: markRaw(ScriptInstallContent), props: { label: 'MacOS', icon: markRaw(MacOSIcon), device: this.device, os: 'macos' } },
-                            { id: 'linux', component: markRaw(ScriptInstallContent), props: { label: 'Linux', icon: markRaw(LinuxIcon), device: this.device, os: 'linux' } }
+                            { id: 'windows', component: markRaw(ScriptInstallContent), props: { label: t('ui.windows'), icon: markRaw(WindowsIcon), device: this.device, os: 'windows' } },
+                            { id: 'macos', component: markRaw(ScriptInstallContent), props: { label: t('ui.macos'), icon: markRaw(MacOSIcon), device: this.device, os: 'macos' } },
+                            { id: 'linux', component: markRaw(ScriptInstallContent), props: { label: t('ui.linux'), icon: markRaw(LinuxIcon), device: this.device, os: 'linux' } }
                         ]
                     },
                     {
                         id: 'npm',
                         component: markRaw(OptionTileSelector),
-                        props: { label: 'Install via NPM', title: 'Install Device Agent' },
+                        props: { label: t('ui.installViaNpm'), title: t('ui.installDeviceAgent') },
                         children: [
-                            { id: 'windows', component: markRaw(NpmInstallContent), props: { label: 'Windows', icon: markRaw(WindowsIcon), device: this.device, os: 'windows' } },
-                            { id: 'macos', component: markRaw(NpmInstallContent), props: { label: 'MacOS', icon: markRaw(MacOSIcon), device: this.device, os: 'macos' } },
-                            { id: 'linux', component: markRaw(NpmInstallContent), props: { label: 'Linux', icon: markRaw(LinuxIcon), device: this.device, os: 'linux' } }
+                            { id: 'windows', component: markRaw(NpmInstallContent), props: { label: t('ui.windows'), icon: markRaw(WindowsIcon), device: this.device, os: 'windows' } },
+                            { id: 'macos', component: markRaw(NpmInstallContent), props: { label: t('ui.macos'), icon: markRaw(MacOSIcon), device: this.device, os: 'macos' } },
+                            { id: 'linux', component: markRaw(NpmInstallContent), props: { label: t('ui.linux'), icon: markRaw(LinuxIcon), device: this.device, os: 'linux' } }
                         ]
                     }
                 ]

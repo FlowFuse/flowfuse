@@ -4,12 +4,12 @@
             <span :class="pubClass" data-el="pub">
                 <CheckIcon v-if="canPublish" class="ff-icon-sm" />
                 <XMarkIcon v-else class="ff-icon-sm" />
-                pub
+                {{ $t('ui.pub') }}
             </span>
             <span :class="subClass" data-el="sub">
                 <CheckIcon v-if="canSubscribe" class="ff-icon-sm" />
                 <XMarkIcon v-else class="ff-icon-sm" />
-                sub
+                {{ $t('ui.sub') }}
             </span>
         </div>
         <div class="pattern">

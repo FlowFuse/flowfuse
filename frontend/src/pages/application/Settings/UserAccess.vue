@@ -5,8 +5,8 @@
             data-el="user-access-table"
         >
             <template v-if="hasPermission('team:user:change-role') || isAdminUser" #context-menu="{row}">
-                <ff-kebab-item v-if="row.permissions?.sso === true" label="SSO Managed" />
-                <ff-kebab-item v-else data-action="edit-token" label="Edit Permissions" @click="editUserPermissions(row)" />
+                <ff-kebab-item v-if="row.permissions?.sso === true" :label="$t('ui.ssoManaged')" />
+                <ff-kebab-item v-else data-action="edit-token" :label="$t('ui.editPermissions')" @click="editUserPermissions(row)" />
             </template>
         </ff-data-table>
 
@@ -23,6 +23,8 @@ import teamClient from '../../../api/team.js'
 import EditApplicationPermissionsDialog from '../../../components/dialogs/EditApplicationPermissionsDialog.vue'
 import UserCell from '../../../components/tables/cells/UserCell.vue'
 import usePermissions from '../../../composables/Permissions.js'
+
+import { t } from '../../../i18n.js'
 
 import RoleRow from './components/RoleRow.vue'
 
@@ -58,7 +60,7 @@ export default defineComponent({
             return [
                 {
                     key: 'name',
-                    label: 'User',
+                    label: t('ui.user2'),
                     sortable: true,
                     component: {
                         is: markRaw(UserCell)
@@ -66,7 +68,7 @@ export default defineComponent({
                 },
                 {
                     key: 'role',
-                    label: 'Role',
+                    label: t('ui.role'),
                     sortable: true,
                     component: {
                         is: markRaw(RoleRow),

@@ -1,28 +1,28 @@
 <template>
     <form class="space-y-6" data-el="instance-editor" @submit.prevent>
-        <FormHeading>Limits</FormHeading>
+        <FormHeading>{{ $t('ui.limits') }}</FormHeading>
         <div v-if="limitAvailable">
             <div v-if="limitsLauncherEnabled" class="flex flex-col sm:flex-row">
                 <div class="w-full max-w-md sm:mr-8">
                     <FormRow v-model="editable.settings.apiMaxLength" :error="editable.errors.apiMaxLength" type="text">
-                        Max HTTP Payload Size
+                        {{ $t('ui.maxHttpPayloadSize') }}
                         <template #description>
-                            The maximum number of bytes allowed in a HTTP Request in bytes ('kb','mb' modifiers allowed)
+                            {{ $t('ui.theMaximumNumberOfBytesAllowedInAHttpRequestInBy') }}
                         </template>
                         <template #append><ChangeIndicator :value="editable.changed.apiMaxLength" /></template>
                     </FormRow>
                 </div>
             </div>
-            <notice-banner v-else title="Upgrade Required">
+            <notice-banner v-else :title="$t('ui.upgradeRequired')">
                 <p>
-                    Please <a target="_blank" class="ff-link" href="https://flowfuse.com/docs/device-agent/install/device-agent-installer/#device-agent">upgrade</a> your Device Agent to v3.8.3 to be able to set apiMaxLength
+                    {{ $t('ui.please') }} <a target="_blank" class="ff-link" href="https://flowfuse.com/docs/device-agent/install/device-agent-installer/#device-agent">{{ $t('ui.upgrade2') }}</a> {{ $t('ui.yourDeviceAgentToV383ToBeAbleToSetApimaxlength') }}
                 </p>
             </notice-banner>
         </div>
-        <FeatureUnavailableToTeam v-if="!limitAvailable" featureName="Set API Size Limits" />
+        <FeatureUnavailableToTeam v-if="!limitAvailable" :featureName="$t('ui.setApiSizeLimits')" />
         <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
             <ff-button data-el="submit" size="small" :disabled="!unsavedChanges || editable.hasErrors" @click="saveSettings()">
-                Save Settings
+                {{ $t('ui.saveSettings') }}
             </ff-button>
         </div>
     </form>
@@ -40,6 +40,7 @@ import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavail
 import NoticeBanner from '../../../components/notices/NoticeBanner.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
+import { t } from '../../../i18n.js'
 import Alerts from '../../../services/alerts.js'
 
 import ChangeIndicator from '../../admin/Template/components/ChangeIndicator.vue'
@@ -152,7 +153,7 @@ export default {
                 if (pattern.test(this.editable.settings.apiMaxLength)) {
                     this.editable.errors.apiMaxLength = ''
                 } else {
-                    this.editable.errors.apiMaxLength = 'Invalid Value'
+                    this.editable.errors.apiMaxLength = t('ui.invalidValue')
                 }
             } else {
                 this.editable.errors.apiMaxLength = ''

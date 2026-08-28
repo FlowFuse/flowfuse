@@ -14,7 +14,7 @@
                 :onlyCustomMessage="true"
             >
                 <template #default>
-                    <p>This Instance currently has the default Node-RED File nodes disabled. Please remove '10-file.js' from the <router-link class="ff-link" :to="{ name: 'instance-settings-palette', params: { id: instance.id } }">exclude</router-link> list or contact your administrator</p>
+                    <p>{{ $t('ui.thisInstanceCurrentlyHasTheDefaultNodeRedFileNod') }} <router-link class="ff-link" :to="{ name: 'instance-settings-palette', params: { id: instance.id } }">{{ $t('ui.exclude') }}</router-link> {{ $t('ui.listOrContactYourAdministrator') }}</p>
                 </template>
             </FeatureUnavailable>
         </div>

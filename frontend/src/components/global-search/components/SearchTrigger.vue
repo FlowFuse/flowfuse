@@ -1,7 +1,7 @@
 <template>
     <input
         type="text"
-        placeholder="Search through your team (CTRL + K)"
+        :placeholder="$t('ui.searchThroughYourTeamCtrlK')"
         class="input-trigger"
         @focusin="interacted"
         @click="interacted"

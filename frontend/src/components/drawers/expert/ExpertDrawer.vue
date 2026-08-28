@@ -3,7 +3,7 @@
         <div class="header">
             <div class="flex items-center gap-1.5">
                 <img src="/ff-minimal-red.svg" alt="FlowFuse" class="w-5 h-5 shrink-0">
-                <h2 class="title">Expert</h2>
+                <h2 class="title">{{ $t('ui.expert') }}</h2>
             </div>
             <div v-if="isInsightsModeEnabled && isAssistantModeEnabled" class="agent-mode">
                 <toggle-button-group
@@ -44,6 +44,7 @@ import { LockClosedIcon, LockOpenIcon, XMarkIcon } from '@heroicons/vue/20/solid
 
 import { mapActions, mapState } from 'pinia'
 
+import { t } from '../../../i18n.js'
 import ToggleButtonGroup from '../../elements/ToggleButtonGroup.vue'
 import ExpertPanel from '../../expert/Expert.vue'
 
@@ -67,8 +68,8 @@ export default {
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
         agentModeButtons () {
             return [
-                { title: 'Support', value: 'support-agent' },
-                { title: 'Insights', value: 'insights-agent' }
+                { title: t('ui.support'), value: 'support-agent' },
+                { title: t('ui.insights'), value: 'insights-agent' }
             ]
         },
         isAssistantModeEnabled () {

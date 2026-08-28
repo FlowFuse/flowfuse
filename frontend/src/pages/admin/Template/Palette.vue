@@ -5,7 +5,7 @@
         <TemplateSectionNPM v-model="editableTemplate" :editTemplate="true" :project="project" />
         <TemplateSectionPaletteModules
             v-model="editableTemplate" :editTemplate="true" :readOnly="false" :project="project"
-            header="Default Modules"
+            :header="$t('ui.defaultModules')"
         />
     </form>
 </template>

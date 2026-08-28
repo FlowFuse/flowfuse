@@ -7,7 +7,7 @@
         :loading-overlay="formLoading"
         :loading-overlay-text="loadingText"
         :showFooter="false"
-        last-step-label="Create Instance"
+        :last-step-label="$t('ui.createInstance')"
         @previous-step-state-changed="$emit('previous-step-state-changed', $event)"
         @next-step-state-changed="$emit('next-step-state-changed', $event)"
         @next-step-label-changed="$emit('next-step-label-changed', $event)"

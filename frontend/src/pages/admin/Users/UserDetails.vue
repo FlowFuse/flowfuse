@@ -5,15 +5,15 @@
                 <template #breadcrumbs>
                     <div class="grow">
                         <div class="text-gray-800 text-xl">
-                            <router-link class="ff-link font-bold" :to="{name: 'admin-users'}">Users</router-link>
-                            <!-- <nav-item :icon="icons.breadcrumbSeparator" label="sss"></nav-item> -->
+                            <router-link class="ff-link font-bold" :to="{name: 'admin-users'}">{{ $t('ui.users') }}</router-link>
+                            <!-- <nav-item :icon="icons.breadcrumbSeparator" :label="$t('ui.sss')"></nav-item> -->
                             <ChevronRightIcon class="ff-icon" />
                             <span>{{ user.username }}</span>
                         </div>
                     </div>
                 </template>
                 <template #tools>
-                    <ff-button data-action="editUser" @click="showEditUserDialog()">Edit</ff-button>
+                    <ff-button data-action="editUser" @click="showEditUserDialog()">{{ $t('ui.edit') }}</ff-button>
                 </template>
             </ff-page-header>
         </template>
@@ -25,39 +25,39 @@
                     <div class="text-l text-gray-400">{{ user.username }}</div>
                 </div>
                 <div class="ml-3 space-x-1">
-                    <span v-if="user.admin" class="forge-badge forge-status-running">admin</span>
-                    <span v-if="user.suspended" class="forge-badge forge-status-error">suspended</span>
+                    <span v-if="user.admin" class="forge-badge forge-status-running">{{ $t('ui.admin') }}</span>
+                    <span v-if="user.suspended" class="forge-badge forge-status-error">{{ $t('ui.suspended2') }}</span>
                 </div>
             </div>
             <div class="mb-4">
                 <table class="table-fixed w-full mb-2">
                     <tbody>
                         <tr class="border-b">
-                            <td class="w-1/4 font-medium py-2">Email</td>
+                            <td class="w-1/4 font-medium py-2">{{ $t('ui.email') }}</td>
                             <td class="flex">
                                 {{ user.email }}
                                 <div class="ml-3 space-x-1">
-                                    <span v-if="user.sso_enabled" class="forge-badge forge-status-safe">sso-enabled</span>
-                                    <span v-else-if="user.email_verified" class="forge-badge forge-status-running">verified</span>
-                                    <span v-else class="forge-badge forge-status-error">unverified</span>
+                                    <span v-if="user.sso_enabled" class="forge-badge forge-status-safe">{{ $t('ui.ssoEnabled') }}</span>
+                                    <span v-else-if="user.email_verified" class="forge-badge forge-status-running">{{ $t('ui.verified2') }}</span>
+                                    <span v-else class="forge-badge forge-status-error">{{ $t('ui.unverified') }}</span>
                                 </div>
                             </td>
                         </tr>
                         <tr class="border-b">
-                            <td class="w-1/4 font-medium py-2">Registered At</td>
+                            <td class="w-1/4 font-medium py-2">{{ $t('ui.registeredAt') }}</td>
                             <td class="py-1">{{ user.createdAt }}</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <FormHeading>Teams</FormHeading>
+            <FormHeading>{{ $t('ui.teams') }}</FormHeading>
             <ff-data-table
                 :columns="columns"
                 :rows="teams"
                 :rows-selectable="true"
                 :loading="loadingTeams"
-                loading-message="Loading Teams"
-                no-data-message="No Teams Found"
+                :loading-message="$t('ui.loadingTeams')"
+                :no-data-message="$t('ui.noTeamsFound')"
                 data-el="teams-table"
             />
         </div>
@@ -80,6 +80,8 @@ import TeamCell from '../../../components/tables/cells/TeamCell.vue'
 import TeamTypeCell from '../../../components/tables/cells/TeamTypeCell.vue'
 import UserRoleCell from '../../../components/tables/cells/UserRoleCell.vue'
 
+import { t } from '../../../i18n.js'
+
 import AdminUserEditDialog from './dialogs/AdminUserEditDialog.vue'
 
 export default {
@@ -96,12 +98,12 @@ export default {
             loadingTeams: false,
             loading: false,
             columns: [
-                { label: 'Name', class: ['w-full'], component: { is: markRaw(TeamCell) }, sortable: true },
-                { label: 'Role', component: { is: markRaw(UserRoleCell) }, sortable: true },
-                { label: 'Type', key: 'type', component: { is: markRaw(TeamTypeCell) }, sortable: true },
-                { label: 'Members', class: ['w-54', 'text-center'], key: 'memberCount', sortable: true },
-                { label: 'Instances', class: ['w-54', 'text-center'], key: 'instanceCount', sortable: true },
-                { label: 'Devices', class: ['w-54', 'text-center'], key: 'deviceCount', sortable: true }
+                { label: t('ui.name'), class: ['w-full'], component: { is: markRaw(TeamCell) }, sortable: true },
+                { label: t('ui.role'), component: { is: markRaw(UserRoleCell) }, sortable: true },
+                { label: t('ui.type'), key: 'type', component: { is: markRaw(TeamTypeCell) }, sortable: true },
+                { label: t('ui.members'), class: ['w-54', 'text-center'], key: 'memberCount', sortable: true },
+                { label: t('ui.instances'), class: ['w-54', 'text-center'], key: 'instanceCount', sortable: true },
+                { label: t('ui.devices'), class: ['w-54', 'text-center'], key: 'deviceCount', sortable: true }
             ]
         }
     },

@@ -3,7 +3,7 @@
         <template #header>
             <ff-page-header :title="pageTitle">
                 <template #context>
-                    Let's get your new Node-RED instance setup in no time.
+                    {{ $t('ui.letSGetYourNewNodeRedInstanceSetupInNoTime') }}
                 </template>
                 <template #tools>
                     <section class="flex gap-3">
@@ -14,7 +14,7 @@
                             data-el="previous-step"
                             @click="$refs.multiStepForm.goToPreviousStep()"
                         >
-                            Back
+                            {{ $t('ui.back') }}
                         </ff-button>
                         <ff-button
                             class="flex-1 whitespace-nowrap"
@@ -29,7 +29,7 @@
             </ff-page-header>
         </template>
 
-        <ff-loading v-if="loading" message="Creating instance..." />
+        <ff-loading v-if="loading" :message="$t('ui.creatingInstance')" />
 
         <MultiStepApplicationsInstanceForm
             v-else

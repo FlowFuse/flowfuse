@@ -24,12 +24,12 @@ export default {
         ...mapState(useAccountSettingsStore, ['features']),
         sideNavigation () {
             const navigation = [
-                { name: 'Password', path: '/account/security/password' },
-                { name: 'Tokens', path: '/account/security/tokens' }
+                { name: this.$t('ui.passwordTab'), path: '/account/security/password' },
+                { name: this.$t('ui.tokensTab'), path: '/account/security/tokens' }
                 // { name: "Sessions", path: "/account/security/sessions" }
             ]
             if (this.features.mfa) {
-                navigation.splice(1, 0, { name: 'Two-Factor Authentication', path: '/account/security/mfa' })
+                navigation.splice(1, 0, { name: this.$t('ui.twoFactorAuthentication2'), path: '/account/security/mfa' })
             }
             return navigation
         }

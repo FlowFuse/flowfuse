@@ -9,6 +9,7 @@ import { useRouter } from 'vue-router'
 
 import InstanceApi from '../../../api/instances.js'
 import usePermissions from '../../../composables/Permissions.js'
+import { t } from '../../../i18n.js'
 import Dialog from '../../../services/dialog.js'
 import TemplateSettingsAlert from '../../admin/Template/sections/Alerts.vue'
 import {
@@ -61,19 +62,19 @@ export default {
         emailOptions () {
             return [
                 {
-                    label: 'Owners',
+                    label: t('ui.owners'),
                     value: 'owners',
-                    description: 'Email Team Owners'
+                    description: t('ui.emailTeamOwners')
                 },
                 {
-                    label: 'Owners & Members',
+                    label: t('ui.ownersMembers'),
                     value: 'both',
-                    description: 'Email Team Owners and Members'
+                    description: t('ui.emailTeamOwnersAndMembers')
                 },
                 {
-                    label: 'Members',
+                    label: t('ui.members'),
                     value: 'members',
-                    description: 'Email Team Members'
+                    description: t('ui.emailTeamMembers')
                 }
             ]
         },
@@ -158,7 +159,7 @@ export default {
             // is instance running
             if (this.project.meta.state === 'running') {
                 Dialog.show({
-                    header: 'Restart Required',
+                    header: t('ui.restartRequired'),
                     html: '<p>Instance settings have been successfully updated, but the Instance must be restarted for these settings to take effect.</p><p>Would you like to restart the Instance now?</p>',
                     confirmLabel: 'Restart Now',
                     cancelLabel: 'Restart Later'

@@ -1,19 +1,19 @@
 <template>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <InfoCard v-if="isDevModeAvailable" header="Developer Mode Options:">
+        <InfoCard v-if="isDevModeAvailable" :header="$t('ui.developerModeOptions')">
             <template #icon>
                 <BeakerIcon />
             </template>
             <template #content>
-                <InfoCardRow v-if="!isImmersiveEditor" property="Editor Access:">
+                <InfoCardRow v-if="!isImmersiveEditor" :property="$t('ui.editorAccess')">
                     <template #value>
                         <div class="flex gap-9 items-center">
                             <div class="font-medium forge-badge" :class="'forge-status-' + (editorEnabled ? (editorTunnelConnected ? 'running' : 'error') : 'stopped')">
                                 <span v-if="editorEnabled">
-                                    <span v-if="editorTunnelConnected">enabled</span>
-                                    <span v-else>not connected</span>
+                                    <span v-if="editorTunnelConnected">{{ $t('ui.enabled2') }}</span>
+                                    <span v-else>{{ $t('ui.notConnected') }}</span>
                                 </span>
-                                <span v-else>disabled</span>
+                                <span v-else>{{ $t('ui.disabled') }}</span>
                             </div>
                             <div class="space-x-2 flex align-center">
                                 <ff-button
@@ -24,8 +24,8 @@
                                     class="w-20 whitespace-nowrap"
                                     @click="closeTunnel"
                                 >
-                                    <span v-if="closingTunnel">Disabling...</span>
-                                    <span v-else>Disable</span>
+                                    <span v-if="closingTunnel">{{ $t('ui.disabling') }}</span>
+                                    <span v-else>{{ $t('ui.disable') }}</span>
                                 </ff-button>
                                 <ff-button
                                     v-if="!editorEnabled"
@@ -35,50 +35,50 @@
                                     class="w-20 whitespace-nowrap"
                                     @click="openTunnel"
                                 >
-                                    <span v-if="openingTunnel">Enabling...</span>
-                                    <span v-else>Enable</span>
+                                    <span v-if="openingTunnel">{{ $t('ui.enabling') }}</span>
+                                    <span v-else>{{ $t('ui.enable') }}</span>
                                 </ff-button>
                             </div>
                         </div>
                     </template>
                 </InfoCardRow>
-                <InfoCardRow v-if="autoSnapshotFeatureEnabled && deviceIsApplicationOwned" property="Auto Snapshot:">
+                <InfoCardRow v-if="autoSnapshotFeatureEnabled && deviceIsApplicationOwned" :property="$t('ui.autoSnapshot')">
                     <template #value>
                         <div class="flex gap-9 items-center">
                             <div class="font-medium forge-badge" :class="'forge-status-' + (autoSnapshotEnabled ? 'running' : 'stopped')">
-                                <span v-if="autoSnapshotEnabled">enabled</span>
-                                <span v-else>disabled</span>
+                                <span v-if="autoSnapshotEnabled">{{ $t('ui.enabled2') }}</span>
+                                <span v-else>{{ $t('ui.disabled') }}</span>
                             </div>
                             <div class="space-x-2 flex align-center">
                                 <ff-button
                                     v-if="autoSnapshotEnabled"
-                                    v-ff-tooltip:bottom="'Automatically take a snapshot of the<br>device after every flow deployment.<br>Only the last 10 snapshots are kept'"
+                                    v-ff-tooltip:bottom="$t('ui.autoSnapshotTooltip')"
                                     :disabled="savingAutoSnapshotSetting || !autoSnapshotEnabled"
                                     kind="primary"
                                     size="small"
                                     class="w-20 whitespace-nowrap"
                                     @click="toggleAutoSnapshotSetting"
                                 >
-                                    <span v-if="savingAutoSnapshotSetting">Saving...</span>
-                                    <span v-else>Disable</span>
+                                    <span v-if="savingAutoSnapshotSetting">{{ $t('ui.saving') }}</span>
+                                    <span v-else>{{ $t('ui.disable') }}</span>
                                 </ff-button>
                                 <ff-button
                                     v-if="!autoSnapshotEnabled"
-                                    v-ff-tooltip:bottom="'Automatically take a snapshot of the<br>device after every flow deployment.<br>Only the last 10 snapshots are kept'"
+                                    v-ff-tooltip:bottom="$t('ui.autoSnapshotTooltip')"
                                     :disabled="savingAutoSnapshotSetting || autoSnapshotEnabled"
                                     kind="danger"
                                     size="small"
                                     class="w-20 whitespace-nowrap"
                                     @click="toggleAutoSnapshotSetting"
                                 >
-                                    <span v-if="savingAutoSnapshotSetting">Saving...</span>
-                                    <span v-else>Enable</span>
+                                    <span v-if="savingAutoSnapshotSetting">{{ $t('ui.saving') }}</span>
+                                    <span v-else>{{ $t('ui.enable') }}</span>
                                 </ff-button>
                             </div>
                         </div>
                     </template>
                 </InfoCardRow>
-                <InfoCardRow property="Device Flows:">
+                <InfoCardRow :property="$t('ui.deviceFlows')">
                     <template #value>
                         <div class="flex items-center">
                             <ff-button
@@ -89,9 +89,9 @@
                                 data-action="create-snapshot-dialog"
                                 @click="showCreateSnapshotDialog"
                             >
-                                Create Snapshot
+                                {{ $t('ui.createSnapshot') }}
                             </ff-button>
-                            <span v-if="createSnapshotDisabled" class="ff-description ml-2">A device must first be assigned to an Application or Instance in order to create snapshots.</span>
+                            <span v-if="createSnapshotDisabled" class="ff-description ml-2">{{ $t('ui.aDeviceMustFirstBeAssignedToAnApplicationOrInsta') }}</span>
                         </div>
                     </template>
                 </InfoCardRow>
@@ -111,6 +111,7 @@ import deviceApi from '../../../api/devices.js'
 // components
 import InfoCard from '../../../components/InfoCard.vue'
 import InfoCardRow from '../../../components/InfoCardRow.vue'
+import { t } from '../../../i18n.js'
 import alerts from '../../../services/alerts.js'
 import SnapshotCreateDialog from '../dialogs/SnapshotCreateDialog.vue'
 
@@ -208,7 +209,7 @@ export default {
             if (this.device.status === 'running') {
                 this.$emit('open-tunnel')
             } else {
-                alerts.emit('The device must be in "running" state to access the editor', 'warning', 7500)
+                alerts.emit(t('ui.theDeviceMustBeInRunningStateToAccessTheEditor'), 'warning', 7500)
             }
         },
         async closeTunnel () {
@@ -219,7 +220,7 @@ export default {
             this.$refs.snapshotCreateDialog.show()
         },
         async onSnapshotCreated (snapshot) {
-            alerts.emit('Successfully created snapshot from the device.', 'confirmation')
+            alerts.emit(t('ui.successfullyCreatedSnapshotFromTheDevice'), 'confirmation')
             this.busy = false
         },
         onSnapshotCancel () {
@@ -233,7 +234,7 @@ export default {
                     return
                 }
             }
-            alerts.emit('Failed to create snapshot from the device.', 'warning')
+            alerts.emit(t('ui.failedToCreateSnapshotFromTheDevice'), 'warning')
             this.busy = false
         },
         async toggleAutoSnapshotSetting () {

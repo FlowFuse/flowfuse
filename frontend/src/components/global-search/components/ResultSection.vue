@@ -33,7 +33,7 @@
                 </router-link>
             </li>
             <li v-if="hasMoreResults" class="result-wrapper show-more">
-                <a href="#" class="iterable" @click="showMore">Show more...</a>
+                <a href="#" class="iterable" @click="showMore">{{ $t('ui.showMore2') }}</a>
             </li>
         </ul>
     </section>

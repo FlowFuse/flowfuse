@@ -20,7 +20,7 @@
                         <span
                             v-if="segment.isEndOfTopic && segment.childrenCount"
                             class="separator cursor-help"
-                            title="This topic is also able to receive events"
+                            :title="$t('ui.thisTopicIsAlsoAbleToReceiveEvents')"
                         >
                             <ArchiveBoxIcon class="ff-icon-sm" />
                         </span>

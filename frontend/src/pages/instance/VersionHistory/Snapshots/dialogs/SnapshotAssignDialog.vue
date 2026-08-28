@@ -2,8 +2,8 @@
 <template>
     <ff-dialog
         ref="dialog"
-        header="Select Target Snapshot"
-        confirm-label="Assign"
+        :header="$t('ui.selectTargetSnapshot')"
+        :confirm-label="$t('ui.assign')"
         :disable-primary="!formValid"
         class="ff-dialog-fixed-height"
         data-el="snapshot-assign-dialog"
@@ -12,24 +12,24 @@
         <template #default>
             <ff-loading
                 v-if="loading"
-                message="Loading Snapshots..."
+                :message="$t('ui.loadingSnapshots')"
             />
             <form
                 v-else
                 class="space-y-6 mt-2"
                 @submit.prevent="confirm()"
             >
-                <p>Please select the Snapshot that you wish to deploy to all of your devices assigned to this instance.</p>
+                <p>{{ $t('ui.pleaseSelectTheSnapshotThatYouWishToDeployToAllO') }}</p>
                 <FormRow
                     data-form="snapshot"
                     containerClass="w-full"
                 >
-                    Target Snapshot
+                    {{ $t('ui.targetSnapshot2') }}
                     <template #input>
                         <ff-dropdown
                             v-if="snapshots.length > 0"
                             v-model="selectedSnapshotId"
-                            placeholder="Select a snapshot"
+                            :placeholder="$t('ui.selectASnapshot')"
                             data-form="snapshot-select"
                             class="w-full"
                         >
@@ -41,11 +41,11 @@
                             />
                         </ff-dropdown>
                         <div v-else>
-                            There are no snapshots to choose from for this instance yet!<br>
-                            Snapshots can be managed on the
+                            {{ $t('ui.thereAreNoSnapshotsToChooseFromForThisInstanceYe') }}<br>
+                            {{ $t('ui.snapshotsCanBeManagedOnThe') }}
                             <router-link :to="{ name: 'instance-snapshots', params: { id: instance.id }}">
-                                Instance Snapshots
-                            </router-link> page.
+                                {{ $t('ui.instanceSnapshots') }}
+                            </router-link> {{ $t('ui.page') }}
                         </div>
                     </template>
                 </FormRow>
@@ -59,6 +59,7 @@ import InstanceApi from '../../../../../api/instances.js'
 import snapshotApi from '../../../../../api/projectSnapshots.js'
 
 import FormRow from '../../../../../components/FormRow.vue'
+import { t } from '../../../../../i18n.js'
 import alerts from '../../../../../services/alerts.js'
 
 export default {
@@ -120,7 +121,7 @@ export default {
 
                 this.$emit('snapshot-assigned')
 
-                alerts.emit('Target snapshot updated.', 'confirmation')
+                alerts.emit(t('ui.targetSnapshotUpdated'), 'confirmation')
 
                 this.$refs.dialog.close()
             }

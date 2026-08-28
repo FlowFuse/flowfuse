@@ -1,7 +1,7 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Users" :tabs="sideNavigation" />
+            <ff-page-header :title="$t('ui.users')" :tabs="sideNavigation" />
         </template>
         <router-view />
     </ff-page>
@@ -9,9 +9,10 @@
 
 <script>
 
+import { t } from '../../../i18n.js'
 const sideNavigation = [
-    { label: 'Users', to: { name: 'admin-users-general' } },
-    { label: 'Invitations', to: { name: 'admin-users-invitations' } }
+    { label: t('ui.users'), to: { name: 'admin-users-general' } },
+    { label: t('ui.invitations'), to: { name: 'admin-users-invitations' } }
 ]
 
 export default {

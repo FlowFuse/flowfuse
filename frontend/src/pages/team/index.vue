@@ -2,8 +2,7 @@
     <template v-if="canAccessTeam && team">
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-team-as-admin">
-                You are viewing this team as an
-                Administrator
+                {{ $t('ui.youAreViewingThisTeamAsAnAdministrator') }}
             </div>
             <TeamSuspendedBanner v-if="team.suspended" :team="team" />
             <SubscriptionExpiredBanner v-else :team="team" />

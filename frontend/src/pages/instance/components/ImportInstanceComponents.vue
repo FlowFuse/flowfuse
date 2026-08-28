@@ -1,19 +1,20 @@
 <template>
     <div class="space-y-4 my-3">
         <FormRow ref="flows" v-model="localData.flows" data-form="instance-flow-file" type="file" accept=".json" :error="errors.flows">
-            Flow File
+            {{ $t('ui.flowFile') }}
         </FormRow>
         <FormRow ref="creds" v-model="localData.creds" data-form="instance-creds-file" type="file" accept=".json" :errors="errors.creds">
-            Credentials File
+            {{ $t('ui.credentialsFile') }}
         </FormRow>
         <FormRow v-model="localData.secret" data-form="instance-creds-secret" :disabled="withCreds" type="text">
-            Credentials Secret
+            {{ $t('ui.credentialsSecret') }}
         </FormRow>
     </div>
 </template>
 
 <script>
 import FormRow from '../../../components/FormRow.vue'
+import { t } from '../../../i18n.js'
 
 export default {
     name: 'ImportProjectComponent',
@@ -84,13 +85,13 @@ export default {
                         this.errors.flows = ''
                     } else {
                         this.parts.flows = undefined
-                        this.errors.flows = 'Does not look like a flow file'
+                        this.errors.flows = t('ui.doesNotLookLikeAFlowFile')
                     }
                 } catch (err) {
                     // problem
                     console.error(err)
                     this.parts.flows = undefined
-                    this.errors.flows = 'Not JSON'
+                    this.errors.flows = t('ui.notJson')
                 }
             }
             reader.readAsText(file)
@@ -106,7 +107,7 @@ export default {
                     // problem
                     console.error(err)
                     this.parts.credentials = undefined
-                    this.errors.creds = 'Not JSON'
+                    this.errors.creds = t('ui.notJson')
                 }
             }
             reader.readAsText(file)

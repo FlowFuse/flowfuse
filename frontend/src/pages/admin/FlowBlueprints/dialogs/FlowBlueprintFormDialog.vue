@@ -4,28 +4,28 @@
             <form class="space-y-6 mt-2" @submit.prevent>
                 <div v-if="error" data-el="form-row-error" class="ml-4 text-red-400 text-xs">{{ error }}</div>
 
-                <FormRow v-model="input.name" :error="errors.name" data-form="name">Name</FormRow>
+                <FormRow v-model="input.name" :error="errors.name" data-form="name">{{ $t('ui.name') }}</FormRow>
                 <FormRow v-model="input.active" type="checkbox" data-form="active">
-                    Active
+                    {{ $t('ui.active') }}
                     <template #description>
-                        Display this blueprint in the list of available blueprints
+                        {{ $t('ui.displayThisBlueprintInTheListOfAvailableBlueprin') }}
                     </template>
                 </FormRow>
 
                 <FormRow v-model="input.default" type="checkbox" :error="errors.default" data-form="default">
-                    Default Blueprint
+                    {{ $t('ui.defaultBlueprint') }}
                     <template #description>
-                        Set this as the default blueprint for new instances
+                        {{ $t('ui.setThisAsTheDefaultBlueprintForNewInstances') }}
                     </template>
                 </FormRow>
 
                 <FormRow data-form="teamTypeScope" wrapper-class="flex flex-col flex-row relative">
-                    Team Type availability
-                    <template #description> Select the team types that can use this blueprint </template>
+                    {{ $t('ui.teamTypeAvailability') }}
+                    <template #description> {{ $t('ui.selectTheTeamTypesThatCanUseThisBlueprint') }} </template>
                     <template #input>
                         <div class="grid gap-1">
                             <div>
-                                <ff-checkbox id="availableToAll" v-model="availableToAll" type="checkbox" label="All team types" />
+                                <ff-checkbox id="availableToAll" v-model="availableToAll" type="checkbox" :label="$t('ui.allTeamTypes')" />
                             </div>
                             <template v-if="!availableToAll">
                                 <div v-for="teamType in input.teamTypeScope" :key="teamType.id">
@@ -37,51 +37,51 @@
                 </FormRow>
 
                 <FormRow v-model="input.category" :error="errors.category" data-form="category">
-                    Category
-                    <template #description>Freeform (case-sensitive) category</template>
+                    {{ $t('ui.category') }}
+                    <template #description>{{ $t('ui.freeformCaseSensitiveCategory') }}</template>
                 </FormRow>
 
                 <FormRow v-model="input.icon" :error="errors.icon" data-form="icon">
-                    Custom Icon
-                    <template #description>Kebab-case heroicons.com outline name (e.g. globe-alt). v1 names still recognised. Falls back to the category icon.</template>
+                    {{ $t('ui.customIcon') }}
+                    <template #description>{{ $t('ui.kebabCaseHeroiconsComOutlineNameEGGlobeAltV1Name') }}</template>
                 </FormRow>
 
                 <FormRow v-model="input.order" type="number" :error="errors.order" data-form="order">
-                    Custom Order
-                    <template #description>Used to sort blueprints, lowest to highest</template>
+                    {{ $t('ui.customOrder') }}
+                    <template #description>{{ $t('ui.usedToSortBlueprintsLowestToHighest') }}</template>
                 </FormRow>
 
                 <FormRow v-model="input.description" :error="errors.description" data-form="description">
-                    Description
-                    <template #description>Use markdown for formatting</template>
+                    {{ $t('ui.description') }}
+                    <template #description>{{ $t('ui.useMarkdownForFormatting') }}</template>
                     <template #input><textarea v-model="input.description" class="w-full" rows="4" /></template>
                 </FormRow>
 
                 <FormRow v-model="input.flows" :error="errors.flows" data-form="flows">
-                    Flows
-                    <template #description>JSON representation of the flows for this template</template>
+                    {{ $t('ui.flows') }}
+                    <template #description>{{ $t('ui.jsonRepresentationOfTheFlowsForThisTemplate') }}</template>
                     <template #input><textarea v-model="input.flows" class="w-full" rows="4" /></template>
                 </FormRow>
 
                 <FormRow v-model="input.modules" :error="errors.modules" data-form="modules">
-                    Modules
-                    <template #description>JSON representation of the npm modules required for this template</template>
+                    {{ $t('ui.modules') }}
+                    <template #description>{{ $t('ui.jsonRepresentationOfTheNpmModulesRequiredForThis') }}</template>
                     <template #input><textarea v-model="input.modules" class="w-full" rows="4" /></template>
                 </FormRow>
 
                 <FormRow v-model="input.externalUrl" :error="errors.externalUrl" data-form="modules">
-                    External URL
-                    <template #description>External URL</template>
+                    {{ $t('ui.externalUrl') }}
+                    <template #description>{{ $t('ui.externalUrl') }}</template>
                 </FormRow>
             </form>
         </template>
         <template #actions>
             <div class="w-full grow flex justify-between">
                 <div>
-                    <ff-button v-if="flowBlueprint?.id" kind="danger" style="margin: 0;" @click="$emit('show-delete-dialog', flowBlueprint); $refs.dialog.close()">Delete Flow Blueprint</ff-button>
+                    <ff-button v-if="flowBlueprint?.id" kind="danger" style="margin: 0;" @click="$emit('show-delete-dialog', flowBlueprint); $refs.dialog.close()">{{ $t('ui.deleteFlowBlueprint') }}</ff-button>
                 </div>
                 <div class="flex">
-                    <ff-button kind="secondary" @click="$refs['dialog'].close()">Cancel</ff-button>
+                    <ff-button kind="secondary" @click="$refs['dialog'].close()">{{ $t('ui.cancel') }}</ff-button>
                     <ff-button :disabled="!formValid" data-form="confirm-dialog" @click="confirm">{{ flowBlueprint?.id ? 'Update' : 'Create' }}</ff-button>
                 </div>
             </div>
@@ -93,6 +93,7 @@
 import FlowBlueprintsApi from '../../../../api/flowBlueprints.js'
 
 import FormRow from '../../../../components/FormRow.vue'
+import { t } from '../../../../i18n.js'
 import { HEROICONS_V1_TO_V2_KEBAB_CASE } from '../../../../utils/heroicons-v1-aliases'
 
 /**
@@ -190,7 +191,7 @@ export default {
                 JSON.parse(flowBlueprintProps.flows)
             } catch (err) {
                 this.error = 'Invalid JSON for flows'
-                this.errors.flows = 'Invalid JSON'
+                this.errors.flows = t('ui.invalidJson')
                 return
             }
 
@@ -223,7 +224,7 @@ export default {
                 }
             } catch (err) {
                 this.error = 'Invalid JSON for modules'
-                this.errors.modules = 'Modules should be an object of "module" : "version" pairs'
+                this.errors.modules = t('ui.modulesShouldBeAnObjectOfModuleVersionPairs')
                 return
             }
 

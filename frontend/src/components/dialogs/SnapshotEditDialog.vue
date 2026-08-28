@@ -2,9 +2,9 @@
     <ff-dialog ref="dialog" :header="'Edit Snapshot: ' + originalName" data-el="snapshot-edit-dialog" @confirm="confirm()">
         <template #default>
             <form class="space-y-6 mt-2" data-form="snapshot-edit" @submit.prevent>
-                <FormRow ref="name" v-model="input.name" :error="errors.name" data-form="snapshot-name">Name</FormRow>
+                <FormRow ref="name" v-model="input.name" :error="errors.name" data-form="snapshot-name">{{ $t('ui.name') }}</FormRow>
                 <FormRow data-form="snapshot-description">
-                    Description
+                    {{ $t('ui.description') }}
                     <template #input>
                         <textarea v-model="input.description" rows="8" class="ff-input ff-text-input" style="height: auto" />
                     </template>
@@ -12,13 +12,13 @@
             </form>
             <p class="text-gray-600 italic">
                 <span>
-                    Note: Changes made to a snapshot will not be immediately reflected on devices that are already running this snapshot.
+                    {{ $t('ui.noteChangesMadeToASnapshotWillNotBeImmediatelyRe') }}
                 </span>
             </p>
         </template>
         <template #actions>
-            <ff-button kind="secondary" data-action="dialog-cancel" :disabled="submitted" @click="cancel()">Cancel</ff-button>
-            <ff-button kind="primary" data-action="dialog-confirm" :disabled="!formValid" @click="confirm()">Update</ff-button>
+            <ff-button kind="secondary" data-action="dialog-cancel" :disabled="submitted" @click="cancel()">{{ $t('ui.cancel') }}</ff-button>
+            <ff-button kind="primary" data-action="dialog-confirm" :disabled="!formValid" @click="confirm()">{{ $t('ui.update') }}</ff-button>
         </template>
     </ff-dialog>
 </template>
@@ -26,6 +26,7 @@
 
 import snapshotsApi from '../../api/snapshots.js'
 
+import { t } from '../../i18n.js'
 import alerts from '../../services/alerts.js'
 import FormRow from '../FormRow.vue'
 
@@ -74,7 +75,7 @@ export default {
     methods: {
         validate () {
             if (!this.input.name) {
-                this.errors.name = 'Name is required'
+                this.errors.name = t('ui.nameIsRequired')
             } else {
                 this.errors.name = ''
             }
@@ -97,11 +98,11 @@ export default {
                     updatedSnapshot.name = this.input.name
                     updatedSnapshot.description = this.input.description
                     this.$emit('snapshot-updated', updatedSnapshot)
-                    alerts.emit('Snapshot updated.', 'confirmation')
+                    alerts.emit(t('ui.snapshotUpdated'), 'confirmation')
                     this.$refs.dialog.close()
                 }).catch(err => {
                     console.error(err)
-                    alerts.emit('Failed to update snapshot.', 'warning')
+                    alerts.emit(t('ui.failedToUpdateSnapshot'), 'warning')
                 }).finally(() => {
                     this.submitted = false
                 })

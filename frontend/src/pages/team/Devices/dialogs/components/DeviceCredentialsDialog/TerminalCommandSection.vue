@@ -8,7 +8,7 @@
         <div class="flex flex-row justify-end space-x-2 -mt-1">
             <ff-button kind="tertiary" size="small" @click="copy(command)">
                 <template #icon-right><ClipboardDocumentIcon /></template>
-                <span class="">Copy</span>
+                <span class="">{{ $t('ui.copy') }}</span>
             </ff-button>
         </div>
     </div>

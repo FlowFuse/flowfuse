@@ -1,9 +1,9 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Performance">
+            <ff-page-header :title="$t('ui.performance')">
                 <template #context>
-                    Live stream of CPU utilization of all Hosted Instances running through FlowFuse.
+                    {{ $t('ui.liveStreamOfCpuUtilizationOfAllHostedInstancesRu') }}
                 </template>
             </ff-page-header>
         </template>
@@ -19,22 +19,22 @@
                     <template #img>
                         <img alt="empty-state-logo" src="../../../images/empty-states/application-instances.png">
                     </template>
-                    <template #header>Performance Analysis is not available!</template>
+                    <template #header>{{ $t('ui.performanceAnalysisIsNotAvailable') }}</template>
                     <template #message>
                         <p>
-                            This feature is not supported for your Team Tier or in your Platform settings. Explore upgrade options to enable it.
+                            {{ $t('ui.thisFeatureIsNotSupportedForYourTeamTierOrInYour') }}
                         </p>
                     </template>
                 </EmptyState>
             </template>
 
             <template v-else>
-                <ff-loading v-if="loading" message="Loading Instances..." />
+                <ff-loading v-if="loading" :message="$t('ui.loadingInstances')" />
 
                 <div v-else-if="hasInstances">
                     <ff-data-table
                         data-el="instances-table" :columns="columns" :rows="rows"
-                        :show-search="true" search-placeholder="Search Hosted Instances..."
+                        :show-search="true" :search-placeholder="$t('ui.searchHostedInstances')"
                         :rows-selectable="true" initialSortKey="status" initialSortOrder="asc"
                         @row-selected="openInstance"
                     />
@@ -44,13 +44,13 @@
                     <template #img>
                         <img alt="empty-state-logo" src="../../../images/empty-states/application-instances.png">
                     </template>
-                    <template #header>No Hosted Instances Found</template>
+                    <template #header>{{ $t('ui.noHostedInstancesFound') }}</template>
                     <template #message>
                         <p>
-                            We've not been able to find any Hosted Instances for this team.
+                            {{ $t('ui.weVeNotBeenAbleToFindAnyHostedInstancesForThisTe') }}
                         </p>
                         <p>
-                            Once you create an Hosted Instance, you'll be able to view its performance data (e.g. CPU Utilization) for each Hosted Instance here.
+                            {{ $t('ui.onceYouCreateAnHostedInstanceYouLlBeAbleToViewIt') }}
                         </p>
                     </template>
                 </EmptyState>
@@ -69,6 +69,7 @@ import EmptyState from '../../../components/EmptyState.vue'
 import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 import usePermissions from '../../../composables/Permissions.js'
+import { t } from '../../../i18n.js'
 import DeploymentName from '../../application/components/cells/DeploymentName.vue'
 import InstanceStatusBadge from '../../instance/components/InstanceStatusBadge.vue'
 
@@ -97,14 +98,14 @@ export default {
             instances: [],
             columns: [
                 {
-                    label: 'Instance Name',
+                    label: t('ui.instanceName'),
                     key: 'name',
                     class: ['min-w-40', 'whitespace-nowrap'],
                     component: {
                         is: markRaw(DeploymentName)
                     }
                 }, {
-                    label: 'Status',
+                    label: t('ui.status'),
                     class: ['w-44'],
                     key: 'status',
                     sortable: true,
@@ -114,7 +115,7 @@ export default {
                         extraProps: { instanceType: 'instance' }
                     }
                 }, {
-                    label: 'CPU Utilization',
+                    label: t('ui.cpuUtilization'),
                     key: 'cpuUtilization',
                     class: ['w-full', 'max-w-40'],
                     sortable: true,

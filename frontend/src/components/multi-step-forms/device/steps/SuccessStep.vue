@@ -1,18 +1,18 @@
 <template>
     <section class="ff-instance-step text-center flex flex-col gap-4 pt-6 max-w-md m-auto h-full">
-        <h1>Registration Complete</h1>
+        <h1>{{ $t('ui.registrationComplete') }}</h1>
         <template v-if="!deviceConnected">
             <p>
-                Return to the Device Agent to complete the setup.
+                {{ $t('ui.returnToTheDeviceAgentToCompleteTheSetup') }}
             </p>
             <p>
-                Keep this window open to view your Remote Instance once it has connected.
+                {{ $t('ui.keepThisWindowOpenToViewYourRemoteInstanceOnceIt') }}
             </p>
             <p class="flex flex-col gap-2">
                 <ff-loading scale="small" message=" " />
             </p>
             <p>
-                If prompted, enter the following One-Time Code (OTC) in the Device Agent to complete the registration
+                {{ $t('ui.ifPromptedEnterTheFollowingOneTimeCodeOtcInTheDe') }}
             </p>
             <!-- make this text larger and bold-->
             <p class="font-bold border border-gray-300 rounded-full p-1 bg-gray-100">
@@ -21,10 +21,10 @@
         </template>
         <template v-else>
             <p>
-                Remote Instance Connected
+                {{ $t('ui.remoteInstanceConnected') }}
             </p>
             <p>
-                Starting Node-RED...
+                {{ $t('ui.startingNodeRed') }}
             </p>
             <p class="flex flex-col gap-2">
                 <ff-loading scale="small" message=" " />

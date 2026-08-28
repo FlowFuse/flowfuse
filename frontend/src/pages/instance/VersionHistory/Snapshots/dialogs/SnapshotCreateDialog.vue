@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" header="Create Snapshot" confirm-label="Create" :disable-primary="!formValid" @confirm="confirm()">
+    <ff-dialog ref="dialog" :header="$t('ui.createSnapshot')" :confirm-label="$t('ui.create')" :disable-primary="!formValid" @confirm="confirm()">
         <template #default>
             <form class="space-y-6 mt-2" @submit.prevent>
                 <FormRow
@@ -9,23 +9,23 @@
                     data-form="snapshot-name"
                     container-class="max-w-full"
                 >
-                    Name
+                    {{ $t('ui.name') }}
                 </FormRow>
                 <FormRow data-form="snapshot-description" container-class="max-w-full" :disabled="loadingDescription">
-                    Description
+                    {{ $t('ui.description') }}
                     <template #input>
                         <textarea v-model="input.description" :disabled="loadingDescription" rows="8" class="ff-input ff-text-input" style="height: auto" />
                     </template>
                 </FormRow>
                 <section class="flex flex-row justify-between items-center">
                     <FormRow v-model="input.setAsTarget" type="checkbox" data-form="snapshot-name" container-class="max-w-full">
-                        <span v-ff-tooltip:right="'If checked, all devices assigned to this instance will be restarted on this snapshot.'" class="">
-                            Set as Target <QuestionMarkCircleIcon class="ff-icon" style="margin: 0px 0px 0px 4px; height: 18px;" />
+                        <span v-ff-tooltip:right="$t('ui.ifCheckedAllDevicesAssignedToThisInstanceWillBeR')" class="">
+                            {{ $t('ui.setAsTarget') }} <QuestionMarkCircleIcon class="ff-icon" style="margin: 0px 0px 0px 4px; height: 18px;" />
                         </span>
                     </FormRow>
                     <ff-popover
                         v-if="featuresCheck.isGeneratedSnapshotDescriptionFeatureEnabled"
-                        button-text="Generate with AI"
+                        :button-text="$t('ui.generateWithAi')"
                         button-kind="tertiary"
                         :disabled="loadingDescription"
                     >
@@ -35,8 +35,8 @@
                         <template #panel="{ close }">
                             <section>
                                 <popover-item
-                                    title="Use latest manual snapshot"
-                                    description="Compare with latest manually created snapshot"
+                                    :title="$t('ui.useLatestManualSnapshot')"
+                                    :description="$t('ui.compareWithLatestManuallyCreatedSnapshot')"
                                     @click="onPopoverItemClick('latest',close)"
                                 >
                                     <template #icon>
@@ -44,8 +44,8 @@
                                     </template>
                                 </popover-item>
                                 <popover-item
-                                    title="Use latest deploy snapshot"
-                                    description="Compare to last pipeline deployment"
+                                    :title="$t('ui.useLatestDeploySnapshot')"
+                                    :description="$t('ui.compareToLastPipelineDeployment')"
                                     @click="onPopoverItemClick('pipeline',close)"
                                 >
                                     <template #icon>
@@ -53,7 +53,7 @@
                                     </template>
                                 </popover-item>
                                 <popover-item
-                                    title="or search for a specific snapshot"
+                                    :title="$t('ui.orSearchForASpecificSnapshot')"
                                     class="bg-gray-100 hover:bg-gray-100 border-t border-gray-200"
                                 >
                                     <template #content>
@@ -62,7 +62,7 @@
                                                 v-model="selectedSnapshot"
                                                 class="flex-1"
                                                 :fetch-remote-options="searchSnapshots"
-                                                placeholder="Search snapshots"
+                                                :placeholder="$t('ui.searchSnapshots')"
                                                 :disabled="loadingDescription"
                                             >
                                                 <template #option="{ option, selected, active }">
@@ -111,6 +111,7 @@ import snapshotApi from '../../../../../api/projectSnapshots.js'
 
 import FormRow from '../../../../../components/FormRow.vue'
 import PipelineIcon from '../../../../../components/icons/Pipelines.js'
+import { t } from '../../../../../i18n.js'
 import alerts from '../../../../../services/alerts.js'
 import PopoverItem from '../../../../../ui-components/components/PopoverItem.vue'
 
@@ -177,7 +178,7 @@ export default {
                 }
                 snapshotApi.create(this.project.id, opts).then((response) => {
                     this.$emit('snapshot-created', response)
-                    alerts.emit('Successfully created snapshot of instance.', 'confirmation')
+                    alerts.emit(t('ui.successfullyCreatedSnapshotOfInstance'), 'confirmation')
                 }).catch(err => {
                     console.error(err.response?.data)
                     if (err.response?.data) {
@@ -186,7 +187,7 @@ export default {
                             return
                         }
                     }
-                    alerts.emit('Failed to create snapshot of instance.', 'error')
+                    alerts.emit(t('ui.failedToCreateSnapshotOfInstance'), 'error')
                 })
             }
         },
@@ -213,7 +214,7 @@ export default {
                     this.input.description = payload.join('\n\n')
                 })
                 .catch(e => {
-                    alerts.emit('Something went wrong, failed to generate a description.', 'error')
+                    alerts.emit(t('ui.somethingWentWrongFailedToGenerateADescription'), 'error')
                 })
                 .finally(() => {
                     this.loadingDescription = false

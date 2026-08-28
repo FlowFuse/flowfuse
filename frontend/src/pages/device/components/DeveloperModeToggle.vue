@@ -16,6 +16,7 @@
 import { CodeBracketIcon } from '@heroicons/vue/24/outline'
 import semver from 'semver'
 
+import { t } from '../../../i18n.js'
 import alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -78,7 +79,7 @@ export default {
             this.busy = true
             if (this.developerMode) {
                 const msg = {
-                    header: 'Disable Developer Mode',
+                    header: t('ui.disableDeveloperMode'),
                     kind: 'danger',
                     confirmLabel: 'Confirm',
                     text: `Disabling developer mode will turn off access to the editor and may redeploy the current target snapshot to the device.
@@ -103,7 +104,7 @@ export default {
                     const basicError = 'An error occurred while attempting to change developer mode.'
                     if (err.response && typeof err.response.status === 'number') {
                         if (err.response.status === 401 || err.response.status === 403) {
-                            alerts.emit('You are not authorized to change developer mode', 'warning', 7000)
+                            alerts.emit(t('ui.youAreNotAuthorizedToChangeDeveloperMode'), 'warning', 7000)
                         } else {
                             alerts.emit(basicError, 'warning', 7000)
                         }

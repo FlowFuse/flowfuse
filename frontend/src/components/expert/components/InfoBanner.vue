@@ -3,35 +3,35 @@
     <div class="info-banner">
         <template v-if="isSupportAgent">
             <p class="info-text">
-                AI agent has access to all of FlowFuse's
+                {{ $t('ui.aiAgentHasAccessToAllOfFlowfuseS') }}
                 <a
                     href="https://flowfuse.com/docs"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="info-link"
-                >documentation and knowledge</a>,
+                >{{ $t('ui.documentationAndKnowledge') }}</a>,
                 <a
                     href="https://flowfuse.com/blog"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="info-link"
-                >blogposts</a>, and more.
+                >{{ $t('ui.blogposts') }}</a>{{ $t('ui.andMore') }}
             </p>
         </template>
         <template v-if="isInsightsAgent">
             <p class="info-text">
                 <span
-                    title="This feature is still under development"
+                    :title="$t('ui.thisFeatureIsStillUnderDevelopment')"
                     class="beta-badge"
-                >BETA</span>
-                AI agent can access
+                >{{ $t('ui.beta') }}</span>
+                {{ $t('ui.aiAgentCanAccess') }}
                 <a
                     href="https://flowfuse.com/node-red/flowfuse/mcp/"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="info-link"
-                >MCP server tools</a>
-                configured in your hosted Node-RED instances.
+                >{{ $t('ui.mcpServerTools') }}</a>
+                {{ $t('ui.configuredInYourHostedNodeRedInstances') }}
             </p>
         </template>
     </div>

@@ -5,7 +5,7 @@
             class="ff-page-banner my-4"
             data-el="settings-banner-feature-unavailable"
         >
-            These options require Device Agent v3.1 or later to take effect.
+            {{ $t('ui.theseOptionsRequireDeviceAgentV31OrLaterToTakeEf') }}
         </div>
         <TemplateSettingsSecurity
             v-model="editable"
@@ -14,12 +14,12 @@
             :team="team"
         />
         <div v-if="!!settings.features.httpBearerTokens && editable.settings.httpNodeAuth_type === 'flowforge-user'">
-            <FormHeading>HTTP Node Bearer Tokens</FormHeading>
+            <FormHeading>{{ $t('ui.httpNodeBearerTokens') }}</FormHeading>
             <div v-if="hasTeamLevelTokenPermission">
                 <div v-if="deviceSupportsTokens">
                     <ff-data-table
                         data-el="tokens-table"
-                        :rows="tokens" :columns="columns" :show-search="true" search-placeholder="Search Tokens..."
+                        :rows="tokens" :columns="columns" :show-search="true" :search-placeholder="$t('ui.searchTokens')"
                         :show-load-more="false"
                     >
                         <template #actions>
@@ -27,32 +27,32 @@
                                 <template #icon-left>
                                     <PlusSmallIcon />
                                 </template>
-                                Add Token
+                                {{ $t('ui.addToken') }}
                             </ff-button>
                         </template>
                         <template #context-menu="{row}">
-                            <ff-kebab-item data-action="edit-token" label="Edit" @click="editToken(row)" />
-                            <ff-kebab-item data-action="delete-token" label="Delete" @click="deleteToken(row)" />
+                            <ff-kebab-item data-action="edit-token" :label="$t('ui.edit')" @click="editToken(row)" />
+                            <ff-kebab-item data-action="delete-token" :label="$t('ui.delete')" @click="deleteToken(row)" />
                         </template>
                         <template v-if="tokens.length === 0" #table>
                             <div class="ff-no-data ff-no-data-large">
-                                You don't have any tokens yet
+                                {{ $t('ui.youDonTHaveAnyTokensYet') }}
                             </div>
                         </template>
                     </ff-data-table>
                 </div>
                 <div v-else class="ff-description italic mb-2">
-                    HTTP Token support requires Device Agent v4.0 or later.
+                    {{ $t('ui.httpTokenSupportRequiresDeviceAgentV40OrLater') }}
                 </div>
             </div>
         </div>
 
         <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
             <div v-if="!securityOptionsSupported" class="ff-description italic mb-2">
-                These options require Device Agent v3.1 or later.
+                {{ $t('ui.theseOptionsRequireDeviceAgentV31OrLater') }}
             </div>
             <ff-button data-el="submit" size="small" :disabled="!unsavedChanges || editable.hasErrors" @click="saveSettings()">
-                Save Settings
+                {{ $t('ui.saveSettings') }}
             </ff-button>
         </div>
     </form>
@@ -71,6 +71,7 @@ import deviceApi from '../../../api/devices.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
+import { t } from '../../../i18n.js'
 import Alerts from '../../../services/alerts.js'
 import TokenCreated from '../../account/Security/dialogs/TokenCreated.vue'
 
@@ -140,10 +141,10 @@ export default {
             },
             tokens: [],
             columns: [
-                { label: 'Name', key: 'name', sortable: true },
+                { label: t('ui.name'), key: 'name', sortable: true },
                 // { label: 'Scope', key: 'scope' },
                 {
-                    label: 'Expires',
+                    label: t('ui.expires'),
                     key: 'expiresAt',
                     component: {
                         is: markRaw(ExpiryCell)
@@ -238,10 +239,10 @@ export default {
             this.editable.hasErrors = false
             if (this.editable.settings.localAuth_enabled) {
                 if (!this.editable.settings.localAuth_user) {
-                    this.editable.errors.localAuth_user = 'Username is required'
+                    this.editable.errors.localAuth_user = t('ui.usernameIsRequired')
                 }
                 if (!this.editable.settings.localAuth_pass) {
-                    this.editable.errors.localAuth_pass = 'Password is required'
+                    this.editable.errors.localAuth_pass = t('ui.passwordIsRequired')
                 }
             }
             this.editable.hasErrors = !!this.editable.errors.localAuth_user || !!this.editable.errors.localAuth_pass

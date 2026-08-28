@@ -1,33 +1,33 @@
 <template>
     <section class="ff-instance-step text-center flex flex-col gap-4 pt-6" data-step="instance">
-        <h2>Setup your Remote Instance</h2>
+        <h2>{{ $t('ui.setupYourRemoteInstance') }}</h2>
         <form class="max-w-2xl m-auto w-full text-left flex flex-col gap-7">
-            <FeatureUnavailableToTeam v-if="teamDeviceLimitReached" fullMessage="You have reached the limit for Remote Instances in this team." />
-            <FeatureUnavailableToTeam v-else-if="teamRuntimeLimitReached" fullMessage="You have reached the limit for Instances in this team." />
+            <FeatureUnavailableToTeam v-if="teamDeviceLimitReached" :fullMessage="$t('ui.youHaveReachedTheLimitForRemoteInstancesInThisTe')" />
+            <FeatureUnavailableToTeam v-else-if="teamRuntimeLimitReached" :fullMessage="$t('ui.youHaveReachedTheLimitForInstancesInThisTeam')" />
 
             <div class="ff-instance-name ff-input-wrapper flex flex-col gap-1">
-                <label class="mb-1">Name</label>
+                <label class="mb-1">{{ $t('ui.name') }}</label>
                 <p class="opacity-50 text-sm">
-                    Provide a unique, identifiable name for your Remote Instance.
+                    {{ $t('ui.provideAUniqueIdentifiableNameForYourRemoteInsta') }}
                 </p>
                 <div class="ff-input-wrapper flex gap-3 items-center relative mb-4">
                     <ff-text-input
                         v-model="input.name"
-                        label="instance-name"
+                        :label="$t('ui.instanceName2')"
                         :error="errors.name"
                         data-el="instance-name"
                     />
                 </div>
             </div>
             <div class="ff-instance-name ff-input-wrapper flex flex-col gap-1">
-                <label class="mb-1">Type</label>
+                <label class="mb-1">{{ $t('ui.type') }}</label>
                 <p class="opacity-50 text-sm">
-                    <i>Optional: </i> What type of device is this instance running on?
+                    <i>{{ $t('ui.optional') }} </i> {{ $t('ui.whatTypeOfDeviceIsThisInstanceRunningOn') }}
                 </p>
                 <div class="ff-input-wrapper flex gap-3 items-center relative mb-4">
                     <ff-text-input
                         v-model="input.type"
-                        label="instance-type"
+                        :label="$t('ui.instanceType2')"
                         :error="errors.type"
                         data-el="instance-type"
                     />
@@ -51,6 +51,7 @@ import { mapState } from 'pinia'
 
 import billingApi from '../../../../api/billing.js'
 import { getTeamProperty } from '../../../../composables/TeamProperties.js'
+import { t } from '../../../../i18n.js'
 import InstanceChargesTable from '../../../../pages/instance/components/InstanceChargesTable.vue'
 import FfTextInput from '../../../../ui-components/components/form/TextInput.vue'
 
@@ -168,7 +169,7 @@ export default {
             immediate: true,
             handler: function (value) {
                 if (this.input.name.trim().length === 0) {
-                    this.errors.name = 'Name is required.'
+                    this.errors.name = t('ui.nameIsRequired2')
                 } else {
                     this.errors.name = null
                 }
@@ -184,7 +185,7 @@ export default {
             immediate: true,
             handler: function (value) {
                 if (value) {
-                    this.errors.limitsRuntime = 'You have reached the limit for Remote Instances in this team.'
+                    this.errors.limitsRuntime = t('ui.youHaveReachedTheLimitForRemoteInstancesInThisTe')
                 } else {
                     this.errors.limitsRuntime = null
                 }
@@ -194,7 +195,7 @@ export default {
             immediate: true,
             handler: function (value) {
                 if (value) {
-                    this.errors.limitsDevice = 'You have reached the limit for Remote Instances in this team.'
+                    this.errors.limitsDevice = t('ui.youHaveReachedTheLimitForRemoteInstancesInThisTe')
                 } else {
                     this.errors.limitsDevice = null
                 }

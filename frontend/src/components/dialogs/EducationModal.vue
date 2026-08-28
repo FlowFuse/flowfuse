@@ -1,11 +1,11 @@
 <template>
     <div v-if="isOpen" class="ff-dialog-box education-modal">
         <div class="ff-dialog-header text-center">
-            Welcome to FlowFuse!
+            {{ $t('ui.welcomeToFlowfuse') }}
         </div>
         <div class="ff-dialog-content">
             <template v-if="!isClosing">
-                <p class="message mb-7">Where would you like to get started?</p>
+                <p class="message mb-7">{{ $t('ui.whereWouldYouLikeToGetStarted') }}</p>
                 <ul class="options">
                     <li v-for="(option, $key) in helpOptions" :key="$key">
                         <a :href="option.href" class="ff-link" target="_blank" @click="capturePostHog(option)">
@@ -17,14 +17,14 @@
             </template>
             <template v-else>
                 <p class="text-center">
-                    You can access these resources at any time by clicking the User Menu in the upper-right corner.
+                    {{ $t('ui.youCanAccessTheseResourcesAtAnyTimeByClickingThe') }}
                 </p>
             </template>
         </div>
         <div class="ff-dialog-actions">
             <ff-button type="secondary" @click="triggerClose">
-                <template v-if="!isClosing">Close</template>
-                <template v-else>Dismiss</template>
+                <template v-if="!isClosing">{{ $t('ui.close') }}</template>
+                <template v-else>{{ $t('ui.dismiss') }}</template>
             </ff-button>
         </div>
         <div v-if="isClosing" class="loader-wrapper">
@@ -42,6 +42,7 @@ import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/20/solid'
 
 import { mapActions, mapState } from 'pinia'
 
+import { t } from '../../i18n.js'
 import product from '../../services/product.js'
 
 import { useUxToursStore } from '@/stores/ux-tours.js'
@@ -61,23 +62,23 @@ export default {
         helpOptions () {
             return [
                 {
-                    title: 'Create a DevOps Pipeline',
+                    title: t('ui.createADevopsPipeline'),
                     href: 'https://flowfuse.com/docs/user/devops-pipelines/'
                 },
                 {
-                    title: 'Set up Project Nodes',
+                    title: t('ui.setUpProjectNodes'),
                     href: 'https://flowfuse.com/docs/user/projectnodes/#flowfuse-project-nodes/'
                 },
                 {
-                    title: 'Using Team Broker MQTT Nodes',
+                    title: t('ui.usingTeamBrokerMqttNodes'),
                     href: 'https://flowfuse.com/docs/user/mqtt-nodes/'
                 },
                 {
-                    title: 'Build a Dashboard',
+                    title: t('ui.buildADashboard'),
                     href: 'https://flowfuse.com/blog/2024/04/how-to-build-an-application-with-node-red-dashboard-2/'
                 },
                 {
-                    title: 'Create a Node-RED flow',
+                    title: t('ui.createANodeRedFlow'),
                     href: 'https://www.youtube.com/watch?v=47EvfmJji-k/'
                 }
 

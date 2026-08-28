@@ -14,25 +14,25 @@
                 :disabled="disabled"
                 @click="$emit('approve')"
             >
-                Approve
+                {{ $t('ui.approve') }}
             </ff-button>
             <ff-button
                 kind="secondary"
                 size="small"
                 :disabled="disabled"
-                title="Load the plan into the message box to edit it yourself"
+                :title="$t('ui.loadThePlanIntoTheMessageBoxToEditItYourself')"
                 @click="$emit('edit-manual')"
             >
-                Edit
+                {{ $t('ui.edit') }}
             </ff-button>
             <ff-button
                 kind="secondary"
                 size="small"
                 :disabled="disabled"
-                title="Tell the Expert what to change and get an updated plan"
+                :title="$t('ui.tellTheExpertWhatToChangeAndGetAnUpdatedPlan')"
                 @click="$emit('request-changes')"
             >
-                Request changes
+                {{ $t('ui.requestChanges') }}
             </ff-button>
             <ff-button
                 kind="tertiary"
@@ -40,7 +40,7 @@
                 :disabled="disabled"
                 @click="$emit('reject')"
             >
-                Reject
+                {{ $t('ui.reject') }}
             </ff-button>
         </div>
     </div>

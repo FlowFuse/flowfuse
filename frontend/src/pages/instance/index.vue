@@ -1,13 +1,13 @@
 <template>
-    <ff-loading v-if="loading.deleting" message="Deleting Instance..." />
+    <ff-loading v-if="loading.deleting" :message="$t('ui.deletingInstance')" />
     <main v-else-if="!instance?.id">
-        <ff-loading message="Loading Instance..." />
+        <ff-loading :message="$t('ui.loadingInstance')" />
     </main>
     <ff-page v-else>
         <template #header>
             <ff-page-header :title="instance.name" :tabs="navigation">
                 <template #breadcrumbs>
-                    <ff-nav-breadcrumb :to="{name: 'team-hosted-instances', params: {team_slug: team.slug}}">Instances</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb :to="{name: 'team-hosted-instances', params: {team_slug: team.slug}}">{{ $t('ui.instances') }}</ff-nav-breadcrumb>
                 </template>
                 <template #status>
                     <InstanceStatusBadge
@@ -21,16 +21,16 @@
                         <StatusBadge class="ml-2 text-gray-400 hover:text-blue-600" status="high-availability" />
                     </router-link>
                     <router-link v-if="instance.protected?.enabled" :to="{ name: 'instance-settings-protect'}" @click.stop>
-                        <StatusBadge class="ml-2 text-gray-400 hover:text-blue-600" data-el="protected-pill" status="protected" text="Protected" />
+                        <StatusBadge class="ml-2 text-gray-400 hover:text-blue-600" data-el="protected-pill" status="protected" :text="$t('ui.protected')" />
                     </router-link>
                     <router-link v-if="instance.settings.disableEditor" :to="{name: 'instance-settings-editor', params: { id: instance.id }}" @click.stop>
-                        <StatusBadge class="ml-2 text-gray-400 cursor-pointer hover:text-blue-600" status="Editor Disabled">
+                        <StatusBadge class="ml-2 text-gray-400 cursor-pointer hover:text-blue-600" :status="$t('ui.editorDisabled')">
                             <template #icon><LockClosedIcon class="w-4 h-4" /></template>
                         </StatusBadge>
                     </router-link>
                 </template>
                 <template #context>
-                    Application:
+                    {{ $t('ui.application2') }}
                     <ff-team-link :to="{name: 'application', params: {id: instance.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">
                         {{ instance.application.name }}
                     </ff-team-link>
@@ -57,7 +57,7 @@
         </template>
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" :instance="instance" @confirm="onInstanceDelete" />
         <Teleport v-if="mounted" to="#platform-banner">
-            <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this instance as an Administrator</div>
+            <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">{{ $t('ui.youAreViewingThisInstanceAsAnAdministrator') }}</div>
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
@@ -87,6 +87,7 @@ import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import InstanceActionsButton from '../../components/instance/ActionButton.vue'
 import usePermissions from '../../composables/Permissions.js'
 
+import { t } from '../../i18n.js'
 import instanceMixin from '../../mixins/Instance.js'
 
 import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
@@ -146,15 +147,15 @@ export default {
                 }
             }
             return [
-                { label: 'Overview', to: { name: 'instance-overview', params: { id: this.instance.id } }, tag: 'instance-overview' },
-                { label: 'Devices', to: { name: 'instance-devices', params: { id: this.instance.id } }, tag: 'instance-remote' },
-                { label: 'Dashboard', to: { name: 'instance-dashboard', params: { id: this.instance.id } }, tag: 'instance-dashboard', hidden: !this.hasDashboard2 },
-                { label: 'Version History', to: versionHistoryRoute, tag: 'instance-version-history' },
-                { label: 'Assets', to: { name: 'instance-assets', params: { id: this.instance.id } }, tag: 'instance-assets', hidden: !this.hasPermission('project:files:list', { application: this.instance.application }) },
-                { label: 'Audit Log', to: { name: 'instance-audit-log', params: { id: this.instance.id } }, tag: 'instance-activity' },
-                { label: 'Node-RED Logs', to: { name: 'instance-logs', params: { id: this.instance.id } }, tag: 'instance-logs' },
-                { label: 'Performance', to: { name: 'instance-performance', params: { id: this.instance.id } }, tag: 'instance-performance' },
-                { label: 'Settings', to: { name: 'instance-settings', params: { id: this.instance.id } }, tag: 'instance-settings' }
+                { label: t('ui.overview'), to: { name: 'instance-overview', params: { id: this.instance.id } }, tag: 'instance-overview' },
+                { label: t('ui.devices'), to: { name: 'instance-devices', params: { id: this.instance.id } }, tag: 'instance-remote' },
+                { label: t('ui.dashboard'), to: { name: 'instance-dashboard', params: { id: this.instance.id } }, tag: 'instance-dashboard', hidden: !this.hasDashboard2 },
+                { label: t('ui.versionHistory'), to: versionHistoryRoute, tag: 'instance-version-history' },
+                { label: t('ui.assets'), to: { name: 'instance-assets', params: { id: this.instance.id } }, tag: 'instance-assets', hidden: !this.hasPermission('project:files:list', { application: this.instance.application }) },
+                { label: t('ui.auditLog'), to: { name: 'instance-audit-log', params: { id: this.instance.id } }, tag: 'instance-activity' },
+                { label: t('ui.nodeRedLogs'), to: { name: 'instance-logs', params: { id: this.instance.id } }, tag: 'instance-logs' },
+                { label: t('ui.performance'), to: { name: 'instance-performance', params: { id: this.instance.id } }, tag: 'instance-performance' },
+                { label: t('ui.settings'), to: { name: 'instance-settings', params: { id: this.instance.id } }, tag: 'instance-settings' }
             ]
         },
         isLoading: function () {

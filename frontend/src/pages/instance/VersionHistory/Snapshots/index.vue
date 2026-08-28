@@ -1,6 +1,6 @@
 <template>
     <div class="space-y-6 flex-1 flex flex-col overflow-auto">
-        <ff-loading v-if="loading" message="Loading Snapshots..." />
+        <ff-loading v-if="loading" :message="$t('ui.loadingSnapshots')" />
         <template v-if="snapshots.length > 0 && !loading">
             <ff-data-table
                 data-el="snapshots"
@@ -9,7 +9,7 @@
                 :rows="snapshotsFiltered"
                 :show-search="true"
                 :rows-selectable="true"
-                search-placeholder="Search Snapshots..."
+                :search-placeholder="$t('ui.searchSnapshots2')"
                 @row-selected="onRowSelected"
             >
                 <template #actions>
@@ -20,7 +20,7 @@
                     >
                         <FunnelIcon class="ff-btn--icon ff-btn--icon-left" aria-hidden="true" />
                         {{ snapshotFilter?.name || 'All Snapshots' }}
-                        <span class="sr-only">Filter Snapshots</span>
+                        <span class="sr-only">{{ $t('ui.filterSnapshots') }}</span>
                     </DropdownMenu>
                 </template>
             </ff-data-table>
@@ -30,16 +30,13 @@
                 <template #img>
                     <img src="../../../../images/empty-states/instance-snapshots.png">
                 </template>
-                <template #header>Create your First Snapshot</template>
+                <template #header>{{ $t('ui.createYourFirstSnapshot') }}</template>
                 <template #message>
                     <p>
-                        Snapshots are point-in-time backups of your Node-RED Instances
-                        and capture the flows, credentials and runtime settings.
+                        {{ $t('ui.snapshotsArePointInTimeBackupsOfYourNodeRedInsta2') }}
                     </p>
                     <p>
-                        Snapshots are also used for deploying to your Devices. Devices have
-                        a set "Target Snapshot", which will roll out to all Devices connected
-                        to the respective Instance.
+                        {{ $t('ui.snapshotsAreAlsoUsedForDeployingToYourDevicesDev') }}
                     </p>
                 </template>
             </EmptyState>
@@ -60,6 +57,7 @@ import EmptyState from '../../../../components/EmptyState.vue'
 import SnapshotDetailsDrawer from '../../../../components/drawers/snapshots/SnapshotDetailsDrawer.vue'
 import UserCell from '../../../../components/tables/cells/UserCell.vue'
 import usePermissions from '../../../../composables/Permissions.js'
+import { t } from '../../../../i18n.js'
 import snapshotsMixin from '../../../../mixins/Snapshots.js'
 import { applySystemUserDetails } from '../../../../transformers/snapshots.transformer.js'
 import { isAutoSnapshot } from '../../../../utils/snapshot.js'
@@ -142,7 +140,7 @@ export default {
         columns () {
             const cols = [
                 {
-                    label: 'Snapshot',
+                    label: t('ui.snapshot'),
                     component: {
                         is: markRaw(SnapshotName),
                         extraProps: {
@@ -161,7 +159,7 @@ export default {
                     }
                 },
                 {
-                    label: 'Created By',
+                    label: t('ui.createdBy'),
                     class: ['w-56'],
                     component: {
                         is: markRaw(UserCell),
@@ -172,7 +170,7 @@ export default {
                         }
                     }
                 },
-                { label: 'Date Created', class: ['w-56'], component: { is: markRaw(DaysSince), map: { date: 'createdAt' } } }
+                { label: t('ui.dateCreated2'), class: ['w-56'], component: { is: markRaw(DaysSince), map: { date: 'createdAt' } } }
             ]
             return cols
         },
@@ -243,7 +241,7 @@ export default {
         onRowSelected (snapshot) {
             this.openRightDrawer({
                 component: markRaw(SnapshotDetailsDrawer),
-                header: { title: 'Snapshot' },
+                header: { title: t('ui.snapshot') },
                 props: { snapshot, snapshotList: this.snapshotList, instance: this.instance },
                 on: {
                     updatedSnapshot: () => this.fetchData(true),

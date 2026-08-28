@@ -1,3 +1,5 @@
+import { t } from '../../../i18n.js'
+
 import DeviceSnapshots from './Snapshots/index.vue'
 import HistoryTimeline from './Timeline/index.vue'
 
@@ -7,7 +9,7 @@ export default [
         name: 'device-version-history-timeline',
         component: HistoryTimeline,
         meta: {
-            title: 'Device - Version History Timeline'
+            title: t('ui.deviceVersionHistoryTimeline')
         }
     },
     {
@@ -15,7 +17,7 @@ export default [
         name: 'device-snapshots',
         component: DeviceSnapshots,
         meta: {
-            title: 'Device - Version History Snapshots'
+            title: t('ui.deviceVersionHistorySnapshots')
         }
     }
 ]

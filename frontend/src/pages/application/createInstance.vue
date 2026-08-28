@@ -1,24 +1,24 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Instances">
+            <ff-page-header :title="$t('ui.instances')">
                 <template #custom-breadcrumbs>
-                    <ff-nav-breadcrumb v-if="team" :to="{name: 'team-applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb v-if="team" :to="{name: 'team-applications', params: {team_slug: team.slug}}">{{ $t('ui.applications') }}</ff-nav-breadcrumb>
                     <ff-nav-breadcrumb v-if="team && application" :to="{name: 'application', params: {id: application.id}}">
                         {{ application.name }}
                     </ff-nav-breadcrumb>
                     <ff-nav-breadcrumb>
-                        Create Instance
+                        {{ $t('ui.createInstance') }}
                     </ff-nav-breadcrumb>
                 </template>
                 <template #context>
-                    Let's get your new Node-RED instance setup in no time.
+                    {{ $t('ui.letSGetYourNewNodeRedInstanceSetupInNoTime') }}
                 </template>
             </ff-page-header>
         </template>
 
         <ff-loading v-if="isLoading" />
-        <ff-loading v-else-if="sourceInstanceId && !sourceInstance" message="Loading instance to Copy From..." />
+        <ff-loading v-else-if="sourceInstanceId && !sourceInstance" :message="$t('ui.loadingInstanceToCopyFrom')" />
         <InstanceForm
             v-else
             :has-header="false"

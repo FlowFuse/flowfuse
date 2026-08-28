@@ -1,6 +1,6 @@
 <template>
     <div class="recently-modified">
-        <p class="text-gray-400 text-sm">Recently Modified</p>
+        <p class="text-gray-400 text-sm">{{ $t('ui.recentlyModified') }}</p>
         <ul v-if="instances.length" class="flex flex-1 flex-col gap-1">
             <li v-for="instance in instances" :key="instance.id" class="instance-wrapper flex">
                 <InstanceTile :instance="instance" :minimal-view="true" @delete-instance="$emit('delete-instance', $event)" />
@@ -16,9 +16,9 @@
         </ul>
         <div v-else class="no-instances flex flex-col flex-1 justify-center text-gray-500 italic">
             <p class="text-center self-center">
-                It's looking a little empty.
-                <team-link :to="{name: 'team-instance-create'}" class="text-indigo-500">Create a Hosted Instance</team-link>
-                to get started.
+                {{ $t('ui.itSLookingALittleEmpty') }}
+                <team-link :to="{name: 'team-instance-create'}" class="text-indigo-500">{{ $t('ui.createAHostedInstance') }}</team-link>
+                {{ $t('ui.toGetStarted') }}
             </p>
         </div>
     </div>

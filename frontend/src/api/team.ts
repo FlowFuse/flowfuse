@@ -3,6 +3,7 @@ import product from '../services/product'
 import daysSince from '../utils/daysSince'
 import elapsedTime from '../utils/elapsedTime'
 import paginateUrl from '../utils/paginateUrl'
+import { roleLabel } from '../utils/roleLabels.js'
 import { RoleNames, Roles } from '../utils/roles'
 
 import client from './client'
@@ -19,9 +20,9 @@ import type {
 
 type RouterLink = { name: string, params: Record<string, string> }
 
-type TeamListItem = UserTeamList[number] & { link: RouterLink, roleName: string }
+type TeamListItem = UserTeamList[number] & { link: RouterLink, roleName: string, roleLabel: string }
 
-type InvitationView = Invitation & { roleName: string, createdSince: string, expires: string }
+type InvitationView = Invitation & { roleName: string, roleLabel: string, createdSince: string, expires: string }
 
 type DeviceView = DeviceSummary & { lastSeenSince: string, instance?: DeviceSummary['application'] }
 
@@ -30,7 +31,8 @@ const getTeams = async (): Promise<{ teams: TeamListItem[] }> => {
     const teams = res.data.teams.map((r): TeamListItem => ({
         ...r,
         link: { name: 'team', params: { team_slug: r.slug } },
-        roleName: RoleNames[r.role]
+        roleName: RoleNames[r.role],
+        roleLabel: roleLabel(r.role)
     }))
     return { ...res.data, teams }
 }
@@ -263,6 +265,7 @@ const getTeamInvitations = (teamId: string): Promise<{ invitations: InvitationVi
         const invitations = res.data.invitations.map((r): InvitationView => ({
             ...r,
             roleName: RoleNames[r.role || Roles.Member],
+            roleLabel: roleLabel(r.role || Roles.Member),
             createdSince: daysSince(r.createdAt),
             expires: elapsedTime(r.expiresAt, Date.now())
         }))
@@ -306,6 +309,7 @@ const resendTeamInvitation = (teamId: string, inviteId: string): Promise<Invitat
             return {
                 ...invitation,
                 roleName: RoleNames[invitation.role || Roles.Member],
+                roleLabel: roleLabel(invitation.role || Roles.Member),
                 createdSince: daysSince(invitation.createdAt),
                 expires: elapsedTime(invitation.expiresAt, Date.now())
             }

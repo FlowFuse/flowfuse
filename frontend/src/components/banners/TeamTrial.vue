@@ -13,19 +13,19 @@
         <span>
             <ExclamationCircleIcon class="ff-icon mr-2" />
             <span v-if="!team.billing?.trialEnded">
-                You have <span class="font-bold">{{ trialEndsIn }} left</span> of your free trial.
+                {{ $t('ui.youHave') }} <span class="font-bold">{{ trialEndsIn }} left</span> {{ $t('ui.ofYourFreeTrial') }}
                 <span v-if="team.billing?.active">
                     <!-- TODO: remove in 1.14 as this will become an unneeded state once existing trials expire -->
-                    You trial instances will be added to your billing subscription at the end of your trial.
+                    {{ $t('ui.youTrialInstancesWillBeAddedToYourBillingSubscri') }}
                 </span>
                 <span v-else>
-                    Click here to setup billing
+                    {{ $t('ui.clickHereToSetupBilling') }}
                 </span>
             </span>
             <span v-else>
-                Your trial has ended.
+                {{ $t('ui.yourTrialHasEnded') }}
                 <span v-if="!team.billing?.active">
-                    You will need to setup billing to continue using this team.
+                    {{ $t('ui.youWillNeedToSetupBillingToContinueUsingThisTeam') }}
                 </span>
             </span>
         </span>

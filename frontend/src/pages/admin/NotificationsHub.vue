@@ -1,29 +1,29 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Notifications Hub" />
+            <ff-page-header :title="$t('ui.notificationsHub')" />
         </template>
         <form class="flex flex-col gap-5" data-el="notification-form" @submit.prevent>
             <section class="flex gap-10">
                 <section>
-                    <FormRow v-model="form.title" type="input" placeholder="Title" class="mb-5" data-el="notification-title">
-                        Announcement Title
-                        <template #description>Enter a concise title for your announcement.</template>
+                    <FormRow v-model="form.title" type="input" :placeholder="$t('ui.title')" class="mb-5" data-el="notification-title">
+                        {{ $t('ui.announcementTitle') }}
+                        <template #description>{{ $t('ui.enterAConciseTitleForYourAnnouncement') }}</template>
                     </FormRow>
                     <FormRow v-model="form.message" class="mb-5" data-el="notification-message">
-                        Announcement Text
-                        <template #description>Provide the details of your announcement.</template>
+                        {{ $t('ui.announcementText') }}
+                        <template #description>{{ $t('ui.provideTheDetailsOfYourAnnouncement') }}</template>
                         <template #input><textarea v-model="form.message" class="w-full max-h-80 min-h-40" rows="4" /></template>
                     </FormRow>
                     <FormRow v-model="form.url" type="input" :placeholder="urlPlaceholder" class="mb-5" data-el="notification-external-url">
-                        URL Link
-                        <template #description>Provide an url where users will be redirected when they click on the notification.</template>
+                        {{ $t('ui.urlLink') }}
+                        <template #description>{{ $t('ui.provideAnUrlWhereUsersWillBeRedirectedWhenTheyCl') }}</template>
                     </FormRow>
                 </section>
                 <section>
-                    <FormHeading>Audience</FormHeading>
-                    <div class="ff-description mb-2 space-y-1">Select the audience of your announcement.</div>
-                    <FormHeading class="mt-4">User Roles:</FormHeading>
+                    <FormHeading>{{ $t('ui.audience') }}</FormHeading>
+                    <div class="ff-description mb-2 space-y-1">{{ $t('ui.selectTheAudienceOfYourAnnouncement') }}</div>
+                    <FormHeading class="mt-4">{{ $t('ui.userRoles') }}</FormHeading>
                     <div class="grid gap-1 grid-cols-2 items-middle">
                         <label
                             v-for="(role, $key) in roleIds"
@@ -37,7 +37,7 @@
                             {{ role }}
                         </label>
                     </div>
-                    <FormHeading class="mt-4">Team Types:</FormHeading>
+                    <FormHeading class="mt-4">{{ $t('ui.teamTypes') }}</FormHeading>
                     <div class="grid gap-1 grid-cols-2 items-middle">
                         <label
                             v-for="teamType in teamTypes"
@@ -53,7 +53,7 @@
                         </label>
                     </div>
                     <template v-if="features.billing">
-                        <FormHeading class="mt-4">Billing State:</FormHeading>
+                        <FormHeading class="mt-4">{{ $t('ui.billingState') }}</FormHeading>
                         <div class="grid gap-1 grid-cols-2 items-middle">
                             <label
                                 v-for="(billingState, $key) in billingStates"
@@ -72,7 +72,7 @@
             </section>
             <section class="actions">
                 <ff-button :disabled="!canSubmit" data-action="submit" @click.stop.prevent="submitForm">
-                    Send Announcement
+                    {{ $t('ui.sendAnnouncement') }}
                 </ff-button>
             </section>
         </form>
@@ -87,7 +87,7 @@ import teamTypesApi from '../../api/teamTypes.js'
 
 import FormHeading from '../../components/FormHeading.vue'
 import FormRow from '../../components/FormRow.vue'
-import { pluralize } from '../../composables/strings/String.js'
+import { t } from '../../i18n.js'
 import alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 import FfButton from '../../ui-components/components/Button.vue'
@@ -167,16 +167,16 @@ export default {
                 .then(mockRes => {
                     if (mockRes.recipientCount === 0) {
                         Dialog.show({
-                            header: 'Platform Wide Announcement',
-                            text: 'Your filters matched no users.',
+                            header: t('ui.platformWideAnnouncement'),
+                            text: t('ui.yourFiltersMatchedNoUsers'),
                             confirmLabel: 'Cancel',
                             canBeCanceled: false
                         })
                     } else {
                         Dialog.show({
-                            header: 'Platform Wide Announcement',
+                            header: t('ui.platformWideAnnouncement'),
                             kind: 'danger',
-                            text: `You are about to send an announcement to ${mockRes.recipientCount} ${pluralize('user', mockRes.recipientCount)}.`,
+                            text: this.$t('ui.youAreAboutToSendAnAnnouncementTo', { count: mockRes.recipientCount, noun: this.$t('ui.plUser', mockRes.recipientCount) }),
                             confirmLabel: 'Continue',
                             canBeCanceled: true
                         }, async () => this.sendAnnouncementNotification({ mock: false }))
@@ -204,7 +204,7 @@ export default {
             return adminApi.sendAnnouncementNotification(payload)
                 .then(res => {
                     if (!mock) {
-                        alerts.emit(`Announcement sent to ${res.recipientCount} ${pluralize('user', res.recipientCount)}.`, 'confirmation')
+                        alerts.emit(this.$t('ui.announcementSentTo', { count: res.recipientCount, noun: this.$t('ui.plUser', res.recipientCount) }), 'confirmation')
                         this.form.title = ''
                         this.form.message = ''
                         this.form.url = ''
@@ -215,7 +215,7 @@ export default {
                     return res
                 })
                 .catch(err => {
-                    alerts.emit('Something went wrong', 'warning')
+                    alerts.emit(t('ui.somethingWentWrong2'), 'warning')
                     console.warn(err)
                 })
         },

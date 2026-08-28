@@ -7,9 +7,9 @@
         </template>
         <ff-page v-else-if="teams.length === 0">
             <template v-if="canCreateTeam" #header>
-                <ff-page-header title="Choose Team Type">
+                <ff-page-header :title="$t('ui.chooseTeamType')">
                     <template #context>
-                        Choose which team type you'd like to get started with.
+                        {{ $t('ui.chooseWhichTeamTypeYouDLikeToGetStartedWith') }}
                     </template>
                 </ff-page-header>
             </template>
@@ -18,16 +18,16 @@
                 <template #img>
                     <img src="../images/empty-states/team-instances.png">
                 </template>
-                <template #header>Team Creation is currently disabled</template>
+                <template #header>{{ $t('ui.teamCreationIsCurrentlyDisabled') }}</template>
                 <template #message>
-                    <p>You cannot create a team at the moment because this feature is disabled by an administrator.</p>
+                    <p>{{ $t('ui.youCannotCreateATeamAtTheMomentBecauseThisFeatur') }}</p>
                     <p>
-                        To join a team, you need to be invited by someone who is already a member.
+                        {{ $t('ui.toJoinATeamYouNeedToBeInvitedBySomeoneWhoIsAlrea') }}
                     </p>
                 </template>
                 <template #note>
                     <p>
-                        Administrators can enable user team creation in the platform settings if needed.
+                        {{ $t('ui.administratorsCanEnableUserTeamCreationInThePlat') }}
                     </p>
                 </template>
             </EmptyState>

@@ -2,7 +2,7 @@
     <ff-dialog
         ref="dialog"
         :disable-primary="!formValid"
-        confirm-label="Delete"
+        :confirm-label="$t('ui.delete')"
         data-el="delete-application-dialog"
         :header="'Delete Application: \'' + application?.name + '\''"
         kind="danger"
@@ -11,13 +11,13 @@
         <template #default>
             <form class="space-y-4" @submit.prevent>
                 <p>
-                    Are you sure you want to delete this application? Once deleted, there is no going back.
+                    {{ $t('ui.areYouSureYouWantToDeleteThisApplicationOnceDele') }}
                 </p>
                 <p>
-                    Name: <span class="font-bold" data-el="application-name">{{ application?.name }}</span>
+                    {{ $t('ui.name2') }} <span class="font-bold" data-el="application-name">{{ application?.name }}</span>
                 </p>
                 <p>
-                    Please type in the application name to confirm.
+                    {{ $t('ui.pleaseTypeInTheApplicationNameToConfirm') }}
                 </p>
                 <FormRow id="projectName" v-model="input.projectName" :placeholder="'Application Name'" data-form="application-name" />
             </form>

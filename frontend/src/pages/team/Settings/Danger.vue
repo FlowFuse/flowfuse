@@ -1,56 +1,56 @@
 <template>
     <div class="space-y-6">
         <template v-if="teamTypes.length > 1 && !team.suspended">
-            <FormHeading>Change Team Type</FormHeading>
+            <FormHeading>{{ $t('ui.changeTeamType') }}</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="grow">
-                    <div class="max-w-sm pr-2">Change to a different team type</div>
+                    <div class="max-w-sm pr-2">{{ $t('ui.changeToADifferentTeamType') }}</div>
                 </div>
                 <div class="min-w-fit shrink-0">
-                    <ff-button data-action="change-team-type" :to="{name: 'team-change-type'}">Change Team Type</ff-button>
+                    <ff-button data-action="change-team-type" :to="{name: 'team-change-type'}">{{ $t('ui.changeTeamType') }}</ff-button>
                 </div>
             </div>
         </template>
         <template v-if="!team.suspended">
-            <FormHeading class="text-red-700">Suspend Team</FormHeading>
+            <FormHeading class="text-red-700">{{ $t('ui.suspendTeam') }}</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="grow">
-                    <div class="max-w-sm pr-2">Suspending the team will suspend all instances and prevent any further activity on the team.</div>
-                    <div v-if="features.billing">Billing stops immediately and <span class="font-bold">the team's subscription is canceled.</span></div>
+                    <div class="max-w-sm pr-2">{{ $t('ui.suspendingTheTeamWillSuspendAllInstancesAndPreve') }}</div>
+                    <div v-if="features.billing">{{ $t('ui.billingStopsImmediatelyAnd') }} <span class="font-bold">{{ $t('ui.theTeamSSubscriptionIsCanceled') }}</span></div>
                 </div>
                 <div class="min-w-fit shrink-0">
-                    <ff-button kind="danger" data-action="suspend-team" @click="showConfirmSuspendDialog()">Suspend Team</ff-button>
+                    <ff-button kind="danger" data-action="suspend-team" @click="showConfirmSuspendDialog()">{{ $t('ui.suspendTeam') }}</ff-button>
                     <ConfirmTeamSuspendDialog ref="confirmTeamSuspendDialog" @suspend-team="suspendTeam" />
                 </div>
             </div>
         </template>
         <template v-else>
-            <FormHeading class="text-red-700">Reactivate Team</FormHeading>
+            <FormHeading class="text-red-700">{{ $t('ui.reactivateTeam') }}</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="grow">
-                    <div class="max-w-sm pr-2">This team is currently suspended.</div>
+                    <div class="max-w-sm pr-2">{{ $t('ui.thisTeamIsCurrentlySuspended') }}</div>
                 </div>
                 <div class="min-w-fit shrink-0">
-                    <ff-button kind="danger" data-action="unsuspend-team" @click="unsuspendTeam()">Reactivate Team</ff-button>
+                    <ff-button kind="danger" data-action="unsuspend-team" @click="unsuspendTeam()">{{ $t('ui.reactivateTeam') }}</ff-button>
                 </div>
             </div>
         </template>
-        <FormHeading class="text-red-700">Delete Team</FormHeading>
+        <FormHeading class="text-red-700">{{ $t('ui.deleteTeam') }}</FormHeading>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="grow">
-                <div class="max-w-sm pr-2">Deleting the team cannot be undone. It permanently removes all data, users, and instances.</div>
-                <div v-if="features.billing">Billing stops immediately and <span class="font-bold">the team's subscription is canceled.</span></div>
+                <div class="max-w-sm pr-2">{{ $t('ui.deletingTheTeamCannotBeUndoneItPermanentlyRemove') }}</div>
+                <div v-if="features.billing">{{ $t('ui.billingStopsImmediatelyAnd') }} <span class="font-bold">{{ $t('ui.theTeamSSubscriptionIsCanceled') }}</span></div>
             </div>
             <div class="min-w-fit shrink-0">
-                <ff-button kind="danger" data-action="delete-team" @click="showConfirmDeleteDialog()">Delete Team</ff-button>
+                <ff-button kind="danger" data-action="delete-team" @click="showConfirmDeleteDialog()">{{ $t('ui.deleteTeam') }}</ff-button>
                 <ConfirmTeamDeleteDialog ref="confirmTeamDeleteDialog" @delete-team="deleteTeam" />
             </div>
         </div>
         <template v-if="featuresCheck.isAiFeatureEnabledForPlatform">
-            <FormHeading>AI Features</FormHeading>
+            <FormHeading>{{ $t('ui.aiFeatures') }}</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="grow">
-                    <div class="max-w-sm pr-2">Enable or disable all AI features for this team. When disabled, AI functionality such as the Expert Assistant, inline code completions, and snapshot description generation will be unavailable.</div>
+                    <div class="max-w-sm pr-2">{{ $t('ui.enableOrDisableAllAiFeaturesForThisTeamWhenDisab') }}</div>
                 </div>
                 <div class="min-w-fit shrink-0">
                     <ff-toggle-switch v-model="aiEnabled" data-el="team-ai-toggle" @change="showConfirmAiToggleDialog" />
@@ -69,6 +69,7 @@ import teamTypesApi from '../../../api/teamTypes.js'
 
 import FormHeading from '../../../components/FormHeading.vue'
 
+import { t } from '../../../i18n.js'
 import alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -125,10 +126,10 @@ export default {
         },
         deleteTeam () {
             teamApi.deleteTeam(this.team.id).then(() => {
-                alerts.emit('Team successfully deleted', 'confirmation')
+                alerts.emit(t('ui.teamSuccessfullyDeleted'), 'confirmation')
                 useAccountAuthStore().checkState('/')
             }).catch(err => {
-                alerts.emit('Problem deleting team', 'warning')
+                alerts.emit(t('ui.problemDeletingTeam'), 'warning')
                 console.warn(err)
             })
         },
@@ -137,19 +138,19 @@ export default {
         },
         suspendTeam () {
             teamApi.updateTeam(this.team.id, { suspended: true }).then(() => {
-                alerts.emit('Team successfully suspended', 'confirmation')
+                alerts.emit(t('ui.teamSuccessfullySuspended'), 'confirmation')
                 useContextStore().refreshTeam()
             }).catch(err => {
-                alerts.emit('Problem suspending team', 'warning')
+                alerts.emit(t('ui.problemSuspendingTeam'), 'warning')
                 console.warn(err)
             })
         },
         unsuspendTeam () {
             teamApi.updateTeam(this.team.id, { suspended: false }).then(() => {
-                alerts.emit('Team successfully reactivated', 'confirmation')
+                alerts.emit(t('ui.teamSuccessfullyReactivated'), 'confirmation')
                 useContextStore().refreshTeam()
             }).catch(err => {
-                alerts.emit('Problem suspending team', 'warning')
+                alerts.emit(t('ui.problemSuspendingTeam'), 'warning')
                 console.warn(err)
             })
         },
@@ -168,7 +169,7 @@ export default {
                     this.aiEnabledOverride = null
                     useContextStore().refreshTeam()
                 }).catch(err => {
-                    alerts.emit('Problem updating AI settings', 'warning')
+                    alerts.emit(t('ui.problemUpdatingAiSettings'), 'warning')
                     this.aiEnabledOverride = null
                     console.warn(err)
                 })

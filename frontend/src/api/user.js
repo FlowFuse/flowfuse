@@ -2,6 +2,7 @@ import product from '../services/product.js'
 
 import daysSince from '../utils/daysSince.js'
 import elapsedTime from '../utils/elapsedTime.js'
+import { roleLabel } from '../utils/roleLabels.js'
 import { RoleNames, Roles } from '../utils/roles.js'
 
 import client from './client.js'
@@ -112,6 +113,7 @@ const getTeamInvitations = async () => {
             r.createdSince = daysSince(r.createdAt)
             r.expires = elapsedTime(r.expiresAt, Date.now())
             r.roleName = RoleNames[r.role || Roles.Member]
+            r.roleLabel = roleLabel(r.role || Roles.Member)
             return r
         })
         return res.data

@@ -1,9 +1,9 @@
 <template>
     <section data-section="blueprints" class="blueprints-section">
-        <h2 class="mt-6 mb-5">We have a collection of pre-built flows that you can use as a starting point for your Node-RED Instance.</h2>
+        <h2 class="mt-6 mb-5">{{ $t('ui.weHaveACollectionOfPreBuiltFlowsThatYouCanUseAsA') }}</h2>
 
         <transition name="fade" mode="out-in">
-            <ff-loading v-if="loading" message="Loading Blueprints..." />
+            <ff-loading v-if="loading" :message="$t('ui.loadingBlueprints')" />
             <div v-else class="flex flex-1 flex-col gap-7 overflow-auto" data-el="blueprints-wrapper">
                 <div class="flex flex-1 gap-16 text-left flex-wrap-reverse overflow-auto">
                     <div class="ff-blueprints flex flex-col flex-1 overflow-auto h-full">
@@ -37,7 +37,7 @@
                         </ul>
                     </div>
                     <div class="ff-blueprint-categories">
-                        <h3>Categories</h3>
+                        <h3>{{ $t('ui.categories') }}</h3>
                         <hr class="my-3">
                         <ul>
                             <li

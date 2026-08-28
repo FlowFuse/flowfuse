@@ -1,14 +1,14 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Create New Team">
+            <ff-page-header :title="$t('ui.createNewTeam')">
                 <template #context>
-                    Teams provide a way to organize who collaborates on your applications.
+                    {{ $t('ui.teamsProvideAWayToOrganizeWhoCollaboratesOnYourA') }}
                 </template>
             </ff-page-header>
         </template>
-        <ff-loading v-if="redirecting" message="Redirecting to Stripe..." />
-        <ff-loading v-else-if="loading" message="Creating Team..." />
+        <ff-loading v-if="redirecting" :message="$t('ui.redirectingToStripe')" />
+        <ff-loading v-else-if="loading" :message="$t('ui.creatingTeam')" />
         <div v-else :class="presetTeamType ? 'flex flex-col gap-4 sm:gap-0' : 'flex flex-col space-y-6 mb-5'">
             <div v-if="presetTeamType" class="w-full">
                 <team-type-tile class="m-auto" :team-type="presetTeamType" :enableCTA="false" :billing-interval="$route.query.interval" />
@@ -28,46 +28,46 @@
                     </ff-tile-selection>
                     <div class="flex gap-6 justify-center relative z-10 flex-wrap">
                         <div v-if="billingEnabled && annualBillingAvailable" class="text-sm font-medium text-gray-400 flex items-center gap-2">
-                            <span :class="{'text-gray-800': !isAnnualBilling }">Monthly</span>
+                            <span :class="{'text-gray-800': !isAnnualBilling }">{{ $t('ui.monthly') }}</span>
                             <ff-toggle-switch v-model="isAnnualBilling" />
-                            <span :class="{'text-gray-800': isAnnualBilling }">Yearly</span>
+                            <span :class="{'text-gray-800': isAnnualBilling }">{{ $t('ui.yearly') }}</span>
                         </div>
                     </div>
                 </div>
                 <div v-if="!isContactRequired" class="space-y-3 flex flex-col items-center max-w-md" :class="{'flex flex-col max-w-md': presetTeamType}">
                     <FormRow id="team" v-model="input.name" :error="errors.name" containerClass="w-full">
-                        Team Name
+                        {{ $t('ui.teamName') }}
                         <template #description>
-                            eg. 'Development'
+                            {{ $t('ui.egDevelopment') }}
                         </template>
                     </FormRow>
 
                     <FormRow id="team" v-model="input.slug" :error="input.slugError" :placeholder="input.defaultSlug" containerClass="w-full">
-                        URL Slug
+                        {{ $t('ui.urlSlug') }}
                         <template #description>
-                            Use the default slug based on the team name or set your own.<br>
+                            {{ $t('ui.useTheDefaultSlugBasedOnTheTeamNameOrSetYourOwn') }}<br>
                             <pre>/team/&lt;slug&gt;</pre>
                         </template>
                     </FormRow>
 
                     <template v-if="billingEnabled">
                         <div class="mb-8 text-sm text-gray-500 space-y-2">
-                            <p v-if="(!presetTeamType && isBillingRequired) || (presetTeamType && !isSelectionTrial && !presetTeamType.isFree)">To create the team we need to setup payment details via Stripe, our secure payment provider.</p>
+                            <p v-if="(!presetTeamType && isBillingRequired) || (presetTeamType && !isSelectionTrial && !presetTeamType.isFree)">{{ $t('ui.toCreateTheTeamWeNeedToSetupPaymentDetailsViaStr') }}</p>
                         </div>
                         <ff-button v-if="isBillingRequired" :disabled="!formValid" class="w-full" @click="createTeam()">
                             <template #icon-right><ArrowTopRightOnSquareIcon /></template>
-                            Create team and setup payment details
+                            {{ $t('ui.createTeamAndSetupPaymentDetails') }}
                         </ff-button>
                         <ff-button v-else-if="isSelectionTrial" :disabled="!formValid" class="w-full" @click="createTeam()">
-                            Start Free Trial
+                            {{ $t('ui.startFreeTrial') }}
                         </ff-button>
                         <ff-button v-else :disabled="!formValid" class="w-full" @click="createTeam()">
-                            Create team
+                            {{ $t('ui.createTeam') }}
                         </ff-button>
                     </template>
                     <ff-button v-else :disabled="!formValid" class="w-full" @click="createTeam()">
-                        <template v-if="billingEnabled && isSelectionTrial">Start Free Trial</template>
-                        <template v-else>Create team</template>
+                        <template v-if="billingEnabled && isSelectionTrial">{{ $t('ui.startFreeTrial') }}</template>
+                        <template v-else>{{ $t('ui.createTeam') }}</template>
                     </ff-button>
                 </div>
                 <section v-else class="max-w-md">
@@ -75,7 +75,7 @@
                         <p>To learn more about our {{ input.teamType?.name }} plan, including the option to purchase an extended trial, click below to contact our sales team.</p>
                     </div>
                     <ff-button class="w-full" @click="sendContact()">
-                        Talk to Sales
+                        {{ $t('ui.talkToSales2') }}
                     </ff-button>
                 </section>
             </form>
@@ -94,6 +94,7 @@ import FormRow from '../../components/FormRow.vue'
 
 import TeamTypeTile from '../../components/TeamTypeTile.vue'
 import { useHubspotHelper } from '../../composables/Hubspot.js'
+import { t } from '../../i18n.js'
 import slugify from '../../utils/slugify.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
@@ -136,7 +137,7 @@ export default {
     watch: {
         'input.name': function (v) {
             if (v && /:\/\//.test(v)) {
-                this.errors.name = 'Team name can not contain URL'
+                this.errors.name = t('ui.teamNameCanNotContainUrl')
             } else {
                 this.errors.name = ''
             }

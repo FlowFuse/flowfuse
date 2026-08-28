@@ -5,14 +5,14 @@
                 <img src="../images/icons/not-found.svg" alt="404-icon">
             </div>
             <div class="title">
-                <h2>Oops! Looks like you've lost the flow...</h2>
+                <h2>{{ $t('ui.oopsLooksLikeYouVeLostTheFlow') }}</h2>
             </div>
             <div class="message">
-                <p>But don't worry, it's easy to get back on track!</p>
+                <p>{{ $t('ui.butDonTWorryItSEasyToGetBackOnTrack') }}</p>
             </div>
             <div class="actions">
-                <ff-button @click="$router.back()">Go Back</ff-button>
-                <router-link :to="{name: 'home'}" class="ff-btn ff-btn--primary">Go to Homepage</router-link>
+                <ff-button @click="$router.back()">{{ $t('ui.goBack') }}</ff-button>
+                <router-link :to="{name: 'home'}" class="ff-btn ff-btn--primary">{{ $t('ui.goToHomepage') }}</router-link>
             </div>
         </div>
     </main>

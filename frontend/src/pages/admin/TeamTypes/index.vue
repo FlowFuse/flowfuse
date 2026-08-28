@@ -1,13 +1,13 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Team Types">
+            <ff-page-header :title="$t('ui.teamTypes2')">
                 <template #tools>
                     <ff-button data-action="create-type" @click="showEditTeamTypeDialog()">
                         <template #icon-right>
                             <PlusSmallIcon />
                         </template>
-                        Create team type
+                        {{ $t('ui.createTeamType') }}
                     </ff-button>
                 </template>
             </ff-page-header>
@@ -27,17 +27,17 @@
                 />
             </ff-tile-selection>
             <div v-if="nextCursor">
-                <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
+                <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">{{ $t('ui.loadMore') }}</a>
             </div>
-            <SectionTopMenu hero="Inactive Types" />
+            <SectionTopMenu :hero="$t('ui.inactiveTypes')" />
             <ff-data-table :columns="columns" :rows="inactiveTeamTypes" data-el="inactive-types">
                 <template #context-menu="{row}">
-                    <ff-kebab-item label="Edit Team Type" @click="teamTypeAction('edit', row.id)" />
-                    <ff-kebab-item label="Delete Team Type" kind="danger" @click="teamTypeAction('delete', row.id)" />
+                    <ff-kebab-item :label="$t('ui.editTeamType')" @click="teamTypeAction('edit', row.id)" />
+                    <ff-kebab-item :label="$t('ui.deleteTeamType')" kind="danger" @click="teamTypeAction('delete', row.id)" />
                 </template>
             </ff-data-table>
             <div v-if="nextCursor">
-                <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
+                <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">{{ $t('ui.loadMore') }}</a>
             </div>
         </div>
         <TeamTypeEditDialog
@@ -55,6 +55,7 @@ import { PlusSmallIcon } from '@heroicons/vue/24/outline'
 import teamTypesApi from '../../../api/teamTypes.js'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 
+import { t } from '../../../i18n.js'
 import Dialog from '../../../services/dialog.js'
 
 import TeamTypeEditDialog from './dialogs/TeamTypeEditDialog.vue'
@@ -75,8 +76,8 @@ export default {
             nextCursor: null,
             columns: [
                 { label: 'ID', key: 'id', sortable: true, class: ['w-32'] },
-                { label: 'Type', key: 'name', sortable: true },
-                { label: 'Team Count', class: ['w-32', 'text-center'], key: 'teamCount', sortable: true }
+                { label: t('ui.type'), key: 'name', sortable: true },
+                { label: t('ui.teamCount'), class: ['w-32', 'text-center'], key: 'teamCount', sortable: true }
             ]
         }
     },
@@ -117,7 +118,7 @@ export default {
         showConfirmTeamTypeDeleteDialog (teamType) {
             const text = teamType.teamCount > 0 ? 'You cannot delete a team type that is still being used.' : 'Are you sure you want to delete this team type?'
             Dialog.show({
-                header: 'Delete Team Type',
+                header: t('ui.deleteTeamType'),
                 kind: 'danger',
                 text,
                 confirmLabel: 'Delete',

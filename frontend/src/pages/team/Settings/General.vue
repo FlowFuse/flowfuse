@@ -2,37 +2,36 @@
     <div class="ff-project-overview space-y-4">
         <div class="max-w-3xl">
             <div class="ff-instance-info">
-                <FormHeading><RectangleGroupIcon />Team Info</FormHeading>
+                <FormHeading><RectangleGroupIcon />{{ $t('ui.teamInfo') }}</FormHeading>
 
                 <table class="table-fixed w-full border border-separate rounded-sm">
                     <tbody>
                         <tr class="border-b">
-                            <td class="w-40 font-medium">Name</td>
+                            <td class="w-40 font-medium">{{ $t('ui.name') }}</td>
                             <td>
                                 <span v-if="!editing">{{ input.teamName }} </span>
                                 <FormRow v-else id="teamName" ref="name-row" v-model="input.teamName" type="text" :error="errors.teamName" class="mt-2 mb-6">
                                     <template #description>
-                                        <div v-if="editing">eg. 'Development'</div>
+                                        <div v-if="editing">{{ $t('ui.egDevelopment') }}</div>
                                     </template>
                                 </FormRow>
                             </td>
                         </tr>
                         <tr class="border-b">
-                            <td class="w-40 font-medium">Type</td>
+                            <td class="w-40 font-medium">{{ $t('ui.type') }}</td>
                             <td class="flex flex-row items-center">
                                 <span class="grow">{{ input.teamType }} </span>
-                                <ff-button v-if="!team.suspended" kind="secondary" size="small" :to="{name: 'team-change-type'}">Change Team Type</ff-button>
+                                <ff-button v-if="!team.suspended" kind="secondary" size="small" :to="{name: 'team-change-type'}">{{ $t('ui.changeTeamType') }}</ff-button>
                             </td>
                         </tr>
                         <tr class="border-b">
-                            <td class="w-40 font-medium">URL</td>
+                            <td class="w-40 font-medium">{{ $t('ui.url2') }}</td>
                             <td>
                                 <span v-if="!editing">{{ teamUrl }}</span>
                                 <FormRow v-else id="teamName" ref="name-row" v-model="input.slug" type="text" :error="errors.slug" class="mt-2 mb-6">
                                     <template #description>
-                                        <span class="text-red-700">Warning:</span>
-                                        Changing this will modify all urls used to access the team.
-                                        The platform will not redirect requests to the old url.
+                                        <span class="text-red-700">{{ $t('ui.warning') }}</span>
+                                        {{ $t('ui.changingThisWillModifyAllUrlsUsedToAccessTheTeam') }}
                                         <br>
                                         <br>
                                         <pre>{{ teamUrl }}</pre>
@@ -47,9 +46,9 @@
                             </td>
                         </tr>
                         <tr v-if="ssoAvailable" class="border-b">
-                            <td class="w-40 font-medium">SSO <SparklesIcon class="ff-icon ff-icon-sm mr-2" style="stroke-width: 1px;" /></td>
+                            <td class="w-40 font-medium">{{ $t('ui.sso') }}<SparklesIcon class="ff-icon ff-icon-sm mr-2" style="stroke-width: 1px;" /></td>
                             <td>
-                                <span><a href="https://flowfuse.com/support/" target="_blank" class="underline">Contact us to enable SSO for your team's users</a></span>
+                                <span><a href="https://flowfuse.com/support/" target="_blank" class="underline">{{ $t('ui.contactUsToEnableSsoForYourTeamSUsers') }}</a></span>
                             </td>
                         </tr>
                     </tbody>
@@ -59,12 +58,12 @@
     </div>
     <div v-if="!team.suspended" class="space-x-4 whitespace-nowrap">
         <template v-if="!editing">
-            <ff-button kind="primary" @click="editName">Edit team settings</ff-button>
+            <ff-button kind="primary" @click="editName">{{ $t('ui.editTeamSettings') }}</ff-button>
         </template>
         <template v-else>
             <div class="flex gap-x-3">
-                <ff-button kind="secondary" @click="cancelEditName">Cancel</ff-button>
-                <ff-button kind="primary" :disabled="!formValid" @click="saveEditName">Save team settings</ff-button>
+                <ff-button kind="secondary" @click="cancelEditName">{{ $t('ui.cancel') }}</ff-button>
+                <ff-button kind="primary" :disabled="!formValid" @click="saveEditName">{{ $t('ui.saveTeamSettings') }}</ff-button>
             </div>
         </template>
     </div>
@@ -79,6 +78,7 @@ import teamApi from '../../../api/team.js'
 import teamsApi from '../../../api/teams.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
+import { t } from '../../../i18n.js'
 import alerts from '../../../services/alerts.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
@@ -134,9 +134,9 @@ export default {
         team: 'fetchData',
         'input.slug': function (v) {
             if (!v) {
-                this.errors.slug = 'Must not be blank'
+                this.errors.slug = t('ui.mustNotBeBlank')
             } else if (!/^[a-z0-9-_]+$/i.test(v)) {
-                this.errors.slug = 'Must only contain a-z 0-9 - _'
+                this.errors.slug = t('ui.mustOnlyContainAZ09')
             } else {
                 this.checkSlug()
                 this.errors.slug = ''
@@ -144,7 +144,7 @@ export default {
         },
         'input.teamName': function (v) {
             if (v && /:\/\//.test(v)) {
-                this.errors.teamName = 'Team name can not contain URL'
+                this.errors.teamName = t('ui.teamNameCanNotContainUrl')
             } else {
                 this.errors.teamName = ''
             }
@@ -179,11 +179,11 @@ export default {
                 this.editing = false
                 await useDataFarmTeamsStore().fetchTeamList()
                 await useContextStore().refreshTeam()
-                alerts.emit('Team Settings updated.', 'confirmation')
+                alerts.emit(t('ui.teamSettingsUpdated'), 'confirmation')
             }).catch(err => {
                 if (err.response.data) {
                     if (/slug/.test(err.response.data.error)) {
-                        this.errors.slug = 'Slug already in use'
+                        this.errors.slug = t('ui.slugAlreadyInUse')
                     }
                 }
             })
@@ -211,7 +211,7 @@ export default {
                         }
                     }).catch(_ => {
                         if (this.slugValid) {
-                            this.errors.slug = 'Slug unavailable'
+                            this.errors.slug = t('ui.slugUnavailable')
                         }
                     })
                 }

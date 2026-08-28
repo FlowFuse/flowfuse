@@ -72,6 +72,7 @@ import EditorDrawer from '../../../components/immersive-editor/EditorDrawer.vue'
 import EditorWrapper from '../../../components/immersive-editor/RemoteInstanceEditorWrapper.vue'
 import { useDeviceHelper } from '../../../composables/DeviceHelper.js'
 import usePermissions from '../../../composables/Permissions.js'
+import { t } from '../../../i18n.js'
 import Alerts from '../../../services/alerts.js'
 import { isInstanceOnNR5Plus } from '../../../utils/instanceVersion'
 
@@ -159,7 +160,7 @@ export default {
 
             return [
                 {
-                    label: 'Expert',
+                    label: t('ui.expert'),
                     to: {
                         name: 'device-editor-expert',
                         params: { id: this.device.id }
@@ -169,12 +170,12 @@ export default {
                     hidden: !this.featuresCheck.isExpertAssistantFeatureEnabled && !this.featuresCheck.isExpertInsightsFeatureEnabled
                 },
                 {
-                    label: 'Overview',
+                    label: t('ui.overview'),
                     to: { name: 'device-editor-overview' },
                     tag: 'device-overview'
                 },
                 {
-                    label: 'Version History',
+                    label: t('ui.versionHistory'),
                     to: {
                         name: 'device-editor-version-history',
                         params: { id: this.$route.params.id }
@@ -182,27 +183,27 @@ export default {
                     tag: 'version-history'
                 },
                 {
-                    label: 'Audit Log',
+                    label: t('ui.auditLog'),
                     to: { name: 'device-editor-audit-log' },
                     tag: 'device-audit-log'
                 },
                 {
-                    label: 'Node-RED Logs',
+                    label: t('ui.nodeRedLogs'),
                     to: { name: 'device-editor-logs' },
                     tag: 'device-logs'
                 },
                 {
-                    label: 'Performance',
+                    label: t('ui.performance'),
                     to: { name: 'device-editor-performance' },
                     tag: 'device-performance'
                 },
                 {
-                    label: 'Settings',
+                    label: t('ui.settings'),
                     to: { name: 'device-editor-settings' },
                     tag: 'device-settings'
                 },
                 {
-                    label: 'Developer Mode',
+                    label: t('ui.developerMode'),
                     to: { name: 'device-editor-developer-mode' },
                     tag: 'device-devmode',
                     hidden: !(this.isDevModeAvailable && this.device.mode === 'developer')

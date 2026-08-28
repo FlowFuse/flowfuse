@@ -10,13 +10,13 @@
     >
         <span>
             <ExclamationCircleIcon class="ff-icon mr-2" />
-            <span v-if="subscriptionExpired">The subscription for this team has expired.</span>
-            <span v-else-if="subscriptionPastDue">The subscription for this team has over due payments.</span>
+            <span v-if="subscriptionExpired">{{ $t('ui.theSubscriptionForThisTeamHasExpired') }}</span>
+            <span v-else-if="subscriptionPastDue">{{ $t('ui.theSubscriptionForThisTeamHasOverDuePayments') }}</span>
             <template v-if="linkToBilling">
-                Please visit <strong>Billing settings</strong> to update.
+                {{ $t('ui.pleaseVisit') }} <strong>{{ $t('ui.billingSettings') }}</strong> {{ $t('ui.toUpdate') }}
             </template>
             <template v-else-if="!hasPermission('team:edit')">
-                Please ask a team administrator to update the subscription.
+                {{ $t('ui.pleaseAskATeamAdministratorToUpdateTheSubscripti') }}
             </template>
         </span>
 

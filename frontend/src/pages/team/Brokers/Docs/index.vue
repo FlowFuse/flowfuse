@@ -2,7 +2,7 @@
     <div>
         <router-link class="ff-return-link" :to="{ name: 'team-brokers-hierarchy', params: { brokerId: brokerId } }">
             <ChevronLeftIcon class="ff-icon ff-icon-sm" />
-            Return to FlowFuse
+            {{ $t('ui.returnToFlowfuse') }}
         </router-link>
     </div>
     <div>
@@ -10,7 +10,7 @@
             {{ schema.info.title }}
             <ff-button @click="downloadSchema">
                 <template #icon-right><ArrowTopRightOnSquareIcon /></template>
-                View Raw Schema
+                {{ $t('ui.viewRawSchema') }}
             </ff-button>
         </h1>
         <p>{{ schema.info.description }}</p>

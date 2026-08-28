@@ -16,7 +16,7 @@
             <div class="ff-pipeline-actions">
                 <span
                     v-if="hasPermission('pipeline:edit', { application })"
-                    v-ff-tooltip:right="'Edit Pipeline Stage'"
+                    v-ff-tooltip:right="$t('ui.editPipelineStage')"
                     data-action="stage-edit"
                     @click="edit"
                 >
@@ -27,7 +27,7 @@
                 </span>
                 <span
                     v-if="hasPermission('pipeline:delete', { application })"
-                    v-ff-tooltip:right="'Delete Pipeline Stage'"
+                    v-ff-tooltip:right="$t('ui.deletePipelineStage')"
                     data-action="stage-delete"
                     @click="deleteStage"
                 >
@@ -38,7 +38,7 @@
                 </span>
                 <span
                     v-if="hasPermission('pipeline:edit', { application })"
-                    v-ff-tooltip:right="'Run Pipeline Stage'"
+                    v-ff-tooltip:right="$t('ui.runPipelineStage')"
                     data-action="stage-run"
                     :class="{'ff-disabled': !playEnabled || !pipeline?.id || deploying }"
                     @click="runStage"
@@ -56,7 +56,7 @@
                     <router-link class="flex gap-2 items-center" :to="{name: 'instance', params: { id: stage.instance.id }}">
                         <IconNodeRedSolid class="ff-icon ff-icon-lg text-red-800" />
                         <div>
-                            <label class="flex items-center gap-2">Instance:</label>
+                            <label class="flex items-center gap-2">{{ $t('ui.instance') }}</label>
                             <span>
                                 {{ stage.instance.name }}
                             </span>
@@ -65,13 +65,13 @@
                 </div>
                 <div v-if="stage.stageType == StageType.DEVICE" class="ff-pipeline-stage-type">
                     <router-link class="flex gap-2 items-center" :to="{name: 'device', params: { id: stage.device.id }}">
-                        <span v-if="inDeveloperMode" v-ff-tooltip="'Cannot push to a Device in Developer Mode'">
+                        <span v-if="inDeveloperMode" v-ff-tooltip="$t('ui.cannotPushToADeviceInDeveloperMode')">
                             <IconDeviceSolid class="ff-icon ff-icon-lg text-teal-700" />
                             <i class="bg-red-600 w-3 h-3 rounded-full absolute block -top-1 -right-1 border-2 border-gray-50" />
                         </span>
                         <IconDeviceSolid v-else class="ff-icon ff-icon-lg text-teal-700" />
                         <div>
-                            <label class="flex items-center gap-2">Device:</label>
+                            <label class="flex items-center gap-2">{{ $t('ui.device') }}</label>
                             <span>
                                 {{ stage.device.name }}
                             </span>
@@ -82,7 +82,7 @@
                     <router-link class="flex gap-2 items-center" :to="{name: 'application-device-group-devices', params: { applicationId: application.id, deviceGroupId: stage.deviceGroup.id }}">
                         <IconDeviceGroupSolid class="ff-icon ff-icon-lg text-teal-700" />
                         <div>
-                            <label class="flex items-center gap-2">Device Group:</label>
+                            <label class="flex items-center gap-2">{{ $t('ui.deviceGroup') }}</label>
                             <span>
                                 {{ stage.deviceGroup.name }}
                             </span>
@@ -93,27 +93,27 @@
                     <a class="flex gap-2 items-center" target="_blank" :href="gitRepoLink"> <!--`${stage.gitRepo.url}/tree/${stage.gitRepo.branch || 'main'}`"> -->
                         <IconGit class="ff-icon ff-icon-lg" style="color: var(--ff-color-icon-git)" />
                         <div>
-                            <label class="flex items-center gap-2">Git Repository:</label>
+                            <label class="flex items-center gap-2">{{ $t('ui.gitRepository') }}</label>
                             <span>{{ stage.gitRepo?.url.replace("https://github.com/","").replace("https://dev.azure.com/","") }}</span>
                         </div>
                     </a>
                 </div>
             </div>
             <div v-if="stage.stageType == StageType.INSTANCE" class="ff-pipeline-stage-row">
-                <label>Last Deployed:</label>
+                <label>{{ $t('ui.lastDeployed') }}</label>
                 <span>{{ stage.flowLastUpdatedSince ? stage.flowLastUpdatedSince : 'Unknown' }}</span>
             </div>
             <div v-else-if="stage.stageType == StageType.DEVICE" class="ff-pipeline-stage-row">
-                <label>Last Seen:</label>
+                <label>{{ $t('ui.lastSeen2') }}</label>
                 <span>{{ stage.lastSeenSince ? stage.lastSeenSince : 'Unknown' }}</span>
             </div>
             <div v-if="stage.stageType !== StageType.DEVICEGROUP && stage.stageType !== StageType.GITREPO" class="ff-pipeline-stage-row">
-                <label v-if="stage.stageType == StageType.DEVICE">Last Known Status:</label>
-                <label v-else>Status:</label>
+                <label v-if="stage.stageType == StageType.DEVICE">{{ $t('ui.lastKnownStatus2') }}</label>
+                <label v-else>{{ $t('ui.status2') }}</label>
                 <InstanceStatusBadge :status="stage.state" />
             </div>
             <div v-if="stage.stageType == StageType.INSTANCE" class="ff-pipeline-stage-row">
-                <label>URL:</label>
+                <label>{{ $t('ui.url') }}</label>
                 <a
                     class="ff-link"
                     :href="stage.instance.url"
@@ -121,11 +121,11 @@
                 >{{ stage.instance.url }}</a>
             </div>
             <div v-if="stage.stageType === StageType.DEVICEGROUP" class="ff-pipeline-stage-row">
-                <label>Devices:</label>
+                <label>{{ $t('ui.devices2') }}</label>
                 <StatusBadge :text="stage.deviceGroup?.deviceCount" status="info" />
             </div>
             <div v-if="stage.stageType === StageType.DEVICEGROUP" class="ff-pipeline-stage-row">
-                <label>Deployed:</label>
+                <label>{{ $t('ui.deployed') }}</label>
                 <div v-ff-tooltip="stage.state?.hasTargetSnapshot && (stage.state?.activeMatchCount === stage.deviceGroup?.deviceCount) ? 'All devices have the latest pipeline snapshot deployed' : 'Some devices do not have the latest pipeline snapshot deployed'">
                     <StatusBadge
                         :text="stage.state?.activeMatchCount"
@@ -136,7 +136,7 @@
 
             <template v-if="stage.stageType == StageType.GITREPO">
                 <div class="ff-pipeline-stage-row">
-                    <label>Branch:</label>
+                    <label>{{ $t('ui.branch') }}</label>
                     <div>
                         <template v-if="!stage.gitRepo?.pullBranch || stage.gitRepo?.pullBranch === stage.gitRepo?.branch">
                             <div>{{ stage.gitRepo?.branch || 'main' }}</div>
@@ -148,15 +148,15 @@
                     </div>
                 </div>
                 <div v-if="!isFirstStage" class="ff-pipeline-stage-row">
-                    <label>Last Pushed:</label>
+                    <label>{{ $t('ui.lastPushed') }}</label>
                     <span v-ff-tooltip="stage.state?.lastPushAt || stage.gitRepo?.lastPushAt ||'Never'">{{ (stage.state?.lastPushAt || stage.gitRepo?.lastPushAt) ? daysSince((stage.state?.lastPushAt || stage.gitRepo?.lastPushAt)) : 'Never' }}</span>
                 </div>
                 <div class="ff-pipeline-stage-row">
-                    <label>Last Pulled:</label>
+                    <label>{{ $t('ui.lastPulled') }}</label>
                     <span v-ff-tooltip="stage.state?.lastPullAt || stage.gitRepo?.lastPullAt ||'Never'">{{ (stage.state?.lastPullAt || stage.gitRepo?.lastPullAt) ? daysSince((stage.state?.lastPullAt || stage.gitRepo?.lastPullAt)) : 'Never' }}</span>
                 </div>
                 <div v-if="stage.state?.status" class="ff-pipeline-stage-row">
-                    <label>Status:</label>
+                    <label>{{ $t('ui.status2') }}</label>
                     <StatusBadge :status="stage.state?.status" />
                 </div>
                 <div v-if="stage.state?.statusMessage" class="ff-pipeline-stage-row">
@@ -166,33 +166,33 @@
             </template>
 
             <div v-if="playEnabled && stage.stageType !== StageType.GITREPO" class="ff-pipeline-stage-row">
-                <label>Deploy Action:</label>
+                <label>{{ $t('ui.deployAction') }}</label>
                 <span>
                     <template v-if="stage.stageType === StageType.DEVICEGROUP">
-                        Use group snapshot
+                        {{ $t('ui.useGroupSnapshot') }}
                     </template>
                     <template v-else-if="stage.action === StageAction.CREATE_SNAPSHOT">
-                        Create new snapshot
+                        {{ $t('ui.createNewSnapshot') }}
                     </template>
                     <template v-else-if="stage.action === StageAction.USE_ACTIVE_SNAPSHOT">
-                        Use active snapshot
+                        {{ $t('ui.useActiveSnapshot') }}
                     </template>
                     <template v-else-if="stage.action== StageAction.USE_LATEST_SNAPSHOT">
                         Use latest {{ stage.stageType === StageType.INSTANCE ? 'instance' : 'device' }} snapshot
                     </template>
                     <template v-else-if="stage.action== StageAction.PROMPT">
-                        Prompt to select snapshot
+                        {{ $t('ui.promptToSelectSnapshot2') }}
                     </template>
                 </span>
             </div>
             <div v-if="stage.instance?.protected?.enabled" class="ff-pipeline-stage-row" data-el="protected-marker">
-                <label>Instance Protected:</label>
-                <div v-ff-tooltip:right="'Only Team Owner can deploy to this Instance'">
+                <label>{{ $t('ui.instanceProtected') }}</label>
+                <div v-ff-tooltip:right="$t('ui.onlyTeamOwnerCanDeployToThisInstance')">
                     <LockClosedIcon class="ff-icon" />
                 </div>
             </div>
         </div>
-        <div v-else class="flex justify-center py-6">No Instance or Device Bound</div>
+        <div v-else class="flex justify-center py-6">{{ $t('ui.noInstanceOrDeviceBound') }}</div>
         <DeployStageDialog
             ref="deployStageDialog"
             :stage="stage"
@@ -201,7 +201,7 @@
     </div>
     <div v-else class="ff-pipeline-stage ff-pipeline-stage-ghost" data-action="add-stage">
         <PlusCircleIcon class="ff-icon ff-icon-xl" />
-        <label>Add Stage</label>
+        <label>{{ $t('ui.addStage') }}</label>
     </div>
 </template>
 
@@ -213,6 +213,7 @@ import PipelineAPI, { StageAction, StageType } from '../../api/pipeline.js'
 import StatusBadge from '../../components/StatusBadge.vue'
 import usePermissions from '../../composables/Permissions.js'
 import { slugify } from '../../composables/strings/String.js'
+import { t } from '../../i18n.js'
 import InstanceStatusBadge from '../../pages/instance/components/InstanceStatusBadge.vue'
 
 import Alerts from '../../services/alerts.js'
@@ -409,7 +410,7 @@ export default {
             }
 
             const msg = {
-                header: 'Delete Pipeline Stage',
+                header: t('ui.deletePipelineStage'),
                 kind: 'danger',
                 confirmLabel: 'Delete',
                 text: `Are you sure you want to delete the pipeline stage "${this.stage.name}"?`

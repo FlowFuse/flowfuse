@@ -5,17 +5,16 @@
                 <template #img>
                     <img src="../../../../images/empty-states/instance-snapshots.png">
                 </template>
-                <template #header>Snapshots are available when a Remote Instance is assigned to an Application</template>
+                <template #header>{{ $t('ui.snapshotsAreAvailableWhenARemoteInstanceIsAssign') }}</template>
                 <template #message>
                     <p>
-                        Snapshots are point-in-time backups of your Node-RED Instances
-                        and capture the flows, credentials and runtime settings.
+                        {{ $t('ui.snapshotsArePointInTimeBackupsOfYourNodeRedInsta2') }}
                     </p>
                     <p v-if="device.ownerType !== 'application'" class="block">
-                        A Remote Instance must first be <a class="ff-link" href="https://flowfuse.com/docs/device-agent/register/#assign-the-device-to-an-application" target="_blank" rel="noreferrer">assigned to an Application</a>, in order to create snapshots.
+                        {{ $t('ui.aRemoteInstanceMustFirstBe') }} <a class="ff-link" href="https://flowfuse.com/docs/device-agent/register/#assign-the-device-to-an-application" target="_blank" rel="noreferrer">{{ $t('ui.assignedToAnApplication') }}</a>{{ $t('ui.inOrderToCreateSnapshots') }}
                     </p>
                     <p v-else-if="!developerMode" class="block">
-                        A Remote Instance must be in Developer Mode and online to create a Snapshot.
+                        {{ $t('ui.aRemoteInstanceMustBeInDeveloperModeAndOnlineToC') }}
                     </p>
                 </template>
                 <template v-if="hasPermission('device:snapshot:create', { application: device.application })" #actions>
@@ -25,7 +24,7 @@
                         data-action="import-snapshot"
                         @click="$emit('show-import-snapshot-dialog')"
                     >
-                        <template #icon-left><ArrowUpTrayIcon /></template>Upload Snapshot
+                        <template #icon-left><ArrowUpTrayIcon /></template>{{ $t('ui.uploadSnapshot') }}
                     </ff-button>
                     <ff-button
                         v-if="hasPermission('device:snapshot:create', { application: device.application })"
@@ -34,13 +33,13 @@
                         data-action="create-snapshot"
                         @click="$emit('show-create-snapshot-dialog')"
                     >
-                        <template #icon-left><PlusSmallIcon /></template>Create Snapshot
+                        <template #icon-left><PlusSmallIcon /></template>{{ $t('ui.createSnapshot') }}
                     </ff-button>
                 </template>
             </EmptyState>
         </div>
         <div v-else class="space-y-6 flex-1 flex flex-col overflow-auto">
-            <ff-loading v-if="loading" message="Loading Snapshots..." />
+            <ff-loading v-if="loading" :message="$t('ui.loadingSnapshots')" />
             <template v-else-if="features.deviceEditor && snapshots.length > 0">
                 <ff-data-table
                     data-el="snapshots"
@@ -49,14 +48,14 @@
                     :rows="snapshotsFiltered"
                     :rows-selectable="true"
                     :show-search="true"
-                    search-placeholder="Search Snapshots..."
+                    :search-placeholder="$t('ui.searchSnapshots2')"
                     @row-selected="onRowSelected"
                 >
                     <template #actions>
                         <DropdownMenu data-el="snapshot-filter" buttonClass="ff-btn ff-btn--secondary" :options="snapshotFilterOptions">
                             <FunnelIcon class="ff-btn--icon ff-btn--icon-left" aria-hidden="true" />
                             {{ snapshotFilter?.name || 'All Snapshots' }}
-                            <span class="sr-only">Filter Snapshots</span>
+                            <span class="sr-only">{{ $t('ui.filterSnapshots') }}</span>
                         </DropdownMenu>
                     </template>
                 </ff-data-table>
@@ -66,17 +65,16 @@
                     <template #img>
                         <img src="../../../../images/empty-states/instance-snapshots.png">
                     </template>
-                    <template #header>Create your First Snapshot</template>
+                    <template #header>{{ $t('ui.createYourFirstSnapshot') }}</template>
                     <template #message>
                         <p>
-                            Snapshots are point-in-time backups of your Node-RED Instances
-                            and capture the flows, credentials and runtime settings.
+                            {{ $t('ui.snapshotsArePointInTimeBackupsOfYourNodeRedInsta2') }}
                         </p>
                         <p v-if="device.ownerType !== 'application'" class="block">
-                            A Remote Instance must first be <a class="ff-link" href="https://flowfuse.com/docs/device-agent/register/#assign-the-device-to-an-application" target="_blank" rel="noreferrer">assigned to an Application</a>, in order to create snapshots.
+                            {{ $t('ui.aRemoteInstanceMustFirstBe') }} <a class="ff-link" href="https://flowfuse.com/docs/device-agent/register/#assign-the-device-to-an-application" target="_blank" rel="noreferrer">{{ $t('ui.assignedToAnApplication') }}</a>{{ $t('ui.inOrderToCreateSnapshots') }}
                         </p>
                         <p v-else-if="!developerMode" class="block">
-                            A Remote Instance must be in Developer Mode and online to create a Snapshot.
+                            {{ $t('ui.aRemoteInstanceMustBeInDeveloperModeAndOnlineToC') }}
                         </p>
                     </template>
                     <template v-if="hasPermission('device:snapshot:create', { application: device.application })" #actions>
@@ -86,7 +84,7 @@
                             data-action="import-snapshot"
                             @click="$emit('show-import-snapshot-dialog')"
                         >
-                            <template #icon-left><ArrowUpTrayIcon /></template>Upload Snapshot
+                            <template #icon-left><ArrowUpTrayIcon /></template>{{ $t('ui.uploadSnapshot') }}
                         </ff-button>
                         <ff-button
                             kind="primary"
@@ -94,7 +92,7 @@
                             data-action="create-snapshot"
                             @click="$emit('show-create-snapshot-dialog')"
                         >
-                            <template #icon-left><PlusSmallIcon /></template>Create Snapshot
+                            <template #icon-left><PlusSmallIcon /></template>{{ $t('ui.createSnapshot') }}
                         </ff-button>
                     </template>
                 </EmptyState>
@@ -116,6 +114,7 @@ import EmptyState from '../../../../components/EmptyState.vue'
 import SnapshotDetailsDrawer from '../../../../components/drawers/snapshots/SnapshotDetailsDrawer.vue'
 import UserCell from '../../../../components/tables/cells/UserCell.vue'
 import usePermissions from '../../../../composables/Permissions.js'
+import { t } from '../../../../i18n.js'
 import { applySystemUserDetails } from '../../../../transformers/snapshots.transformer.js'
 import { isAutoSnapshot } from '../../../../utils/snapshot.js'
 import DaysSince from '../../../application/Snapshots/components/cells/DaysSince.vue'
@@ -215,7 +214,7 @@ export default {
         columns () {
             const cols = [
                 {
-                    label: 'Snapshot',
+                    label: t('ui.snapshot'),
                     class: ['w-56 sm:w-48'],
                     component: {
                         is: markRaw(SnapshotName),
@@ -225,7 +224,7 @@ export default {
                     }
                 },
                 {
-                    label: 'Source',
+                    label: t('ui.source'),
                     class: ['w-56'],
                     key: '_ownerSortKey',
                     // sortable: !this.moreThanOnePage,
@@ -234,12 +233,12 @@ export default {
                     }
                 },
                 {
-                    label: 'Node-RED version',
+                    label: t('ui.nodeRedVersion4'),
                     class: ['w-56'],
                     key: 'modules.node-red'
                 },
                 {
-                    label: 'Created By',
+                    label: t('ui.createdBy'),
                     class: ['w-48 hidden md:table-cell'],
                     component: {
                         is: markRaw(UserCell),
@@ -251,7 +250,7 @@ export default {
                     }
                 },
                 {
-                    label: 'Date Created',
+                    label: t('ui.dateCreated2'),
                     class: ['w-48 hidden sm:table-cell'],
                     component: { is: markRaw(DaysSince), map: { date: 'createdAt' } }
                 }
@@ -362,7 +361,7 @@ export default {
         onRowSelected (snapshot) {
             this.openRightDrawer({
                 component: markRaw(SnapshotDetailsDrawer),
-                header: { title: 'Snapshot' },
+                header: { title: t('ui.snapshot') },
                 props: {
                     snapshot,
                     snapshotList: this.snapshotList,

@@ -5,11 +5,11 @@
             :columns="columns"
             :rows="users"
             :show-search="true"
-            search-placeholder="Search Users..."
+            :search-placeholder="$t('ui.searchUsers')"
             :show-load-more="!!nextCursor"
             :loading="loading"
-            loading-message="Loading Users"
-            no-data-message="No Users Found"
+            :loading-message="$t('ui.loadingUsers')"
+            :no-data-message="$t('ui.noUsersFound')"
             :rows-selectable="true"
             @load-more="loadItems" @row-selected="showUser"
         >
@@ -18,11 +18,11 @@
                     <template #icon-left>
                         <UserPlusIcon />
                     </template>
-                    Create New User
+                    {{ $t('ui.createNewUser') }}
                 </ff-button>
             </template>
             <template #context-menu="{row}">
-                <ff-kebab-item label="Edit User" @click.stop="showEditUserDialog(row)" />
+                <ff-kebab-item :label="$t('ui.editUser')" @click.stop="showEditUserDialog(row)" />
             </template>
         </ff-data-table>
         <AdminUserEditDialog ref="adminUserEditDialog" @user-updated="userUpdated" @user-deleted="userDeleted" />
@@ -38,6 +38,8 @@ import { markRaw } from 'vue'
 
 import usersApi from '../../../api/users.js'
 import UserCell from '../../../components/tables/cells/UserCell.vue'
+
+import { t } from '../../../i18n.js'
 
 import AdminUserEditDialog from './dialogs/AdminUserEditDialog.vue'
 
@@ -56,13 +58,13 @@ export default {
             loading: false,
             nextCursor: null,
             columns: [
-                { label: 'User', class: ['grow'], key: 'name', component: { is: markRaw(UserCell) }, sortable: true },
-                { label: 'Password Expired', class: ['w-32', 'text-center'], key: 'password_expired', sortable: true },
-                { label: 'Email Verified', class: ['w-32', 'text-center'], key: 'email_verified', sortable: true },
-                { label: 'SSO', class: ['w-32', 'text-center'], key: 'sso_enabled', sortable: true },
-                { label: 'MFA', class: ['w-32', 'text-center'], key: 'mfa_enabled', sortable: true },
-                { label: 'Admin', class: ['w-32', 'text-center'], key: 'admin', sortable: true },
-                { label: 'Suspended', class: ['w-32', 'text-center'], key: 'suspended', sortable: true }
+                { label: t('ui.user2'), class: ['grow'], key: 'name', component: { is: markRaw(UserCell) }, sortable: true },
+                { label: t('ui.passwordExpired'), class: ['w-32', 'text-center'], key: 'password_expired', sortable: true },
+                { label: t('ui.emailVerified'), class: ['w-32', 'text-center'], key: 'email_verified', sortable: true },
+                { label: t('ui.sso'), class: ['w-32', 'text-center'], key: 'sso_enabled', sortable: true },
+                { label: t('ui.mfa'), class: ['w-32', 'text-center'], key: 'mfa_enabled', sortable: true },
+                { label: t('ui.admin2'), class: ['w-32', 'text-center'], key: 'admin', sortable: true },
+                { label: t('ui.suspended'), class: ['w-32', 'text-center'], key: 'suspended', sortable: true }
             ]
         }
     },
@@ -88,7 +90,7 @@ export default {
         await this.loadItems(true)
         if (this.features.sso) {
             this.columns.push({
-                label: 'SSO Enabled', class: ['w-32', 'text-center'], key: 'sso_enabled', sortable: true
+                label: t('ui.ssoEnabled2'), class: ['w-32', 'text-center'], key: 'sso_enabled', sortable: true
             })
         }
     },

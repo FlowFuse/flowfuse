@@ -4,25 +4,25 @@
             {{ header }}
         </p>
         <FormRow v-model="parts.flows" type="checkbox" data-form="component-flows">
-            Flows
+            {{ $t('ui.flows') }}
         </FormRow>
         <div v-if="showCredentials" :class="parts.flows?'opacity-100':'opacity-30'">
             <FormRow v-model="parts.credentials" type="checkbox" :disabled="!parts.flows" data-form="component-credentials">
-                Credentials
+                {{ $t('ui.credentials') }}
             </FormRow>
         </div>
         <FormRow v-if="showTemplate" v-model="parts.template" type="checkbox">
-            Template
+            {{ $t('ui.template') }}
         </FormRow>
         <FormRow v-if="showSecret" v-model="parts.credsSecret" type="text" :disabled="!parts.flows && !parts.credentials">
-            Secret
-            <template #description>Provide a Secret to encrypt the exported Credentials</template>
+            {{ $t('ui.secret') }}
+            <template #description>{{ $t('ui.provideASecretToEncryptTheExportedCredentials') }}</template>
         </FormRow>
         <FormRow v-if="showSettings" v-model="parts.settings" type="checkbox">
-            Instance Settings
+            {{ $t('ui.instanceSettings') }}
         </FormRow>
         <FormRow v-model="envVarOpts.envVars" type="checkbox" data-form="component-environment-variables">
-            Environment Variables
+            {{ $t('ui.environmentVariables') }}
         </FormRow>
         <div :class="['space-y-4', envVarOpts.envVars?'opacity-100':'opacity-30']" data-form="component-environment-variables-options">
             <ff-radio-group v-model="envVarOpts.envVarsKo" class="ml-9" orientation="vertical" :options="envVarOptions" />
@@ -33,6 +33,7 @@
 
 <script>
 import FormRow from '../../../components/FormRow.vue'
+import { t } from '../../../i18n.js'
 
 /**
  * flows
@@ -81,10 +82,10 @@ export default {
     setup () {
         return {
             envVarKeyOptions: [{
-                label: 'Keys and Values',
+                label: t('ui.keysAndValues'),
                 value: 'all'
             }, {
-                label: 'Keys Only',
+                label: t('ui.keysOnly'),
                 value: 'keys'
             }]
         }

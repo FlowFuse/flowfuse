@@ -5,6 +5,7 @@ import ApplicationApi from '../api/application.js'
 import deviceApi from '../api/devices.js'
 import instanceApi from '../api/instances.js'
 import teamApi from '../api/team.js'
+import { t } from '../i18n.js'
 import Alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 
@@ -57,9 +58,9 @@ export default {
                 this.showEditDeviceDialog(device)
             } else if (action === 'delete') {
                 Dialog.show({
-                    header: 'Delete Device',
+                    header: t('ui.deleteDevice'),
                     kind: 'danger',
-                    text: 'Are you sure you want to delete this device? Once deleted, there is no going back.',
+                    text: t('ui.areYouSureYouWantToDeleteThisDeviceOnceDeletedTh'),
                     confirmLabel: 'Delete'
                 }, async () => {
                     try {
@@ -78,9 +79,9 @@ export default {
                 this.$refs.deviceCredentialsDialog.show(device)
             } else if (action === 'removeFromProject') {
                 Dialog.show({
-                    header: 'Remove Device from Instance',
+                    header: t('ui.removeDeviceFromInstance'),
                     kind: 'danger',
-                    text: 'Are you sure you want to remove this device from the instance? This will stop the flows running on the device.',
+                    text: t('ui.areYouSureYouWantToRemoveThisDeviceFromTheInstan'),
                     confirmLabel: 'Remove'
                 }, async () => {
                     await deviceApi.updateDevice(device.id, { instance: null })
@@ -95,9 +96,9 @@ export default {
                 })
             } else if (action === 'removeFromApplication') {
                 Dialog.show({
-                    header: 'Remove Device from Application',
+                    header: t('ui.removeDeviceFromApplication'),
                     kind: 'danger',
-                    text: 'Are you sure you want to remove this device from the application? This will stop the flows running on the device.',
+                    text: t('ui.areYouSureYouWantToRemoveThisDeviceFromTheApplic'),
                     confirmLabel: 'Remove'
                 }, async () => {
                     await deviceApi.updateDevice(device.id, { application: null })

@@ -2,7 +2,7 @@
     <template v-if="id">
         <router-link :to="{ name: 'instance-devices', params: { id }}">{{ name }}</router-link>
     </template>
-    <template v-else><span class="italic text-gray-500">Unassigned</span></template>
+    <template v-else><span class="italic text-gray-500">{{ $t('ui.unassigned') }}</span></template>
 </template>
 
 <script>

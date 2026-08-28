@@ -1,7 +1,7 @@
 <template>
     <form v-if="!appLoader" class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
         <div>
-            <ff-button class="m-auto" @click="verify()">Click here to verify your change of email address</ff-button>
+            <ff-button class="m-auto" @click="verify()">{{ $t('ui.clickHereToVerifyYourChangeOfEmailAddress') }}</ff-button>
         </div>
     </form>
 </template>
@@ -11,6 +11,7 @@
 import { mapState } from 'pinia'
 
 import userApi from '../../api/user.js'
+import { t } from '../../i18n.js'
 import alerts from '../../services/alerts.js'
 
 import { useUxLoadingStore } from '@/stores/ux-loading.js'
@@ -33,7 +34,7 @@ export default {
                 if (err.response?.data) {
                     alerts.emit(`Unable to confirm new email. ${err.response.data.error}`, 'warning', timing)
                 } else {
-                    alerts.emit('Unable to confirm new email. Check logs for details.', 'warning', timing)
+                    alerts.emit(t('ui.unableToConfirmNewEmailCheckLogsForDetails'), 'warning', timing)
                     console.error(err)
                 }
             }

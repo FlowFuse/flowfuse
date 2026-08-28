@@ -26,7 +26,7 @@
                         class="overlay-input iterable"
                         :class="{'has-results': hasResults}"
                         type="text"
-                        placeholder="Search your team (CTRL + K)"
+                        :placeholder="$t('ui.searchYourTeamCtrlK')"
                     >
                     <transition name="fade" mode="out-in">
                         <XMarkIcon v-if="query.length && isFocused" class="ff-icon-sm close cursor-pointer" @click="resetSearch" />
@@ -37,7 +37,7 @@
             <div v-if="isFocused && hasResults" class="results-wrapper">
                 <result-section
                     v-if="resApplication.length > 0"
-                    title="Applications"
+                    :title="$t('ui.applications')"
                     :icon="RectangleGroupIcon"
                     :results="resApplication"
                     :query="query"
@@ -74,7 +74,7 @@
 
                 <result-section
                     v-if="resInstances.length > 0"
-                    title="Instances" :icon="ProjectsIcon"
+                    :title="$t('ui.instances')" :icon="ProjectsIcon"
                     :results="resInstances"
                     :query="query"
                     result-type="instance"
@@ -91,7 +91,7 @@
 
                 <result-section
                     v-if="resDevices.length > 0"
-                    title="Devices" :icon="CpuChipIcon"
+                    :title="$t('ui.devices')" :icon="CpuChipIcon"
                     :results="resDevices"
                     :query="query"
                     result-type="device"

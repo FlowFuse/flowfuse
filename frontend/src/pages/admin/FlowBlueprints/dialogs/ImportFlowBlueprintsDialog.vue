@@ -1,16 +1,16 @@
 <template>
     <ff-dialog
         ref="dialog"
-        header="Import Blueprints"
+        :header="$t('ui.importBlueprints')"
         :close-on-confirm="false"
-        confirm-label="Upload"
+        :confirm-label="$t('ui.upload')"
         :disablePrimary="disablePrimaryButton"
         data-dialog="import-flow-blueprints"
         @confirm="onConfirm"
         @cancel="clearModal"
     >
-        <h3>Easily transfer your existing blueprints into FlowFuse.</h3>
-        <p>You can start by</p>
+        <h3>{{ $t('ui.easilyTransferYourExistingBlueprintsIntoFlowfuse') }}</h3>
+        <p>{{ $t('ui.youCanStartBy') }}</p>
         <section class="file-upload-section" :class="{disabled: !!input}">
             <FormRow :error="errors.file" data-form="file" container-class="max-w-full file-row">
                 <template #input>
@@ -32,7 +32,7 @@
                     >
                         <template #default>
                             <span class="file-input">
-                                <span>Choosing your file</span>
+                                <span>{{ $t('ui.choosingYourFile') }}</span>
                                 <span><DocumentPlusIcon class="ff-btn--icon" /></span>
                             </span>
                         </template>
@@ -54,8 +54,8 @@
         <section class="textarea-section" :class="{disabled: !!file}">
             <FormRow :error="errors.input" type="textarea" data-form="name" container-class="max-w-full">
                 <div class="textarea-wrapper">
-                    <span>Pasting A JSON</span>
-                    <span v-if="input" class="clear" data-action="clear-input" @click="clearInput">clear</span>
+                    <span>{{ $t('ui.pastingAJson') }}</span>
+                    <span v-if="input" class="clear" data-action="clear-input" @click="clearInput">{{ $t('ui.clear') }}</span>
                 </div>
                 <template #input>
                     <textarea
@@ -64,7 +64,7 @@
                         data-el="input-textarea"
                         class="w-full"
                         rows="10"
-                        placeholder="Paste in a collection of blueprints here, in a JSON array."
+                        :placeholder="$t('ui.pasteInACollectionOfBlueprintsHereInAJsonArray')"
                     />
                 </template>
             </FormRow>
@@ -77,6 +77,7 @@
 import { DocumentIcon, DocumentPlusIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 
 import FormRow from '../../../../components/FormRow.vue'
+import { t } from '../../../../i18n.js'
 
 export default {
     name: 'ImportFlowBlueprintsDialog',
@@ -128,7 +129,7 @@ export default {
                 JSON.parse(newVal)
                 this.errors.input = null
             } catch (err) {
-                this.errors.input = 'Invalid JSON'
+                this.errors.input = t('ui.invalidJson')
             }
 
             this.file = null
@@ -151,7 +152,7 @@ export default {
                     this.fileOutput = JSON.parse(e.target.result)
                     this.errors.file = null
                 } catch (err) {
-                    this.errors.file = 'Invalid JSON'
+                    this.errors.file = t('ui.invalidJson')
                 }
             }
             reader.readAsText(this.file)

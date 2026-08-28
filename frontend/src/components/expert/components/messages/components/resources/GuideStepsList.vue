@@ -1,7 +1,7 @@
 <template>
     <div class="guide-steps">
         <h4 class="section-title">
-            <streamable-content string="Steps:" :should-stream="shouldStream" />
+            <streamable-content :string="$t('ui.steps')" :should-stream="shouldStream" />
         </h4>
         <ol class="steps-list">
             <li v-for="(step, index) in visibleItems" :key="index" class="step-item">

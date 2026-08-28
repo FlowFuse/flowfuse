@@ -1,3 +1,5 @@
+import { t } from '../../../i18n.js'
+
 import InstanceSettingsAlerts from './Alerts.vue'
 import ChangeInstanceTypePage from './ChangeInstanceType.vue'
 import InstanceSettingsEditor from './Editor.vue'
@@ -23,7 +25,7 @@ export default [
         name: 'instance-settings-change-type',
         component: ChangeInstanceTypePage,
         meta: {
-            title: 'Instance - Change Type'
+            title: t('ui.instanceChangeType')
         }
     },
     { path: 'launcher', name: 'instance-settings-launcher', component: InstanceSettingsLauncher },

@@ -60,6 +60,7 @@ import EditorDrawer from '../../../components/immersive-editor/EditorDrawer.vue'
 import EditorWrapper from '../../../components/immersive-editor/HostedInstanceEditorWrapper.vue'
 import InstanceActionsButton from '../../../components/instance/ActionButton.vue'
 import usePermissions from '../../../composables/Permissions.js'
+import { t } from '../../../i18n.js'
 import instanceMixin from '../../../mixins/Instance.js'
 
 import { isInstanceOnNR5Plus } from '../../../utils/instanceVersion'
@@ -115,50 +116,50 @@ export default {
             }
             return [
                 {
-                    label: 'Expert',
+                    label: t('ui.expert'),
                     to: { name: 'instance-editor-expert', params: { id: this.instance.id } },
                     tag: 'instance-expert',
                     icon: ExpertTabIcon,
                     hidden: !this.featuresCheck.isExpertAssistantFeatureEnabled && !this.featuresCheck.isExpertInsightsFeatureEnabled
                 },
                 {
-                    label: 'Overview',
+                    label: t('ui.overview'),
                     to: { name: 'instance-editor-overview', params: { id: this.instance.id } },
                     tag: 'instance-overview'
                 },
                 {
-                    label: 'Devices',
+                    label: t('ui.devices'),
                     to: { name: 'instance-editor-devices', params: { id: this.instance.id } },
                     tag: 'instance-remote'
                 },
                 {
-                    label: 'Version History',
+                    label: t('ui.versionHistory'),
                     to: versionHistoryRoute,
                     tag: 'instance-version-history'
                 },
                 {
-                    label: 'Assets',
+                    label: t('ui.assets'),
                     to: { name: 'instance-editor-assets', params: { id: this.instance.id } },
                     tag: 'instance-assets',
                     hidden: !this.hasAMinimumTeamRoleOf(Roles.Member)
                 },
                 {
-                    label: 'Audit Log',
+                    label: t('ui.auditLog'),
                     to: { name: 'instance-editor-audit-log', params: { id: this.instance.id } },
                     tag: 'instance-activity'
                 },
                 {
-                    label: 'Node-RED Logs',
+                    label: t('ui.nodeRedLogs'),
                     to: { name: 'instance-editor-logs', params: { id: this.instance.id } },
                     tag: 'instance-logs'
                 },
                 {
-                    label: 'Performance',
+                    label: t('ui.performance'),
                     to: { name: 'instance-editor-performance', params: { id: this.instance.id } },
                     tag: 'instance-performance'
                 },
                 {
-                    label: 'Settings',
+                    label: t('ui.settings'),
                     to: { name: 'instance-editor-settings', params: { id: this.instance.id } },
                     tag: 'instance-settings'
                 }

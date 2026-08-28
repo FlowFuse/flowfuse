@@ -15,6 +15,7 @@ import { markRaw } from 'vue'
 
 import VisibilitySelector from '../../../components/file-browser/VisibilitySelector.vue'
 import ItemFilePath from '../../../components/file-browser/cells/FilePath.vue'
+import { t } from '../../../i18n.js'
 
 export default {
     name: 'FolderBreadcrumbs',
@@ -88,7 +89,7 @@ export default {
                 },
                 {
                     key: 'activeDirectory',
-                    label: 'Active Directory',
+                    label: t('ui.activeDirectory'),
                     component: {
                         is: markRaw({
                             props: ['currentDirectory'],
@@ -104,7 +105,7 @@ export default {
                 },
                 {
                     key: 'visibility',
-                    label: 'Visibility',
+                    label: t('ui.visibility'),
                     component: {
                         is: markRaw({
                             template: '<VisibilitySelector :breadcrumbs="breadcrumbs" @selected="selectedVisibility"/>',
@@ -125,7 +126,7 @@ export default {
                 },
                 {
                     key: 'folderPath',
-                    label: 'Folder Path',
+                    label: t('ui.folderPath'),
                     component: {
                         is: markRaw(ItemFilePath),
                         extraProps: {
@@ -137,7 +138,7 @@ export default {
                 },
                 {
                     key: 'baseUrl',
-                    label: 'Base URL',
+                    label: t('ui.baseUrl'),
                     component: {
                         is: markRaw(ItemFilePath),
                         extraProps: {

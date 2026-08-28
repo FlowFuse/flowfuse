@@ -2,34 +2,34 @@
     <ff-dialog ref="dialog" :header="dialogTitle">
         <template #default>
             <form class="space-y-6 mt-2" @submit.prevent>
-                <FormRow v-model="input.name" :error="errors.name" data-form="name">Name</FormRow>
-                <FormRow v-model="input.active" type="checkbox" data-form="active">Active</FormRow>
+                <FormRow v-model="input.name" :error="errors.name" data-form="name">{{ $t('ui.name') }}</FormRow>
+                <FormRow v-model="input.active" type="checkbox" data-form="active">{{ $t('ui.active') }}</FormRow>
                 <FormRow v-model="input.description" :error="errors.description" data-form="description">
-                    Description
-                    <template #description>Use markdown for formatting</template>
+                    {{ $t('ui.description') }}
+                    <template #description>{{ $t('ui.useMarkdownForFormatting') }}</template>
                     <template #input><textarea v-model="input.description" class="w-full" rows="6" /></template>
                 </FormRow>
                 <FormRow id="stack" v-model="input.defaultStack" :options="stacks" :disabled="stacks.length === 0" data-form="stack">
-                    Default Stack
-                    <template #description><div v-if="stacks.length === 0">There are no stacks defined for this Instance Type yet.</div></template>
+                    {{ $t('ui.defaultStack') }}
+                    <template #description><div v-if="stacks.length === 0">{{ $t('ui.thereAreNoStacksDefinedForThisInstanceTypeYet') }}</div></template>
                 </FormRow>
                 <template v-if="features.billing">
-                    <FormHeading>Billing</FormHeading>
-                    <p>Billing configuration for the Instance Types must be set within the Team Type configuration</p>
+                    <FormHeading>{{ $t('ui.billing') }}</FormHeading>
+                    <p>{{ $t('ui.billingConfigurationForTheInstanceTypesMustBeSet') }}</p>
                 </template>
                 <FormRow v-model="input.order">
-                    Order
-                    <template #description>Set the sort order when listing the types</template>
+                    {{ $t('ui.order') }}
+                    <template #description>{{ $t('ui.setTheSortOrderWhenListingTheTypes') }}</template>
                 </FormRow>
             </form>
         </template>
         <template #actions>
             <div class="w-full grow flex justify-between">
                 <div>
-                    <ff-button v-if="instanceType" kind="danger" style="margin: 0;" @click="$emit('show-delete-dialog', instanceType); $refs.dialog.close()">Delete Instance Type</ff-button>
+                    <ff-button v-if="instanceType" kind="danger" style="margin: 0;" @click="$emit('show-delete-dialog', instanceType); $refs.dialog.close()">{{ $t('ui.deleteInstanceType') }}</ff-button>
                 </div>
                 <div class="flex">
-                    <ff-button kind="secondary" @click="$refs['dialog'].close()">Cancel</ff-button>
+                    <ff-button kind="secondary" @click="$refs['dialog'].close()">{{ $t('ui.cancel') }}</ff-button>
                     <ff-button :disabled="!formValid" @click="confirm(); $refs.dialog.close()">{{ instanceType ? 'Update' : 'Create' }}</ff-button>
                 </div>
             </div>
@@ -45,6 +45,8 @@ import stacksApi from '../../../../api/stacks.js'
 
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
+
+import { t } from '../../../../i18n.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
@@ -143,7 +145,7 @@ export default {
                         console.error(err.response.data)
                         if (err.response.data) {
                             if (/name/.test(err.response.data.error)) {
-                                this.errors.name = 'Name unavailable'
+                                this.errors.name = t('ui.nameUnavailable')
                             }
                         }
                     })
@@ -154,7 +156,7 @@ export default {
                         console.error(err.response.data)
                         if (err.response.data) {
                             if (/name/.test(err.response.data.error)) {
-                                this.errors.name = 'Name unavailable'
+                                this.errors.name = t('ui.nameUnavailable')
                             }
                         }
                     })

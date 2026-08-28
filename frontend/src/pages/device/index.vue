@@ -6,7 +6,7 @@
         </Teleport>
         <SectionNavigationHeader :tabs="navigation">
             <template #breadcrumbs>
-                <ff-nav-breadcrumb :to="{name: 'team-remote-instances', params: {team_slug: team.slug}}">Remote Instances</ff-nav-breadcrumb>
+                <ff-nav-breadcrumb :to="{name: 'team-remote-instances', params: {team_slug: team.slug}}">{{ $t('ui.remoteInstances') }}</ff-nav-breadcrumb>
                 <ff-nav-breadcrumb>{{ device.name }}</ff-nav-breadcrumb>
             </template>
             <template #status>
@@ -21,15 +21,15 @@
             </template>
             <template #context>
                 <div v-if="device?.ownerType === 'application' && device.application" data-el="device-assigned-application">
-                    Application:
+                    {{ $t('ui.application2') }}
                     <ff-team-link :to="{name: 'application', params: {id: device.application?.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.application?.name }}</ff-team-link>
                 </div>
                 <div v-else-if="device?.ownerType === 'instance' && device.instance" data-el="device-assigned-instance">
-                    Instance:
+                    {{ $t('ui.instance') }}
                     <ff-team-link :to="{name: 'instance', params: {id: device.instance.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.instance.name }}</ff-team-link>
                 </div>
                 <div v-else data-el="device-assigned-none">
-                    <span class="italic">No Application or Instance Assigned</span> - <a class="ff-link" data-action="assign-device" @click="openAssignmentDialog">Assign</a>
+                    <span class="italic">{{ $t('ui.noApplicationOrInstanceAssigned') }}</span> - <a class="ff-link" data-action="assign-device" @click="openAssignmentDialog">{{ $t('ui.assign') }}</a>
                 </div>
             </template>
             <template #tools>
@@ -73,14 +73,14 @@
                         :options="actionsDropdownOptions"
                     >
                         <Cog8ToothIcon class="ff-btn--icon ff-btn--icon-left" />
-                        Actions
+                        {{ $t('ui.actions') }}
                     </DropdownMenu>
                 </div>
             </template>
         </SectionNavigationHeader>
         <div class="mt-4 sm:mt-8 flex-1 flex flex-col overflow-auto">
             <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
-                <div class="ff-banner" data-el="banner-device-as-admin">You are viewing this device as an Administrator</div>
+                <div class="ff-banner" data-el="banner-device-as-admin">{{ $t('ui.youAreViewingThisDeviceAsAnAdministrator') }}</div>
             </Teleport>
             <div class="px-3 pb-3 md:px-6 md:pb-6 flex-1 flex flex-col overflow-auto">
                 <router-view :instance="device.instance" :closingTunnel="closingTunnel" :openingTunnel="openingTunnel" :device="device" @device-updated="loadDevice" @close-tunnel="closeTunnel" @open-tunnel="openTunnel" @device-refresh="deviceRefresh" @assign-device="openAssignmentDialog" />
@@ -88,11 +88,11 @@
         </div>
         <!-- Dialogs -->
         <!-- device tunnel connecting -->
-        <ff-dialog ref="dialog" data-el="establish-device-tunnel-dialog" header="Preparing the connection...">
+        <ff-dialog ref="dialog" data-el="establish-device-tunnel-dialog" :header="$t('ui.preparingTheConnection')">
             <template #default>
                 <div class="flex flex-col ml-6 mr-6">
                     <div class="mb-4">
-                        <p>Connecting to the device</p>
+                        <p>{{ $t('ui.connectingToTheDevice') }}</p>
                     </div>
                     <div class="flex justify-between items-center">
                         <div class="flex text-center">
@@ -112,7 +112,7 @@
                 </div>
             </template>
             <template #actions>
-                <ff-button data-action="tunnel-connect-cancel" kind="secondary" class="ml-4" @click="closeTunnel()">Cancel</ff-button>
+                <ff-button data-action="tunnel-connect-cancel" kind="secondary" class="ml-4" @click="closeTunnel()">{{ $t('ui.cancel') }}</ff-button>
             </template>
         </ff-dialog>
         <AssignDeviceDialog
@@ -151,6 +151,7 @@ import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import { useInstanceStates } from '../../composables/InstanceStates.js'
 import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 import usePermissions from '../../composables/Permissions.js'
+import { t } from '../../i18n.js'
 import deviceActionsMixin from '../../mixins/DeviceActions.js'
 
 import Alerts from '../../services/alerts.js'
@@ -288,12 +289,12 @@ export default {
         navigation () {
             return [
                 {
-                    label: 'Overview',
+                    label: t('ui.overview'),
                     to: { name: 'device-overview' },
                     tag: 'device-overview'
                 },
                 {
-                    label: 'Version History',
+                    label: t('ui.versionHistory'),
                     to: {
                         name: 'device-version-history',
                         params: { id: this.$route.params.id }
@@ -301,28 +302,28 @@ export default {
                     tag: 'version-history'
                 },
                 {
-                    label: 'Audit Log',
+                    label: t('ui.auditLog'),
                     to: { name: 'device-audit-log' },
                     tag: 'device-audit-log'
                 },
                 {
-                    label: 'Node-RED Logs',
+                    label: t('ui.nodeRedLogs'),
                     to: { name: 'device-logs' },
                     tag: 'device-logs'
                     // icon: CommandLineIcon
                 },
                 {
-                    label: 'Performance',
+                    label: t('ui.performance'),
                     to: { name: 'device-performance' },
                     tag: 'device-performance'
                 },
                 {
-                    label: 'Settings',
+                    label: t('ui.settings'),
                     to: { name: 'device-settings' },
                     tag: 'device-settings'
                 },
                 {
-                    label: 'Developer Mode',
+                    label: t('ui.developerMode'),
                     to: { name: 'device-developer-mode' },
                     tag: 'device-devmode',
                     hidden: !(this.isDevModeAvailable && this.device.mode === 'developer')
@@ -588,9 +589,9 @@ export default {
         },
         showConfirmDeleteDialog () {
             Dialog.show({
-                header: 'Delete Device',
+                header: t('ui.deleteDevice'),
                 kind: 'danger',
-                text: 'Are you sure you want to delete this device? Once deleted, there is no going back.',
+                text: t('ui.areYouSureYouWantToDeleteThisDeviceOnceDeletedTh'),
                 confirmLabel: 'Delete'
             }, async () => {
                 try {
@@ -636,7 +637,7 @@ export default {
                 await deviceApi.startDevice(this.device)
                 this.deviceStateMutator.setStateAsPendingFromServer()
             } catch (err) {
-                let message = 'Device start request failed.'
+                let message = t('ui.deviceStartRequestFailed')
                 if (err.response?.data?.error) {
                     message = err.response.data.error
                 }
@@ -655,7 +656,7 @@ export default {
                 await deviceApi.restartDevice(this.device)
                 this.deviceStateMutator.setStateAsPendingFromServer()
             } catch (err) {
-                let message = 'Device restart request failed.'
+                let message = t('ui.deviceRestartRequestFailed')
                 if (err.response?.data?.error) {
                     message = err.response.data.error
                 }
@@ -669,8 +670,8 @@ export default {
                 return
             }
             Dialog.show({
-                header: 'Suspend Device',
-                text: 'Are you sure you want to suspend this device?',
+                header: t('ui.suspendDevice'),
+                text: t('ui.areYouSureYouWantToSuspendThisDevice'),
                 confirmLabel: 'Suspend',
                 kind: 'danger'
             }, () => {
@@ -679,7 +680,7 @@ export default {
                     this.deviceStateMutator.setStateAsPendingFromServer()
                     Alerts.emit('Device suspend request succeeded.', 'confirmation')
                 }).catch(err => {
-                    let message = 'Device suspend request failed.'
+                    let message = t('ui.deviceSuspendRequestFailed')
                     if (err.response?.data?.error) {
                         message = err.response.data.error
                     }

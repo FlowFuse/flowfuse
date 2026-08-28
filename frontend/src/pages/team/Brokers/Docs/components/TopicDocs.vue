@@ -4,19 +4,19 @@
             <template #content>
                 <div class="ff-topic-docs-row-meta">
                     <section>
-                        <label>Description:</label>
+                        <label>{{ $t('ui.description2') }}</label>
                         <p v-if="topic.description">{{ topic.description }}</p>
-                        <p v-else class="ff-empty-state">No description available.</p>
+                        <p v-else class="ff-empty-state">{{ $t('ui.noDescriptionAvailable') }}</p>
                     </section>
                     <section>
-                        <label>Payload Schema:</label>
+                        <label>{{ $t('ui.payloadSchema') }}</label>
                         <div class="space-y-2">
                             <div v-if="topic.schema?.type" class="mt-2 flex items-center justify-between border rounded-sm p-3">
-                                <label>Type</label>
+                                <label>{{ $t('ui.type') }}</label>
                                 <span class="capitalize">{{ topic.schema.type }}</span>
                             </div>
                             <pre v-if="showRaw" class="p-2 border border-gray-200 bg-gray-50 rounded-md">{{ topic.schema.properties }}</pre>
-                            <p v-if="!topic.schema" class="ff-empty-state">No schema available.</p>
+                            <p v-if="!topic.schema" class="ff-empty-state">{{ $t('ui.noSchemaAvailable') }}</p>
                         </div>
                     </section>
                 </div>

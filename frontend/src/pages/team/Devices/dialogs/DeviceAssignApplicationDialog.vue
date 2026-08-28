@@ -23,10 +23,10 @@
                     v-model="input.application"
                     :options="options.applications"
                     :disabled="noApplications || loading.applications"
-                    placeholder="Select an application"
+                    :placeholder="$t('ui.selectAnApplication')"
                     data-form="application"
                 >
-                    Application
+                    {{ $t('ui.application') }}
                 </FormRow>
             </form>
         </template>

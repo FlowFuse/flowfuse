@@ -10,14 +10,14 @@
             <UserPlusIcon />
         </template>
         <template #title>
-            Team Invitation: Accepted
+            {{ $t('ui.teamInvitationAccepted') }}
         </template>
         <template #message>
             <p>
                 <i>"{{ inviteeName }}"</i>
-                has accepted your invitation to join
+                {{ $t('ui.hasAcceptedYourInvitationToJoin') }}
                 <i>"{{ teamName }}"</i>
-                as a
+                {{ $t('ui.asA') }}
                 <i>"{{ role }}".</i>
             </p>
         </template>

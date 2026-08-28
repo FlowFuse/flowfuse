@@ -2,11 +2,11 @@
     <div class="text-cell">
         <pre v-if="!isTooLong" class="value whitespace-pre-wrap">{{ isJson || rowValue }}</pre>
         <span
-            v-else title="View more..."
+            v-else :title="$t('ui.viewMore2')"
             class="cursor-pointer text-indigo-500 hover:text-indigo-700"
             @click="openDetailedView"
         >
-            View more..
+            {{ $t('ui.viewMore') }}
         </span>
     </div>
 </template>

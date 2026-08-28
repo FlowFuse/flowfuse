@@ -12,7 +12,7 @@
                 >
                 <div v-if="!file" class="ff-file-upload--empty">
                     <PaperClipIcon class="ff-icon ff-icon-sm" />
-                    <span>No File Selected</span>
+                    <span>{{ $t('ui.noFileSelected') }}</span>
                 </div>
                 <div v-else class="ff-file-upload--file">
                     <PaperClipIcon class="ff-icon ff-icon-sm" />
@@ -30,7 +30,7 @@
                         <DocumentPlusIcon />
                     </template>
                     <template #default>
-                        Select File
+                        {{ $t('ui.selectFile') }}
                     </template>
                 </ff-button>
             </div>

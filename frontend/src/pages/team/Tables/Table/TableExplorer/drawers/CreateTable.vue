@@ -2,10 +2,10 @@
     <div id="create-table" class="p-4">
         <div class="content-wrapper">
             <div class="section table-name">
-                <h3>Define name</h3>
+                <h3>{{ $t('ui.defineName') }}</h3>
                 <ff-text-input
                     v-model="newTable.name"
-                    placeholder="Your table's new name"
+                    :placeholder="$t('ui.yourTableSNewName')"
                     type="string"
                     :error="errors.name"
                     @change="validateForm"
@@ -13,17 +13,17 @@
                 <div v-if="errors.name" data-el="form-row-error" class="ml-4 text-red-400 text-xs">
                     {{ errors.name }}
                 </div>
-                <p class="schema-hint">This table will be created in your database's default schema.</p>
+                <p class="schema-hint">{{ $t('ui.thisTableWillBeCreatedInYourDatabaseSDefaultSche') }}</p>
             </div>
             <div class="section table-columns">
-                <h3>Define Columns</h3>
+                <h3>{{ $t('ui.defineColumns') }}</h3>
                 <div class="header grid grid-cols-12 gap-1 mb-1">
-                    <span class="col-span-3 title">Name</span>
-                    <span class="col-span-3 title">Type</span>
-                    <span class="col-span-4 title">Default</span>
-                    <!-- <span class="col-span-2 title">Options</span>-->
-                    <span class="col-span-1 title">Allow null</span>
-                    <!-- <span class="col-span-1 title -ml-2">Unsigned</span>-->
+                    <span class="col-span-3 title">{{ $t('ui.name') }}</span>
+                    <span class="col-span-3 title">{{ $t('ui.type') }}</span>
+                    <span class="col-span-4 title">{{ $t('ui.default') }}</span>
+                    <!-- <span class="col-span-2 title">{{ $t('ui.options') }}</span>-->
+                    <span class="col-span-1 title">{{ $t('ui.allowNull') }}</span>
+                    <!-- <span class="col-span-1 title -ml-2">{{ $t('ui.unsigned') }}</span>-->
                 </div>
                 <ul class="columns">
                     <li v-for="(column, $key) in newTable.columns" :key="$key">
@@ -33,7 +33,7 @@
                 <div v-if="errors.columns" data-el="form-row-error" class="ml-4 text-red-400 text-xs text-center p-5">
                     {{ errors.columns }}
                 </div>
-                <ff-button type="button" kind="secondary" class="w-full" @click="addNewTableColumn">Add a new column</ff-button>
+                <ff-button type="button" kind="secondary" class="w-full" @click="addNewTableColumn">{{ $t('ui.addANewColumn') }}</ff-button>
             </div>
         </div>
     </div>
@@ -42,6 +42,8 @@
 <script>
 import { mapActions, mapState } from 'pinia'
 import { defineComponent } from 'vue'
+
+import { t } from '../../../../../../i18n.js'
 
 import TableColumn from './components/TableColumn.vue'
 
@@ -88,26 +90,26 @@ export default defineComponent({
             // - must begin with a letter or underscore
             // - can contain letters, digits, and underscores
             if (typeof this.newTable.name !== 'string') {
-                this.errors.name = 'The table name must be a string.'
+                this.errors.name = t('ui.theTableNameMustBeAString')
             } else if (this.newTable.name.length === 0) {
-                this.errors.name = 'A table name is mandatory.'
+                this.errors.name = t('ui.aTableNameIsMandatory')
             } else if (this.newTable.name.length > 63) {
-                this.errors.name = 'The table name must not exceed 63 characters.'
+                this.errors.name = t('ui.theTableNameMustNotExceed63Characters')
             } else if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(this.newTable.name)) {
-                this.errors.name = 'No spaces allowed, must start with a letter or underscore, and only use letters, digits, or underscores.'
+                this.errors.name = t('ui.noSpacesAllowedMustStartWithALetterOrUnderscoreA')
             } else {
                 this.errors.name = null
             }
 
             // Handle errors associated to column definitions
             if (this.newTable.columns.length === 0) {
-                this.errors.columns = 'The table must have at least one column.'
+                this.errors.columns = t('ui.theTableMustHaveAtLeastOneColumn')
             } else if (columnsHaveDuplicateNames) {
-                this.errors.columns = 'Columns must have different names.'
+                this.errors.columns = t('ui.columnsMustHaveDifferentNames')
             } else if (allColumnDoesntHaveATypeAssigned) {
-                this.errors.columns = 'All columns must have a type assigned.'
+                this.errors.columns = t('ui.allColumnsMustHaveATypeAssigned')
             } else if (allColumnHasNoName) {
-                this.errors.columns = 'All columns must have a name.'
+                this.errors.columns = t('ui.allColumnsMustHaveAName')
             } else {
                 this.errors.columns = null
             }
@@ -125,10 +127,10 @@ export default defineComponent({
         },
         setHeader () {
             this.setRightDrawerHeader({
-                title: 'Create New Table',
+                title: t('ui.createNewTable'),
                 actions: [
-                    { handler: this.closeRightDrawer, label: 'Cancel', kind: 'secondary' },
-                    { handler: this.submit, label: 'Save', kind: 'primary', disabled: this.hasErrors }
+                    { handler: this.closeRightDrawer, label: t('ui.cancel'), kind: 'secondary' },
+                    { handler: this.submit, label: t('ui.save'), kind: 'primary', disabled: this.hasErrors }
                 ]
             })
         }

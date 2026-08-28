@@ -1,8 +1,8 @@
 <template>
-    <SectionTopMenu hero="Git Version Control" help-header="Git Version Control" info="A list of access tokens that can be used in Pipelines to connect your instances with Git repositories.">
+    <SectionTopMenu :hero="$t('ui.gitVersionControl')" :help-header="$t('ui.gitVersionControl')" :info="$t('ui.aListOfAccessTokensThatCanBeUsedInPipelinesToCon')">
         <template #helptext>
             <p>Pipelines can be created to push snapshots to a connected Git repository — GitHub, Azure DevOps, GitLab, Bitbucket, or any HTTPS Git server.</p>
-            <p>Here you can manage the tokens used by your pipelines to access the repositories.</p>
+            <p>{{ $t('ui.hereYouCanManageTheTokensUsedByYourPipelinesToAc') }}</p>
         </template>
     </SectionTopMenu>
 
@@ -16,13 +16,13 @@
                 <img src="../../../images/empty-states/instance-snapshots.png" alt="logo">
             </template>
             <template #header>
-                <span>Git Integration</span>
+                <span>{{ $t('ui.gitIntegration') }}</span>
             </template>
             <template #message>
                 <p>Pipelines can be created to push snapshots to a connected Git repository — GitHub, Azure DevOps, GitLab, Bitbucket, or any HTTPS Git server.</p>
-                <p>Here you can manage the tokens used by your pipelines to access the repositories.</p>
+                <p>{{ $t('ui.hereYouCanManageTheTokensUsedByYourPipelinesToAc') }}</p>
                 <template v-if="featuresCheck.isGitIntegrationFeatureEnabled">
-                    <p>To get started, create a personal access token on your Git provider and add it here. You can then create Git Repository pipeline stages.</p>
+                    <p>{{ $t('ui.toGetStartedCreateAPersonalAccessTokenOnYourGitP') }}</p>
                     <ff-button
                         v-if="addEnabled"
                         class="font-normal"
@@ -33,21 +33,21 @@
                         <template #icon-left>
                             <PlusSmallIcon />
                         </template>
-                        Add Token
+                        {{ $t('ui.addToken') }}
                     </ff-button>
                 </template>
             </template>
         </EmptyState>
-        <ff-loading v-else-if="loading" message="Loading Tokens..." />
-        <ff-loading v-else-if="creatingToken" message="Creating Token..." />
-        <ff-loading v-else-if="deletingItem" message="Deleting Token..." />
+        <ff-loading v-else-if="loading" :message="$t('ui.loadingTokens')" />
+        <ff-loading v-else-if="creatingToken" :message="$t('ui.creatingToken')" />
+        <ff-loading v-else-if="deletingItem" :message="$t('ui.deletingToken')" />
         <template v-else>
             <ff-data-table
                 data-el="git-tokens"
                 :columns="columns"
                 :rows="Array.from(tokens?.values())"
                 :show-search="true"
-                search-placeholder="Search Tokens..."
+                :search-placeholder="$t('ui.searchTokens')"
                 :show-load-more="!!nextCursor"
                 @load-more="loadMore"
             >
@@ -62,15 +62,15 @@
                         <template #icon-left>
                             <PlusSmallIcon />
                         </template>
-                        Add Token
+                        {{ $t('ui.addToken') }}
                     </ff-button>
                 </template>
                 <template v-if="editEnabled || deleteEnabled" #context-menu="{row}">
-                    <ff-kebab-item :disabled="!deleteEnabled" kind="danger" label="Delete Token" @click="menuAction('delete', row.id)" />
+                    <ff-kebab-item :disabled="!deleteEnabled" kind="danger" :label="$t('ui.deleteToken')" @click="menuAction('delete', row.id)" />
                 </template>
                 <template v-if="tokens.size === 0" #table>
                     <div class="ff-no-data ff-no-data-large">
-                        You don't have any tokens yet
+                        {{ $t('ui.youDonTHaveAnyTokensYet') }}
                     </div>
                 </template>
             </ff-data-table>
@@ -87,6 +87,7 @@ import teamApi from '../../../api/team.js'
 import EmptyState from '../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import usePermissions from '../../../composables/Permissions.js'
+import { t } from '../../../i18n.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -131,8 +132,8 @@ export default {
         },
         columns: function () {
             return [
-                { label: 'Token Name', key: 'name', sortable: true },
-                { label: 'Type', key: 'type', sortable: true }
+                { label: t('ui.tokenName'), key: 'name', sortable: true },
+                { label: t('ui.type'), key: 'type', sortable: true }
             ]
         }
     },
@@ -182,9 +183,9 @@ export default {
             const token = this.tokens.get(tokenId)
             if (action === 'delete') {
                 Dialog.show({
-                    header: 'Delete Git Token',
+                    header: t('ui.deleteGitToken'),
                     kind: 'danger',
-                    text: 'Are you sure you want to delete this token? Once deleted, it can no longer be used to connect pipelines to your Git repository.',
+                    text: t('ui.areYouSureYouWantToDeleteThisTokenOnceDeletedItC'),
                     confirmLabel: 'Delete'
                 }, async () => {
                     this.deletingItem = true

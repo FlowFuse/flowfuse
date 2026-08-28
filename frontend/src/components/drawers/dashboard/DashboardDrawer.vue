@@ -15,7 +15,7 @@
 
         <div class="drawer-content">
             <div v-if="hasStackedView && currentStackView.title" class="header header--stacked">
-                <button class="drawer-header-btn" title="Back" type="button" @click="drawersStore.popEditorImmersiveView">
+                <button class="drawer-header-btn" :title="$t('ui.back')" type="button" @click="drawersStore.popEditorImmersiveView">
                     <ArrowLeftIcon class="ff-btn--icon" />
                 </button>
                 <span class="editor-drawer-stack-title">{{ currentStackView.title }}</span>
@@ -34,7 +34,7 @@
                         </template>
                         {{ action.label }}
                     </ff-button>
-                    <button class="drawer-header-btn" title="Close drawer" type="button" aria-label="Close drawer" @click="drawersStore.toggleEditorImmersiveDrawer">
+                    <button class="drawer-header-btn" :title="$t('ui.closeDrawer')" type="button" aria-label="Close drawer" @click="drawersStore.toggleEditorImmersiveDrawer">
                         <XMarkIcon class="ff-btn--icon" />
                     </button>
                 </div>
@@ -42,7 +42,7 @@
 
             <div v-if="!hasStackedView" class="header">
                 <div class="logo">
-                    <router-link v-if="homeRoute" title="Back" :to="homeRoute">
+                    <router-link v-if="homeRoute" :title="$t('ui.back')" :to="homeRoute">
                         <HomeIcon class="ff-btn--icon" style="width: 18px; height: 18px;" />
                     </router-link>
                 </div>
@@ -52,7 +52,7 @@
                 </span>
                 <div class="side-actions">
                     <EditorDrawerSettings />
-                    <button class="drawer-header-btn" title="Close drawer" type="button" aria-label="Close drawer" @click="drawersStore.toggleEditorImmersiveDrawer">
+                    <button class="drawer-header-btn" :title="$t('ui.closeDrawer')" type="button" aria-label="Close drawer" @click="drawersStore.toggleEditorImmersiveDrawer">
                         <XMarkIcon class="ff-btn--icon" />
                     </button>
                 </div>
@@ -73,6 +73,8 @@
 import { HomeIcon, XMarkIcon } from '@heroicons/vue/20/solid'
 import { ArrowLeftIcon, ChartPieIcon } from '@heroicons/vue/24/outline'
 
+import { t } from '../../../i18n.js'
+
 import ResizeBar from '@/components/ResizeBar.vue'
 import EditorDrawerSettings from '@/components/immersive-editor/EditorDrawerSettings.vue'
 import { useImmersiveDrawer } from '@/composables/ImmersiveDrawer'
@@ -84,7 +86,7 @@ defineProps({
     },
     title: {
         type: String,
-        default: 'Dashboards'
+        default: t('ui.dashboards')
     }
 })
 

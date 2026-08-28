@@ -4,63 +4,63 @@
             <form class="space-y-6 mt-2" @submit.prevent>
                 <div class="grid gap-3 grid-cols-3 items-middle">
                     <div class="col-span-2">
-                        <FormRow v-model="input.name" :error="errors.name" data-form="name">Name</FormRow>
+                        <FormRow v-model="input.name" :error="errors.name" data-form="name">{{ $t('ui.name') }}</FormRow>
                     </div>
                     <div class="pt-8">
-                        <FormRow v-model="input.active" type="checkbox" data-form="active">Active</FormRow>
+                        <FormRow v-model="input.active" type="checkbox" data-form="active">{{ $t('ui.active') }}</FormRow>
                     </div>
                 </div>
                 <FormRow v-model="input.order">
-                    Order
-                    <template #description>Set the sort order when listing the types</template>
+                    {{ $t('ui.order') }}
+                    <template #description>{{ $t('ui.setTheSortOrderWhenListingTheTypes') }}</template>
                 </FormRow>
                 <FormRow v-model="input.description" :error="errors.description" data-form="description" containerClass="w-full">
-                    Description
-                    <template #description>Use markdown for formatting</template>
+                    {{ $t('ui.description') }}
+                    <template #description>{{ $t('ui.useMarkdownForFormatting') }}</template>
                     <template #input><textarea v-model="input.description" class="w-full" rows="6" /></template>
                 </FormRow>
                 <template v-if="billingEnabled">
-                    <FormHeading>Billing</FormHeading>
+                    <FormHeading>{{ $t('ui.billing') }}</FormHeading>
                     <div class="space-y-2">
-                        <FormRow v-model="input.properties.billing.disabled" type="checkbox" class="mb-4">Do not require billing</FormRow>
+                        <FormRow v-model="input.properties.billing.disabled" type="checkbox" class="mb-4">{{ $t('ui.doNotRequireBilling') }}</FormRow>
                         <template v-if="!input.properties.billing.disabled">
-                            <FormRow v-model="input.properties.billing.requireContact" type="checkbox" class="mb-4">Require contact to upgrade</FormRow>
+                            <FormRow v-model="input.properties.billing.requireContact" type="checkbox" class="mb-4">{{ $t('ui.requireContactToUpgrade') }}</FormRow>
                             <div v-if="input.properties.billing.requireContact" class="grid gap-2 grid-cols-2 pl-4">
-                                <FormRow v-model="input.properties.billing.contactHSPortalId" :type="editDisabled?'uneditable':''">HubSpot Portal Id</FormRow>
-                                <FormRow v-model="input.properties.billing.contactHSFormId" :type="editDisabled?'uneditable':''">HubSpot Form Id</FormRow>
+                                <FormRow v-model="input.properties.billing.contactHSPortalId" :type="editDisabled?'uneditable':''">{{ $t('ui.hubspotPortalId') }}</FormRow>
+                                <FormRow v-model="input.properties.billing.contactHSFormId" :type="editDisabled?'uneditable':''">{{ $t('ui.hubspotFormId') }}</FormRow>
                             </div>
                         </template>
                     </div>
                     <template v-if="!input.properties.billing.disabled">
                         <div class="grid gap-2 grid-cols-3">
-                            <FormRow v-model="input.properties.billing.productId" :type="editDisabled?'uneditable':''" class="col-span-2">Product Id</FormRow>
-                            <FormRow v-model="input.properties.billing.priceId" :type="editDisabled?'uneditable':''" class="col-span-2">Monthly Price Id</FormRow>
-                            <FormRow v-model="input.properties.billing.description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
-                            <FormRow v-model="input.properties.billing.yrPriceId" :type="editDisabled?'uneditable':''" class="col-span-2">Annual Price Id</FormRow>
-                            <FormRow v-model="input.properties.billing.yrDescription" placeholder="eg. $100/year" :type="editDisabled?'uneditable':''">Description</FormRow>
+                            <FormRow v-model="input.properties.billing.productId" :type="editDisabled?'uneditable':''" class="col-span-2">{{ $t('ui.productId') }}</FormRow>
+                            <FormRow v-model="input.properties.billing.priceId" :type="editDisabled?'uneditable':''" class="col-span-2">{{ $t('ui.monthlyPriceId') }}</FormRow>
+                            <FormRow v-model="input.properties.billing.description" :placeholder="$t('ui.eg10Month')" :type="editDisabled?'uneditable':''">{{ $t('ui.description') }}</FormRow>
+                            <FormRow v-model="input.properties.billing.yrPriceId" :type="editDisabled?'uneditable':''" class="col-span-2">{{ $t('ui.annualPriceId') }}</FormRow>
+                            <FormRow v-model="input.properties.billing.yrDescription" :placeholder="$t('ui.eg100Year')" :type="editDisabled?'uneditable':''">{{ $t('ui.description') }}</FormRow>
                         </div>
-                        <FormRow v-model="input.properties.billing.proration" :options="prorationOptions" class="mb-4">Invoicing</FormRow>
+                        <FormRow v-model="input.properties.billing.proration" :options="prorationOptions" class="mb-4">{{ $t('ui.invoicing') }}</FormRow>
                         <div class="space-y-2">
-                            <FormRow v-model="input.properties.trial.active" type="checkbox" class="mb-4">Enable trial mode for personal teams</FormRow>
-                            <FormRow v-if="input.properties.trial.active" v-model="input.properties.trial.sendEmail" type="checkbox" class="pl-4 mb-4">Send trial emails</FormRow>
+                            <FormRow v-model="input.properties.trial.active" type="checkbox" class="mb-4">{{ $t('ui.enableTrialModeForPersonalTeams') }}</FormRow>
+                            <FormRow v-if="input.properties.trial.active" v-model="input.properties.trial.sendEmail" type="checkbox" class="pl-4 mb-4">{{ $t('ui.sendTrialEmails') }}</FormRow>
                             <div v-if="input.properties.trial.active" class="grid gap-2 grid-cols-3 pl-4">
-                                <FormRow v-model="input.properties.trial.duration" :type="editDisabled?'uneditable':''" placeholder="days">Duration</FormRow>
+                                <FormRow v-model="input.properties.trial.duration" :type="editDisabled?'uneditable':''" :placeholder="$t('ui.days')">{{ $t('ui.duration') }}</FormRow>
                                 <div class="col-span-2">
-                                    <FormRow v-model="input.properties.trial.instanceType" :options="trialInstanceTypes">Trial Features</FormRow>
+                                    <FormRow v-model="input.properties.trial.instanceType" :options="trialInstanceTypes">{{ $t('ui.trialFeatures') }}</FormRow>
                                 </div>
                             </div>
                             <div v-if="input.properties.trial.active" class="grid gap-2 grid-cols-3 pl-4">
-                                <FormRow v-model="input.properties.trial.usersLimit" :type="editDisabled?'uneditable':''">Limit # Users</FormRow>
+                                <FormRow v-model="input.properties.trial.usersLimit" :type="editDisabled?'uneditable':''">{{ $t('ui.limitUsers') }}</FormRow>
                                 <FormRow v-model="input.properties.trial.runtimesLimit" :type="editDisabled?'uneditable':''">Limit # Instances + Devices</FormRow>
                             </div>
                             <div v-if="input.properties.trial.active" class="grid gap-2 grid-cols-3 pl-4">
-                                <FormRow v-model="input.properties.trial.productId" :type="editDisabled?'uneditable':''">Trial Product Id</FormRow>
-                                <FormRow v-model="input.properties.trial.priceId" :type="editDisabled?'uneditable':''">Trial Price Id</FormRow>
+                                <FormRow v-model="input.properties.trial.productId" :type="editDisabled?'uneditable':''">{{ $t('ui.trialProductId') }}</FormRow>
+                                <FormRow v-model="input.properties.trial.priceId" :type="editDisabled?'uneditable':''">{{ $t('ui.trialPriceId') }}</FormRow>
                             </div>
                         </div>
                     </template>
                 </template>
-                <FormHeading>Limits</FormHeading>
+                <FormHeading>{{ $t('ui.limits') }}</FormHeading>
                 <div class="grid gap-3 grid-cols-3">
                     <FormRow v-model="input.properties.users.limit"># Users</FormRow>
                     <FormRow v-model="input.properties.runtimes.limit"># Instances + Devices</FormRow>
@@ -68,45 +68,45 @@
                 <div v-for="(instanceType, index) in instanceTypes" :key="index">
                     <FormHeading>{{ instanceType.name }} Instance</FormHeading>
                     <div class="grid gap-3 grid-cols-4">
-                        <FormRow v-model="input.properties.instances[instanceType.id].active" type="checkbox" class="mb-4">Available</FormRow>
-                        <FormRow v-if="input.properties.instances[instanceType.id].active" v-model="input.properties.instances[instanceType.id].creatable" type="checkbox" class="mb-4">Creatable</FormRow>
+                        <FormRow v-model="input.properties.instances[instanceType.id].active" type="checkbox" class="mb-4">{{ $t('ui.available') }}</FormRow>
+                        <FormRow v-if="input.properties.instances[instanceType.id].active" v-model="input.properties.instances[instanceType.id].creatable" type="checkbox" class="mb-4">{{ $t('ui.creatable') }}</FormRow>
                     </div>
                     <div v-if="input.properties.instances[instanceType.id].active" class="pl-4 grid gap-3 grid-cols-1">
                         <div class="grid gap-3 grid-cols-5">
                             <FormRow v-model="input.properties.instances[instanceType.id].limit"># Limit</FormRow>
                             <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].free"># Free</FormRow>
                         </div>
-                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].productId" :type="editDisabled?'uneditable':''">Product Id</FormRow>
+                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].productId" :type="editDisabled?'uneditable':''">{{ $t('ui.productId') }}</FormRow>
                         <div class="grid gap-3 grid-cols-3">
-                            <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].priceId" :type="editDisabled?'uneditable':''" class="col-span-2">Monthly Price Id</FormRow>
-                            <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
+                            <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].priceId" :type="editDisabled?'uneditable':''" class="col-span-2">{{ $t('ui.monthlyPriceId') }}</FormRow>
+                            <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].description" :placeholder="$t('ui.eg10Month')" :type="editDisabled?'uneditable':''">{{ $t('ui.description') }}</FormRow>
                         </div>
                         <div class="grid gap-3 grid-cols-3">
-                            <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].yrPriceId" :type="editDisabled?'uneditable':''" class="col-span-2">Annual Price Id</FormRow>
-                            <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].yrDescription" placeholder="eg. $100/year" :type="editDisabled?'uneditable':''">Description</FormRow>
+                            <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].yrPriceId" :type="editDisabled?'uneditable':''" class="col-span-2">{{ $t('ui.annualPriceId') }}</FormRow>
+                            <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].yrDescription" :placeholder="$t('ui.eg100Year')" :type="editDisabled?'uneditable':''">{{ $t('ui.description') }}</FormRow>
                         </div>
                     </div>
                 </div>
-                <FormHeading>Remote Instance</FormHeading>
+                <FormHeading>{{ $t('ui.remoteInstance') }}</FormHeading>
                 <div class="pl-4 grid gap-3 grid-cols-1">
                     <div class="grid gap-3 grid-cols-5">
                         <FormRow v-model="input.properties.devices.limit"># Limit</FormRow>
                         <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.free" :disabled="input.properties.devices.combinedFreeType !== '_'"># Free</FormRow>
-                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.combinedFreeType" :options="deviceFreeOptions" class="col-span-3">Share free allocation with instance type:</FormRow>
+                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.combinedFreeType" :options="deviceFreeOptions" class="col-span-3">{{ $t('ui.shareFreeAllocationWithInstanceType') }}</FormRow>
                     </div>
-                    <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.productId" :type="editDisabled?'uneditable':''">Product Id</FormRow>
+                    <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.productId" :type="editDisabled?'uneditable':''">{{ $t('ui.productId') }}</FormRow>
                     <div class="grid gap-3 grid-cols-3">
-                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.priceId" :type="editDisabled?'uneditable':''" class="col-span-2">Monthly Price Id</FormRow>
-                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
+                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.priceId" :type="editDisabled?'uneditable':''" class="col-span-2">{{ $t('ui.monthlyPriceId') }}</FormRow>
+                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.description" :placeholder="$t('ui.eg10Month')" :type="editDisabled?'uneditable':''">{{ $t('ui.description') }}</FormRow>
                     </div>
                     <div class="grid gap-3 grid-cols-3">
-                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.yrPriceId" :type="editDisabled?'uneditable':''" class="col-span-2">Annual Price Id</FormRow>
-                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.yrDescription" placeholder="eg. $100/year" :type="editDisabled?'uneditable':''">Description</FormRow>
+                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.yrPriceId" :type="editDisabled?'uneditable':''" class="col-span-2">{{ $t('ui.annualPriceId') }}</FormRow>
+                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.yrDescription" :placeholder="$t('ui.eg100Year')" :type="editDisabled?'uneditable':''">{{ $t('ui.description') }}</FormRow>
                     </div>
                 </div>
 
                 <template v-if="teamBrokerEnabled">
-                    <FormHeading>Team Broker</FormHeading>
+                    <FormHeading>{{ $t('ui.teamBroker') }}</FormHeading>
                     <div class="grid gap-3 grid-cols-4">
                         <div class="grid gap-3 grid-cols-1">
                             <FormRow v-model="input.properties.teamBroker.clients.limit"># Client Limit</FormRow>
@@ -115,28 +115,28 @@
                 </template>
 
                 <div>
-                    <FormHeading>Auto Stack Update</FormHeading>
+                    <FormHeading>{{ $t('ui.autoStackUpdate') }}</FormHeading>
                     <div class="grid gap-3 grid-cols-2">
                         <FormRow v-model="input.properties.autoStackUpdate.enabled" type="checkbox">
-                            Apply default schedule to instances
-                            <template #description>Instances will be scheduled to update to new Stack Versions</template>
+                            {{ $t('ui.applyDefaultScheduleToInstances') }}
+                            <template #description>{{ $t('ui.instancesWillBeScheduledToUpdateToNewStackVersio') }}</template>
                         </FormRow>
                         <FormRow v-model="input.properties.autoStackUpdate.allowDisable" :disabled="!autoStackUpdateEnforced" type="checkbox">
-                            Allow Team to disable for individual instances
+                            {{ $t('ui.allowTeamToDisableForIndividualInstances') }}
                         </FormRow>
                     </div>
                     <div v-if="autoStackUpdateEnforced" class="space-y-2 pl-6 mt-2">
-                        <div>Default range days</div>
+                        <div>{{ $t('ui.defaultRangeDays') }}</div>
                         <div class="grid gap-3 grid-cols-7">
-                            <FormRow v-model="input.autoStack.days.sun" type="checkbox">Sun</FormRow>
-                            <FormRow v-model="input.autoStack.days.mon" type="checkbox">Mon</FormRow>
-                            <FormRow v-model="input.autoStack.days.tue" type="checkbox">Tue</FormRow>
-                            <FormRow v-model="input.autoStack.days.wed" type="checkbox">Wed</FormRow>
-                            <FormRow v-model="input.autoStack.days.thur" type="checkbox">Thur</FormRow>
-                            <FormRow v-model="input.autoStack.days.fri" type="checkbox">Fri</FormRow>
-                            <FormRow v-model="input.autoStack.days.sat" type="checkbox">Sat</FormRow>
+                            <FormRow v-model="input.autoStack.days.sun" type="checkbox">{{ $t('ui.sun') }}</FormRow>
+                            <FormRow v-model="input.autoStack.days.mon" type="checkbox">{{ $t('ui.mon') }}</FormRow>
+                            <FormRow v-model="input.autoStack.days.tue" type="checkbox">{{ $t('ui.tue') }}</FormRow>
+                            <FormRow v-model="input.autoStack.days.wed" type="checkbox">{{ $t('ui.wed') }}</FormRow>
+                            <FormRow v-model="input.autoStack.days.thur" type="checkbox">{{ $t('ui.thur') }}</FormRow>
+                            <FormRow v-model="input.autoStack.days.fri" type="checkbox">{{ $t('ui.fri') }}</FormRow>
+                            <FormRow v-model="input.autoStack.days.sat" type="checkbox">{{ $t('ui.sat') }}</FormRow>
                         </div>
-                        <div>Default range hours (UTC)</div>
+                        <div>{{ $t('ui.defaultRangeHoursUtc') }}</div>
                         <div class="grid gap-3 grid-cols-12">
                             <FormRow v-model="input.autoStack.hours['0']" type="checkbox">0</FormRow>
                             <FormRow v-model="input.autoStack.hours['1']" type="checkbox">1</FormRow>
@@ -166,9 +166,9 @@
                     </div>
                 </div>
 
-                <FormHeading>Features</FormHeading>
+                <FormHeading>{{ $t('ui.features2') }}</FormHeading>
                 <div>
-                    <FormRow v-model="input.properties.enableAllFeatures" type="checkbox">Enable all features</FormRow>
+                    <FormRow v-model="input.properties.enableAllFeatures" type="checkbox">{{ $t('ui.enableAllFeatures') }}</FormRow>
                 </div>
                 <div class="grid gap-3 grid-cols-2">
                     <template v-if="!input.properties.enableAllFeatures">
@@ -176,18 +176,18 @@
                         <!-- to make the grid work nicely, only needed if there is an odd number of checkbox features above-->
                         <span v-if="teamTypeFeatureList.length % 2 === 1" />
                     </template>
-                    <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
-                    <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
+                    <FormRow v-model="input.properties.features.fileStorageLimit">{{ $t('ui.persistentFileStorageLimitMb') }}</FormRow>
+                    <FormRow v-model="input.properties.features.contextLimit">{{ $t('ui.persistentContextStorageLimitMb') }}</FormRow>
                 </div>
             </form>
         </template>
         <template #actions>
             <div class="w-full grow flex justify-between">
                 <div>
-                    <ff-button v-if="isEditingExisting" kind="danger" style="margin: 0;" @click="$emit('show-delete-dialog', teamType); $refs.dialog.close()">Delete Team Type</ff-button>
+                    <ff-button v-if="isEditingExisting" kind="danger" style="margin: 0;" @click="$emit('show-delete-dialog', teamType); $refs.dialog.close()">{{ $t('ui.deleteTeamType') }}</ff-button>
                 </div>
                 <div class="flex">
-                    <ff-button kind="secondary" @click="$refs['dialog'].close()">Cancel</ff-button>
+                    <ff-button kind="secondary" @click="$refs['dialog'].close()">{{ $t('ui.cancel') }}</ff-button>
                     <ff-button :disabled="!formValid" @click="confirm(); $refs.dialog.close()">{{ isEditingExisting ? 'Update' : 'Create' }}</ff-button>
                 </div>
             </div>
@@ -204,6 +204,8 @@ import teamTypesApi from '../../../../api/teamTypes.js'
 
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
+
+import { t } from '../../../../i18n.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
@@ -224,7 +226,7 @@ export default {
                 instanceTypes.types.sort((A, B) => A.order - B.order)
                 this.instanceTypes = instanceTypes.types
                 this.deviceFreeOptions = [
-                    { label: 'None - use own free limit', value: '_' }
+                    { label: t('ui.noneUseOwnFreeLimit'), value: '_' }
                 ]
                 this.trialInstanceTypes = this.instanceTypes.map(it => {
                     this.deviceFreeOptions.push({
@@ -238,7 +240,7 @@ export default {
                 })
                 this.trialInstanceTypes.unshift({
                     value: '_',
-                    label: 'All team features'
+                    label: t('ui.allTeamFeatures')
                 })
 
                 this.teamType = teamType
@@ -394,8 +396,8 @@ export default {
             instanceTypes: [],
             trialInstanceTypes: [],
             prorationOptions: [
-                { label: 'Generate invoice for each change', value: 'always_invoice' },
-                { label: 'Add proration items to monthly invoice', value: 'create_prorations' }
+                { label: t('ui.generateInvoiceForEachChange'), value: 'always_invoice' },
+                { label: t('ui.addProrationItemsToMonthlyInvoice'), value: 'create_prorations' }
             ],
             deviceFreeOptions: [],
             input: {
@@ -554,7 +556,7 @@ export default {
                         console.error(err.response.data)
                         if (err.response.data) {
                             if (/name/.test(err.response.data.error)) {
-                                this.errors.name = 'Name unavailable'
+                                this.errors.name = t('ui.nameUnavailable')
                             }
                         }
                     })
@@ -565,7 +567,7 @@ export default {
                         console.error(err.response.data)
                         if (err.response.data) {
                             if (/name/.test(err.response.data.error)) {
-                                this.errors.name = 'Name unavailable'
+                                this.errors.name = t('ui.nameUnavailable')
                             }
                         }
                     })

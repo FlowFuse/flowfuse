@@ -5,8 +5,8 @@
         @toggle="toggleSelection"
     >
         <template #text>
-            <span>Debug</span>
-            <span class="counter italic" :title="selectionTitle">( {{ selectedCounter }} {{ pluralize('log', selectedCounter) }} )</span>
+            <span>{{ $t('ui.debug') }}</span>
+            <span class="counter italic" :title="selectionTitle">( {{ selectedCounter }} {{ $t('ui.plLog', selectedCounter) }} )</span>
         </template>
     </default-chip>
 </template>

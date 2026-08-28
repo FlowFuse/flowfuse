@@ -1,12 +1,12 @@
 <template>
-    <ff-dialog ref="dialog" data-el="delete-team-dialog" :header="'Delete Team: \'' + team?.name + '\''" kind="danger" confirm-label="Delete" :disable-primary="!formValid" @confirm="confirm()">
+    <ff-dialog ref="dialog" data-el="delete-team-dialog" :header="'Delete Team: \'' + team?.name + '\''" kind="danger" :confirm-label="$t('ui.delete')" :disable-primary="!formValid" @confirm="confirm()">
         <template #default>
             <form v-if="team" class="space-y-6" @submit.prevent>
                 <p>
-                    <b>Are you sure you want to delete this team?</b>
+                    <b>{{ $t('ui.areYouSureYouWantToDeleteThisTeam') }}</b>
                 </p>
                 <div>
-                    <p>You'll be missing out on lots of great features to help you scale and professionalize your Node-RED applications such as:</p>
+                    <p>{{ $t('ui.youLlBeMissingOutOnLotsOfGreatFeaturesToHelpYouS') }}</p>
                     <ul class="mt-4 ml-2 list-disc list-inside space-y-2">
                         <li v-for="feature in enabledFeatures" :key="feature.label">
                             <b>{{ feature.label }}:</b> {{ feature.description }}
@@ -14,13 +14,13 @@
                     </ul>
                 </div>
                 <p>
-                    If you're absolutely sure you want to delete your team, please type in the team name to confirm. Once deleted, there is no going back.
+                    {{ $t('ui.ifYouReAbsolutelySureYouWantToDeleteYourTeamPlea') }}
                 </p>
                 <p>
-                    Team Name: <span class="font-bold">{{ team?.name }}</span>
+                    {{ $t('ui.teamName2') }} <span class="font-bold">{{ team?.name }}</span>
                 </p>
                 <p>
-                    Please type in the team name to confirm.
+                    {{ $t('ui.pleaseTypeInTheTeamNameToConfirm') }}
                 </p>
                 <FormRow id="projectName" v-model="input.teamName" :placeholder="'Team Name'" data-form="team-name" />
             </form>
@@ -32,6 +32,8 @@
 import { mapState } from 'pinia'
 
 import FormRow from '../../../components/FormRow.vue'
+
+import { t } from '../../../i18n.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
@@ -62,32 +64,32 @@ export default {
             const features = {
                 hostedInstances: {
                     enabled: this.featuresCheck.isHostedInstancesEnabledForTeam,
-                    label: 'Hosted Instances',
-                    description: 'No hassle hosting of your Node-RED instances, with centralized management through FlowFuse.'
+                    label: t('ui.hostedInstances'),
+                    description: t('ui.noHassleHostingOfYourNodeRedInstancesWithCentral')
                 },
                 remoteInstances: {
                     enabled: true,
-                    label: 'Remote Instances',
-                    description: 'Deploy and develop from anywhere in the world, with centralized management of your Remote Instances.'
+                    label: t('ui.remoteInstances'),
+                    description: t('ui.deployAndDevelopFromAnywhereInTheWorldWithCentra')
                 },
                 snapshots: {
                     enabled: true,
-                    label: 'Snapshots',
-                    description: 'Seamless version control for your Node-RED applications'
+                    label: t('ui.snapshots'),
+                    description: t('ui.seamlessVersionControlForYourNodeRedApplications')
                 },
                 security: {
                     enabled: true,
-                    label: 'Built In Security',
-                    description: 'Feel assured knowing that FlowFuse has your back, with built-in security for all of your Hosted and Remote Instances'
+                    label: t('ui.builtInSecurity'),
+                    description: t('ui.feelAssuredKnowingThatFlowfuseHasYourBackWithBui')
                 },
                 pipelines: {
                     enabled: this.featuresCheck.isDevOpsPipelinesFeatureEnabled,
-                    label: 'DevOps Pipelines',
-                    description: 'Easily manage deployments between development and production Instances, with one-click deployments to thousands of Node-RED Instances.'
+                    label: t('ui.devopsPipelines'),
+                    description: t('ui.easilyManageDeploymentsBetweenDevelopmentAndProd')
                 },
                 library: {
                     enabled: this.featuresCheck.isSharedLibraryFeatureEnabledForTeam,
-                    label: 'Team Library',
+                    label: t('ui.teamLibrary'),
                     description: "Centralized management of your team's custom nodes and flows"
                 }
             }

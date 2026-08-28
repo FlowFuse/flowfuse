@@ -3,7 +3,7 @@
         <div class="max-w-lg">
             <form class="flex gap-9 flex-wrap" @submit.prevent="onSubmit">
                 <section class="database space-y-3 max-w-lg min-w-min flex-1">
-                    <h6 class="mb-5 pb-2 title">Database</h6>
+                    <h6 class="mb-5 pb-2 title">{{ $t('ui.database') }}</h6>
                     <FormRow
                         v-model="form.name"
                         :error="formErrors.name"
@@ -14,24 +14,24 @@
                         data-input="name"
                     >
                         <template #default>
-                            Name
+                            {{ $t('ui.name') }}
                         </template>
                     </FormRow>
                 </section>
             </form>
             <div class="my-6 flex gap-3 justify-end max-w-full lg:max-w-3xl">
                 <ff-button v-if="hasBackButton" kind="tertiary" data-action="back" @click="$router.back()">
-                    Cancel
+                    {{ $t('ui.cancel') }}
                 </ff-button>
                 <ff-button
                     v-if="hasDeleteButton" kind="tertiary" class="ff-btn--tertiary-danger"
                     data-action="delete"
                     @click="$emit('delete')"
                 >
-                    Delete
+                    {{ $t('ui.delete') }}
                 </ff-button>
                 <ff-button kind="secondary" data-action="submit" :disabled="!isFormValid" @click="onSubmit">
-                    Submit
+                    {{ $t('ui.submit') }}
                 </ff-button>
             </div>
         </div>

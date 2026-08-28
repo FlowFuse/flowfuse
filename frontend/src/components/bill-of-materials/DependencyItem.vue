@@ -4,7 +4,7 @@
             <ChevronRightIcon class="ff-icon-sm ff-toggle" />
             <div class="title truncate">
                 <h3 class="truncate">{{ title }}</h3>
-                <p class="truncate">({{ versionsCount }} {{ pluralize('Version', versionsCount) }})</p>
+                <p class="truncate">({{ versionsCount }} {{ $t('ui.plVersion', versionsCount) }})</p>
             </div>
             <div class="details truncate">
                 <span class="truncate">Latest: {{ externalLatest }}</span>

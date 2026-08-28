@@ -19,7 +19,7 @@
                 </li>
                 <li v-if="hasMore" class="ff-show-more" @click="showMore">
                     <ChevronDoubleDownIcon class="ff-icon-sm" />
-                    <p>Show More</p>
+                    <p>{{ $t('ui.showMore') }}</p>
                     <ChevronDoubleDownIcon class="ff-icon-sm" />
                 </li>
             </ul>

@@ -18,7 +18,7 @@
             <span class="text-xs text-gray-500" data-el="snapshot-id">{{ targetSnapshot?.id }}</span></div>
         </template>
         <template v-else>
-            <span class="italic text-gray-500" data-el="snapshot-name">none</span>
+            <span class="italic text-gray-500" data-el="snapshot-name">{{ $t('ui.none2') }}</span>
         </template>
     </span>
 </template>

@@ -1,38 +1,38 @@
 <template>
-    <FeatureUnavailableToTeam v-if="teamUserLimitReached" fullMessage="You have reached the user limit for this team." class="mt-0" />
-    <ff-loading v-if="loading" message="Loading Team..." />
+    <FeatureUnavailableToTeam v-if="teamUserLimitReached" :fullMessage="$t('ui.youHaveReachedTheUserLimitForThisTeam')" class="mt-0" />
+    <ff-loading v-if="loading" :message="$t('ui.loadingTeam')" />
     <form v-else>
         <div class="text-right" />
         <ff-data-table
             data-el="members-table"
             :columns="columns"
             :rows="users"
-            :show-search="true" search-placeholder="Search Team Members..."
+            :show-search="true" :search-placeholder="$t('ui.searchTeamMembers')"
             :search-fields="['name', 'username', 'role']"
             :collapsible-row="collapsibleRow"
         >
             <template v-if="hasPermission('team:user:invite')" #actions>
                 <ff-button data-action="member-invite-button" :disabled="teamUserLimitReached" kind="primary" @click="inviteMember">
                     <template #icon-left><UserPlusIcon class="w-4" /></template>
-                    Invite Members
+                    {{ $t('ui.inviteMembers') }}
                 </ff-button>
             </template>
             <template v-if="canEditUser" #context-menu="{row}">
                 <ff-kebab-item
                     v-if="((hasPermission('team:user:change-role') && !requiresBilling) || isAdminUser) && !ssoManaged({row})"
                     data-action="member-change-role"
-                    label="Change Role" @click="changeRoleDialog(row)"
+                    :label="$t('ui.changeRole')" @click="changeRoleDialog(row)"
                 />
                 <ff-kebab-item
                     v-if="(hasPermission('team:user:remove') || isAdminUser) && !ssoManaged({row})"
                     data-action="member-remove-from-team"
-                    label="Remove From Team"
+                    :label="$t('ui.removeFromTeam')"
                     kind="danger"
                     @click="removeUserDialog(row)"
                 />
                 <ff-kebab-item
                     v-if="ssoManaged({row})"
-                    label="User role is SSO Managed"
+                    :label="$t('ui.userRoleIsSsoManaged')"
                 />
             </template>
         </ff-data-table>
@@ -63,6 +63,7 @@ import UserCell from '../../../components/tables/cells/UserCell.vue'
 import UserRoleCell from '../../../components/tables/cells/UserRoleCell.vue'
 import usePermissions from '../../../composables/Permissions.js'
 import { getTeamProperty } from '../../../composables/TeamProperties.js'
+import { t } from '../../../i18n.js'
 import alerts from '../../../services/alerts.js'
 import { Roles } from '../../../utils/roles.js'
 import ChangeTeamRoleDialog from '../dialogs/ChangeTeamRoleDialog.vue'
@@ -130,14 +131,14 @@ export default {
         columns () {
             return [
                 {
-                    label: 'User',
+                    label: t('ui.user2'),
                     key: 'name',
                     sortable: true,
                     class: ['grow'],
                     component: { is: markRaw(UserCell) }
                 },
                 {
-                    label: 'Access',
+                    label: t('ui.access'),
                     key: 'role',
                     sortable: true,
                     class: ['w-40'],
@@ -223,7 +224,7 @@ export default {
                     }
                 })
                 .catch(err => {
-                    alerts.emit('Failed to fetch team members: ' + err.toString(), 'warning')
+                    alerts.emit(t('ui.failedToFetchTeamMembers') + err.toString(), 'warning')
                 })
                 .finally(() => {
                     this.loading = false
@@ -235,7 +236,7 @@ export default {
                     this.applications = response.applications
                 })
                 .catch(err => {
-                    alerts.emit('Failed to fetch applications: ' + err.toString(), 'warning')
+                    alerts.emit(t('ui.failedToFetchApplications') + err.toString(), 'warning')
                 })
         },
         onApplicationRoleClick ({ application, user }) {

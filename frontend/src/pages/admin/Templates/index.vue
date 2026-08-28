@@ -1,39 +1,39 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Templates">
+            <ff-page-header :title="$t('ui.templates')">
                 <template #tools>
                     <ff-button :to="{ name: 'admin-templates-template', params: { id: 'create' } }" size="small">
                         <template #icon-right>
                             <PlusSmallIcon />
                         </template>
-                        Create template
+                        {{ $t('ui.createTemplate') }}
                     </ff-button>
                 </template>
             </ff-page-header>
         </template>
         <div v-if="loading" class="space-y-6">
-            <ff-loading message="Loading Templates..." />
+            <ff-loading :message="$t('ui.loadingTemplates')" />
         </div>
-        <ff-loading v-if="loading" message="Loading Templates..." />
+        <ff-loading v-if="loading" :message="$t('ui.loadingTemplates')" />
         <ff-data-table
             v-if="!loading"
             :columns="columns"
             data-el="templates"
             :rows="templates"
             :show-search="true"
-            search-placeholder="Search Templates..."
+            :search-placeholder="$t('ui.searchTemplates')"
             :search-fields="['name', 'description', 'owner_username', 'owner_id']"
             :rows-selectable="true"
             @row-selected="editTemplate"
         >
             <template #context-menu="{row}">
-                <ff-kebab-item label="Edit Template" @click.stop="editTemplate(row)" />
-                <ff-kebab-item label="Delete Template" kind="danger" @click.stop="showDeleteDialog(row)" />
+                <ff-kebab-item :label="$t('ui.editTemplate')" @click.stop="editTemplate(row)" />
+                <ff-kebab-item :label="$t('ui.deleteTemplate')" kind="danger" @click.stop="showDeleteDialog(row)" />
             </template>
         </ff-data-table>
         <div v-if="nextCursor">
-            <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
+            <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">{{ $t('ui.loadMore') }}</a>
         </div>
     </ff-page>
 </template>
@@ -45,6 +45,7 @@ import { markRaw } from 'vue'
 import templatesApi from '../../../api/templates.js'
 
 import UserCell from '../../../components/tables/cells/UserCell.vue'
+import { t } from '../../../i18n.js'
 import Dialog from '../../../services/dialog.js'
 
 export default {
@@ -58,11 +59,11 @@ export default {
             loading: false,
             nextCursor: null,
             columns: [
-                { label: 'Active', key: 'active', class: ['w-16', 'text-center'], sortable: true },
-                { label: 'Template', key: 'name', class: ['w-56'], sortable: true },
-                { label: 'Description', key: 'description', class: ['w-72'], sortable: true },
+                { label: t('ui.active'), key: 'active', class: ['w-16', 'text-center'], sortable: true },
+                { label: t('ui.template'), key: 'name', class: ['w-56'], sortable: true },
+                { label: t('ui.description'), key: 'description', class: ['w-72'], sortable: true },
                 {
-                    label: 'Created by',
+                    label: t('ui.createdBy2'),
                     key: 'owner_username',
                     class: ['w-56'],
                     sortable: true,
@@ -75,7 +76,7 @@ export default {
                         }
                     }
                 },
-                { label: 'Instance Count', key: 'instanceCount', class: ['w-32'], sortable: true }
+                { label: t('ui.instanceCount'), key: 'instanceCount', class: ['w-32'], sortable: true }
             ]
         }
     },
@@ -109,7 +110,7 @@ export default {
         showDeleteDialog (template) {
             const text = template.instanceCount > 0 ? 'You cannot delete a template that is still being used by instances.' : 'Are you sure you want to delete this template?'
             Dialog.show({
-                header: 'Delete Template',
+                header: t('ui.deleteTemplate'),
                 kind: 'danger',
                 text,
                 confirmLabel: 'Delete',

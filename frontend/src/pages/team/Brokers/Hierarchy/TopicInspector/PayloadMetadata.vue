@@ -8,7 +8,7 @@
         <ff-divider />
 
         <FormRow v-if="segment" v-model="localSegment.metadata.description" containerClass="max-w-full">
-            Description
+            {{ $t('ui.description') }}
         </FormRow>
     </div>
 </template>

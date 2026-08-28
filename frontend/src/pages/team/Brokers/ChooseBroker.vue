@@ -1,7 +1,7 @@
 <template>
     <div class="create-broker py-20 flex flex-col gap-9" data-el="choose-broker">
         <section class="flex gap-6 justify-center relative z-10 flex-wrap">
-            <h2>Choose which Broker you'd like to get setup with:</h2>
+            <h2>{{ $t('ui.chooseWhichBrokerYouDLikeToGetSetupWith') }}</h2>
         </section>
 
         <section class="flex gap-6 justify-center relative z-10 flex-wrap">
@@ -31,7 +31,7 @@
                         :kind="option.ribbon || options.length === 1 ? 'primary' : 'secondary'"
                         :to="option.to"
                     >
-                        Select
+                        {{ $t('ui.select') }}
                     </ff-button>
                 </template>
             </MediumTile>
@@ -39,7 +39,7 @@
 
         <section class="actions flex items-center justify-center">
             <ff-button v-if="shouldDisplayBackButton" kind="tertiary" data-el="page-back" @click="$router.back()">
-                Back
+                {{ $t('ui.back') }}
             </ff-button>
         </section>
     </div>
@@ -51,6 +51,8 @@ import { CheckIcon, MinusIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import MediumTile from '../../../components/tiles/MediumTile.vue'
+
+import { t } from '../../../i18n.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
@@ -69,7 +71,7 @@ export default {
             return [
                 {
                     ribbon: this.featuresCheck.isExternalMqttBrokerFeatureEnabled ? 'Recommended' : '',
-                    title: 'FlowFuse Broker',
+                    title: t('ui.flowfuseBroker'),
                     content: [
                         '20 x MQTT Clients included in your plan'
                     ],
@@ -78,7 +80,7 @@ export default {
                     hidden: this.hasFfUnsClients
                 },
                 {
-                    title: 'Bring your Own Broker',
+                    title: t('ui.bringYourOwnBroker'),
                     content: [
                         'Connect and monitor your own MQTT Broker'
                     ],

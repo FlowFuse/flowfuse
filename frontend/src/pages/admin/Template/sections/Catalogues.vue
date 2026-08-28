@@ -1,7 +1,7 @@
 <template>
     <div>
         <FormHeading>
-            Node Catalogues
+            {{ $t('ui.nodeCatalogues') }}
             <ChangeIndicator class="inline-block! ml-4 mt-0" :value="editable.changed.settings.palette_catalogue" />
         </FormHeading>
 
@@ -11,9 +11,9 @@
 
         <form class="space-y-4 max-w-2xl" @submit.prevent>
             <div v-if="!projectLauncherCompatible" class="text-red-400 space-y-1">
-                <p>You will need to update your Instance Node-RED Version to use this feature.</p>
+                <p>{{ $t('ui.youWillNeedToUpdateYourInstanceNodeRedVersionToU') }}</p>
                 <div v-if="project.stack.replacedBy">
-                    <ff-button size="small" to="./settings/danger?highlight=updateStack">Update</ff-button>
+                    <ff-button size="small" to="./settings/danger?highlight=updateStack">{{ $t('ui.update') }}</ff-button>
                 </div>
             </div>
 
@@ -26,7 +26,7 @@
                             <!-- Default is enabled, allow for removal -->
                             <ff-button
                                 v-if="!defaultEnabled"
-                                v-ff-tooltip:left="'Restore Default Catalogue'"
+                                v-ff-tooltip:left="$t('ui.restoreDefaultCatalogue')"
                                 kind="tertiary" size="small"
                                 :disabled="isDisabled"
                                 @click="addDefault()"

@@ -1,13 +1,13 @@
 <template>
     <div id="table-schema" class="p-4">
         <div class="content-wrapper">
-            <h3>Columns</h3>
+            <h3>{{ $t('ui.columns') }}</h3>
             <div class="header grid grid-cols-10 gap-1 mb-1">
-                <span class="col-span-2 title">Name</span>
-                <span class="col-span-2 title">Type</span>
-                <span class="col-span-2 title">Allow null</span>
-                <span class="col-span-2 title">Default</span>
-                <span class="col-span-2 title">Generated</span>
+                <span class="col-span-2 title">{{ $t('ui.name') }}</span>
+                <span class="col-span-2 title">{{ $t('ui.type') }}</span>
+                <span class="col-span-2 title">{{ $t('ui.allowNull') }}</span>
+                <span class="col-span-2 title">{{ $t('ui.default') }}</span>
+                <span class="col-span-2 title">{{ $t('ui.generated') }}</span>
             </div>
             <ul>
                 <li v-for="(col, $key) in table.schema" :key="$key">
@@ -28,6 +28,7 @@
 import { mapActions, mapState } from 'pinia'
 import { defineComponent } from 'vue'
 
+import { t } from '../../../../../../i18n.js'
 import Alerts from '../../../../../../services/alerts.js'
 import Dialog from '../../../../../../services/dialog.js'
 
@@ -55,7 +56,7 @@ export default defineComponent({
         ...mapActions(useProductTablesStore, ['deleteTable', 'getTables']),
         submit () {
             Dialog.show({
-                header: 'Delete Table',
+                header: t('ui.deleteTable'),
                 text: `Are you sure you want to delete table ${this.table.name}`,
                 confirmLabel: 'Delete',
                 kind: 'danger'
@@ -74,8 +75,8 @@ export default defineComponent({
             this.setRightDrawerHeader({
                 title: `${this.table.name} schema`,
                 actions: [
-                    { handler: this.closeRightDrawer, label: 'Close', kind: 'secondary' },
-                    { handler: this.submit, label: 'Delete', kind: 'danger' }
+                    { handler: this.closeRightDrawer, label: t('ui.close'), kind: 'secondary' },
+                    { handler: this.submit, label: t('ui.delete'), kind: 'danger' }
                 ]
             })
         }

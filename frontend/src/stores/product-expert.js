@@ -6,6 +6,8 @@ import expertApi from '../api/expert.js'
 import userApi from '../api/user.js'
 import useTimerHelper from '../composables/TimerHelper.js'
 
+import { t } from '../i18n.js'
+
 import { useAccountAuthStore } from './account-auth.js'
 import { useAccountSettingsStore } from './account-settings.js'
 import { useContextStore } from './context.js'
@@ -172,7 +174,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 return import('../components/expert/Expert.vue')
                     .then(({ default: ExpertPanel }) => drawersStore.openRightDrawer({
                         component: markRaw(ExpertPanel),
-                        header: { title: 'Expert' }
+                        header: { title: t('ui.expert') }
                     }))
             }
 
@@ -703,7 +705,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 if (elapsed >= warningThreshold && !agentStore.sessionWarningShown) {
                     agentStore.sessionWarningShown = true
                     this.addSystemMessage({
-                        message: 'Your conversation history will expire soon. You can start a new conversation when this one expires.',
+                        message: t('ui.yourConversationHistoryWillExpireSoonYouCanStart'),
                         type: 'warning'
                     })
                 }

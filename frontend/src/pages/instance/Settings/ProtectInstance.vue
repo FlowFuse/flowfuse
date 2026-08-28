@@ -1,23 +1,21 @@
 <template>
-    <ff-loading v-if="updating" message="Updating Instance..." />
+    <ff-loading v-if="updating" :message="$t('ui.updatingInstance')" />
     <template v-else>
         <FeatureUnavailableToTeam v-if="!protectedFeatureAvailable" />
-        <FormHeading>Protect Instance</FormHeading>
+        <FormHeading>{{ $t('ui.protectInstance') }}</FormHeading>
         <FormRow>
             <template #description>
                 <p class="mb-3">
-                    Protected Mode prevents all team members from editing flows directly.
-                    All team members get Read Only access to the Node-RED Editor and only
-                    Team Owners can trigger a DevOps Pipeline deploy to the Instance
+                    {{ $t('ui.protectedModePreventsAllTeamMembersFromEditingFl') }}
                 </p>
             </template>
             <template #input>&nbsp;</template>
         </FormRow>
         <template v-if="!isProtected">
-            <ff-button :disabled="!isOwner" kind="secondary" data-nav="enable-protect" @click="enableProtected()">Enable Protected Mode</ff-button>
+            <ff-button :disabled="!isOwner" kind="secondary" data-nav="enable-protect" @click="enableProtected()">{{ $t('ui.enableProtectedMode') }}</ff-button>
         </template>
         <template v-else>
-            <ff-button :disabled="!isOwner" kind="secondary" data-nav="disable-protect" @click="disableProtected()">Disable Protected Mode</ff-button>
+            <ff-button :disabled="!isOwner" kind="secondary" data-nav="disable-protect" @click="disableProtected()">{{ $t('ui.disableProtectedMode') }}</ff-button>
         </template>
     </template>
 </template>

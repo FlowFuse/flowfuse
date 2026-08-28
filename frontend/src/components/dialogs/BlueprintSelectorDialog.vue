@@ -1,9 +1,9 @@
 <template>
-    <ff-dialog ref="dialog" data-el="blueprint-selector-dialog" class="blueprints-selector-dialog" header="Choose a Blueprint">
+    <ff-dialog ref="dialog" data-el="blueprint-selector-dialog" class="blueprints-selector-dialog" :header="$t('ui.chooseABlueprint')">
         <template #default>
             <section class="blueprints-container w-full md:w-full lg:w-2/5 xl:w-2/5 2xl:w-2/5">
                 <div class="header hidden 2xl:block xl:block lg:block">
-                    <p>To get started, we have a collection of pre-built flow templates that you can use as a starting point for your Node-RED Instance.</p>
+                    <p>{{ $t('ui.toGetStartedWeHaveACollectionOfPreBuiltFlowTempl') }}</p>
                 </div>
                 <div class="blueprint-selection-wrapper">
                     <BlueprintSelection
@@ -21,8 +21,8 @@
         </template>
         <template #actions>
             <div class="flex justify-end">
-                <ff-button kind="secondary" data-action="dialog-cancel" @click="closeDialog">Cancel</ff-button>
-                <ff-button data-action="dialog-confirm" @click="confirmSelection">Confirm Choice</ff-button>
+                <ff-button kind="secondary" data-action="dialog-cancel" @click="closeDialog">{{ $t('ui.cancel') }}</ff-button>
+                <ff-button data-action="dialog-confirm" @click="confirmSelection">{{ $t('ui.confirmChoice') }}</ff-button>
             </div>
         </template>
     </ff-dialog>

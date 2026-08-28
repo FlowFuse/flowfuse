@@ -14,6 +14,7 @@ import { useRouter } from 'vue-router'
 
 import InstanceApi from '../../../api/instances.js'
 import usePermissions from '../../../composables/Permissions.js'
+import { t } from '../../../i18n.js'
 import Dialog from '../../../services/dialog.js'
 import TemplateSectionCatalogue from '../../admin/Template/sections/Catalogues.vue'
 import TemplateSectionNPM from '../../admin/Template/sections/NPMRegistry.vue'
@@ -200,7 +201,7 @@ export default {
             // is instance running
             if (this.project.meta.state === 'running') {
                 Dialog.show({
-                    header: 'Restart Required',
+                    header: t('ui.restartRequired'),
                     html: '<p>Instance settings have been successfully updated, but the Instance must be restarted for these settings to take effect.</p><p>Would you like to restart the Instance now?</p>',
                     confirmLabel: 'Restart Now',
                     cancelLabel: 'Restart Later'

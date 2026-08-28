@@ -1,17 +1,17 @@
 <template>
     <div id="instance-logs" class="flex-1 flex flex-col overflow-auto">
-        <ff-loading v-if="loading" message="Loading Logs..." />
+        <ff-loading v-if="loading" :message="$t('ui.loadingLogs')" />
         <div v-if="showOfflineBanner" class="ff-banner ff-banner-info my-2 rounded-sm p-2 font-mono">
             <span>
-                <span>The Node-RED instance cannot be reached at this time. Please wait...</span>
+                <span>{{ $t('ui.theNodeRedInstanceCannotBeReachedAtThisTimePleas') }}</span>
             </span>
         </div>
         <div v-if="!instance.meta || instance.meta.state === 'suspended'" class="flex text-gray-500 justify-center italic mb-4 p-8">
-            Logs unavailable
+            {{ $t('ui.logsUnavailable2') }}
         </div>
         <div v-else :class="showOfflineBanner ? 'forge-log-offline-background' : ''" class="w-full mx-auto text-xs border ff-code-surface rounded-sm p-2 font-mono">
             <div v-if="prevCursor" class="flex">
-                <a class="text-center w-full hover:text-blue-400 cursor-pointer pb-1" @click="loadPrevious">Load earlier...</a>
+                <a class="text-center w-full hover:text-blue-400 cursor-pointer pb-1" @click="loadPrevious">{{ $t('ui.loadEarlier') }}</a>
             </div>
             <div v-if="filteredLogEntries.length > 0">
                 <span

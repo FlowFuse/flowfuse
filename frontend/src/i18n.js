@@ -100,6 +100,25 @@ export function setLocale (tag) {
     return resolved
 }
 
+/**
+ * Translate a key from outside a component.
+ *
+ * Component templates and options use `$t`, which vue-i18n injects. Display
+ * strings defined in plain JS - table column headers, dialog copy, route meta
+ * titles - have no component instance to hang that off, so they call this.
+ *
+ * Note this is evaluated where it is called. At module scope that means once,
+ * at import time, so such strings follow the locale chosen for the page load
+ * rather than updating live when the locale changes.
+ *
+ * @param {string} key a message key, e.g. 'ui.saveChanges'
+ * @param {object} [named] interpolation values
+ * @returns {string} the translated message
+ */
+export function t (key, named) {
+    return named ? i18n.global.t(key, named) : i18n.global.t(key)
+}
+
 document.documentElement.setAttribute('lang', i18n.global.locale.value)
 
 export default i18n

@@ -21,7 +21,7 @@
             <div v-if="hasStackedView && currentStackView.title" class="header header--stacked">
                 <button
                     class="drawer-header-btn"
-                    title="Back"
+                    :title="$t('ui.back')"
                     type="button"
                     @click="drawersStore.popEditorImmersiveView"
                 >
@@ -45,7 +45,7 @@
                         {{ action.label }}
                     </ff-button>
                     <button
-                        title="Close drawer"
+                        :title="$t('ui.closeDrawer')"
                         type="button"
                         class="drawer-header-btn"
                         aria-label="Close drawer"
@@ -61,7 +61,7 @@
                 <div class="logo">
                     <router-link
                         v-if="homeRoute"
-                        title="Back to overview"
+                        :title="$t('ui.backToOverview')"
                         :to="homeRoute"
                     >
                         <HomeIcon class="ff-btn--icon" style="width: 18px; height: 18px;" />
@@ -76,7 +76,7 @@
                     <EditorDrawerSettings />
 
                     <button
-                        title="Close drawer"
+                        :title="$t('ui.closeDrawer')"
                         type="button"
                         class="drawer-header-btn"
                         aria-label="Close drawer"

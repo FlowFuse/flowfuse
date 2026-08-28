@@ -1,18 +1,18 @@
 <template>
     <ff-dialog
         v-if="visible"
-        ref="dialog" :header="header" :sub-header="`Node-RED Version: ${nrVersion}`" confirm-label="Close" :closeOnConfirm="true"
+        ref="dialog" :header="header" :sub-header="`Node-RED Version: ${nrVersion}`" :confirm-label="$t('ui.close')" :closeOnConfirm="true"
         data-el="flow-view-dialog" boxClass="min-w-[80%]! min-h-[80%]! w-[80%]! h-[80%]!"
         contentClass="overflow-hidden grow" @confirm="confirm()"
     >
         <template #default>
             <div ref="viewer" data-el="ff-flow-previewer" class="ff-flow-viewer" @click.stop.prevent>
-                Loading...
+                {{ $t('ui.loading') }}
             </div>
         </template>
         <template #actions>
             <div class="flex justify-end">
-                <ff-button data-action="dialog-confirm" @click="confirm()">Close</ff-button>
+                <ff-button data-action="dialog-confirm" @click="confirm()">{{ $t('ui.close') }}</ff-button>
             </div>
         </template>
     </ff-dialog>

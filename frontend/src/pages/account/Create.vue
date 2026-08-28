@@ -14,19 +14,19 @@
             />
             <div>
                 <label>{{ $t('common.fields.username') }}</label>
-                <ff-text-input ref="signup-username" v-model="input.username" data-form="signup-username" label="username" :error="showErrors.username ? errors.username : ''" />
+                <ff-text-input ref="signup-username" v-model="input.username" data-form="signup-username" :label="$t('ui.username3')" :error="showErrors.username ? errors.username : ''" />
                 <span class="ff-error-inline">{{ showErrors.username ? errors.username : '' }}</span>
                 <label>{{ $t('common.fields.fullName') }}</label>
-                <ff-text-input ref="signup-fullname" v-model="input.name" data-form="signup-fullname" label="Full Name" :error="showErrors.name ? errors.name : ''" />
+                <ff-text-input ref="signup-fullname" v-model="input.name" data-form="signup-fullname" :label="$t('ui.fullName')" :error="showErrors.name ? errors.name : ''" />
                 <span class="ff-error-inline">{{ showErrors.name ? errors.name : '' }}</span>
                 <label>{{ $t('common.fields.email') }}</label>
-                <ff-text-input ref="signup-email" v-model="input.email" data-form="signup-email" label="E-Mail Address" :error="showErrors.email ? errors.email : ''" />
+                <ff-text-input ref="signup-email" v-model="input.email" data-form="signup-email" :label="$t('ui.eMailAddress')" :error="showErrors.email ? errors.email : ''" />
                 <span class="ff-error-inline">{{ showErrors.email ? errors.email : '' }}</span>
                 <label>{{ $t('common.fields.password') }}</label>
-                <ff-text-input ref="signup-password" v-model="input.password" data-form="signup-password" label="password" :error="showErrors.password ? errors.password : ''" type="password" />
+                <ff-text-input ref="signup-password" v-model="input.password" data-form="signup-password" :label="$t('ui.password3')" :error="showErrors.password ? errors.password : ''" type="password" />
                 <span class="ff-error-inline">{{ showErrors.password ? errors.password : '' }}</span>
                 <label>{{ $t('common.fields.confirmPassword') }}</label>
-                <ff-text-input ref="signup-repeat-password" v-model="input.repeatPassword" data-form="signup-repeat-password" label="Confirm Password" :error="showErrors.repeatPassword ? errors.repeatPassword : ''" type="password" />
+                <ff-text-input ref="signup-repeat-password" v-model="input.repeatPassword" data-form="signup-repeat-password" :label="$t('ui.confirmPassword')" :error="showErrors.repeatPassword ? errors.repeatPassword : ''" type="password" />
                 <span class="ff-error-inline">{{ showErrors.repeatPassword ? errors.repeatPassword : '' }}</span>
             </div>
             <div v-if="askJoinReason" class="pt-3">

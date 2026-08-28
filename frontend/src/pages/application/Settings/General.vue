@@ -1,41 +1,41 @@
 <template>
     <div class="space-y-6">
-        <FormHeading class="mb-6">Application Details</FormHeading>
+        <FormHeading class="mb-6">{{ $t('ui.applicationDetails') }}</FormHeading>
         <div class="space-y-6" data-el="application-summary">
             <FormRow id="projectId" v-model="input.projectId" type="uneditable" inputClass="font-mono">
-                Application ID
+                {{ $t('ui.applicationId') }}
             </FormRow>
 
             <FormRow
                 id="projectName" ref="appName" v-model="input.projectName" data-form="application-name"
                 :type="editing ? 'text' : 'uneditable'"
             >
-                Name
+                {{ $t('ui.name') }}
             </FormRow>
             <FormRow
                 id="projectDescription" ref="appDescription" v-model="input.projectDescription"
                 data-form="application-description" :type="editing ? 'text' : 'uneditable'"
             >
-                Description
+                {{ $t('ui.description') }}
             </FormRow>
         </div>
         <template v-if="hasPermission('project:edit', { application })">
             <div class="space-x-4 whitespace-nowrap" data-el="application-edit">
                 <template v-if="!editing">
-                    <ff-button kind="primary" data-action="application-edit" @click="editName">Edit</ff-button>
+                    <ff-button kind="primary" data-action="application-edit" @click="editName">{{ $t('ui.edit') }}</ff-button>
                 </template>
                 <template v-else>
                     <div class="flex gap-x-3">
-                        <ff-button kind="secondary" @click="cancelEditName">Cancel</ff-button>
+                        <ff-button kind="secondary" @click="cancelEditName">{{ $t('ui.cancel') }}</ff-button>
                         <ff-button kind="primary" :disabled="!formValid" data-form="submit" @click="saveApplication">
-                            Save
+                            {{ $t('ui.save') }}
                         </ff-button>
                     </div>
                 </template>
             </div>
         </template>
         <template v-if="hasPermission('project:delete', { application })">
-            <FormHeading class="text-red-700">Delete Application</FormHeading>
+            <FormHeading class="text-red-700">{{ $t('ui.deleteApplication') }}</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl" data-el="application-delete">
                 <div class="grow">
                     <div class="max-w-sm">
@@ -48,7 +48,7 @@
                         :disabled="options.instances > 0"
                         @click="$emit('application-delete')"
                     >
-                        Delete Application
+                        {{ $t('ui.deleteApplication') }}
                     </ff-button>
                 </div>
             </div>

@@ -2,7 +2,7 @@
     <ff-dialog
         id="assign-device-dialog"
         ref="dialog"
-        header="Assign Device"
+        :header="$t('ui.assignDevice')"
         class="ff-dialog-fixed-height"
         data-el="assign-device-dialog"
         :disable-primary="!assignOption"
@@ -10,16 +10,16 @@
     >
         <template #default>
             <p class="text-sm text-gray-500">
-                Please select whether you want to assign this Device to an Instance or an Application.
+                {{ $t('ui.pleaseSelectWhetherYouWantToAssignThisDeviceToAn') }}
             </p>
             <ff-tile-selection v-model="assignOption">
                 <ff-tile-selection-option
-                    value="instance" label="Instance" data-form="assign-to-instance"
-                    description="<p>Auto-deploy flows from the bound Instance directly to this Device.</p></br><p>You can still remotely edit and create Snapshots on the Device when the Device is in 'Developer Mode'.</p>"
+                    value="instance" :label="$t('ui.instance2')" data-form="assign-to-instance"
+                    description="<p>{{ $t('ui.autoDeployFlowsFromTheBoundInstanceDirectlyToThi') }}</p></br><p>{{ $t('ui.youCanStillRemotelyEditAndCreateSnapshotsOnTheDe') }}</p>"
                 />
                 <ff-tile-selection-option
-                    value="application" label="Application" data-form="assign-to-application"
-                    description="<p>Flows on this Device can only be edited and deployed via the 'Remote Editor' feature, available in 'Developer Mode'.</p></br><p>You can create Snapshots here for version control of the flows on your Device</p>"
+                    value="application" :label="$t('ui.application')" data-form="assign-to-application"
+                    description="<p>{{ $t('ui.flowsOnThisDeviceCanOnlyBeEditedAndDeployedViaTh') }}</p></br><p>{{ $t('ui.youCanCreateSnapshotsHereForVersionControlOfTheF') }}</p>"
                 />
             </ff-tile-selection>
         </template>

@@ -31,6 +31,7 @@
 import { ChevronLeftIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 
+import { t } from '../../../i18n.js'
 import NavItem from '../../NavItem.vue'
 
 import { useContextStore } from '@/stores/context.js'
@@ -76,7 +77,7 @@ export default {
         },
         backToButton () {
             const defaultBackToRoute = {
-                label: 'Back to Dashboard',
+                label: t('ui.backToDashboard'),
                 to: { name: 'team-applications', params: { team_slug: this.team?.slug } },
                 tag: 'back',
                 icon: ChevronLeftIcon

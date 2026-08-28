@@ -9,7 +9,7 @@
         />
     </div>
     <div v-else class="empty text-center opacity-60">
-        <p>Oops! We couldn't find any matching results.</p>
+        <p>{{ $t('ui.oopsWeCouldnTFindAnyMatchingResults') }}</p>
     </div>
 </template>
 

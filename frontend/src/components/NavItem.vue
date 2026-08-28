@@ -4,7 +4,7 @@
             <component v-if="icon" :is="icon" class="ff-icon transition-fade--color" />
             <img v-if="avatar" :src="avatar" class="ff-avatar">
             <label class="transition-fade--color grow">{{ label }}</label>
-            <span v-if="featureUnavailable" data-el="premium-feature" v-ff-tooltip="'Not available in this Tier'">
+            <span v-if="featureUnavailable" data-el="premium-feature" v-ff-tooltip="$t('ui.notAvailableInThisTier')">
                 <SparklesIcon class="ff-icon transition-fade--color hollow" style="stroke-width: 1;" />
             </span>
             <span v-if="alert" data-el="nav-alert" v-ff-tooltip="alert.title ?? 'Attention required'" @click="onAlertClick">

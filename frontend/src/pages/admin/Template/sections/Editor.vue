@@ -1,12 +1,12 @@
 <template>
     <form class="space-y-4" data-el="instance-editor" @submit.prevent>
-        <FormHeading>Editor</FormHeading>
+        <FormHeading>{{ $t('ui.editor') }}</FormHeading>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.disableEditor" type="checkbox" :disabled="!editTemplate && !editable.policy.disableEditor">
-                    Disable editor
+                    {{ $t('ui.disableEditor') }}
                     <template #description>
-                        Disable the editor for this instance. The only way to modify the running flows will be to re-enable the editor and restart the instance, or use the DevOps pipelines.
+                        {{ $t('ui.disableTheEditorForThisInstanceTheOnlyWayToModif') }}
                     </template>
                     <template #append><ChangeIndicator :value="editable.changed.settings.disableEditor" /></template>
                 </FormRow>
@@ -16,9 +16,9 @@
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.disableTours" type="checkbox" :disabled="!editTemplate && !editable.policy.disableTours">
-                    Disable Welcome Tour
+                    {{ $t('ui.disableWelcomeTour') }}
                     <template #description>
-                        Disable the Welcome Tour when accessing the editor the first time.
+                        {{ $t('ui.disableTheWelcomeTourWhenAccessingTheEditorTheFi') }}
                     </template>
                     <template #append><ChangeIndicator :value="editable.changed.settings.disableTours" /></template>
                 </FormRow>
@@ -28,9 +28,9 @@
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.httpAdminRoot" :error="editable.errors.httpAdminRoot" :disabled="!editTemplate && editable.policy.httpAdminRoot === false" type="text">
-                    Editor URL Path
+                    {{ $t('ui.editorUrlPath') }}
                     <template #description>
-                        The path used to serve the editor
+                        {{ $t('ui.thePathUsedToServeTheEditor') }}
                     </template>
                     <template #append><ChangeIndicator :value="editable.changed.settings.httpAdminRoot" /></template>
                 </FormRow>
@@ -40,11 +40,11 @@
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.dashboardUI" :error="editable.errors.dashboardUI" :disabled="!editTemplate && !editable.policy.dashboardUI" type="text">
-                    Legacy Dashboard URL Path
+                    {{ $t('ui.legacyDashboardUrlPath') }}
                     <template #description>
-                        <div>The path used to serve the legacy node-red-dashboard UI</div>
+                        <div>{{ $t('ui.thePathUsedToServeTheLegacyNodeRedDashboardUi') }}</div>
                         <div>
-                            NOTE: node-red-dashboard <a href="https://flowfuse.com/blog/2024/06/dashboard-1-deprecated/" class="ff-link" target="_blank" rel="noopener noreferrer">is deprecated</a>
+                            {{ $t('ui.noteNodeRedDashboard') }} <a href="https://flowfuse.com/blog/2024/06/dashboard-1-deprecated/" class="ff-link" target="_blank" rel="noopener noreferrer">{{ $t('ui.isDeprecated') }}</a>
                         </div>
                     </template>
                     <template #append><ChangeIndicator :value="editable.changed.settings.dashboardUI" /></template>
@@ -55,24 +55,24 @@
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
                 <FormRow type="text">
-                    FlowFuse Dashboard URL Path
+                    {{ $t('ui.flowfuseDashboardUrlPath') }}
                     <template #description>
-                        The path used to serve the <a href="https://dashboard.flowfuse.com/" class="ff-link" target="_blank" rel="noopener noreferrer">FlowFuse Dashboard</a>
+                        {{ $t('ui.thePathUsedToServeThe') }} <a href="https://dashboard.flowfuse.com/" class="ff-link" target="_blank" rel="noopener noreferrer">{{ $t('ui.flowfuseDashboard') }}</a>
                     </template>
                     <template #input>
                         <div data-el="form-row-uneditable" class="w-full uneditable undefined text-gray-300">/dashboard</div>
                     </template>
                 </FormRow>
             </div>
-            <LockSetting class="flex justify-end flex-col" tooltip="This setting is fixed and cannot be changed." />
+            <LockSetting class="flex justify-end flex-col" :tooltip="$t('ui.thisSettingIsFixedAndCannotBeChanged')" />
         </div>
         <div v-if="dashboardIFrameAvailable">
             <div class="flex flex-col sm:flex-row">
                 <div class="w-full max-w-md sm:mr-8">
                     <FormRow v-model="editable.settings.dashboardIFrame" :error="editable.errors.dashboardIFrame" :disabled="!editTemplate && !editable.policy.dashboardIFrame" type="checkbox">
-                        Allow Dashboard to be embedded in an iFrame
+                        {{ $t('ui.allowDashboardToBeEmbeddedInAnIframe') }}
                         <template #description>
-                            Sets the <span>Content-Security-Policy: frame-ancestor '*'</span> HTTP Header for the Dashboard
+                            {{ $t('ui.setsThe') }} <span>Content-Security-Policy: frame-ancestor '*'</span> {{ $t('ui.httpHeaderForTheDashboard') }}
                         </template>
                         <template #append><ChangeIndicator :value="editable.changed.settings.dashboardIFrame" /></template>
                     </FormRow>
@@ -82,15 +82,15 @@
         </div>
         <div v-else class="flex flex-col sm:flex-row">
             <div class="space-y-4 w-full max-w-md sm:mr-8">
-                <p>Upgrade your stack to be able to enable</p>
-                <p>embedding Dashboards in iFrames</p>
-                <ff-button size="small" to="general">Upgrade</ff-button>
+                <p>{{ $t('ui.upgradeYourStackToBeAbleToEnable') }}</p>
+                <p>{{ $t('ui.embeddingDashboardsInIframes') }}</p>
+                <ff-button size="small" to="general">{{ $t('ui.upgrade') }}</ff-button>
             </div>
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.codeEditor" :disabled="!editTemplate && !editable.policy.codeEditor" type="select" :options="[{label:'monaco', value:'monaco'},{label:'ace', value:'ace'}]">
-                    Code Editor
+                    {{ $t('ui.codeEditor') }}
                     <template #append><ChangeIndicator :value="editable.changed.settings.codeEditor" /></template>
                 </FormRow>
             </div>
@@ -99,9 +99,9 @@
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.header_title" :error="editable.errors.header_title" :disabled="!editTemplate && !editable.policy.header_title" type="text">
-                    Editor Title
+                    {{ $t('ui.editorTitle') }}
                     <template #description>
-                        The title to show in the header
+                        {{ $t('ui.theTitleToShowInTheHeader') }}
                     </template>
                     <template #append><ChangeIndicator :value="editable.changed.settings.header_title" /></template>
                 </FormRow>
@@ -111,9 +111,9 @@
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.theme" :disabled="!editTemplate && !editable.policy.theme" type="uneditable" :options="themeOptions" wrapper-class="max-w-sm">
-                    Editor Theme
+                    {{ $t('ui.editorTheme') }}
                     <template #append><ChangeIndicator :value="editable.changed.settings.theme" /></template>
-                    <template #description>Choose a standard FlowFuse theme or enter the name of a loaded custom theme</template>
+                    <template #description>{{ $t('ui.chooseAStandardFlowfuseThemeOrEnterTheNameOfALoa') }}</template>
                     <template #input>
                         <ff-combobox
                             v-model="editable.settings.theme"
@@ -130,21 +130,21 @@
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.timeZone" :disabled="!editTemplate && !editable.policy.timeZone" type="select" :options="timezones">
-                    Time Zone
+                    {{ $t('ui.timeZone') }}
                     <template #append><ChangeIndicator :value="editable.changed.settings.timeZone" /></template>
                 </FormRow>
             </div>
             <LockSetting v-model="editable.policy.timeZone" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.timeZone" />
         </div>
-        <FormHeading class="pt-8">Limits</FormHeading>
+        <FormHeading class="pt-8">{{ $t('ui.limits') }}</FormHeading>
         <div v-if="limitAvailable">
             <div v-if="limitsLauncherEnabled">
                 <div class="flex flex-col sm:flex-row">
                     <div class="w-full max-w-md sm:mr-8">
                         <FormRow v-model="editable.settings.apiMaxLength" :disabled="apiLimitDisabled" type="text">
-                            Max HTTP Payload Size
+                            {{ $t('ui.maxHttpPayloadSize') }}
                             <template #description>
-                                The maximum number of bytes allowed in a HTTP Request in bytes ('kb','mb' modifiers allowed)
+                                {{ $t('ui.theMaximumNumberOfBytesAllowedInAHttpRequestInBy') }}
                             </template>
                             <template #append><ChangeIndicator :value="editable.changed.settings.apiMaxLength" /></template>
                         </FormRow>
@@ -154,9 +154,9 @@
                 <div class="flex flex-col sm:flex-row">
                     <div class="w-full max-w-md sm:mr-8">
                         <FormRow v-model="editable.settings.debugMaxLength" :disabled="debugLimitDisabled" type="number">
-                            Max Debug Message Size
+                            {{ $t('ui.maxDebugMessageSize') }}
                             <template #description>
-                                The maximum number of characters to show of a message in the Debug Sidebar
+                                {{ $t('ui.theMaximumNumberOfCharactersToShowOfAMessageInTh') }}
                             </template>
                             <template #append><ChangeIndicator :value="editable.changed.settings.debugMaxLength" /></template>
                         </FormRow>
@@ -166,17 +166,17 @@
             </div>
             <div v-else class="flex flex-col sm:flex-row">
                 <div class="space-y-4 w-full max-w-md sm:mr-8">
-                    Upgrade your stack to be able to set apiMaxLength or debugMaxLength
-                    <ff-button size="small" to="general">Upgrade</ff-button>
+                    {{ $t('ui.upgradeYourStackToBeAbleToSetApimaxlengthOrDebug') }}
+                    <ff-button size="small" to="general">{{ $t('ui.upgrade') }}</ff-button>
                 </div>
             </div>
         </div>
-        <FeatureUnavailableToTeam v-if="!limitAvailable" featureName="Set API and Debug Size Limits" />
-        <FormHeading class="pt-8">External Modules</FormHeading>
+        <FeatureUnavailableToTeam v-if="!limitAvailable" :featureName="$t('ui.setApiAndDebugSizeLimits')" />
+        <FormHeading class="pt-8">{{ $t('ui.externalModules') }}</FormHeading>
         <div class="flex flex-col sm:flex-row">
             <div class="space-y-4 w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.modules_allowInstall" type="checkbox" :disabled="!editTemplate && !editable.policy.modules_allowInstall">
-                    Allow user to install new modules in the Function node
+                    {{ $t('ui.allowUserToInstallNewModulesInTheFunctionNode') }}
                     <template #append><ChangeIndicator :value="editable.changed.settings.modules_allowInstall" /></template>
                 </FormRow>
             </div>
@@ -186,9 +186,9 @@
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.modules_denyList" :disabled="!editTemplate && !editable.policy.modules_denyList" :error="editable.errors.modules_denyList" :type="(editTemplate||editable.policy.modules_denyList)?'text':'uneditable'">
-                    Prevent Install of External modules
+                    {{ $t('ui.preventInstallOfExternalModules') }}
                     <template #description>
-                        This can be used to prevent the installation of modules in Function nodes. A comma-separated list of the form e.g. <pre>'package-name@semVer, foo@^0.1.0, @scope/*'</pre>
+                        {{ $t('ui.thisCanBeUsedToPreventTheInstallationOfModulesIn') }} <pre>'package-name@semVer, foo@^0.1.0, @scope/*'</pre>
                     </template>
                     <template #append><ChangeIndicator :value="editable.changed.settings.modules_denyList" /></template>
                 </FormRow>
@@ -206,6 +206,7 @@ import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
 import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnavailableToTeam.vue'
 import timezonesData from '../../../../data/timezones.json'
+import { t } from '../../../../i18n.js'
 import { isInstanceOnNR5Plus } from '../../../../utils/instanceVersion'
 import ChangeIndicator from '../components/ChangeIndicator.vue'
 import LockSetting from '../components/LockSetting.vue'
@@ -295,11 +296,11 @@ export default {
             // NR5+ runtime gate collapses Light/Dark to `forge`; show one option.
             // Admin Template stays version-agnostic since it targets any NR version.
             if (!this.editTemplate && this.instanceOnNR5Plus) {
-                return [{ label: 'FlowFuse', value: 'forge' }]
+                return [{ label: t('ui.flowfuse2'), value: 'forge' }]
             }
             return [
-                { label: 'FlowFuse Light', value: 'forge-light' },
-                { label: 'FlowFuse Dark', value: 'forge-dark' }
+                { label: t('ui.flowfuseLight'), value: 'forge-light' },
+                { label: t('ui.flowfuseDark'), value: 'forge-dark' }
             ]
         },
         themeOptions () {

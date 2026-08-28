@@ -3,7 +3,7 @@
         <div class="col-section col-span-3">
             <ff-text-input
                 v-model="localColumn.name"
-                placeholder="Name"
+                :placeholder="$t('ui.name')"
                 type="text"
             />
         </div>
@@ -12,7 +12,7 @@
                 v-model="localColumn.type"
                 :options="typeOptions"
                 option-title-key="title"
-                placeholder="Select Type"
+                :placeholder="$t('ui.selectType')"
             >
                 <template #option="{ option }">
                     <div :title="option.title" class="ff-option-content" data-click-exclude="right-drawer">
@@ -35,7 +35,7 @@
                 v-model="localColumn.default"
                 :disabled="!localColumn.hasDefault"
                 :error="errors.default"
-                placeholder="Default Value"
+                :placeholder="$t('ui.defaultValue')"
                 type="text"
             />
             <ff-combobox
@@ -44,7 +44,7 @@
                 :disabled="!localColumn.hasDefault"
                 :options="predefinedDefaultValues[localColumn.type].values"
                 :hasCustomValue="true"
-                placeholder="Default Value"
+                :placeholder="$t('ui.defaultValue')"
                 option-title-key="title"
             />
             <ff-listbox
@@ -52,7 +52,7 @@
                 v-model="localColumn.default"
                 :disabled="!localColumn.hasDefault"
                 :options="predefinedDefaultValues[localColumn.type].values"
-                placeholder="Default Value"
+                :placeholder="$t('ui.defaultValue')"
                 option-title-key="title"
             />
         </div>
@@ -71,6 +71,8 @@
 import { XMarkIcon } from '@heroicons/vue/20/solid'
 import { defineComponent } from 'vue'
 
+import { t } from '../../../../../../../i18n.js'
+
 export default defineComponent({
     name: 'TableColumn',
     components: { XMarkIcon },
@@ -85,37 +87,37 @@ export default defineComponent({
         return {
             typeOptions: [
                 {
-                    label: 'Big Number',
+                    label: t('ui.bigNumber'),
                     type: 'int8',
                     value: 'bigint',
                     title: '[int8] signed eight-byte integer'
                 },
                 {
-                    label: 'Auto-increment Big Number',
+                    label: t('ui.autoIncrementBigNumber'),
                     type: 'serial8',
                     value: 'bigserial',
                     title: '[serial8] autoincrementing eight-byte integer'
                 },
                 {
-                    label: 'True/False',
+                    label: t('ui.trueFalse'),
                     type: 'boolean',
                     value: 'boolean',
                     title: 'logical Boolean (true/false)'
                 },
                 {
-                    label: 'Date',
+                    label: t('ui.date'),
                     type: 'date',
                     value: 'date',
                     title: 'calendar date (year, month, day)'
                 },
                 {
-                    label: 'Date & Time with Timezone',
+                    label: t('ui.dateTimeWithTimezone'),
                     type: 'timestamptz',
                     value: 'timestamptz',
                     title: 'date and time, including time zone'
                 },
                 {
-                    label: 'Number',
+                    label: t('ui.number'),
                     type: 'float4',
                     value: 'real',
                     title: '[float4] single precision floating-point number (4 bytes)'
@@ -127,7 +129,7 @@ export default defineComponent({
                     title: '[double precision] double precision floating-point number (8 bytes)'
                 },
                 {
-                    label: 'Text',
+                    label: t('ui.text'),
                     type: 'text',
                     value: 'text',
                     title: 'variable-length character string'
@@ -135,7 +137,7 @@ export default defineComponent({
             ],
             typeOptionsMap: {
                 varchar: {
-                    placeholder: 'Max Length',
+                    placeholder: t('ui.maxLength'),
                     key: 'maxLength',
                     type: 'number'
                 }
@@ -151,9 +153,9 @@ export default defineComponent({
                     allowFreeForm: false,
                     values: [
                         {
-                            label: 'NOW()',
+                            label: t('ui.now'),
                             value: 'NOW()',
-                            title: 'Now'
+                            title: t('ui.now2')
                         }
                     ]
                 }
@@ -199,7 +201,7 @@ export default defineComponent({
                 if (!isEmptyString) {
                     const isValueNumeric = !isNaN(value) && !isNaN(parseFloat(value))
                     if (this.isNumericType && !isValueNumeric) {
-                        errors.default = 'Value must be numeric'
+                        errors.default = t('ui.valueMustBeNumeric')
                     }
                 }
             }

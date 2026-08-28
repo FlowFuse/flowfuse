@@ -3,10 +3,10 @@
         v-model="input.application"
         :options="options.applications"
         :disabled="noApplications || loading.applications"
-        placeholder="Select an application"
+        :placeholder="$t('ui.selectAnApplication')"
         data-form="application"
     >
-        Application
+        {{ $t('ui.application') }}
     </FormRow>
     <FormRow
         v-model="localValue"
@@ -15,7 +15,7 @@
         :placeholder="instancePlaceholder"
         data-form="instance"
     >
-        Node-RED Instance
+        {{ $t('ui.nodeRedInstance') }}
     </FormRow>
 </template>
 <script>

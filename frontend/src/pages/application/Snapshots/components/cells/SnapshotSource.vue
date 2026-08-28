@@ -4,7 +4,7 @@
             <router-link class="flex items-center" :to="{ name: 'instance', params: { id: project.id }}">
                 <IconNodeRedSolid class="ff-icon ff-icon-lg text-red-800 relative" />
                 <div class="flex flex-col ml-2">
-                    <div class="text-xs text-gray-400">instance</div>
+                    <div class="text-xs text-gray-400">{{ $t('ui.instance3') }}</div>
                     <div class="text-base">{{ project.name }}</div>
                 </div>
             </router-link>
@@ -20,7 +20,7 @@
         </template>
         <template v-else>
             <div class="flex flex-col space-y-1 ml-4">
-                <div class="text-gray-400 ml-4 italic">unassigned</div>
+                <div class="text-gray-400 ml-4 italic">{{ $t('ui.unassigned2') }}</div>
             </div>
         </template>
     </div>

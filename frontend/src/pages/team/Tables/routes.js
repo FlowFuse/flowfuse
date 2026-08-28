@@ -1,3 +1,5 @@
+import { t } from '../../../i18n.js'
+
 import TableExplorer from './Table/TableExplorer/index.vue'
 import TableCredentials from './Table/components/TableCredentials.vue'
 import TableSqlEditor from './Table/components/TableSqlEditor.vue'
@@ -12,7 +14,7 @@ export default [
         path: 'tables',
         component: TeamTables,
         meta: {
-            title: 'Team - Tables'
+            title: t('ui.teamTables')
         },
         children: [
             {
@@ -43,7 +45,7 @@ export default [
                 path: 'add',
                 component: ChooseDatabase,
                 meta: {
-                    title: 'Team - Add Table'
+                    title: t('ui.teamAddTable')
                 }
             },
             {
@@ -51,7 +53,7 @@ export default [
                 path: 'create/:type',
                 component: CreateDatabase,
                 meta: {
-                    title: 'Team - Create Table'
+                    title: t('ui.teamCreateTable')
                 }
             }
         ]

@@ -1,6 +1,6 @@
 <template>
     <button
-        title="Toggle drawer"
+        :title="$t('ui.toggleDrawer')"
         class="drawer-trigger"
         :class="{ 'hidden': isHidden, 'nr5-plus': isNr5Plus, 'side-right': side === 'right' }"
         :aria-label="isHidden ? 'Open drawer' : 'Close drawer'"

@@ -1,8 +1,8 @@
 <template>
     <form class="px-4 sm:px-6 lg:px-8 mt-8 space-y-4  pt-4">
-        <FormHeading>Default Node-RED Settings</FormHeading>
-        <p>The following settings will be used when creating new Node-RED instances.</p>
-        <p>You can modify these values now or on the Stacks page of Admin settings.</p>
+        <FormHeading>{{ $t('ui.defaultNodeRedSettings') }}</FormHeading>
+        <p>{{ $t('ui.theFollowingSettingsWillBeUsedWhenCreatingNewNod') }}</p>
+        <p>{{ $t('ui.youCanModifyTheseValuesNowOrOnTheStacksPageOfAdm') }}</p>
         <template v-for="(prop) in stackProperties" :key="prop.name">
             <FormRow v-model="input.properties[prop.name]" :error="errors[prop.name]">
                 {{ prop.label }}
@@ -11,7 +11,7 @@
         </template>
         <div class="space-x-2">
             <ff-button class="mt-6" :disabled="!formValid" @click="next()">
-                Next
+                {{ $t('ui.next') }}
             </ff-button>
         </div>
     </form>

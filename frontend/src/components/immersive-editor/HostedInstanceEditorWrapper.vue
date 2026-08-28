@@ -27,6 +27,8 @@
 <script>
 import { mapActions, mapState } from 'pinia'
 
+import { t } from '../../i18n.js'
+
 import LoadingScreenWrapper from './LoadingScreenWrapper.vue'
 
 import { useUrlHelper } from '@/composables/UrlHelper'
@@ -92,10 +94,10 @@ export default {
                 return { state: this.instance.meta?.state, label: null, dataEl: null }
             }
             if (this.isEditorDisabled) {
-                return { state: 'editor-disabled', label: 'Editor Disabled', dataEl: 'editor-disabled-empty-state' }
+                return { state: 'editor-disabled', label: t('ui.editorDisabled'), dataEl: 'editor-disabled-empty-state' }
             }
             if (this.awaitingEditorRestart) {
-                return { state: 'restart-required', label: 'Restart Required', dataEl: 'editor-restart-required-empty-state' }
+                return { state: 'restart-required', label: t('ui.restartRequired'), dataEl: 'editor-restart-required-empty-state' }
             }
             return { state: this.instance.meta?.state, label: null, dataEl: null }
         }

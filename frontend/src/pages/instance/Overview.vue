@@ -3,12 +3,12 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <div class="ff-instance-info">
-                    <FormHeading><RectangleGroupIcon />Info</FormHeading>
+                    <FormHeading><RectangleGroupIcon />{{ $t('ui.info') }}</FormHeading>
 
                     <table class="table-fixed w-full border border-separate rounded-sm">
                         <tbody>
                             <tr class="border-b">
-                                <td class="w-48 font-medium">Direct URL</td>
+                                <td class="w-48 font-medium">{{ $t('ui.directUrl') }}</td>
                                 <td>
                                     <div class="info-row">
                                         <div class="info-row__content">
@@ -25,7 +25,7 @@
                                 </td>
                             </tr>
                             <tr class="border-b">
-                                <td class="font-medium">Status</td>
+                                <td class="font-medium">{{ $t('ui.status') }}</td>
                                 <td class="py-2">
                                     <InstanceStatusBadge
                                         :status="instance.meta.state"
@@ -37,30 +37,30 @@
                                 </td>
                             </tr>
                             <tr class="border-b">
-                                <td class="font-medium">Last Updated</td>
+                                <td class="font-medium">{{ $t('ui.lastUpdated') }}</td>
                                 <td class="py-2">
                                     <template v-if="instance.flowLastUpdatedSince">
                                         {{ instance.flowLastUpdatedSince }}
                                     </template>
                                     <span v-else class="text-gray-400 italic">
-                                        flows never deployed
+                                        {{ $t('ui.flowsNeverDeployed') }}
                                     </span>
                                 </td>
                             </tr>
 
                             <tr class="border-b">
-                                <td class="font-medium">Security</td>
+                                <td class="font-medium">{{ $t('ui.security') }}</td>
                                 <td>
                                     <div class="info-row">
                                         <span class="info-row__content">
                                             <template v-if="httpNodeAuthType == 'basic'">
-                                                HTTP basic authentication
+                                                {{ $t('ui.httpBasicAuthentication') }}
                                             </template>
                                             <template v-else-if="httpNodeAuthType == 'flowforge-user'">
-                                                FlowFuse User Authentication
+                                                {{ $t('ui.flowfuseUserAuthentication') }}
                                             </template>
                                             <template v-else>
-                                                None
+                                                {{ $t('ui.none') }}
                                             </template>
                                         </span>
                                         <router-link v-if="canEditProject" class="info-row__action" :to="{ name: 'instance-settings-security' }">
@@ -70,19 +70,19 @@
                                 </td>
                             </tr>
                             <tr class="border-b">
-                                <td class="font-medium">Scheduled Maintenance</td>
+                                <td class="font-medium">{{ $t('ui.scheduledMaintenance') }}</td>
                                 <td>
                                     <div class="info-row">
                                         <span class="info-row__content">
                                             <StatusBadge
                                                 v-if="autoStackUpgrade"
                                                 class="forge-status-running"
-                                                status="Enabled"
+                                                :status="$t('ui.enabled')"
                                             />
                                             <StatusBadge
                                                 v-else
                                                 class="text-gray-400"
-                                                status="Disabled"
+                                                :status="$t('ui.disabled2')"
                                             />
                                         </span>
                                         <router-link v-if="canEditProject" class="info-row__action" :to="{ name: 'instance-settings-maintenance' }">
@@ -92,19 +92,19 @@
                                 </td>
                             </tr>
                             <tr class="border-b">
-                                <td class="font-medium">High Availability</td>
+                                <td class="font-medium">{{ $t('ui.highAvailability') }}</td>
                                 <td>
                                     <div class="info-row">
                                         <span class="info-row__content">
                                             <StatusBadge
                                                 v-if="isHA"
                                                 class="forge-status-running"
-                                                status="Enabled"
+                                                :status="$t('ui.enabled')"
                                             />
                                             <StatusBadge
                                                 v-else
                                                 class="text-gray-400"
-                                                status="Disabled"
+                                                :status="$t('ui.disabled2')"
                                                 :text="!!features.ha ? 'Disabled' : 'Not Available'"
                                             />
                                         </span>
@@ -118,34 +118,34 @@
                     </table>
                 </div>
                 <div class="ff-instance-info">
-                    <FormHeading><ServerIcon />Specs</FormHeading>
+                    <FormHeading><ServerIcon />{{ $t('ui.specs') }}</FormHeading>
 
                     <table class="table-fixed w-full">
                         <tbody>
                             <tr class="border-b">
-                                <td class="w-48 font-medium">Type</td>
+                                <td class="w-48 font-medium">{{ $t('ui.type') }}</td>
                                 <td class="flex items-center">
                                     <div class="py-2 grow">{{ instance.projectType?.name || 'none' }} / {{ instance.stack?.label || instance.stack?.name || 'none' }}</div>
                                     <div v-if="instance.stack?.replacedBy">
-                                        <ff-button size="small" to="./settings/general?highlight=updateStack">Update</ff-button>
+                                        <ff-button size="small" to="./settings/general?highlight=updateStack">{{ $t('ui.update') }}</ff-button>
                                     </div>
                                 </td>
                             </tr>
                             <tr v-if="instance.template?.name" class="border-b">
-                                <td class="font-medium">Template</td>
+                                <td class="font-medium">{{ $t('ui.template') }}</td>
                                 <td><div class="py-2">{{ instance.template?.name }}</div></td>
                             </tr>
                             <template v-if="instance.meta?.versions">
                                 <tr class="border-b">
-                                    <td class="font-medium">Node-RED Version</td>
+                                    <td class="font-medium">{{ $t('ui.nodeRedVersion') }}</td>
                                     <td><div class="py-2">{{ instance.meta.versions['node-red'] }}</div></td>
                                 </tr>
                                 <tr class="border-b">
-                                    <td class="font-medium">Launcher Version</td>
+                                    <td class="font-medium">{{ $t('ui.launcherVersion') }}</td>
                                     <td><div class="py-2">{{ instance.meta.versions.launcher }}</div></td>
                                 </tr>
                                 <tr class="border-b">
-                                    <td class="font-medium">Node.js Version</td>
+                                    <td class="font-medium">{{ $t('ui.nodeJsVersion') }}</td>
                                     <td><div class="py-2">{{ instance.meta.versions.node }}</div></td>
                                 </tr>
                             </template>
@@ -154,10 +154,10 @@
                 </div>
             </div>
             <div class="ff-instance-info" data-el="recent-activity">
-                <FormHeading><ArrowTrendingUpIcon />Recent Activity</FormHeading>
+                <FormHeading><ArrowTrendingUpIcon />{{ $t('ui.recentActivity') }}</FormHeading>
                 <AuditLog :entries="auditLog" :loading="loading" :showLoadMore="false" :disableAccordion="true" :disableAssociations="true" />
                 <div v-if="!loading" class="pt-4 pb-4 text-center">
-                    <router-link to="./audit-log" class="forge-button-secondary">More...</router-link>
+                    <router-link to="./audit-log" class="forge-button-secondary">{{ $t('ui.more') }}</router-link>
                 </div>
             </div>
         </div>

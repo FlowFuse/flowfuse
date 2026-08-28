@@ -1,8 +1,8 @@
 <template>
     <form class="space-y-6">
-        <FormHeading>Application Creation</FormHeading>
+        <FormHeading>{{ $t('ui.applicationCreation') }}</FormHeading>
         <FormRow id="teamName" v-model="input.teamName" type="checkbox">
-            Limit application creation
+            {{ $t('ui.limitApplicationCreation') }}
             <template #description />
         </FormRow>
     </form>

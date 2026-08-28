@@ -5,14 +5,14 @@
         <div v-if="hasHeader" class="mb-8 text-sm text-gray-500">
             <template v-if="creatingNew">
                 <template v-if="!creatingApplication || applicationSelection">
-                    Let's get your new Node-RED instance setup in no time.
+                    {{ $t('ui.letSGetYourNewNodeRedInstanceSetupInNoTime') }}
                 </template>
                 <template v-else-if="!isCopyProject">
-                    Applications are used to manage and group together your Node-RED instances and devices.
+                    {{ $t('ui.applicationsAreUsedToManageAndGroupTogetherYourN3') }}
                 </template>
             </template>
             <template v-else>
-                Here you can make changes to the instances settings.
+                {{ $t('ui.hereYouCanMakeChangesToTheInstancesSettings') }}
             </template>
         </div>
 
@@ -26,7 +26,7 @@
                 data-form="application-id"
             >
                 <template #default>
-                    Application
+                    {{ $t('ui.application') }}
                 </template>
             </FormRow>
             <div class="italic text-gray-500 pl-1 pt-0.5 text-sm truncate">{{ selectedApplication?.description || '' }}</div>
@@ -37,36 +37,36 @@
                 v-model="input.applicationName"
                 :error="errors.applicationName || submitErrors?.applicationName"
                 :disabled="!creatingNew || applicationFieldsLocked"
-                placeholder="My Application Name"
+                :placeholder="$t('ui.myApplicationName')"
                 data-form="application-name"
             >
                 <template #default>
-                    Application Name
+                    {{ $t('ui.applicationName') }}
                 </template>
             </FormRow>
             <FormRow
                 v-model="input.applicationDescription"
                 :error="errors.applicationDescription || submitErrors?.applicationDescription"
                 :disabled="!creatingNew || applicationFieldsLocked"
-                placeholder="My Application Description"
+                :placeholder="$t('ui.myApplicationDescription')"
                 data-form="application-description"
             >
                 <template #default>
-                    Application Description
+                    {{ $t('ui.applicationDescription') }}
                 </template>
             </FormRow>
         </div>
 
         <FormRow v-if="creatingApplication && instancesAvailable" v-model="input.createInstance" type="checkbox" data-form="create-instance">
-            Create Node-RED Instance
+            {{ $t('ui.createNodeRedInstance') }}
             <template #description>
-                This will create an instance of Node-RED that will be managed in your new Application.
+                {{ $t('ui.thisWillCreateAnInstanceOfNodeRedThatWillBeManag') }}
             </template>
         </FormRow>
 
         <div v-if="instancesAvailable && (!creatingApplication || input.createInstance)" :class="creatingApplication ? 'ml-6' : ''" class="space-y-6">
-            <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." />
-            <FeatureUnavailableToTeam v-else-if="teamInstanceLimitReached" fullMessage="You have reached the instance limit for this team." />
+            <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" :fullMessage="$t('ui.youHaveReachedTheRuntimeLimitForThisTeam')" />
+            <FeatureUnavailableToTeam v-else-if="teamInstanceLimitReached" :fullMessage="$t('ui.youHaveReachedTheInstanceLimitForThisTeam')" />
             <!-- Instance Name -->
             <div>
                 <FormRow
@@ -77,14 +77,14 @@
                     data-form="project-name"
                 >
                     <template #default>
-                        Instance Name
+                        {{ $t('ui.instanceName') }}
                     </template>
                     <template v-if="creatingNew" #appended-description>
                         <p v-if="hasValidName" class="instance-name-confirmation">
                             <CheckCircleIcon class="ff-btn--icon" />
-                            <span>Your instance hostname will be "<i>{{ instanceName.toLowerCase() }}</i>".</span>
+                            <span>{{ $t('ui.yourInstanceHostnameWillBe') }}<i>{{ instanceName.toLowerCase() }}</i>".</span>
                         </p>
-                        The instance name is used to access the editor, so it must be suitable for use in a URL. It is not currently possible to rename the instance after it has been created.
+                        {{ $t('ui.theInstanceNameIsUsedToAccessTheEditorSoItMustBe') }}
                     </template>
                     <template v-if="creatingNew" #append>
                         <ff-button kind="secondary" @click="refreshName">
@@ -98,7 +98,7 @@
 
             <div v-if="creatingNew && flowBlueprintsEnabled && atLeastOneFlowBlueprint && !isCopyProject">
                 <div data-form="blueprint">
-                    <label class="block text-sm font-medium text-gray-800 mb-2">Blueprint</label>
+                    <label class="block text-sm font-medium text-gray-800 mb-2">{{ $t('ui.blueprint') }}</label>
                     <BlueprintTileSmall v-if="selectedBlueprint" :blueprint="selectedBlueprint" @click="previewBlueprint" />
                     <div v-if="showFlowBlueprintSelection" class="mt-2 flex gap-4" data-action="blueprint-actions">
                         <div
@@ -106,14 +106,14 @@
                             @click="previewBlueprint(selectedBlueprint)"
                         >
                             <ProjectIcon class="ff-btn--icon" />
-                            <span>Preview Blueprint</span>
+                            <span>{{ $t('ui.previewBlueprint') }}</span>
                         </div>
                         <div
                             class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline text-sm flex gap-1 items-center"
                             @click="blueprintDialogVisible = true"
                         >
                             <FolderIcon class="ff-btn--icon" />
-                            <span>Choose a different Blueprint</span>
+                            <span>{{ $t('ui.chooseADifferentBlueprint') }}</span>
                         </div>
                     </div>
                 </div>
@@ -125,7 +125,7 @@
             </div>
             <template v-else>
                 <div v-if="projectTypes.length > 0" class="flex flex-wrap items-stretch">
-                    <label class="w-full block text-sm font-medium text-gray-700">Choose your Instance Type</label>
+                    <label class="w-full block text-sm font-medium text-gray-700">{{ $t('ui.chooseYourInstanceType') }}</label>
                     <InstanceCreditBanner :subscription="subscription" />
                     <ff-tile-selection v-model="input.projectType" class="mt-5" data-form="project-type">
                         <ff-tile-selection-option
@@ -143,7 +143,7 @@
 
                 <!-- Stack -->
                 <div class="flex flex-wrap gap-1 items-stretch">
-                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">Choose your Node-RED Version</label>
+                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">{{ $t('ui.chooseYourNodeRedVersion') }}</label>
                     <FormRow
                         v-model="input.stack"
                         value="id" :options="stacks"
@@ -153,7 +153,7 @@
                     >
                         <template #description>
                             <label v-if="!input.projectType" class="text-sm text-gray-400">
-                                Please select a Instance Type first.
+                                {{ $t('ui.pleaseSelectAInstanceTypeFirst') }}
                             </label>
                             <label v-if="errors.stack" class="text-sm text-gray-400">
                                 {{ errors.stack }}
@@ -164,9 +164,9 @@
 
                 <!-- Template -->
                 <div v-if="creatingNew && templates.length > 1 " class="flex flex-wrap gap-1 items-stretch">
-                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">Template</label>
+                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">{{ $t('ui.template') }}</label>
                     <label v-if="!input.projectType || !input.stack" class="text-sm text-gray-400">
-                        Please select a Instance Type &amp; Node-RED Version first.
+                        {{ $t('ui.pleaseSelectAInstanceTypeAmpNodeRedVersionFirst') }}
                     </label>
                     <label v-if="errors.template" class="text-sm text-gray-400">{{ errors.template }}</label>
                     <ff-tile-selection v-if="input.projectType && input.stack" v-model="input.template" data-form="project-template">
@@ -203,7 +203,7 @@
 
         <div class="flex flex-wrap gap-1 items-center">
             <ff-button v-if="!creatingNew" class="ff-btn--secondary" @click="$router.back()">
-                Cancel
+                {{ $t('ui.cancel') }}
             </ff-button>
 
             <ff-button
@@ -212,15 +212,15 @@
                 type="submit"
             >
                 <template v-if="creatingNew">
-                    <span v-if="applicationFieldsVisible">Create Application<span v-if="input.createInstance && instancesAvailable"> &amp; Instance</span></span>
-                    <span v-else>Create Instance</span>
+                    <span v-if="applicationFieldsVisible">{{ $t('ui.createApplication') }}<span v-if="input.createInstance && instancesAvailable"> &amp; Instance</span></span>
+                    <span v-else>{{ $t('ui.createInstance') }}</span>
                 </template>
                 <template v-else>
-                    Confirm Changes
+                    {{ $t('ui.confirmChanges') }}
                 </template>
             </ff-button>
             <label v-if="!creatingNew && !formDirty" class="text-sm text-gray-400">
-                No changes have been made
+                {{ $t('ui.noChangesHaveBeenMade') }}
             </label>
         </div>
         <AssetDetailDialog ref="flowRendererDialog" class="preview-main-blueprint" />
@@ -252,6 +252,7 @@ import BlueprintSelectorDialog from '../../../components/dialogs/BlueprintSelect
 import ProjectIcon from '../../../components/icons/Projects.js'
 import { getTeamProperty } from '../../../composables/TeamProperties.js'
 
+import { t } from '../../../i18n.js'
 import NameGenerator from '../../../utils/name-generator/index.js'
 
 import BlueprintTileSmall from '../Blueprints/BlueprintTileSmall.vue'
@@ -498,7 +499,7 @@ export default {
             if (this.validateName(value)) {
                 this.errors.name = ''
             } else {
-                this.errors.name = 'Names must only include a→z, A→Z, -, 0→9 and can not start with 0→9'
+                this.errors.name = t('ui.namesMustOnlyIncludeAZAZ09AndCanNotStartWith09')
             }
         },
         'input.projectType': async function (value) {
@@ -630,14 +631,14 @@ export default {
         this.projectTypes = projectTypes
 
         if (this.projectTypes.length === 0) {
-            this.errors.projectType = 'No instance types available. Ask an Administrator to create a new instance type'
+            this.errors.projectType = t('ui.noInstanceTypesAvailableAskAnAdministratorToCrea')
         } else if (this.activeProjectTypeCount === 1) {
             // Only one active type - pre-select it for convenience
             this.input.projectType = this.projectTypes.find(pt => !pt.disabled).id
         }
 
         if (this.creatingNew && this.templates.length === 0) {
-            this.errors.template = 'No templates available. Ask an Administrator to create a new template definition'
+            this.errors.template = t('ui.noTemplatesAvailableAskAnAdministratorToCreateAN2')
         }
 
         if (this.creatingNew && !this.isCopyProject) {
@@ -719,7 +720,7 @@ export default {
 
             if (this.stacks.length === 0) {
                 this.input.stack = null
-                this.errors.stack = 'No Node-RED Versions available for this instance type. Ask an Administrator to create a Node-RED Version stack definition'
+                this.errors.stack = t('ui.noNodeRedVersionsAvailableForThisInstanceTypeAsk')
                 return
             }
 

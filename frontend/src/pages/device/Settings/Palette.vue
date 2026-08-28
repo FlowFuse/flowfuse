@@ -3,7 +3,7 @@
         <form class="space-y-6 max-w-2xl" @submit.prevent>
             <FormHeading>
                 <template #default>
-                    Node Catalogues
+                    {{ $t('ui.nodeCatalogues') }}
                 </template>
             </FormHeading>
             <div class="flex flex-col sm:flex-row" />
@@ -12,7 +12,7 @@
                     <div class="w-full flex items-center">
                         <div class="grow" :class="{'opacity-20': !defaultEnabled}">{{ defaultCatalogue }}</div>
                         <!-- Default is enabled, allow for removal -->
-                        <ff-button v-if="!defaultEnabled" v-ff-tooltip:left="'Restore Default Catalogue'" kind="tertiary" size="small" @click="addDefault()">
+                        <ff-button v-if="!defaultEnabled" v-ff-tooltip:left="$t('ui.restoreDefaultCatalogue')" kind="tertiary" size="small" @click="addDefault()">
                             <template #icon><UndoIcon /></template>
                         </ff-button>
                         <!-- Default is disabled, allow for restoration -->
@@ -39,7 +39,7 @@
             </div>
             <FormHeading>
                 <template #default>
-                    NPM configuration file
+                    {{ $t('ui.npmConfigurationFile') }}
                 </template>
             </FormHeading>
             <div class="flex flex-col sm:flex-row">
@@ -49,11 +49,11 @@
                     </FormRow>
                 </div>
             </div>
-            <ff-button size="small" :disabled="!changed" @click="save">Save Settings</ff-button>
+            <ff-button size="small" :disabled="!changed" @click="save">{{ $t('ui.saveSettings') }}</ff-button>
         </form>
     </div>
     <div v-else>
-        Only available to Application bound instances, Instance bound Devices will inherit from the Instance.
+        {{ $t('ui.onlyAvailableToApplicationBoundInstancesInstance') }}
     </div>
 </template>
 
@@ -65,6 +65,7 @@ import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import UndoIcon from '../../../components/icons/Undo.js'
 import usePermissions from '../../../composables/Permissions.js'
+import { t } from '../../../i18n.js'
 import alerts from '../../../services/alerts.js'
 
 export default {
@@ -150,7 +151,7 @@ export default {
             }
             deviceApi.updateSettings(this.device.id, settings)
             this.$emit('device-updated')
-            alerts.emit('Device settings successfully updated.', 'confirmation', 6000)
+            alerts.emit(t('ui.deviceSettingsSuccessfullyUpdated'), 'confirmation', 6000)
             this.initial.urls = []
             this.initial.urls.push(...this.urls)
             this.initial.npmrc = `${this.npmrc}`

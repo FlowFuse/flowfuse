@@ -1,6 +1,6 @@
 <template>
     <ff-dialog
-        ref="dialog" :header="header" confirm-label="Close" :closeOnConfirm="true" data-el="flow-view-dialog"
+        ref="dialog" :header="header" :confirm-label="$t('ui.close')" :closeOnConfirm="true" data-el="flow-view-dialog"
         boxClass="min-w-[80%]! min-h-[80%]! w-[80%]! h-[80%]!" contentClass="overflow-hidden grow"
         @confirm="confirm"
     >
@@ -18,14 +18,14 @@
                 <ff-kebab-menu v-if="hasCompared" :menu-items-attrs="{ 'data-click-exclude': 'right-drawer' }">
                     <ff-kebab-item
                         :icon="hidePositionChanges ? CheckIcon : null"
-                        label="Simple view"
-                        title="Hide changes to node positions (x, y)"
+                        :label="$t('ui.simpleView')"
+                        :title="$t('ui.hideChangesToNodePositionsXY')"
                         @click="hidePositionChanges = !hidePositionChanges"
                     />
                     <ff-kebab-item
                         :icon="expandedByDefault ? CheckIcon : null"
-                        label="Expand all"
-                        title="Expand all property panels when switching between changes"
+                        :label="$t('ui.expandAll')"
+                        :title="$t('ui.expandAllPropertyPanelsWhenSwitchingBetweenChang')"
                         @click="expandedByDefault = !expandedByDefault"
                     />
                 </ff-kebab-menu>
@@ -33,7 +33,7 @@
 
             <!-- Loading state -->
             <div v-if="loading" class="flex-1 flex items-center justify-center text-sm text-gray-400">
-                Loading snapshot…
+                {{ $t('ui.loadingSnapshot') }}
             </div>
 
             <!-- Navigation bar — shown after comparison -->
@@ -47,25 +47,25 @@
                         {{ currentGroupTabMove.from }} → {{ currentGroupTabMove.to }}
                     </span>
                 </div>
-                <div v-else class="flex-1 text-sm text-gray-400 text-center">No differences found</div>
+                <div v-else class="flex-1 text-sm text-gray-400 text-center">{{ $t('ui.noDifferencesFound') }}</div>
                 <!-- Prev / counter / Next grouped so the two buttons are adjacent -->
                 <div class="flex items-center gap-1 shrink-0">
                     <button
                         class="px-2 py-0.5 text-sm rounded-sm border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
                         :disabled="currentGroupIndex === 0"
-                        title="Previous change (←)"
+                        :title="$t('ui.previousChange')"
                         @click="navigate(-1)"
                     >
-                        ‹ Prev
+                        {{ $t('ui.prev') }}
                     </button>
                     <span class="text-xs text-gray-400 px-1">{{ groupedChanges.length ? `${currentGroupIndex + 1} / ${groupedChanges.length}` : '0' }}</span>
                     <button
                         class="px-2 py-0.5 text-sm rounded-sm border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
                         :disabled="currentGroupIndex >= groupedChanges.length - 1"
-                        title="Next change (→)"
+                        :title="$t('ui.nextChange')"
                         @click="navigate(1)"
                     >
-                        Next ›
+                        {{ $t('ui.next2') }}
                     </button>
                 </div>
             </div>
@@ -88,7 +88,7 @@
                 <!-- Property diff sidebar -->
                 <div v-if="hasCompared" class="ff-compare-sidebar border-l border-gray-200 overflow-y-auto bg-white shrink-0" :style="{ width: sidebarWidth + 'px' }">
                     <div v-if="!currentGroupChanges.length" class="px-3 py-4 text-xs text-gray-400 italic text-center">
-                        No property changes for this node.
+                        {{ $t('ui.noPropertyChangesForThisNode') }}
                     </div>
                     <SnapshotDiffChangePanel
                         v-for="change in currentGroupChanges"
@@ -105,7 +105,7 @@
         </template>
         <template #actions>
             <div class="flex justify-end">
-                <ff-button data-action="dialog-confirm" @click="confirm">Close</ff-button>
+                <ff-button data-action="dialog-confirm" @click="confirm">{{ $t('ui.close') }}</ff-button>
             </div>
         </template>
     </ff-dialog>
@@ -116,6 +116,7 @@ import FlowRenderer from '@flowfuse/flow-renderer'
 import { CheckIcon } from '@heroicons/vue/24/outline'
 
 import SnapshotsApi from '../../api/snapshots.js'
+import { t } from '../../i18n.js'
 import Alerts from '../../services/alerts.js'
 
 import SnapshotDiffChangePanel from './SnapshotDiffChangePanel.vue'
@@ -407,16 +408,16 @@ export default {
                 if (c.prop === 'x') { xChange = c; continue }
                 if (c.prop === 'y') { yChange = c; continue }
                 if (c.prop === 'z') {
-                    result.push({ prop: 'z', label: 'Tab', value1: this.resolveTabName(c.value1), value2: this.resolveTabName(c.value2) })
+                    result.push({ prop: 'z', label: t('ui.tab'), value1: this.resolveTabName(c.value1), value2: this.resolveTabName(c.value2) })
                     continue
                 }
                 if (c.prop === 'g') {
-                    result.push({ prop: 'g', label: 'Group', value1: this.resolveNodeName(c.value1), value2: this.resolveNodeName(c.value2) })
+                    result.push({ prop: 'g', label: t('ui.group2'), value1: this.resolveNodeName(c.value1), value2: this.resolveNodeName(c.value2) })
                     continue
                 }
                 if (c.prop === 'disabled') {
                     // Show as "enabled" / "disabled" rather than raw true/false
-                    result.push({ prop: 'disabled', label: 'Status', value1: this.resolveDisabled(c.value1), value2: this.resolveDisabled(c.value2) })
+                    result.push({ prop: 'disabled', label: t('ui.status'), value1: this.resolveDisabled(c.value1), value2: this.resolveDisabled(c.value2) })
                     continue
                 }
                 if (c.prop === 'wires') {

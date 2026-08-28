@@ -1,3 +1,5 @@
+import { t } from '../../../i18n.js'
+
 import InstanceSnapshots from './Snapshots/index.vue'
 import HistoryTimeline from './Timeline/index.vue'
 
@@ -7,7 +9,7 @@ export default [
         name: 'instance-version-history-timeline',
         component: HistoryTimeline,
         meta: {
-            title: 'Instance - Version History Timeline'
+            title: t('ui.instanceVersionHistoryTimeline')
         }
     },
     {
@@ -15,7 +17,7 @@ export default [
         name: 'instance-snapshots',
         component: InstanceSnapshots,
         meta: {
-            title: 'Instance - Snapshots'
+            title: t('ui.instanceSnapshots2')
         }
     }
 ]

@@ -1,27 +1,24 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Pipelines">
+            <ff-page-header :title="$t('ui.pipelines')">
                 <template #context>
-                    Manage your production and edge deployments using the DevOps Pipelines
+                    {{ $t('ui.manageYourProductionAndEdgeDeploymentsUsingTheDe') }}
                 </template>
                 <template #pictogram>
                     <img alt="info" src="../../../images/pictograms/pipeline_red.png">
                 </template>
                 <template #helptext>
                     <p>
-                        DevOps Pipelines are used to link multiple Node-RED instances together in a deployment
-                        pipeline.
+                        {{ $t('ui.devopsPipelinesAreUsedToLinkMultipleNodeRedInsta') }}
                     </p>
                     <p>
-                        This is normally used to define "Development" instances, where you can test your new flows
-                        without fear or breaking "Production" environments, and then, when you're ready, deploy your
-                        changes with a single click
+                        {{ $t('ui.thisIsNormallyUsedToDefineDevelopmentInstancesWh2') }}
                     </p>
                     <p>
-                        Get started by choosing an
-                        <router-link :to="{name: 'team'}">Application</router-link>
-                        to build your first DevOps Pipeline in.
+                        {{ $t('ui.getStartedByChoosingAn') }}
+                        <router-link :to="{name: 'team'}">{{ $t('ui.application') }}</router-link>
+                        {{ $t('ui.toBuildYourFirstDevopsPipelineIn') }}
                     </p>
                 </template>
             </ff-page-header>
@@ -34,24 +31,24 @@
                 <img src="../../../images/empty-states/application-pipelines.png" alt="logo">
             </template>
             <template #header>
-                <span>DevOps Pipelines Not Available</span>
+                <span>{{ $t('ui.devopsPipelinesNotAvailable') }}</span>
             </template>
             <template #message>
-                <p>DevOps Pipelines are used to link multiple Node-RED instances together in a deployment pipeline.</p>
-                <p>This is normally used to define "Development" instances, where you can test your new flows without fear or breaking "Production" environments, and then, when you're ready, deploy your changes with a single click</p>
+                <p>{{ $t('ui.devopsPipelinesAreUsedToLinkMultipleNodeRedInsta') }}</p>
+                <p>{{ $t('ui.thisIsNormallyUsedToDefineDevelopmentInstancesWh') }}</p>
             </template>
         </EmptyState>
 
         <template v-else>
             <div id="team-pipelines" class="space-y-6" data-page="team-pipelines">
-                <ff-loading v-if="loading" message="Loading Pipelines..." />
+                <ff-loading v-if="loading" :message="$t('ui.loadingPipelines')" />
 
                 <template v-else>
                     <ff-text-input
                         v-model="filterTerm"
                         class="ff-data-table--search"
                         data-form="search"
-                        placeholder="Search Pipelines..."
+                        :placeholder="$t('ui.searchPipelines')"
                     >
                         <template #icon>
                             <MagnifyingGlassIcon />
@@ -65,7 +62,7 @@
                             </li>
                         </ul>
                         <p v-if="filteredPipelines.length === 0" class="no-results">
-                            No Data Found. Try Another Search.
+                            {{ $t('ui.noDataFoundTryAnotherSearch') }}
                         </p>
                     </section>
 
@@ -73,11 +70,11 @@
                         <template #img>
                             <img src="../../../images/empty-states/application-pipelines.png" alt="logo">
                         </template>
-                        <template #header>Start building your DevOps pipelines</template>
+                        <template #header>{{ $t('ui.startBuildingYourDevopsPipelines') }}</template>
                         <template #message>
-                            <p>DevOps Pipelines are used to link multiple Node-RED instances together in a deployment pipeline.</p>
-                            <p>This is normally used to define "Development" instances, where you can test your new flows without fear or breaking "Production" environments, and then, when you're ready, deploy your changes with a single click</p>
-                            <p>Get started by choosing an <router-link :to="{name: 'team'}" class="text-blue-600 hover:text-blue-800 hover:underline">Application</router-link> to build your first DevOps Pipeline in.</p>
+                            <p>{{ $t('ui.devopsPipelinesAreUsedToLinkMultipleNodeRedInsta') }}</p>
+                            <p>{{ $t('ui.thisIsNormallyUsedToDefineDevelopmentInstancesWh') }}</p>
+                            <p>{{ $t('ui.getStartedByChoosingAn') }} <router-link :to="{name: 'team'}" class="text-blue-600 hover:text-blue-800 hover:underline">{{ $t('ui.application') }}</router-link> {{ $t('ui.toBuildYourFirstDevopsPipelineIn') }}</p>
                         </template>
                     </EmptyState>
                 </template>

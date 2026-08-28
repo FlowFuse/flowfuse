@@ -1,8 +1,8 @@
 <template>
     <ff-dialog
         ref="dialog"
-        header="Change Instance Node-RED Version"
-        confirm-label="Change Node-RED Version"
+        :header="$t('ui.changeInstanceNodeRedVersion')"
+        :confirm-label="$t('ui.changeNodeRedVersion')"
         class="ff-dialog-fixed-height"
         data-el="change-stack-dialog"
         @confirm="confirm()"
@@ -10,7 +10,7 @@
         <template #default>
             <form class="space-y-6" @submit.prevent>
                 <p>
-                    Select the new Node-RED Version you want to use for this instance:
+                    {{ $t('ui.selectTheNewNodeRedVersionYouWantToUseForThisIns') }}
                 </p>
                 <FormRow
                     v-model="input.stack"
@@ -18,7 +18,7 @@
                     data-form="snapshot"
                     containerClass="w-full"
                 >
-                    Node-RED Version
+                    {{ $t('ui.nodeRedVersion') }}
                 </FormRow>
             </form>
         </template>

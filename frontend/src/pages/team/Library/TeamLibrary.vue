@@ -1,6 +1,6 @@
 <template>
     <div class="ff-team-library overflow-auto flex flex-col">
-        <SectionTopMenu hero="Team Library" info="Centralized management of common Javascript functions and Node-RED flows for your team." />
+        <SectionTopMenu :hero="$t('ui.teamLibrary')" :info="$t('ui.centralizedManagementOfCommonJavascriptFunctions')" />
         <div v-if="featuresCheck.isSharedLibraryFeatureEnabled" class="breadcrumbs-wrapper">
             <div :class="{'ff-breadcrumbs': true, 'disable-last': !viewingFile}">
                 <span v-for="(crumb, $index) in breadcrumbs" :key="$index" class="flex items-center">
@@ -8,7 +8,7 @@
                     <ChevronRightIcon v-if="breadcrumbs.length === 1 || $index !== breadcrumbs.length - 1" class="ff-icon" />
                 </span>
             </div>
-            <ff-button v-if="file?.contents" kind="secondary" size="small" @click="copyToClipboard()">Copy to Clipboard</ff-button>
+            <ff-button v-if="file?.contents" kind="secondary" size="small" @click="copyToClipboard()">{{ $t('ui.copyToClipboard') }}</ff-button>
         </div>
         <ff-data-table v-if="!viewingFile && rows.length > 0" :columns="columns" :rows="rows">
             <template #rows>
@@ -17,7 +17,7 @@
                     <ff-data-table-cell>{{ row.name }}</ff-data-table-cell>
                     <ff-data-table-cell>{{ formatDateTime(row.updatedAt) }}</ff-data-table-cell>
                     <template #context-menu>
-                        <ff-kebab-item class="ff-kebab-item--danger" label="Delete" @click.stop="deleteFile(row)" />
+                        <ff-kebab-item class="ff-kebab-item--danger" :label="$t('ui.delete')" @click.stop="deleteFile(row)" />
                     </template>
                 </ff-data-table-row>
             </template>
@@ -29,25 +29,25 @@
             <template #img>
                 <img src="../../../images/empty-states/team-library.png" alt="team-logo">
             </template>
-            <template #header>Create your own Team Library</template>
+            <template #header>{{ $t('ui.createYourOwnTeamLibrary') }}</template>
             <template #message>
                 <p>
-                    You can import and export flows and functions to a shared <a class="ff-link" href="https://flowfuse.com/docs/user/shared-library/" target="_blank">Team Library</a> from within your Node-RED Instances.
+                    {{ $t('ui.youCanImportAndExportFlowsAndFunctionsToAShared') }} <a class="ff-link" href="https://flowfuse.com/docs/user/shared-library/" target="_blank">{{ $t('ui.teamLibrary') }}</a> {{ $t('ui.fromWithinYourNodeRedInstances') }}
                 </p>
                 <p>
-                    The contents of your Team Library will show here, and will be available within all of your Node-RED instances on FlowFuse.
+                    {{ $t('ui.theContentsOfYourTeamLibraryWillShowHereAndWillB') }}
                 </p>
             </template>
             <template #actions>
-                <ff-button v-if="featuresCheck.isSharedLibraryFeatureEnabled" :to="{name: 'team-hosted-instances'}" data-el="go-to-instances">Go To Instances</ff-button>
+                <ff-button v-if="featuresCheck.isSharedLibraryFeatureEnabled" :to="{name: 'team-hosted-instances'}" data-el="go-to-instances">{{ $t('ui.goToInstances') }}</ff-button>
                 <ff-button v-else :to="{name: 'team-hosted-instances'}" :disabled="true">
-                    Add To Library
+                    {{ $t('ui.addToLibrary') }}
                     <template #icon-right><PlusIcon /></template>
                 </ff-button>
             </template>
             <template #note>
                 <p>
-                    You can see a video of how to get started with this feature <a class="ff-link" href="https://www.youtube.com/watch?v=B7XK3TUklUU" target="_blank">here</a>.
+                    {{ $t('ui.youCanSeeAVideoOfHowToGetStartedWithThisFeature') }} <a class="ff-link" href="https://www.youtube.com/watch?v=B7XK3TUklUU" target="_blank">{{ $t('ui.here') }}</a>.
                 </p>
             </template>
         </EmptyState>
@@ -65,6 +65,7 @@ import EmptyState from '../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import FlowViewer from '../../../components/flow-viewer/FlowViewer.vue'
 import usePermissions from '../../../composables/Permissions.js'
+import { t } from '../../../i18n.js'
 import formatDateMixin from '../../../mixins/DateTime.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
@@ -99,10 +100,10 @@ export default {
                 class: ['w-2']
             }, {
                 key: 'name',
-                label: 'Name'
+                label: t('ui.name')
             }, {
                 key: 'updatedAt',
-                label: 'Date Modified',
+                label: t('ui.dateModified'),
                 class: ['w-80']
             }, {
                 key: 'actions'
@@ -138,9 +139,9 @@ export default {
         },
         async deleteFile (file) {
             Dialog.show({
-                header: 'Delete File',
+                header: t('ui.deleteFile'),
                 kind: 'danger',
-                text: 'Are you sure you want to delete this file? Once deleted, there is no going back.',
+                text: t('ui.areYouSureYouWantToDeleteThisFileOnceDeletedTher'),
                 confirmLabel: 'Delete'
             }, async () => {
                 try {

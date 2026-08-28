@@ -1,14 +1,14 @@
 <template>
     <section class="ff-select-application-step text-center flex flex-col gap-4 pt-6" data-step="application">
         <template v-if="hasApplications">
-            <h2>Choose an Application</h2>
+            <h2>{{ $t('ui.chooseAnApplication') }}</h2>
 
-            <p>Applications are used to manage and group together your Node-RED Instances and resources.</p>
+            <p>{{ $t('ui.applicationsAreUsedToManageAndGroupTogetherYourN2') }}</p>
 
             <div v-if="writableApplications.length > 5" class="search-wrapper flex justify-center my-2">
                 <ff-text-input
                     v-model="searchTerm" class="ff-data-table--search max-w-2xl w-full col-span-3 relative"
-                    data-form="search" placeholder="Search applications"
+                    data-form="search" :placeholder="$t('ui.searchApplications')"
                 >
                     <template #icon><MagnifyingGlassIcon /></template>
                     <template #icon-right>
@@ -35,12 +35,12 @@
                             {{ application.label }}
                         </h5>
                         <div class="counters flex gap-4 items-center">
-                            <div title="Number Of Hosted Instances" class="remote flex gap-1 justify-between truncate items-center">
+                            <div :title="$t('ui.numberOfHostedInstances')" class="remote flex gap-1 justify-between truncate items-center">
                                 <IconNodeRedSolid class="ff-icon ff-icon-sm text-red-800" />
                                 <span class="counter">{{ application.counters.instances }}</span>
                             </div>
                             <div class="hosted flex gap-1 justify-between truncate items-center">
-                                <IconDeviceSolid title="Number of Remote Instances" class="ff-icon ff-icon-sm text-teal-700" />
+                                <IconDeviceSolid :title="$t('ui.numberOfRemoteInstances')" class="ff-icon ff-icon-sm text-teal-700" />
                                 <span class="counter">{{ application.counters.devices }}</span>
                             </div>
                         </div>
@@ -55,33 +55,33 @@
             </ul>
         </template>
         <template v-else>
-            <h2>Create an Application</h2>
+            <h2>{{ $t('ui.createAnApplication') }}</h2>
 
-            <p>Applications are used to manage and group together your Node-RED instances.</p>
+            <p>{{ $t('ui.applicationsAreUsedToManageAndGroupTogetherYourN') }}</p>
 
             <div class="max-w-lg w-full m-auto text-left flex flex-col gap-4">
                 <FormRow
                     v-model="input.name"
                     containerClass="none"
-                    placeholder="Application Name"
+                    :placeholder="$t('ui.applicationName')"
                     data-form="application-name"
                 >
                     <template #default>
-                        Application Name
+                        {{ $t('ui.applicationName') }}
                     </template>
                 </FormRow>
 
                 <FormRow
                     containerClass="none"
-                    placeholder="Application Description"
+                    :placeholder="$t('ui.applicationDescription')"
                     data-form="application-description"
                     type="text"
                 >
                     <template #default>
-                        Application Description
+                        {{ $t('ui.applicationDescription') }}
                     </template>
                     <template #input>
-                        <textarea v-model="input.description" placeholder="Application Description" class="w-full flex-co" />
+                        <textarea v-model="input.description" :placeholder="$t('ui.applicationDescription')" class="w-full flex-co" />
                     </template>
                 </FormRow>
 
@@ -94,11 +94,11 @@
                     type="checkbox"
                 >
                     <template #default>
-                        Create Node-RED Instance
+                        {{ $t('ui.createNodeRedInstance') }}
                     </template>
                     <template #append>
                         <span class="ff-description">
-                            This will create an instance of Node-RED that will be managed in your new Application.
+                            {{ $t('ui.thisWillCreateAnInstanceOfNodeRedThatWillBeManag') }}
                         </span>
                     </template>
                 </FormRow>

@@ -1,7 +1,7 @@
 <template>
     <ff-dialog
         ref="dialog"
-        confirm-label="Delete"
+        :confirm-label="$t('ui.delete')"
         data-el="delete-instance-dialog"
         :header="'Delete Instance: \'' + localInstance?.name + '\''"
         kind="danger"
@@ -12,13 +12,13 @@
         <template #default>
             <form class="space-y-4" @submit.prevent>
                 <p>
-                    Are you sure you want to delete this instance? Once deleted, there is no going back.
+                    {{ $t('ui.areYouSureYouWantToDeleteThisInstanceOnceDeleted') }}
                 </p>
                 <p>
-                    Name: <span class="font-bold" data-el="instance-name">{{ localInstance?.name }}</span>
+                    {{ $t('ui.name2') }} <span class="font-bold" data-el="instance-name">{{ localInstance?.name }}</span>
                 </p>
                 <p>
-                    Please type in the instance name to confirm.
+                    {{ $t('ui.pleaseTypeInTheInstanceNameToConfirm') }}
                 </p>
                 <FormRow v-model="input.instanceName" :placeholder="'Instance Name'" data-form="instance-name" />
             </form>
@@ -30,6 +30,7 @@
 
 import InstanceApi from '../../../../api/instances.js'
 import FormRow from '../../../../components/FormRow.vue'
+import { t } from '../../../../i18n.js'
 import alerts from '../../../../services/alerts.js'
 
 export default {
@@ -76,10 +77,10 @@ export default {
             if (this.formValid) {
                 InstanceApi.deleteInstance(this.localInstance)
                     .then(() => this.$emit('confirm', this.localInstance))
-                    .then(() => alerts.emit('Instance successfully deleted.', 'confirmation'))
+                    .then(() => alerts.emit(t('ui.instanceSuccessfullyDeleted'), 'confirmation'))
                     .catch(err => {
                         console.warn(err)
-                        alerts.emit('Instance failed to delete.', 'warning')
+                        alerts.emit(t('ui.instanceFailedToDelete'), 'warning')
                     })
             }
         },

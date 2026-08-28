@@ -3,13 +3,13 @@
         <template #button>
             <div v-if="team" class="flex grow items-center">
                 <div class="ff-team-selection-name">
-                    <label>TEAM:</label>
+                    <label>{{ $t('ui.team') }}</label>
                     <h5>{{ team.name }}</h5>
                 </div>
             </div>
             <div v-else class="flex grow items-center">
                 <div class="ff-team-selection-name">
-                    <h5>Select a team</h5>
+                    <h5>{{ $t('ui.selectATeam') }}</h5>
                 </div>
             </div>
         </template>
@@ -46,6 +46,8 @@ import { mapState } from 'pinia'
 
 import usePermissions from '../composables/Permissions.js'
 
+import { t } from '../i18n.js'
+
 import NavItem from './NavItem.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
@@ -76,12 +78,12 @@ export default {
                 }),
                 (
                     this.team && this.hasPermission('team:user:invite')
-                        ? { label: 'Invite Members', value: 'invite-members', icon: UserPlusIcon }
+                        ? { label: t('ui.inviteMembers'), value: 'invite-members', icon: UserPlusIcon }
                         : undefined
                 ),
                 (
                     this.canCreateTeam
-                        ? { label: 'Create New Team', value: 'create-new-team', icon: PlusIcon }
+                        ? { label: t('ui.createNewTeam'), value: 'create-new-team', icon: PlusIcon }
                         : undefined
                 )
             ].filter(v => v)

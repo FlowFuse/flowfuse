@@ -1,13 +1,13 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Instance Types">
+            <ff-page-header :title="$t('ui.instanceTypes')">
                 <template #tools>
                     <ff-button data-action="create-type" @click="showCreateInstanceTypeDialog">
                         <template #icon-right>
                             <PlusSmallIcon />
                         </template>
-                        Create instance type
+                        {{ $t('ui.createInstanceType') }}
                     </ff-button>
                 </template>
             </ff-page-header>
@@ -24,17 +24,17 @@
                 />
             </ff-tile-selection>
             <div v-if="nextCursor">
-                <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
+                <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">{{ $t('ui.loadMore') }}</a>
             </div>
-            <SectionTopMenu hero="Inactive Types" />
+            <SectionTopMenu :hero="$t('ui.inactiveTypes')" />
             <ff-data-table :columns="columns" :rows="inactiveInstanceTypes" data-el="inactive-types">
                 <template #context-menu="{row}">
-                    <ff-kebab-item label="Edit Instance Type" @click="instanceTypeAction('edit', row.id)" />
-                    <ff-kebab-item label="Delete Instance Type" kind="danger" @click="instanceTypeAction('delete', row.id)" />
+                    <ff-kebab-item :label="$t('ui.editInstanceType')" @click="instanceTypeAction('edit', row.id)" />
+                    <ff-kebab-item :label="$t('ui.deleteInstanceType')" kind="danger" @click="instanceTypeAction('delete', row.id)" />
                 </template>
             </ff-data-table>
             <div v-if="nextCursor">
-                <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
+                <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">{{ $t('ui.loadMore') }}</a>
             </div>
         </div>
         <InstanceTypeEditDialog
@@ -54,6 +54,7 @@ import instanceTypesApi from '../../../api/instanceTypes.js'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 
 import MarkdownCell from '../../../components/tables/cells/MarkdownCell.vue'
+import { t } from '../../../i18n.js'
 import Dialog from '../../../services/dialog.js'
 
 import InstanceTypeEditDialog from './dialogs/InstanceTypeEditDialog.vue'
@@ -74,11 +75,11 @@ export default {
             nextCursor: null,
             columns: [
                 { label: 'ID', key: 'id', sortable: true, class: ['w-32'] },
-                { label: 'Type', key: 'name', sortable: true },
-                { label: 'Description', key: 'description', sortable: true, component: { is: markRaw(MarkdownCell), map: { markdown: 'description' } } },
-                { label: 'Default Stack', class: ['w-48'], key: 'defaultStack', sortable: true },
-                { label: 'Application Instances', class: ['w-32', 'text-center'], key: 'instanceCount', sortable: true },
-                { label: 'Stacks', class: ['w-32', 'text-center'], key: 'stackCount', sortable: true }
+                { label: t('ui.type'), key: 'name', sortable: true },
+                { label: t('ui.description'), key: 'description', sortable: true, component: { is: markRaw(MarkdownCell), map: { markdown: 'description' } } },
+                { label: t('ui.defaultStack'), class: ['w-48'], key: 'defaultStack', sortable: true },
+                { label: t('ui.applicationInstances'), class: ['w-32', 'text-center'], key: 'instanceCount', sortable: true },
+                { label: t('ui.stacks'), class: ['w-32', 'text-center'], key: 'stackCount', sortable: true }
             ]
         }
     },
@@ -119,7 +120,7 @@ export default {
         showConfirmInstanceTypeDeleteDialog (instanceType) {
             const text = instanceType.instanceCount > 0 ? 'You cannot delete an instance type that is still being used by instances.' : 'Are you sure you want to delete this instance type?'
             Dialog.show({
-                header: 'Delete Instance Type',
+                header: t('ui.deleteInstanceType'),
                 kind: 'danger',
                 text,
                 confirmLabel: 'Delete',

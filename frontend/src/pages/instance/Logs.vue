@@ -1,15 +1,15 @@
 <template>
     <div id="instance-logs-page" class="flex-1 flex flex-col overflow-auto">
         <div class="mb-3" data-el="instance-logs">
-            <SectionTopMenu hero="Node-RED Logs" info="">
+            <SectionTopMenu :hero="$t('ui.nodeRedLogs')" info="">
                 <template #tools>
                     <div style="display: flex;align-items: center;">
-                        <div class="mr-2"><strong>Jump:</strong></div>
+                        <div class="mr-2"><strong>{{ $t('ui.jump') }}</strong></div>
                         <DateTimePicker
                             v-model="startDate"
                             is-24
                             enable-seconds
-                            placeholder="Start Time"
+                            :placeholder="$t('ui.startTime')"
                             :locale="locale"
                             :format="format"
                             :min-date="logsStartDate"
@@ -18,7 +18,7 @@
                         />
                     </div>
                     <div v-if="instance.ha?.replicas != undefined" style="display: flex;align-items: center;">
-                        <div class="mr-2"><strong>Replica:</strong></div>
+                        <div class="mr-2"><strong>{{ $t('ui.replica') }}</strong></div>
                         <ff-listbox
                             ref="dropdown"
                             v-model="selectedHAId"
@@ -35,6 +35,7 @@
 
 <script>
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
+import { t } from '../../i18n.js'
 import DateTimePicker from '../../ui-components/components/form/DateTime.vue'
 import FfListbox from '../../ui-components/components/form/ListBox.vue'
 
@@ -66,7 +67,7 @@ export default {
     },
     computed: {
         haIdOptions () {
-            return [{ label: 'All', value: 'all' }, ...this.haIds.map(id => ({ label: id, value: id }))]
+            return [{ label: t('ui.all'), value: 'all' }, ...this.haIds.map(id => ({ label: id, value: id }))]
         },
         locale () {
             return window.navigator.language

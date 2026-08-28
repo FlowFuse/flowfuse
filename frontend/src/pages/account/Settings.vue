@@ -74,7 +74,7 @@ import userApi from '../../api/user.js'
 
 import FormHeading from '../../components/FormHeading.vue'
 import FormRow from '../../components/FormRow.vue'
-import { SUPPORTED_LOCALES, setLocale } from '../../i18n.js'
+import { SUPPORTED_LOCALES, setLocale, t } from '../../i18n.js'
 import alerts from '../../services/alerts.js'
 import dialog from '../../services/dialog.js'
 import { RoleNames, Roles } from '../../utils/roles.js'
@@ -188,7 +188,7 @@ export default {
     watch: {
         'input.username': function (v) {
             if (v && !/^[a-z0-9-_]+$/i.test(v)) {
-                this.errors.username = 'Must only contain a-z 0-9 - _'
+                this.errors.username = t('ui.mustOnlyContainAZ09')
             } else {
                 this.errors.username = ''
             }
@@ -196,7 +196,7 @@ export default {
         },
         'input.email': function (v) {
             if (v && !/.+@.+/.test(v)) {
-                this.errors.email = 'Enter a valid email address'
+                this.errors.email = t('ui.enterAValidEmailAddress')
             } else {
                 this.errors.email = ''
             }
@@ -318,19 +318,19 @@ export default {
                 }).catch(err => {
                     if (err.response?.data) {
                         if (/username/.test(err.response.data.error)) {
-                            this.errors.username = 'Username unavailable'
+                            this.errors.username = t('ui.usernameUnavailable')
                         }
                         if (err.response.data.code === 'invalid_email') {
-                            this.errors.email = 'Invalid email'
+                            this.errors.email = t('ui.invalidEmail')
                         }
                         if (/password/.test(err.response.data.error)) {
-                            this.errors.password = 'Invalid username'
+                            this.errors.password = t('ui.invalidUsername')
                         }
                         if (err.response.data.error === 'email must be unique' || err.response.data.error.includes('already in use')) {
-                            this.errors.email = 'Email already registered'
+                            this.errors.email = t('ui.emailAlreadyRegistered')
                         }
                     } else {
-                        alerts.emit('Error updating user', 'warning')
+                        alerts.emit(t('ui.errorUpdatingUser'), 'warning')
                     }
                 }).finally(() => {
                     this.loading = false
@@ -340,7 +340,7 @@ export default {
         deleteAccount () {
             // ask user if they are sure, if so, delete account
             dialog.show({
-                header: 'Delete Account',
+                header: t('ui.deleteAccount'),
                 kind: 'danger',
                 text: `Are you sure you want to delete your account?
                        This action cannot be undone.`,
@@ -363,14 +363,14 @@ export default {
         },
         deleteTeam (teamId) {
             dialog.show({
-                header: 'Delete Team',
+                header: t('ui.deleteTeam'),
                 kind: 'danger',
-                text: 'Are you sure you want to delete this team? This cannot be undone. All Instances and resources within this team will be removed.',
+                text: t('ui.areYouSureYouWantToDeleteThisTeamThisCannotBeUnd'),
                 confirmLabel: 'Delete Team'
             }, async () => {
                 teamApi.deleteTeam(teamId)
                     .then(() => {
-                        alerts.emit('Team successfully deleted', 'confirmation')
+                        alerts.emit(t('ui.teamSuccessfullyDeleted'), 'confirmation')
                         // refresh teams
                         return useDataFarmTeamsStore().fetchTeamList()
                     }).then(() => {
@@ -384,7 +384,7 @@ export default {
                             }
                         }
                     }).catch(err => {
-                        alerts.emit('Problem deleting team', 'warning')
+                        alerts.emit(t('ui.problemDeletingTeam'), 'warning')
                         console.warn(err)
                     })
             })

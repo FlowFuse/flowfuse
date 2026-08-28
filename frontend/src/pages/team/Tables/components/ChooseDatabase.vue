@@ -1,11 +1,11 @@
 <template>
     <div id="add-database">
         <transition name="page-fade" mode="out-in">
-            <ff-loading v-if="loading" message="Loading..." />
+            <ff-loading v-if="loading" :message="$t('ui.loading')" />
 
             <div v-else class="create-database flex flex-col gap-9" data-el="choose-database">
                 <section class="flex gap-6 justify-center relative z-10 flex-wrap">
-                    <h2>Choose which Database you'd like to get started with:</h2>
+                    <h2>{{ $t('ui.chooseWhichDatabaseYouDLikeToGetStartedWith') }}</h2>
                 </section>
 
                 <section class="flex gap-6 justify-center relative z-10 flex-wrap">
@@ -36,7 +36,7 @@
                                 :kind="option.ribbon || options.length === 1 ? 'primary' : 'secondary'"
                                 :to="option.to"
                             >
-                                Select
+                                {{ $t('ui.select') }}
                             </ff-button>
 
                             <ff-button
@@ -45,7 +45,7 @@
                                 :kind="option.ribbon || options.length === 1 ? 'primary' : 'secondary'"
                                 @click="option.handler"
                             >
-                                Select
+                                {{ $t('ui.select') }}
                             </ff-button>
                         </template>
                     </MediumTile>
@@ -53,7 +53,7 @@
 
                 <section class="actions flex items-center justify-center">
                     <ff-button v-if="shouldDisplayBackButton" kind="tertiary" data-el="page-back" @click="$router.back()">
-                        Back
+                        {{ $t('ui.back') }}
                     </ff-button>
                 </section>
             </div>
@@ -67,6 +67,8 @@ import { mapActions, mapState } from 'pinia'
 import { defineComponent } from 'vue'
 
 import MediumTile from '../../../../components/tiles/MediumTile.vue'
+
+import { t } from '../../../../i18n.js'
 
 import { useContextStore } from '@/stores/context.js'
 
@@ -90,7 +92,7 @@ export default defineComponent({
             return [
                 {
                     ribbon: 'Recommended',
-                    title: 'Managed PostgreSQL',
+                    title: t('ui.managedPostgresql'),
                     content: [
                         'Production-ready PostgreSQL included in your plan'
                     ],

@@ -1,8 +1,8 @@
 <template>
     <ff-listbox :disabled="isDisabled" data-el="visibility-selector" class="ff-dropdown visibility-selector">
         <template #button>
-            <div v-if="isCurrentFolderPublic" class="flex gap-2"><GlobeAltIcon class="ff-icon" /> Public</div>
-            <div v-else class="flex gap-2"><ProjectIcon class="ff-icon" /> Node-RED Only</div>
+            <div v-if="isCurrentFolderPublic" class="flex gap-2"><GlobeAltIcon class="ff-icon" /> {{ $t('ui.public') }}</div>
+            <div v-else class="flex gap-2"><ProjectIcon class="ff-icon" /> {{ $t('ui.nodeRedOnly') }}</div>
         </template>
         <template #options>
             <ListboxOption
@@ -14,14 +14,14 @@
             >
                 <li>
                     <div class="ff-option-content">
-                        <div class="flex gap-2"><ProjectIcon class="ff-icon" /> Node-RED Only</div>
+                        <div class="flex gap-2"><ProjectIcon class="ff-icon" /> {{ $t('ui.nodeRedOnly') }}</div>
                     </div>
                 </li>
             </ListboxOption>
             <ListboxOption class="ff-option" data-action="select-public" @click="showStaticPathSelectionDialog">
                 <li>
                     <div class="ff-option-content">
-                        <div class="flex gap-2"><GlobeAltIcon class="ff-icon" /> Public</div>
+                        <div class="flex gap-2"><GlobeAltIcon class="ff-icon" /> {{ $t('ui.public') }}</div>
                     </div>
                 </li>
             </ListboxOption>
@@ -29,17 +29,17 @@
     </ff-listbox>
     <ff-dialog
         ref="selectStaticPath" data-el="select-static-path-dialog"
-        header="Select a static path"
+        :header="$t('ui.selectAStaticPath')"
         :disablePrimary="staticPath.length === 0"
         @confirm="confirmStaticPath"
         @close="clearStaticPath"
     >
         <p>
-            Please set the static path mapping
+            {{ $t('ui.pleaseSetTheStaticPathMapping') }}
         </p>
         <div class="ff-description">
             <p>
-                Setting one of the following paths is disabled as it may interfere with internal functionality:
+                {{ $t('ui.settingOneOfTheFollowingPathsIsDisabledAsItMayIn') }}
             </p>
             <dl>
                 <dt v-for="(restriction, key) in restrictedStaticFilePaths" :key="key">
@@ -48,7 +48,7 @@
             </dl>
         </div>
 
-        <ff-text-input v-model="staticPath" placeholder="Static Path" />
+        <ff-text-input v-model="staticPath" :placeholder="$t('ui.staticPath')" />
     </ff-dialog>
 </template>
 

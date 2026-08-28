@@ -1,14 +1,14 @@
 <template>
     <section>
-        <p>Azure DevOps instructions coming soon.</p>
+        <p>{{ $t('ui.azureDevopsInstructionsComingSoon') }}</p>
         <ol class="list-decimal list-inside space-y-1 ml-2 mt-2">
-            <li>Open <code>https://dev.azure.com/[org-name]/_usersSettings/tokens</code> to create a new Personal Access Token</li>
-            <li>Click the <strong>+ New Token</strong> button</li>
-            <li>Give the token a name and set the Expiry date</li>
-            <li>Select <strong>Custom defined</strong> for the Scopes</li>
-            <li>Check the <strong>Read &amp; Write</strong> in the <strong>Code</strong> section</li>
-            <li>Hit <strong>Save</strong></li>
-            <li>This will be the only time Azure shows you the token value. Copy the token into the field below</li>
+            <li>{{ $t('ui.open') }} <code>https://dev.azure.com/[org-name]/_usersSettings/tokens</code> {{ $t('ui.toCreateANewPersonalAccessToken') }}</li>
+            <li>{{ $t('ui.clickThe') }} <strong>+ New Token</strong> {{ $t('ui.button') }}</li>
+            <li>{{ $t('ui.giveTheTokenANameAndSetTheExpiryDate') }}</li>
+            <li>{{ $t('ui.select') }} <strong>{{ $t('ui.customDefined') }}</strong> {{ $t('ui.forTheScopes') }}</li>
+            <li>{{ $t('ui.checkThe') }} <strong>Read &amp; Write</strong> {{ $t('ui.inThe') }} <strong>{{ $t('ui.code') }}</strong> {{ $t('ui.section') }}</li>
+            <li>{{ $t('ui.hit') }}<strong>{{ $t('ui.save') }}</strong></li>
+            <li>{{ $t('ui.thisWillBeTheOnlyTimeAzureShowsYouTheTokenValueC') }}</li>
         </ol>
     </section>
 </template>

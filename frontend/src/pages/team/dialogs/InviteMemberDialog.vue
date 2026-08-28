@@ -1,9 +1,9 @@
 <template>
-    <ff-dialog ref="dialog" header="Invite Team Member" confirm-label="Invite" :disable-primary="disableConfirm" @confirm="confirm()">
+    <ff-dialog ref="dialog" :header="$t('ui.inviteTeamMember')" :confirm-label="$t('ui.invite')" :disable-primary="disableConfirm" @confirm="confirm()">
         <template #default>
             <form class="space-y-2" @submit.prevent>
                 <template v-if="!responseErrors">
-                    <p v-if="!exceedsUserLimit">Invite a user to join the team by username<span v-if="externalEnabled"> or email</span>. Please use a comma-separated list to invite multiple new users.</p>
+                    <p v-if="!exceedsUserLimit">{{ $t('ui.inviteAUserToJoinTheTeamByUsername') }}<span v-if="externalEnabled"> {{ $t('ui.orEmail') }}</span>. Please use a comma-separated list to invite multiple new users.</p>
                     <p v-if="hasUserLimit">Your team can have a maximum of {{ userLimit }} members.</p>
                     <p v-if="exceedsUserLimit">You currently have {{ totalMembers }} (including existing invites) so cannot invite any more.</p>
                     <div v-if="!exceedsUserLimit" class="space-y-4 pt-2">
@@ -30,6 +30,7 @@ import teamApi from '../../../api/team.js'
 import FormRow from '../../../components/FormRow.vue'
 import { getTeamProperty } from '../../../composables/TeamProperties.js'
 
+import { t } from '../../../i18n.js'
 import alerts from '../../../services/alerts.js'
 import { Roles } from '../../../utils/roles.js'
 
@@ -58,21 +59,21 @@ export default {
     setup () {
         return {
             roleOptions: [{
-                label: 'Owner',
+                label: t('ui.owner'),
                 value: Roles.Owner,
-                description: 'Owners can add and remove members to the team and create applications and instances'
+                description: t('ui.ownersCanAddAndRemoveMembersToTheTeamAndCreateAp')
             }, {
-                label: 'Member',
+                label: t('ui.member'),
                 value: Roles.Member,
-                description: 'Members can access the team instances'
+                description: t('ui.membersCanAccessTheTeamInstances')
             }, {
-                label: 'Viewer',
+                label: t('ui.viewer'),
                 value: Roles.Viewer,
-                description: 'Viewers can access the team instances, but not make any changes'
+                description: t('ui.viewersCanAccessTheTeamInstancesButNotMakeAnyCha')
             }, {
-                label: 'Dashboard Only',
+                label: t('ui.dashboardOnly'),
                 value: Roles.Dashboard,
-                description: 'Dashboard users can only access the dashboards or HTTP endpoints created by the Node-RED instances when FlowFuse authentication is enabled'
+                description: t('ui.dashboardUsersCanOnlyAccessTheDashboardsOrHttpEn')
             }],
             show () {
                 this.$refs.dialog.show()
@@ -121,7 +122,7 @@ export default {
         'input.userInfo': function () {
             if (!this.externalEnabled) {
                 if (/@/.test(this.input.userInfo)) {
-                    this.errors.userInfo = 'Email invitations not available'
+                    this.errors.userInfo = t('ui.emailInvitationsNotAvailable')
                 } else {
                     this.errors.userInfo = null
                 }
@@ -139,7 +140,7 @@ export default {
                         alerts.emit(`Unable to invite ${user}: ${reason}`, 'warning')
                     }
                 } else {
-                    alerts.emit('Invite sent to ' + this.input.userInfo, 'confirmation')
+                    alerts.emit(t('ui.inviteSentTo') + this.input.userInfo, 'confirmation')
                     this.$emit('invitation-sent')
                 }
             } catch (err) {

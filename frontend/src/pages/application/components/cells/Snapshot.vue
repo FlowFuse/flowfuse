@@ -2,7 +2,7 @@
     <span class="flex space-x-4">
         <span
             v-if="activeSnapshot?.id || updateNeeded"
-            v-ff-tooltip:left="'Target snapshot has not yet been deployed to this device.'"
+            v-ff-tooltip:left="$t('ui.targetSnapshotHasNotYetBeenDeployedToThisDevice')"
             class="flex items-center space-x-2 text-gray-500 italic"
         >
             <ExclamationTriangleIcon
@@ -21,7 +21,7 @@
             </div>
         </template>
         <template v-else>
-            <span class="italic text-gray-500" data-el="snapshot-name">none</span>
+            <span class="italic text-gray-500" data-el="snapshot-name">{{ $t('ui.none2') }}</span>
         </template>
     </span>
 </template>

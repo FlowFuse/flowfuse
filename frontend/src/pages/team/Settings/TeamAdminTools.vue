@@ -1,18 +1,18 @@
 <template>
     <div class="space-y-6">
-        <FormHeading class="text-red-700">Admin Only Tools</FormHeading>
+        <FormHeading class="text-red-700">{{ $t('ui.adminOnlyTools') }}</FormHeading>
         <template v-if="features.billing">
-            <div class="font-bold">Stripe Details</div>
+            <div class="font-bold">{{ $t('ui.stripeDetails') }}</div>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <table class="ff-team-properties-table">
                     <tbody>
                         <tr>
-                            <td class="font-medium pr-4">Customer ID:</td>
-                            <td><div class="py-2"><a v-if="stripeCustomerUrl" :href="stripeCustomerUrl" class="underline" target="_blank">{{ team.billing.customer }}</a><span v-else>none</span></div></td>
+                            <td class="font-medium pr-4">{{ $t('ui.customerId') }}</td>
+                            <td><div class="py-2"><a v-if="stripeCustomerUrl" :href="stripeCustomerUrl" class="underline" target="_blank">{{ team.billing.customer }}</a><span v-else>{{ $t('ui.none2') }}</span></div></td>
                         </tr>
                         <tr>
-                            <td class="font-medium pr-4">Subscription ID:</td>
-                            <td><div class="py-2"><a v-if="stripeSubscriptionUrl" :href="stripeSubscriptionUrl" class="underline" target="_blank">{{ team.billing.subscription }}</a><span v-else>none</span></div></td>
+                            <td class="font-medium pr-4">{{ $t('ui.subscriptionId') }}</td>
+                            <td><div class="py-2"><a v-if="stripeSubscriptionUrl" :href="stripeSubscriptionUrl" class="underline" target="_blank">{{ team.billing.subscription }}</a><span v-else>{{ $t('ui.none2') }}</span></div></td>
                         </tr>
                     </tbody>
                 </table>
@@ -22,85 +22,76 @@
                     <table class="table-fixed max-w-sm">
                         <tbody>
                             <tr v-if="!trialHasEnded">
-                                <td class="font-medium font-bold pr-4">Trial Ends:</td>
+                                <td class="font-medium font-bold pr-4">{{ $t('ui.trialEnds') }}</td>
                                 <td><div class="py-2">{{ trialEndDate }}</div></td>
                             </tr>
                             <tr v-else>
-                                <td class="font-medium font-bold pr-4">Trial Ended</td>
+                                <td class="font-medium font-bold pr-4">{{ $t('ui.trialEnded') }}</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
                 <div class="min-w-fit shrink-0">
-                    <ff-button kind="danger" @click="confirmExtendTrial()">Extend Trial</ff-button>
+                    <ff-button kind="danger" @click="confirmExtendTrial()">{{ $t('ui.extendTrial') }}</ff-button>
                 </div>
             </div>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="grow">
                     <div class="max-w-sm pr-2">
                         <template v-if="team.suspended">
-                            <b>This team is suspended.</b><br>
-                            It must be reactivated before it can be put into manual billing mode.
+                            <b>{{ $t('ui.thisTeamIsSuspended') }}</b><br>
+                            {{ $t('ui.itMustBeReactivatedBeforeItCanBePutIntoManualBil') }}
                         </template>
                         <template v-else-if="isUnmanaged">
-                            <b>This team is in manual billing mode.</b><br>
-                            Enabling billing will require the team to setup
-                            billing again before they can continue using the team.
+                            <b>{{ $t('ui.thisTeamIsInManualBillingMode') }}</b><br>
+                            {{ $t('ui.enablingBillingWillRequireTheTeamToSetupBillingA') }}
                         </template>
                         <template v-else-if="trialMode">
-                            <b>This team is in trial mode.</b><br>
-                            Setting up manual billing will allow this team to make
-                            full use of the platform without requiring them to
-                            configure their billing details.
+                            <b>{{ $t('ui.thisTeamIsInTrialMode') }}</b><br>
+                            {{ $t('ui.settingUpManualBillingWillAllowThisTeamToMakeFul') }}
                         </template>
                         <template v-else-if="billingSetUp">
-                            <b>This team already has billing setup.</b><br>
-                            Setting up manual billing will cancel their existing
-                            subscription and allow this team to make full use of the
-                            platform without requiring them to configure their billing
-                            details.
+                            <b>{{ $t('ui.thisTeamAlreadyHasBillingSetup') }}</b><br>
+                            {{ $t('ui.settingUpManualBillingWillCancelTheirExistingSub') }}
                         </template>
                         <template v-else>
-                            <b>This team does not have billing setup.</b><br>
-                            Enabling manual billing will allow this team to make full
-                            use of the platform without requiring them to configure
-                            their billing details.
+                            <b>{{ $t('ui.thisTeamDoesNotHaveBillingSetup') }}</b><br>
+                            {{ $t('ui.enablingManualBillingWillAllowThisTeamToMakeFull') }}
                         </template>
                     </div>
                 </div>
                 <div class="min-w-fit shrink-0">
-                    <ff-button v-if="!isUnmanaged" kind="danger" data-action="admin-setup-billing" :disabled="team.suspended" @click="confirmManualBilling()">Setup Manual Billing</ff-button>
-                    <ff-button v-else kind="danger" data-action="admin-disable-billing" @click="disableManualBilling()">Enable Billing</ff-button>
+                    <ff-button v-if="!isUnmanaged" kind="danger" data-action="admin-setup-billing" :disabled="team.suspended" @click="confirmManualBilling()">{{ $t('ui.setupManualBilling') }}</ff-button>
+                    <ff-button v-else kind="danger" data-action="admin-disable-billing" @click="disableManualBilling()">{{ $t('ui.enableBilling') }}</ff-button>
                 </div>
             </div>
         </template>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="font-bold grow">Usage Limits</div>
+            <div class="font-bold grow">{{ $t('ui.usageLimits') }}</div>
             <div class="min-w-fit shrink-0">
                 <template v-if="!editingLimits">
-                    <ff-button kind="primary" @click="editOverrides">Edit usage limits</ff-button>
+                    <ff-button kind="primary" @click="editOverrides">{{ $t('ui.editUsageLimits') }}</ff-button>
                 </template>
                 <div v-else class="flex flex-row space-x-2">
-                    <ff-button kind="secondary" @click="editingLimits = false">Cancel</ff-button>
-                    <ff-button kind="danger" @click="saveOverrides">Done</ff-button>
+                    <ff-button kind="secondary" @click="editingLimits = false">{{ $t('ui.cancel') }}</ff-button>
+                    <ff-button kind="danger" @click="saveOverrides">{{ $t('ui.done') }}</ff-button>
                 </div>
             </div>
         </div>
         <div class="max-w-2xl">
             <p>
-                The following usage limits apply to this team. They are based on the team's current type.
-                Individual limits can be modified for this team to provide a custom configuration.
+                {{ $t('ui.theFollowingUsageLimitsApplyToThisTeamTheyAreBas') }}
             </p>
             <ul class="list-disc pl-6">
-                <li v-if="features.billing">The team's billing will not update until they add/remove an instance</li>
-                <li>Any changes made here will still apply if the team changes its type</li>
+                <li v-if="features.billing">{{ $t('ui.theTeamSBillingWillNotUpdateUntilTheyAddRemoveAn') }}</li>
+                <li>{{ $t('ui.anyChangesMadeHereWillStillApplyIfTheTeamChanges') }}</li>
             </ul>
         </div>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <table class="ff-team-properties-table">
                 <tbody>
                     <tr>
-                        <th class="font-medium">Users:</th>
+                        <th class="font-medium">{{ $t('ui.users2') }}</th>
                         <td v-if="!editingLimits"><div>{{ getTeamProperty('users_limit') }}</div></td>
                         <td v-else>
                             <div class="grid grid-cols-2 gap-2 my-2">
@@ -116,14 +107,14 @@
                                 <span>{{ getTeamProperty(`instances_${instanceType.id}_free`) || 0 }} - {{ getTeamProperty(`instances_${instanceType.id}_limit`) || 'unlimited' }}</span>
                             </td>
                             <td v-else>
-                                None
+                                {{ $t('ui.none') }}
                             </td>
                         </template>
                         <template v-else>
                             <td>
                                 <div class="grid grid-cols-2 gap-2 my-2">
-                                    <FormRow v-model="editableLimits.instances[instanceType.id].active" type="checkbox" :placeholder="getTeamTypeProperty(`instances_${instanceType.id}_active`) ?? ''">Available</FormRow>
-                                    <FormRow v-if="editableLimits.instances[instanceType.id].active" v-model="editableLimits.instances[instanceType.id].creatable" type="checkbox" :placeholder="''+getTeamTypeProperty(`instances_${instanceType.id}_creatable`)">Creatable</FormRow>
+                                    <FormRow v-model="editableLimits.instances[instanceType.id].active" type="checkbox" :placeholder="getTeamTypeProperty(`instances_${instanceType.id}_active`) ?? ''">{{ $t('ui.available') }}</FormRow>
+                                    <FormRow v-if="editableLimits.instances[instanceType.id].active" v-model="editableLimits.instances[instanceType.id].creatable" type="checkbox" :placeholder="''+getTeamTypeProperty(`instances_${instanceType.id}_creatable`)">{{ $t('ui.creatable') }}</FormRow>
                                     <FormRow v-if="editableLimits.instances[instanceType.id].active" v-model="editableLimits.instances[instanceType.id].free" :placeholder="''+(getTeamTypeProperty(`instances_${instanceType.id}_free`) ?? '')"># Included</FormRow>
                                     <FormRow v-if="editableLimits.instances[instanceType.id].active" v-model="editableLimits.instances[instanceType.id].limit" :placeholder="''+(getTeamTypeProperty(`instances_${instanceType.id}_limit`) ?? '')"># Limit</FormRow>
                                 </div>
@@ -131,7 +122,7 @@
                         </template>
                     </tr>
                     <tr>
-                        <th>Remote Instance:</th>
+                        <th>{{ $t('ui.remoteInstance2') }}</th>
                         <td v-if="!editingLimits">
                             <span v-if="!getTeamProperty('devices_free')">
                                 <div>{{ getTeamProperty('instances_' + getTeamProperty('devices_combinedFreeType') + '_free') || 0 }} - {{ getTeamProperty(`devices_limit`) || 'unlimited' }}</div>
@@ -146,11 +137,11 @@
                                 <FormRow v-model="editableLimits.devices.free" :placeholder="''+(getTeamTypeProperty('devices_free') ?? '')" :disabled="editableLimits.devices.combinedFreeType !== '_'"># Included</FormRow>
                                 <FormRow v-model="editableLimits.devices.limit" :placeholder="''+(getTeamTypeProperty('devices_limit') ?? '')"># Limit</FormRow>
                             </div>
-                            <FormRow v-model="editableLimits.devices.combinedFreeType" :options="deviceFreeOptions" class="mb-4">Share included allocation with instance type:</FormRow>
+                            <FormRow v-model="editableLimits.devices.combinedFreeType" :options="deviceFreeOptions" class="mb-4">{{ $t('ui.shareIncludedAllocationWithInstanceType') }}</FormRow>
                         </td>
                     </tr>
                     <tr>
-                        <th>MQTT Clients:</th>
+                        <th>{{ $t('ui.mqttClients') }}</th>
                         <td v-if="!editingLimits"><div>{{ getTeamProperty('teamBroker_clients_limit') }}</div></td>
                         <td v-else>
                             <div class="grid grid-cols-2 gap-2 my-2">
@@ -159,10 +150,10 @@
                         </td>
                     </tr>
                     <tr>
-                        <th>Features:</th>
+                        <th>{{ $t('ui.features') }}</th>
                         <td>
                             <span v-if="featureOverrideCount > 0">
-                                * {{ featureOverrideCount }} override<span v-if="featureOverrideCount > 1">s</span> applied
+                                * {{ featureOverrideCount }} override<span v-if="featureOverrideCount > 1">s</span> {{ $t('ui.applied') }}
                             </span>
                             <span v-else>
                                 &nbsp;
@@ -183,10 +174,10 @@
                     </tr>
                     <template v-if="certifiedNodesEnabled">
                         <tr>
-                            <th colspan="2" class="font-medium py-2">Certified Nodes Catalogues:</th>
+                            <th colspan="2" class="font-medium py-2">{{ $t('ui.certifiedNodesCatalogues') }}</th>
                         </tr>
                         <tr>
-                            <td colspan="2" class="text-sm text-gray-500">This allows the team to be configured with a custom list of certified node catalogues.</td>
+                            <td colspan="2" class="text-sm text-gray-500">{{ $t('ui.thisAllowsTheTeamToBeConfiguredWithACustomListOf') }}</td>
                         </tr>
                         <tr>
                             <td colspan="2" class="py-2">
@@ -223,6 +214,7 @@ import teamApi from '../../../api/team.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 
+import { t } from '../../../i18n.js'
 import formatDateMixin from '../../../mixins/DateTime.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -336,7 +328,7 @@ export default {
                 label: it.name
             }
         })
-        this.deviceFreeOptions.unshift({ value: '_', label: 'None - use own free limit' })
+        this.deviceFreeOptions.unshift({ value: '_', label: t('ui.noneUseOwnFreeLimit') })
         this.featureList.forEach(feature => {
             this.editableLimits.features[feature] = this.getTeamProperty(`features_${feature}`) || false
         })
@@ -380,9 +372,9 @@ export default {
         },
         async disableManualBilling () {
             return Dialog.show({
-                header: 'Enable Billing',
+                header: t('ui.enableBilling'),
                 kind: 'danger',
-                text: 'Are you sure you want to re-enable billing for this team?'
+                text: t('ui.areYouSureYouWantToReEnableBillingForThisTeam')
             }, async () => {
                 billingApi.disableManualBilling(this.team.id).then(async () => {
                     await useDataFarmTeamsStore().fetchTeamList()

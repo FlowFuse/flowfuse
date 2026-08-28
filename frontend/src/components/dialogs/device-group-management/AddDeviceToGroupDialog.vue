@@ -7,7 +7,7 @@
                 <div class="flex flex-col gap-4">
                     <div class="title">
                         <h3 v-if="devices && (!devicesBelongToSameApplication || assigningInstanceOwnedDevices)">
-                            Unable to assign the remote instance to group.
+                            {{ $t('ui.unableToAssignTheRemoteInstanceToGroup') }}
                         </h3>
                         <h3 v-else>
                             Select a group from {{ application ? application.name : device.application.name }}
@@ -59,12 +59,12 @@
 
                 <notice-banner
                     v-if="devices && !devicesBelongToSameApplication"
-                    text="Selected Remote Instances must belong to the same application in order to assign them to a group."
+                    :text="$t('ui.selectedRemoteInstancesMustBelongToTheSameApplic')"
                 />
 
                 <notice-banner
                     v-if="assigningInstanceOwnedDevices"
-                    text="One or more Remote Instances are owned by a Hosted Instance and cannot be assigned to a group."
+                    :text="$t('ui.oneOrMoreRemoteInstancesAreOwnedByAHostedInstanc')"
                 />
 
                 <device-list

@@ -54,30 +54,30 @@
             <ff-kebab-menu v-if="shouldDisplayKebabMenu" @click.stop>
                 <ff-kebab-item
                     :disabled="!isInstanceRunning"
-                    label="Open Direct URL"
+                    :label="$t('ui.openDirectUrl')"
                     @click.stop="openInstance"
                 />
                 <li class="ff-kebab-divider" />
                 <ff-kebab-item
                     :disabled="localInstance.pendingStateChange || instanceRunning "
-                    label="Start"
+                    :label="$t('ui.start')"
                     @click.stop="instanceStart(localInstance)"
                 />
                 <ff-kebab-item
                     :disabled="instanceSuspended"
-                    label="Restart"
+                    :label="$t('ui.restart')"
                     @click.stop="instanceRestart(localInstance)"
                 />
                 <ff-kebab-item
                     :disabled="instanceSuspended"
                     kind="danger"
-                    label="Suspend"
+                    :label="$t('ui.suspend')"
                     @click.stop="instanceShowConfirmSuspend(localInstance)"
                 />
                 <ff-kebab-item
                     v-if="hasPermission('project:delete')"
                     kind="danger"
-                    label="Delete"
+                    :label="$t('ui.delete')"
                     @click.stop="$emit('delete-instance', localInstance)"
                 />
             </ff-kebab-menu>

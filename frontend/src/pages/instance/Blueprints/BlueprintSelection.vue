@@ -1,7 +1,7 @@
 <template>
     <div v-if="withHeader">
-        <h3>Select Your Blueprint</h3>
-        <p>To get started, we have a collection of pre-built flow templates that you can use as a starting point for your Node-RED Instance.</p>
+        <h3>{{ $t('ui.selectYourBlueprint') }}</h3>
+        <p>{{ $t('ui.toGetStartedWeHaveACollectionOfPreBuiltFlowTempl') }}</p>
     </div>
     <div v-for="(prints, group) in blueprintsGrouped" :key="group" class="ff-blueprint-groups" data-form="blueprint-group">
         <div>

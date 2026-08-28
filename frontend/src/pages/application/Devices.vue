@@ -1,13 +1,13 @@
 <template>
     <div data-el="application-devices">
-        <SectionTopMenu hero="Remote Instances" help-header="Remote Instances - Registered to FlowFuse" info="Manage remote instances of Node-RED running on your own hardware, managed with the FlowFuse Device Agent.">
+        <SectionTopMenu :hero="$t('ui.remoteInstances')" :help-header="$t('ui.remoteInstancesRegisteredToFlowfuse')" :info="$t('ui.manageRemoteInstancesOfNodeRedRunningOnYourOwnHa')">
             <template #pictogram>
                 <img src="../../images/pictograms/devices_red.png">
             </template>
             <template #helptext>
-                <p>FlowFuse can be used to manage instances of Node-RED running on remote hardware.</p>
-                <p>Each Remote Instance is managed with the <a href="https://flowfuse.com/docs/user/devices/" target="_blank">FlowFuse Device Agent</a>, which connects back to the platform to receive updates.</p>
-                <p>Remote Instances are registered to a Team, and assigned to an Application.</p>
+                <p>{{ $t('ui.flowfuseCanBeUsedToManageInstancesOfNodeRedRunni') }}</p>
+                <p>{{ $t('ui.eachRemoteInstanceIsManagedWithThe') }} <a href="https://flowfuse.com/docs/user/devices/" target="_blank">{{ $t('ui.flowfuseDeviceAgent') }}</a>, which connects back to the platform to receive updates.</p>
+                <p>{{ $t('ui.remoteInstancesAreRegisteredToATeamAndAssignedTo') }}</p>
             </template>
         </SectionTopMenu>
 

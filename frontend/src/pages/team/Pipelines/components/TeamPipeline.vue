@@ -21,7 +21,7 @@
                     <ChevronRightIcon class="ff-icon" />
                 </li>
             </ul>
-            <p v-else class="ff-empty-stages-message">No stages in sight just yet!</p>
+            <p v-else class="ff-empty-stages-message">{{ $t('ui.noStagesInSightJustYet') }}</p>
         </div>
     </div>
 </template>

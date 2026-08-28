@@ -2,7 +2,7 @@
     <form class="space-y-4 ff-environment flex-1 flex flex-col overflow-auto" data-el="instance-environment" @submit.prevent>
         <FormHeading>
             <div class="flex">
-                <div class="mr-4">Environment Variables</div>
+                <div class="mr-4">{{ $t('ui.environmentVariables') }}</div>
                 <div v-if="hasInfoDialog" class="flex justify-center mr-4"><InformationCircleIcon class="w-5 cursor-pointer hover:text-blue-700" @click="openInfoDialog()" /></div>
                 <div class="flex justify-center"><ChangeIndicator :value="editable.changed.env" /></div>
             </div>
@@ -15,7 +15,7 @@
                 </div>
             </template>
             <template #actions>
-                <ff-button @click="$refs['help-dialog'].close()">Close</ff-button>
+                <ff-button @click="$refs['help-dialog'].close()">{{ $t('ui.close') }}</ff-button>
             </template>
         </ff-dialog>
         <div class="min-w-min flex-1 flex flex-col overflow-auto">
@@ -24,7 +24,7 @@
                 v-model:search="search"
                 class="w-full max-w-5xl text-sm"
                 :show-search="true"
-                search-placeholder="Search environment variables..."
+                :search-placeholder="$t('ui.searchEnvironmentVariables')"
                 :columns="editTemplate ? [,,,,] : [,,,]"
                 :noDataMessage="noDataMessage"
                 data-el="env-vars-table"
@@ -34,18 +34,18 @@
                         <input id="fileUpload" ref="fileUpload" type="file" accept=".env, text/plain, *" class="hidden" hidden>
                         <ff-button kind="secondary" data-action="import-env" @click="importEnv">
                             <template #icon><DocumentArrowDownIcon /></template>
-                            <span class="hidden sm:flex pl-1">Import .env</span>
+                            <span class="hidden sm:flex pl-1">{{ $t('ui.importEnv') }}</span>
                         </ff-button>
                         <ff-button kind="primary" accesskey="a" data-el="add-variable" @click="addVarHandler">
                             <template #icon><PlusSmallIcon /></template>
-                            <span class="hidden sm:flex pl-1">Add variable</span>
+                            <span class="hidden sm:flex pl-1">{{ $t('ui.addVariable') }}</span>
                         </ff-button>
                     </template>
                 </template>
                 <template #header>
                     <ff-data-table-row class="font-medium">
-                        <td class="ff-data-table--cell max-w-sm">Name</td>
-                        <td class="ff-data-table--cell">Value</td>
+                        <td class="ff-data-table--cell max-w-sm">{{ $t('ui.name') }}</td>
+                        <td class="ff-data-table--cell">{{ $t('ui.value') }}</td>
                         <td class="ff-data-table--cell bg-gray-100 p-2 w-16" />
                         <td v-if="editTemplate" class="ff-data-table--cell p-2 w-32" />
                     </ff-data-table-row>
@@ -56,7 +56,7 @@
                             <template v-if="(!readOnly && (editTemplate || item.policy === undefined))">
                                 <FormRow
                                     v-model="item.name"
-                                    v-ff-tooltip:left="'Cannot be renamed'"
+                                    v-ff-tooltip:left="$t('ui.cannotBeRenamed')"
                                     class="font-mono"
                                     :containerClass="'w-full env-cell-uneditable'"
                                     :inputClass="item.deprecated ? 'w-full text-yellow-700 italic' : 'w-full'"
@@ -86,7 +86,7 @@
                                     />
                                 </template>
                                 <template v-else>
-                                    <span v-if="item.hidden" class="italic text-gray-300">Value hidden</span>
+                                    <span v-if="item.hidden" class="italic text-gray-300">{{ $t('ui.valueHidden') }}</span>
                                     <FormRow
                                         v-else
                                         v-model="item.value"
@@ -99,7 +99,7 @@
                                     />
                                 </template>
                             </div>
-                            <div v-else class="pt-1 text-gray-400"><LockClosedIcon class="inline w-4" /> encrypted</div>
+                            <div v-else class="pt-1 text-gray-400"><LockClosedIcon class="inline w-4" /> {{ $t('ui.encrypted') }}</div>
                         </td>
                         <td class="ff-data-table--cell p-1! border w-16 align-top">
                             <div v-if="(!readOnly && (editTemplate|| item.policy === undefined))" class="flex justify-center mt-1 items-center gap-3">
@@ -126,7 +126,7 @@
                                     <span
                                         v-if="!!(originalEnvVars.find(v => v.index === item.index))?.hidden"
                                         :key="item.index"
-                                        v-ff-tooltip:left="'Cannot be made public again, only overwritten'"
+                                        v-ff-tooltip:left="$t('ui.cannotBeMadePublicAgainOnlyOverwritten')"
                                         class="mx-2 disabled"
                                         data-el="visibility"
                                     >
@@ -147,7 +147,7 @@
                             </div>
                             <div
                                 v-else-if="(item.deprecated === true)"
-                                v-ff-tooltip:left="'This setting has been deprecated'"
+                                v-ff-tooltip:left="$t('ui.thisSettingHasBeenDeprecated')"
                                 class="flex justify-center mt-1"
                             >
                                 <ExclamationTriangleIcon class="inline text-yellow-700 w-4" />

@@ -2,7 +2,7 @@
     <template v-if="neverConnected && hasPermission('device:edit', { application })">
         <ff-button kind="secondary" @click="finishSetup">
             <template #icon-left><ExclamationTriangleIcon class="ff-icon" /></template>
-            Finish Setup
+            {{ $t('ui.finishSetup') }}
         </ff-button>
     </template>
     <DeviceLastSeenBadge v-else :lastSeenAt="lastSeenAt" :lastSeenSince="lastSeenSince" :lastSeenMs="lastSeenMs" />

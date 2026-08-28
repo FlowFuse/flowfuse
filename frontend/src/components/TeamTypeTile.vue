@@ -17,13 +17,13 @@
         </div>
         <template v-if="enableCTA">
             <ff-button v-if="isTrial(teamType)" kind="primary" class="w-full mt-4" :to="toCreateTeam">
-                Start Free Trial
+                {{ $t('ui.startFreeTrial') }}
             </ff-button>
             <ff-button v-else-if="isManualBilling(teamType)" kind="secondary" class="w-full mt-4" @click="sendContact(teamType)">
-                Contact FlowFuse
+                {{ $t('ui.contactFlowfuse') }}
             </ff-button>
             <ff-button v-else kind="secondary" class="w-full mt-4" :to="toCreateTeam">
-                Select
+                {{ $t('ui.select') }}
             </ff-button>
         </template>
     </div>

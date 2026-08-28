@@ -1,11 +1,11 @@
 <template>
     <main v-if="!application?.id">
-        <ff-loading message="Loading Application..." />
+        <ff-loading :message="$t('ui.loadingApplication')" />
     </main>
     <main v-else class="ff-with-status-header device-group">
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">
-                You are viewing this device group as an Administrator
+                {{ $t('ui.youAreViewingThisDeviceGroupAsAnAdministrator') }}
             </div>
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
@@ -13,18 +13,18 @@
         <ff-page-header :title="deviceGroup?.name" :tabs="navigation">
             <template #breadcrumbs>
                 <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'team-applications', params: {team_slug: team.slug}}">
-                    Applications
+                    {{ $t('ui.applications') }}
                 </ff-nav-breadcrumb>
                 <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'application', params: {team_slug: team.slug, id: application.id}}">
                     {{ application.name }}
                 </ff-nav-breadcrumb>
                 <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'application-device-groups', params: {id: application?.id}}">
-                    Device Groups
+                    {{ $t('ui.deviceGroups') }}
                 </ff-nav-breadcrumb>
             </template>
             <template #tools>
                 <div class="ff-target-snapshot-info">
-                    <p class="ff-title">Target Snapshot: </p>
+                    <p class="ff-title">{{ $t('ui.targetSnapshot') }} </p>
                     <div class="flex gap-2 pr-2" data-el="device-group-target-snapshot">
                         <span class="flex items-center space-x-2 pt-1 text-gray-500 italic">
                             <ExclamationTriangleIcon v-if="!targetSnapshot?.name" class="text-yellow-600 w-4" />
@@ -32,7 +32,7 @@
                         </span>
                         <div class="flex flex-col">
                             <span v-if="targetSnapshot?.name" data-el="snapshot-name">{{ targetSnapshot.name }}</span>
-                            <span v-else data-el="snapshot-name">No Target Snapshot Set</span>
+                            <span v-else data-el="snapshot-name">{{ $t('ui.noTargetSnapshotSet') }}</span>
                             <span v-if="targetSnapshot?.id" class="text-xs text-gray-500" data-el="snapshot-id">{{ targetSnapshot.id }}</span>
                         </div>
                     </div>
@@ -40,7 +40,7 @@
             </template>
             <template #context>
                 <div>
-                    Application:
+                    {{ $t('ui.application2') }}
                     <router-link :to="{name: 'application', params: {id: application?.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ application?.name }}</router-link>
                 </div>
             </template>
@@ -69,6 +69,8 @@ import SubscriptionExpiredBanner from '../../../components/banners/SubscriptionE
 import TeamTrialBanner from '../../../components/banners/TeamTrial.vue'
 import DeviceSolidIcon from '../../../components/icons/DeviceSolid.js'
 import usePermissions from '../../../composables/Permissions.js'
+
+import { t } from '../../../i18n.js'
 
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
@@ -99,7 +101,7 @@ export default {
         navigation () {
             const routes = [
                 {
-                    label: 'Devices',
+                    label: t('ui.devices'),
                     to: {
                         name: 'application-device-group-devices',
                         params: {
@@ -111,7 +113,7 @@ export default {
                     icon: DeviceSolidIcon
                 },
                 {
-                    label: 'Settings',
+                    label: t('ui.settings'),
                     to: {
                         name: 'application-device-group-settings',
                         params: {

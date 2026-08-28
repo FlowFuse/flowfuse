@@ -10,7 +10,7 @@
             :icon-only="true"
             return-model
             label-key="label"
-            placeholder="Context"
+            :placeholder="$t('ui.context')"
             open-above
             :options-min-width="250"
             align-right

@@ -7,7 +7,7 @@
     <div v-else-if="featureSupported" class="w-full h-full">
         <div v-if="connected && !cpuUtilization">
             <div class="text-sm text-gray-500">
-                Connecting...
+                {{ $t('ui.connecting') }}
             </div>
         </div>
         <div v-else class="w-full h-full flex gap-2 items-center">
@@ -19,11 +19,11 @@
     </div>
     <div v-else-if="status !== 'running'">
         <div class="text-sm text-gray-500">
-            Live data unavailable
+            {{ $t('ui.liveDataUnavailable') }}
         </div>
     </div>
     <div v-else class="text-sm text-gray-500">
-        Live data view not supported for this instance. Please upgrade the Instance's Node-RED version.
+        {{ $t('ui.liveDataViewNotSupportedForThisInstancePleaseUpg') }}
     </div>
 </template>
 

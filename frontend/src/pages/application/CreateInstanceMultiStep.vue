@@ -1,9 +1,9 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Add a new Instance">
+            <ff-page-header :title="$t('ui.addANewInstance')">
                 <template #context>
-                    Let's get your new Node-RED instance setup in no time.
+                    {{ $t('ui.letSGetYourNewNodeRedInstanceSetupInNoTime') }}
                 </template>
                 <template #tools>
                     <section class="flex gap-3">
@@ -13,7 +13,7 @@
                             :disabled="!form.previousButtonState"
                             @click="$refs.multiStepForm.goToPreviousStep()"
                         >
-                            Back
+                            {{ $t('ui.back') }}
                         </ff-button>
                         <ff-button
                             class="flex-1 whitespace-nowrap"

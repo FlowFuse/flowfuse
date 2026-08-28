@@ -2,7 +2,7 @@
     <div v-if="settings['team:create']" class="text-right mb-4"><CreateTeamButton /></div>
     <ff-data-table :columns="columns" :rows="teams">
         <template #context-menu="{row}">
-            <ff-kebab-item data-action="member-remove-from-team" label="Leave Team" kind="danger" @click="removeUserDialog(row)" />
+            <ff-kebab-item data-action="member-remove-from-team" :label="$t('ui.leaveTeam')" kind="danger" @click="removeUserDialog(row)" />
         </template>
     </ff-data-table>
 </template>
@@ -15,6 +15,7 @@ import { markRaw } from 'vue'
 import teamApi from '../../../api/team.js'
 
 import TeamCell from '../../../components/tables/cells/TeamCell.vue'
+import { t } from '../../../i18n.js'
 import alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 import CreateTeamButton from '../components/CreateTeamButton.vue'
@@ -32,10 +33,10 @@ export default {
     data () {
         return {
             columns: [
-                { label: 'Name', key: 'name', class: ['grow'], component: { is: markRaw(TeamCell) } },
-                { label: 'Application Instances', key: 'instanceCount', class: ['w-32', 'text-center'] },
-                { label: 'Members', key: 'memberCount', class: ['w-32', 'text-center'] },
-                { label: 'Role', key: 'roleName', class: ['w-40'] }
+                { label: t('ui.name'), key: 'name', class: ['grow'], component: { is: markRaw(TeamCell) } },
+                { label: t('ui.applicationInstances'), key: 'instanceCount', class: ['w-32', 'text-center'] },
+                { label: t('ui.members'), key: 'memberCount', class: ['w-32', 'text-center'] },
+                { label: t('ui.role'), key: 'roleLabel', class: ['w-40'] }
             ]
         }
     },
@@ -54,16 +55,16 @@ export default {
         removeUserDialog (row) {
             if (row.memberCount === 1) {
                 Dialog.show({
-                    header: 'Leave Team',
+                    header: t('ui.leaveTeam'),
                     kind: 'primary',
-                    text: 'You cannot leave a team you are the only member of.',
+                    text: t('ui.youCannotLeaveATeamYouAreTheOnlyMemberOf'),
                     confirmLabel: 'Leave Team',
                     disablePrimary: true
                 })
                 return
             }
             Dialog.show({
-                header: 'Leave Team',
+                header: t('ui.leaveTeam'),
                 kind: 'danger',
                 text: `Are you sure you want to leave ${row.name}?`,
                 confirmLabel: 'Leave Team'

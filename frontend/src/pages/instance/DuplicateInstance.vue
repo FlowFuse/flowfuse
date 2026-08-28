@@ -4,17 +4,17 @@
             <ff-page-header>
                 <template #breadcrumbs>
                     <ff-nav-breadcrumb v-if="team" class="whitespace-nowrap" :to="{name: 'team-hosted-instances', params: {team_slug: team.slug}}">
-                        Instances
+                        {{ $t('ui.instances') }}
                     </ff-nav-breadcrumb>
                     <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'instance-settings', params: {team_slug: team.slug, id: instance.id}}">
                         {{ instance.name }}
                     </ff-nav-breadcrumb>
                     <ff-nav-breadcrumb class="whitespace-nowrap">
-                        Duplicate
+                        {{ $t('ui.duplicate') }}
                     </ff-nav-breadcrumb>
                 </template>
                 <template #context>
-                    Let's get your new Node-RED instance setup in no time.
+                    {{ $t('ui.letSGetYourNewNodeRedInstanceSetupInNoTime') }}
                 </template>
                 <template #tools>
                     <section class="flex gap-3">
@@ -25,7 +25,7 @@
                             data-el="previous-step"
                             @click="$refs.multiStepForm.goToPreviousStep()"
                         >
-                            Back
+                            {{ $t('ui.back') }}
                         </ff-button>
                         <ff-button
                             class="flex-1 whitespace-nowrap"
@@ -43,7 +43,7 @@
         <MultiStepDuplicateInstanceForm
             v-if="instance && team"
             ref="multiStepForm"
-            last-step-label="Create Instance"
+            :last-step-label="$t('ui.createInstance')"
             :instance="instance"
             @instance-created="onInstanceCreated"
             @previous-step-state-changed="form.previousButtonState = $event"

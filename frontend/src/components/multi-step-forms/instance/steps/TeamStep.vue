@@ -1,8 +1,8 @@
 <template>
     <section class="ff-select-team-step text-center flex flex-col gap-4 pt-6" data-step="team">
-        <h2>Choose a Team</h2>
+        <h2>{{ $t('ui.chooseATeam') }}</h2>
 
-        <p>Select the team you want to deploy the blueprint in:</p>
+        <p>{{ $t('ui.selectTheTeamYouWantToDeployTheBlueprintIn') }}</p>
 
         <ul class="max-w-2xl w-full m-auto text-left flex flex-col gap-4">
             <li

@@ -1,16 +1,16 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Bill Of Materials">
+            <ff-page-header :title="$t('ui.billOfMaterials')">
                 <template #context>
-                    Single view of all libraries and dependencies running within your Node-RED flows.
+                    {{ $t('ui.singleViewOfAllLibrariesAndDependenciesRunningWi') }}
                 </template>
                 <template #pictogram>
                     <img alt="logo" src="../../../images/pictograms/instance_red.png">
                 </template>
                 <template #helptext>
-                    <p>Bill of Dependencies provides a comprehensive overview of all libraries and dependencies used within your Node-RED flows.</p>
-                    <p>This allows you to easily track the packages your flows rely on, identify outdated or vulnerable dependencies, and ensure compatibility across your flows.</p>
+                    <p>{{ $t('ui.billOfDependenciesProvidesAComprehensiveOverview') }}</p>
+                    <p>{{ $t('ui.thisAllowsYouToEasilyTrackThePackagesYourFlowsRe') }}</p>
                 </template>
             </ff-page-header>
         </template>
@@ -26,24 +26,24 @@
                     <template #img>
                         <img alt="empty-state-logo" src="../../../images/empty-states/application-instances.png">
                     </template>
-                    <template #header>Bill Of Materials not available!</template>
+                    <template #header>{{ $t('ui.billOfMaterialsNotAvailable') }}</template>
                     <template #message>
                         <p>
-                            This feature isn't supported for your team tier or platform settings. Explore upgrade options to enable it.
+                            {{ $t('ui.thisFeatureIsnTSupportedForYourTeamTierOrPlatfor') }}
                         </p>
                     </template>
                 </EmptyState>
             </template>
 
             <template v-else>
-                <ff-loading v-if="loading" message="Loading Dependencies..." />
+                <ff-loading v-if="loading" :message="$t('ui.loadingDependencies')" />
 
                 <div v-else-if="hasInstances">
                     <ff-text-input
                         v-model="searchTerm"
                         class="ff-data-table--search mb-5"
                         data-form="search"
-                        placeholder="Search Package Dependency, Hosted Instance or Remote Instance"
+                        :placeholder="$t('ui.searchPackageDependencyHostedInstanceOrRemoteIns')"
                     >
                         <template #icon><MagnifyingGlassIcon /></template>
                     </ff-text-input>
@@ -55,13 +55,13 @@
                     <template #img>
                         <img alt="empty-state-logo" src="../../../images/empty-states/application-instances.png">
                     </template>
-                    <template #header>No Dependencies Here... Yet!</template>
+                    <template #header>{{ $t('ui.noDependenciesHereYet') }}</template>
                     <template #message>
                         <p>
-                            It looks like there are no Hosted or Remote Instances assigned to this team yet.
+                            {{ $t('ui.itLooksLikeThereAreNoHostedOrRemoteInstancesAssi') }}
                         </p>
                         <p>
-                            Once you assign an Hosted or Remote Instance to an application belonging to this team, you'll be able to view a complete list of their dependencies.
+                            {{ $t('ui.onceYouAssignAnHostedOrRemoteInstanceToAnApplica') }}
                         </p>
                     </template>
                 </EmptyState>

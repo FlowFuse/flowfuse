@@ -1,23 +1,23 @@
 <template>
     <div id="device-logs" class="overflow-auto flex flex-col flex-1 ">
-        <SectionTopMenu hero="Node-RED Logs" help-header="FlowFuse - Node-RED Logs" info="Live logs from your Remote Node-RED Instance">
+        <SectionTopMenu :hero="$t('ui.nodeRedLogs')" :help-header="$t('ui.flowfuseNodeRedLogs')" :info="$t('ui.liveLogsFromYourRemoteNodeRedInstance')">
             <template #tools>
                 <template v-if="deviceOnline && connected">
                     <div class="flex items-center gap-2 text-green-500">
                         <WifiIcon class="ff-icon" />
-                        Connected to Live Logs
+                        {{ $t('ui.connectedToLiveLogs') }}
                     </div>
                 </template>
                 <template v-else-if="!deviceOnline || offline">
                     <div class="flex items-center gap-2 text-red-500">
                         <WifiIcon class="ff-icon" />
-                        Offline
+                        {{ $t('ui.offline') }}
                     </div>
                 </template>
                 <template v-else>
                     <div class="flex items-center gap-2 text-gray-500">
                         <WifiIcon class="ff-icon" />
-                        Connecting to Live Logs
+                        {{ $t('ui.connectingToLiveLogs') }}
                     </div>
                 </template>
             </template>

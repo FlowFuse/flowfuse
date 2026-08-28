@@ -29,12 +29,12 @@
                     <ff-button
                         v-if="isPackageInstalled" class="w-20" size="small" kind="secondary"
                         @click.stop.prevent="managePackage(nodePackage)"
-                    >Manage
+                    >{{ $t('ui.manage') }}
                     </ff-button>
                     <ff-button
                         v-else class="w-20" size="small" kind="secondary"
                         @click.stop.prevent="installPackage(nodePackage)"
-                    >Install
+                    >{{ $t('ui.install') }}
                     </ff-button>
                 </template>
             </div>

@@ -26,7 +26,7 @@
                 :title="wrapped ? 'Word wrap on' : 'Word wrap off'"
                 @click="wrapped = !wrapped"
             >
-                Wrap
+                {{ $t('ui.wrap') }}
             </ff-button>
         </div>
         <div

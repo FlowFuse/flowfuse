@@ -1,9 +1,9 @@
 <template>
     <div class="space-y-6">
-        <ff-data-table data-el="table" :columns="inviteColumns" :rows="invitations" noDataMessage="No Invitations">
+        <ff-data-table data-el="table" :columns="inviteColumns" :rows="invitations" :noDataMessage="$t('ui.noInvitations')">
             <template #row-actions="{row}">
-                <ff-button data-action="invite-reject" kind="secondary-danger" @click="rejectInvite(row)">Reject</ff-button>
-                <ff-button data-action="invite-accept" @click="acceptInvite(row)">Accept</ff-button>
+                <ff-button data-action="invite-reject" kind="secondary-danger" @click="rejectInvite(row)">{{ $t('ui.reject') }}</ff-button>
+                <ff-button data-action="invite-accept" @click="acceptInvite(row)">{{ $t('ui.accept') }}</ff-button>
             </template>
         </ff-data-table>
     </div>
@@ -17,6 +17,7 @@ import userApi from '../../../api/user.js'
 
 import InviteUserCell from '../../../components/tables/cells/InviteUserCell.vue'
 import TeamCell from '../../../components/tables/cells/TeamCell.vue'
+import { t } from '../../../i18n.js'
 import Alerts from '../../../services/alerts.js'
 
 import { useAccountStore } from '@/stores/account.js'
@@ -34,10 +35,10 @@ export default {
     data () {
         return {
             inviteColumns: [
-                { label: 'Team', key: 'team', class: ['w-auto'], component: { is: markRaw(TeamCell), map: { id: 'team.id', avatar: 'team.avatar', name: 'team.name' } } },
-                { label: 'Role', class: ['w-40'], key: 'roleName' },
-                { label: 'Sent by', key: 'invitor', class: ['w-auto'], component: { is: markRaw(InviteUserCell), map: { user: 'invitor' } } },
-                { label: 'Expires In', key: 'expires', class: ['w-auto'] }
+                { label: t('ui.team2'), key: 'team', class: ['w-auto'], component: { is: markRaw(TeamCell), map: { id: 'team.id', avatar: 'team.avatar', name: 'team.name' } } },
+                { label: t('ui.role'), class: ['w-40'], key: 'roleLabel' },
+                { label: t('ui.sentBy'), key: 'invitor', class: ['w-auto'], component: { is: markRaw(InviteUserCell), map: { user: 'invitor' } } },
+                { label: t('ui.expiresIn'), key: 'expires', class: ['w-auto'] }
             ]
         }
     },

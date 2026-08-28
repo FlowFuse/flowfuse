@@ -24,6 +24,7 @@ import { defineAsyncComponent, markRaw } from 'vue'
 
 import IconDeviceSolid from '../../components/icons/DeviceSolid.js'
 import IconNodeRedSolid from '../../components/icons/NodeRedSolid.js'
+import { t } from '../../i18n.js'
 import NotificationMessageMixin from '../../mixins/NotificationMessage.js'
 
 import NotificationMessage from './Notification.vue'
@@ -37,37 +38,37 @@ export default {
             knownEvents: {
                 'instance-crashed': {
                     icon: 'instance',
-                    title: 'Node-RED Instance Crashed',
+                    title: t('ui.nodeRedInstanceCrashed'),
                     message: '"<i>{{instance.name}}</i>" has crashed'
                 },
                 'instance-safe-mode': {
                     icon: 'instance',
-                    title: 'Node-RED Instance Safe Mode',
+                    title: t('ui.nodeRedInstanceSafeMode'),
                     message: '"<i>{{instance.name}}</i>" is running in safe mode'
                 },
                 'device-crashed': {
                     icon: 'device',
-                    title: 'Node-RED Device Crashed',
+                    title: t('ui.nodeRedDeviceCrashed'),
                     message: '"<i>{{device.name}}</i>" has crashed'
                 },
                 'device-safe-mode': {
                     icon: 'device',
-                    title: 'Node-RED Device Safe Mode',
+                    title: t('ui.nodeRedDeviceSafeMode'),
                     message: '"<i>{{device.name}}</i>" is running in safe mode'
                 },
                 'instance-resource-cpu': {
                     icon: 'instance',
-                    title: 'Node-RED Instance CPU Usage',
+                    title: t('ui.nodeRedInstanceCpuUsage'),
                     message: 'CPU usage of "<i>{{instance.name}}</i>" has spent more than 5 minutes at more than 75% of CPU limit. This instance may benefit from being upgraded to a larger Instance type'
                 },
                 'instance-resource-memory': {
                     icon: 'instance',
-                    title: 'Node-RED Instance Memory Usage',
+                    title: t('ui.nodeRedInstanceMemoryUsage'),
                     message: 'Memory usage of "<i>{{instance.name}}</i>" has spent more than 5 minutes at more than 75% of memory limit. This instance may benefit from being upgraded to a larger Instance type'
                 },
                 'team-trial-suspended': {
                     icon: 'UserGroupIcon',
-                    title: 'Trial Period Ended',
+                    title: t('ui.trialPeriodEnded'),
                     message: 'Your trial period for <i>{{team.name}}</i> has ended. Please upgrade to a paid plan to continue using this team.'
                 }
             }

@@ -5,7 +5,7 @@
             v-else
             class="italic text-gray-500"
         >
-            never
+            {{ $t('ui.never') }}
         </span>
     </span>
 </template>

@@ -1,9 +1,9 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Register a new Remote Instance">
+            <ff-page-header :title="$t('ui.registerANewRemoteInstance')">
                 <template #context>
-                    Let's get your new Node-RED remote instance setup in no time.
+                    {{ $t('ui.letSGetYourNewNodeRedRemoteInstanceSetupInNoTime') }}
                 </template>
                 <template #tools>
                     <section v-if="!loading &&!device && !invalidSession" class="flex gap-3">
@@ -14,7 +14,7 @@
                             data-el="previous-step"
                             @click="$refs.multiStepForm.goToPreviousStep()"
                         >
-                            Back
+                            {{ $t('ui.back') }}
                         </ff-button>
                         <ff-button
                             class="flex-1 whitespace-nowrap"
@@ -31,12 +31,12 @@
         <ff-loading v-if="loading" />
         <template v-else-if="invalidSession">
             <section class="flex flex-col gap-4 text-center">
-                <h1 class="text-2xl font-semibold">Invalid registration session</h1>
+                <h1 class="text-2xl font-semibold">{{ $t('ui.invalidRegistrationSession') }}</h1>
                 <p class="opacity-50">
-                    The registration session you are trying to use is invalid or has expired. Please restart the registration process.
+                    {{ $t('ui.theRegistrationSessionYouAreTryingToUseIsInvalid') }}
                 </p>
                 <p class="m-auto text-center mt-8">
-                    <ff-button kind="secondary" @click="$router.push('/')">Back to Dashboard</ff-button>
+                    <ff-button kind="secondary" @click="$router.push('/')">{{ $t('ui.backToDashboard') }}</ff-button>
                 </p>
             </section>
         </template>
