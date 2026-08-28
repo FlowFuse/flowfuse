@@ -496,6 +496,7 @@ module.exports = async function (app) {
                 const projectState = await projectStatePromise
                 project.state = projectState.meta.state
                 project.flowLastUpdatedAt = projectState.flowLastUpdatedAt
+                project.meta = { state: projectState.meta.state, versions: projectState.meta.versions }
                 project.settings = {
                     dashboard2UI: '/dashboard' // hardcoding the dashboard endpoint for the time being
                 }
@@ -507,7 +508,10 @@ module.exports = async function (app) {
                 projects: result
             })
         } else {
-            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+            return reply.send({
+                count: 0,
+                projects: []
+            })
         }
     })
 

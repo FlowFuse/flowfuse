@@ -134,11 +134,11 @@ describe('MCP Platform Tools Server', function () {
                 proxyRequest.firstCall.args[0].mcpSessionId.should.equal('session-abc')
             })
 
-            it('should pass the pinned browser session as a user property', async function () {
+            it('should pass the pinned browser session and its team as user properties', async function () {
                 await app.db.controllers.BrowserSession.recordPresence(app.user.hashid, 'tab-1', {
                     visibility: 'visible',
                     focused: true,
-                    context: { topicParts: { entityType: 'instance', entityId: 'instance-1' } }
+                    context: { teamId: app.team.hashid, topicParts: { entityType: 'instance', entityId: 'instance-1' } }
                 })
                 await app.db.controllers.BrowserSession.setActiveBrowserSession(app.user.hashid, 'session-abc', 'tab-1')
 
@@ -153,13 +153,34 @@ describe('MCP Platform Tools Server', function () {
                 })
                 response.statusCode.should.equal(200)
                 const userProperties = proxyRequest.firstCall.args[3]
-                userProperties.should.deepEqual({
-                    activeBrowserSessionId: 'tab-1',
-                    entityType: 'instance',
-                    entityId: 'instance-1'
-                })
+                userProperties.should.have.property('activeBrowserSessionId', 'tab-1')
+                userProperties.should.have.property('entityType', 'instance')
+                userProperties.should.have.property('entityId', 'instance-1')
+                userProperties.should.have.property('teamId', app.team.hashid)
+                userProperties.should.have.property('patId').and.be.a.String().and.not.be.empty()
+                const expectedTelemetry = (app.license.active() || (app.config.telemetry?.enabled !== false && app.settings.get('telemetry:enabled') !== false)) ? 'true' : 'false'
+                userProperties.should.have.property('telemetryEnabled', expectedTelemetry)
 
                 await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-1')
+            })
+
+            it('should fall back to a single-team PAT scope for the team when no tab is pinned', async function () {
+                const singleTeamPAT = await app.db.controllers.AccessToken.createPersonalAccessToken(
+                    app.user, '', null, 'alice-single-team', { teamIds: [app.team.hashid] }
+                )
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    headers: {
+                        authorization: `Bearer ${singleTeamPAT.token}`
+                    },
+                    payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+                })
+                response.statusCode.should.equal(200)
+                const userProperties = proxyRequest.firstCall.args[3]
+                userProperties.should.have.property('teamId', app.team.hashid)
+                userProperties.should.not.have.property('activeBrowserSessionId')
             })
 
             it('should acknowledge a notification without calling the gateway', async function () {
@@ -328,6 +349,53 @@ describe('MCP Platform Tools Server', function () {
                 })
                 TestObjects.aliceSid = response.cookies[0].value
             }
+        })
+    })
+
+    describe('Cloud deployment', function () {
+        let app
+        let alicePAT
+        let proxyRequest
+
+        before(async function () {
+            app = await setup({
+                license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZkNDFmNmRjLTBmM2QtNGFmNy1hNzk0LWIyNWFhNGJmYTliZCIsInZlciI6IjIwMjQtMDMtMDQiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGdXNlIERldmVsb3BtZW50IiwibmJmIjoxNzMwNjc4NDAwLCJleHAiOjIwNzc3NDcyMDAsIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxMCwidGVhbXMiOjEwLCJpbnN0YW5jZXMiOjEwLCJtcXR0Q2xpZW50cyI6NiwidGllciI6ImVudGVycHJpc2UiLCJkZXYiOnRydWUsImlhdCI6MTczMDcyMTEyNH0.02KMRf5kogkpH3HXHVSGprUm0QQFLn21-3QIORhxFgRE9N5DIE8YnTH_f8W_21T6TlYbDUmf4PtWyj120HTM2w',
+                ai: { enabled: true },
+                expert: { enabled: true },
+                telemetry: { anonymize: false }
+            })
+            alicePAT = await app.db.controllers.AccessToken.createPersonalAccessToken(
+                app.user,
+                '',
+                null,
+                'alice-pat-cloud'
+            )
+        })
+
+        after(async function () {
+            await app.close()
+        })
+
+        beforeEach(function () {
+            proxyRequest = sinon.stub(app.comms.mcpGateway, 'proxyRequest')
+                .resolves({ jsonrpc: '2.0', id: 1, result: { tools: [] } })
+        })
+
+        afterEach(function () {
+            proxyRequest.restore()
+        })
+
+        it('should mark deployment cloud when telemetry.anonymize is false', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/mcp',
+                headers: {
+                    authorization: `Bearer ${alicePAT.token}`
+                },
+                payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+            })
+            response.statusCode.should.equal(200)
+            proxyRequest.firstCall.args[3].should.have.property('deployment', 'cloud')
         })
     })
 

@@ -1,72 +1,110 @@
 const fp = require('fastify-plugin')
 
+// common features across all higher tier (enterpise, hub, edge, fleet)
+async function commonFeatures (app, opts) {
+    app.decorate('sso', await require('./sso').init(app))
+    // Set the MFA Feature Flag
+    app.config.features.register('mfa', true, true)
+    // Set the Project History timeline Feature Flag
+    app.config.features.register('projectHistory', true, true)
+    if (app.config.npmRegistry?.enabled) {
+        // Set npm Feature Flag
+        app.config.features.register('npm', true, true)
+    }
+    if (app.config.tables?.enabled) {
+        app.decorate('tables', await require('./tables').init(app))
+    }
+    app.config.features.register('certifiedNodes', true, true)
+    app.config.features.register('ffNodes', true, true)
+    // Application level RBAC
+    app.config.features.register('rbacApplication', true, true)
+    require('./autoUpdateStacks').init(app)
+
+    // Expert
+    await app.register(require('./expert'))
+
+    // Set the AI Features Flag (global gate for all AI features)
+    const isAiEnabled = !!(app.config?.ai?.enabled ?? true)
+    app.config.features.register('ai', isAiEnabled, true)
+
+    // Set the Generate Snapshot Description Feature Flag
+    const isAssistantConfigured = isAiEnabled && app.config.assistant?.enabled === true && !!app.config.assistant?.service?.url
+    app.config.features.register('generatedSnapshotDescription', isAssistantConfigured, true)
+
+    // Set the assistant inline completions Feature Flag
+    app.config.features.register('assistantInlineCompletions', isAssistantConfigured, true)
+
+    // Set the expert platform automation Feature Flag (MCP platform tools server)
+    app.config.features.register('expertPlatformAutomation', isAiEnabled && (app.config?.expert?.enabled ?? false), true)
+
+    // Set the expert assistant Feature Flag
+    app.config.features.register('expertAssistant', isAiEnabled && (app.config?.expert?.enabled ?? false), true)
+
+    // Set the Expert Insights flag
+    const isInsightsEnabled = isAiEnabled &&
+        !!app.config?.expert?.enabled &&
+        (Object.prototype.hasOwnProperty.call(app.config?.expert ?? {}, 'insights') ? !!app.config?.expert?.insights?.enabled : true)
+
+    app.config.features.register('expertInsights', isInsightsEnabled ?? false, true)
+
+    // Set the MCP third-party agent access flag. Defaults to true when AI
+    // and expert are both enabled, so it activates automatically unless
+    // explicitly disabled in the config.
+    const isMcpThirdPartyEnabled = isAiEnabled && (app.config?.expert?.enabled ?? false)
+    app.config.features.register('mcpThirdParty', isMcpThirdPartyEnabled, true)
+}
+
 module.exports = fp(async function (app, opts) {
     if (app.config.billing) {
         app.decorate('billing', await require('./billing').init(app))
     }
+    // common features for all license levels (inc Pro)
     require('./projectComms').init(app)
     require('./deviceEditor').init(app)
     require('./alerts').init(app)
+    if (app.license.get('tier') && (app.license.get('version') === '' || app.license.get('version') === '2024-03-04')) {
+        app.config.features.register('remoteInstances', true, true)
+        if (app.license.get('tier') === 'enterprise') {
+            await commonFeatures(app, opts)
+            // HA
+            require('./ha').init(app)
+            // Protected Instances
+            require('./protectedInstance').init(app)
+            // Git Opps
+            app.decorate('gitops', await require('./gitops').init(app))
+            require('./customHostnames').init(app)
+            await require('./teamBroker').init(app)
 
-    if (app.license.get('tier') === 'enterprise') {
-        require('./ha').init(app)
-        require('./protectedInstance').init(app)
-        require('./customHostnames').init(app)
-        app.decorate('sso', await require('./sso').init(app))
-        await require('./teamBroker').init(app)
-        app.decorate('gitops', await require('./gitops').init(app))
-        // Set the MFA Feature Flag
-        app.config.features.register('mfa', true, true)
-        // Set the Device Groups Feature Flag
-        app.config.features.register('deviceGroups', true, true)
-        // Set the Project History timeline Feature Flag
-        app.config.features.register('projectHistory', true, true)
-        // Set the Bill of Materials Feature Flag
-        app.config.features.register('bom', true, true)
-        if (app.config.npmRegistry?.enabled) {
-            // Set npm Feature Flag
-            app.config.features.register('npm', true, true)
+            // Set the Device Groups Feature Flag
+            app.config.features.register('deviceGroups', true, true)
+            // Set the Bill of Materials Feature Flag
+            app.config.features.register('bom', true, true)
+        } else {
+            // old "Pro" license
         }
-        if (app.config.tables?.enabled) {
-            app.decorate('tables', await require('./tables').init(app))
+    } else if (app.license.get('tiers') && app.license.get('version') === '2026-08-20') {
+        const tiers = app.license.get('tiers')
+        await commonFeatures(app, opts)
+
+        if (tiers.includes('hub')) {
+            // `hub` does not include remote instances so we disable the feature flag for it
+            //  - it will get re-enabled below if the license also includes `edge` or `fleet`
+            app.config.features.register('remoteInstances', false, true)
+            // HA
+            require('./ha').init(app)
+            // Protected Instances
+            require('./protectedInstance').init(app)
+            // Git Opps
+            app.decorate('gitops', await require('./gitops').init(app))
+            // Set the Bill of Materials Feature Flag
+            app.config.features.register('bom', true, true)
         }
-        app.config.features.register('certifiedNodes', true, true)
-        app.config.features.register('ffNodes', true, true)
-        app.config.features.register('rbacApplication', true, true)
-        require('./autoUpdateStacks').init(app)
-
-        // Expert
-        await app.register(require('./expert'))
-
-        // Set the AI Features Flag (global gate for all AI features)
-        const isAiEnabled = !!(app.config?.ai?.enabled ?? true)
-        app.config.features.register('ai', isAiEnabled, true)
-
-        // Set the Generate Snapshot Description Feature Flag
-        const isAssistantConfigured = isAiEnabled && app.config.assistant?.enabled === true && !!app.config.assistant?.service?.url
-        app.config.features.register('generatedSnapshotDescription', isAssistantConfigured, true)
-
-        // Set the assistant inline completions Feature Flag
-        app.config.features.register('assistantInlineCompletions', isAssistantConfigured, true)
-
-        // Set the expert platform automation Feature Flag (MCP platform tools server)
-        app.config.features.register('expertPlatformAutomation', isAiEnabled && (app.config?.expert?.enabled ?? false), true)
-
-        // Set the expert assistant Feature Flag
-        app.config.features.register('expertAssistant', isAiEnabled && (app.config?.expert?.enabled ?? false), true)
-
-        // Set the Expert Insights flag
-        const isInsightsEnabled = isAiEnabled &&
-            !!app.config?.expert?.enabled &&
-            (Object.prototype.hasOwnProperty.call(app.config?.expert ?? {}, 'insights') ? !!app.config?.expert?.insights?.enabled : true)
-
-        app.config.features.register('expertInsights', isInsightsEnabled ?? false, true)
-
-        // Set the MCP third-party agent access flag. Defaults to true when AI
-        // and expert are both enabled, so it activates automatically unless
-        // explicitly disabled in the config.
-        const isMcpThirdPartyEnabled = isAiEnabled && (app.config?.expert?.enabled ?? false)
-        app.config.features.register('mcpThirdParty', isMcpThirdPartyEnabled, true)
+        if (tiers.includes('edge') || tiers.includes('fleet')) {
+            app.config.features.register('remoteInstances', true, true)
+            // Set the Device Groups Feature Flag
+            app.config.features.register('deviceGroups', true, true)
+            await require('./teamBroker').init(app)
+        }
     }
 
     // Set the Team Library Feature Flag
