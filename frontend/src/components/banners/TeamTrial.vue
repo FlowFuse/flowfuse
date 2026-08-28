@@ -13,7 +13,7 @@
         <span>
             <ExclamationCircleIcon class="ff-icon mr-2" />
             <span v-if="!team.billing?.trialEnded">
-                {{ $t('ui.youHave') }} <span class="font-bold">{{ trialEndsIn }} left</span> {{ $t('ui.ofYourFreeTrial') }}
+                {{ $t('ui.youHave') }} <span class="font-bold">{{ $t('ui.p0Left', { p0: trialEndsIn }) }}</span> {{ $t('ui.ofYourFreeTrial') }}
                 <span v-if="team.billing?.active">
                     <!-- TODO: remove in 1.14 as this will become an unneeded state once existing trials expire -->
                     {{ $t('ui.youTrialInstancesWillBeAddedToYourBillingSubscri') }}

@@ -29,7 +29,7 @@
     <form v-if="canChangeNodeRedVersion" class="my-6 space-y-6" @submit.prevent.stop data-el="change-version">
         <FormHeading class="pb-2">
             {{ $t('ui.changeNodeRedVersion') }}
-            <span class="italic text-md px-2 text-gray-400">(Current: {{ displayNrVersion }})</span>
+            <span class="italic text-md px-2 text-gray-400">{{ $t('ui.currentP0', { p0: displayNrVersion }) }}</span>
         </FormHeading>
 
         <div ref="updateStack" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">

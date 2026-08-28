@@ -51,7 +51,7 @@
                     <summary class="mt-6 cursor-pointer mb-2 font-bold">{{ $t('ui.publishPackage') }}</summary>
                     <div>
                         <p class="mb-2">{{ $t('ui.makeSureThatThePackageNameIsScopedTo') }} <code>{{ $t('ui.flowfuse') }}</code> {{ $t('ui.andYourTeamSId') }}</p>
-                        <code class="text-sm block text-gray-500 p-2 bg-gray-50">"name": "@flowfuse-{{ team.id }}/my-package-name"</code>
+                        <code class="text-sm block text-gray-500 p-2 bg-gray-50">{{ $t('ui.nameFlowfuseP0MyPackageName', { p0: team.id }) }}</code>
                         <p class="mt-2 mb-2">{{ $t('ui.thenRunThisCommandToPublishYourPackageWhenItIsRe') }}</p>
                         <CodeSnippet>{{ commands.publish }}</CodeSnippet>
                         <CopySnippet :snippet="commands.publish" />

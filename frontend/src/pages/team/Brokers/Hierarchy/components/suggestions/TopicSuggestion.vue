@@ -8,8 +8,7 @@
             <div class="description-wrapper">
                 <p v-if="description" class="description opacity-50 text-sm">{{ description }}</p>
                 <p v-else class="description opacity-50 text-sm">
-                    FlowFuse has detected that the messages sent to this topic are {{ format.toUpperCase() }}.
-                    <template v-if="format === 'object'">{{ $t('ui.flowfuseHasAlsoEstablishedA') }} <span class="ff-link" @click="preview">{{ $t('ui.fullSchemaForThisObject') }}</span>, which you can inspect using the button to the right.</template>
+                    {{ $t('ui.flowfuseHasDetectedThatTheMessagesSentToThisTopi', { p0: format.toUpperCase() }) }}<template v-if="format === 'object'">{{ $t('ui.flowfuseHasAlsoEstablishedA') }} <span class="ff-link" @click="preview">{{ $t('ui.fullSchemaForThisObject') }}</span>, which you can inspect using the button to the right.</template>
                     {{ $t('ui.wouldYouLikeToApplyThisSuggestionToYourSchema') }}
                 </p>
             </div>

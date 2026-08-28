@@ -17,12 +17,8 @@
 
         <!-- Form Description -->
         <div class="mb-8 text-sm text-gray-500">
-            <template v-if="isEdit">
-                Update existing pipeline stage from {{ pipeline?.name }}.
-            </template>
-            <template v-else>
-                Create a new pipeline stage for {{ pipeline?.name }}.
-            </template>
+            <template v-if="isEdit">{{ $t('ui.updateExistingPipelineStageFromP0', { p0: pipeline?.name }) }}</template>
+            <template v-else>{{ $t('ui.createANewPipelineStageForP0', { p0: pipeline?.name }) }}</template>
         </div>
 
         <div>

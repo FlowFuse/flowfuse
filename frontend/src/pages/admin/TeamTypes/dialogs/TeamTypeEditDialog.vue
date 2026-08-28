@@ -66,7 +66,7 @@
                     <FormRow v-model="input.properties.runtimes.limit"># Instances + Devices</FormRow>
                 </div>
                 <div v-for="(instanceType, index) in instanceTypes" :key="index">
-                    <FormHeading>{{ instanceType.name }} Instance</FormHeading>
+                    <FormHeading>{{ $t('ui.p0Instance', { p0: instanceType.name }) }}</FormHeading>
                     <div class="grid gap-3 grid-cols-4">
                         <FormRow v-model="input.properties.instances[instanceType.id].active" type="checkbox" class="mb-4">{{ $t('ui.available') }}</FormRow>
                         <FormRow v-if="input.properties.instances[instanceType.id].active" v-model="input.properties.instances[instanceType.id].creatable" type="checkbox" class="mb-4">{{ $t('ui.creatable') }}</FormRow>

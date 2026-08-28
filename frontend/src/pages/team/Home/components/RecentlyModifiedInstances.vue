@@ -7,7 +7,7 @@
             </li>
             <li v-if="hasMore" class="instance-wrapper flex">
                 <team-link :to="{name: 'team-hosted-instances'}" class="instance-tile has-more hover:text-indigo-700" data-el="has-more">
-                    <span>{{ instancesLeft }} More</span>
+                    <span>{{ $t('ui.p0More', { p0: instancesLeft }) }}</span>
                     <span>
                         <ChevronRightIcon class="ff-icon ff-icon-sm" />
                     </span>

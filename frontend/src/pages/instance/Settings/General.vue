@@ -22,17 +22,13 @@
         <FormRow v-if="features.ha && input.haConfig" v-model="input.haConfig" type="uneditable">
             <template #default>{{ $t('ui.highAvailability') }}</template>
             <template #input>
-                <div class="w-full uneditable undefined text-gray-800">
-                    {{ input.haConfig.replicas }} x instances
-                </div>
+                <div class="w-full uneditable undefined text-gray-800">{{ $t('ui.p0XInstances', { p0: input.haConfig.replicas }) }}</div>
             </template>
         </FormRow>
         <FormRow v-if="features.protectInstance && input.protectInstance" v-model="input.protectInstance" type="uneditable">
             <template #default>{{ $t('ui.instanceProtected2') }}</template>
             <template #input>
-                <div>
-                    Protected {{ input.protectInstance.enabled }}
-                </div>
+                <div>{{ $t('ui.protectedP0', { p0: input.protectInstance.enabled }) }}</div>
             </template>
         </FormRow>
         <FormRow v-model="input.stackDescription" type="uneditable">

@@ -4,8 +4,8 @@
             <form class="space-y-2" @submit.prevent>
                 <template v-if="!responseErrors">
                     <p v-if="!exceedsUserLimit">{{ $t('ui.inviteAUserToJoinTheTeamByUsername') }}<span v-if="externalEnabled"> {{ $t('ui.orEmail') }}</span>. Please use a comma-separated list to invite multiple new users.</p>
-                    <p v-if="hasUserLimit">Your team can have a maximum of {{ userLimit }} members.</p>
-                    <p v-if="exceedsUserLimit">You currently have {{ totalMembers }} (including existing invites) so cannot invite any more.</p>
+                    <p v-if="hasUserLimit">{{ $t('ui.yourTeamCanHaveAMaximumOfP0Members', { p0: userLimit }) }}</p>
+                    <p v-if="exceedsUserLimit">{{ $t('ui.youCurrentlyHaveP0IncludingExistingInvitesSoCann', { p0: totalMembers }) }}</p>
                     <div v-if="!exceedsUserLimit" class="space-y-4 pt-2">
                         <FormRow id="userInfo" v-model="input.userInfo" :error="errors.userInfo" :placeholder="'username, username2, ...' + (externalEnabled?' or email1, email2, ...':'')" />
                         <ff-radio-group v-model="input.role" orientation="vertical" :options="roleOptions" />

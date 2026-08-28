@@ -110,12 +110,12 @@
     </template>
     <template v-else-if="entry.event === 'team.device.assigned'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.device">{{ $t('ui.deviceP0HasBeenAssignedToTheP1P2', { p0: entry.body.device?.name, p1: entry.body.application ? 'Application' : 'Instance', p2: entry.body.application ? entry.body.application.name : entry.body.project?.name }) }}</span>
+        <span v-if="!error && entry.body?.device">{{ $t('ui.deviceP0HasBeenAssignedToTheP1P2', { p0: entry.body.device?.name, p1: entry.body.application ? $t('ui.application') : $t('ui.instance2'), p2: entry.body.application ? entry.body.application.name : entry.body.project?.name }) }}</span>
         <span v-else-if="!error">{{ $t('ui.deviceDataNotFoundInAuditEntry') }}</span>
     </template>
     <template v-else-if="entry.event === 'team.device.unassigned'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.device">{{ $t('ui.deviceP0HasBeenUnassignedFromTheP1P2', { p0: entry.body.device?.name, p1: entry.body.application ? 'Application' : 'Instance', p2: entry.body.application ? entry.body.application.name : entry.body.project?.name }) }}</span>
+        <span v-if="!error && entry.body?.device">{{ $t('ui.deviceP0HasBeenUnassignedFromTheP1P2', { p0: entry.body.device?.name, p1: entry.body.application ? $t('ui.application') : $t('ui.instance2'), p2: entry.body.application ? entry.body.application.name : entry.body.project?.name }) }}</span>
         <span v-else-if="!error">{{ $t('ui.deviceDataNotFoundInAuditEntry') }}</span>
     </template>
     <template v-else-if="entry.event === 'team.device.credentials-generated' || entry.event === 'team.device.credentialsGenerated' || entry.event === 'device.credentials.generated'">
@@ -512,7 +512,7 @@
     </template>
     <template v-else-if="entry.event === 'application.deviceGroup.members.changed'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.deviceGroup">{{ $t('ui.deviceGroupP0MembersInApplicationP1UpdatedP2', { p0: entry.body.deviceGroup?.name, p1: entry.body.application?.name, p2: entry.body?.info?.info ?? 'No changes' }) }}</span>
+        <span v-if="!error && entry.body?.deviceGroup">{{ $t('ui.deviceGroupP0MembersInApplicationP1UpdatedP2', { p0: entry.body.deviceGroup?.name, p1: entry.body.application?.name, p2: entry.body?.info?.info ?? $t('ui.noChanges') }) }}</span>
         <span v-else-if="!error">{{ $t('ui.deviceGroupDataNotFoundInAuditEntry') }}</span>
     </template>
     <template v-else-if="entry.event === 'application.deviceGroup.settings.updated'">
@@ -569,7 +569,7 @@
     </template>
     <template v-else-if="entry.event === 'project.imported'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project && entry.body?.sourceProject">Instance '{{ entry.body.sourceProject.name }}' was copied to '{{ entry.body.project.name }}'</span>
+        <span v-if="!error && entry.body?.project && entry.body?.sourceProject">{{ $t('ui.instanceP0WasCopiedToP12', { p0: entry.body.sourceProject.name, p1: entry.body.project.name }) }}</span>
         <span v-else-if="!error">{{ $t('ui.instanceDataNotFoundInAuditEntry') }}</span>
     </template>
     <template v-else-if="entry.event === 'project.assigned-to-pipeline-stage'">

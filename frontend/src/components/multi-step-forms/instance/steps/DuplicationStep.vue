@@ -78,7 +78,7 @@
 
                     <div class="form-group">
                         <div class="title">
-                            <label>Select the components to copy from '{{ instance?.name }}'</label>
+                            <label>{{ $t('ui.selectTheComponentsToCopyFromP0', { p0: instance?.name }) }}</label>
                         </div>
                         <ExportInstanceComponents id="exportSettings" v-model="copyParts" class="mt-2" />
                     </div>

@@ -3,11 +3,7 @@
         <template #default>
             <ff-loading v-if="loading" :message="$t('ui.creatingStack')" />
             <form v-else class="space-y-6" @submit.prevent>
-                <div v-if="input.replaces">
-                    This will create a new stack to replace '{{ input.replaces.name }}'.
-                    The existing stack will be marked inactive and will not be
-                    available for use by new instances.
-                </div>
+                <div v-if="input.replaces">{{ $t('ui.thisWillCreateANewStackToReplaceP0TheExistingSta', { p0: input.replaces.name }) }}</div>
                 <FormRow v-model="input.name" :error="errors.name" :disabled="editDisabled">
                     {{ $t('ui.name') }}
                     <template #description>An internal name for the stack. This must be unique and can only contain a-z 0-9 - _ / @ .</template>

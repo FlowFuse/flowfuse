@@ -2,38 +2,23 @@
     <ul v-if="updates">
         <li v-for="(update) in updates" :key="update.key">
             <template v-if="update.dif === 'created' || update.dif === 'new'">
-                Added: '{{ update.key }}'.
-                <template v-if="includeValues(update)">
-                    Value: '{{ update.new }}'.
-                </template>
+                {{ $t('ui.addedP0', { p0: update.key }) }}<template v-if="includeValues(update)">{{ $t('ui.valueP0', { p0: update.new }) }}</template>
             </template>
             <template v-else-if="update.dif === 'updated'">
                 <template v-if="update.old && !update.new">
-                    Cleared: '{{ update.key }}'.
-                    <template v-if="includeValues(update)">
-                        Old value: '{{ update.old }}'
-                    </template>
+                    {{ $t('ui.clearedP0', { p0: update.key }) }}<template v-if="includeValues(update)">{{ $t('ui.oldValueP0', { p0: update.old }) }}</template>
                 </template>
                 <template v-else-if="!update.old && update.new">
-                    Set: '{{ update.key }}'.
-                    <template v-if="includeValues(update)">
-                        Value: '{{ update.new }}'
-                    </template>
+                    {{ $t('ui.setP0', { p0: update.key }) }}<template v-if="includeValues(update)">{{ $t('ui.valueP02', { p0: update.new }) }}</template>
                 </template>
                 <template v-else>
-                    Changed: '{{ update.key }}'.
-                    <template v-if="includeValues(update)">
-                        Old value: '{{ update.old }}'. New value: '{{ update.new }}'.
-                    </template>
+                    {{ $t('ui.changedP0', { p0: update.key }) }}<template v-if="includeValues(update)">{{ $t('ui.oldValueP0NewValueP1', { p0: update.old, p1: update.new }) }}</template>
                 </template>
             </template>
             <template v-else-if="update.dif === 'deleted'">
-                Deleted: '{{ update.key }}'.
-                <template v-if="includeValues(update)">
-                    Old value: '{{ update.old }}'
-                </template>
+                {{ $t('ui.deletedP0', { p0: update.key }) }}<template v-if="includeValues(update)">{{ $t('ui.oldValueP0', { p0: update.old }) }}</template>
             </template>
-            <template v-else>{{ update.dif || 'Unknown action on ' }} property: '{{ update.key }}'.</template>
+            <template v-else>{{ $t('ui.p0PropertyP1', { p0: update.dif || $t('ui.unknownActionOn'), p1: update.key }) }}</template>
         </li>
     </ul>
 </template>

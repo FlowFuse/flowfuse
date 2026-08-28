@@ -183,9 +183,7 @@
 
                 <!-- Copying a instance -->
                 <template v-if="isCopyProject">
-                    <p class="text-gray-500">
-                        Select the components to copy from '{{ sourceInstance?.name }}'
-                    </p>
+                    <p class="text-gray-500">{{ $t('ui.selectTheComponentsToCopyFromP0', { p0: sourceInstance?.name }) }}</p>
                     <ExportInstanceComponents id="exportSettings" v-model="copyParts" />
                 </template>
 

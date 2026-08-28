@@ -4,8 +4,7 @@
             <div class="flex items-center gap-4">
                 <h3>{{ label }}</h3>
                 <label v-if="filter?.property === property" class="flex items-center gap-1 opacity-50">
-                    <FunnelIcon class="ff-icon ff-icon-sm" />
-                    Filter Applied - {{ filter?.devices.length }} Device<template v-if="filter?.devices.length > 1">s</template>
+                    <FunnelIcon class="ff-icon ff-icon-sm" />{{ $t('ui.filterAppliedP0Device', { p0: filter?.devices.length }) }}<template v-if="filter?.devices.length > 1">s</template>
                 </label>
             </div>
             <button class="ff-btn ff-btn--tertiary" @click="toggle()">

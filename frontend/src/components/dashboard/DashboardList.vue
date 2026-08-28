@@ -15,7 +15,7 @@
             <template #img>
                 <img src="@/images/empty-states/team-instances.png">
             </template>
-            <template #header>There are no dashboards {{ scope === 'application' ? 'in this application' : 'in this team' }}.</template>
+            <template #header>{{ $t('ui.thereAreNoDashboardsP0', { p0: scope === 'application' ? $t('ui.inThisApplication') : $t('ui.inThisTeam') }) }}</template>
             <template #message>
                 <p>{{ $t('ui.dashboardsAppearHereOnceAnInstanceHasTheDashboar') }}</p>
             </template>

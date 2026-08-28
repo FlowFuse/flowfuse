@@ -134,11 +134,11 @@
                     <FormRow v-model="input.options.provisionNewUsers" type="checkbox">{{ $t('ui.allowProvisioningOfNewUsersOnFirstLogin') }}</FormRow>
                     <FormRow v-model="input.options.sessionExpiry" :error="sessionExpiryError" type="number">
                         {{ $t('ui.customSessionExpiryHours') }}
-                        <template #description>How long should a user be logged in for, leave blank for the default ({{ defaultExpiryHours }})</template>
+                        <template #description>{{ $t('ui.howLongShouldAUserBeLoggedInForLeaveBlankForTheD', { p0: defaultExpiryHours }) }}</template>
                     </FormRow>
                     <FormRow v-model="input.options.sessionIdle" type="number">
                         {{ $t('ui.customSessionIdleTimeHours') }}
-                        <template #description>How long should a user can be idle before being logged out, leave blank for the default ({{ defaultIdleHours }})</template>
+                        <template #description>{{ $t('ui.howLongShouldAUserCanBeIdleBeforeBeingLoggedOutL', { p0: defaultIdleHours }) }}</template>
                     </FormRow>
                     <ff-button :disabled="!formValid" @click="updateProvider()">
                         {{ $t('ui.updateConfiguration') }}

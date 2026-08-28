@@ -57,11 +57,7 @@
             <span v-if="prorationMode === 'create_prorations'">
                 {{ $t('ui.thisWillBeAddedToYourNextInvoice') }}
             </span>
-            <span v-else>
-                You will be charged {{ formatCurrency(selectedCostAfterCredit) }} now
-                <span v-if="pricingDetails?.interval">
-                    then {{ formatCurrency(pricingDetails.cost) }} /{{ pricingDetails.interval }}
-                </span>
+            <span v-else>{{ $t('ui.youWillBeChargedP0Now', { p0: formatCurrency(selectedCostAfterCredit) }) }}<span v-if="pricingDetails?.interval">{{ $t('ui.thenP0P1', { p0: formatCurrency(pricingDetails.cost), p1: pricingDetails.interval }) }}</span>
             </span>
         </div>
     </template>

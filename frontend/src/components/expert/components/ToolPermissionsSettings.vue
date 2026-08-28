@@ -29,7 +29,7 @@
                                     <span
                                         v-if="customCount(group, cls.key)"
                                         class="tool-permissions__count"
-                                    >{{ customCount(group, cls.key) }} set individually</span>
+                                    >{{ $t('ui.p0SetIndividually', { p0: customCount(group, cls.key) }) }}</span>
                                     <ff-button
                                         v-if="customCount(group, cls.key)"
                                         v-ff-tooltip:left="`Reset ${cls.label} tools in ${group.title} to this default`"

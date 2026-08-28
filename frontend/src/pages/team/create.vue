@@ -72,7 +72,7 @@
                 </div>
                 <section v-else class="max-w-md">
                     <div class="mb-8 text-sm text-gray-500 space-y-2">
-                        <p>To learn more about our {{ input.teamType?.name }} plan, including the option to purchase an extended trial, click below to contact our sales team.</p>
+                        <p>{{ $t('ui.toLearnMoreAboutOurP0PlanIncludingTheOptionToPur', { p0: input.teamType?.name }) }}</p>
                     </div>
                     <ff-button class="w-full" @click="sendContact()">
                         {{ $t('ui.talkToSales2') }}

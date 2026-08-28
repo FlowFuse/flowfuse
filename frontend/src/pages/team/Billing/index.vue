@@ -5,14 +5,14 @@
             class="ff-banner ff-banner-info mb-3"
             data-el="credit-balance-banner"
         >
-            You have a credit balance of {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to the next invoice.
+            {{ $t('ui.youHaveACreditBalanceOfP0ThatWillBeAppliedToTheN', { p0: formatCurrency(Math.abs(subscription.customer.balance)) }) }}
         </div>
         <div
             v-else-if="subscription?.customer?.balance > 0"
             class="ff-banner ff-banner-info mb-3"
             data-el="credit-balance-banner"
         >
-            You owe {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to the next invoice.
+            {{ $t('ui.youOweP0ThatWillBeAppliedToTheNextInvoice', { p0: formatCurrency(Math.abs(subscription.customer.balance)) }) }}
         </div>
         <ff-page>
             <template #header>

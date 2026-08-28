@@ -101,7 +101,7 @@
                     </tr>
 
                     <tr v-for="(instanceType, index) in instanceTypes" :key="index">
-                        <th>{{ instanceType.name }} Instance:</th>
+                        <th>{{ $t('ui.p0Instance2', { p0: instanceType.name }) }}</th>
                         <template v-if="!editingLimits">
                             <td v-if="getTeamProperty(`instances_${instanceType.id}_active`)">
                                 <span>{{ getTeamProperty(`instances_${instanceType.id}_free`) || 0 }} - {{ getTeamProperty(`instances_${instanceType.id}_limit`) || 'unlimited' }}</span>
@@ -126,7 +126,7 @@
                         <td v-if="!editingLimits">
                             <span v-if="!getTeamProperty('devices_free')">
                                 <div>{{ getTeamProperty('instances_' + getTeamProperty('devices_combinedFreeType') + '_free') || 0 }} - {{ getTeamProperty(`devices_limit`) || 'unlimited' }}</div>
-                                <div class="text-xs">Shared with {{ getInstanceTypeName(getTeamProperty('devices_combinedFreeType')) }} </div>
+                                <div class="text-xs">{{ $t('ui.sharedWithP0', { p0: getInstanceTypeName(getTeamProperty('devices_combinedFreeType')) }) }}</div>
                             </span>
                             <span v-else>
                                 {{ getTeamProperty(`devices_free`) || 0 }} - {{ getTeamProperty(`devices_limit`) || 'unlimited' }}
@@ -152,8 +152,7 @@
                     <tr>
                         <th>{{ $t('ui.features') }}</th>
                         <td>
-                            <span v-if="featureOverrideCount > 0">
-                                * {{ featureOverrideCount }} override<span v-if="featureOverrideCount > 1">s</span> {{ $t('ui.applied') }}
+                            <span v-if="featureOverrideCount > 0">{{ $t('ui.p0Override', { p0: featureOverrideCount }) }}<span v-if="featureOverrideCount > 1">s</span> {{ $t('ui.applied') }}
                             </span>
                             <span v-else>
                                 &nbsp;

@@ -7,15 +7,10 @@
         <SparklesIcon class="ff-icon mr-2" style="stroke-width: 1px;" />
         <slot>
             <div>
-                <span v-if="fullMessage">
-                    {{ fullMessage }}
-                    Please <router-link class="ff-link" href="#" :to="upgradePath">{{ $t('ui.upgrade2') }}</router-link>
+                <span v-if="fullMessage">{{ $t('ui.p0Please', { p0: fullMessage }) }}<router-link class="ff-link" href="#" :to="upgradePath">{{ $t('ui.upgrade2') }}</router-link>
                     {{ $t('ui.yourTeamToContinue') }}
                 </span>
-                <span v-else>
-                    {{ featureName }} is not available for your current Team.
-                    Please
-                    <router-link class="ff-link" href="#" :to="upgradePath">{{ $t('ui.upgrade2') }}</router-link> {{ $t('ui.yourTeamInOrderToUseIt') }}
+                <span v-else>{{ $t('ui.p0IsNotAvailableForYourCurrentTeamPlease', { p0: featureName }) }}<router-link class="ff-link" href="#" :to="upgradePath">{{ $t('ui.upgrade2') }}</router-link> {{ $t('ui.yourTeamInOrderToUseIt') }}
                 </span>
             </div>
         </slot>

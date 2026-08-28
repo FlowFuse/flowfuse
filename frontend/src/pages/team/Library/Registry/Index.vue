@@ -73,7 +73,7 @@
             </template>
         </EmptyState>
         <div v-else class="mt-3 space-y-2">
-            <label class="block text-lg font-medium" data-el="registry-count">{{ registry.length }} package<template v-if="registry.length > 1">s</template></label>
+            <label class="block text-lg font-medium" data-el="registry-count">{{ $t('ui.p0Package', { p0: registry.length }) }}<template v-if="registry.length > 1">s</template></label>
             <ul class="ff-registry-list">
                 <RegistryEntry v-for="pkg in registry" :key="pkg.name" :pkg="pkg" />
             </ul>

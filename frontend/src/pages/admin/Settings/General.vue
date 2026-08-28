@@ -57,7 +57,7 @@
         </FormRow>
         <FormRow v-if="input['user:tcs-required']" containerClass="max-w-sm ml-9">
             <template #description>
-                <p>Last updated: {{ tcsDate }}.</p>
+                <p>{{ $t('ui.lastUpdatedP0', { p0: tcsDate }) }}</p>
                 <div class="flex items-center space-x-2"><p>{{ $t('ui.requireUsersToReacceptTheTermsNow') }} </p><ff-button size="small" :disabled="loading" kind="tertiary" data-action="terms-and-condition-update" @click="updateTermsAndConditions">{{ $t('ui.updateNow') }}</ff-button></div>
             </template>
             <template #input>&nbsp;</template>

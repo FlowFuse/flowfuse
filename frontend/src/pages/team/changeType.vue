@@ -38,18 +38,16 @@
                 <div class="max-w-md w-full">
                     <template v-if="upgradeErrors.length > 0">
                         <div class="mb-8 text-sm text-gray-500 space-y-2">
-                            <p>Your current usage of the platform is higher than that available to the {{ input.teamType?.name }} team.</p>
+                            <p>{{ $t('ui.yourCurrentUsageOfThePlatformIsHigherThanThatAva', { p0: input.teamType?.name }) }}</p>
                             <p>{{ $t('ui.toChangeToThisTypeYouWillNeedToReduceYourUsage') }}</p>
                             <ul class="space-y-2 list-disc ml-8">
-                                <li v-for="(error, index) in upgradeErrors" :key="index">
-                                    {{ error.error }}. {{ input.teamType?.name }} teams are limited to {{ error.limit }}, this team currently has {{ error.count }}.
-                                </li>
+                                <li v-for="(error, index) in upgradeErrors" :key="index">{{ $t('ui.p0P1TeamsAreLimitedToP2ThisTeamCurrentlyHasP3', { p0: error.error, p1: input.teamType?.name, p2: error.limit, p3: error.count }) }}</li>
                             </ul>
                         </div>
                     </template>
                     <template v-else-if="billingEnabled">
                         <div class="mb-8 text-sm text-gray-500 space-y-2 text-center">
-                            <p v-if="isContactRequired">To learn more about our {{ input.teamType?.name }} plan, including the option to purchase an extended trial, click below to contact our sales team.</p>
+                            <p v-if="isContactRequired">{{ $t('ui.toLearnMoreAboutOurP0PlanIncludingTheOptionToPur', { p0: input.teamType?.name }) }}</p>
                             <p v-if="trialMode && !trialHasEnded">{{ $t('ui.settingUpBillingWillBringYourFreeTrialToAnEnd') }}</p>
                             <p v-if="!isContactRequired && team.suspended">{{ $t('ui.settingUpBillingWillUnsuspendYourTeam') }}</p>
                             <p v-if="isUpgradingFromMonthlyToYearly">{{ $t('ui.anyAdditionalHostedOrRemoteInstancesWillAlsoSwit') }}</p>

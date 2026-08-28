@@ -9,9 +9,7 @@
                         <h3 v-if="devices && (!devicesBelongToSameApplication || assigningInstanceOwnedDevices)">
                             {{ $t('ui.unableToAssignTheRemoteInstanceToGroup') }}
                         </h3>
-                        <h3 v-else>
-                            Select a group from {{ application ? application.name : device.application.name }}
-                        </h3>
+                        <h3 v-else>{{ $t('ui.selectAGroupFromP0', { p0: application ? application.name : device.application.name }) }}</h3>
                     </div>
 
                     <ff-combobox

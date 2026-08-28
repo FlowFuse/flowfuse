@@ -5,34 +5,20 @@
         :header="`Push to &quot;${target?.name}&quot;`"
     >
         <template #default>
-            <p>
-                Are you sure you want to push from "{{ stage.name }}" to "{{
-                    target?.name
-                }}"?
-            </p>
+            <p>{{ $t('ui.areYouSureYouWantToPushFromP0ToP1', { p0: stage.name, p1: target?.name }) }}</p>
             <p class="my-4">
                 {{ $t('ui.thisWill') }}
-                <template v-if="stage.stageType === StageType.DEVICEGROUP">
-                    use the group's target snapshot from "{{ stage.name }}" and
-                </template>
+                <template v-if="stage.stageType === StageType.DEVICEGROUP">{{ $t('ui.useTheGroupSTargetSnapshotFromP0And', { p0: stage.name }) }}</template>
                 <template v-else-if="stage.stageType === StageType.GITREPO">
                     {{ $t('ui.pullTheSnapshotFromTheConfiguredGitRepositoryAnd') }}
                 </template>
-                <template v-else-if="stage.action === StageAction.CREATE_SNAPSHOT">
-                    create a new snapshot in "{{ stage.name }}" and
-                </template>
-                <template v-else-if="stage.action === StageAction.USE_LATEST_SNAPSHOT">
-                    use the latest instance snapshot from "{{ stage.name }}" and
-                </template>
-                <template v-else-if="stage.action === StageAction.PROMPT">
-                    use the snapshot selected below from "{{ stage.name }}" and
-                </template>
+                <template v-else-if="stage.action === StageAction.CREATE_SNAPSHOT">{{ $t('ui.createANewSnapshotInP0And', { p0: stage.name }) }}</template>
+                <template v-else-if="stage.action === StageAction.USE_LATEST_SNAPSHOT">{{ $t('ui.useTheLatestInstanceSnapshotFromP0And', { p0: stage.name }) }}</template>
+                <template v-else-if="stage.action === StageAction.PROMPT">{{ $t('ui.useTheSnapshotSelectedBelowFromP0And', { p0: stage.name }) }}</template>
                 <template v-if="target?.stageType === StageType.GITREPO">
                     {{ $t('ui.pushItToTheConfiguredGitRepository') }}
                 </template>
-                <template v-else>
-                    copy over all flows, nodes, environment variables and credentials to "{{ target?.name }}".
-                </template>
+                <template v-else>{{ $t('ui.copyOverAllFlowsNodesEnvironmentVariablesAndCred', { p0: target?.name }) }}</template>
             </p>
             <template v-if="target?.stageType === StageType.DEVICEGROUP">
                 <p class="my-4">
@@ -40,22 +26,16 @@
                 </p>
             </template>
             <template v-else-if="target?.deployToDevices">
-                <p class="my-4">
-                    And push out the changes to all devices connected to "{{ target?.name }}".
-                </p>
+                <p class="my-4">{{ $t('ui.andPushOutTheChangesToAllDevicesConnectedToP0', { p0: target?.name }) }}</p>
             </template>
-            <p v-if="target?.stageType !== StageType.GITREPO" class="my-4">
-                NOTE: Environment variables in the target {{ targetTypeName }} that already have a value will not be overwritten.
-            </p>
+            <p v-if="target?.stageType !== StageType.GITREPO" class="my-4">{{ $t('ui.noteEnvironmentVariablesInTheTargetP0ThatAlready', { p0: targetTypeName }) }}</p>
 
             <template v-if="(promptForSnapshot || useLatestSnapshot) && loadingSnapshots">
                 <ff-loading :message="$t('ui.loading')" />
             </template>
             <template v-else-if="promptForSnapshot">
                 <form class="space-y-2" @submit.prevent="confirm">
-                    <p>
-                        Please select the Snapshot from "{{ stage.name }}" that you wish to push to "{{ target?.name }}":
-                    </p>
+                    <p>{{ $t('ui.pleaseSelectTheSnapshotFromP0ThatYouWishToPushTo', { p0: stage.name, p1: target?.name }) }}</p>
                     <FormRow data-form="snapshot" containerClass="w-full">
                         {{ $t('ui.sourceSnapshot') }}
                         <template #input>

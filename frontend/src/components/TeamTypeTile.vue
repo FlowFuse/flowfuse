@@ -1,7 +1,7 @@
 <template>
     <div class="ff-team-type-tile">
         <div v-if="isTrial(teamType)" class="trial-ribbon">
-            <label>{{ teamType.properties.trial.duration }} Days Free Trial</label>
+            <label>{{ $t('ui.p0DaysFreeTrial', { p0: teamType.properties.trial.duration }) }}</label>
         </div>
         <div class="space-y-2">
             <img class="w-36 m-auto" src="../images/empty-states/application-instances.png">

@@ -77,7 +77,7 @@
                             >
                                 <span class="line-num border-r border-blue-200 text-blue-400" />
                                 <span class="line-num border-r border-blue-200 text-blue-400" />
-                                <span class="px-3 flex-1 text-center">&#8597; {{ line.count }} unchanged line{{ line.count === 1 ? '' : 's' }}</span>
+                                <span class="px-3 flex-1 text-center">{{ $t('ui.n8597P0UnchangedLineP1', { p0: line.count, p1: line.count === 1 ? '' : 's' }) }}</span>
                             </div>
                             <!-- Diff line -->
                             <div

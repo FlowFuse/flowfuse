@@ -142,8 +142,8 @@
                             <div>{{ stage.gitRepo?.branch || 'main' }}</div>
                         </template>
                         <template v-else>
-                            <div>{{ stage.gitRepo?.branch || 'main' }} (push)</div>
-                            <div>{{ stage.gitRepo?.pullBranch || 'main' }} (pull)</div>
+                            <div>{{ $t('ui.p0Push', { p0: stage.gitRepo?.branch || 'main' }) }}</div>
+                            <div>{{ $t('ui.p0Pull', { p0: stage.gitRepo?.pullBranch || 'main' }) }}</div>
                         </template>
                     </div>
                 </div>
@@ -177,9 +177,7 @@
                     <template v-else-if="stage.action === StageAction.USE_ACTIVE_SNAPSHOT">
                         {{ $t('ui.useActiveSnapshot') }}
                     </template>
-                    <template v-else-if="stage.action== StageAction.USE_LATEST_SNAPSHOT">
-                        Use latest {{ stage.stageType === StageType.INSTANCE ? 'instance' : 'device' }} snapshot
-                    </template>
+                    <template v-else-if="stage.action== StageAction.USE_LATEST_SNAPSHOT">{{ $t('ui.useLatestP0Snapshot', { p0: stage.stageType === StageType.INSTANCE ? $t('ui.scopeInstance') : $t('ui.scopeDevice') }) }}</template>
                     <template v-else-if="stage.action== StageAction.PROMPT">
                         {{ $t('ui.promptToSelectSnapshot2') }}
                     </template>

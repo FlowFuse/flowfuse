@@ -27,9 +27,7 @@
                         <span class="dashboards-viewer--list-item-name">{{ instance.name }}</span>
                         <InstanceStatusBadge :status="instance.status" :instanceId="instance.id" instanceType="instance" />
                     </li>
-                    <li v-if="visibleInstances.length === 0" class="dashboards-viewer--list-empty">
-                        No dashboards match "{{ searchTerm }}".
-                    </li>
+                    <li v-if="visibleInstances.length === 0" class="dashboards-viewer--list-empty">{{ $t('ui.noDashboardsMatchP0', { p0: searchTerm }) }}</li>
                 </ul>
             </template>
         </DashboardDrawer>
