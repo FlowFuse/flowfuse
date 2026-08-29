@@ -23,7 +23,7 @@ Node-RED logs can also be output from the Containers/Pods that run Instances on 
 The Audit Log tab on the application and instance views shows key events that have happened.
 
 The events include:
- 
+
  - User logging into the editor
  - Flows being updated
  - Nodes installed
