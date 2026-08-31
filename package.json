@@ -135,7 +135,7 @@
         "@babel/preset-env": "^7.22.15",
         "@eslint/js": "^9.39.4",
         "@fastify/response-validation": "^3.0.3",
-        "@pinia/testing": "1.0.3",
+        "@pinia/testing": "2.0.1",
         "@tailwindcss/postcss": "^4.2.4",
         "@types/mqtt": "^2.5.0",
         "@typescript-eslint/eslint-plugin": "^8.58.0",
