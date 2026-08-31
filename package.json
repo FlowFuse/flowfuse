@@ -131,7 +131,7 @@
         "zxcvbn": "^4.4.2"
     },
     "devDependencies": {
-        "@babel/core": "^7.22.15",
+        "@babel/core": "^8.0.1",
         "@babel/preset-env": "^7.22.15",
         "@eslint/js": "^9.39.4",
         "@fastify/response-validation": "^3.0.3",
