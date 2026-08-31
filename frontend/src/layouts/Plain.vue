@@ -5,7 +5,7 @@
                 <!-- Mobile: Icon-only logo -->
                 <img class="ff-logo lg:hidden" src="/ff-minimal-red.svg" alt="FlowFuse">
                 <!-- Desktop: Full wordmark logo -->
-                <img class="ff-logo hidden lg:block" src="/ff-logo--wordmark--light.svg" alt="FlowFuse">
+                <img class="ff-logo hidden lg:block" :src="wordmarkLogo" alt="FlowFuse">
             </router-link>
         </div>
         <div class="ff-layout--plain--wrapper">
@@ -26,13 +26,18 @@ import { mapState } from 'pinia'
 
 import navigationMixin from '../mixins/Navigation.js'
 
+import { useThemeStore } from '@/stores/theme.ts'
 import { useUxStore } from '@/stores/ux.js'
 
 export default {
     name: 'ff-layout-plain',
     mixins: [navigationMixin],
     computed: {
-        ...mapState(useUxStore, ['overlay'])
+        ...mapState(useUxStore, ['overlay']),
+        ...mapState(useThemeStore, ['effective']),
+        wordmarkLogo () {
+            return this.effective === 'dark' ? '/ff-logo--wordmark--dark.svg' : '/ff-logo--wordmark--light.svg'
+        }
     }
 }
 </script>
