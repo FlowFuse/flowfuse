@@ -159,7 +159,7 @@
         "eslint-plugin-no-only-tests": "^3.4.0",
         "eslint-plugin-vue": "^10.9.2",
         "file-loader": "^6.2.0",
-        "globals": "^17.7.0",
+        "globals": "17.12.0",
         "html-link-extractor": "^1.0.5",
         "html-webpack-plugin": "^5.5.3",
         "jsdom": "^30.0.1",
