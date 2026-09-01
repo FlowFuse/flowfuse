@@ -31,6 +31,12 @@ We also provide one-click installs of the Docker version:
  - [Digital Ocean Docker Install Guide](/docs/install/docker/digital-ocean.md)
  - [AWS Docker Install Guide](/docs/install/docker/aws-marketplace.md)
 
+## Networking requirements
+
+If the platform runs behind a firewall or proxy, see
+[Networking requirements](/docs/install/networking-requirements.md) for the outbound
+hostnames and ports FlowFuse needs.
+
 ## Upgrading FlowFuse
 
 If you are upgrading FlowFuse, please refer to the [Upgrade Guide](/docs/upgrade/README.md)
