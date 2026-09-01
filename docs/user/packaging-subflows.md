@@ -15,7 +15,6 @@ FlowFuse can package a Node-RED [subflow](https://nodered.org/docs/user-guide/ed
 ## Requirements
 
 - A **Hosted Instance** running the **latest Node-RED version** on **FlowFuse v2.21.0** or later
-- A **FlowFuse Cloud Pro or Enterprise** team, or **Enterprise self-hosted**
 - The [Shared Team Library](/docs/user/shared-library.md) feature enabled for the Team
 
 ## Packaging a subflow
