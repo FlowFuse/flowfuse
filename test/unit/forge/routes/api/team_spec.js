@@ -1053,7 +1053,7 @@ describe('Team API', function () {
             })
             response.statusCode.should.equal(401)
         })
-        it('Returns a 404 response when no instances are found', async () => {
+        it('Returns a 200 empty response when no instances are found', async () => {
             // GET /api/v1/team/:teamId/dashboard-instances
             const team = await app.db.models.Team.create({ name: 'mock-team-1', TeamTypeId: app.defaultTeamType.id })
             await app.factory.createApplication({ name: 'application-1' }, team)
@@ -1063,7 +1063,12 @@ describe('Team API', function () {
                 url: `/api/v1/teams/${team.hashid}/dashboard-instances`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
-            response.statusCode.should.equal(404)
+            response.statusCode.should.equal(200)
+            const reply = response.json()
+            should(reply).be.an.Object()
+            reply.should.have.property('count', 0)
+            reply.should.have.property('projects').and.be.Array()
+            reply.projects.should.have.property('length', 0)
         })
         it('Returns a 200 empty response when no dashboards are found', async () => {
             // GET /api/v1/team/:teamId/dashboard-instances
@@ -1666,6 +1671,23 @@ describe('Team API', function () {
             result.should.have.property('password')
             result.password.should.match(/^ffbtf_/)
             result.should.have.property('url')
+        })
+        it('issues a last will on the session disconnect topic', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/comms-credentials`,
+                payload: { sessionId: 'tab-1234567890' },
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            // Guards the response schema as much as the controller: an undeclared
+            // property would be silently stripped on serialization.
+            result.should.have.property('will')
+            result.will.should.have.property('topic', `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.bob.hashid}/s/tab-1234567890/disconnected`)
+            // The comms client discards a will it cannot JSON.parse
+            result.will.should.have.property('payload')
+            should.doesNotThrow(() => JSON.parse(result.will.payload))
         })
         it('rejects a non-member with 404', async function () {
             const response = await app.inject({

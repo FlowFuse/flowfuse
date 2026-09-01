@@ -104,6 +104,7 @@ import { useHubspotHelper } from '../../composables/Hubspot.js'
 
 import Alerts from '../../services/alerts.js'
 import Product from '../../services/product.js'
+import { contactRequiredToChangeTeamType } from '../../utils/teamType.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
@@ -185,11 +186,14 @@ export default {
             return this.team.billing?.unmanaged
         },
         isContactRequired () {
-            return this.billingEnabled &&
-                   !this.user.admin &&
-                   this.input.teamType &&
-                   this.input.teamTypeId !== this.team.type.id &&
-                   this.input.teamType.properties?.billing?.requireContact
+            return contactRequiredToChangeTeamType({
+                billingEnabled: this.billingEnabled,
+                isAdmin: this.user.admin,
+                selectedTeamType: this.input.teamType,
+                selectedTeamTypeId: this.input.teamTypeId,
+                currentTeamTypeId: this.team.type.id,
+                trialMode: this.trialMode
+            })
         },
         isSelectionAvailable () {
             if (this.input.teamTypeId) {
@@ -305,12 +309,8 @@ export default {
         }).sort((a, b) => a.order - b.order)
         this.input.teamTypeId = this.team.type.id
 
-        this.teamTypes.forEach(tt => {
-            // Check if *any* team type has annual billing available
-            if (tt.annualBillingPrice) {
-                this.annualBillingAvailable = true
-            }
-        })
+        // If any of the available types has an annualBillingPrice, show the annual billing toggle
+        this.annualBillingAvailable = this.teamTypes.some(type => !!type.annualBillingPrice)
 
         const instanceTypes = (await instanceTypesApi.getInstanceTypes()).types
         instanceTypes.forEach(instanceType => {

@@ -28,7 +28,14 @@
  *   - `undefined` (default): reads from `state.features` (the platform feature flags)
  *   - `'settings'`: reads from `state.settings.features` instead (for features exposed
  *     through the settings object rather than the feature flags system)
+ *   - `'settingsRoot'`: reads from `state.settings` directly (for top-level settings keys,
+ *     e.g. `telemetry:enabled`, that aren't nested under `features`)
  *   Only meaningful when `platformKey` is set. Ignored otherwise.
+ *
+ * @property {boolean} [platformDefault] - Value to use when the platform key is missing
+ *   (`undefined`), instead of the usual falsy default. Only meaningful for a platform-only
+ *   check (`platformKey` set, no `teamKey`) — mirrors `optOut`'s "missing means enabled"
+ *   behavior, but for the platform side.
  *
  * @property {string} [dependsOn] - The `output` name of another feature that must be
  *   enabled (combined check) for this feature to be enabled. If the referenced feature's
@@ -46,6 +53,10 @@
  * @property {string} [dependsOnTeam] - A team feature key that must be enabled for this
  *   feature to be enabled. Checked directly against the team type properties.
  *
+ * @property {string} [posthogKey] - PostHog feature-flag key. When PostHog is available
+ *   (`window.posthog`), its flag value overrides the platform/team result; otherwise the
+ *   platform/team result stands.
+ *
  * @property {boolean} [dependsOnTeamOptOut] - Controls the default behavior of the
  *   `dependsOnTeam` check, same semantics as `optOut`.
  *   Only meaningful when `dependsOnTeam` is set. Ignored otherwise.
@@ -56,6 +67,8 @@
  *   - If only `teamKey` is set: `team` only (team-only feature)
  *   - After the base combination, all `dependsOn*` gates are applied. If any
  *     dependency check fails, the combined result is forced to `false`.
+ *   - If `posthogKey` is set and PostHog is available, its flag value overrides everything
+ *     above; if PostHog is unavailable, the platform/team result (or `false`) is used.
  *
  * At least one of `platformKey` or `teamKey` must be provided.
  * `dependsOn`, `dependsOnPlatform`, and `dependsOnTeam` can be used together.
@@ -66,19 +79,23 @@ interface FeatureConfig {
     platformKey?: string
     teamKey?: string
     optOut?: boolean
-    platformSource?: 'settings'
+    platformSource?: 'settings' | 'settingsRoot'
+    platformDefault?: boolean
     dependsOn?: string
     dependsOnPlatform?: string
     dependsOnPlatformSource?: 'settings'
     dependsOnTeam?: string
     dependsOnTeamOptOut?: boolean
+    posthogKey?: string
 }
 
 interface PlatformState {
     features?: Record<string, boolean>
     settings?: {
         features?: Record<string, boolean>
+        [key: string]: unknown
     }
+    posthogFlags?: Record<string, boolean>
 }
 
 interface TeamTypeProperties {
@@ -126,7 +143,8 @@ export const FEATURE_CONFIGS: FeatureConfig[] = [
         optOut: true,
         dependsOnPlatform: 'ai',
         dependsOnTeam: 'ai',
-        dependsOnTeamOptOut: true
+        dependsOnTeamOptOut: true,
+        posthogKey: 'MCP_THIRD_PARTY'
     },
     { output: 'isApplicationsRBACFeatureEnabled', platformKey: 'rbacApplication', teamKey: 'rbacApplication' },
 
@@ -139,12 +157,29 @@ export const FEATURE_CONFIGS: FeatureConfig[] = [
     { output: 'isInstanceAutoStackUpdateFeatureEnabled', platformKey: 'autoStackUpdate' },
     { output: 'isDevOpsPipelinesFeatureEnabled', platformKey: 'devops-pipelines' },
     { output: 'isExternalMqttBrokerFeatureEnabled', platformKey: 'externalBroker' },
-    { output: 'isExpertPlatformAutomationFeatureEnabled', platformKey: 'expertPlatformAutomation' }
+    { output: 'isExpertPlatformAutomationFeatureEnabled', platformKey: 'expertPlatformAutomation' },
+
+    // Platform-only, read from the settings response rather than the feature flags object
+    { output: 'isTelemetryEnabled', platformKey: 'telemetry:enabled', platformSource: 'settingsRoot' },
+    { output: 'isTelemetryAnonymized', platformKey: 'telemetry:anonymize', platformSource: 'settingsRoot', platformDefault: true },
+    { output: 'isRemoteInstanceFeatureEnabled', platformKey: 'remoteInstances', platformDefault: true }
 ]
 
-function isPlatformFeatureEnabled (state: PlatformState, platformKey: string, platformSource?: 'settings'): boolean {
-    const source = platformSource === 'settings' ? state.settings?.features : state.features
-    return !!source?.[platformKey]
+function isPostHogAvailable (): boolean {
+    return !!window.posthog
+}
+
+function isPlatformFeatureEnabled (state: PlatformState, platformKey: string, platformSource?: 'settings' | 'settingsRoot', platformDefault?: boolean): boolean {
+    const source = platformSource === 'settings'
+        ? state.settings?.features
+        : platformSource === 'settingsRoot'
+            ? state.settings
+            : state.features
+    const flag = source?.[platformKey]
+    if (flag === undefined && platformDefault !== undefined) {
+        return platformDefault
+    }
+    return !!flag
 }
 
 function isTeamFeatureEnabled (team: Team | null | undefined, teamKey: string, optOut?: boolean): boolean {
@@ -175,14 +210,15 @@ function applyDependencyGates (
 
 export function buildFeatureChecks (state: PlatformState, team: Team | null | undefined): FeatureChecks {
     const checks: FeatureChecks = {}
+    const posthogFlags = state.posthogFlags ?? {}
 
     for (const config of FEATURE_CONFIGS) {
-        const { output, platformKey, teamKey, optOut, platformSource } = config
+        const { output, platformKey, teamKey, optOut, platformSource, platformDefault, posthogKey } = config
         const platformCheckKey = `${output}ForPlatform`
         const teamCheckKey = `${output}ForTeam`
 
         if (platformKey) {
-            checks[platformCheckKey] = isPlatformFeatureEnabled(state, platformKey, platformSource)
+            checks[platformCheckKey] = isPlatformFeatureEnabled(state, platformKey, platformSource, platformDefault)
         }
 
         if (teamKey) {
@@ -198,6 +234,10 @@ export function buildFeatureChecks (state: PlatformState, team: Team | null | un
         }
 
         applyDependencyGates(checks, output, config, state, team)
+
+        if (posthogKey && isPostHogAvailable()) {
+            checks[output] = !!posthogFlags[posthogKey]
+        }
     }
 
     return checks

@@ -12,7 +12,7 @@
             <!-- Mobile: Icon-only logo -->
             <img class="ff-logo lg:hidden" src="/ff-minimal-red.svg" alt="FlowFuse">
             <!-- Desktop: Full wordmark logo -->
-            <img class="ff-logo hidden lg:block" src="/ff-logo--wordmark--light.svg" alt="FlowFuse">
+            <img class="ff-logo hidden lg:block" :src="wordmarkLogo" alt="FlowFuse">
         </router-link>
         <global-search v-if="teams.length > 0 && hasAMinimumTeamRoleOf(Roles.Viewer)" />
         <!-- Mobile: Toggle(User Options) -->
@@ -123,6 +123,7 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
+import { useThemeStore } from '@/stores/theme.ts'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 
@@ -139,6 +140,10 @@ export default {
         ...mapState(useAccountStore, ['notifications']),
         ...mapState(useDataFarmTeamsStore, { teams: 'teamList', hasAvailableTeams: 'hasAvailableTeams', defaultUserTeam: 'defaultUserTeam' }),
         ...mapState(useAccountSettingsStore, ['canCreateTeam', 'featuresCheck']),
+        ...mapState(useThemeStore, ['effective']),
+        wordmarkLogo () {
+            return this.effective === 'dark' ? '/ff-logo--wordmark--dark.svg' : '/ff-logo--wordmark--light.svg'
+        },
         navigationOptions () {
             return [
                 {

@@ -5,6 +5,7 @@ import { nextTick } from 'vue'
 import settingsApi from '../api/settings.js'
 import teamApi from '../api/team.js'
 import userApi from '../api/user.js'
+import { handoffFromPopup, isPopupContext } from '../utils/popupContext.js'
 
 import getAppOrchestrator from '@/services/app.orchestrator'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
@@ -89,6 +90,10 @@ export const useAccountAuthStore = defineStore('account-auth', {
                 // User is logged in
                 if (router.currentRoute.value.meta.requiresLogin === false) {
                     // This is only for logged-out users
+                    if (isPopupContext(router.currentRoute.value.query)) {
+                        handoffFromPopup('/')
+                        return
+                    }
                     window.location = '/'
                     return
                 } else if (user.email_verified === false || user.password_expired) {

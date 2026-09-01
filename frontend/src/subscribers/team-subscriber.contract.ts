@@ -5,17 +5,32 @@ import teamApi from '@/api/team.js'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { Maybe } from '@/types/common/types'
 import type { CreateSubscriberOptions, SubscriberInstances, TeamRef } from '@/types/subscribers/subscriber.types'
-import type { Transport, TransportAttachmentHandle } from '@/types/transport/transport.types'
+import type { Transport, TransportAttachmentHandle, TransportMessagePacket, TransportSubscribeOptions } from '@/types/transport/transport.types'
 
 export function connectionKey (teamId: string): string {
     return `team:${teamId}`
 }
 
-type SubscriberPayload = { reason?: string, id?: string, meta?: { state?: string } }
+/**
+ * Whatever JSON.parse produced from the message body. The named fields are what current
+ * routes happen to read, not a closed set - the index signature says so, and is
+ * load-bearing: without it this is a weak type and TS rejects any handler sharing none of
+ * those names. Values are `unknown` so a route has to check for a shape, not assert it.
+ */
+export type SubscriberPayload = {
+    reason?: string
+    id?: string
+    meta?: { state?: string }
+    [key: string]: unknown
+}
 
 export interface SubscriberRoute {
     pattern: RegExp
-    handle: (payload: SubscriberPayload) => void
+    /**
+     * `topic` and `packet` are passed for routes that need to reply: the topic carries
+     * the session and entity to answer on, the packet the correlation id to echo.
+     */
+    handle: (payload: SubscriberPayload, topic: string, packet?: TransportMessagePacket) => void
 }
 
 export abstract class TeamSubscriber<TTransport extends Transport = Transport> {
@@ -104,7 +119,7 @@ export abstract class TeamSubscriber<TTransport extends Transport = Transport> {
         try {
             this.$attachment = await transport.attach(key, {
                 getCredentials: () => teamApi.getTeamCommsCreds(teamId, sessionId),
-                onMessage: (topic, message) => this._onMessage(topic, message),
+                onMessage: (topic, message, packet) => this._onMessage(topic, message, packet),
                 onConnect: () => this._onConnect(teamId, userId),
                 onClose: () => {},
                 onOffline: () => {},
@@ -137,14 +152,14 @@ export abstract class TeamSubscriber<TTransport extends Transport = Transport> {
         const transport = this.$transport
         if (!transport) return
         try {
-            await transport.subscribe(connectionKey(teamId), this._topics(teamId, userId), { qos: 1 })
+            await transport.subscribe(connectionKey(teamId), this._topics(teamId, userId), this._subscribeOptions())
             this._onSubscribed()
         } catch {
             // non-fatal — the transport replays subscriptions on reconnect
         }
     }
 
-    protected _onMessage (topic: string, message: Buffer | Uint8Array | string): void {
+    protected _onMessage (topic: string, message: Buffer | Uint8Array | string, packet?: TransportMessagePacket): void {
         let payload: SubscriberPayload = {}
         try {
             const raw = typeof message === 'string'
@@ -157,10 +172,14 @@ export abstract class TeamSubscriber<TTransport extends Transport = Transport> {
 
         for (const { pattern, handle } of this._routes()) {
             if (pattern.test(topic)) {
-                handle(payload)
+                handle(payload, topic, packet)
                 return
             }
         }
+    }
+
+    protected _subscribeOptions (): TransportSubscribeOptions {
+        return { qos: 1 }
     }
 
     protected abstract _topics (teamId: string, userId: string): string[]

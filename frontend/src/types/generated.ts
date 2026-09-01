@@ -2067,6 +2067,10 @@ export interface paths {
                             url?: string;
                             username?: string;
                             password?: string;
+                            will?: {
+                                topic?: string;
+                                payload?: string;
+                            };
                         };
                     };
                 };
@@ -3561,6 +3565,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
+                            meta?: components["schemas"]["PaginationMeta"];
                             count?: number;
                             snapshots?: components["schemas"]["Snapshot"][];
                             application?: components["schemas"]["ApplicationSummary"];
@@ -7638,100 +7643,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/applications/{applicationId}/bom": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get application BOM */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    applicationId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ApplicationBom"];
-                    };
-                };
-                /** @description Default Response */
-                "4XX": {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/teams/{teamId}/bom": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get team BOM */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    teamId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ApplicationBom"][];
-                    };
-                };
-                /** @description Default Response */
-                "4XX": {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/flow-blueprints/": {
         parameters: {
             query?: never;
@@ -8041,28 +7952,19 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/applications/{applicationId}/device-groups/": {
+    "/api/v1/teams/{teamId}/mcp/": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get a list of device groups in an application */
         get: {
             parameters: {
-                query?: {
-                    query?: string;
-                    cursor?: string;
-                    limit?: number;
-                    page?: number;
-                    sort?: string;
-                    dir?: "asc" | "desc";
-                    order?: "asc" | "desc";
-                };
+                query?: never;
                 header?: never;
                 path: {
-                    applicationId: string;
+                    teamId: string;
                 };
                 cookie?: never;
             };
@@ -8075,10 +7977,18 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            meta?: components["schemas"]["PaginationMeta"];
                             count?: number;
-                            groups?: components["schemas"]["DeviceGroupSummary"][];
+                            servers?: components["schemas"]["MCPRegistrationSummaryList"];
                         };
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
                     };
                 };
                 /** @description Default Response */
@@ -8093,32 +8003,206 @@ export interface paths {
             };
         };
         put?: never;
-        /** Add a new Device Group to an Application */
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{teamId}/mcp/{type}/{typeId}/{nodeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
         post: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    applicationId: string;
+                    teamId: string;
+                    type: string;
+                    typeId: string;
+                    nodeId: string;
                 };
                 cookie?: never;
             };
             requestBody: {
                 content: {
                     "application/json": {
-                        name: string;
+                        name?: string;
+                        endpointRoute?: string;
+                        protocol?: string;
+                        title?: string;
+                        version?: string;
                         description?: string;
                     };
                 };
             };
             responses: {
                 /** @description Default Response */
-                201: {
+                200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["DeviceGroupSummary"];
+                        "application/json": Record<string, never>;
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    teamId: string;
+                    type: string;
+                    typeId: string;
+                    nodeId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": Record<string, never>;
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{teamId}/databases/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    teamId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DatabaseCredentials"][];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    teamId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Name of the database */
+                        name?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DatabaseCredentials"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
                     };
                 };
                 /** @description Default Response */
@@ -8138,21 +8222,19 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/applications/{applicationId}/device-groups/{groupId}": {
+    "/api/v1/teams/{teamId}/databases/{databaseId}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get a specific Device Group */
         get: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    applicationId: string;
-                    groupId: string;
+                    databaseId: string;
                 };
                 cookie?: never;
             };
@@ -8164,7 +8246,16 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["DeviceGroup"];
+                        "application/json": components["schemas"]["DatabaseCredentials"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
                     };
                 };
                 /** @description Default Response */
@@ -8178,56 +8269,14 @@ export interface paths {
                 };
             };
         };
-        /** Update a Device Group */
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    applicationId: string;
-                    groupId: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        name?: string;
-                        description?: string;
-                        targetSnapshotId?: string | null;
-                    };
-                };
-            };
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": Record<string, never>;
-                    };
-                };
-                /** @description Default Response */
-                "4XX": {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-            };
-        };
+        put?: never;
         post?: never;
-        /** Delete a Device Group */
         delete: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    applicationId: string;
-                    groupId: string;
+                    databaseId: string;
                 };
                 cookie?: never;
             };
@@ -8239,7 +8288,16 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": Record<string, never>;
+                        "application/json": unknown;
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
                     };
                 };
                 /** @description Default Response */
@@ -8255,26 +8313,34 @@ export interface paths {
         };
         options?: never;
         head?: never;
-        /** Update Device Group membership */
-        patch: {
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{teamId}/databases/{databaseId}/tables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
             parameters: {
-                query?: never;
+                query?: {
+                    query?: string;
+                    cursor?: string;
+                    limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
+                };
                 header?: never;
                 path: {
-                    applicationId: string;
-                    groupId: string;
+                    databaseId: string;
                 };
                 cookie?: never;
             };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        add?: string[];
-                        remove?: string[];
-                        set?: string[];
-                    };
-                };
-            };
+            requestBody?: never;
             responses: {
                 /** @description Default Response */
                 200: {
@@ -8282,7 +8348,25 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": Record<string, never>;
+                        "application/json": {
+                            count?: number;
+                            tables?: {
+                                name?: string;
+                                schema?: string;
+                            }[];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
                     };
                 };
                 /** @description Default Response */
@@ -8296,32 +8380,358 @@ export interface paths {
                 };
             };
         };
-        trace?: never;
-    };
-    "/api/v1/applications/{applicationId}/device-groups/{groupId}/settings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Update a Device Group Settings */
-        put: {
+        put?: never;
+        post: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    applicationId: string;
-                    groupId: string;
+                    databaseId: string;
                 };
                 cookie?: never;
             };
             requestBody: {
                 content: {
                     "application/json": {
-                        env?: {
-                            [key: string]: unknown;
+                        name?: string;
+                        columns?: components["schemas"]["DatabaseTable"];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DatabaseTable"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{teamId}/databases/{databaseId}/tables/{tableName}/{schemaName}?": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    databaseId: string;
+                    tableName: string;
+                    schemaName: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DatabaseTable"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    databaseId: string;
+                    tableName: string;
+                    schemaName: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DatabaseTable"];
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{teamId}/databases/{databaseId}/tables/{tableName}/data/{schemaName}?": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    query?: string;
+                    cursor?: string;
+                    limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
+                };
+                header?: never;
+                path: {
+                    databaseId: string;
+                    tableName: string;
+                    schemaName: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            count?: number;
+                            rows?: {
+                                [key: string]: unknown;
+                            }[];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{instanceId}/resources/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Returns resource usage history for an Instance */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    instanceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            meta?: components["schemas"]["PaginationMeta"];
+                            resources?: {
+                                src?: string;
+                                ps?: number;
+                                cpu?: number;
+                                hs?: number;
+                                hu?: number;
+                                ts?: number;
+                            }[];
+                            count?: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{projectId}/autoUpdateStack/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Returns when a Instance allowed to be restarted */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    projectId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            hour?: number;
+                            day?: number;
+                            restart?: boolean;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        /** Sets when an Instance can be restarted */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    projectId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        schedule?: {
+                            hour?: number;
+                            day?: number;
+                            restart?: boolean;
                         }[];
                     };
                 };
@@ -8333,7 +8743,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["APIStatus"];
+                        "application/json": {
+                            hour?: number;
+                            day?: number;
+                            restart?: boolean;
+                        }[];
                     };
                 };
                 /** @description Default Response */
@@ -8348,34 +8762,13 @@ export interface paths {
             };
         };
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/teams/{teamId}/device-groups/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a list of device groups in an application */
-        get: {
+        /** Clears when an Instance can be restarted */
+        delete: {
             parameters: {
-                query?: {
-                    query?: string;
-                    cursor?: string;
-                    limit?: number;
-                    page?: number;
-                    sort?: string;
-                    dir?: "asc" | "desc";
-                    order?: "asc" | "desc";
-                };
+                query?: never;
                 header?: never;
                 path: {
-                    applicationId: string;
+                    projectId: string;
                 };
                 cookie?: never;
             };
@@ -8387,11 +8780,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            meta?: components["schemas"]["PaginationMeta"];
-                            count?: number;
-                            groups?: components["schemas"]["DeviceGroupSummary"][];
-                        };
+                        "application/json": unknown;
                     };
                 };
                 /** @description Default Response */
@@ -8405,9 +8794,6 @@ export interface paths {
                 };
             };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -9435,20 +9821,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{instanceId}/resources/": {
+    "/api/v1/applications/{applicationId}/device-groups/": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Returns resource usage history for an Instance */
+        /** Get a list of device groups in an application */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    query?: string;
+                    cursor?: string;
+                    limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
+                };
                 header?: never;
                 path: {
-                    instanceId: string;
+                    applicationId: string;
                 };
                 cookie?: never;
             };
@@ -9462,28 +9856,12 @@ export interface paths {
                     content: {
                         "application/json": {
                             meta?: components["schemas"]["PaginationMeta"];
-                            resources?: {
-                                src?: string;
-                                ps?: number;
-                                cpu?: number;
-                                hs?: number;
-                                hu?: number;
-                                ts?: number;
-                            }[];
                             count?: number;
+                            groups?: components["schemas"]["DeviceGroupSummary"][];
                         };
                     };
                 };
                 /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-                /** @description Default Response */
                 "4XX": {
                     headers: {
                         [name: string]: unknown;
@@ -9495,95 +9873,32 @@ export interface paths {
             };
         };
         put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/teams/{teamId}/databases/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    teamId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["DatabaseCredentials"][];
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-                /** @description Default Response */
-                "4XX": {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-            };
-        };
-        put?: never;
+        /** Add a new Device Group to an Application */
         post: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    teamId: string;
+                    applicationId: string;
                 };
                 cookie?: never;
             };
             requestBody: {
                 content: {
                     "application/json": {
-                        /** @description Name of the database */
-                        name?: string;
+                        name: string;
+                        description?: string;
                     };
                 };
             };
             responses: {
                 /** @description Default Response */
-                200: {
+                201: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["DatabaseCredentials"];
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
+                        "application/json": components["schemas"]["DeviceGroupSummary"];
                     };
                 };
                 /** @description Default Response */
@@ -9603,19 +9918,21 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/teams/{teamId}/databases/{databaseId}": {
+    "/api/v1/applications/{applicationId}/device-groups/{groupId}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
+        /** Get a specific Device Group */
         get: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    databaseId: string;
+                    applicationId: string;
+                    groupId: string;
                 };
                 cookie?: never;
             };
@@ -9627,16 +9944,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["DatabaseCredentials"];
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
+                        "application/json": components["schemas"]["DeviceGroup"];
                     };
                 };
                 /** @description Default Response */
@@ -9650,124 +9958,14 @@ export interface paths {
                 };
             };
         };
-        put?: never;
-        post?: never;
-        delete: {
+        /** Update a Device Group */
+        put: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    databaseId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": unknown;
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-                /** @description Default Response */
-                "4XX": {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/teams/{teamId}/databases/{databaseId}/tables": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: {
-                    query?: string;
-                    cursor?: string;
-                    limit?: number;
-                    page?: number;
-                    sort?: string;
-                    dir?: "asc" | "desc";
-                    order?: "asc" | "desc";
-                };
-                header?: never;
-                path: {
-                    databaseId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            count?: number;
-                            tables?: {
-                                name?: string;
-                                schema?: string;
-                            }[];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-                /** @description Default Response */
-                "4XX": {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    databaseId: string;
+                    applicationId: string;
+                    groupId: string;
                 };
                 cookie?: never;
             };
@@ -9775,7 +9973,8 @@ export interface paths {
                 content: {
                     "application/json": {
                         name?: string;
-                        columns?: components["schemas"]["DatabaseTable"];
+                        description?: string;
+                        targetSnapshotId?: string | null;
                     };
                 };
             };
@@ -9786,16 +9985,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["DatabaseTable"];
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
+                        "application/json": Record<string, never>;
                     };
                 };
                 /** @description Default Response */
@@ -9809,71 +9999,15 @@ export interface paths {
                 };
             };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/teams/{teamId}/databases/{databaseId}/tables/{tableName}/{schemaName}?": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    databaseId: string;
-                    tableName: string;
-                    schemaName: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["DatabaseTable"];
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-                /** @description Default Response */
-                "4XX": {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-            };
-        };
-        put?: never;
         post?: never;
+        /** Delete a Device Group */
         delete: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    databaseId: string;
-                    tableName: string;
-                    schemaName: string;
+                    applicationId: string;
+                    groupId: string;
                 };
                 cookie?: never;
             };
@@ -9885,16 +10019,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["DatabaseTable"];
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
+                        "application/json": Record<string, never>;
                     };
                 };
                 /** @description Default Response */
@@ -9910,99 +10035,26 @@ export interface paths {
         };
         options?: never;
         head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/teams/{teamId}/databases/{databaseId}/tables/{tableName}/data/{schemaName}?": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: {
-                    query?: string;
-                    cursor?: string;
-                    limit?: number;
-                    page?: number;
-                    sort?: string;
-                    dir?: "asc" | "desc";
-                    order?: "asc" | "desc";
-                };
-                header?: never;
-                path: {
-                    databaseId: string;
-                    tableName: string;
-                    schemaName: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            count?: number;
-                            rows?: {
-                                [key: string]: unknown;
-                            }[];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-                /** @description Default Response */
-                "4XX": {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/teams/{teamId}/mcp/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
+        /** Update Device Group membership */
+        patch: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    teamId: string;
+                    applicationId: string;
+                    groupId: string;
                 };
                 cookie?: never;
             };
-            requestBody?: never;
+            requestBody: {
+                content: {
+                    "application/json": {
+                        add?: string[];
+                        remove?: string[];
+                        set?: string[];
+                    };
+                };
+            };
             responses: {
                 /** @description Default Response */
                 200: {
@@ -10010,19 +10062,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            count?: number;
-                            servers?: components["schemas"]["MCPRegistrationSummaryList"];
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
+                        "application/json": Record<string, never>;
                     };
                 };
                 /** @description Default Response */
@@ -10036,15 +10076,9 @@ export interface paths {
                 };
             };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
-    "/api/v1/teams/{teamId}/mcp/{type}/{typeId}/{nodeId}": {
+    "/api/v1/applications/{applicationId}/device-groups/{groupId}/settings": {
         parameters: {
             query?: never;
             header?: never;
@@ -10052,169 +10086,22 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    teamId: string;
-                    type: string;
-                    typeId: string;
-                    nodeId: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        name?: string;
-                        endpointRoute?: string;
-                        protocol?: string;
-                        title?: string;
-                        version?: string;
-                        description?: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": Record<string, never>;
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-                /** @description Default Response */
-                "4XX": {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-            };
-        };
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    teamId: string;
-                    type: string;
-                    typeId: string;
-                    nodeId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": Record<string, never>;
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-                /** @description Default Response */
-                "4XX": {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/projects/{projectId}/autoUpdateStack/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Returns when a Instance allowed to be restarted */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    projectId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            hour?: number;
-                            day?: number;
-                            restart?: boolean;
-                        }[];
-                    };
-                };
-                /** @description Default Response */
-                "4XX": {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-            };
-        };
-        /** Sets when an Instance can be restarted */
+        /** Update a Device Group Settings */
         put: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    projectId: string;
+                    applicationId: string;
+                    groupId: string;
                 };
                 cookie?: never;
             };
             requestBody: {
                 content: {
                     "application/json": {
-                        schedule?: {
-                            hour?: number;
-                            day?: number;
-                            restart?: boolean;
+                        env?: {
+                            [key: string]: unknown;
                         }[];
                     };
                 };
@@ -10226,11 +10113,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            hour?: number;
-                            day?: number;
-                            restart?: boolean;
-                        }[];
+                        "application/json": components["schemas"]["APIStatus"];
                     };
                 };
                 /** @description Default Response */
@@ -10245,13 +10128,34 @@ export interface paths {
             };
         };
         post?: never;
-        /** Clears when an Instance can be restarted */
-        delete: {
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{teamId}/device-groups/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a list of device groups in an application */
+        get: {
             parameters: {
-                query?: never;
+                query?: {
+                    query?: string;
+                    cursor?: string;
+                    limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
+                };
                 header?: never;
                 path: {
-                    projectId: string;
+                    applicationId: string;
                 };
                 cookie?: never;
             };
@@ -10263,7 +10167,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": unknown;
+                        "application/json": {
+                            meta?: components["schemas"]["PaginationMeta"];
+                            count?: number;
+                            groups?: components["schemas"]["DeviceGroupSummary"][];
+                        };
                     };
                 };
                 /** @description Default Response */
@@ -10277,6 +10185,103 @@ export interface paths {
                 };
             };
         };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/applications/{applicationId}/bom": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get application BOM */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    applicationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApplicationBom"];
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{teamId}/bom": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get team BOM */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    teamId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApplicationBom"][];
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -11020,9 +11025,9 @@ export interface components {
                 gitTokenId: string;
                 url: string;
                 branch: string;
-                pullBranch: string;
-                pushPath: string;
-                pullPath: string;
+                pullBranch: string | null;
+                pushPath: string | null;
+                pullPath: string | null;
                 lastPushAt: string | null;
                 lastPullAt: string | null;
                 status: string | null;

@@ -56,24 +56,34 @@
                             <template #icon>
                                 <CpuChipIcon class="ff-icon-lg" />
                             </template>
-
-                            <div class="stats flex gap-2 mb-5">
-                                <InstanceStat
-                                    :counter="deviceStats.running"
-                                    state="running" type="remote" @clicked="onStatClick"
-                                />
-                                <InstanceStat
-                                    :counter="deviceStats.error"
-                                    state="error" type="remote" @clicked="onStatClick"
-                                />
-                                <InstanceStat
-                                    :counter="deviceStats.stopped"
-                                    state="stopped" type="remote" @clicked="onStatClick"
-                                />
-                            </div>
-
+                            <template v-if="featuresCheck.isRemoteInstanceFeatureEnabledForPlatform">
+                                <div class="stats flex gap-2 mb-5">
+                                    <InstanceStat
+                                        :counter="deviceStats.running"
+                                        state="running" type="remote" @clicked="onStatClick"
+                                    />
+                                    <InstanceStat
+                                        :counter="deviceStats.error"
+                                        state="error" type="remote" @clicked="onStatClick"
+                                    />
+                                    <InstanceStat
+                                        :counter="deviceStats.stopped"
+                                        state="stopped" type="remote" @clicked="onStatClick"
+                                    />
+                                </div>
+                                <RecentlyModifiedDevices :total-devices="totalDevices" />
+                            </template>
+                            <EmptyState v-else>
+                                <template #img>
+                                    <img class="w-24" src="../../../images/empty-states/team-devices.png">
+                                </template>
+                                <template #message>
+                                    Remote Instances are not available to your team.
+                                </template>
+                            </EmptyState>
                             <template #actions>
                                 <ff-button
+                                    v-if="featuresCheck.isRemoteInstanceFeatureEnabledForPlatform"
                                     v-ff-tooltip:left="!hasPermission('device:create') && 'Your role does not allow creating new remote instances. Contact a team admin to change your role.'"
                                     data-action="create-project"
                                     kind="secondary"
@@ -86,8 +96,6 @@
                                     Add Instance
                                 </ff-button>
                             </template>
-
-                            <RecentlyModifiedDevices :total-devices="totalDevices" />
                         </DashboardSection>
                     </section>
 
@@ -148,6 +156,8 @@ import DashboardSection from './components/DashboardSection.vue'
 import RecentlyModifiedDevices from './components/RecentlyModifiedDevices.vue'
 import RecentlyModifiedInstances from './components/RecentlyModifiedInstances.vue'
 
+import EmptyState from '@/components/EmptyState.vue'
+
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
@@ -156,6 +166,7 @@ import { useUxToursStore } from '@/stores/ux-tours.js'
 export default {
     name: 'TeamHome',
     components: {
+        EmptyState,
         DeviceCredentialsDialog,
         ConfirmInstanceDeleteDialog,
         InstanceStat,

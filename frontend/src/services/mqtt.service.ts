@@ -169,10 +169,13 @@ class MqttService extends BaseService implements MqttServiceI {
     }
 
     private _buildObserver (options: Partial<MqttConnectionOptions>): ManagedMqttObserver {
-        const { onConnect, onClose, onOffline, onError, onMessage } = options
+        // Only the handlers listed here reach an observer. MqttConnectionHandlers declares
+        // more, and _dispatch fires some of them ('end', 'reconnect'), so any missing here
+        // are silently dropped rather than rejected. Add to both sides when one is needed.
+        const { onConnect, onClose, onDisconnect, onOffline, onError, onMessage } = options
         return {
             id: this.$observerSeq++,
-            handlers: { onConnect, onClose, onOffline, onError, onMessage }
+            handlers: { onConnect, onClose, onDisconnect, onOffline, onError, onMessage }
         }
     }
 
@@ -529,13 +532,24 @@ class MqttService extends BaseService implements MqttServiceI {
             throw new Error('MQTT client module is unavailable')
         }
 
+        // The will is issued alongside the credentials, so it survives whichever
+        // publisher or subscriber happens to open the connection first. The broker
+        // publishes it if this client goes away without a clean disconnect.
         const client = mqttModule.connect(credentials.url, {
             username: credentials.username,
             password: credentials.password,
             clientId: credentials.clientId,
             reconnectPeriod: 0,
             protocolVersion: 5,
-            keepalive: 45
+            keepalive: 45,
+            ...(credentials.will && {
+                will: {
+                    topic: credentials.will.topic,
+                    payload: credentials.will.payload,
+                    qos: 1,
+                    retain: false
+                }
+            })
         })
 
         managed.client = client

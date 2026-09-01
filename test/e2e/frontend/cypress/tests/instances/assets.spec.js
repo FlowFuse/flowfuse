@@ -39,7 +39,7 @@ describe('FlowFuse - Instance - Assets', () => {
 
         cy.get('[data-el="page-banner-feature-unavailable"]').should('be.visible')
         cy.get('[data-el="page-banner-feature-unavailable"]')
-            .contains('This is a FlowFuse Enterprise feature. Please upgrade your instance of FlowFuse in order to use it.')
+            .contains('This feature is not available with your current license. Please upgrade your instance of FlowFuse in order to use it.')
 
         cy.get('[data-form="search"] input').should('be.visible')
         cy.get('[data-form="search"] input').should('be.disabled')

@@ -92,18 +92,23 @@ export abstract class TeamPublisher<TTransport extends Transport = Transport> {
         const sessionId = authStore.getSessionId()
         const key = connectionKey(teamId)
 
+        // Set before attaching: when the transport already holds an open client for
+        // this key, it invokes onConnect synchronously during attach. _onStarted then
+        // publishes straight away, and _publish bails out if $connectedTeamId is unset.
+        this.$connectedTeamId = teamId
+
         try {
             this.$attachment = await transport.attach(key, {
                 getCredentials: () => teamApi.getTeamCommsCreds(teamId, sessionId),
                 onMessage: () => {},
                 onConnect: () => this._onConnect(teamId, userId),
-                onClose: () => {},
-                onOffline: () => {},
-                onDisconnect: () => {},
-                onError: () => {}
+                onClose: () => this._onLinkDown(),
+                onOffline: () => this._onLinkDown(),
+                onDisconnect: () => this._onLinkDown(),
+                onError: () => this._onLinkDown()
             })
-            this.$connectedTeamId = teamId
-        } catch {
+        } catch (err) {
+            console.warn(`[${this.$name}] failed to attach to the team connection:`, err)
             this.$connectedTeamId = null
             this.$attachment = null
         }
@@ -111,6 +116,15 @@ export abstract class TeamPublisher<TTransport extends Transport = Transport> {
 
     protected async _disconnect (): Promise<void> {
         if (!this.$connectedTeamId) return
+
+        // Runs while the connection and the publisher's identity are still intact, so
+        // subclasses can send a final message before everything is torn down.
+        try {
+            await this._onStopping()
+        } catch {
+            // a failed teardown notification must not block the disconnect
+        }
+
         const transport = this.$transport
         const attachment = this.$attachment
         this.$connectedTeamId = null
@@ -128,6 +142,13 @@ export abstract class TeamPublisher<TTransport extends Transport = Transport> {
         this._onStarted(teamId, userId)
     }
 
+    /**
+     * The link to the broker went away - close, offline, disconnect or error alike, since
+     * from here they all mean the same thing. A no-op by default: the transport reconnects
+     * on its own and _onConnect says the link is back.
+     */
+    protected _onLinkDown (): void {}
+
     protected async _publish (topic: string, payload: MqttPayload, options?: Partial<TransportPublishOptions>): Promise<void> {
         const transport = this.$transport
         const teamId = this.$connectedTeamId
@@ -135,10 +156,12 @@ export abstract class TeamPublisher<TTransport extends Transport = Transport> {
         await transport.publish(connectionKey(teamId), {
             topic,
             payload,
-            qos: 1,
+            qos: 2,
             ...options
         })
     }
+
+    protected async _onStopping (): Promise<void> {}
 
     protected abstract _onStarted (teamId: string, userId: string): void
 

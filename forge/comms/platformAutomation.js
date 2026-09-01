@@ -4,6 +4,10 @@
 
 const { default: z } = require('zod')
 
+// Written by the third-party MCP door; a hit means a third-party caller, and the
+// value is that caller's PAT. A miss is the first-party Expert path.
+const MCP_SESSION_TOKEN_CACHE = 'mcp-session-token'
+
 /**
  * Cheap, non-cryptographic fingerprint of the platform tool catalog, over each tool's
  * name/title/description/inputSchema/outputSchema/annotations/_meta. Sorted for stability
@@ -30,6 +34,28 @@ function computeCatalogHash (tools) {
     }
     // Prefix with count + length to make incidental 32-bit collisions vanishingly unlikely.
     return `${items.length}-${str.length}-${h.toString(16)}`
+}
+
+/**
+ * Fills in the defaults a tool's input schema declares.
+ *
+ * Handlers are invoked with the caller's arguments as-is, so a zod `.default()` on an
+ * optional parameter would otherwise never apply and an omitted `limit` would fetch the
+ * whole collection instead of one page. Parsing is deliberately lenient: on success the
+ * declared defaults are filled in, and on failure the original input is passed through
+ * untouched, so this can only ever add defaults and never newly reject a call the gateway
+ * already accepted.
+ *
+ * @param {{inputSchema?: object}} tool
+ * @param {object} input
+ * @returns {object}
+ */
+function applyInputDefaults (tool, input) {
+    if (!tool.inputSchema || Object.keys(tool.inputSchema).length === 0) {
+        return input
+    }
+    const result = z.object(tool.inputSchema).safeParse(input)
+    return result.success ? result.data : input
 }
 
 /**
@@ -104,9 +130,14 @@ class PlatformAutomationHandler {
         this.client.on('request/platform-automation:forge', this.eventHandler)
     }
 
-    eventHandler = async ({ userId, command, data, meta } = {}, onSuccess, onError) => {
+    eventHandler = async ({ userId, mcpSessionId, command, data, meta, scope } = {}, onSuccess, onError) => {
         try {
             let result = {}
+            this.app.log.info(`platform-automation request: userId=${userId} mcpSessionId=${mcpSessionId} command=${command} tool=${data?.name || 'n/a'}`)
+
+            const sessionTokenCache = this.app.caches?.getCache?.(MCP_SESSION_TOKEN_CACHE)
+            const sessionToken = mcpSessionId ? await sessionTokenCache?.get(mcpSessionId) : null
+            const source = sessionToken ? 'mcp' : 'mcp:expert'
 
             switch (command) {
             case 'mcp-get-features':
@@ -120,22 +151,20 @@ class PlatformAutomationHandler {
                 break
             case 'mcp-call-tool': {
                 const toolName = data?.name
-                const args = data?.input || {}
+
+                // The caller scope (readOnly plus any team restriction from the
+                // session token) rides with the request so tools can report and
+                // enforce what the session is allowed to do. Prefer the top-level
+                // value, falling back to meta for callers that attach it there.
+                const callerScope = scope ?? meta?.scope
 
                 // TODO: Probably sensible to verify that toolDefinition matches the tool to ensure no tampering has occurred
                 const { toolDefinition } = meta || {}
 
-                const { annotations } = toolDefinition
+                // Resolve the tool before touching the caller-supplied definition: reading
+                // annotations off an unknown tool throws a TypeError, which would surface as a
+                // generic request error instead of the specific not-found code below.
                 const tool = this.findTool(toolName)
-
-                // Verify tool annotations haven't been tampered with
-                if (JSON.stringify({ annotations }) !== JSON.stringify({ annotations: tool.annotations })) {
-                    return onError(
-                        'Tool definition mismatch',
-                        'MCP_PLATFORM_TOOL_TAMPERED'
-                    )
-                }
-
                 if (!tool) {
                     return onError(
                         `Unknown platform tool: ${toolName}`,
@@ -143,28 +172,42 @@ class PlatformAutomationHandler {
                     )
                 }
 
-                const user = await this.app.db.models.User.byId(userId)
-                if (user) {
-                    const { token } = await this.app.expert.mcp.getOrCreatePlatformToken(user)
-                    const inject = (opts) => {
-                        const nonce = this.app.nonceStore.createSourceNonce({
-                            source: 'mcp:expert',
-                            toolName
-                        })
-                        return this.app.inject({
-                            ...opts,
-                            headers: {
-                                ...opts.headers,
-                                authorization: `Bearer ${token}`,
-                                'x-ff-source-nonce': nonce
-                            }
-                        })
-                    }
-
-                    const { formatResponse } = require('../ee/lib/mcp/toolLoader')
-                    const response = await tool.handler(args, { inject, app: this.app })
-                    result = formatResponse(response)
+                // Verify tool annotations haven't been tampered with
+                const { annotations } = toolDefinition || {}
+                if (JSON.stringify({ annotations }) !== JSON.stringify({ annotations: tool.annotations })) {
+                    return onError(
+                        'Tool definition mismatch',
+                        'MCP_PLATFORM_TOOL_TAMPERED'
+                    )
                 }
+
+                const user = await this.app.db.models.User.byId(userId)
+                if (!user) {
+                    // Without this, result stays {} and onSuccess fires - the caller sees a
+                    // successful call that silently did nothing.
+                    return onError(
+                        `No user found for userId: ${userId}`,
+                        'MCP_PLATFORM_USER_NOT_FOUND'
+                    )
+                }
+                // Third-party runs under the caller's PAT; Expert mints a token.
+                const token = sessionToken || (await this.app.expert.mcp.getOrCreatePlatformToken(user)).token
+                const inject = (opts) => {
+                    const nonce = this.app.nonceStore.createSourceNonce({ source, toolName })
+                    return this.app.inject({
+                        ...opts,
+                        headers: {
+                            ...opts.headers,
+                            authorization: `Bearer ${token}`,
+                            'x-ff-source-nonce': nonce
+                        }
+                    })
+                }
+
+                const { formatResponse } = require('../ee/lib/mcp/toolLoader')
+                const args = applyInputDefaults(tool, data?.input || {})
+                const response = await tool.handler(args, { inject, app: this.app, user, mcpSessionId, scope: callerScope })
+                result = formatResponse(response)
                 break
             }
             default:
