@@ -7,7 +7,7 @@
         </template>
         <form v-if="!ssoCreated" id="ff-sign-up" class="max-w-md m-auto" @submit.prevent="registerUser()">
             <p
-                v-if="settings['branding:account:signUpTopBanner']"
+                v-if="showTopBanner"
                 data-el="banner-text"
                 class="text-center -mt-6 pb-4 text-gray-400"
                 v-html="settings['branding:account:signUpTopBanner']"
@@ -131,6 +131,15 @@ export default {
         ...mapState(useAccountSettingsStore, ['settings']),
         splash () {
             return this.settings['branding:account:signUpLeftBanner']
+        },
+        showTopBanner () {
+            // Only show the top banner if:
+            // - content has been configured for it and,
+            //   - either, in a popup
+            //   - or, no left banner configured
+            return !!this.settings['branding:account:signUpTopBanner'] && (
+                this.isPopup || !this.splash
+            )
         },
         isPopup () {
             return isPopupContext(this.$route.query)
