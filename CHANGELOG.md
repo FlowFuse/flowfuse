@@ -1,3 +1,18 @@
+#### 3.0.1: Release
+
+ - Fix error for `lock file's globals@17.11.0 does not satisfy globals@17.12.0` (#8357)
+ - build(deps-dev): bump webpack from 5.109.2 to 5.110.2 (#8348)
+ - build(deps): bump @sentry/vue from 10.70.0 to 10.72.0 (#8346)
+ - build(deps-dev): bump @typescript-eslint/parser from 8.67.0 to 8.68.0 (#8349)
+ - build(deps): bump nodemailer from 9.0.5 to 9.0.6 (#8353)
+ - [7918] Update the logo variant for dark backgrounds (#8322)
+ - docs: correct the ChatGPT developer mode path (#8316)
+ - docs: use the shared agent picker on the third-party agents page (#8313)
+ - docs: correct the ChatGPT and Claude connector steps (#8314)
+ - build(deps): bump ldapts from 8.1.8 to 9.0.0 (#7815)
+ - Update localfs docs for NodeJS 24 (#8315)
+ - build(deps): bump google-auth-library from 10.9.1 to 11.0.2 (#8202)
+
 #### 3.0.0: Release
 
  - Move MCP comms lifecycle out of the Expert button and into the orchestrator (#8307)
