@@ -4,7 +4,7 @@
         <form v-else class="space-y-6" @submit.enter.prevent="">
             <FormRow v-model="input.username" :type="editing?'text':'uneditable'" :error="errors.username">{{ $t('common.fields.username') }}</FormRow>
             <FormRow v-model="input.name" :type="editing?'text':'uneditable'" :placeholder="input.username" :error="errors.name">{{ $t('account.settings.name') }}</FormRow>
-            <FormRow v-model="input.email" :type="emailEditingEnabled?'email':'uneditable'" :error="errors.email">{{ $t('common.fields.email') }}</FormRow>
+            <FormRow v-model="input.email" :type="emailEditingEnabled?'email':'uneditable'" :error="errors.email">{{ $t('ui.email') }}</FormRow>
             <FormRow v-if="!editing" v-model="defaultTeamName" :options="teams" type="uneditable">
                 {{ $t('account.settings.defaultTeam') }}
             </FormRow>

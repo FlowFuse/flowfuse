@@ -344,7 +344,7 @@ export default {
                 if (this.deviceGroup.targetSnapshot?.id) {
                     const component = h(DeployNotice, {
                         targetSnapshot: this.deviceGroup.targetSnapshot,
-                        title: this.$t('ui.theBelowSnapshotWillBeDeployedToTheAddedRemote')
+                        title: this.$t('ui.theBelowSnapshotWillBeDeployedToTheAddedRemote', addedCount)
                     })
                     notices.push(component)
                 }

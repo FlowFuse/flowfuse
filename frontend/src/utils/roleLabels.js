@@ -12,7 +12,7 @@ import { Roles } from './roles.js'
  */
 const ROLE_LABEL_KEYS = {
     [Roles.None]: 'ui.noAccess',
-    [Roles.Dashboard]: 'ui.dashboardOnly',
+    [Roles.Dashboard]: 'ui.dashboard',
     [Roles.Viewer]: 'ui.viewer',
     [Roles.Member]: 'ui.member',
     [Roles.Owner]: 'ui.owner',

@@ -35,7 +35,7 @@
             </template>
             <template #message>
                 <p>{{ $t('ui.devopsPipelinesAreUsedToLinkMultipleNodeRedInsta') }}</p>
-                <p>{{ $t('ui.thisIsNormallyUsedToDefineDevelopmentInstancesWh') }}</p>
+                <p>{{ $t('ui.thisIsNormallyUsedToDefineDevelopmentInstancesWh2') }}</p>
             </template>
         </EmptyState>
 
@@ -73,7 +73,7 @@
                         <template #header>{{ $t('ui.startBuildingYourDevopsPipelines') }}</template>
                         <template #message>
                             <p>{{ $t('ui.devopsPipelinesAreUsedToLinkMultipleNodeRedInsta') }}</p>
-                            <p>{{ $t('ui.thisIsNormallyUsedToDefineDevelopmentInstancesWh') }}</p>
+                            <p>{{ $t('ui.thisIsNormallyUsedToDefineDevelopmentInstancesWh2') }}</p>
                             <p>{{ $t('ui.getStartedByChoosingAn') }} <router-link :to="{name: 'team'}" class="text-blue-600 hover:text-blue-800 hover:underline">{{ $t('ui.application') }}</router-link> {{ $t('ui.toBuildYourFirstDevopsPipelineIn') }}</p>
                         </template>
                     </EmptyState>

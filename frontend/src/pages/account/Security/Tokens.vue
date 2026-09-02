@@ -84,7 +84,7 @@ export default {
                                     if (!this.teams || this.teams.length === 0) {
                                         return 'This token has access to all teams in your account'
                                     }
-                                    return `${this.$t('ui.thisTokenIsScopedToTheFollowingTeams')}\n${this.teams.map(t => t.name).join('\n')}`
+                                    return `${this.$t('ui.thisTokenIsScopedToTheFollowingTeams', this.teams.length)}\n${this.teams.map(t => t.name).join('\n')}`
                                 }
                             }
                         })
