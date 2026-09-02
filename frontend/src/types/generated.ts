@@ -646,6 +646,8 @@ export interface paths {
                         email?: string;
                         tcs_accepted?: boolean;
                         defaultTeam?: string;
+                        /** @enum {string|null} */
+                        language?: "en" | "zh-TW" | null;
                     };
                 };
             };
@@ -10892,6 +10894,7 @@ export interface components {
             mfa_enabled?: boolean;
             free_trial_available?: boolean;
             tcs_accepted?: string;
+            language?: string;
             password_expired?: boolean;
             pendingEmailChange?: boolean;
             SSOGroups?: unknown[];
