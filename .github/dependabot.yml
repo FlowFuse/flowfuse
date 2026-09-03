@@ -19,8 +19,6 @@ updates:
     groups:
       dev-dependencies:
         dependency-type: "development"
-        update-types:
-          - "minor"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
