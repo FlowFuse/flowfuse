@@ -12,6 +12,11 @@ updates:
     cooldown:
       default-days: 1
     open-pull-requests-limit: 50
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
