@@ -46,6 +46,10 @@ module.exports = {
             }
         },
         refreshTokenExpiresAt: { type: DataTypes.DATE },
+        // Holds the sha256 of the last rotated-out refresh token (set directly,
+        // already hashed) so rotation can distinguish a retry from a replay.
+        previousRefreshToken: { type: DataTypes.STRING },
+        previousRefreshTokenRotatedAt: { type: DataTypes.DATE },
         name: { type: DataTypes.STRING },
         readOnly: { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: false },
         adminOptIn: { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: false }

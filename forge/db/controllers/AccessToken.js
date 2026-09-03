@@ -6,11 +6,17 @@ const DEFAULT_TOKEN_SESSION_EXPIRY = 1000 * 60 * 30 // 30 mins session - with re
 
 const DEFAULT_REFRESH_TOKEN_EXPIRY = 1000 * 60 * 60 * 24 * 30 // 30 days - sliding refresh token lifetime
 
-// Concurrent refreshes of the same refresh token reuse the cached access token
-// rather than each minting a new one and overwriting the row. Re-mint once the
-// cached token is within this window of expiry.
+// Concurrent refreshes of the same refresh token converge on one rotation result
+// via this shared cache (Valkey in production) rather than each minting its own
+// and racing on the row. The result carries the new refresh token so every caller
+// is handed the same one; a stale cached access token is re-minted once within
+// this window of expiry so a client is never handed a token about to die.
 const MCP_ACCESS_TOKEN_CACHE = 'mcp-oauth-access-token'
 const MCP_ACCESS_TOKEN_REMAINING_LIMIT = 1000 * 60 * 5 // 5 minutes
+
+// A rotated-out refresh token stays valid for this long so a concurrent or retried
+// refresh still succeeds; presenting it after the window is treated as a replay.
+const MCP_REFRESH_TOKEN_GRACE = 1000 * 60 // 60 seconds
 
 const DEFAULT_DEVICE_OTC_EXPIRY = 1000 * 60 * 60 * 24 // 24 hours
 
@@ -442,14 +448,12 @@ module.exports = {
     },
 
     refreshToken: async function (app, refreshToken) {
-        const existingToken = await app.db.models.AccessToken.byRefreshToken(refreshToken)
-        if (!existingToken) {
-            return null
-        }
         const [prefix] = refreshToken.split('_')
+        const existingToken = await app.db.models.AccessToken.byRefreshToken(refreshToken)
 
-        // Editor sessions have no refresh lifetime: rotate the refresh token each use.
-        if (!existingToken.refreshTokenExpiresAt) {
+        // Tokens without their own refresh lifetime (e.g. editor sessions) rotate
+        // the refresh token on each use and have no replay handling.
+        if (existingToken && !existingToken.refreshTokenExpiresAt) {
             const tokenUpdates = {
                 token: generateToken(32, prefix),
                 refreshToken: generateToken(32, prefix),
@@ -459,29 +463,73 @@ module.exports = {
             return tokenUpdates
         }
 
-        // Past its lifetime the refresh token is dead: remove the row.
-        if (existingToken.refreshTokenExpiresAt.getTime() < Date.now()) {
-            await existingToken.destroy()
-            return null
-        }
-
-        // Stable refresh token: concurrent refreshes reuse the cached access token
-        // instead of each minting one and overwriting the row.
         const cache = app.caches?.getCache?.(MCP_ACCESS_TOKEN_CACHE, { ttl: DEFAULT_TOKEN_SESSION_EXPIRY, max: 10000 })
         const cacheKey = sha256(refreshToken)
-        const cached = await cache?.get(cacheKey)
-        if (cached && cached.expiresAt - Date.now() > MCP_ACCESS_TOKEN_REMAINING_LIMIT) {
-            return { token: cached.token, expiresAt: cached.expiresAt, refreshToken }
+
+        // The presented token is the current one: rotate it.
+        if (existingToken) {
+            // Once the refresh lifetime has passed the grant is over: remove it
+            // rather than issuing a new access token.
+            if (existingToken.refreshTokenExpiresAt.getTime() < Date.now()) {
+                await existingToken.destroy()
+                return null
+            }
+            // A concurrent refresh may already have rotated this token; reuse its
+            // result so both callers receive the same new refresh token.
+            const cached = await cache?.get(cacheKey)
+            if (cached && cached.expiresAt - Date.now() > MCP_ACCESS_TOKEN_REMAINING_LIMIT) {
+                return { token: cached.token, expiresAt: cached.expiresAt, refreshToken: cached.refreshToken }
+            }
+            const token = generateToken(32, prefix)
+            const newRefreshToken = generateToken(32, prefix)
+            const expiresAt = Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY
+            // Compare-and-swap on the current refresh token: the update only matches
+            // while this token is still current, so of two simultaneous refreshes
+            // exactly one rotates and the other sees zero rows affected.
+            const [rotatedCount] = await app.db.models.AccessToken.update(
+                {
+                    token,
+                    expiresAt,
+                    refreshToken: newRefreshToken,
+                    refreshTokenExpiresAt: Date.now() + DEFAULT_REFRESH_TOKEN_EXPIRY,
+                    previousRefreshToken: existingToken.refreshToken,
+                    previousRefreshTokenRotatedAt: new Date()
+                },
+                { where: { refreshToken: existingToken.refreshToken } }
+            )
+            if (rotatedCount === 0) {
+                // A concurrent refresh won the swap; return its result rather than a
+                // token that never made it onto the row.
+                const winner = await cache?.get(cacheKey)
+                if (winner) {
+                    return { token: winner.token, expiresAt: winner.expiresAt, refreshToken: winner.refreshToken }
+                }
+                return null
+            }
+            await cache?.set(cacheKey, { token, expiresAt, refreshToken: newRefreshToken })
+            return { token, expiresAt, refreshToken: newRefreshToken }
         }
 
-        const token = generateToken(32, prefix)
-        const expiresAt = Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY
-        await app.db.models.AccessToken.update(
-            { token, expiresAt, refreshTokenExpiresAt: Date.now() + DEFAULT_REFRESH_TOKEN_EXPIRY },
-            { where: { refreshToken: existingToken.refreshToken } }
-        )
-        await cache?.set(cacheKey, { token, expiresAt })
-        return { token, expiresAt, refreshToken }
+        // Not the current token: it may be one just rotated out. byRefreshToken
+        // stores the sha256, so match the presented token's hash here too.
+        const rotated = await app.db.models.AccessToken.findOne({ where: { previousRefreshToken: cacheKey } })
+        if (!rotated) {
+            return null
+        }
+        const rotatedAt = rotated.previousRefreshTokenRotatedAt ? rotated.previousRefreshTokenRotatedAt.getTime() : 0
+        if (Date.now() - rotatedAt <= MCP_REFRESH_TOKEN_GRACE) {
+            // Within the grace window this is a retry or a lagging concurrent
+            // refresh: hand back the tokens the rotation produced.
+            const cached = await cache?.get(cacheKey)
+            if (cached) {
+                return { token: cached.token, expiresAt: cached.expiresAt, refreshToken: cached.refreshToken }
+            }
+            return null
+        }
+        // After the grace window the same token is a replay: revoke the grant so
+        // its access tokens stop working and the client must re-authorize.
+        await rotated.destroy()
+        return null
     },
 
     /**
