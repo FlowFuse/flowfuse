@@ -105,6 +105,8 @@ When deploying the FlowFuse platform behind a firewall or proxy, ensure that the
 * Port `80` (HTTP)
 * Port `443` (HTTPS)
 
+The platform also needs outbound access to a set of hostnames. See [Networking requirements](../networking-requirements.md).
+
 #### AWS Elastic Container Service
 
 At this time we do not support deploying FlowFuse to AWS's Elastic Container Service.
