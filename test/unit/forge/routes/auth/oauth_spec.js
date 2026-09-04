@@ -410,11 +410,12 @@ describe('OAuth', async function () {
             should.exist(m, 'expected redirect to MCP consent page: ' + authResponse.headers.location)
             const requestId = m[1]
 
-            // consent - user chooses read-only, scoped to their team
+            // consent - user chooses read-only, scoped to their team, expiring in 90 days
+            const grantExpiresAt = Date.now() + 90 * 24 * 60 * 60 * 1000
             const consentResponse = await mcpApp.inject({
                 method: 'PUT',
                 url: `/account/authorize/${requestId}/consent`,
-                payload: { readOnly: true, teamIds: [mcpApp.team.hashid] },
+                payload: { readOnly: true, teamIds: [mcpApp.team.hashid], expiresAt: grantExpiresAt },
                 cookies: { sid }
             })
             consentResponse.should.have.property('statusCode', 200)
@@ -449,6 +450,7 @@ describe('OAuth', async function () {
             // the issued token reflects the consent choices
             const issued = await mcpApp.db.models.AccessToken.byRefreshToken(token.refresh_token)
             issued.should.have.property('readOnly', true)
+            issued.grantExpiresAt.getTime().should.equal(grantExpiresAt)
 
             // refresh - a public MCP client refreshes without a client secret
             const refreshResponse = await mcpApp.inject({
@@ -461,6 +463,46 @@ describe('OAuth', async function () {
             refreshed.access_token.should.be.a.String().and.startWith('ffpat')
             refreshed.should.have.property('token_type', 'bearer')
             refreshed.should.have.property('refresh_token')
+        })
+
+        describe('consent expiry validation', function () {
+            // Start an authorize flow and return the consent request id
+            async function startConsent () {
+                const reg = (await register()).json()
+                const { challenge } = pkce()
+                const authResponse = await mcpApp.inject({ method: 'GET', url: authorizeURL(reg.client_id, redirectURI, challenge), cookies: { sid } })
+                authResponse.should.have.property('statusCode', 302)
+                return /\/account\/request\/([^/]+)\/mcp$/.exec(authResponse.headers.location)[1]
+            }
+
+            async function consent (requestId, payload) {
+                return mcpApp.inject({
+                    method: 'PUT',
+                    url: `/account/authorize/${requestId}/consent`,
+                    payload,
+                    cookies: { sid }
+                })
+            }
+
+            it('accepts consent without an expiry date', async function () {
+                const requestId = await startConsent()
+                const response = await consent(requestId, { readOnly: true, teamIds: [] })
+                response.should.have.property('statusCode', 200)
+            })
+
+            it('rejects consent with an expiry in the past', async function () {
+                const requestId = await startConsent()
+                const response = await consent(requestId, { readOnly: true, teamIds: [], expiresAt: Date.now() - 1000 })
+                response.should.have.property('statusCode', 400)
+                response.json().should.have.property('error', 'invalid_request')
+            })
+
+            it('rejects consent with an expiry more than a year away', async function () {
+                const requestId = await startConsent()
+                const response = await consent(requestId, { readOnly: true, teamIds: [], expiresAt: Date.now() + 370 * 24 * 60 * 60 * 1000 })
+                response.should.have.property('statusCode', 400)
+                response.json().should.have.property('error', 'invalid_request')
+            })
         })
 
         it('rejects an authorize redirect_uri that was not registered', async function () {
