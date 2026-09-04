@@ -484,10 +484,11 @@ describe('OAuth', async function () {
                 })
             }
 
-            it('accepts consent without an expiry date', async function () {
+            it('rejects consent without an expiry date', async function () {
                 const requestId = await startConsent()
                 const response = await consent(requestId, { readOnly: true, teamIds: [] })
-                response.should.have.property('statusCode', 200)
+                response.should.have.property('statusCode', 400)
+                response.json().should.have.property('error', 'invalid_request')
             })
 
             it('rejects consent with an expiry in the past', async function () {

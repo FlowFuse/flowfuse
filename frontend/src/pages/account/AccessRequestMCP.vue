@@ -51,6 +51,18 @@
                     Select at least one team.
                 </div>
             </div>
+
+            <!-- Expiry -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Expiry</label>
+                <p class="text-gray-500 text-sm mb-2">
+                    Choose when this access expires. It cannot last longer than a year.
+                </p>
+                <FormRow v-model="expiresAt" data-form="expiry-date" type="date" />
+                <div v-if="expiresAt && !expiryValid" class="mt-2 text-sm text-yellow-600">
+                    Pick a date in the future, at most one year away.
+                </div>
+            </div>
         </div>
 
         <div v-if="error" class="text-red-600 text-sm mb-4">{{ error }}</div>
@@ -66,9 +78,13 @@
 import { ArrowSmallLeftIcon, ArrowSmallRightIcon, CommandLineIcon, KeyIcon } from '@heroicons/vue/20/solid'
 import { mapState } from 'pinia'
 
+import FormRow from '../../components/FormRow.vue'
+
 import client from '@/api/client.ts'
 import teamApi from '@/api/team.ts'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+
+const ONE_YEAR = 1000 * 60 * 60 * 24 * 365
 
 export default {
     name: 'AccessRequestMCP',
@@ -76,13 +92,15 @@ export default {
         CommandLineIcon,
         KeyIcon,
         ArrowSmallRightIcon,
-        ArrowSmallLeftIcon
+        ArrowSmallLeftIcon,
+        FormRow
     },
     data () {
         return {
             // No defaults: the user must make an explicit choice before Allow enables
             accessLevel: null,
             teamScope: null,
+            expiresAt: null,
             selectedTeamIds: [],
             teams: [],
             submitting: false,
@@ -102,9 +120,15 @@ export default {
         requestId () {
             return this.$router.currentRoute.value.params.id
         },
+        expiryValid () {
+            if (!this.expiresAt) return false
+            const ts = Date.parse(this.expiresAt)
+            if (Number.isNaN(ts)) return false
+            return ts > Date.now() && ts <= Date.now() + ONE_YEAR
+        },
         disableAllow () {
             if (this.submitting) return true
-            if (!this.accessLevel || !this.teamScope) return true
+            if (!this.accessLevel || !this.teamScope || !this.expiryValid) return true
             if (this.teamScope === 'specific' && this.selectedTeamIds.length === 0) return true
             return false
         }
@@ -132,7 +156,8 @@ export default {
             try {
                 await client.put(`/account/authorize/${this.requestId}/consent`, {
                     readOnly: this.accessLevel === 'readonly',
-                    teamIds: this.teamScope === 'all' ? [] : this.selectedTeamIds
+                    teamIds: this.teamScope === 'all' ? [] : this.selectedTeamIds,
+                    expiresAt: Date.parse(this.expiresAt)
                 })
                 window.location.href = `/account/complete/${this.requestId}`
             } catch (err) {
