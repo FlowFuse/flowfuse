@@ -330,6 +330,11 @@ function parseNrMqttId (id, kind = 'username') {
 
 module.exports = {
     init: _app => { app = _app },
+    // MCP OAuth token lifetimes. Defined here so both the AccessToken
+    // controller (which enforces them) and the AccessToken view (which
+    // reports the renewal cycle to the UI) share a single source.
+    DEFAULT_TOKEN_SESSION_EXPIRY: 1000 * 60 * 30, // 30 mins session - with refresh token support
+    DEFAULT_REFRESH_TOKEN_EXPIRY: 1000 * 60 * 60 * 24 * 30, // 30 days - sliding refresh token lifetime
     generateToken: (length, prefix) => (prefix ? prefix + '_' : '') + base64URLEncode(crypto.randomBytes(length || 32)),
     generateNumericToken: () => crypto.randomInt(0, 1000000).toString().padStart(6, '0'),
     hash: value => bcrypt.hashSync(value, 10),

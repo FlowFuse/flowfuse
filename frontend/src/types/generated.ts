@@ -10312,6 +10312,11 @@ export interface components {
             expiresAt: string | null;
             readOnly?: boolean;
             adminOptIn?: boolean;
+            autoRenews?: {
+                every?: number;
+                until?: string | null;
+                chosen?: boolean;
+            } | null;
             teams?: {
                 id?: string;
                 name?: string | null;
