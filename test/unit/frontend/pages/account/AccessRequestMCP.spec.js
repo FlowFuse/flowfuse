@@ -52,7 +52,11 @@ describe('AccessRequestMCP', () => {
         expect(checked.length).toBe(0)
     })
 
-    test('disables Allow until both access level and team scope are chosen', async () => {
+    async function setExpiry (wrapper, value) {
+        await wrapper.find('[data-form="expiry-date"] input').setValue(value)
+    }
+
+    test('disables Allow until access level, team scope and expiry are all chosen', async () => {
         const wrapper = await mountPage()
 
         expect(allowButton(wrapper).attributes('disabled')).toBeDefined()
@@ -61,6 +65,24 @@ describe('AccessRequestMCP', () => {
         expect(allowButton(wrapper).attributes('disabled')).toBeDefined()
 
         await findRadio(wrapper, 'All teams').trigger('click')
+        expect(allowButton(wrapper).attributes('disabled')).toBeDefined()
+
+        await setExpiry(wrapper, futureDate(30))
+        expect(allowButton(wrapper).attributes('disabled')).toBeUndefined()
+    })
+
+    test('keeps Allow disabled for an expiry in the past or more than a year away', async () => {
+        const wrapper = await mountPage()
+        await findRadio(wrapper, 'Full access').trigger('click')
+        await findRadio(wrapper, 'All teams').trigger('click')
+
+        await setExpiry(wrapper, '2020-01-01')
+        expect(allowButton(wrapper).attributes('disabled')).toBeDefined()
+
+        await setExpiry(wrapper, futureDate(400))
+        expect(allowButton(wrapper).attributes('disabled')).toBeDefined()
+
+        await setExpiry(wrapper, futureDate(30))
         expect(allowButton(wrapper).attributes('disabled')).toBeUndefined()
     })
 
@@ -69,6 +91,7 @@ describe('AccessRequestMCP', () => {
 
         await findRadio(wrapper, 'Read-only').trigger('click')
         await findRadio(wrapper, 'Specific teams').trigger('click')
+        await setExpiry(wrapper, futureDate(30))
         expect(allowButton(wrapper).attributes('disabled')).toBeDefined()
 
         const teamCheckbox = wrapper.findAll('.ff-checkbox').find(c => c.text().includes('Team One'))
@@ -76,3 +99,7 @@ describe('AccessRequestMCP', () => {
         expect(allowButton(wrapper).attributes('disabled')).toBeUndefined()
     })
 })
+
+function futureDate (days) {
+    return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+}
