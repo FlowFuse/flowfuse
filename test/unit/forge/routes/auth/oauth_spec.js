@@ -463,6 +463,17 @@ describe('OAuth', async function () {
             refreshed.should.have.property('refresh_token')
         })
 
+        it('rejects a refresh_token grant that is missing the refresh_token', async function () {
+            const reg = (await register()).json()
+            const response = await mcpApp.inject({
+                method: 'POST',
+                url: '/account/token',
+                payload: { grant_type: 'refresh_token', client_id: reg.client_id }
+            })
+            response.should.have.property('statusCode', 400)
+            response.json().should.have.property('error', 'invalid_request')
+        })
+
         it('rejects an authorize redirect_uri that was not registered', async function () {
             const reg = (await register(['http://localhost:9876/oauth/callback'])).json()
             const { challenge } = pkce()

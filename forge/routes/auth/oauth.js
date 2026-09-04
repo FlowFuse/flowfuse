@@ -598,6 +598,9 @@ module.exports = async function (app) {
                 reply.send(response)
             }
         } else if (grant_type === 'refresh_token') {
+            if (!refresh_token) {
+                return badRequest(reply, 'invalid_request', 'Invalid refresh_token')
+            }
             const existingToken = await app.db.models.AccessToken.byRefreshToken(refresh_token)
             if (!existingToken) {
                 badRequest(reply, 'invalid_request', 'Invalid refresh_token')
