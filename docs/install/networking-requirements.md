@@ -39,10 +39,6 @@ All destinations below are outbound TCP.
 | `registry.npmjs.org` | 443 | Instances | Installing Node-RED and node packages |
 | `catalogue.nodered.org` | 443 | Editor browsers | The node catalogue listed in the editor palette. The editor fetches it directly, the platform does not |
 | `registry-1.docker.io`, `auth.docker.io`, `production.cloudflare.docker.com` | 443 | Platform | Pulling the FlowFuse and Node-RED container images, at install and at every upgrade. Not needed if you pull the images from an internal registry or a pull-through proxy instead |
-| `ping.flowforge.com` | 443 | Platform | Anonymous usage telemetry |
-
-Telemetry can be turned off on open source installations, but
-[licensed installations cannot disable it](../admin/telemetry.md#configuring-telemetry).
 
 ## Required for specific features
 
@@ -52,10 +48,17 @@ Telemetry can be turned off on open source installations, but
 | `app.flowfuse.com` | 443 | Platform | The public blueprint library is imported daily, which is the default on a licensed install (`blueprintImport.enabled`) |
 | `expert.flowfuse.com` | 443 | Platform | FlowFuse Expert or the in-editor assistant is enabled (`ai.enabled`). Both are proxied by the platform, so instances and browsers do not need this |
 | `expert-broker.flowfuse.com` | 8883 | Platform | FlowFuse Expert is enabled on Kubernetes, where the Helm chart sets this broker as the default. On Docker there is no default, the broker has to be set explicitly |
-| `api.github.com`, `github.com` | 443 | Platform | A GitOps pipeline is configured |
+| `github.com`, `api.github.com` | 443 | Platform | A GitOps pipeline pushes to GitHub |
+| `dev.azure.com` | 443 | Platform | A GitOps pipeline pushes to Azure DevOps |
+| Your own Git server | 443 | Platform | A GitOps pipeline pushes to any other HTTPS Git server, for example GitLab, Bitbucket, Gitea or a self-hosted one |
 | `www.googleapis.com` | 443 | Platform | Google SSO is configured |
 | `acme-v02.api.letsencrypt.org` | 443 | Platform | Certificates are issued automatically, rather than supplied by you |
 | Your SMTP relay | 587 or 465 | Platform | Email is configured, for invitations, password resets and notifications |
+| `ping.flowfuse.com` | 443 | Platform | Anonymous usage telemetry is enabled, which is the default and [cannot be disabled on a licensed installation](../admin/telemetry.md#configuring-telemetry) |
+
+Blocking telemetry does not stop the platform. The post runs as a background task, once a
+day and once shortly after startup, and a failure is written to the platform log and left
+until the next run.
 
 ## Restricted networks
 
