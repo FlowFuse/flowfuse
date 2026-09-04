@@ -1018,6 +1018,32 @@ describe('User API', async function () {
             })
             deleteResponse.statusCode.should.equal(404)
         })
+        it('Lists an MCP OAuth token as auto-renewing', async function () {
+            const grantExpiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000
+            await app.db.controllers.AccessToken.createMCPOAuthToken(TestObjects.alice.id, { grantExpiresAt })
+            await app.db.controllers.AccessToken.createPersonalAccessToken(TestObjects.alice, '', null, 'Plain Token')
+
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+
+            const mcpToken = json.tokens.find(t => t.name === 'MCP Agent')
+            should.exist(mcpToken)
+            mcpToken.should.have.property('autoRenews')
+            // the renewal cycle comes from the backend, matching the real rotation
+            mcpToken.autoRenews.should.have.property('every', 1000 * 60 * 30)
+            mcpToken.autoRenews.should.have.property('chosen', true)
+            new Date(mcpToken.autoRenews.until).getTime().should.equal(grantExpiresAt)
+
+            // plain PATs do not carry it
+            const plainToken = json.tokens.find(t => t.name === 'Plain Token')
+            should.exist(plainToken)
+            plainToken.should.not.have.property('autoRenews')
+        })
         it('Deleting a user removes any PATs from the db', async function () {
             const userToDelete = await app.db.models.User.create({ username: 'wayne', name: 'Wayne Vane', email: 'wayne@example.com', email_verified: true, password: 'wwPassword' })
             await login('wayne', 'wwPassword')

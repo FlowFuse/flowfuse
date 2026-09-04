@@ -1,10 +1,6 @@
 const { Op } = require('sequelize')
 
-const { generateToken, generateNumericToken, sha256, randomPhrase } = require('../utils')
-
-const DEFAULT_TOKEN_SESSION_EXPIRY = 1000 * 60 * 30 // 30 mins session - with refresh token support
-
-const DEFAULT_REFRESH_TOKEN_EXPIRY = 1000 * 60 * 60 * 24 * 30 // 30 days - sliding refresh token lifetime
+const { generateToken, generateNumericToken, sha256, randomPhrase, DEFAULT_TOKEN_SESSION_EXPIRY, DEFAULT_REFRESH_TOKEN_EXPIRY } = require('../utils')
 
 // Concurrent refreshes of the same refresh token reuse the cached access token
 // rather than each minting a new one and overwriting the row. Re-mint once the

@@ -1,3 +1,5 @@
+const { DEFAULT_TOKEN_SESSION_EXPIRY } = require('../utils')
+
 module.exports = function (app) {
     app.addSchema({
         $id: 'ProvisioningTokenSummary',
@@ -66,6 +68,15 @@ module.exports = function (app) {
             expiresAt: { type: 'string', nullable: true },
             readOnly: { type: 'boolean' },
             adminOptIn: { type: 'boolean' },
+            autoRenews: {
+                type: 'object',
+                nullable: true,
+                properties: {
+                    every: { type: 'number' },
+                    until: { type: 'string', nullable: true },
+                    chosen: { type: 'boolean' }
+                }
+            },
             teams: {
                 type: 'array',
                 items: {
@@ -100,6 +111,17 @@ module.exports = function (app) {
                 id: app.db.models.Team.encodeHashid(s.TeamId),
                 name: s.Team?.name ?? null
             }))
+        }
+        // Tokens with a refresh token (MCP OAuth grants) renew their access
+        // token automatically: report the renewal cycle and the grant's end
+        // (the consent-chosen date, or the lapse-if-unused date for grants
+        // issued before the expiry field existed).
+        if (token.refreshTokenExpiresAt) {
+            tokenSummary.autoRenews = {
+                every: DEFAULT_TOKEN_SESSION_EXPIRY,
+                until: token.grantExpiresAt ?? token.refreshTokenExpiresAt,
+                chosen: !!token.grantExpiresAt
+            }
         }
         return tokenSummary
     }

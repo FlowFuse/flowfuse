@@ -118,7 +118,7 @@ module.exports = {
                             name: { [Op.ne]: null }
                         },
                         order: [['id', 'ASC']],
-                        attributes: ['id', 'name', 'scope', 'expiresAt', 'readOnly', 'adminOptIn'],
+                        attributes: ['id', 'name', 'scope', 'expiresAt', 'readOnly', 'adminOptIn', 'refreshTokenExpiresAt', 'grantExpiresAt'],
                         include: [{
                             model: M.AccessTokenTeamScope,
                             include: [{
