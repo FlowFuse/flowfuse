@@ -5,20 +5,20 @@
             <FeatureUnavailableToTeam v-else-if="!featuresCheck.isInstanceResourcesFeatureEnabledForTeam" />
             <FeatureUnavailable
                 v-if="!agentSatisfiesVersion"
-                message="Update your device agent to the latest version to enable this feature"
+                :message="$t('ui.updateYourDeviceAgentToTheLatestVersionToEnableT')"
                 :only-custom-message="true"
             />
         </div>
         <template v-if="!featureAvailable">
             <empty-state>
                 <template #header>
-                    Performance Insights
+                    {{ $t('ui.performanceInsights') }}
                 </template>
                 <template #img>
                     <img src="../../../images/empty-states/instance-performance.png" alt="pipelines-logo">
                 </template>
                 <template #message>
-                    <p>Monitor your Remote Instance's CPU usage over time, enabling you to optimize for performance and discover potential problems before they occur.</p>
+                    <p>{{ $t('ui.monitorYourRemoteInstanceSCpuUsageOverTimeEnabli') }}</p>
                 </template>
             </empty-state>
         </template>
@@ -31,7 +31,7 @@
                             <template #hero>
                                 <div class="flex items-center gap-2">
                                     <CpuChipIcon class="ff-icon ff-icon-md text-gray-800" />
-                                    <div class="text-gray-800 text-xl font-medium whitespace-nowrap">CPU Utilisation</div>
+                                    <div class="text-gray-800 text-xl font-medium whitespace-nowrap">{{ $t('ui.cpuUtilisation') }}</div>
                                 </div>
                             </template>
                         </SectionTopMenu>
@@ -45,7 +45,7 @@
                             <template #hero>
                                 <div class="flex items-center gap-2">
                                     <CpuChipIcon class="ff-icon ff-icon-md text-gray-800" />
-                                    <div class="text-gray-800 text-xl font-medium whitespace-nowrap">Memory Utilisation</div>
+                                    <div class="text-gray-800 text-xl font-medium whitespace-nowrap">{{ $t('ui.memoryUtilisation') }}</div>
                                 </div>
                             </template>
                         </SectionTopMenu>

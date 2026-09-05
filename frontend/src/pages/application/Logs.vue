@@ -1,12 +1,12 @@
 <template>
-    <SectionTopMenu hero="Node-RED Logs" help-header="FlowFuse - Node-RED Logs" info="Live logs from your FlowFuse instances of Node-RED">
+    <SectionTopMenu :hero="$t('ui.nodeRedLogs')" :help-header="$t('ui.flowfuseNodeRedLogs')" :info="$t('ui.liveLogsFromYourFlowfuseInstancesOfNodeRed')">
         <template #helptext>
-            <p>This is a raw feed from the running instance of Node-RED on this domain.</p>
-            <p>Use this to debug issues if your application will not start correctly.</p>
+            <p>{{ $t('ui.thisIsARawFeedFromTheRunningInstanceOfNodeRedOnT') }}</p>
+            <p>{{ $t('ui.useThisToDebugIssuesIfYourApplicationWillNotStar') }}</p>
         </template>
         <template #tools>
             <div style="display: flex;align-items: center;">
-                <div class="mr-2"><strong>Instance:</strong></div>
+                <div class="mr-2"><strong>{{ $t('ui.instance') }}</strong></div>
                 <ff-listbox
                     ref="dropdown"
                     v-model="input.instanceId"
@@ -24,7 +24,7 @@
 
     <LogsShared v-if="instance?.id" :instance="instance" />
     <div v-else class="ff-no-data ff-no-data-large">
-        Select an instance to view live logs.
+        {{ $t('ui.selectAnInstanceToViewLiveLogs') }}
     </div>
 </template>
 

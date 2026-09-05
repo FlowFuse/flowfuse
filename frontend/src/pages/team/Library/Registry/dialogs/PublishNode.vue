@@ -8,57 +8,56 @@
         <template #default>
             <div>
                 <p>
-                    These commands should be run wherever you store your codebase for your custom node package.
+                    {{ $t('ui.theseCommandsShouldBeRunWhereverYouStoreYourCode') }}
                 </p>
                 <p class="mt-2">
-                    Publishing to this registry, will make your package available to all of your Node-RED instances in FlowFuse.
+                    {{ $t('ui.publishingToThisRegistryWillMakeYourPackageAvail') }}
                 </p>
                 <details class="mt-4" open="true">
-                    <summary class="mt-6 cursor-pointer mb-2 font-bold">Login to Registry</summary>
+                    <summary class="mt-6 cursor-pointer mb-2 font-bold">{{ $t('ui.loginToRegistry') }}</summary>
                     <div>
                         <CodeSnippet>{{ commands.login }}</CodeSnippet>
                         <CopySnippet :snippet="commands.login" />
                     </div>
                 </details>
                 <details class="mt-4" open="true">
-                    <summary class="mt-6 cursor-pointer mb-2 font-bold">Credentials</summary>
+                    <summary class="mt-6 cursor-pointer mb-2 font-bold">{{ $t('ui.credentials') }}</summary>
                     <div>
                         <p class="mb-3">
-                            You will be prompted to insert a <b>username</b> and <b>password</b>.
-                            You can re-use the credentials you have previously used, or regenerate credentials now.
+                            {{ $t('ui.youWillBePromptedToInsertA') }} <b>{{ $t('ui.username3') }}</b> {{ $t('ui.and') }} <b>{{ $t('ui.password3') }}</b>{{ $t('ui.youCanReUseTheCredentialsYouHavePreviouslyUsedOr') }}
                         </p>
-                        <ff-button kind="secondary" @click="generateCreds">Generate New Credentials</ff-button>
+                        <ff-button kind="secondary" @click="generateCreds">{{ $t('ui.generateNewCredentials') }}</ff-button>
                         <div v-if="loading.credentials" class="text-center p-2 mt-2 bg-gray-100 rounded-sm text-gray-400 border-gray-300">
-                            Generating New Credentials...
+                            {{ $t('ui.generatingNewCredentials') }}
                         </div>
                         <div v-else-if="credentials.username && credentials.token" class="mt-2">
                             <div>
-                                <label class="text-sm mb-1 font-bold">username:</label>
+                                <label class="text-sm mb-1 font-bold">{{ $t('ui.username4') }}</label>
                                 <CodeSnippet>{{ credentials.username }}</CodeSnippet>
                                 <CopySnippet :snippet="credentials.username" />
                             </div>
                             <div>
-                                <label class="text-sm mb-1 font-bold">token:</label>
+                                <label class="text-sm mb-1 font-bold">{{ $t('ui.token3') }}</label>
                                 <CodeSnippet>{{ credentials.token }}</CodeSnippet>
                                 <CopySnippet :snippet="credentials.token" />
                             </div>
                             <p class="text-gray-600 italic text-sm">
-                                Note: These credentials are only shown this one time. Make sure to store them securely for future use.
+                                {{ $t('ui.noteTheseCredentialsAreOnlyShownThisOneTimeMakeS') }}
                             </p>
                         </div>
                     </div>
                 </details>
                 <details class="mt-4" open="true">
-                    <summary class="mt-6 cursor-pointer mb-2 font-bold">Publish Package</summary>
+                    <summary class="mt-6 cursor-pointer mb-2 font-bold">{{ $t('ui.publishPackage') }}</summary>
                     <div>
-                        <p class="mb-2">Make sure that the package name is scoped to <code>flowfuse-</code> and your Team's ID:</p>
-                        <code class="text-sm block text-gray-500 p-2 bg-gray-50">"name": "@flowfuse-{{ team.id }}/my-package-name"</code>
-                        <p class="mt-2 mb-2">Then run this command to publish your package when it is ready:</p>
+                        <p class="mb-2">{{ $t('ui.makeSureThatThePackageNameIsScopedTo') }} <code>{{ $t('ui.flowfuse') }}</code> {{ $t('ui.andYourTeamSId') }}</p>
+                        <code class="text-sm block text-gray-500 p-2 bg-gray-50">{{ $t('ui.nameFlowfuseP0MyPackageName', { p0: team.id }) }}</code>
+                        <p class="mt-2 mb-2">{{ $t('ui.thenRunThisCommandToPublishYourPackageWhenItIsRe') }}</p>
                         <CodeSnippet>{{ commands.publish }}</CodeSnippet>
                         <CopySnippet :snippet="commands.publish" />
                     </div>
                 </details>
-                <p>For more detailed instructions you can view the documentation <a href="https://flowfuse.com/docs">here</a>.</p>
+                <p>{{ $t('ui.forMoreDetailedInstructionsYouCanViewTheDocument') }} <a href="https://flowfuse.com/docs">{{ $t('ui.here') }}</a>.</p>
             </div>
         </template>
     </ff-dialog>

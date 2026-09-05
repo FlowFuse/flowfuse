@@ -1,5 +1,5 @@
 <template>
-    <SectionTopMenu hero="Application Settings" />
+    <SectionTopMenu :hero="$t('ui.applicationSettings')" />
     <div class="flex flex-col sm:flex-row mt-9 ml-6" data-el="application-settings">
         <SectionSideMenu :options="sideNavigation" />
         <router-view v-slot="{ Component }">

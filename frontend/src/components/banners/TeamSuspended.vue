@@ -6,7 +6,7 @@
     >
         <span>
             <ExclamationCircleIcon class="ff-icon mr-2" />
-            This team is suspended.
+            {{ $t('ui.thisTeamIsSuspended') }}
         </span>
     </div>
 </template>

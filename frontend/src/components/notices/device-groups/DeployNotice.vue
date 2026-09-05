@@ -6,7 +6,7 @@
             <p class="clipped-overflow cursor-default mb-1" :title="targetSnapshot.name">{{ targetSnapshot.name }}</p>
 
             <p class="text-sm italic text-gray-400 flex gap-2">
-                <span>Created at:</span>
+                <span>{{ $t('ui.createdAt') }}</span>
                 <span class="cursor-default" :title="createdSince">{{ readableCreatedAt }}</span>
             </p>
         </div>
@@ -17,6 +17,7 @@
 
 <script>
 import { useDateHelpers } from '../../../composables/DateHelpers.js'
+import { t } from '../../../i18n.js'
 import daysSince from '../../../utils/daysSince.js'
 import NoticeBanner from '../NoticeBanner.vue'
 
@@ -26,7 +27,7 @@ export default {
     props: {
         defaultText: {
             required: false,
-            default: 'This Remote Instance will be updated to deploy the selected groups active pipeline snapshot',
+            default: t('ui.thisRemoteInstanceWillBeUpdatedToDeployTheSelect'),
             type: String
         },
         targetSnapshot: {
@@ -37,7 +38,7 @@ export default {
         title: {
             type: String,
             required: false,
-            default: 'The below snapshot will be deployed to the selected device(s):'
+            default: t('ui.theBelowSnapshotWillBeDeployedToTheSelectedDevic')
         }
     },
     setup () {

@@ -1,7 +1,7 @@
 <template>
     <div id="instance-settings-page" class="flex-1 flex flex-col overflow-auto">
         <div class="mb-3">
-            <SectionTopMenu hero="Settings" info="">
+            <SectionTopMenu :hero="$t('ui.settings')" info="">
                 <template #tools>
                     <ff-button
                         v-if="tools.saveButton.visible"
@@ -43,6 +43,7 @@ import { mapState } from 'pinia'
 import SectionSideMenu from '../../../components/SectionSideMenu.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import usePermissions from '../../../composables/Permissions.js'
+import { t } from '../../../i18n.js'
 import instanceActionsMixin from '../../../mixins/InstanceActions.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
@@ -77,7 +78,7 @@ export default {
                 saveButton: {
                     visible: false,
                     disabled: true,
-                    label: 'Save Changes'
+                    label: t('ui.saveChanges')
                 }
             }
         }

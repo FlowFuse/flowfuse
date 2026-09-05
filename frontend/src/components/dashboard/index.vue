@@ -4,9 +4,9 @@
             <template #img>
                 <img src="@/images/empty-states/no-access_dashboard-only.png" alt="no-dashboard">
             </template>
-            <template #header>Dashboard not available</template>
+            <template #header>{{ $t('ui.dashboardNotAvailable') }}</template>
             <template #message>
-                <p>The instance must be running to view the dashboard.</p>
+                <p>{{ $t('ui.theInstanceMustBeRunningToViewTheDashboard') }}</p>
             </template>
         </EmptyState>
         <iframe v-else :src="dashboardURL" :style="{ pointerEvents: disableEvents ? 'none' : 'auto' }" />

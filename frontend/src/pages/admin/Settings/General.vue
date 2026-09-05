@@ -1,73 +1,71 @@
 <template>
-    <ff-loading v-if="loading" message="Saving Settings..." />
+    <ff-loading v-if="loading" :message="$t('ui.savingSettings')" />
     <div v-else class="space-y-4">
-        <FormHeading>Users</FormHeading>
+        <FormHeading>{{ $t('ui.users') }}</FormHeading>
         <FormRow v-model="input['user:signup']" data-el="enable-signup" type="checkbox" :error="errors.requiresEmail" :disabled="!!errors.requiresEmail">
-            Allow new users to register on the login screen
+            {{ $t('ui.allowNewUsersToRegisterOnTheLoginScreen') }}
             <template #description>
-                If self-registration is not enabled, an Administrator must create users
-                and provide their login details manually
+                {{ $t('ui.ifSelfRegistrationIsNotEnabledAnAdministratorMus') }}
             </template>
         </FormRow>
         <template v-if="input['user:signup']">
             <FormRow v-model="input['branding:account:signUpTopBanner']" data-el="banner" containerClass="max-w-sm ml-9">
-                HTML content to show above the sign-up form
+                {{ $t('ui.htmlContentToShowAboveTheSignUpForm') }}
             </FormRow>
             <FormRow v-model="input['branding:account:signUpLeftBanner']" containerClass="max-w-sm ml-9">
-                HTML content to show to the left of the sign-up form
+                {{ $t('ui.htmlContentToShowToTheLeftOfTheSignUpForm') }}
                 <template #input><textarea v-model="input['branding:account:signUpLeftBanner']" data-el="splash" class="w-full" rows="6" /></template>
             </FormRow>
         </template>
         <FormRow v-model="input['user:team:auto-create']" type="checkbox" data-el="team-auto-create">
-            Create a personal team for users when they register
+            {{ $t('ui.createAPersonalTeamForUsersWhenTheyRegister') }}
             <template #description>
-                If a team is not automatically created, they will either have to manually create one, or be invited
-                to join an existing team.
+                {{ $t('ui.ifATeamIsNotAutomaticallyCreatedTheyWillEitherHa') }}
             </template>
         </FormRow>
         <FormRow v-if="input['user:team:auto-create']" v-model="input['user:team:auto-create:teamType']" :options="teamTypesOptions" containerClass="max-w-sm ml-9" data-el="team-auto-create-teamType">
-            Personal Team Type
+            {{ $t('ui.personalTeamType') }}
             <template #description>
-                The type of team to create for a user when they register.
-                <template v-if="features.billing">Trial mode is configured within the individual TeamTypes.</template>
+                {{ $t('ui.theTypeOfTeamToCreateForAUserWhenTheyRegister') }}
+                <template v-if="features.billing">{{ $t('ui.trialModeIsConfiguredWithinTheIndividualTeamtype') }}</template>
             </template>
         </FormRow>
         <FormRow v-if="input['user:team:auto-create']" v-model="input['user:team:auto-create:instanceType']" :options="instanceTypeOptionsForSelectedTeamType" :disabled="!input['user:team:auto-create:teamType']" :error="autoCreateInstanceError" containerClass="max-w-sm ml-9" data-el="team-auto-create-instanceType">
-            Starter Instance Type
+            {{ $t('ui.starterInstanceType') }}
             <template #description>
-                To optionally create a starter instance when users first register, set the instance type.
-                <template v-if="features.billing">Ensure TeamType is configured to allow this instance type at no charge.</template>
+                {{ $t('ui.toOptionallyCreateAStarterInstanceWhenUsersFirst') }}
+                <template v-if="features.billing">{{ $t('ui.ensureTeamtypeIsConfiguredToAllowThisInstanceTyp') }}</template>
             </template>
         </FormRow>
         <FormRow v-model="input['user:reset-password']" type="checkbox" :error="errors.requiresEmail" :disabled="!!errors.requiresEmail">
-            Allow users to reset their password on the login screen
+            {{ $t('ui.allowUsersToResetTheirPasswordOnTheLoginScreen') }}
             <template #description>
-                Users will be sent an email with a link back to the platform to reset their password.
+                {{ $t('ui.usersWillBeSentAnEmailWithALinkBackToThePlatform') }}
             </template>
         </FormRow>
         <FormRow v-model="input['user:tcs-required']" type="checkbox" data-el="terms-and-condition-required">
-            Require user agreement to Terms &amp; Conditions
+            {{ $t('ui.requireUserAgreementToTermsAmpConditions') }}
             <template #description>
-                When signing up, users will be presented with a link to the terms and conditions, and will be required to accept them in order to register.
+                {{ $t('ui.whenSigningUpUsersWillBePresentedWithALinkToTheT') }}
             </template>
         </FormRow>
         <FormRow v-if="input['user:tcs-required']" v-model="input['user:tcs-url']" containerClass="max-w-sm ml-9" type="text" :error="errors.termsAndConditions" data-el="terms-and-condition-url">
-            Terms &amp; Conditions URL
+            {{ $t('ui.termsAmpConditionsUrl') }}
             <template #description>
-                <p>Changing this URL will require all users to reaccept the terms the next time they access the platform</p>
+                <p>{{ $t('ui.changingThisUrlWillRequireAllUsersToReacceptTheT') }}</p>
             </template>
         </FormRow>
         <FormRow v-if="input['user:tcs-required']" containerClass="max-w-sm ml-9">
             <template #description>
-                <p>Last updated: {{ tcsDate }}.</p>
-                <div class="flex items-center space-x-2"><p>Require users to reaccept the terms now: </p><ff-button size="small" :disabled="loading" kind="tertiary" data-action="terms-and-condition-update" @click="updateTermsAndConditions">update now</ff-button></div>
+                <p>{{ $t('ui.lastUpdatedP0', { p0: tcsDate }) }}</p>
+                <div class="flex items-center space-x-2"><p>{{ $t('ui.requireUsersToReacceptTheTermsNow') }} </p><ff-button size="small" :disabled="loading" kind="tertiary" data-action="terms-and-condition-update" @click="updateTermsAndConditions">{{ $t('ui.updateNow') }}</ff-button></div>
             </template>
             <template #input>&nbsp;</template>
         </FormRow>
         <FormRow v-model="input['user:offboarding-required']" type="checkbox" data-el="offboarding-required">
-            Redirect offboarding users
+            {{ $t('ui.redirectOffboardingUsers') }}
             <template #description>
-                When deleting their accounts, users will be redirected to an offboarding form / URL.
+                {{ $t('ui.whenDeletingTheirAccountsUsersWillBeRedirectedTo') }}
             </template>
         </FormRow>
         <FormRow
@@ -76,154 +74,145 @@
             containerClass="max-w-sm ml-9" data-el="offboarding-url"
         >
             <div class="flex items-center space-x-2">
-                <p>Offboarding URL: </p>
+                <p>{{ $t('ui.offboardingUrl') }} </p>
             </div>
             <template #input>
                 <input v-model="input['user:offboarding-url']" type="text" class="w-full">
             </template>
         </FormRow>
-        <FormHeading>Teams</FormHeading>
+        <FormHeading>{{ $t('ui.teams') }}</FormHeading>
         <FormRow v-model="input['team:create']" type="checkbox">
-            Allow users to create teams
+            {{ $t('ui.allowUsersToCreateTeams') }}
             <template #description>
                 <p>
-                    If a user creates a team, they become its Owner. Otherwise they
-                    must be invited to an existing team by an Administrator or Team Owner.
+                    {{ $t('ui.ifAUserCreatesATeamTheyBecomeItsOwnerOtherwiseTh') }}
                 </p>
-                <p>Administrators can always create teams.</p>
+                <p>{{ $t('ui.administratorsCanAlwaysCreateTeams') }}</p>
             </template>
         </FormRow>
         <template v-if="input['team:create']">
             <FormRow v-model="input['user:team:auto-create:application']" type="checkbox" containerClass="max-w-sm ml-9">
-                Create a default application in the team
+                {{ $t('ui.createADefaultApplicationInTheTeam') }}
                 <template #description>
                     <p>
-                        Whenever a team is created, this will create a default application within that team.
+                        {{ $t('ui.wheneverATeamIsCreatedThisWillCreateADefaultAppl') }}
                     </p>
                 </template>
             </FormRow>
         </template>
         <FormRow v-model="input['team:user:invite:external']" type="checkbox" :disabled="!!errors.requiresEmail" :error="errors.requiresEmail">
-            Allow users to invite external users to teams
+            {{ $t('ui.allowUsersToInviteExternalUsersToTeams') }}
             <template #description>
                 <p>
-                    Users can invite existing users to join a team. If they provide
-                    an email address of an unregistered user, the invitation will be
-                    sent to that email address.
+                    {{ $t('ui.usersCanInviteExistingUsersToJoinATeamIfTheyProv') }}
                 </p>
             </template>
         </FormRow>
-        <FormHeading>Platform</FormHeading>
+        <FormHeading>{{ $t('ui.platform') }}</FormHeading>
         <FormRow v-model="platformStatsTokenEnabled" type="checkbox">
-            Allow token-based access to platform statistics
+            {{ $t('ui.allowTokenBasedAccessToPlatformStatistics') }}
             <template #description>
                 <p>
-                    This can be used to enable remote monitoring of the platform
-                    without providing full access to the admin API.
+                    {{ $t('ui.thisCanBeUsedToEnableRemoteMonitoringOfThePlatfo') }}
                 </p>
                 <p>
-                    The token is generated when this option is enabled. Once
-                    enabled, the token cannot be retrieved.
+                    {{ $t('ui.theTokenIsGeneratedWhenThisOptionIsEnabledOnceEn') }}
                 </p>
                 <p>
-                    To regenerate the token, disable, then re-enable this option.
+                    {{ $t('ui.toRegenerateTheTokenDisableThenReEnableThisOptio') }}
                 </p>
             </template>
         </FormRow>
-        <ff-dialog ref="enablePlatformStatsToken" header="Allow token-based access to platform statistics">
+        <ff-dialog ref="enablePlatformStatsToken" :header="$t('ui.allowTokenBasedAccessToPlatformStatistics')">
             <template #default>
-                <ff-loading v-if="platformStatsTokenGenerating" message="Generating token..." />
+                <ff-loading v-if="platformStatsTokenGenerating" :message="$t('ui.generatingToken')" />
                 <template v-else>
-                    <p>The following token can be used to access the platform statistics api.</p>
+                    <p>{{ $t('ui.theFollowingTokenCanBeUsedToAccessThePlatformSta') }}</p>
                     <code class="block my-2">{{ platformStatsToken }}</code>
                     <p>
-                        This is the only time this token will be shared. Make sure you save it
-                        before closing this dialog.
+                        {{ $t('ui.thisIsTheOnlyTimeThisTokenWillBeSharedMakeSureYo') }}
                     </p>
                 </template>
             </template>
             <template #actions>
-                <ff-button v-if="!platformStatsTokenGenerating" @click="$refs['enablePlatformStatsToken'].close()">Close</ff-button>
+                <ff-button v-if="!platformStatsTokenGenerating" @click="$refs['enablePlatformStatsToken'].close()">{{ $t('ui.close') }}</ff-button>
                 <span v-else>&nbsp;</span>
             </template>
         </ff-dialog>
-        <ff-dialog ref="disablePlatformStatsToken" header="Disable token-based access to platform statistics">
+        <ff-dialog ref="disablePlatformStatsToken" :header="$t('ui.disableTokenBasedAccessToPlatformStatistics')">
             <template #default>
-                <p>This will delete the active token used to access the platform statistics.</p>
-                <p>Are you sure?</p>
+                <p>{{ $t('ui.thisWillDeleteTheActiveTokenUsedToAccessThePlatf') }}</p>
+                <p>{{ $t('ui.areYouSure') }}</p>
             </template>
             <template #actions>
-                <ff-button @click="cancelDisablePlatformStatsToken">Cancel</ff-button>
-                <ff-button kind="danger" @click="disableStatsToken">Disable</ff-button>
+                <ff-button @click="cancelDisablePlatformStatsToken">{{ $t('ui.cancel') }}</ff-button>
+                <ff-button kind="danger" @click="disableStatsToken">{{ $t('ui.disable') }}</ff-button>
             </template>
         </ff-dialog>
         <FormRow v-if="!isLicensed" v-model="input['telemetry:enabled']" type="checkbox">
-            Enable collection of anonymous statistics
+            {{ $t('ui.enableCollectionOfAnonymousStatistics') }}
             <template #description>
                 <p>
-                    We collect anonymous statistics about how FlowFuse is used.
-                    This allows us to improve how it works and make a better product.
+                    {{ $t('ui.weCollectAnonymousStatisticsAboutHowFlowfuseIsUs') }}
                 </p>
                 <p>
-                    For more information about the data we collect and how it is used,
-                    please see our <a class="forge-link" href="https://flowfuse.com/docs/admin/telemetry/" target="_blank">Usage Data Collection Policy</a>
+                    {{ $t('ui.forMoreInformationAboutTheDataWeCollectAndHowItI') }} <a class="forge-link" href="https://flowfuse.com/docs/admin/telemetry/" target="_blank">{{ $t('ui.usageDataCollectionPolicy') }}</a>
                 </p>
             </template>
         </FormRow>
 
         <template v-if="ssoEnabled">
-            <FormHeading>Social Logins</FormHeading>
+            <FormHeading>{{ $t('ui.socialLogins') }}</FormHeading>
             <FormRow v-model="input['platform:sso:google']" type="checkbox" data-el="google-sso">
-                Allow users to login with Google SSO
+                {{ $t('ui.allowUsersToLoginWithGoogleSso') }}
                 <template #description>
-                    Users can login using Google Single-Sign On. This only supports non-Workspace accounts. Workspace accounts
-                    must be configured via individual SSO providers.
+                    {{ $t('ui.usersCanLoginUsingGoogleSingleSignOnThisOnlySupp') }}
                 </template>
             </FormRow>
             <FormRow v-if="input['platform:sso:google']" v-model="input['platform:sso:google:clientId']" containerClass="max-w-sm ml-9" type="text" data-el="google-sso-">
-                Client ID
+                {{ $t('ui.clientId') }}
                 <template #description>
-                    The Client ID for the Google SSO application
+                    {{ $t('ui.theClientIdForTheGoogleSsoApplication') }}
                 </template>
             </FormRow>
             <FormRow v-if="input['platform:sso:google']" v-model="input['platform:sso:google:auto-create']" containerClass="max-w-sm ml-9" type="checkbox" data-el="google-sso-auto-create">
-                Create new users automatically
+                {{ $t('ui.createNewUsersAutomatically') }}
             </FormRow>
         </template>
 
         <template v-if="ssoEnabled">
-            <FormHeading>Direct SSO Login</FormHeading>
+            <FormHeading>{{ $t('ui.directSsoLogin') }}</FormHeading>
             <FormRow v-model="input['platform:sso:direct']" type="checkbox" data-el="direct-sso">
-                Show buttons on Login page to jump directly to a SAML SSO provider
+                {{ $t('ui.showButtonsOnLoginPageToJumpDirectlyToASamlSsoPr') }}
                 <template #description>
-                    Allows bypassing email matching for SAML SSO logins. Read more about how to setup SAML SSO <a class="forge-link" href="https://flowfuse.com/docs/admin/sso/saml/" target="_blank">here</a>
+                    {{ $t('ui.allowsBypassingEmailMatchingForSamlSsoLoginsRead') }} <a class="forge-link" href="https://flowfuse.com/docs/admin/sso/saml/" target="_blank">{{ $t('ui.here') }}</a>
                 </template>
             </FormRow>
         </template>
 
         <template v-if="ssoEnabled">
-            <FormHeading>Automatic SSO Redirect</FormHeading>
+            <FormHeading>{{ $t('ui.automaticSsoRedirect') }}</FormHeading>
             <FormRow v-model="input['platform:sso:only']" type="checkbox" data-el="single-sso">
-                Automatically redirect all logins to a single SAML SSO provider
+                {{ $t('ui.automaticallyRedirectAllLoginsToASingleSamlSsoPr') }}
                 <template #description>
-                    Users will be automatically redirected to the SAML SSO provider without waiting for confirmation on the login page.
+                    {{ $t('ui.usersWillBeAutomaticallyRedirectedToTheSamlSsoPr') }}
                     <br>
-                    Admin users can still access the login page by going to /admin/
+                    {{ $t('ui.adminUsersCanStillAccessTheLoginPageByGoingToAdm') }}
                 </template>
             </FormRow>
             <FormRow v-if="input['platform:sso:only']" v-model="input['platform:sso:only:provider']" :error="errors.ssoOnlyProvider" :options="ssoProvidersOptions" containerClass="max-w-sm ml-9" data-el="single-sso-provider">
-                Which active SAML SSO provider to use for all logins
+                {{ $t('ui.whichActiveSamlSsoProviderToUseForAllLogins') }}
             </FormRow>
             <FormRow v-if="input['platform:sso:only']" v-model="input['platform:sso:only:logoutURL']" containerClass="max-w-sm ml-9" type="text" data-el="single-sso-url">
-                URL to redirect to on logout
+                {{ $t('ui.urlToRedirectToOnLogout') }}
                 <template #description>
-                    Prevents redirect loops automatically logging user back in from SSO provider
+                    {{ $t('ui.preventsRedirectLoopsAutomaticallyLoggingUserBac') }}
                 </template>
             </FormRow>
         </template>
 
         <div class="pt-8">
-            <ff-button :disabled="!saveEnabled" data-action="save-settings" @click="saveChanges">Save settings</ff-button>
+            <ff-button :disabled="!saveEnabled" data-action="save-settings" @click="saveChanges">{{ $t('ui.saveSettings2') }}</ff-button>
         </div>
     </div>
 </template>
@@ -239,6 +228,7 @@ import teamTypesApi from '../../../api/teamTypes.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import { isValidURL } from '../../../composables/strings/String.js'
+import { t } from '../../../i18n.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -358,7 +348,7 @@ export default {
             if (!this.input['user:team:auto-create:teamType'] || !this.selectedTeamType) {
                 return [{
                     value: null,
-                    label: 'None'
+                    label: t('ui.none')
                 }]
             }
 
@@ -375,7 +365,7 @@ export default {
 
             instanceTypeOptions.unshift({
                 value: null,
-                label: 'None'
+                label: t('ui.none')
             })
 
             return instanceTypeOptions
@@ -397,7 +387,7 @@ export default {
     },
     async created () {
         if (!this.settings.email) {
-            this.errors.requiresEmail = 'This option requires email to be configured'
+            this.errors.requiresEmail = t('ui.thisOptionRequiresEmailToBeConfigured')
         }
         validSettings.forEach(s => {
             this.input[s] = this.settings[s]
@@ -436,7 +426,7 @@ export default {
             if (this.input['user:tcs-required']) {
                 const url = this.input['user:tcs-url'] || ''
                 if (url.trim() === '') {
-                    this.errors.termsAndConditions = 'A URL for the Terms & Conditions must be set.'
+                    this.errors.termsAndConditions = t('ui.aUrlForTheTermsConditionsMustBeSet')
                     return false
                 }
             }
@@ -445,19 +435,19 @@ export default {
             if (this.input['user:offboarding-required']) {
                 const url = this.input['user:offboarding-url'] || ''
                 if (url.trim() === '') {
-                    this.errors.offboardingUrl = 'A URL for the offboarding redirect must be set.'
+                    this.errors.offboardingUrl = t('ui.aUrlForTheOffboardingRedirectMustBeSet')
                     return false
                 }
 
                 if (!isValidURL(url)) {
-                    this.errors.offboardingUrl = 'A valid URL for the offboarding redirect must be set.'
+                    this.errors.offboardingUrl = t('ui.aValidUrlForTheOffboardingRedirectMustBeSet')
                     return false
                 }
             }
             this.errors.offboardingUrl = ''
 
             if (this.input['platform:sso:only'] && this.input['platform:sso:only:provider'] === null) {
-                this.errors.ssoOnlyProvider = 'You must pick a SAML SSO Provider'
+                this.errors.ssoOnlyProvider = t('ui.youMustPickASamlSsoProvider')
                 return false
             }
             this.errors.ssoOnlyProvider = ''
@@ -514,7 +504,7 @@ export default {
                 return
             }
             Dialog.show({
-                header: 'Update Terms and Conditions',
+                header: t('ui.updateTermsAndConditions'),
                 kind: 'danger',
                 text: `This action will require all existing users to reaccept the Terms and Conditions the next time they access the platform.
                        Are you sure?`,

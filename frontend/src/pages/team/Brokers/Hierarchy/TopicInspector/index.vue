@@ -1,22 +1,22 @@
 <template>
     <div class="ff-topic-inspector">
-        <main-title title="Topic Inspector">
+        <main-title :title="$t('ui.topicInspector')">
             <template #actions>
-                <ff-toggle-switch v-if="isTeamBroker" v-model="agentActive" v-ff-tooltip:left="'Monitor Broker for Smart Schema Suggestions. This will automatically stop after 24 hours.'" :disabled="agentActive">
+                <ff-toggle-switch v-if="isTeamBroker" v-model="agentActive" v-ff-tooltip:left="$t('ui.monitorBrokerForSmartSchemaSuggestionsThisWillAu')" :disabled="agentActive">
                     <SignalIcon />
                 </ff-toggle-switch>
-                <ff-toggle-switch v-else v-model="isConnected" v-ff-tooltip:left="'FlowFuse will automatically monitor third-party brokers for Schema suggestions'" :disabled="true">
+                <ff-toggle-switch v-else v-model="isConnected" v-ff-tooltip:left="$t('ui.flowfuseWillAutomaticallyMonitorThirdPartyBroker2')" :disabled="true">
                     <SignalIcon />
                 </ff-toggle-switch>
                 <template v-if="segment">
                     <ff-button kind="danger" :disabled="!hasId || hasChildren" @click="deleteTopic()">
-                        Delete
+                        {{ $t('ui.delete') }}
                     </ff-button>
                     <ff-button :disabled="!hasUnsavedChanges" kind="secondary" @click="clearTopicMetaChanges()">
-                        Cancel
+                        {{ $t('ui.cancel') }}
                     </ff-button>
                     <ff-button :disabled="!hasUnsavedChanges" @click="saveTopicMeta()">
-                        Save
+                        {{ $t('ui.save') }}
                     </ff-button>
                 </template>
             </template>
@@ -37,9 +37,9 @@
             <template #img>
                 <img src="../../../../../images/empty-states/mqtt-empty.png" alt="logo">
             </template>
-            <template #header>Inspect Your Topic Hierarchy</template>
+            <template #header>{{ $t('ui.inspectYourTopicHierarchy') }}</template>
             <template #message>
-                <p>Select a topic from the hierarchy to view additional information about it.</p>
+                <p>{{ $t('ui.selectATopicFromTheHierarchyToViewAdditionalInfo') }}</p>
             </template>
         </EmptyState>
     </div>

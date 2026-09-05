@@ -19,7 +19,7 @@
                         class="ff-icon-small"
                         :class="{ 'rotated': inputExpanded }"
                     />
-                    <span class="ff-expert-tool-call--section-label">Input</span>
+                    <span class="ff-expert-tool-call--section-label">{{ $t('ui.input') }}</span>
                 </div>
                 <div v-if="inputExpanded" class="ff-expert-tool-call--code">
                     <!-- eslint-disable-next-line vue/no-v-html -->
@@ -36,7 +36,7 @@
                         class="ff-icon-small"
                         :class="{ 'rotated': outputExpanded }"
                     />
-                    <span class="ff-expert-tool-call--section-label">Output</span>
+                    <span class="ff-expert-tool-call--section-label">{{ $t('ui.output') }}</span>
                 </div>
                 <div v-if="outputExpanded" class="ff-expert-tool-call--code">
                     <!-- eslint-disable-next-line vue/no-v-html -->

@@ -2,14 +2,14 @@
     <ff-layout-box class="ff-login">
         <form v-if="!appLoader" class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
             <template v-if="complete">
-                <p class="text-center">Password reset successful.</p>
-                <ff-button to="/">Return Home</ff-button>
+                <p class="text-center">{{ $t('ui.passwordResetSuccessful') }}</p>
+                <ff-button to="/">{{ $t('ui.returnHome') }}</ff-button>
             </template>
             <template v-else>
-                <FormRow id="new_password" v-model="input.password" type="password" :error="errors.password">New Password</FormRow>
-                <FormRow id="confirm_password" v-model="input.confirm" type="password" :error="errors.confirm">Confirm</FormRow>
+                <FormRow id="new_password" v-model="input.password" type="password" :error="errors.password">{{ $t('ui.newPassword') }}</FormRow>
+                <FormRow id="confirm_password" v-model="input.confirm" type="password" :error="errors.confirm">{{ $t('ui.confirm') }}</FormRow>
                 <ff-button :disabled="!formValid" @click="resetPassword">
-                    Change password
+                    {{ $t('ui.changePassword') }}
                 </ff-button>
             </template>
         </form>
@@ -22,6 +22,7 @@ import { mapState } from 'pinia'
 import userApi from '../../api/user.js'
 import FormRow from '../../components/FormRow.vue'
 
+import { t } from '../../i18n.js'
 import FFLayoutBox from '../../layouts/Box.vue'
 import alerts from '../../services/alerts.js'
 
@@ -59,11 +60,11 @@ export default {
     watch: {
         'input.password': function (v) {
             if (this.input.password.length < 8) {
-                this.errors.password = 'Password must be at least 8 characters'
+                this.errors.password = t('ui.passwordMustBeAtLeast8Characters')
                 return
             }
             if (this.input.password.length > 128) {
-                this.errors.password = 'Password too long'
+                this.errors.password = t('ui.passwordTooLong')
                 return
             }
             const zxcvbnResult = zxcvbn(this.input.password)
@@ -84,7 +85,7 @@ export default {
                 password: this.input.password
             }).then((res) => {
                 this.complete = true
-                alerts.emit('Password successfully updated.', 'confirmation')
+                alerts.emit(t('ui.passwordSuccessfullyUpdated'), 'confirmation')
             }).catch(e => {
                 console.error(e)
             })

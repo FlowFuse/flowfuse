@@ -1,9 +1,9 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Settings" :tabs="sideOptions">
+            <ff-page-header :title="$t('ui.settings')" :tabs="sideOptions">
                 <template #context>
-                    View and manage the settings of your team.
+                    {{ $t('ui.viewAndManageTheSettingsOfYourTeam') }}
                 </template>
             </ff-page-header>
         </template>
@@ -21,6 +21,8 @@ import { useRouter } from 'vue-router'
 
 import usePermissions from '../../../composables/Permissions.js'
 
+import { t } from '../../../i18n.js'
+
 import { useContextStore } from '@/stores/context.js'
 
 export default {
@@ -33,10 +35,10 @@ export default {
     data: function () {
         return {
             sideOptions: [
-                { label: 'General', to: './general' },
-                { label: 'Provisioning', to: './devices' },
-                { label: 'Integrations', to: './integrations' },
-                { label: 'Danger', to: './danger' }
+                { label: t('ui.general'), to: './general' },
+                { label: t('ui.provisioning'), to: './devices' },
+                { label: t('ui.integrations'), to: './integrations' },
+                { label: t('ui.danger'), to: './danger' }
             ]
         }
     },

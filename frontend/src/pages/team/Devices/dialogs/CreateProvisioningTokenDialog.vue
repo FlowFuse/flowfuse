@@ -8,12 +8,12 @@
         :closeOnConfirm="false"
     >
         <template #default>
-            <p>This will generate a <code>device.yml</code> to move to your device, that will auto register with this team.</p>
+            <p>{{ $t('ui.thisWillGenerateA') }} <code>{{ $t('ui.deviceYml') }}</code> {{ $t('ui.toMoveToYourDeviceThatWillAutoRegisterWithThisTe') }}</p>
             <form class="space-y-6 mt-2 mb-2">
-                <FormRow data-form="token-name" v-model="input.name" :error="errors.name" :disabled="editMode">Token Name</FormRow>
-                <FormRow data-form="auto-assign-type" :options="autoAssignTypes" v-model="input.autoAssignType">Auto Assign</FormRow>
-                <FormRow v-if="input.autoAssignType === 'application'" :options="applications" v-model="input.application" :error="applicationError">Auto assign application</FormRow>
-                <FormRow v-else-if="input.autoAssignType === 'instance'" :options="instances" v-model="input.instance" :error="instanceError">Auto assign instance</FormRow>
+                <FormRow data-form="token-name" v-model="input.name" :error="errors.name" :disabled="editMode">{{ $t('ui.tokenName') }}</FormRow>
+                <FormRow data-form="auto-assign-type" :options="autoAssignTypes" v-model="input.autoAssignType">{{ $t('ui.autoAssign') }}</FormRow>
+                <FormRow v-if="input.autoAssignType === 'application'" :options="applications" v-model="input.application" :error="applicationError">{{ $t('ui.autoAssignApplication') }}</FormRow>
+                <FormRow v-else-if="input.autoAssignType === 'instance'" :options="instances" v-model="input.instance" :error="instanceError">{{ $t('ui.autoAssignInstance') }}</FormRow>
             </form>
         </template>
     </ff-dialog>
@@ -24,6 +24,7 @@
 import teamApi from '../../../../api/team.js'
 
 import FormRow from '../../../../components/FormRow.vue'
+import { t } from '../../../../i18n.js'
 import alerts from '../../../../services/alerts.js'
 
 export default {
@@ -48,8 +49,8 @@ export default {
             errors: {},
             autoAssignTypes: [
                 { value: '', label: 'Don\'t assign' },
-                { value: 'instance', label: 'Instance' },
-                { value: 'application', label: 'Application' }
+                { value: 'instance', label: t('ui.instance2') },
+                { value: 'application', label: t('ui.application') }
             ]
         }
     },
@@ -105,7 +106,7 @@ export default {
                 teamApi.updateTeamDeviceProvisioningToken(this.team.id, this.token.id, opts).then((response) => {
                     this.$refs.dialog.close()
                     this.$emit('token-updated', response)
-                    alerts.emit('Provisioning token successfully updated.', 'confirmation')
+                    alerts.emit(t('ui.provisioningTokenSuccessfullyUpdated'), 'confirmation')
                 }).catch(err => {
                     this.$emit('token-updated', null)
                     console.error(err.response.data)
@@ -117,7 +118,7 @@ export default {
                         } else if (/application/.test(err.response.data.error)) {
                             this.errors.application = err.response.data.error
                         } else {
-                            alerts.emit('Failed to update provisioning token: ' + err.response.data.error, 'warning', 7500)
+                            alerts.emit(t('ui.failedToUpdateProvisioningToken') + err.response.data.error, 'warning', 7500)
                         }
                     }
                 })
@@ -126,7 +127,7 @@ export default {
                 teamApi.generateTeamDeviceProvisioningToken(opts.team, opts).then((response) => {
                     this.$refs.dialog.close()
                     this.$emit('token-created', response)
-                    alerts.emit('Provisioning Token successfully created.', 'confirmation')
+                    alerts.emit(t('ui.provisioningTokenSuccessfullyCreated'), 'confirmation')
                 }).catch(err => {
                     this.$emit('token-created', null)
                     console.error(err.response.data)
@@ -140,7 +141,7 @@ export default {
                         } else if (/name/.test(err.response.data.error)) {
                             this.errors.name = err.response.data.error
                         } else {
-                            alerts.emit('Failed to create provisioning token: ' + err.response.data.error, 'warning', 7500)
+                            alerts.emit(t('ui.failedToCreateProvisioningToken') + err.response.data.error, 'warning', 7500)
                         }
                     }
                 })

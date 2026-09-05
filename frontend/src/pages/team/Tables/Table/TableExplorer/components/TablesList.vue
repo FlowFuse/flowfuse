@@ -5,7 +5,7 @@
                 v-model="filterTerm"
                 class="ff-data-table--search"
                 data-form="search"
-                placeholder="Search Tables"
+                :placeholder="$t('ui.searchTables')"
             >
                 <template #icon><MagnifyingGlassIcon /></template>
             </ff-text-input>
@@ -34,12 +34,12 @@
         </ul>
 
         <div v-else-if="!filteredTables.length && tables.length" class="empty-state">
-            <p>No tables found matching your criteria!</p>
+            <p>{{ $t('ui.noTablesFoundMatchingYourCriteria') }}</p>
         </div>
 
         <div v-else class="empty-state flex gap-5">
-            <p>Get started by creating your first table using the <code>@flowfuse/nr-tables-nodes</code> node in a Node-RED Instance.</p>
-            <p>or <span class="cta" @click="onCreateTable">create</span> your first table now.</p>
+            <p>{{ $t('ui.getStartedByCreatingYourFirstTableUsingThe') }} <code>@flowfuse/nr-tables-nodes</code> {{ $t('ui.nodeInANodeRedInstance') }}</p>
+            <p>{{ $t('ui.or') }}<span class="cta" @click="onCreateTable">{{ $t('ui.create2') }}</span> {{ $t('ui.yourFirstTableNow') }}</p>
         </div>
     </section>
 </template>

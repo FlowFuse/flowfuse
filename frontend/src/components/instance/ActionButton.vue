@@ -6,7 +6,7 @@
             :options="actionsDropdownOptions"
         >
             <Cog8ToothIcon class="ff-btn--icon ff-btn--icon-left" />
-            <span class="hidden sm:inline actions-text-container">Actions</span>
+            <span class="hidden sm:inline actions-text-container">{{ $t('ui.actions') }}</span>
         </DropdownMenu>
         <ConfirmInstanceDeleteDialog
             ref="confirmInstanceDeleteDialog"
@@ -22,6 +22,7 @@ import { Cog8ToothIcon } from '@heroicons/vue/20/solid'
 
 import InstanceApi from '../../api/instances.js'
 import usePermissions from '../../composables/Permissions.js'
+import { t } from '../../i18n.js'
 import ConfirmInstanceDeleteDialog from '../../pages/instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
@@ -108,7 +109,7 @@ export default {
                 this.instanceStateMutator.setStateAsPendingFromServer()
             } catch (err) {
                 console.warn('Instance start failed.', err)
-                alerts.emit('Instance start failed.', 'warning')
+                alerts.emit(t('ui.instanceStartFailed'), 'warning')
                 this.instanceStateMutator.restoreState()
             }
         },
@@ -117,18 +118,18 @@ export default {
         },
         showConfirmSuspendDialog () {
             Dialog.show({
-                header: 'Suspend Instance',
-                text: 'Are you sure you want to suspend this instance?',
+                header: t('ui.suspendInstance'),
+                text: t('ui.areYouSureYouWantToSuspendThisInstance'),
                 confirmLabel: 'Suspend',
                 kind: 'danger'
             }, () => {
                 this.instanceStateMutator.setStateOptimistically('suspending')
                 InstanceApi.suspendInstance(this.instance).then(() => {
                     this.instanceStateMutator.setStateAsPendingFromServer()
-                    alerts.emit('Instance suspend request succeeded.', 'confirmation')
+                    alerts.emit(t('ui.instanceSuspendRequestSucceeded'), 'confirmation')
                 }).catch(err => {
                     console.warn(err)
-                    alerts.emit('Instance failed to suspend.', 'warning')
+                    alerts.emit(t('ui.instanceFailedToSuspend'), 'warning')
                     this.instanceStateMutator.restoreState()
                 })
             })
@@ -143,7 +144,7 @@ export default {
                 this.instanceStateMutator.setStateAsPendingFromServer()
             } catch (err) {
                 console.warn('Instance restart failed.', err)
-                alerts.emit('Instance restart failed.', 'warning')
+                alerts.emit(t('ui.instanceRestartFailed'), 'warning')
                 this.instanceStateMutator.restoreState()
             }
         }

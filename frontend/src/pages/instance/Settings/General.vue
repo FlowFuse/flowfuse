@@ -1,85 +1,78 @@
 <template>
-    <FormHeading class="mb-6">Instance Details</FormHeading>
+    <FormHeading class="mb-6">{{ $t('ui.instanceDetails') }}</FormHeading>
     <div class="space-y-6" data-el="instance-settings-general">
         <FormRow id="projectId" type="uneditable">
-            Instance ID
+            {{ $t('ui.instanceId') }}
             <template #input>
                 <TextCopier :text="input.projectId" class="w-full uneditable font-mono text-gray-800" />
             </template>
         </FormRow>
 
         <FormRow id="projectName" type="uneditable">
-            Name
+            {{ $t('ui.name') }}
             <template #input>
                 <TextCopier :text="input.projectName" class="w-full uneditable text-gray-800" />
             </template>
         </FormRow>
 
         <FormRow v-model="input.projectTypeName" type="uneditable">
-            Instance Type
+            {{ $t('ui.instanceType') }}
         </FormRow>
 
         <FormRow v-if="features.ha && input.haConfig" v-model="input.haConfig" type="uneditable">
-            <template #default>High Availability</template>
+            <template #default>{{ $t('ui.highAvailability') }}</template>
             <template #input>
-                <div class="w-full uneditable undefined text-gray-800">
-                    {{ input.haConfig.replicas }} x instances
-                </div>
+                <div class="w-full uneditable undefined text-gray-800">{{ $t('ui.p0XInstances', { p0: input.haConfig.replicas }) }}</div>
             </template>
         </FormRow>
         <FormRow v-if="features.protectInstance && input.protectInstance" v-model="input.protectInstance" type="uneditable">
-            <template #default>Instance Protected</template>
+            <template #default>{{ $t('ui.instanceProtected2') }}</template>
             <template #input>
-                <div>
-                    Protected {{ input.protectInstance.enabled }}
-                </div>
+                <div>{{ $t('ui.protectedP0', { p0: input.protectInstance.enabled }) }}</div>
             </template>
         </FormRow>
         <FormRow v-model="input.stackDescription" type="uneditable">
-            Node-RED Version
+            {{ $t('ui.nodeRedVersion') }}
         </FormRow>
         <FormRow v-model="input.templateName" type="uneditable">
-            Template
+            {{ $t('ui.template') }}
         </FormRow>
-        <FormHeading class="mb-6">Hosting</FormHeading>
+        <FormHeading class="mb-6">{{ $t('ui.hosting') }}</FormHeading>
         <FormRow type="uneditable">
-            Direct URL
+            {{ $t('ui.directUrl') }}
             <template #input>
                 <TextCopier :text="url" class="w-full uneditable text-gray-800" />
             </template>
         </FormRow>
         <div v-if="customHostnameAvailable">
             <FormRow v-model="input.customHostname" :error="errors.customHostname">
-                Custom domain
+                {{ $t('ui.customDomain') }}
                 <template #description>
                     <p>
-                        This allows you to access your instance from a custom subdomain. This requires the DNS entry for the subdomain to
-                        be updated to point at the FlowFuse platform.
-                        For more information, see the <a class="ff-link" target="_blank" href="https://flowfuse.com/docs/user/custom-hostnames">documentation</a>.
+                        {{ $t('ui.thisAllowsYouToAccessYourInstanceFromACustomSubd') }} <a class="ff-link" target="_blank" href="https://flowfuse.com/docs/user/custom-hostnames">{{ $t('ui.documentation2') }}</a>.
                     </p>
                 </template>
                 <template v-if="!customHostnameTeamAvailable" #input>
-                    <FeatureUnavailableToTeam featureName="Custom domain name" />
+                    <FeatureUnavailableToTeam :featureName="$t('ui.customDomainName')" />
                 </template>
                 <template v-else-if="!customHostnameLauncherVersion" #input>
-                    To enable custom domains you will need to update to the latest
-                    stack using the option below.
+                    {{ $t('ui.toEnableCustomDomainsYouWillNeedToUpdateToTheLat') }}
                 </template>
                 <template v-if="customHostnameLauncherVersion && customHostnameTeamAvailable" #append>
-                    <ff-button size="small" data-action="save-hostname" kind="secondary" :disabled="!customHostnameValid" @click="saveCustomHostname()">Save</ff-button>
+                    <ff-button size="small" data-action="save-hostname" kind="secondary" :disabled="!customHostnameValid" @click="saveCustomHostname()">{{ $t('ui.save') }}</ff-button>
                 </template>
             </FormRow>
             <p v-if="customHostnameLauncherVersion && customHostnameTeamAvailable && original.customHostname" class="text-xs pl-2 mt-1">
                 <span v-if="checkingDomain">
                     <ArrowPathIcon class="w-4 inline" />
-                    Checking domain status...
+                    {{ $t('ui.checkingDomainStatus') }}
                 </span>
                 <span v-else-if="domainStatusValid" class="text-green-700">
-                    <CheckBadgeIcon class="w-4 inline" /> DNS verified
+                    <CheckBadgeIcon class="w-4 inline" /> {{ $t('ui.dnsVerified') }}
                 </span>
                 <span v-else class="text-red-700">
                     <ExclamationTriangleIcon class="w-4 inline" />
-                    DNS check failed
+                    {{ $t('ui.dnsCheckFailed') }}
                 </span>
             </p>
         </div>
@@ -105,6 +98,7 @@ import FormRow from '../../../components/FormRow.vue'
 import TextCopier from '../../../components/TextCopier.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 
+import { t } from '../../../i18n.js'
 import Dialog from '../../../services/dialog.js'
 
 import DangerSettings from './Danger.vue'
@@ -214,7 +208,7 @@ export default {
             if (isValid) {
                 this.errors.customHostname = ''
             } else {
-                this.errors.customHostname = 'Not a valid subdomain name'
+                this.errors.customHostname = t('ui.notAValidSubdomainName')
             }
         },
         saveButton: {
@@ -291,7 +285,7 @@ export default {
             }
 
             Dialog.show({
-                header: 'Custom domain',
+                header: t('ui.customDomain'),
                 kind: 'primary',
                 html: `<p>${message.join('</p><p>')}</p>`
             }, async () => {

@@ -4,7 +4,7 @@
         <FeatureUnavailableToTeam v-else-if="!featuresCheck.isInstanceResourcesFeatureEnabledForTeam" />
         <FeatureUnavailable
             v-else-if="!launcherSatisfiesVersion"
-            message="Update your instance to the latest version to enable this feature"
+            :message="$t('ui.updateYourInstanceToTheLatestVersionToEnableThis')"
             :only-custom-message="true"
         />
     </div>
@@ -12,13 +12,13 @@
         <template v-if="!featureAvailable">
             <empty-state>
                 <template #header>
-                    Performance Insights
+                    {{ $t('ui.performanceInsights') }}
                 </template>
                 <template #img>
                     <img src="../../../images/empty-states/instance-performance.png" alt="pipelines-logo">
                 </template>
                 <template #message>
-                    <p>Monitor your Hosted Instance's CPU usage over time, enabling you to optimize for performance and discover potential problems before they occur.</p>
+                    <p>{{ $t('ui.monitorYourHostedInstanceSCpuUsageOverTimeEnabli') }}</p>
                 </template>
             </empty-state>
         </template>
@@ -33,7 +33,7 @@
                             <template #hero>
                                 <div class="flex items-center gap-2">
                                     <CpuChipIcon class="ff-icon ff-icon-md text-gray-800" />
-                                    <div class="text-gray-800 text-xl font-medium whitespace-nowrap">CPU Utilisation</div>
+                                    <div class="text-gray-800 text-xl font-medium whitespace-nowrap">{{ $t('ui.cpuUtilisation') }}</div>
                                 </div>
                             </template>
                             <template #tools>
@@ -61,7 +61,7 @@
                             <template #hero>
                                 <div class="flex items-center gap-2">
                                     <CpuChipIcon class="ff-icon ff-icon-md text-gray-800" />
-                                    <div class="text-gray-800 text-xl font-medium whitespace-nowrap">Memory Utilisation</div>
+                                    <div class="text-gray-800 text-xl font-medium whitespace-nowrap">{{ $t('ui.memoryUtilisation') }}</div>
                                 </div>
                             </template>
                             <template #tools>
@@ -85,9 +85,9 @@
 
             <empty-state v-else>
                 <template #header>
-                    <span v-if="!isInstanceRunning">The Hosted Instance must be running in order to view performance data.</span>
-                    <span v-else-if="resources.length === 0">No CPU Data Found</span>
-                    <span v-else>Something went wrong!</span>
+                    <span v-if="!isInstanceRunning">{{ $t('ui.theHostedInstanceMustBeRunningInOrderToViewPerfo') }}</span>
+                    <span v-else-if="resources.length === 0">{{ $t('ui.noCpuDataFound') }}</span>
+                    <span v-else>{{ $t('ui.somethingWentWrong') }}</span>
                 </template>
                 <template #img>
                     <img src="../../../images/empty-states/instance-performance.png" alt="pipelines-logo">

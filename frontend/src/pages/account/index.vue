@@ -17,6 +17,8 @@
 import { ChevronLeftIcon, Cog8ToothIcon, LockClosedIcon, UserGroupIcon } from '@heroicons/vue/20/solid'
 import { mapState } from 'pinia'
 
+import { t } from '../../i18n.js'
+
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountStore } from '@/stores/account.js'
 
@@ -26,9 +28,9 @@ export default {
         return {
             mounted: false,
             navigation: [
-                { name: 'Settings', path: '/account/settings', tag: 'account-settings', icon: Cog8ToothIcon },
-                { name: 'Teams', path: '/account/teams', tag: 'account-teams', icon: UserGroupIcon },
-                { name: 'Security', path: '/account/security', tag: 'account-security', icon: LockClosedIcon }
+                { name: t('ui.tabSettings'), path: '/account/settings', tag: 'account-settings', icon: Cog8ToothIcon },
+                { name: t('ui.tabTeams'), path: '/account/teams', tag: 'account-teams', icon: UserGroupIcon },
+                { name: t('ui.tabSecurity'), path: '/account/security', tag: 'account-security', icon: LockClosedIcon }
             ],
             icons: {
                 chevronLeft: ChevronLeftIcon

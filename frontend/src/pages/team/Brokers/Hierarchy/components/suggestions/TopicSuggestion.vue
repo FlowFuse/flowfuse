@@ -2,20 +2,19 @@
     <li class="suggestion p-4 border border-gray-200 bg-white rounded-md flex gap-10 items-center justify-between">
         <div class="content flex flex-col gap-1">
             <div class="title-wrapper">
-                <span class="title">Message Format: </span>
+                <span class="title">{{ $t('ui.messageFormat') }} </span>
                 <span class="format">{{ capitalize(format) }}</span>
             </div>
             <div class="description-wrapper">
                 <p v-if="description" class="description opacity-50 text-sm">{{ description }}</p>
                 <p v-else class="description opacity-50 text-sm">
-                    FlowFuse has detected that the messages sent to this topic are {{ format.toUpperCase() }}.
-                    <template v-if="format === 'object'">FlowFuse has also established a <span class="ff-link" @click="preview">full Schema for this Object</span>, which you can inspect using the button to the right.</template>
-                    Would you like to apply this suggestion to your Schema?
+                    {{ $t('ui.flowfuseHasDetectedThatTheMessagesSentToThisTopi', { p0: format.toUpperCase() }) }}<template v-if="format === 'object'">{{ $t('ui.flowfuseHasAlsoEstablishedA') }} <span class="ff-link" @click="preview">{{ $t('ui.fullSchemaForThisObject') }}</span>, which you can inspect using the button to the right.</template>
+                    {{ $t('ui.wouldYouLikeToApplyThisSuggestionToYourSchema') }}
                 </p>
             </div>
         </div>
         <div class="actions flex gap-3 items-center">
-            <span v-if="inferredSuggestion" v-ff-tooltip:left="'Preview Suggestion'">
+            <span v-if="inferredSuggestion" v-ff-tooltip:left="$t('ui.previewSuggestion')">
                 <EyeIcon class="preview ff-icon-md cursor-pointer" @click="preview" />
             </span>
             <span v-ff-tooltip:left="'Accept'">
@@ -33,6 +32,7 @@ import { CheckCircleIcon, EyeIcon, XCircleIcon } from '@heroicons/vue/24/outline
 import { defineComponent } from 'vue'
 
 import { capitalize } from '../../../../../../composables/strings/String.js'
+import { t } from '../../../../../../i18n.js'
 import Dialog from '../../../../../../services/dialog.js'
 
 import ObjectProperties from '../schema/ObjectProperties.vue'
@@ -81,7 +81,7 @@ export default {
         preview () {
             const suggestion = this.inferredSuggestion
             Dialog.show({
-                header: 'Inferred Schema',
+                header: t('ui.inferredSchema'),
                 kind: 'primary',
                 is: {
                     // eslint-disable-next-line vue/one-component-per-file

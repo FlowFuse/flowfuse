@@ -13,6 +13,7 @@
 <script>
 import InstanceApi from '../../../api/instances.js'
 import usePermissions from '../../../composables/Permissions.js'
+import { t } from '../../../i18n.js'
 import Dialog from '../../../services/dialog.js'
 import TemplateSettingsEnvironment from '../../admin/Template/sections/Environment.vue'
 import {
@@ -27,9 +28,9 @@ export default {
     beforeRouteLeave: async function (_to, _from, next) {
         if (this.unsavedChanges) {
             const dialogOpts = {
-                header: 'Unsaved changes',
+                header: t('ui.unsavedChanges'),
                 kind: 'danger',
-                text: 'You have unsaved changes. Are you sure you want to leave?',
+                text: t('ui.youHaveUnsavedChangesAreYouSureYouWantToLeave'),
                 confirmLabel: 'Yes, lose changes'
             }
             const answer = await Dialog.showAsync(dialogOpts)
@@ -200,7 +201,7 @@ export default {
                     // is instance running
                     if (this.project.meta.state === 'running') {
                         Dialog.show({
-                            header: 'Restart Required',
+                            header: t('ui.restartRequired'),
                             html: '<p>Instance settings have been successfully updated, but the Instance must be restarted for these settings to take effect.</p><p>Would you like to restart the Instance now?</p>',
                             confirmLabel: 'Restart Now',
                             cancelLabel: 'Restart Later'

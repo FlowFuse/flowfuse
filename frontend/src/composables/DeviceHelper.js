@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 
 import deviceApi from '../api/devices.js'
 
+import { t } from '../i18n.js'
 import Alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 import { DeviceStateMutator } from '../utils/DeviceStateMutator.js'
@@ -98,7 +99,7 @@ export function useDeviceHelper () {
             await deviceApi.restartDevice(device.value)
             deviceStateMutator.setStateAsPendingFromServer()
         } catch (err) {
-            let message = 'Device restart request failed.'
+            let message = t('ui.deviceRestartRequestFailed')
             if (err.response?.data?.error) {
                 message = err.response.data.error
             }
@@ -133,9 +134,9 @@ export function useDeviceHelper () {
 
     function showDeleteDialog () {
         Dialog.show({
-            header: 'Delete Device',
+            header: t('ui.deleteDevice'),
             kind: 'danger',
-            text: 'Are you sure you want to delete this device? Once deleted, there is no going back.',
+            text: t('ui.areYouSureYouWantToDeleteThisDeviceOnceDeletedTh'),
             confirmLabel: 'Delete'
         }, async () => {
             try {

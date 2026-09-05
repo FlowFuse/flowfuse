@@ -12,7 +12,7 @@
             </span>
         </span>
         <span v-if="showOverrideRole" class="text-gray-500 italic flex gap-1">
-            <span>Team Role:</span>
+            <span>{{ $t('ui.teamRole') }}</span>
             <span :class="style.roleClass">
                 {{ readableBaseRole }}
             </span>

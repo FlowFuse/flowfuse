@@ -4,7 +4,7 @@
         <FeatureUnavailableToTeam v-else-if="!featuresCheck.isTimelineFeatureEnabledForTeam" />
         <section v-if="featuresCheck.isTimelineFeatureEnabled" id="visual-timeline" class="relative flex-1 flex flex-col overflow-auto">
             <transition-group name="fade">
-                <ff-loading v-if="loading" message="Loading Timeline..." class="absolute top-0" />
+                <ff-loading v-if="loading" :message="$t('ui.loadingTimeline')" class="absolute top-0" />
                 <ul v-else ref="timeline" data-el="timeline-list" class="timeline overflow-auto">
                     <li v-for="event in activeTimeline" :key="event.id">
                         <timeline-event
@@ -31,12 +31,12 @@
                     <img src="../../../../images/empty-states/instance-timeline.png" alt="pipelines-logo">
                 </template>
                 <template #header>
-                    <span>Timeline Not Available</span>
+                    <span>{{ $t('ui.timelineNotAvailable') }}</span>
                 </template>
                 <template #message>
-                    <p>The Timeline provides a concise, chronological view of key activities within your Node-RED instance.</p>
-                    <p>It tracks various events such as pipeline stage deployments, snapshot restorations, flow deployments, snapshot creations, and updates to instance settings.</p>
-                    <p>This compact view helps you quickly understand the history of your instance, offering clear insight into when and what changes have been made.</p>
+                    <p>{{ $t('ui.theTimelineProvidesAConciseChronologicalViewOfKe') }}</p>
+                    <p>{{ $t('ui.itTracksVariousEventsSuchAsPipelineStageDeployme') }}</p>
+                    <p>{{ $t('ui.thisCompactViewHelpsYouQuicklyUnderstandTheHisto') }}</p>
                 </template>
             </empty-state>
         </section>

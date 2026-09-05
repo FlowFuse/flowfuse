@@ -1,10 +1,10 @@
 <template>
     <form>
-        <p class="text-lg text-center">Well done - that's all we need to get started.</p>
-        <p class="text-center">All of these settings can be modified under the Admin Settings section of the platform.</p>
+        <p class="text-lg text-center">{{ $t('ui.wellDoneThatSAllWeNeedToGetStarted') }}</p>
+        <p class="text-center">{{ $t('ui.allOfTheseSettingsCanBeModifiedUnderTheAdminSett') }}</p>
         <div class="flex justify-center">
             <ff-button class="mt-6" @click="done()">
-                Login to FlowFuse
+                {{ $t('ui.loginToFlowfuse') }}
             </ff-button>
         </div>
     </form>

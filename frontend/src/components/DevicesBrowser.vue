@@ -2,16 +2,16 @@
     <div class="space-y-2 overflow-auto flex-1 flex flex-col" data-el="devices-section">
         <ff-loading
             v-if="loadingStatuses || loadingDevices"
-            message="Loading Remote Instances..."
+            :message="$t('ui.loadingRemoteInstances')"
             class="flex-1"
         />
         <template v-else-if="team">
-            <FeatureUnavailable v-if="remoteInstancesDisabled" fullMessage="Remote Instances are not available for your platform." :class="{'mt-0': displayingTeam }" />
-            <FeatureUnavailableToTeam v-if="teamDeviceLimitReached" fullMessage="You have reached the limit for Remote Instances in this team." :class="{'mt-0': displayingTeam }" />
-            <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the limit for Instances in this team." :class="{'mt-0': displayingTeam }" />
+            <FeatureUnavailable v-if="remoteInstancesDisabled" :fullMessage="$t('ui.remoteInstancesAreNotAvailableForYourPlatform')" :class="{'mt-0': displayingTeam }" />
+            <FeatureUnavailableToTeam v-if="teamDeviceLimitReached" :fullMessage="$t('ui.youHaveReachedTheLimitForRemoteInstancesInThisTe')" :class="{'mt-0': displayingTeam }" />
+            <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" :fullMessage="$t('ui.youHaveReachedTheLimitForInstancesInThisTeam')" :class="{'mt-0': displayingTeam }" />
             <div class="devices-status-bars-container">
-                <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(allDeviceStatuses.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
-                <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-status" label="Last Known Status" :devices="Array.from(allDeviceStatuses.values())" property="status" :filter="filter" @filter-selected="applyFilter" />
+                <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-lastseen" :label="$t('ui.lastSeen')" :devices="Array.from(allDeviceStatuses.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
+                <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-status" :label="$t('ui.lastKnownStatus')" :devices="Array.from(allDeviceStatuses.values())" property="status" :filter="filter" @filter-selected="applyFilter" />
             </div>
             <ff-data-table
                 v-if="allDeviceStatuses.size > 0"
@@ -20,7 +20,7 @@
                 :columns="columns"
                 :rows="devicesWithStatuses"
                 :show-search="true"
-                search-placeholder="Search Remote Instances"
+                :search-placeholder="$t('ui.searchRemoteInstances')"
                 :pagination="paginationProps"
                 :check-key="row => row.id"
                 :show-row-checkboxes="hasPermission('team:device:bulk-edit', applicationContext)"
@@ -38,9 +38,9 @@
                     >
                         <template #panel>
                             <section class="device-filters-panel">
-                                <label class="device-filters-heading">Mode</label>
+                                <label class="device-filters-heading">{{ $t('ui.mode') }}</label>
                                 <popover-item
-                                    title="Fleet Mode"
+                                    :title="$t('ui.fleetMode')"
                                     @click="onFilterClick('fleetMode')"
                                 >
                                     <template #icon>
@@ -51,7 +51,7 @@
                                     </template>
                                 </popover-item>
                                 <popover-item
-                                    title="Developer Mode"
+                                    :title="$t('ui.developerMode')"
                                     @click="onFilterClick('developerMode')"
                                 >
                                     <template #icon>
@@ -61,7 +61,7 @@
                                         />
                                     </template>
                                 </popover-item>
-                                <label class="device-filters-heading">Status</label>
+                                <label class="device-filters-heading">{{ $t('ui.status') }}</label>
                                 <popover-item
                                     v-for="statusFilter in statusFilters" :key="statusFilter.key"
                                     :title="statusFilter.label"
@@ -81,7 +81,7 @@
                     </ff-popover>
                     <DropdownMenu v-if="hasPermission('team:device:bulk-delete', applicationContext) || hasPermission('team:device:bulk-edit', applicationContext)" :disabled="!checkedDevices?.length" data-el="bulk-actions-dropdown" buttonClass="ff-btn ff-btn--secondary ff-btn-icon" :options="bulkActionsDropdownOptions">
                         <Cog8ToothIcon class="ff-btn--icon ff-btn--icon-left" />
-                        <span class="hidden sm:inline bulk-actions-text">Actions</span>
+                        <span class="hidden sm:inline bulk-actions-text">{{ $t('ui.actions') }}</span>
                     </DropdownMenu>
                     <ff-button
                         v-if="displayingInstance && hasPermission('project:snapshot:create', applicationContext)"
@@ -94,7 +94,7 @@
                             <ClockIcon />
                         </template>
                         <span class="hidden sm:inline target-snapshot-text font-normal">
-                            Target Snapshot: <b>{{ instance.targetSnapshot?.name || 'none' }}</b>
+                            {{ $t('ui.targetSnapshot') }} <b>{{ instance.targetSnapshot?.name || 'none' }}</b>
                         </span>
                     </ff-button>
                     <ff-button
@@ -108,47 +108,47 @@
                         <template #icon-left>
                             <PlusSmallIcon />
                         </template>
-                        <span class="hidden sm:inline add-remote-instance-text">Add Remote Instance</span>
+                        <span class="hidden sm:inline add-remote-instance-text">{{ $t('ui.addRemoteInstance') }}</span>
                     </ff-button>
                 </template>
                 <template #context-menu="{row}">
                     <ff-kebab-item
-                        label="Edit Details"
+                        :label="$t('ui.editDetails')"
                         @click="deviceAction('edit', row.id)"
                     />
                     <ff-kebab-item
                         v-if="!row.ownerType && displayingTeam"
-                        label="Add to Application"
+                        :label="$t('ui.addToApplication')"
                         data-action="device-assign-to-application"
                         @click="deviceAction('assignToApplication', row.id)"
                     />
                     <ff-kebab-item
                         v-else-if="row.ownerType === 'application' && (displayingTeam || displayingApplication)"
-                        label="Remove from Application"
+                        :label="$t('ui.removeFromApplication')"
                         data-action="device-remove-from-application"
                         @click="deviceAction('removeFromApplication', row.id)"
                     />
                     <ff-kebab-item
                         v-if="!row.ownerType && displayingTeam"
-                        label="Add to Instance"
+                        :label="$t('ui.addToInstance')"
                         data-action="device-assign-to-instance"
                         @click="deviceAction('assignToProject', row.id)"
                     />
                     <ff-kebab-item
                         v-else-if="row.ownerType === 'instance' && (displayingTeam || displayingInstance)"
-                        label="Remove from Instance"
+                        :label="$t('ui.removeFromInstance')"
                         data-action="device-remove-from-instance"
                         @click="deviceAction('removeFromProject', row.id)"
                     />
                     <ff-kebab-item
                         kind="danger"
-                        label="Regenerate Configuration"
+                        :label="$t('ui.regenerateConfiguration')"
                         @click="deviceAction('updateCredentials', row.id)"
                     />
                     <ff-kebab-item
                         v-if="hasPermission('device:delete', applicationContext)"
                         kind="danger"
-                        label="Delete Device"
+                        :label="$t('ui.deleteDevice')"
                         @click="deviceAction('delete', row.id)"
                     />
                 </template>
@@ -159,18 +159,16 @@
                         <template #img>
                             <img src="../images/empty-states/team-devices.png">
                         </template>
-                        <template #header>Connect your First Remote Instance</template>
+                        <template #header>{{ $t('ui.connectYourFirstRemoteInstance') }}</template>
                         <template #message>
                             <p>
-                                FlowFuse allow you to manage Node-RED instances
-                                running on remote hardware.
+                                {{ $t('ui.flowfuseAllowYouToManageNodeRedInstancesRunningO') }}
                             </p>
                             <p>
-                                To manage your  <a
+                                {{ $t('ui.toManageYour') }}  <a
                                     class="ff-link" href="https://flowfuse.com/docs/user/devices"
                                     target="_blank"
-                                >FlowFuse Device Agent</a>, and can be used to deploy and debug
-                                instances anywhere, from here, in FlowFuse.
+                                >{{ $t('ui.flowfuseDeviceAgent') }}</a>{{ $t('ui.andCanBeUsedToDeployAndDebugInstancesAnywhereFro') }}
                             </p>
                         </template>
                         <template #actions>
@@ -185,7 +183,7 @@
                                 <template #icon-left>
                                     <PlusSmallIcon />
                                 </template>
-                                <span class="hidden sm:inline add-remote-instance-text">Add Remote Instance</span>
+                                <span class="hidden sm:inline add-remote-instance-text">{{ $t('ui.addRemoteInstance') }}</span>
                             </ff-button>
                         </template>
                     </EmptyState>
@@ -195,20 +193,20 @@
                         <template #img>
                             <img src="../images/empty-states/instance-devices.png">
                         </template>
-                        <template #header>Connect your First Remote Instances</template>
+                        <template #header>{{ $t('ui.connectYourFirstRemoteInstances') }}</template>
                         <template #message>
                             <p>
-                                Here, you will see a list of Remote Instances connected to this Hosted Instance.
+                                {{ $t('ui.hereYouWillSeeAListOfRemoteInstancesConnectedToT') }}
                             </p>
                             <p>
-                                You can deploy <router-link class="ff-link" :to="{name: 'instance-snapshots', params: {id: instance.id}}">Snapshots</router-link> of this Instance to your connected Devices.
+                                {{ $t('ui.youCanDeploy') }} <router-link class="ff-link" :to="{name: 'instance-snapshots', params: {id: instance.id}}">{{ $t('ui.snapshots') }}</router-link> {{ $t('ui.ofThisInstanceToYourConnectedDevices') }}
                             </p>
                             <p>
-                                A full list of your Team's Devices are available <ff-team-link
+                                {{ $t('ui.aFullListOfYourTeamSDevicesAreAvailable') }} <ff-team-link
                                     class="ff-link"
                                     :to="{name: 'team-remote-instances', params: {team_slug: team.slug}}"
                                 >
-                                    here
+                                    {{ $t('ui.here') }}
                                 </ff-team-link>.
                             </p>
                         </template>
@@ -224,7 +222,7 @@
                                 <template #icon-left>
                                     <PlusSmallIcon />
                                 </template>
-                                <span class="hidden sm:inline add-remote-instance-text">Add Remote Instance</span>
+                                <span class="hidden sm:inline add-remote-instance-text">{{ $t('ui.addRemoteInstance') }}</span>
                             </ff-button>
                         </template>
                     </EmptyState>
@@ -234,20 +232,20 @@
                         <template #img>
                             <img src="../images/empty-states/instance-devices.png">
                         </template>
-                        <template #header>Connect your First Remote Instance</template>
+                        <template #header>{{ $t('ui.connectYourFirstRemoteInstance') }}</template>
                         <template #message>
                             <p>
-                                Here, you will see a list of Devices belonging to this Application.
+                                {{ $t('ui.hereYouWillSeeAListOfDevicesBelongingToThisAppli') }}
                             </p>
                             <p>
-                                You can deploy <router-link class="ff-link" :to="{name: 'application-snapshots'}">Snapshots</router-link> of this Application to your connected Devices.
+                                {{ $t('ui.youCanDeploy') }} <router-link class="ff-link" :to="{name: 'application-snapshots'}">{{ $t('ui.snapshots') }}</router-link> {{ $t('ui.ofThisApplicationToYourConnectedDevices') }}
                             </p>
                             <p>
-                                A full list of your Team's Devices are available <ff-team-link
+                                {{ $t('ui.aFullListOfYourTeamSDevicesAreAvailable') }} <ff-team-link
                                     class="ff-link"
                                     :to="{name: 'team-remote-instances', params: {team_slug: team.slug}}"
                                 >
-                                    here
+                                    {{ $t('ui.here') }}
                                 </ff-team-link>.
                             </p>
                         </template>
@@ -263,14 +261,14 @@
                                 <template #icon-left>
                                     <PlusSmallIcon />
                                 </template>
-                                <span class="hidden sm:inline add-remote-instance-text">Add Remote Instance</span>
+                                <span class="hidden sm:inline add-remote-instance-text">{{ $t('ui.addRemoteInstance') }}</span>
                             </ff-button>
                         </template>
                     </EmptyState>
                 </template>
                 <div v-else class="ff-no-data ff-no-data-large">
                     <span data-el="no-devices">
-                        No Remote Instances found.
+                        {{ $t('ui.noRemoteInstancesFound') }}
                     </span>
                 </div>
             </template>
@@ -288,10 +286,10 @@
     >
         <template #description>
             <p v-if="!featuresCheck?.isHostedInstancesEnabledForTeam && tours.firstDevice">
-                Describe your new Remote Instance here, e.g. "Raspberry Pi", "Allen-Bradley PLC", etc.
+                {{ $t('ui.describeYourNewRemoteInstanceHereEGRaspberryPiAl') }}
             </p>
             <p v-else>
-                Remote Instances are managed using the <a href="https://flowfuse.com/docs/user/devices/" target="_blank">FlowFuse Device Agent</a>. The agent will need to be setup on the hardware where you want your Remote Instance to run.
+                {{ $t('ui.remoteInstancesAreManagedUsingThe') }} <a href="https://flowfuse.com/docs/user/devices/" target="_blank">{{ $t('ui.flowfuseDeviceAgent') }}</a>{{ $t('ui.theAgentWillNeedToBeSetupOnTheHardwareWhereYouWa') }}
             </p>
         </template>
     </TeamDeviceCreateDialog>
@@ -319,9 +317,9 @@
 
     <ff-dialog
         ref="teamBulkDeviceDeleteDialog"
-        header="Confirm Device Delete"
+        :header="$t('ui.confirmDeviceDelete')"
         class="ff-dialog-fixed-height"
-        confirm-label="Confirm"
+        :confirm-label="$t('ui.confirm')"
         data-el="team-bulk-device-delete-dialog"
         kind="danger"
         @confirm="confirmBulkDelete()"
@@ -335,7 +333,7 @@
                     </li>
                 </ul>
             </div>
-            <p>This action cannot be undone.</p>
+            <p>{{ $t('ui.thisActionCannotBeUndone') }}</p>
         </template>
     </ff-dialog>
 
@@ -349,9 +347,9 @@
         @confirm="moveDevicesToUnassigned(checkedDevices)"
     >
         <template #default>
-            <p v-if="displayingInstance">The following devices will be removed from this Instance:</p>
-            <p v-else-if="displayingApplication">The following devices will be removed from this Application:</p>
-            <p v-else>The following devices will be removed from their current assignment:</p>
+            <p v-if="displayingInstance">{{ $t('ui.theFollowingDevicesWillBeRemovedFromThisInstance') }}</p>
+            <p v-else-if="displayingApplication">{{ $t('ui.theFollowingDevicesWillBeRemovedFromThisApplicat') }}</p>
+            <p v-else>{{ $t('ui.theFollowingDevicesWillBeRemovedFromTheirCurrent') }}</p>
             <div class="max-h-96 overflow-y-auto">
                 <ul class="ff-devices-ul">
                     <li v-for="device in checkedDevices" :key="device.id">
@@ -377,6 +375,7 @@ import DropdownMenu from '../components/DropdownMenu.vue'
 import { useInstanceStates } from '../composables/InstanceStates.js'
 import usePermissions from '../composables/Permissions.js'
 import { getTeamProperty } from '../composables/TeamProperties.js'
+import { t } from '../i18n.js'
 import deviceActionsMixin from '../mixins/DeviceActions.js'
 
 import DeviceAssignedToLink from '../pages/application/components/cells/DeviceAssignedToLink.vue'
@@ -481,9 +480,9 @@ export default {
             searchTerm: '',
             selectedStatusGroups: [],
             statusFilters: [
-                { key: 'running', label: 'Running' },
-                { key: 'error', label: 'Error' },
-                { key: 'stopped', label: 'Not Running' }
+                { key: 'running', label: t('ui.running') },
+                { key: 'error', label: t('ui.error2') },
+                { key: 'stopped', label: t('ui.notRunning') }
             ],
 
             sort: {
@@ -507,17 +506,17 @@ export default {
         ...mapState(useUxToursStore, ['tours']),
         columns () {
             const columns = [
-                { label: 'Remote Instance', key: 'name', sortable: true, component: { is: markRaw(DeviceLink) } },
-                { label: 'Status', key: 'lastSeenAt', class: ['w-40'], sortable: true, component: { is: markRaw(DeviceOnlineStatusCell) } },
-                { label: 'Type', key: 'type', class: ['w-48'], sortable: true },
-                { label: 'Created', key: 'createdAt', class: ['w-48'], sortable: true, component: { is: markRaw(DeviceCreatedAtCell) } },
-                { label: 'Mode', key: 'mode', class: ['w-30'], sortable: true, component: { is: markRaw(DeviceModeBadge) } },
+                { label: t('ui.remoteInstance'), key: 'name', sortable: true, component: { is: markRaw(DeviceLink) } },
+                { label: t('ui.status'), key: 'lastSeenAt', class: ['w-40'], sortable: true, component: { is: markRaw(DeviceOnlineStatusCell) } },
+                { label: t('ui.type'), key: 'type', class: ['w-48'], sortable: true },
+                { label: t('ui.created'), key: 'createdAt', class: ['w-48'], sortable: true, component: { is: markRaw(DeviceCreatedAtCell) } },
+                { label: t('ui.mode'), key: 'mode', class: ['w-30'], sortable: true, component: { is: markRaw(DeviceModeBadge) } },
             ]
 
             if (this.displayingTeam) {
                 // Show which application/instance the device is assigned to when looking at devices owned by a team
                 columns.push({
-                    label: 'Assigned To',
+                    label: t('ui.assignedTo'),
                     class: ['w-48'],
                     key: '_ownerSortKey',
                     component: {
@@ -526,7 +525,7 @@ export default {
                 })
                 if (this.featuresCheck.isDeviceGroupsFeatureEnabled) {
                     columns.push({
-                        label: 'Group',
+                        label: t('ui.group2'),
                         key: 'deviceGroup.name',
                         sortable: true
                     })
@@ -534,11 +533,11 @@ export default {
             } else if (this.displayingInstance) {
                 // Show snapshot info when looking at devices owned by an instance
                 columns.push(
-                    { label: 'Deployed Snapshot', class: ['w-48'], component: { is: markRaw(Snapshot) } }
+                    { label: t('ui.deployedSnapshot'), class: ['w-48'], component: { is: markRaw(Snapshot) } }
                 )
             } else if (this.displayingApplication && this.featuresCheck.isDeviceGroupsFeatureEnabled) {
                 columns.push({
-                    label: 'Group',
+                    label: t('ui.group2'),
                     key: 'deviceGroup.name',
                     sortable: true
                 })
@@ -822,7 +821,7 @@ export default {
 
         showBulkGroupUnassignDialog () {
             Dialog.show({
-                header: 'Remove selected Remote Instances from their respective groups?',
+                header: t('ui.removeSelectedRemoteInstancesFromTheirRespective'),
                 kind: 'danger',
                 is: {
                     component: markRaw(RemoveDeviceFromGroupDialog),
@@ -844,7 +843,7 @@ export default {
             let selectedDeviceGroup
 
             Dialog.show({
-                header: 'Add Remote Instances to a group',
+                header: t('ui.addRemoteInstancesToAGroup'),
                 kind: 'danger',
                 is: {
                     component: markRaw(AddDeviceToGroupDialog),

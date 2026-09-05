@@ -1,7 +1,7 @@
 <template>
     <div class="ff-team-type-tile">
         <div v-if="isTrial(teamType)" class="trial-ribbon">
-            <label>{{ teamType.properties.trial.duration }} Days Free Trial</label>
+            <label>{{ $t('ui.p0DaysFreeTrial', { p0: teamType.properties.trial.duration }) }}</label>
         </div>
         <div class="space-y-2">
             <img class="w-36 m-auto" src="../images/empty-states/application-instances.png">
@@ -17,13 +17,13 @@
         </div>
         <template v-if="enableCTA">
             <ff-button v-if="isTrial(teamType)" kind="primary" class="w-full mt-4" :to="toCreateTeam">
-                Start Free Trial
+                {{ $t('ui.startFreeTrial') }}
             </ff-button>
             <ff-button v-else-if="isManualBilling(teamType)" kind="secondary" class="w-full mt-4" @click="sendContact(teamType)">
-                Contact FlowFuse
+                {{ $t('ui.contactFlowfuse') }}
             </ff-button>
             <ff-button v-else kind="secondary" class="w-full mt-4" :to="toCreateTeam">
-                Select
+                {{ $t('ui.select') }}
             </ff-button>
         </template>
     </div>

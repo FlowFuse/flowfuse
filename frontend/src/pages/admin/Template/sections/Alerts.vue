@@ -1,14 +1,14 @@
 <template>
     <form class="space-y-4" @submit.prevent>
-        <FormHeading>Email Alerts</FormHeading>
+        <FormHeading>{{ $t('ui.emailAlerts') }}</FormHeading>
         <p>
-            You can enable alerts to be sent to you via email on the following Audit Log entries
+            {{ $t('ui.youCanEnableAlertsToBeSentToYouViaEmailOnTheFoll') }}
         </p>
-        <FeatureUnavailableToTeam v-if="!ffAuthFeatureAvailable" featureName="Email Alerts" />
+        <FeatureUnavailableToTeam v-if="!ffAuthFeatureAvailable" :featureName="$t('ui.emailAlerts')" />
         <div class="flex flex-col, sm:flex-row sm:ml-4">
             <div class="space-y-4 w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.emailAlerts_crash" type="checkbox" :disabled="!editTemplate && !editable.policy.emailAlerts_crash">
-                    Node-RED has crashed
+                    {{ $t('ui.nodeRedHasCrashed') }}
                     <template #append><ChangeIndicator :value="editable.changed.settings.emailAlerts_crash" /></template>
                 </FormRow>
             </div>
@@ -17,7 +17,7 @@
         <div class="flex flex-col, sm:flex-row sm:ml-4">
             <div class="space-y-4 w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.emailAlerts_safe" type="checkbox" :disabled="!editTemplate && !editable.policy.emailAlerts_safe">
-                    Node-RED has been placed in Safe Mode
+                    {{ $t('ui.nodeRedHasBeenPlacedInSafeMode') }}
                     <template #append><ChangeIndicator :value="editable.changed.settings.emailAlerts_safe" /></template>
                 </FormRow>
             </div>
@@ -26,7 +26,7 @@
         <div class="flex flex-col, sm:flex-row sm:ml-4">
             <div class="space-y-4 w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.emailAlerts_resource_cpu" type="checkbox" :disabled="!editTemplate && !editable.policy.emailAlerts_resource_cpu">
-                    Node-RED CPU usage has exceeded 75% for 5 minutes
+                    {{ $t('ui.nodeRedCpuUsageHasExceeded75For5Minutes') }}
                     <template #append><ChangeIndicator :value="editable.changed.settings.emailAlerts_resource_cpu" /></template>
                 </FormRow>
             </div>
@@ -35,18 +35,18 @@
         <div class="flex flex-col, sm:flex-row sm:ml-4">
             <div class="space-y-4 w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.emailAlerts_resource_memory" type="checkbox" :disabled="!editTemplate && !editable.policy.emailAlerts_resource_memory">
-                    Node-RED memory usage has exceeded 75% for 5 minutes
+                    {{ $t('ui.nodeRedMemoryUsageHasExceeded75For5Minutes') }}
                     <template #append><ChangeIndicator :value="editable.changed.settings.emailAlerts_resource_memory" /></template>
                 </FormRow>
             </div>
             <LockSetting v-model="editable.policy.emailAlerts_resource_memory" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.emailAlerts_resource_memory" />
         </div>
-        <FormHeading>Who to notify</FormHeading>
+        <FormHeading>{{ $t('ui.whoToNotify') }}</FormHeading>
         <div class="flex flex-col sm:flex-row sm:ml-4">
             <div class="space-y-4 w-full max-w-md sm:mr-8">
                 <FormRow>
                     <template #append><ChangeIndicator :value="editable.changed.settings.emailAlerts_recipients" /></template>
-                    <template #description>Which group of users to notify</template>
+                    <template #description>{{ $t('ui.whichGroupOfUsersToNotify') }}</template>
                     <template #input>&nbsp;</template>
                 </FormRow>
             </div>
@@ -60,6 +60,7 @@
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
 import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnavailableToTeam.vue'
+import { t } from '../../../../i18n.js'
 import ChangeIndicator from '../components/ChangeIndicator.vue'
 import LockSetting from '../components/LockSetting.vue'
 
@@ -103,21 +104,21 @@ export default {
         emailOptions () {
             return [
                 {
-                    label: 'Owners',
+                    label: t('ui.owners'),
                     value: 'owners',
-                    description: 'Email Team Owners',
+                    description: t('ui.emailTeamOwners'),
                     disabled: !this.editTemplate && !this.editable.policy.emailAlerts_recipients
                 },
                 {
-                    label: 'Owners & Members',
+                    label: t('ui.ownersMembers'),
                     value: 'both',
-                    description: 'Email Team Owners and Members',
+                    description: t('ui.emailTeamOwnersAndMembers'),
                     disabled: !this.editTemplate && !this.editable.policy.emailAlerts_recipients
                 },
                 {
-                    label: 'Members',
+                    label: t('ui.members'),
                     value: 'members',
-                    description: 'Email Team Members',
+                    description: t('ui.emailTeamMembers'),
                     disabled: !this.editTemplate && !this.editable.policy.emailAlerts_recipients
                 }
             ]

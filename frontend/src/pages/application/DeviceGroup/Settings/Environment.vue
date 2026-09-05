@@ -8,26 +8,26 @@
             :originalEnvVars="original.settings.env"
         >
             <template #helptext>
-                <p>Environment variables entered here will be merged with the environment variables defined in the member devices.</p>
+                <p>{{ $t('ui.environmentVariablesEnteredHereWillBeMergedWithT') }}</p>
                 <div>
-                    The following rules apply:
+                    {{ $t('ui.theFollowingRulesApply') }}
                     <ul class="list-disc pl-5">
-                        <li>Values set in the Device take precedence over values set in the Device Group.</li>
-                        <li>Removing a device from the group will remove these variables from the device.</li>
-                        <li>The devices environment variables are never modified, they are only merged at runtime.</li>
+                        <li>{{ $t('ui.valuesSetInTheDeviceTakePrecedenceOverValuesSetI') }}</li>
+                        <li>{{ $t('ui.removingADeviceFromTheGroupWillRemoveTheseVariab') }}</li>
+                        <li>{{ $t('ui.theDevicesEnvironmentVariablesAreNeverModifiedTh') }}</li>
                     </ul>
                 </div>
-                <p>Updating these environment variables will cause devices in the group to be restarted when a change is detected.</p>
+                <p>{{ $t('ui.updatingTheseEnvironmentVariablesWillCauseDevice') }}</p>
             </template>
         </TemplateSettingsEnvironment>
         <div v-if="hasPermission('application:device-group:update', {application})" class="ff-banner ff-banner-info w-full max-w-5xl">
             <span>
                 <ExclamationCircleIcon class="ff-icon mr-2" />
-                <span class="relative top-0.5">Note: Updating environment variables can cause devices in the group to be restarted.</span>
+                <span class="relative top-0.5">{{ $t('ui.noteUpdatingEnvironmentVariablesCanCauseDevicesI') }}</span>
             </span>
         </div>
         <div v-if="hasPermission('application:device-group:update', {application})" class="space-x-4 whitespace-nowrap" data-action="save-env-settings">
-            <ff-button :disabled="!unsavedChanges || hasError" @click="saveSettings()">Save Settings</ff-button>
+            <ff-button :disabled="!unsavedChanges || hasError" @click="saveSettings()">{{ $t('ui.saveSettings') }}</ff-button>
         </div>
     </form>
 </template>
@@ -37,6 +37,7 @@ import { ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 
 import applicationApi from '../../../../api/application.js'
 import usePermissions from '../../../../composables/Permissions.js'
+import { t } from '../../../../i18n.js'
 import alerts from '../../../../services/alerts.js'
 import dialog from '../../../../services/dialog.js'
 import TemplateSettingsEnvironment from '../../../admin/Template/sections/Environment.vue'
@@ -56,9 +57,9 @@ export default {
     beforeRouteLeave: async function (_to, _from, next) {
         if (this.unsavedChanges) {
             const dialogOpts = {
-                header: 'Unsaved changes',
+                header: t('ui.unsavedChanges'),
                 kind: 'danger',
-                text: 'You have unsaved changes. Are you sure you want to leave?',
+                text: t('ui.youHaveUnsavedChangesAreYouSureYouWantToLeave'),
                 confirmLabel: 'Yes, lose changes'
             }
             const answer = await dialog.showAsync(dialogOpts)
@@ -195,7 +196,7 @@ export default {
             })
             await applicationApi.updateDeviceGroupSettings(this.application.id, this.deviceGroup.id, settings)
             this.$emit('device-group-updated')
-            alerts.emit('Device Group settings successfully updated. NOTE: changes will be applied to the devices in the group once they restart.', 'confirmation', 6000)
+            alerts.emit(t('ui.deviceGroupSettingsSuccessfullyUpdatedNoteChange'), 'confirmation', 6000)
         }
     }
 }

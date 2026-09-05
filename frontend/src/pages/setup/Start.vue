@@ -1,9 +1,9 @@
 <template>
     <form class="">
-        <p class="text-center">Welcome to your shiny new FlowFuse platform.</p>
-        <p class="text-center">Let's get it setup for you to start using.</p>
+        <p class="text-center">{{ $t('ui.welcomeToYourShinyNewFlowfusePlatform') }}</p>
+        <p class="text-center">{{ $t('ui.letSGetItSetupForYouToStartUsing') }}</p>
         <div class="flex justify-center">
-            <ff-button class="mt-6" @click="done()">Start setup</ff-button>
+            <ff-button class="mt-6" @click="done()">{{ $t('ui.startSetup') }}</ff-button>
         </div>
     </form>
 </template>

@@ -1,17 +1,17 @@
 <template>
     <section class="ff-instance-step text-center flex flex-col gap-4 pt-6" data-step="instance">
-        <h2>Setup Your Instance</h2>
+        <h2>{{ $t('ui.setupYourInstance') }}</h2>
         <form class="max-w-2xl m-auto text-left flex flex-col gap-7">
-            <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." />
+            <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" :fullMessage="$t('ui.youHaveReachedTheRuntimeLimitForThisTeam')" />
 
-            <FeatureUnavailableToTeam v-else-if="teamInstanceLimitReached" fullMessage="You have reached the instance limit for this team." />
+            <FeatureUnavailableToTeam v-else-if="teamInstanceLimitReached" :fullMessage="$t('ui.youHaveReachedTheInstanceLimitForThisTeam')" />
 
             <div class="ff-instance-name ff-input-wrapper flex flex-col gap-1">
-                <label class="mb-1">Name</label>
+                <label class="mb-1">{{ $t('ui.name') }}</label>
                 <div class="ff-input-wrapper flex gap-3 items-center relative mb-4">
                     <ff-text-input
                         v-model="input.name"
-                        label="instance-name"
+                        :label="$t('ui.instanceName2')"
                         :error="errors.name"
                         data-el="instance-name"
                         :disabled="nameDisabled"
@@ -26,10 +26,10 @@
                     <span v-if="errors.name && input.name.length > 0" class="left-4 top-9 text-red-600 text-sm" data-el="instance-name-error">{{ errors.name }}</span>
                     <p v-if="hasValidName" class="flex gap-2 text-green-600 items-center">
                         <CheckCircleIcon class=" ff-icon-sm" />
-                        <span>Your instance hostname will be "<i>{{ instanceName }}</i>".</span>
+                        <span>{{ $t('ui.yourInstanceHostnameWillBe') }}<i>{{ instanceName }}</i>".</span>
                     </p>
                     <p class="opacity-50 text-sm">
-                        The instance name is used to access the editor, so it must be suitable for use in a URL. It is not currently possible to rename the instance after it has been created.
+                        {{ $t('ui.theInstanceNameIsUsedToAccessTheEditorSoItMustBe') }}
                     </p>
                 </div>
             </div>
@@ -39,7 +39,7 @@
 
                 <div v-else class="flex flex-col gap-4">
                     <div class="instance-types ff-input-wrapper flex flex-wrap items-stretch" data-group="instance-types">
-                        <label class="w-full mb-2 block">Choose your Instance Type</label>
+                        <label class="w-full mb-2 block">{{ $t('ui.chooseYourInstanceType') }}</label>
                         <template v-if="hasInstanceTypes && activeInstanceTypeCount > 0">
                             <InstanceCreditBanner :subscription="subscription" />
                             <ff-tile-selection v-model="input.instanceType" data-form="project-type">
@@ -57,12 +57,12 @@
                         </template>
                         <template v-else-if="hasInstanceTypesAndAllAreDisabled">
                             <p class="text-center center my-5 w-full text-gray-500">
-                                No instance types available at this moment.
+                                {{ $t('ui.noInstanceTypesAvailableAtThisMoment') }}
                             </p>
                         </template>
                         <template v-else>
                             <p class="text-center center my-5 w-full text-gray-500">
-                                No instance types available. Ask an Administrator to create a new instance type
+                                {{ $t('ui.noInstanceTypesAvailableAskAnAdministratorToCrea') }}
                             </p>
                         </template>
                     </div>
@@ -72,7 +72,7 @@
                         class="instance-templates ff-input-wrapper flex flex-wrap items-stretch"
                         data-group="templates"
                     >
-                        <label class="mb-2 block w-full">Choose your Template</label>
+                        <label class="mb-2 block w-full">{{ $t('ui.chooseYourTemplate') }}</label>
                         <template v-if="hasTemplates">
                             <ff-tile-selection v-model="input.template" data-form="project-template">
                                 <ff-tile-selection-option
@@ -87,13 +87,13 @@
                         </template>
                         <template v-else>
                             <p class="text-center center my-5 w-full text-gray-500">
-                                No templates available. Ask an Administrator to create a new template
+                                {{ $t('ui.noTemplatesAvailableAskAnAdministratorToCreateAN') }}
                             </p>
                         </template>
                     </div>
 
                     <div class="node-red-version ff-input-wrapper flex flex-col gap-1">
-                        <label class="mb-1">Node-RED Version</label>
+                        <label class="mb-1">{{ $t('ui.nodeRedVersion') }}</label>
                         <template v-if="hasNodeRedVersions">
                             <ff-listbox
                                 v-model="input.nodeREDVersion"
@@ -105,7 +105,7 @@
                         </template>
                         <template v-else>
                             <p class="text-center center my-5 w-full text-gray-500">
-                                No Node-RED Versions available for this instance type. Ask an Administrator to create a Node-RED Version stack definition
+                                {{ $t('ui.noNodeRedVersionsAvailableForThisInstanceTypeAsk') }}
                             </p>
                         </template>
                     </div>
@@ -137,6 +137,7 @@ import {
     useInstanceFormHelper
 } from '../../../../composables/Components/multi-step-forms/instance/InstanceFormHelper.js'
 import { getTeamProperty } from '../../../../composables/TeamProperties.js'
+import { t } from '../../../../i18n.js'
 import InstanceChargesTable from '../../../../pages/instance/components/InstanceChargesTable.vue'
 import InstanceCreditBanner from '../../../../pages/instance/components/InstanceCreditBanner.vue'
 import FfListbox from '../../../../ui-components/components/form/ListBox.vue'
@@ -306,7 +307,7 @@ export default {
                                         this.errors.name = null
                                         this.nameDisabled = false
                                     }, timeout)
-                                    this.errors.name = 'Please wait, checking name'
+                                    this.errors.name = t('ui.pleaseWaitCheckingName')
                                     this.nameDisabled = true
                                 }
                             }
@@ -314,16 +315,16 @@ export default {
                         .catch(e => {
                             if (e.status === 409) {
                                 if (e.response?.data?.error === 'name in use') {
-                                    this.errors.name = 'Instance name already in use.'
+                                    this.errors.name = t('ui.instanceNameAlreadyInUse')
                                 } else if (e.response?.data?.error === 'name not allowed') {
-                                    this.errors.name = 'Instance name not allowed.'
+                                    this.errors.name = t('ui.instanceNameNotAllowed')
                                 }
                             } else if (e.status === 429) {
-                                this.errors.name = 'Name check rate limit exceeded'
+                                this.errors.name = t('ui.nameCheckRateLimitExceeded')
                             }
                         })
                 } else {
-                    this.errors.name = 'Invalid character in use.'
+                    this.errors.name = t('ui.invalidCharacterInUse')
                 }
             }, 750)
         },
@@ -418,15 +419,15 @@ export default {
             } else { this.errors.name = null }
 
             if (!this.input.instanceType) {
-                this.errors.instanceType = 'Instance Type is mandatory'
+                this.errors.instanceType = t('ui.instanceTypeIsMandatory')
             } else { this.errors.instanceType = null }
 
             if (!this.input.nodeREDVersion) {
-                this.errors.nodeREDVersion = 'Node-RED Version is mandatory'
+                this.errors.nodeREDVersion = t('ui.nodeRedVersionIsMandatory')
             } else { this.errors.nodeREDVersion = null }
 
             if (this.hasMultipleTemplates && !this.input.template) {
-                this.errors.template = 'Template is mandatory'
+                this.errors.template = t('ui.templateIsMandatory')
             } else { this.errors.template = null }
 
             Object.keys(this.errors).forEach(key => {

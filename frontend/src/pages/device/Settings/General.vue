@@ -2,7 +2,7 @@
     <form class="space-y-6" data-el="device-settings-general">
         <FormHeading>
             <template #default>
-                General
+                {{ $t('ui.general') }}
             </template>
             <template #tools>
                 <div v-if="hasPermission('device:edit', { application: device.application })" class="mb-2">
@@ -10,33 +10,32 @@
                         v-if="!editing.deviceName" size="small" kind="primary" @click="editDevice"
                         data-action="edit-device"
                     >
-                        Edit Device
+                        {{ $t('ui.editDevice') }}
                     </ff-button>
-                    <ff-button v-else kind="primary" size="small" @click="updateDevice">Save Changes</ff-button>
+                    <ff-button v-else kind="primary" size="small" @click="updateDevice">{{ $t('ui.saveChanges') }}</ff-button>
                 </div>
             </template>
         </FormHeading>
         <FormRow v-model="input.deviceId" type="uneditable" id="deviceId" inputClass="font-mono">
-            Remote Instance ID
+            {{ $t('ui.remoteInstanceId') }}
         </FormRow>
 
         <FormRow v-model="input.deviceName" :type="editing.deviceName ? 'text' : 'uneditable'" ref="deviceName">
-            Name
+            {{ $t('ui.name') }}
         </FormRow>
     </form>
 
     <!-- Node-RED Version -->
     <form v-if="canChangeNodeRedVersion" class="my-6 space-y-6" @submit.prevent.stop data-el="change-version">
         <FormHeading class="pb-2">
-            Change Node-RED Version
-            <span class="italic text-md px-2 text-gray-400">(Current: {{ displayNrVersion }})</span>
+            {{ $t('ui.changeNodeRedVersion') }}
+            <span class="italic text-md px-2 text-gray-400">{{ $t('ui.currentP0', { p0: displayNrVersion }) }}</span>
         </FormHeading>
 
         <div ref="updateStack" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="grow">
                 <p class="max-w-sm">
-                    Changing the Remote Instance Node-RED Version requires the remote instance to be restarted.
-                    The flows will not be running while this happens.
+                    {{ $t('ui.changingTheRemoteInstanceNodeRedVersionRequiresT') }}
                 </p>
             </div>
             <div class="min-w-fit shrink-0 flex-col gap-5">
@@ -45,7 +44,7 @@
                     kind="secondary"
                     @click="showChangeNrDialog()"
                 >
-                    Change Node-RED Version
+                    {{ $t('ui.changeNodeRedVersion') }}
                 </ff-button>
             </div>
         </div>
@@ -54,34 +53,34 @@
     <form class="mt-12 space-y-6" data-el="assignment">
         <FormHeading>
             <template #default>
-                Assignment
+                {{ $t('ui.assignment') }}
             </template>
             <template #tools>
                 <div v-if="hasPermission('device:edit', { application: device.application })" class="mb-2">
-                    <ff-button v-if="!notAssigned" size="small" kind="primary" data-action="unassign-device" @click="unassign">Unassign</ff-button>
+                    <ff-button v-if="!notAssigned" size="small" kind="primary" data-action="unassign-device" @click="unassign">{{ $t('ui.unassign') }}</ff-button>
                 </div>
                 <div v-if="hasPermission('device:edit', { application: device.application })" class="mb-2">
-                    <ff-button v-if="notAssigned" size="small" kind="primary" data-action="assign-device" @click="assign">Assign</ff-button>
+                    <ff-button v-if="notAssigned" size="small" kind="primary" data-action="assign-device" @click="assign">{{ $t('ui.assign') }}</ff-button>
                 </div>
             </template>
         </FormHeading>
         <template v-if="notAssigned">
-            <p>To use Devices they must be assigned to an Application or Instance.</p>
+            <p>{{ $t('ui.toUseDevicesTheyMustBeAssignedToAnApplicationOrI') }}</p>
             <ul class="list-disc ml-6 space-y-2 max-w-xl">
-                <li><label class="font-medium mr-2">Application:</label>Flows on this Device can only be edited and deployed via the 'Remote Editor' feature, available in 'Developer Mode'. You can create Snapshots for version control of the flows on your Device</li>
-                <li><label class="font-medium mr-2">Instance:</label>Auto-deploy flows from the bound Instance directly to this Device. You can still remotely edit and create Snapshots on the Device when the Device is in 'Developer Mode'.</li>
+                <li><label class="font-medium mr-2">{{ $t('ui.application2') }}</label>{{ $t('ui.flowsOnThisDeviceCanOnlyBeEditedAndDeployedViaTh2') }}</li>
+                <li><label class="font-medium mr-2">{{ $t('ui.instance') }}</label>{{ $t('ui.autoDeployFlowsFromTheBoundInstanceDirectlyToThi2') }}</li>
             </ul>
         </template>
         <template v-else-if="hasApplication">
             <section data-el="application-section" class="flex flex-col gap-4">
                 <div>
-                    <label class="font-medium mr-2">Application:</label>
+                    <label class="font-medium mr-2">{{ $t('ui.application2') }}</label>
                     <router-link :to="{name: 'application-devices', params: {team_slug: team.slug, id: device.application.id}}" class="ff-link">{{ device.application.name }}</router-link>
                 </div>
                 <div class="flex flex-col gap-2">
-                    <h3>Features:</h3>
+                    <h3>{{ $t('ui.features') }}</h3>
                     <ul class="list-disc ml-6 space-y-2 max-w-xl">
-                        <li><label class="font-medium mr-2">Editing Remotely:</label>You can read our documentation <a class="ff-link" href="https://flowfuse.com/docs/device-agent/deploy/#editing-the-node-red-flows-on-a-device-that-is-assigned-to-an-application">here</a> on how to remotely edit the flows on your Device. Make sure you create a Snapshot of your changes when in Developer Mode if you wish to keep them, any changes made inside "Developer Mode" will be undone when leaving "Developer Mode".</li>
+                        <li><label class="font-medium mr-2">{{ $t('ui.editingRemotely') }}</label>{{ $t('ui.youCanReadOurDocumentation') }} <a class="ff-link" href="https://flowfuse.com/docs/device-agent/deploy/#editing-the-node-red-flows-on-a-device-that-is-assigned-to-an-application">{{ $t('ui.here') }}</a> {{ $t('ui.onHowToRemotelyEditTheFlowsOnYourDevice') }}</li>
                     </ul>
                 </div>
             </section>
@@ -90,7 +89,7 @@
                 ref="device-group-section"
             >
                 <div class="max-w-2xl">
-                    <label class="font-medium mr-2">Group:</label>
+                    <label class="font-medium mr-2">{{ $t('ui.group') }}</label>
                     <div v-if="device.deviceGroup" class="flex gap-5 items-center justify-between">
                         <router-link
                             :to="{ name: 'application-device-group',
@@ -106,27 +105,27 @@
                             <ff-button
                                 v-if="hasPermission('application:device-group:update', { application: device.application })"
                                 ref="groupAssignmentButton"
-                                kind="secondary-danger" title="Remove Device from Group" @click="onGroupUnassign"
+                                kind="secondary-danger" :title="$t('ui.removeDeviceFromGroup')" @click="onGroupUnassign"
                             >
-                                Remove from the group
+                                {{ $t('ui.removeFromTheGroup') }}
                             </ff-button>
                             <ff-button
                                 v-if="hasPermission('application:device-group:update', { application: device.application })"
                                 ref="groupAssignmentButton"
-                                kind="secondary" title="Remove Device from Group" @click="onGroupAssign"
+                                kind="secondary" :title="$t('ui.removeDeviceFromGroup')" @click="onGroupAssign"
                             >
-                                Reassign
+                                {{ $t('ui.reassign') }}
                             </ff-button>
                         </div>
                     </div>
                     <div v-else class="flex gap-5 items-center justify-between">
-                        <span class="italic">None</span>
+                        <span class="italic">{{ $t('ui.none') }}</span>
                         <ff-button
                             v-if="hasPermission('application:device-group:update', { application: device.application })"
                             ref="groupAssignmentButton"
-                            kind="secondary" title="Add Device to a Group" @click="onGroupAssign"
+                            kind="secondary" :title="$t('ui.addDeviceToAGroup')" @click="onGroupAssign"
                         >
-                            Add the remote instance to a group
+                            {{ $t('ui.addTheRemoteInstanceToAGroup') }}
                         </ff-button>
                     </div>
                 </div>
@@ -134,13 +133,13 @@
         </template>
         <template v-else-if="hasInstance">
             <div>
-                <label class="font-medium mr-2">Instance:</label>
+                <label class="font-medium mr-2">{{ $t('ui.instance') }}</label>
                 <router-link :to="{name: 'instance', params: {id: device.instance.id}}" class="ff-link">{{ device.instance.name }}</router-link>
             </div>
-            <h3>Features:</h3>
+            <h3>{{ $t('ui.features') }}</h3>
             <ul class="list-disc ml-6 space-y-2 max-w-xl">
-                <li><label class="font-medium mr-2">Deploying Remotely:</label>You can read our documentation <a class="ff-link" target="_blank" rel="noreferrer" href="https://flowfuse.com/docs/device-agent/deploy/#deploying-a-node-red-instance-to-the-device">here</a> on how to remotely deploy flows to your Device.</li>
-                <li><label class="font-medium mr-2">Editing Remotely:</label>You can read our documentation <a class="ff-link" target="_blank" rel="noreferrer" href="https://flowfuse.com/docs/device-agent/deploy/#editing-the-node-red-flows-on-a-device-that-is-assigned-to-an-instance">here</a> on how to remotely edit the flows on your Device. Make sure you create a Snapshot of your changes when in Developer Mode if you wish to keep them, any changes made inside "Developer Mode" will be undone when leaving "Developer Mode".</li>
+                <li><label class="font-medium mr-2">{{ $t('ui.deployingRemotely') }}</label>{{ $t('ui.youCanReadOurDocumentation') }} <a class="ff-link" target="_blank" rel="noreferrer" href="https://flowfuse.com/docs/device-agent/deploy/#deploying-a-node-red-instance-to-the-device">{{ $t('ui.here') }}</a> {{ $t('ui.onHowToRemotelyDeployFlowsToYourDevice') }}</li>
+                <li><label class="font-medium mr-2">{{ $t('ui.editingRemotely') }}</label>{{ $t('ui.youCanReadOurDocumentation') }} <a class="ff-link" target="_blank" rel="noreferrer" href="https://flowfuse.com/docs/device-agent/deploy/#editing-the-node-red-flows-on-a-device-that-is-assigned-to-an-instance">{{ $t('ui.here') }}</a> {{ $t('ui.onHowToRemotelyEditTheFlowsOnYourDevice') }}</li>
             </ul>
         </template>
     </form>
@@ -149,7 +148,7 @@
     <ff-dialog
         v-if="isChangeNrVersionModalOpen"
         ref="changeNrVersionDialog"
-        header="Change Node-RED Version"
+        :header="$t('ui.changeNodeRedVersion')"
         data-el="change-nr-version-dialog"
         @confirm="changeNrVersion"
         @cancel="closeChangeNrDialog"
@@ -157,9 +156,9 @@
     >
         <template #default>
             <FormRow containerClass="max-w-md" wrapperClass="max-w-md">
-                Node-RED Version
+                {{ $t('ui.nodeRedVersion') }}
                 <template #description>
-                    Use this field to override the Node-RED version specified in the Remote Instance's active snapshot. Defaults to 'latest' if the snapshot does not specify a version.
+                    {{ $t('ui.useThisFieldToOverrideTheNodeRedVersionSpecified') }}
                 </template>
                 <template #input>
                     <div class="flex flex-wrap">
@@ -168,7 +167,7 @@
                             :options="nodeRedVersionOptions"
                             :hasCustomValue="true"
                             custom-value-pre-label="Use"
-                            placeholder="Select or type in a new Node-RED version"
+                            :placeholder="$t('ui.selectOrTypeInANewNodeRedVersion')"
                             data-form="nodered-select"
                             class="w-full"
                         />
@@ -199,6 +198,7 @@ import AddDeviceToGroupDialog from '../../../components/dialogs/device-group-man
 import usePermissions from '../../../composables/Permissions.js'
 import { scrollToAndJiggleHighlight } from '../../../composables/Ux.js'
 
+import { t } from '../../../i18n.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -282,11 +282,11 @@ export default {
         nodeRedVersionOptions () {
             return [
                 {
-                    label: 'Use Next Snapshot Node-RED Version',
+                    label: t('ui.useNextSnapshotNodeRedVersion'),
                     value: '<<use-snapshot-version>>'
                 },
                 {
-                    label: 'Latest',
+                    label: t('ui.latest'),
                     value: 'latest'
                 },
                 ...this.availableNrVersions.map(value => ({
@@ -309,7 +309,7 @@ export default {
             } else {
                 return {
                     status: false,
-                    message: 'Invalid version'
+                    message: t('ui.invalidVersion')
                 }
             }
         }
@@ -355,9 +355,9 @@ export default {
             const device = this.device
             if (this.hasInstance) {
                 Dialog.show({
-                    header: 'Remove Device from Instance',
+                    header: t('ui.removeDeviceFromInstance'),
                     kind: 'danger',
-                    text: 'Are you sure you want to remove this device from the instance? This will stop the flows running on the device.',
+                    text: t('ui.areYouSureYouWantToRemoveThisDeviceFromTheInstan'),
                     confirmLabel: 'Remove'
                 }, async () => {
                     await deviceApi.updateDevice(device.id, { instance: null })
@@ -366,9 +366,9 @@ export default {
                 })
             } else if (this.hasApplication) {
                 Dialog.show({
-                    header: 'Remove Device from Application',
+                    header: t('ui.removeDeviceFromApplication'),
                     kind: 'danger',
-                    text: 'Are you sure you want to remove this device from the application? This will stop the flows running on the device.',
+                    text: t('ui.areYouSureYouWantToRemoveThisDeviceFromTheApplic'),
                     confirmLabel: 'Remove'
                 }, async () => {
                     await deviceApi.updateDevice(device.id, { application: null })

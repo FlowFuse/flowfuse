@@ -1,3 +1,4 @@
+import { t } from '../i18n.js'
 function since (lastSeenAt, lastSeenMs) {
     if (!lastSeenAt) {
         return -1
@@ -14,7 +15,7 @@ function lastSeenStatus (lastSeenAt, lastSeenMs) {
     if (!lastSeenAt) {
         return {
             class: 'never',
-            label: 'Never Seen'
+            label: t('ui.neverSeen')
         }
     } else if (s < 1.5) {
         return {

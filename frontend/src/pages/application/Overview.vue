@@ -1,13 +1,13 @@
 <template>
     <div data-el="application-overview-page" class="flex-1 flex flex-col overflow-auto">
-        <SectionTopMenu hero="Node-RED Instances" help-header="Node-RED Instances - Running in FlowFuse" info="Hosted instances of Node-RED, owned by this application.">
+        <SectionTopMenu :hero="$t('ui.nodeRedInstances')" :help-header="$t('ui.nodeRedInstancesRunningInFlowfuse')" :info="$t('ui.hostedInstancesOfNodeRedOwnedByThisApplication')">
             <template #pictogram>
                 <img src="../../images/pictograms/instance_red.png">
             </template>
             <template #helptext>
-                <p>This is a list of Node-RED instances in this Application, hosted on the same domain as FlowFuse.</p>
-                <p>It will always run the latest flow deployed in Node-RED and use the latest credentials and runtime settings defined in the Projects settings.</p>
-                <p>To edit an Application's flow, open the editor of the Instance.</p>
+                <p>{{ $t('ui.thisIsAListOfNodeRedInstancesInThisApplicationHo') }}</p>
+                <p>{{ $t('ui.itWillAlwaysRunTheLatestFlowDeployedInNodeRedAnd') }}</p>
+                <p>{{ $t('ui.toEditAnApplicationSFlowOpenTheEditorOfTheInstan') }}</p>
             </template>
             <template v-if="instancesAvailable" #tools>
                 <ff-button
@@ -18,7 +18,7 @@
                     :disabled="!hasPermission('project:create', { application })"
                 >
                     <template #icon-left><PlusSmallIcon /></template>
-                    Add Instance
+                    {{ $t('ui.addInstance') }}
                 </ff-button>
             </template>
         </SectionTopMenu>
@@ -31,7 +31,7 @@
                 :rows="cloudRows"
                 :show-search="true"
                 :search="searchTerm"
-                search-placeholder="Search Instances"
+                :search-placeholder="$t('ui.searchInstances')"
                 :rows-selectable="true"
                 :loading="tableLoading"
                 loading-type="skeleton"
@@ -69,27 +69,27 @@
                 >
                     <ff-kebab-item
                         :disabled="row.pendingStateChange || row.running"
-                        label="Start"
+                        :label="$t('ui.start')"
                         @click.stop="$emit('instance-start', row)"
                     />
 
                     <ff-kebab-item
                         :disabled="!row.notSuspended"
-                        label="Restart"
+                        :label="$t('ui.restart')"
                         @click.stop="$emit('instance-restart', row)"
                     />
 
                     <ff-kebab-item
                         :disabled="!row.notSuspended"
                         kind="danger"
-                        label="Suspend"
+                        :label="$t('ui.suspend')"
                         @click.stop="$emit('instance-suspend', row)"
                     />
 
                     <ff-kebab-item
                         v-if="hasPermission('project:delete')"
                         kind="danger"
-                        label="Delete"
+                        :label="$t('ui.delete')"
                         @click.stop="$emit('instance-delete', row)"
                     />
                 </template>
@@ -98,10 +98,10 @@
                 <template #img>
                     <img src="../../images/empty-states/application-instances.png">
                 </template>
-                <template #header>Add your Application's First Instance</template>
+                <template #header>{{ $t('ui.addYourApplicationSFirstInstance') }}</template>
                 <template #message>
                     <p>
-                        Applications in FlowFuse are used to manage groups of Node-RED Instances.
+                        {{ $t('ui.applicationsInFlowfuseAreUsedToManageGroupsOfNod') }}
                     </p>
                 </template>
                 <template #actions>
@@ -112,14 +112,14 @@
                         :disabled="!hasPermission('project:create', { application })"
                     >
                         <template #icon-left><PlusSmallIcon /></template>
-                        Add Instance
+                        {{ $t('ui.addInstance') }}
                     </ff-button>
                 </template>
                 <template #note>
                     <p>
-                        The FlowFuse team also have more planned for Applications, including
+                        {{ $t('ui.theFlowfuseTeamAlsoHaveMorePlannedForApplication') }}
                         <a class="ff-link" href="https://github.com/FlowFuse/flowfuse/issues/1734" target="_blank">
-                            shared settings across Instances</a>.
+                            {{ $t('ui.sharedSettingsAcrossInstances') }}</a>.
                     </p>
                 </template>
             </EmptyState>
@@ -127,10 +127,10 @@
                 <template #img>
                     <img src="../../images/empty-states/application-instances.png">
                 </template>
-                <template #header>Hosted Instances Not Available</template>
+                <template #header>{{ $t('ui.hostedInstancesNotAvailable') }}</template>
                 <template #message>
                     <p>
-                        Hosted Instances are not available for this team tier. Please consider upgrading if you would like to enable this feature.
+                        {{ $t('ui.hostedInstancesAreNotAvailableForThisTeamTierPle') }}
                     </p>
                 </template>
             </EmptyState>
@@ -151,6 +151,7 @@ import { useInstanceStates } from '../../composables/InstanceStates.js'
 import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 import usePermissions from '../../composables/Permissions.js'
 
+import { t } from '../../i18n.js'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 import DashboardLinkCell from '../instance/components/cells/DashboardLink.vue'
 import InstanceEditorLinkCell from '../instance/components/cells/InstanceEditorLink.vue'
@@ -203,9 +204,9 @@ export default {
             searchTerm: '',
             selectedStatusGroups: [],
             statusFilters: [
-                { key: 'running', label: 'Running' },
-                { key: 'error', label: 'Error' },
-                { key: 'stopped', label: 'Not Running' }
+                { key: 'running', label: t('ui.running') },
+                { key: 'error', label: t('ui.error2') },
+                { key: 'stopped', label: t('ui.notRunning') }
             ]
         }
     },
@@ -213,9 +214,9 @@ export default {
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
         cloudColumns () {
             return [
-                { label: 'Name', class: ['w-1/2'], component: { is: markRaw(DeploymentName), map: { url: 'url' } } },
+                { label: t('ui.name'), class: ['w-1/2'], component: { is: markRaw(DeploymentName), map: { url: 'url' } } },
                 {
-                    label: 'Instance Status',
+                    label: t('ui.instanceStatus'),
                     class: ['w-1/5'],
                     instanceType: 'instance',
                     component: {
@@ -224,7 +225,7 @@ export default {
                         extraProps: { instanceType: 'instance' }
                     }
                 },
-                { label: 'Last Deployed', class: ['w-1/5'], component: { is: markRaw(LastSeen), map: { lastSeenSince: 'flowLastUpdatedSince' } } },
+                { label: t('ui.lastDeployed2'), class: ['w-1/5'], component: { is: markRaw(LastSeen), map: { lastSeenSince: 'flowLastUpdatedSince' } } },
                 { label: '', component: { is: markRaw(DashboardLinkCell), map: { instance: '_self', hidden: 'hideDashboard2Button' }, extraProps: { scope: 'application' } } },
                 { label: '', component: { is: markRaw(InstanceEditorLinkCell), map: { instance: '_self' } } }
             ]

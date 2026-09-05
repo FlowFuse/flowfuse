@@ -1,11 +1,11 @@
 <template>
-    <ff-dialog ref="dialog" data-el="extend-trial-dialog" header="Extend Team Trial" kind="danger" confirm-label="Extend team trial" @confirm="confirm()">
+    <ff-dialog ref="dialog" data-el="extend-trial-dialog" :header="$t('ui.extendTeamTrial')" kind="danger" :confirm-label="$t('ui.extendTeamTrial2')" @confirm="confirm()">
         <template #default>
             <form v-if="team" class="space-y-6" @submit.prevent>
-                <p v-if="!trialHasEnded">This team's trial ends at <b>{{ trialEndDate }}</b>.</p>
-                <p v-else>This team's trial has ended.</p>
+                <p v-if="!trialHasEnded">{{ $t('ui.thisTeamSTrialEndsAt') }} <b>{{ trialEndDate }}</b>.</p>
+                <p v-else>{{ $t('ui.thisTeamSTrialHasEnded') }}</p>
                 <p>
-                    Select a new end date for the team's trial:
+                    {{ $t('ui.selectANewEndDateForTheTeamSTrial') }}
                 </p>
                 <FormRow id="endDate" v-model="input.endDate" type="date" data-form="expiry-date" />
             </form>

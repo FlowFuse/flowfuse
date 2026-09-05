@@ -10,10 +10,10 @@
             <UserPlusIcon />
         </template>
         <template #title>
-            Team Invitation
+            {{ $t('ui.teamInvitation') }}
         </template>
         <template #message>
-            <p>You have been invited by <i>"{{ invitorName }}"</i> to join <i>"{{ teamName }}"</i>.</p>
+            <p>{{ $t('ui.youHaveBeenInvitedBy') }} <i>"{{ invitorName }}"</i> {{ $t('ui.toJoin') }} <i>"{{ teamName }}"</i>.</p>
         </template>
     </NotificationMessage>
 </template>

@@ -1,6 +1,6 @@
 <template>
     <div class="w-full max-w-4xl" data-el="change-project">
-        <ff-loading v-if="saving" message="Updating Instance..." />
+        <ff-loading v-if="saving" :message="$t('ui.updatingInstance')" />
         <InstanceForm
             v-else :instance="instanceDetails || instance"
             :team="team"

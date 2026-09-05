@@ -1,15 +1,15 @@
 <template>
-    <ff-dialog ref="dialog" :header="'Delete Device: \'' + device?.name + '\''" kind="danger" confirm-label="Delete" @confirm="confirm()" :disable-primary="!formValid">
+    <ff-dialog ref="dialog" :header="'Delete Device: \'' + device?.name + '\''" kind="danger" :confirm-label="$t('ui.delete')" @confirm="confirm()" :disable-primary="!formValid">
         <template #default>
             <form class="space-y-4" @submit.prevent>
                 <p>
-                    Are you sure you want to delete this device? Once deleted, there is no going back.
+                    {{ $t('ui.areYouSureYouWantToDeleteThisDeviceOnceDeletedTh') }}
                 </p>
                 <p>
-                    Name: <span class="font-bold">{{ device?.name }}</span>
+                    {{ $t('ui.name2') }} <span class="font-bold">{{ device?.name }}</span>
                 </p>
                 <p>
-                    Please type in the device name to confirm.
+                    {{ $t('ui.pleaseTypeInTheDeviceNameToConfirm') }}
                 </p>
                 <FormRow v-model="input.deviceName" :placeholder="'Device Name'" id="deviceName" />
             </form>

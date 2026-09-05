@@ -27,6 +27,8 @@ import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { GoogleLogin } from 'vue3-google-login'
 
+import { t } from '../i18n.js'
+
 import SSOApi from '@/api/sso.js'
 import SpinnerIcon from '@/components/icons/Spinner.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
@@ -36,7 +38,7 @@ withDefaults(defineProps<{
     label?: string
     disabled?: boolean
 }>(), {
-    label: 'Sign In with Google',
+    label: t('ui.signInWithGoogle'),
     disabled: false
 })
 

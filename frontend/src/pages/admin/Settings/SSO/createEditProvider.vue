@@ -1,149 +1,147 @@
 <template>
     <ff-page>
         <div class="max-w-2xl m-auto">
-            <ff-loading v-if="loading && !isCreate" message="Loading SSO Configuration..." />
-            <ff-loading v-if="loading && isCreate" message="Creating SSO Configuration..." />
+            <ff-loading v-if="loading && !isCreate" :message="$t('ui.loadingSsoConfiguration')" />
+            <ff-loading v-if="loading && isCreate" :message="$t('ui.creatingSsoConfiguration')" />
             <form v-else class="space-y-6">
                 <FormHeading>{{ pageTitle }}</FormHeading>
                 <FormRow v-model="input.name" :error="errors.name">
-                    Configuration Name
+                    {{ $t('ui.configurationName') }}
                 </FormRow>
                 <FormRow v-model="input.domainFilter" :error="errors.domainFilter" placeholder="@example.com">
-                    Email Domain
-                    <template #description>The email domain this provider should be used for.</template>
+                    {{ $t('ui.emailDomain') }}
+                    <template #description>{{ $t('ui.theEmailDomainThisProviderShouldBeUsedFor') }}</template>
                 </FormRow>
                 <ff-radio-group v-if="isCreate" v-model="input.type" :options="ssoTypeOptions" />
                 <ff-button v-if="isCreate" :disabled="!formValid" @click="createProvider()">
-                    Create configuration
+                    {{ $t('ui.createConfiguration') }}
                 </ff-button>
                 <template v-else>
-                    <FormRow v-model="input.active" type="checkbox">Active</FormRow>
+                    <FormRow v-model="input.active" type="checkbox">{{ $t('ui.active') }}</FormRow>
                     <template v-if="input.type === 'saml'">
-                        <FormRow v-model="provider.acsURL" type="uneditable">ACS URL</FormRow>
-                        <FormRow v-model="provider.entityID" type="uneditable">Entity ID / Issuer</FormRow>
+                        <FormRow v-model="provider.acsURL" type="uneditable">{{ $t('ui.acsUrl') }}</FormRow>
+                        <FormRow v-model="provider.entityID" type="uneditable">{{ $t('ui.entityIdIssuer') }}</FormRow>
                         <FormRow v-model="input.options.entryPoint">
-                            Identity Provider Single Sign-On URL
-                            <template #description>Supplied by your Identity Provider</template>
+                            {{ $t('ui.identityProviderSingleSignOnUrl') }}
+                            <template #description>{{ $t('ui.suppliedByYourIdentityProvider') }}</template>
                         </FormRow>
                         <FormRow v-model="input.options.idpIssuer">
-                            Identity Provider Issuer ID / URL
-                            <template #description>Supplied by your Identity Provider</template>
+                            {{ $t('ui.identityProviderIssuerIdUrl') }}
+                            <template #description>{{ $t('ui.suppliedByYourIdentityProvider') }}</template>
                         </FormRow>
                         <FormRow v-model="input.options.cert">
-                            X.509 Certificate Public Key
-                            <template #description>Supplied by your Identity Provider</template>
+                            {{ $t('ui.x509CertificatePublicKey') }}
+                            <template #description>{{ $t('ui.suppliedByYourIdentityProvider') }}</template>
                             <template #input><textarea v-model="input.options.cert" class="font-mono w-full" placeholder="---BEGIN CERTIFICATE---&#10;loremipsumdolorsitamet&#10;consecteturadipiscinge&#10;---END CERTIFICATE---&#10;" rows="6" /></template>
                         </FormRow>
-                        <!-- <FormRow v-model="input.options.groupMapping" type="checkbox">Manage roles using group assertions</FormRow>
+                        <!-- <FormRow v-model="input.options.groupMapping" type="checkbox">{{ $t('ui.manageRolesUsingGroupAssertions') }}</FormRow>
                         <div v-if="input.options.groupMapping" class="pl-4 space-y-6">
                             <FormRow v-model="input.options.groupAssertionName" :error="groupAssertionNameError">
-                                Group Assertion Name
-                                <template #description>The name of the SAML Assertion containing group membership details</template>
+                                {{ $t('ui.groupAssertionName') }}
+                                <template #description>{{ $t('ui.theNameOfTheSamlAssertionContainingGroupMembersh') }}</template>
                             </FormRow>
                             <FormRow v-model="input.options.groupAllTeams" :options="[{ value:true, label: 'Apply to all teams' }, { value:false, label: 'Apply to selected teams' }]">
-                                Team Scope
-                                <template #description>Should this apply to all teams on the platform, or just a restricted list of teams</template>
+                                {{ $t('ui.teamScope') }}
+                                <template #description>{{ $t('ui.shouldThisApplyToAllTeamsOnThePlatformOrJustARes') }}</template>
                             </FormRow>
                             <FormRow v-if="input.options.groupAllTeams === false" v-model="input.options.groupTeams" class="pl-4">
-                                <template #description>A list of team <b>slugs</b> that will managed by this configuration - one per line</template>
+                                <template #description>{{ $t('ui.aListOfTeam') }} <b>{{ $t('ui.slugs') }}</b> {{ $t('ui.thatWillManagedByThisConfigurationOnePerLine') }}</template>
                                 <template #input><textarea v-model="input.options.groupTeams" class="font-mono w-full" rows="6" /></template>
                             </FormRow>
                             <FormRow v-if="input.options.groupAllTeams === false" v-model="input.options.groupOtherTeams" type="checkbox" class="pl-4">
-                                Allow users to be in other teams
+                                {{ $t('ui.allowUsersToBeInOtherTeams') }}
                                 <template #description>
-                                    If enabled, users can be members of any teams not listed above and their membership/roles are not managed
-                                    by this SSO configuration.
+                                    {{ $t('ui.ifEnabledUsersCanBeMembersOfAnyTeamsNotListedAbo') }}
                                 </template>
                             </FormRow>
-                            <FormRow v-model="input.options.groupAdmin" type="checkbox">Manage Admin roles using group assertions</FormRow>
-                            <FormRow v-if="input.options.groupAdmin" v-model="input.options.groupAdminName" :error="groupAdminNameError" class="pl-4">Admin Users SAML Group name</FormRow>
+                            <FormRow v-model="input.options.groupAdmin" type="checkbox">{{ $t('ui.manageAdminRolesUsingGroupAssertions') }}</FormRow>
+                            <FormRow v-if="input.options.groupAdmin" v-model="input.options.groupAdminName" :error="groupAdminNameError" class="pl-4">{{ $t('ui.adminUsersSamlGroupName') }}</FormRow>
                         </div> -->
                     </template>
                     <template v-else-if="input.type === 'ldap'">
                         <FormRow v-model="input.options.server">
-                            Server
-                            <template #description>For example, <b>localhost:389</b></template>
+                            {{ $t('ui.server') }}
+                            <template #description>{{ $t('ui.forExample') }} <b>{{ $t('ui.localhost389') }}</b></template>
                         </FormRow>
                         <FormRow v-model="input.options.username">
-                            Username
-                            <template #description>The Bind DN to access the server</template>
+                            {{ $t('ui.username') }}
+                            <template #description>{{ $t('ui.theBindDnToAccessTheServer') }}</template>
                         </FormRow>
                         <FormRow v-model="input.options.password" type="password">
-                            Password
-                            <template #description>The password to access the server</template>
+                            {{ $t('ui.password') }}
+                            <template #description>{{ $t('ui.thePasswordToAccessTheServer') }}</template>
                         </FormRow>
                         <ff-button :disabled="!allowTest" size="small" kind="secondary" @click="testProvider()">
-                            Test Connection
+                            {{ $t('ui.testConnection') }}
                         </ff-button>
                         <FormRow v-model="input.options.baseDN">
-                            Base DN
-                            <template #description>The name of the base object to search for users</template>
+                            {{ $t('ui.baseDn') }}
+                            <template #description>{{ $t('ui.theNameOfTheBaseObjectToSearchForUsers') }}</template>
                         </FormRow>
                         <FormRow v-model="input.options.userFilter">
-                            User Search Filter
-                            <template #description>The filter used to lookup users.</template>
+                            {{ $t('ui.userSearchFilter') }}
+                            <template #description>{{ $t('ui.theFilterUsedToLookupUsers') }}</template>
                         </FormRow>
-                        <FormRow v-model="input.options.tls" type="checkbox">Enable TLS</FormRow>
+                        <FormRow v-model="input.options.tls" type="checkbox">{{ $t('ui.enableTls') }}</FormRow>
                         <div v-if="input.options.tls" class="pl-4 space-y-6">
-                            <FormRow v-model="input.options.tlsVerifyServer" type="checkbox">Verify Server Certificate</FormRow>
+                            <FormRow v-model="input.options.tlsVerifyServer" type="checkbox">{{ $t('ui.verifyServerCertificate') }}</FormRow>
                         </div>
                     </template>
-                    <FormRow v-model="input.options.groupMapping" type="checkbox">Manage roles using group assertions</FormRow>
+                    <FormRow v-model="input.options.groupMapping" type="checkbox">{{ $t('ui.manageRolesUsingGroupAssertions') }}</FormRow>
                     <div v-if="input.options.groupMapping" class="pl-4 space-y-6">
                         <div v-if="input.type === 'saml'">
                             <FormRow v-model="input.options.groupAssertionName" :error="groupAssertionNameError">
-                                Group Assertion Name
-                                <template #description>The name of the SAML Assertion containing group membership details</template>
+                                {{ $t('ui.groupAssertionName') }}
+                                <template #description>{{ $t('ui.theNameOfTheSamlAssertionContainingGroupMembersh') }}</template>
                             </FormRow>
                             <FormRow v-model="input.options.exposeGroups" type="checkbox" class="mt-6">
-                                Expose SSO Groups to FlowFuse login
-                                <template #description>Allows Dashboard to know what groups a user is in</template>
+                                {{ $t('ui.exposeSsoGroupsToFlowfuseLogin') }}
+                                <template #description>{{ $t('ui.allowsDashboardToKnowWhatGroupsAUserIsIn') }}</template>
                             </FormRow>
                         </div>
                         <div v-else-if="input.type === 'ldap'">
                             <FormRow v-model="input.options.groupsDN" :error="groupsDNError">
-                                Group DN
-                                <template #description>The name of the base object to search for groups</template>
+                                {{ $t('ui.groupDn') }}
+                                <template #description>{{ $t('ui.theNameOfTheBaseObjectToSearchForGroups') }}</template>
                             </FormRow>
                         </div>
                         <FormRow v-model="input.options.groupPrefixLength" :error="groupPrefixLengthError" type="number">
-                            Group Name Prefix Length
-                            <template #description>The length of any prefix added to the FlowFuse Group Name format</template>
+                            {{ $t('ui.groupNamePrefixLength') }}
+                            <template #description>{{ $t('ui.theLengthOfAnyPrefixAddedToTheFlowfuseGroupNameF') }}</template>
                         </FormRow>
                         <FormRow v-model="input.options.groupSuffixLength" :error="groupSuffixLengthError" type="number">
-                            Group Name Suffix Length
-                            <template #description>The length of any suffix added to the FlowFuse Group Name format</template>
+                            {{ $t('ui.groupNameSuffixLength') }}
+                            <template #description>{{ $t('ui.theLengthOfAnySuffixAddedToTheFlowfuseGroupNameF') }}</template>
                         </FormRow>
                         <FormRow v-model="input.options.groupAllTeams" :options="[{ value:true, label: 'Apply to all teams' }, { value:false, label: 'Apply to selected teams' }]">
-                            Team Scope
-                            <template #description>Should this apply to all teams on the platform, or just a restricted list of teams</template>
+                            {{ $t('ui.teamScope') }}
+                            <template #description>{{ $t('ui.shouldThisApplyToAllTeamsOnThePlatformOrJustARes') }}</template>
                         </FormRow>
                         <FormRow v-if="input.options.groupAllTeams === false" v-model="input.options.groupTeams" class="pl-4">
-                            <template #description>A list of team <b>slugs</b> that will managed by this configuration - one per line</template>
+                            <template #description>{{ $t('ui.aListOfTeam') }} <b>{{ $t('ui.slugs') }}</b> {{ $t('ui.thatWillManagedByThisConfigurationOnePerLine') }}</template>
                             <template #input><textarea v-model="input.options.groupTeams" class="font-mono w-full" rows="6" /></template>
                         </FormRow>
                         <FormRow v-if="input.options.groupAllTeams === false" v-model="input.options.groupOtherTeams" type="checkbox" class="pl-4">
-                            Allow users to be in other teams
+                            {{ $t('ui.allowUsersToBeInOtherTeams') }}
                             <template #description>
-                                If enabled, users can be members of any teams not listed above and their membership/roles are not managed
-                                by this SSO configuration.
+                                {{ $t('ui.ifEnabledUsersCanBeMembersOfAnyTeamsNotListedAbo') }}
                             </template>
                         </FormRow>
-                        <FormRow v-model="input.options.groupAdmin" type="checkbox">Manage Admin roles using group assertions</FormRow>
-                        <FormRow v-if="input.options.groupAdmin" v-model="input.options.groupAdminName" :error="groupAdminNameError" class="pl-4">Admin Users SAML Group name</FormRow>
+                        <FormRow v-model="input.options.groupAdmin" type="checkbox">{{ $t('ui.manageAdminRolesUsingGroupAssertions') }}</FormRow>
+                        <FormRow v-if="input.options.groupAdmin" v-model="input.options.groupAdminName" :error="groupAdminNameError" class="pl-4">{{ $t('ui.adminUsersSamlGroupName') }}</FormRow>
                     </div>
-                    <FormRow v-if="input.type === 'saml'" v-model="input.options.sendIdpHint" type="checkbox">Send hostname as hint to IDP (KeyCloak only)</FormRow>
-                    <FormRow v-model="input.options.provisionNewUsers" type="checkbox">Allow Provisioning of New Users on first login</FormRow>
+                    <FormRow v-if="input.type === 'saml'" v-model="input.options.sendIdpHint" type="checkbox">{{ $t('ui.sendHostnameAsHintToIdpKeycloakOnly') }}</FormRow>
+                    <FormRow v-model="input.options.provisionNewUsers" type="checkbox">{{ $t('ui.allowProvisioningOfNewUsersOnFirstLogin') }}</FormRow>
                     <FormRow v-model="input.options.sessionExpiry" :error="sessionExpiryError" type="number">
-                        Custom Session Expiry (hours)
-                        <template #description>How long should a user be logged in for, leave blank for the default ({{ defaultExpiryHours }})</template>
+                        {{ $t('ui.customSessionExpiryHours') }}
+                        <template #description>{{ $t('ui.howLongShouldAUserBeLoggedInForLeaveBlankForTheD', { p0: defaultExpiryHours }) }}</template>
                     </FormRow>
                     <FormRow v-model="input.options.sessionIdle" type="number">
-                        Custom Session Idle Time (hours)
-                        <template #description>How long should a user can be idle before being logged out, leave blank for the default ({{ defaultIdleHours }})</template>
+                        {{ $t('ui.customSessionIdleTimeHours') }}
+                        <template #description>{{ $t('ui.howLongShouldAUserCanBeIdleBeforeBeingLoggedOutL', { p0: defaultIdleHours }) }}</template>
                     </FormRow>
                     <ff-button :disabled="!formValid" @click="updateProvider()">
-                        Update configuration
+                        {{ $t('ui.updateConfiguration') }}
                     </ff-button>
                 </template>
             </form>
@@ -158,6 +156,7 @@ import { mapState } from 'pinia'
 import ssoApi from '../../../../api/sso.js'
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
+import { t } from '../../../../i18n.js'
 import Alerts from '../../../../services/alerts.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
@@ -195,8 +194,8 @@ export default {
             },
             errors: {},
             ssoTypeOptions: [
-                { value: 'saml', label: 'SAML' },
-                { value: 'ldap', label: 'LDAP' }
+                { value: 'saml', label: t('ui.saml') },
+                { value: 'ldap', label: t('ui.ldap') }
             ]
         }
     },

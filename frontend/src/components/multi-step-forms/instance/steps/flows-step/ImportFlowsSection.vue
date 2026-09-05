@@ -1,20 +1,20 @@
 <template>
     <section data-section="import-flows" class="import-flows flex flex-col gap-5 h-full">
-        <h2 class="mt-6 mb-5">Import your own custom Node-RED flows</h2>
+        <h2 class="mt-6 mb-5">{{ $t('ui.importYourOwnCustomNodeRedFlows') }}</h2>
 
         <div class="wrapper gap-5">
             <div class="preview">
-                <h3>Preview </h3>
+                <h3>{{ $t('ui.preview') }} </h3>
                 <hr class="my-3">
                 <flow-viewer :flow="flows" />
             </div>
 
             <div class="add-flows flex flex-col">
-                <h3>Add flows</h3>
+                <h3>{{ $t('ui.addFlows') }}</h3>
                 <hr class="my-3">
                 <div class="content flex flex-col gap-1">
                     <ff-button kind="tertiary" class="w-full" @click="uploadFlows">
-                        Upload your flows.json file
+                        {{ $t('ui.uploadYourFlowsJsonFile') }}
 
                         <input
                             id="fileUpload" ref="fileUpload" type="file" accept="application/json, text/plain, *"
@@ -30,7 +30,7 @@
                         container-class="w-full"
                         data-el="notification-message"
                     >
-                        <p class="text-center">paste them in</p>
+                        <p class="text-center">{{ $t('ui.pasteThemIn') }}</p>
                         <template #input>
                             <div class="flow-input-wrapper w-full relative">
                                 <textarea
@@ -41,7 +41,7 @@
                                     v-if="rawFlows" kind="secondary" class="absolute! bottom-1 right-1"
                                     @click="rawFlows = null"
                                 >
-                                    clear
+                                    {{ $t('ui.clear') }}
                                 </ff-button>
                             </div>
                         </template>
@@ -52,29 +52,27 @@
 
         <div class="notice ff-page-banner ">
             <div class="notice-element">
-                <h3>Flow validation</h3>
-                <p>Imported flows are not checked for validity.</p>
-                <p>Invalid or broken nodes may prevent the instance from starting.</p>
+                <h3>{{ $t('ui.flowValidation') }}</h3>
+                <p>{{ $t('ui.importedFlowsAreNotCheckedForValidity') }}</p>
+                <p>{{ $t('ui.invalidOrBrokenNodesMayPreventTheInstanceFromSta') }}</p>
                 <p>
-                    Always verify the reliability of imported flows and avoid copying flows from the World Wild
-                    Web.
+                    {{ $t('ui.alwaysVerifyTheReliabilityOfImportedFlowsAndAvoi') }}
                 </p>
             </div>
 
             <div class="notice-element">
-                <h3>Third-party nodes</h3>
-                <p>External nodes are not installed automatically but can be added once the instance is running.</p>
+                <h3>{{ $t('ui.thirdPartyNodes') }}</h3>
+                <p>{{ $t('ui.externalNodesAreNotInstalledAutomaticallyButCanB') }}</p>
             </div>
             <div class="notice-element">
-                <h3>Credentials and secrets</h3>
-                <p>These are not imported with the flows but can be reconfigured after deployment.</p>
+                <h3>{{ $t('ui.credentialsAndSecrets') }}</h3>
+                <p>{{ $t('ui.theseAreNotImportedWithTheFlowsButCanBeReconfigu') }}</p>
             </div>
 
             <div class="notice-element">
-                <h3>Environment variables</h3>
+                <h3>{{ $t('ui.environmentVariables2') }}</h3>
                 <p>
-                    Any required variables must be manually added to your environment after the instance is set
-                    up.
+                    {{ $t('ui.anyRequiredVariablesMustBeManuallyAddedToYourEnv') }}
                 </p>
             </div>
         </div>
@@ -82,6 +80,7 @@
 </template>
 
 <script>
+import { t } from '../../../../../i18n.js'
 import alerts from '../../../../../services/alerts.js'
 import FfButton from '../../../../../ui-components/components/Button.vue'
 import FormRow from '../../../../FormRow.vue'
@@ -140,7 +139,7 @@ export default {
                     this.rawFlows = JSON.stringify(flows)
                 } catch (e) {
                     console.warn(e)
-                    alerts.emit('Failed to read flows.json file')
+                    alerts.emit(t('ui.failedToReadFlowsJsonFile'))
                 }
             }
             reader.readAsText(file)

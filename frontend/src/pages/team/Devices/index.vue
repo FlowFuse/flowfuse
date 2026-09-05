@@ -1,18 +1,18 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Remote Instances">
+            <ff-page-header :title="$t('ui.remoteInstances')">
                 <template #context>
-                    FlowFuse provides infrastructure to manage your Node-RED Instances running remotely on your own hardware. These instances are managed using the <a class="ff-link" href="https://flowfuse.com/docs/user/devices/" target="_blank">FlowFuse Device Agent</a>.
+                    {{ $t('ui.flowfuseProvidesInfrastructureToManageYourNodeRe') }} <a class="ff-link" href="https://flowfuse.com/docs/user/devices/" target="_blank">{{ $t('ui.flowfuseDeviceAgent') }}</a>.
                 </template>
                 <template #pictogram>
                     <img src="../../../images/pictograms/devices_red.png">
                 </template>
                 <template #helptext>
-                    <p>FlowFuse can be used to manage instances of Node-RED running on remote hardware.</p>
-                    <p>Each Remote Instance is managed through the <a href="https://flowfuse.com/docs/user/devices/" target="_blank">FlowFuse Device Agent</a>, which connects back to the platform to receive updates, and permits development of your flows, directly from FlowFuse.</p>
-                    <p>Devices are registered to a Team, and assigned to an Application.</p>
-                    <p>Flows can then be deployed remotely to the devices via Pipelines, or developed directly using "Developer Mode".</p>
+                    <p>{{ $t('ui.flowfuseCanBeUsedToManageInstancesOfNodeRedRunni') }}</p>
+                    <p>{{ $t('ui.eachRemoteInstanceIsManagedThroughThe') }} <a href="https://flowfuse.com/docs/user/devices/" target="_blank">{{ $t('ui.flowfuseDeviceAgent') }}</a>, which connects back to the platform to receive updates, and permits development of your flows, directly from FlowFuse.</p>
+                    <p>{{ $t('ui.devicesAreRegisteredToATeamAndAssignedToAnApplic2') }}</p>
+                    <p>{{ $t('ui.flowsCanThenBeDeployedRemotelyToTheDevicesViaPip') }}</p>
                 </template>
             </ff-page-header>
         </template>

@@ -5,12 +5,12 @@
         data-el="application-permission-dialog"
         :disable-primary="!isDirty"
         :close-on-confirm="false"
-        header="Set a new role"
+        :header="$t('ui.setANewRole')"
         @confirm="onConfirm"
         @cancel="onCancel"
     >
         <template #default>
-            <p class="mb-4">Set a new role for <b>{{ user.name }}</b> in application: <b>{{ application.name }}</b></p>
+            <p class="mb-4">{{ $t('ui.setANewRoleFor') }} <b>{{ user.name }}</b> {{ $t('ui.inApplication') }} <b>{{ application.name }}</b></p>
             <ff-listbox v-model="selection" :options="options" />
         </template>
     </ff-dialog>
@@ -22,6 +22,7 @@ import { defineComponent } from 'vue'
 
 import teamApi from '../../api/team.js'
 import { capitalize } from '../../composables/strings/String.js'
+import { t } from '../../i18n.js'
 import alerts from '../../services/alerts.js'
 import { RoleNames, Roles } from '../../utils/roles.js'
 
@@ -88,13 +89,13 @@ export default defineComponent({
                 .then(() => {
                     this.isVisible = false
                     this.$emit('user-updated', { ...this.user, permissions })
-                    alerts.emit('Permissions updated successfully.', 'confirmation')
+                    alerts.emit(t('ui.permissionsUpdatedSuccessfully'), 'confirmation')
                 })
                 .catch((e) => {
                     console.warn(e)
                     console.warn(e.request)
                     console.warn(e.response?.data)
-                    alerts.emit('Something went wrong. Failed to update user permissions', 'warning')
+                    alerts.emit(t('ui.somethingWentWrongFailedToUpdateUserPermissions'), 'warning')
                 })
         },
         onCancel () {

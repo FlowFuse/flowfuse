@@ -1,23 +1,21 @@
 <template>
-    <FormHeading class="mb-6">Launcher Settings</FormHeading>
+    <FormHeading class="mb-6">{{ $t('ui.launcherSettings') }}</FormHeading>
     <form class="space-y-6" data-el="launcher-settings-form">
         <FormRow v-model="input.healthCheckInterval" type="number" :error="errors.healthCheckInterval">
-            Health check interval (ms)
+            {{ $t('ui.healthCheckIntervalMs') }}
             <template #description>
-                The interval at which the launcher will check the health of Node-RED.
-                Flows that perform CPU intensive work may need to increase this from the default of 7500ms.
+                {{ $t('ui.theIntervalAtWhichTheLauncherWillCheckTheHealthO') }}
             </template>
         </FormRow>
         <FormRow v-if="launcherSupportsAutoSafeMode" v-model="input.disableAutoSafeMode" type="checkbox">
-            Disable Auto Safe Mode
+            {{ $t('ui.disableAutoSafeMode') }}
             <template #description>
-                Prevent Node-RED from automatically entering safe mode when a crash loop is detected.
-                WARNING: Disabling Auto Safe Mode is not recommended. A problem that causes Node-RED to crash multiple successive times may result in a contineous bootloop that will need to be manually resolved.
+                {{ $t('ui.preventNodeRedFromAutomaticallyEnteringSafeModeW') }}
             </template>
         </FormRow>
         <div v-else class="flex flex-col sm:flex-row">
             <div class="text-gray-800 block text-sm font-medium">
-                Some settings are not available until you upgrade your stack. <ff-button size="small" to="general">Upgrade</ff-button>
+                {{ $t('ui.someSettingsAreNotAvailableUntilYouUpgradeYourSt') }} <ff-button size="small" to="general">{{ $t('ui.upgrade') }}</ff-button>
             </div>
         </div>
     </form>
@@ -32,6 +30,7 @@ import InstanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import usePermissions from '../../../composables/Permissions.js'
+import { t } from '../../../i18n.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -129,7 +128,7 @@ export default {
             } else {
                 const hci = +this.input.healthCheckInterval
                 if (isNaN(hci) || hci < 5000) {
-                    this.errors.healthCheckInterval = 'Health check interval must be 5000 or greater'
+                    this.errors.healthCheckInterval = t('ui.healthCheckIntervalMustBe5000OrGreater')
                 } else {
                     this.errors.healthCheckInterval = ''
                 }
@@ -164,7 +163,7 @@ export default {
             // is instance running
             if (this.project.meta.state === 'running') {
                 Dialog.show({
-                    header: 'Restart Required',
+                    header: t('ui.restartRequired'),
                     html: '<p>Instance settings have been successfully updated, but the Instance must be restarted for these settings to take effect.</p><p>Would you like to restart the Instance now?</p>',
                     confirmLabel: 'Restart Now',
                     cancelLabel: 'Restart Later'

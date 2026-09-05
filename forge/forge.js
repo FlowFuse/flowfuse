@@ -13,6 +13,7 @@ const containers = require('./containers')
 const db = require('./db')
 const ee = require('./ee')
 const housekeeper = require('./housekeeper')
+const i18n = require('./i18n')
 const { generatePassword } = require('./lib/userTeam')
 const license = require('./licensing')
 const notifications = require('./notifications')
@@ -196,6 +197,8 @@ module.exports = async (options = {}) => {
         await server.register(caches)
         // DB : the database connection/models/views/controllers
         await server.register(db)
+        // Internationalisation : request-scoped translation
+        await server.register(i18n)
         // Settings
         await server.register(settings)
         // License

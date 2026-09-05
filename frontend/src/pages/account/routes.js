@@ -1,5 +1,7 @@
 import { Cog8ToothIcon } from '@heroicons/vue/24/outline'
 
+import { t } from '../../i18n.js'
+
 import AccessRequest from './AccessRequest.vue'
 import AccessRequestEditor from './AccessRequestEditor.vue'
 import AccessRequestMCP from './AccessRequestMCP.vue'
@@ -55,7 +57,7 @@ export default [
         redirect: '/account/settings',
         name: 'user-settings',
         meta: {
-            title: 'Account - Settings',
+            title: t('ui.accountSettings'),
             menu: 'user'
         },
         icon: Cog8ToothIcon,
@@ -72,7 +74,7 @@ export default [
                 component: AccountTeams,
                 redirect: { name: 'user-teams' },
                 meta: {
-                    title: 'Account - Teams'
+                    title: t('ui.accountTeams')
                 },
                 children: [
                     { name: 'user-teams', path: '', component: AccountTeamTeams },
@@ -85,7 +87,7 @@ export default [
                 path: 'security',
                 component: AccountSecurity,
                 meta: {
-                    title: 'Account - Security'
+                    title: t('ui.accountSecurity')
                 },
                 redirect: '/account/security/password',
                 children: [
@@ -103,7 +105,7 @@ export default [
         name: 'sign-up',
         meta: {
             requiresLogin: false,
-            title: 'Sign Up'
+            title: t('ui.signUp')
         },
         component: AccountCreate
     },
@@ -132,7 +134,7 @@ export default [
         name: 'forgot-password',
         component: ForgotPassword,
         meta: {
-            title: 'Forgot Password',
+            title: t('ui.forgotPassword'),
             requiresLogin: false
         }
     },

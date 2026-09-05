@@ -17,13 +17,13 @@
                 <ChartPieIcon />
             </template>
             <template v-if="!minimalView">
-                <span class="hidden sm:inline dashboard-link-text">Dashboard</span>
+                <span class="hidden sm:inline dashboard-link-text">{{ $t('ui.dashboard') }}</span>
             </template>
         </ff-button>
 
         <SplitButton
             v-else
-            label="Dashboard"
+            :label="$t('ui.dashboard')"
             data-action="open-dashboard"
             :disabled="buttonDisabled"
             :options="dropdownOptions"

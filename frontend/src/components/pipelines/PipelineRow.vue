@@ -6,17 +6,17 @@
                 <label>
                     {{ pipeline.name }}
                 </label>
-                <div v-if="hasPermission('pipeline:edit', { application })" v-ff-tooltip:right="'Edit Pipeline Name'">
+                <div v-if="hasPermission('pipeline:edit', { application })" v-ff-tooltip:right="$t('ui.editPipelineName')">
                     <PencilSquareIcon v-if="!editing.name" class="ml-4 ff-icon ff-clickable" @click="edit" />
                 </div>
             </div>
             <div v-if="hasPermission('pipeline:delete', { application })" class="flex gap-2">
-                <div v-if="!editing.name" v-ff-tooltip:left="'Delete Pipeline'" data-action="delete-pipeline">
+                <div v-if="!editing.name" v-ff-tooltip:left="$t('ui.deletePipeline')" data-action="delete-pipeline">
                     <TrashIcon class="ff-icon ff-clickable" @click="deletePipeline" />
                 </div>
                 <template v-else>
-                    <ff-button kind="secondary" @click="cancel">Cancel</ff-button>
-                    <ff-button kind="primary" :disabled="!saveRowEnabled" @click="save">Save</ff-button>
+                    <ff-button kind="secondary" @click="cancel">{{ $t('ui.cancel') }}</ff-button>
+                    <ff-button kind="primary" :disabled="!saveRowEnabled" @click="save">{{ $t('ui.save') }}</ff-button>
                 </template>
             </div>
         </div>
@@ -50,7 +50,7 @@
         </div>
         <div v-else class="ff-pipeline-stages">
             <PipelineStage v-if="addStageAvailable" @click="addStage" />
-            <p class="text-center text-gray-400 center w-full">No stages in sight just yet!</p>
+            <p class="text-center text-gray-400 center w-full">{{ $t('ui.noStagesInSightJustYet') }}</p>
         </div>
     </div>
 </template>
@@ -65,6 +65,7 @@ import { StageAction, StageType } from '../../api/pipeline.js'
 import usePermissions from '../../composables/Permissions.js'
 
 import { slugify } from '../../composables/strings/String.js'
+import { t } from '../../i18n.js'
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 import { Roles } from '../../utils/roles.js'
@@ -263,7 +264,7 @@ export default {
         },
         deletePipeline () {
             const msg = {
-                header: 'Delete Pipeline',
+                header: t('ui.deletePipeline'),
                 kind: 'danger',
                 confirmLabel: 'Delete',
                 text: `Are you sure you want to delete the pipeline "${this.pipeline.name}"?`

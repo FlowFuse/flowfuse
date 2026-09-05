@@ -5,66 +5,46 @@
         :header="`Push to &quot;${target?.name}&quot;`"
     >
         <template #default>
-            <p>
-                Are you sure you want to push from "{{ stage.name }}" to "{{
-                    target?.name
-                }}"?
-            </p>
+            <p>{{ $t('ui.areYouSureYouWantToPushFromP0ToP1', { p0: stage.name, p1: target?.name }) }}</p>
             <p class="my-4">
-                This will
-                <template v-if="stage.stageType === StageType.DEVICEGROUP">
-                    use the group's target snapshot from "{{ stage.name }}" and
-                </template>
+                {{ $t('ui.thisWill') }}
+                <template v-if="stage.stageType === StageType.DEVICEGROUP">{{ $t('ui.useTheGroupSTargetSnapshotFromP0And', { p0: stage.name }) }}</template>
                 <template v-else-if="stage.stageType === StageType.GITREPO">
-                    pull the snapshot from the configured Git repository and
+                    {{ $t('ui.pullTheSnapshotFromTheConfiguredGitRepositoryAnd') }}
                 </template>
-                <template v-else-if="stage.action === StageAction.CREATE_SNAPSHOT">
-                    create a new snapshot in "{{ stage.name }}" and
-                </template>
-                <template v-else-if="stage.action === StageAction.USE_LATEST_SNAPSHOT">
-                    use the latest instance snapshot from "{{ stage.name }}" and
-                </template>
-                <template v-else-if="stage.action === StageAction.PROMPT">
-                    use the snapshot selected below from "{{ stage.name }}" and
-                </template>
+                <template v-else-if="stage.action === StageAction.CREATE_SNAPSHOT">{{ $t('ui.createANewSnapshotInP0And', { p0: stage.name }) }}</template>
+                <template v-else-if="stage.action === StageAction.USE_LATEST_SNAPSHOT">{{ $t('ui.useTheLatestInstanceSnapshotFromP0And', { p0: stage.name }) }}</template>
+                <template v-else-if="stage.action === StageAction.PROMPT">{{ $t('ui.useTheSnapshotSelectedBelowFromP0And', { p0: stage.name }) }}</template>
                 <template v-if="target?.stageType === StageType.GITREPO">
-                    push it to the configured Git repository.
+                    {{ $t('ui.pushItToTheConfiguredGitRepository') }}
                 </template>
-                <template v-else>
-                    copy over all flows, nodes, environment variables and credentials to "{{ target?.name }}".
-                </template>
+                <template v-else>{{ $t('ui.copyOverAllFlowsNodesEnvironmentVariablesAndCred', { p0: target?.name }) }}</template>
             </p>
             <template v-if="target?.stageType === StageType.DEVICEGROUP">
                 <p class="my-4">
-                    All devices in the target group will be notified and this may result in them re-loading with a new configuration.
+                    {{ $t('ui.allDevicesInTheTargetGroupWillBeNotifiedAndThisM') }}
                 </p>
             </template>
             <template v-else-if="target?.deployToDevices">
-                <p class="my-4">
-                    And push out the changes to all devices connected to "{{ target?.name }}".
-                </p>
+                <p class="my-4">{{ $t('ui.andPushOutTheChangesToAllDevicesConnectedToP0', { p0: target?.name }) }}</p>
             </template>
-            <p v-if="target?.stageType !== StageType.GITREPO" class="my-4">
-                NOTE: Environment variables in the target {{ targetTypeName }} that already have a value will not be overwritten.
-            </p>
+            <p v-if="target?.stageType !== StageType.GITREPO" class="my-4">{{ $t('ui.noteEnvironmentVariablesInTheTargetP0ThatAlready', { p0: targetTypeName }) }}</p>
 
             <template v-if="(promptForSnapshot || useLatestSnapshot) && loadingSnapshots">
-                <ff-loading message="Loading..." />
+                <ff-loading :message="$t('ui.loading')" />
             </template>
             <template v-else-if="promptForSnapshot">
                 <form class="space-y-2" @submit.prevent="confirm">
-                    <p>
-                        Please select the Snapshot from "{{ stage.name }}" that you wish to push to "{{ target?.name }}":
-                    </p>
+                    <p>{{ $t('ui.pleaseSelectTheSnapshotFromP0ThatYouWishToPushTo', { p0: stage.name, p1: target?.name }) }}</p>
                     <FormRow data-form="snapshot" containerClass="w-full">
-                        Source Snapshot
+                        {{ $t('ui.sourceSnapshot') }}
                         <template #input>
                             <ff-combobox
                                 v-if="hasSnapshots"
                                 v-model="input.selectedSnapshotId"
                                 :options="snapshotOptions"
                                 :extend-search-keys="['description', 'user.username']"
-                                placeholder="Select a snapshot"
+                                :placeholder="$t('ui.selectASnapshot')"
                                 data-form="snapshot-select"
                                 class="w-full"
                             >
@@ -78,7 +58,7 @@
                                             {{ option.description }}
                                         </p>
                                         <p v-if="option.createdAt" class="text-gray-400 text-sm">
-                                            <span>Created </span>
+                                            <span>{{ $t('ui.created') }} </span>
                                             <span
                                                 v-ff-tooltip:bottom="new Date(option.createdAt).toDateString() + ' - ' + new Date(option.createdAt).toLocaleTimeString()"
                                                 class=""
@@ -90,34 +70,34 @@
                                 </template>
                             </ff-combobox>
                             <div v-else class="error-banner">
-                                There are no snapshots to choose from for this stage's
+                                {{ $t('ui.thereAreNoSnapshotsToChooseFromForThisStageS') }}
                                 <template v-if="stage.stageType == StageType.INSTANCE">
-                                    instance yet!<br><br>
+                                    {{ $t('ui.instanceYet') }}<br><br>
 
-                                    Snapshots can be managed on the
+                                    {{ $t('ui.snapshotsCanBeManagedOnThe') }}
                                     <router-link
                                         :to="{
                                             name: 'instance-snapshots',
                                             params: { id: stage.instance.id },
                                         }"
                                     >
-                                        Instance Snapshots
+                                        {{ $t('ui.instanceSnapshots') }}
                                     </router-link>
-                                    page.
+                                    {{ $t('ui.page') }}
                                 </template>
                                 <template v-else-if="stage.stageType === StageType.DEVICE">
-                                    device yet!<br><br>
+                                    {{ $t('ui.deviceYet') }}<br><br>
 
-                                    Device snapshots can be managed on the
+                                    {{ $t('ui.deviceSnapshotsCanBeManagedOnThe') }}
                                     <router-link
                                         :to="{
                                             name: 'device-version-history',
                                             params: { id: stage.device.id },
                                         }"
                                     >
-                                        Device Snapshots
+                                        {{ $t('ui.deviceSnapshots') }}
                                     </router-link>
-                                    page.
+                                    {{ $t('ui.page') }}
                                 </template>
                             </div>
                         </template>
@@ -127,48 +107,47 @@
             <template v-else-if="useLatestSnapshot">
                 <template v-if="stage.stageType == StageType.DEVICEGROUP">
                     <div v-if="!hasSnapshots" class="error-banner">
-                        This stage's device group does not have a target snapshot
-                        set yet!
+                        {{ $t('ui.thisStageSDeviceGroupDoesNotHaveATargetSnapshotS') }}
                     </div>
                 </template>
                 <template v-else>
                     <div v-if="!hasSnapshots" class="error-banner">
-                        No snapshots have been created for this stage's
+                        {{ $t('ui.noSnapshotsHaveBeenCreatedForThisStageS') }}
                         <template v-if="stage.stageType == StageType.INSTANCE">
-                            instance yet!<br><br>
+                            {{ $t('ui.instanceYet') }}<br><br>
 
-                            Snapshots can be managed on the
+                            {{ $t('ui.snapshotsCanBeManagedOnThe') }}
                             <router-link
                                 :to="{
                                     name: 'instance-snapshots',
                                     params: { id: stage.instance.id },
                                 }"
                             >
-                                Instance Snapshots
+                                {{ $t('ui.instanceSnapshots') }}
                             </router-link>
-                            page.
+                            {{ $t('ui.page') }}
                         </template>
                         <template v-else-if="stage.stageType === StageType.DEVICE">
-                            device yet!<br><br>
+                            {{ $t('ui.deviceYet') }}<br><br>
 
-                            Device snapshots can be managed on the
+                            {{ $t('ui.deviceSnapshotsCanBeManagedOnThe') }}
                             <router-link
                                 :to="{
                                     name: 'device-version-history',
                                     params: { id: stage.device.id },
                                 }"
                             >
-                                Device Snapshots
+                                {{ $t('ui.deviceSnapshots') }}
                             </router-link>
-                            page.
+                            {{ $t('ui.page') }}
                         </template>
                     </div>
                 </template>
             </template>
         </template>
         <template #actions>
-            <ff-button kind="secondary" @click="close">Cancel</ff-button>
-            <ff-button :disabled="!formValid" @click="confirm">Confirm</ff-button>
+            <ff-button kind="secondary" @click="close">{{ $t('ui.cancel') }}</ff-button>
+            <ff-button :disabled="!formValid" @click="confirm">{{ $t('ui.confirm') }}</ff-button>
         </template>
     </ff-dialog>
 </template>

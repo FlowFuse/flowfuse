@@ -1,12 +1,12 @@
 <template>
     <section class="ff-applications-list-instances" data-el="application-instances">
         <label class="delimiter">
-            Hosted Instances
+            {{ $t('ui.hostedInstances') }}
         </label>
         <div v-if="doesntHaveInstances" class="empty-message">
             <p>
-                This Application currently has no
-                <router-link :to="{name: 'application-instances', params: {team_slug: team.slug, id: application.id}}" class="ff-link">attached Hosted Instances</router-link>.
+                {{ $t('ui.thisApplicationCurrentlyHasNo') }}
+                <router-link :to="{name: 'application-instances', params: {team_slug: team.slug, id: application.id}}" class="ff-link">{{ $t('ui.attachedHostedInstances') }}</router-link>.
             </p>
         </div>
         <div v-else class="items-wrapper">

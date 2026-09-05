@@ -1,28 +1,25 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Hosted Instances">
+            <ff-page-header :title="$t('ui.hostedInstances')">
                 <template #context>
-                    <span>A list of all Node-RED instances belonging to this Team.</span>
+                    <span>{{ $t('ui.aListOfAllNodeRedInstancesBelongingToThisTeam') }}</span>
                 </template>
                 <template #help-header>
-                    Instances
+                    {{ $t('ui.instances') }}
                 </template>
                 <template #pictogram>
                     <img src="../../images/pictograms/instance_red.png">
                 </template>
                 <template #helptext>
                     <p>
-                        This is a list of all Node-RED instances belonging to this team running
-                        in this FlowFuse.
+                        {{ $t('ui.thisIsAListOfAllNodeRedInstancesBelongingToThisT') }}
                     </p>
                     <p>
-                        Each Instance is a customised version of Node-RED that includes various
-                        FlowFuse plugins to integrate it with the platform.
+                        {{ $t('ui.eachInstanceIsACustomisedVersionOfNodeRedThatInc') }}
                     </p>
                     <p>
-                        A number of the standard Node-RED settings are exposed for customisation,
-                        and they can be preset by applying a Template upon creation of an Instance.
+                        {{ $t('ui.aNumberOfTheStandardNodeRedSettingsAreExposedFor') }}
                     </p>
                 </template>
             </ff-page-header>
@@ -35,7 +32,7 @@
                 <ff-data-table
                     v-if="loading || instances.length > 0 || hasFilter"
                     data-el="instances-table" :columns="columns" :rows="instances" :show-search="true"
-                    search-placeholder="Search by name..."
+                    :search-placeholder="$t('ui.searchByName')"
                     :initialSortKey="sort.key" :initialSortOrder="sort.order"
                     :rows-selectable="true"
                     :pagination="paginationProps"
@@ -83,7 +80,7 @@
                             <template #icon-left>
                                 <PlusSmallIcon />
                             </template>
-                            Create Instance
+                            {{ $t('ui.createInstance') }}
                         </ff-button>
                     </template>
                     <template #row-actions="{row}">
@@ -92,7 +89,7 @@
                             v-if="hasPermission('team:projects:list')"
                             :instance="row"
                             :disabled="row.status !== 'running'"
-                            disabled-reason="The Instance is not running"
+                            :disabled-reason="$t('ui.theInstanceIsNotRunning')"
                         />
                     </template>
                     <template
@@ -101,14 +98,14 @@
                         <ff-kebab-item
                             v-if="row.canChangeStatus"
                             :disabled="row.pendingStateChange || row.running || row.optimisticStateChange"
-                            label="Start"
+                            :label="$t('ui.start')"
                             @click.stop="instanceStart(row)"
                         />
 
                         <ff-kebab-item
                             v-if="row.canChangeStatus"
                             :disabled="!row.notSuspended"
-                            label="Restart"
+                            :label="$t('ui.restart')"
                             @click.stop="instanceRestart(row)"
                         />
 
@@ -116,14 +113,14 @@
                             v-if="row.canChangeStatus"
                             :disabled="!row.notSuspended"
                             kind="danger"
-                            label="Suspend"
+                            :label="$t('ui.suspend')"
                             @click.stop="instanceShowConfirmSuspend(row)"
                         />
 
                         <ff-kebab-item
                             v-if="row.canDelete"
                             kind="danger"
-                            label="Delete"
+                            :label="$t('ui.delete')"
                             @click.stop="instanceShowConfirmDelete(row)"
                         />
                     </template>
@@ -132,18 +129,18 @@
                     <template #img>
                         <img src="../../images/empty-states/team-instances.png">
                     </template>
-                    <template #header>Get Started with your First Node-RED Instance</template>
+                    <template #header>{{ $t('ui.getStartedWithYourFirstNodeRedInstance') }}</template>
                     <template #message>
                         <p>
-                            Instances are managed in FlowFuse via <ff-team-link
+                            {{ $t('ui.instancesAreManagedInFlowfuseVia') }} <ff-team-link
                                 class="ff-link"
                                 :to="{name:'team-applications', params: {team_slug: team.slug}}"
                             >
-                                Applications
+                                {{ $t('ui.applications') }}
                             </ff-team-link>.
                         </p>
                         <p>
-                            You can create your first Instance when creating your first Application, or add an Instance to an existing Application if you have one.
+                            {{ $t('ui.youCanCreateYourFirstInstanceWhenCreatingYourFir') }}
                         </p>
                     </template>
                     <template #actions>
@@ -156,7 +153,7 @@
                             <template #icon-left>
                                 <PlusSmallIcon />
                             </template>
-                            Create Instance
+                            {{ $t('ui.createInstance') }}
                         </ff-button>
                     </template>
                 </EmptyState>
@@ -166,10 +163,10 @@
                     <template #img>
                         <img src="../../images/empty-states/team-instances.png">
                     </template>
-                    <template #header>Hosted Instances Not Available</template>
+                    <template #header>{{ $t('ui.hostedInstancesNotAvailable') }}</template>
                     <template #message>
                         <p>
-                            Hosted Node-RED Instances are not available on your Team Tier. Please explore upgrade options to enable it.
+                            {{ $t('ui.hostedNodeRedInstancesAreNotAvailableOnYourTeamT') }}
                         </p>
                     </template>
                 </EmptyState>
@@ -193,6 +190,7 @@ import FeatureUnavailableToTeam from '../../components/banners/FeatureUnavailabl
 import { useInstanceStates } from '../../composables/InstanceStates.js'
 import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 import usePermissions from '../../composables/Permissions.js'
+import { t } from '../../i18n.js'
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 import { debounce } from '../../utils/eventHandling.js'
@@ -238,18 +236,18 @@ export default {
             searchTerm: null,
             selectedStatusGroups: [],
             statusFilters: [
-                { key: 'running', label: 'Running' },
-                { key: 'error', label: 'Error' },
-                { key: 'stopped', label: 'Not Running' }
+                { key: 'running', label: t('ui.running') },
+                { key: 'error', label: t('ui.error2') },
+                { key: 'stopped', label: t('ui.notRunning') }
             ],
             sort: {
                 key: 'flowLastUpdatedAt',
                 order: 'desc'
             },
             columns: [
-                { label: 'Name', class: ['grow'], key: 'name', sortable: true, component: { is: markRaw(DeploymentName), map: { url: 'url' }, extraProps: { copyable: true } } },
+                { label: t('ui.name'), class: ['grow'], key: 'name', sortable: true, component: { is: markRaw(DeploymentName), map: { url: 'url' }, extraProps: { copyable: true } } },
                 {
-                    label: 'Status',
+                    label: t('ui.status'),
                     class: ['w-44'],
                     component: {
                         is: markRaw(InstanceStatusBadge),
@@ -265,7 +263,7 @@ export default {
                     }
                 },
                 {
-                    label: 'Application',
+                    label: t('ui.application'),
                     class: ['w-72'],
                     key: 'application.name',
                     sortable: true,
@@ -278,7 +276,7 @@ export default {
                     }
                 },
                 {
-                    label: 'Last Updated',
+                    label: t('ui.lastUpdated'),
                     class: ['w-60'],
                     key: 'flowLastUpdatedAt',
                     sortable: true,
@@ -453,7 +451,7 @@ export default {
         },
         instanceShowConfirmSuspend (instance) {
             Dialog.show({
-                header: 'Suspend Instance',
+                header: t('ui.suspendInstance'),
                 text: `Are you sure you want to suspend ${instance.name}`,
                 confirmLabel: 'Suspend',
                 kind: 'danger'

@@ -1,56 +1,56 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Stacks" />
+            <ff-page-header :title="$t('ui.stacks')" />
         </template>
         <div class="space-y-6">
-            <FormHeading>Active Stacks</FormHeading>
-            <ff-loading v-if="loadingActive" message="Loading Stacks..." />
+            <FormHeading>{{ $t('ui.activeStacks') }}</FormHeading>
+            <ff-loading v-if="loadingActive" :message="$t('ui.loadingStacks')" />
             <ff-data-table
                 v-if="!loadingActive"
                 data-el="active-stacks"
                 :columns="activeColumns"
                 :rows="activeStacks"
                 :show-search="true"
-                search-placeholder="Search by Stack Name..."
-                no-data-message="No Active Stacks Found"
+                :search-placeholder="$t('ui.searchByStackName')"
+                :no-data-message="$t('ui.noActiveStacksFound')"
             >
                 <template #actions>
                     <ff-button @click="showCreateStackDialog">
                         <template #icon-right>
                             <PlusSmallIcon />
                         </template>
-                        Create stack
+                        {{ $t('ui.createStack') }}
                     </ff-button>
                 </template>
                 <template #context-menu="{row}">
-                    <ff-kebab-item label="Create New Version" @click="stackAction('createNewVersion', row.id)" />
-                    <ff-kebab-item label="Edit Properties" @click="stackAction('editProperties', row.id)" />
-                    <ff-kebab-item label="Delete Stack" kind="danger" @click="stackAction('delete', row.id)" />
+                    <ff-kebab-item :label="$t('ui.createNewVersion')" @click="stackAction('createNewVersion', row.id)" />
+                    <ff-kebab-item :label="$t('ui.editProperties')" @click="stackAction('editProperties', row.id)" />
+                    <ff-kebab-item :label="$t('ui.deleteStack')" kind="danger" @click="stackAction('delete', row.id)" />
                 </template>
             </ff-data-table>
             <div v-if="nextActiveCursor">
-                <a v-if="!loadingActive" class="forge-button-inline" data-action="load-more-active" @click.stop="loadActiveItems">Load more...</a>
+                <a v-if="!loadingActive" class="forge-button-inline" data-action="load-more-active" @click.stop="loadActiveItems">{{ $t('ui.loadMore') }}</a>
             </div>
-            <FormHeading>Inactive Stacks</FormHeading>
-            <ff-loading v-if="loadingInactive" message="Loading Stacks..." />
+            <FormHeading>{{ $t('ui.inactiveStacks') }}</FormHeading>
+            <ff-loading v-if="loadingInactive" :message="$t('ui.loadingStacks')" />
             <ff-data-table
                 v-if="!loadingInactive"
                 data-el="inactive-stacks"
                 :columns="inactiveColumns"
                 :rows="inactiveStacks"
                 :show-search="true"
-                search-placeholder="Search by Stack Name..."
-                no-data-message="No Inactive Stacks Found"
+                :search-placeholder="$t('ui.searchByStackName')"
+                :no-data-message="$t('ui.noInactiveStacksFound')"
             >
                 <template #context-menu="{row}">
-                    <ff-kebab-item label="Create New Version" @click="stackAction('createNewVersion', row.id)" />
-                    <ff-kebab-item label="Edit Properties" @click="stackAction('editProperties', row.id)" />
-                    <ff-kebab-item label="Delete Stack" kind="danger" @click="stackAction('delete', row.id)" />
+                    <ff-kebab-item :label="$t('ui.createNewVersion')" @click="stackAction('createNewVersion', row.id)" />
+                    <ff-kebab-item :label="$t('ui.editProperties')" @click="stackAction('editProperties', row.id)" />
+                    <ff-kebab-item :label="$t('ui.deleteStack')" kind="danger" @click="stackAction('delete', row.id)" />
                 </template>
             </ff-data-table>
             <div v-if="nextInactiveCursor">
-                <a v-if="!loadingInactive" class="forge-button-inline" data-action="load-more-inactive" @click.stop="loadInactiveItems">Load more...</a>
+                <a v-if="!loadingInactive" class="forge-button-inline" data-action="load-more-inactive" @click.stop="loadInactiveItems">{{ $t('ui.loadMore') }}</a>
             </div>
         </div>
         <AdminStackEditDialog ref="adminStackEditDialog" @stack-created="stackCreated" @stack-updated="stackUpdated" />
@@ -65,6 +65,7 @@ import instanceTypesApi from '../../../api/instanceTypes.js'
 import stacksApi from '../../../api/stacks.js'
 
 import FormHeading from '../../../components/FormHeading.vue'
+import { t } from '../../../i18n.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -115,15 +116,15 @@ export default {
             nextActiveCursor: null,
             nextInactiveCursor: null,
             activeColumns: [
-                { label: 'Stack', key: 'name', component: { is: markRaw(StackName) } },
-                { label: 'Properties', component: { is: markRaw(StackPropertiesCell) } },
-                { label: 'Instance Count', key: 'instanceCount', class: ['w-32', 'text-center'] }
+                { label: t('ui.stack'), key: 'name', component: { is: markRaw(StackName) } },
+                { label: t('ui.properties'), component: { is: markRaw(StackPropertiesCell) } },
+                { label: t('ui.instanceCount'), key: 'instanceCount', class: ['w-32', 'text-center'] }
             ],
             inactiveColumns: [
-                { label: 'Stack', component: { is: markRaw(StackName) } },
-                { label: 'Properties', component: { is: markRaw(StackPropertiesCell) } },
-                { label: 'Replaced By', key: 'replacedBy', class: ['w-56'] },
-                { label: 'Instance Count', key: 'instanceCount', class: ['w-32', 'text-center'] }
+                { label: t('ui.stack'), component: { is: markRaw(StackName) } },
+                { label: t('ui.properties'), component: { is: markRaw(StackPropertiesCell) } },
+                { label: t('ui.replacedBy'), key: 'replacedBy', class: ['w-56'] },
+                { label: t('ui.instanceCount'), key: 'instanceCount', class: ['w-32', 'text-center'] }
             ]
         }
     },
@@ -157,7 +158,7 @@ export default {
                 case 'delete': {
                     const text = stack.instanceCount > 0 ? 'You cannot delete a stack that is still being used by instances.' : 'Are you sure you want to delete this stack?'
                     Dialog.show({
-                        header: 'Delete Stack',
+                        header: t('ui.deleteStack'),
                         kind: 'danger',
                         text,
                         confirmLabel: 'Delete',

@@ -1,19 +1,19 @@
 <template>
     <div class="tool-permissions" data-el="expert-tool-permissions">
         <p v-if="!inEditor" class="tool-permissions__notice">
-            Flow-building tools run in an instance editor. Open one to let the Expert use them; you can still set their permissions here.
+            {{ $t('ui.flowBuildingToolsRunInAnInstanceEditorOpenOneToL') }}
         </p>
         <p v-if="!canUseWriteTools" class="tool-permissions__notice">
-            Your role is read-only, so the Expert can use read-only tools but cannot run actions that change flows.
+            {{ $t('ui.yourRoleIsReadOnlySoTheExpertCanUseReadOnlyTools') }}
         </p>
 
         <section v-for="group in orderedGroups" :key="group.key" class="tool-permissions__section">
             <h4 class="tool-permissions__group-title">{{ group.title }}</h4>
 
             <div class="tool-permissions__block">
-                <p class="tool-permissions__subtitle">Default permissions</p>
+                <p class="tool-permissions__subtitle">{{ $t('ui.defaultPermissions') }}</p>
                 <p class="tool-permissions__intro">
-                    Choose what the Expert may do by default for each action type. A permission set on an individual tool below overrides its type default, and keeps that setting until you reset it.
+                    {{ $t('ui.chooseWhatTheExpertMayDoByDefaultForEachActionTy') }}
                 </p>
                 <ff-data-table :columns="defaultColumns" :show-search="false">
                     <template #rows>
@@ -29,7 +29,7 @@
                                     <span
                                         v-if="customCount(group, cls.key)"
                                         class="tool-permissions__count"
-                                    >{{ customCount(group, cls.key) }} set individually</span>
+                                    >{{ $t('ui.p0SetIndividually', { p0: customCount(group, cls.key) }) }}</span>
                                     <ff-button
                                         v-if="customCount(group, cls.key)"
                                         v-ff-tooltip:left="`Reset ${cls.label} tools in ${group.title} to this default`"
@@ -38,7 +38,7 @@
                                         class="tool-permissions__reset"
                                         @click="resetGroupClassPreferences(group.key, cls.key)"
                                     >
-                                        Reset
+                                        {{ $t('ui.reset') }}
                                     </ff-button>
                                     <ToggleButtonGroup
                                         class="tool-permissions__toggle"
@@ -55,7 +55,7 @@
                 </ff-data-table>
             </div>
 
-            <ff-accordion v-if="group.tools.length" label="Individual tools" :set-open="false">
+            <ff-accordion v-if="group.tools.length" :label="$t('ui.individualTools')" :set-open="false">
                 <template #content>
                     <ff-data-table :columns="toolColumns" :show-search="false">
                         <template #rows>
@@ -71,7 +71,7 @@
                                         <span v-if="sessionNoteFor(tool.activeKey)" class="tool-permissions__session">
                                             {{ sessionNoteFor(tool.activeKey) }}
                                             <ff-button kind="tertiary" size="small" @click="promoteSessionOverride(tool.activeKey)">
-                                                Make permanent
+                                                {{ $t('ui.makePermanent') }}
                                             </ff-button>
                                         </span>
                                     </div>
@@ -109,6 +109,7 @@ import { mapActions, mapState } from 'pinia'
 import SemVer from 'semver'
 
 import { hasAMinimumTeamRoleOf } from '../../../composables/Permissions.js'
+import { t } from '../../../i18n.js'
 import { Roles } from '../../../utils/roles.js'
 import Accordion from '../../Accordion.vue'
 import ToggleButtonGroup from '../../elements/ToggleButtonGroup.vue'
@@ -148,44 +149,44 @@ export default {
         },
         policyButtons () {
             return [
-                { title: 'Always allow', value: 'allow' },
-                { title: 'Ask', value: 'ask' },
-                { title: 'Always deny', value: 'deny' }
+                { title: t('ui.alwaysAllow'), value: 'allow' },
+                { title: t('ui.ask'), value: 'ask' },
+                { title: t('ui.alwaysDeny'), value: 'deny' }
             ]
         },
         defaultColumns () {
             return [
-                { label: 'Action', key: 'action' },
-                { label: 'Permission', key: 'permission', class: 'permission-col' }
+                { label: t('ui.action'), key: 'action' },
+                { label: t('ui.permission'), key: 'permission', class: 'permission-col' }
             ]
         },
         toolColumns () {
             return [
-                { label: 'Tool', key: 'tool', class: 'tool-col' },
-                { label: 'Type', key: 'type' },
-                { label: 'Permission', key: 'permission', class: 'permission-col' }
+                { label: t('ui.tool'), key: 'tool', class: 'tool-col' },
+                { label: t('ui.type'), key: 'type' },
+                { label: t('ui.permission'), key: 'permission', class: 'permission-col' }
             ]
         },
         // Class hints stay generic so they read correctly for both flow-building and
         // platform tools (each group has its own defaults).
         classDefaults () {
             return [
-                { key: 'read', label: 'Read', hint: 'View only, no changes' },
-                { key: 'write', label: 'Write', hint: 'Create or change resources' },
-                { key: 'delete', label: 'Delete', hint: 'Remove resources' }
+                { key: 'read', label: t('ui.read'), hint: 'View only, no changes' },
+                { key: 'write', label: t('ui.write'), hint: 'Create or change resources' },
+                { key: 'delete', label: t('ui.delete'), hint: 'Remove resources' }
             ]
         },
         // The two tool sections, ordered by where the user is (see isImmersive).
         orderedGroups () {
             const flow = {
                 key: TOOL_GROUPS.FLOW_BUILDING,
-                title: 'Flow Building Tools',
+                title: t('ui.flowBuildingTools'),
                 tools: this.groupTools(TOOL_GROUPS.FLOW_BUILDING),
                 empty: 'No flow-building tools available yet.'
             }
             const platform = {
                 key: TOOL_GROUPS.PLATFORM,
-                title: 'FlowFuse Platform Tools',
+                title: t('ui.flowfusePlatformTools'),
                 tools: this.groupTools(TOOL_GROUPS.PLATFORM),
                 empty: 'Individual platform tools appear here once they ship.'
             }

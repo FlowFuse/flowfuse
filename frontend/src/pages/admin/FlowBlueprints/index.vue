@@ -1,26 +1,26 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Flow Blueprints">
+            <ff-page-header :title="$t('ui.flowBlueprints')">
                 <template #tools>
                     <div class="tools">
                         <ff-button data-action="export-flow-blueprints" @click="exportFlowBlueprints">
                             <template #icon-right>
                                 <ArrowDownTrayIcon class="ff-icon" />
                             </template>
-                            Export
+                            {{ $t('ui.export') }}
                         </ff-button>
                         <ff-button data-action="import-flow-blueprints" @click="showImportFlowBlueprintsDialog()">
                             <template #icon-right>
                                 <ArrowUpTrayIcon class="ff-icon" />
                             </template>
-                            Import
+                            {{ $t('ui.import') }}
                         </ff-button>
                         <ff-button data-action="create-flow-blueprint" @click="showBlueprintForm()">
                             <template #icon-right>
                                 <PlusSmallIcon class="ff-icon" />
                             </template>
-                            Create Flow Blueprint
+                            {{ $t('ui.createFlowBlueprint') }}
                         </ff-button>
                     </div>
                 </template>
@@ -36,18 +36,18 @@
             />
         </div>
         <div v-if="nextCursor">
-            <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
+            <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">{{ $t('ui.loadMore') }}</a>
         </div>
         <div class="mt-6">
-            <SectionTopMenu hero="Inactive Blueprints" />
+            <SectionTopMenu :hero="$t('ui.inactiveBlueprints')" />
             <ff-data-table :columns="columns" :rows="inactiveFlowBlueprints" data-el="inactive-flow-blueprints">
                 <template #context-menu="{row}">
-                    <ff-kebab-item label="Edit Flow Blueprint" @click="showBlueprintForm(row)" />
-                    <ff-kebab-item label="Delete Flow Blueprint" kind="danger" @click="showDeleteBlueprint(row)" />
+                    <ff-kebab-item :label="$t('ui.editFlowBlueprint')" @click="showBlueprintForm(row)" />
+                    <ff-kebab-item :label="$t('ui.deleteFlowBlueprint')" kind="danger" @click="showDeleteBlueprint(row)" />
                 </template>
             </ff-data-table>
             <div v-if="nextCursor">
-                <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
+                <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">{{ $t('ui.loadMore') }}</a>
             </div>
         </div>
     </ff-page>
@@ -76,6 +76,7 @@ import BlueprintTile from '../../../components/blueprints/BlueprintTile.vue'
 import MarkdownCell from '../../../components/tables/cells/MarkdownCell.vue'
 import { downloadData } from '../../../composables/Download.js'
 import { dateToSlug } from '../../../composables/strings/String.js'
+import { t } from '../../../i18n.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -105,8 +106,8 @@ export default {
             nextCursor: null,
             columns: [
                 { label: 'ID', key: 'id', sortable: true, class: ['w-32'] },
-                { label: 'Name', key: 'name', sortable: true },
-                { label: 'Description', key: 'description', sortable: true, component: { is: markRaw(MarkdownCell), map: { markdown: 'description' } } }
+                { label: t('ui.name'), key: 'name', sortable: true },
+                { label: t('ui.description'), key: 'description', sortable: true, component: { is: markRaw(MarkdownCell), map: { markdown: 'description' } } }
             ]
         }
     },
@@ -150,7 +151,7 @@ export default {
         },
         showDeleteBlueprint (flowBlueprint) {
             Dialog.show({
-                header: 'Delete Flow Blueprint',
+                header: t('ui.deleteFlowBlueprint'),
                 kind: 'danger',
                 text: `Are you sure you want to delete the Flow Blueprint "${flowBlueprint.name}"?`,
                 confirmLabel: 'Delete'

@@ -1,9 +1,9 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Members" :tabs="navigation">
+            <ff-page-header :title="$t('ui.members')" :tabs="navigation">
                 <template #context>
-                    View and manage the members of your team.
+                    {{ $t('ui.viewAndManageTheMembersOfYourTeam') }}
                 </template>
             </ff-page-header>
         </template>
@@ -19,6 +19,8 @@ import { mapState } from 'pinia'
 
 import teamApi from '../../../api/team.js'
 import usePermissions from '../../../composables/Permissions.js'
+
+import { t } from '../../../i18n.js'
 
 import { useContextStore } from '@/stores/context.js'
 
@@ -47,7 +49,7 @@ export default {
     methods: {
         checkAccess: async function () {
             this.navigation = [
-                { label: 'Team Members', to: './general' }
+                { label: t('ui.teamMembers2'), to: './general' }
             ]
             if (this.hasPermission('team:user:invite')) {
                 const invitations = await teamApi.getTeamInvitations(this.team.id)

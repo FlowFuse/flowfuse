@@ -3,7 +3,7 @@
         <div class="max-w-3xl">
             <form class="flex gap-9 flex-wrap" @submit.prevent="onSubmit">
                 <section class="server space-y-3 max-w-lg min-w-min flex-1">
-                    <h6 class="mb-5 pb-2 title">Server</h6>
+                    <h6 class="mb-5 pb-2 title">{{ $t('ui.server') }}</h6>
                     <FormRow
                         v-model="form.name"
                         :error="formErrors.name"
@@ -14,7 +14,7 @@
                         data-input="name"
                     >
                         <template #default>
-                            Name
+                            {{ $t('ui.name') }}
                         </template>
                     </FormRow>
 
@@ -29,7 +29,7 @@
                             data-input="host"
                         >
                             <template #default>
-                                Host
+                                {{ $t('ui.host') }}
                             </template>
                         </FormRow>
 
@@ -43,31 +43,31 @@
                             data-input="port"
                         >
                             <template #default>
-                                Port
+                                {{ $t('ui.port') }}
                             </template>
                         </FormRow>
                     </div>
 
                     <div class="flex gap-3 md:flex-nowrap flex-wrap">
                         <div class="form-row flex flex-col protocol flex-1">
-                            <label for="protocol" class="text-gray-800 block text-sm font-medium mb-1">Protocol</label>
+                            <label for="protocol" class="text-gray-800 block text-sm font-medium mb-1">{{ $t('ui.protocol') }}</label>
                             <ff-listbox id="protocol" v-model="form.protocol" :options="protocolOptions" selector="protocol" />
                         </div>
 
                         <div class="form-row flex flex-col protocolVersion flex-1">
-                            <label for="protocolVersion" class="text-gray-800 block text-sm font-medium mb-1">Protocol Version</label>
+                            <label for="protocolVersion" class="text-gray-800 block text-sm font-medium mb-1">{{ $t('ui.protocolVersion') }}</label>
                             <ff-listbox id="protocolVersion" v-model="form.protocolVersion" :options="protocolVersionOptions" selector="protocolVersion" />
                         </div>
                     </div>
 
                     <div class="flex gap-3 md:flex-nowrap flex-wrap">
                         <div class="form-row flex flex-col flex-1 ssl">
-                            <label for="ssl" class="text-gray-800 block text-sm font-medium mb-1">SSL</label>
+                            <label for="ssl" class="text-gray-800 block text-sm font-medium mb-1">{{ $t('ui.ssl') }}</label>
                             <ff-listbox id="ssl" v-model="form.ssl" :options="booleanOptions" selector="ssl" />
                         </div>
 
                         <div class="form-row flex flex-col flex-1 verifySSL">
-                            <label for="verifySSL" class="text-gray-800 block text-sm font-medium mb-1">Verify SSL</label>
+                            <label for="verifySSL" class="text-gray-800 block text-sm font-medium mb-1">{{ $t('ui.verifySsl') }}</label>
                             <ff-listbox id="verifySSL" v-model="form.verifySSL" :options="booleanOptions" selector="verifySSL" />
                         </div>
                     </div>
@@ -83,47 +83,47 @@
                             data-input="topicPrefix"
                         >
                             <template #default>
-                                Topic Wildcard
+                                {{ $t('ui.topicWildcard') }}
                             </template>
                         </FormRow>
                     </div>
                 </section>
 
                 <section class="credentials space-y-3 flex-1 max-w-sm">
-                    <h6 class="mb-5 pb-2 title">Credentials</h6>
+                    <h6 class="mb-5 pb-2 title">{{ $t('ui.credentials') }}</h6>
 
                     <FormRow v-model="form.clientId" type="input" name="clientId" class="clientId" data-input="clientId">
                         <template #default>
-                            ClientID
+                            {{ $t('ui.clientid') }}
                         </template>
                     </FormRow>
 
                     <FormRow v-model="form.credentials.username" type="input" name="username" class="username" data-input="username">
                         <template #default>
-                            Username
+                            {{ $t('ui.username') }}
                         </template>
                     </FormRow>
 
                     <FormRow v-model="form.credentials.password" type="password" name="password" class="password" data-input="password">
                         <template #default>
-                            Password
+                            {{ $t('ui.password') }}
                         </template>
                     </FormRow>
                 </section>
             </form>
             <div class="my-6 flex gap-3 justify-end max-w-full lg:max-w-3xl">
                 <ff-button v-if="hasBackButton" kind="tertiary" data-action="back" @click="$router.back()">
-                    Cancel
+                    {{ $t('ui.cancel') }}
                 </ff-button>
                 <ff-button
                     v-if="hasDeleteButton" kind="tertiary" class="ff-btn--tertiary-danger"
                     data-action="delete"
                     @click="$emit('delete')"
                 >
-                    Delete
+                    {{ $t('ui.delete') }}
                 </ff-button>
                 <ff-button kind="secondary" data-action="submit" :disabled="!isFormValid" @click="onSubmit">
-                    Submit
+                    {{ $t('ui.submit') }}
                 </ff-button>
             </div>
         </div>
@@ -133,6 +133,7 @@
 <script>
 
 import FormRow from '../../../../components/FormRow.vue'
+import { t } from '../../../../i18n.js'
 import FfButton from '../../../../ui-components/components/Button.vue'
 import FfListbox from '../../../../ui-components/components/form/ListBox.vue'
 
@@ -178,7 +179,7 @@ export default {
             },
             protocolOptions: [
                 {
-                    label: 'MQTT',
+                    label: t('ui.mqtt'),
                     value: 'mqtt:'
                 },
                 {
@@ -202,7 +203,7 @@ export default {
             ],
             booleanOptions: [
                 {
-                    label: 'Yes',
+                    label: t('ui.yes'),
                     value: 'true'
                 },
                 {
@@ -232,7 +233,7 @@ export default {
             }
 
             if (this.form.host.length === 0) {
-                errors.host = 'Host is mandatory'
+                errors.host = t('ui.hostIsMandatory')
             } else if (this.form.host === 'test.mosquitto.org') {
                 errors.host = 'test.mosquitto.org is not allowed'
             }

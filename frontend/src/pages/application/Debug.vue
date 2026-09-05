@@ -1,5 +1,5 @@
 <template>
-    <p class="mb-4 italic text-red-800">This is a temporary view that displays the raw application object.</p>
+    <p class="mb-4 italic text-red-800">{{ $t('ui.thisIsATemporaryViewThatDisplaysTheRawApplicatio') }}</p>
     <pre class="overflow-x-scroll">{{ application }}</pre>
 </template>
 

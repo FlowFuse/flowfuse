@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col items-center">
-        <h2>An MCP agent is requesting access to your account</h2>
+        <h2>{{ $t('ui.anMcpAgentIsRequestingAccessToYourAccount') }}</h2>
         <div v-if="user" class="flex flex-row justify-center my-4">
             <div class="flex items-center">
                 <CommandLineIcon class="w-12" />
@@ -17,11 +17,11 @@
             <!-- Access Level -->
             <div>
                 <p class="text-gray-500 text-sm mb-2">
-                    Choose whether the agent can make changes or only read data.
+                    {{ $t('ui.chooseWhetherTheAgentCanMakeChangesOrOnlyReadDat') }}
                 </p>
                 <ff-radio-group
                     v-model="accessLevel"
-                    label="Access Level"
+                    :label="$t('ui.accessLevel')"
                     orientation="vertical"
                     :options="accessLevelOptions"
                 />
@@ -30,11 +30,11 @@
             <!-- Team Scope -->
             <div>
                 <p class="text-gray-500 text-sm mb-2">
-                    Limit the agent to specific teams, or grant access to all teams you belong to.
+                    {{ $t('ui.limitTheAgentToSpecificTeamsOrGrantAccessToAllTe') }}
                 </p>
                 <ff-radio-group
                     v-model="teamScope"
-                    label="Team Access"
+                    :label="$t('ui.teamAccess')"
                     orientation="vertical"
                     :options="teamScopeOptions"
                 />
@@ -48,7 +48,7 @@
                     />
                 </div>
                 <div v-if="teamScope === 'specific' && selectedTeamIds.length === 0" class="mt-2 ml-6 text-sm text-yellow-600">
-                    Select at least one team.
+                    {{ $t('ui.selectAtLeastOneTeam') }}
                 </div>
             </div>
         </div>
@@ -56,8 +56,8 @@
         <div v-if="error" class="text-red-600 text-sm mb-4">{{ error }}</div>
 
         <div class="ff-actions flex flex-row">
-            <ff-button class="mx-8" data-action="deny-access" @click="denyAccess">Deny</ff-button>
-            <ff-button class="mx-8" data-action="allow-access" :disabled="disableAllow" @click="allowAccess">Allow</ff-button>
+            <ff-button class="mx-8" data-action="deny-access" @click="denyAccess">{{ $t('ui.deny') }}</ff-button>
+            <ff-button class="mx-8" data-action="allow-access" :disabled="disableAllow" @click="allowAccess">{{ $t('ui.allow') }}</ff-button>
         </div>
     </div>
 </template>
@@ -65,6 +65,8 @@
 <script>
 import { ArrowSmallLeftIcon, ArrowSmallRightIcon, CommandLineIcon, KeyIcon } from '@heroicons/vue/20/solid'
 import { mapState } from 'pinia'
+
+import { t } from '../../i18n.js'
 
 import client from '@/api/client.ts'
 import teamApi from '@/api/team.ts'
@@ -87,12 +89,12 @@ export default {
             submitting: false,
             error: null,
             accessLevelOptions: [
-                { label: 'Full access', value: 'full', description: 'Read and write operations' },
-                { label: 'Read-only', value: 'readonly', description: 'Read operations only' }
+                { label: t('ui.fullAccess'), value: 'full', description: t('ui.readAndWriteOperations') },
+                { label: t('ui.readOnly2'), value: 'readonly', description: t('ui.readOperationsOnly') }
             ],
             teamScopeOptions: [
-                { label: 'All teams', value: 'all', description: 'Access all teams you belong to' },
-                { label: 'Specific teams', value: 'specific', description: 'Choose which teams to grant access to' }
+                { label: t('ui.allTeams'), value: 'all', description: t('ui.accessAllTeamsYouBelongTo') },
+                { label: t('ui.specificTeams'), value: 'specific', description: t('ui.chooseWhichTeamsToGrantAccessTo') }
             ]
         }
     },

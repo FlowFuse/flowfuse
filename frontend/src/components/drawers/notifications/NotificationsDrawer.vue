@@ -1,10 +1,10 @@
 <template>
     <div class="ff-notifications-drawer" data-el="notifications-drawer">
         <div class="header">
-            <h2 class="title">Notifications</h2>
+            <h2 class="title">{{ $t('ui.notifications') }}</h2>
             <div class="header-actions">
                 <ff-checkbox v-model="hideReadNotifications" data-action="show-read-check">
-                    Hide Read
+                    {{ $t('ui.hideRead') }}
                 </ff-checkbox>
                 <button
                     class="header-button"
@@ -24,7 +24,7 @@
                     data-action="select-all"
                     @click="selectAll"
                 >
-                    select all
+                    {{ $t('ui.selectAll') }}
                 </span>
                 <span
                     class="forge-badge"
@@ -32,7 +32,7 @@
                     data-action="deselect-all"
                     @click="deselectAll"
                 >
-                    deselect all
+                    {{ $t('ui.deselectAll') }}
                 </span>
                 <span
                     class="forge-badge"
@@ -40,7 +40,7 @@
                     data-action="mark-as-read"
                     @click="bulkNotificationAction(true)"
                 >
-                    mark as read
+                    {{ $t('ui.markAsRead') }}
                 </span>
                 <span
                     class="forge-badge"
@@ -48,7 +48,7 @@
                     data-action="mark-as-unread"
                     @click="bulkNotificationAction(false)"
                 >
-                    mark as unread
+                    {{ $t('ui.markAsUnread') }}
                 </span>
             </div>
         </div>
@@ -64,10 +64,10 @@
             </li>
         </ul>
         <div v-else-if="hideReadNotifications" class="empty">
-            <p>No unread notifications...</p>
+            <p>{{ $t('ui.noUnreadNotifications') }}</p>
         </div>
         <div v-else class="empty">
-            <p>No notifications...</p>
+            <p>{{ $t('ui.noNotifications') }}</p>
         </div>
     </div>
 </template>
@@ -79,6 +79,7 @@ import { markRaw } from 'vue'
 
 import userAPI from '../../../api/user.js'
 
+import { t } from '../../../i18n.js'
 import alerts from '../../../services/alerts.js'
 import GenericNotification from '../../notifications/Generic.vue'
 
@@ -169,7 +170,7 @@ export default {
         bulkNotificationAction (markAsRead = true) {
             userAPI.markNotificationsBulk(this.selections.map(n => n.id), { read: markAsRead })
                 .then(response => this.setNotifications(response.notifications))
-                .catch(() => alerts.emit('Whoops! Something went wrong.', 'warning'))
+                .catch(() => alerts.emit(t('ui.whoopsSomethingWentWrong'), 'warning'))
                 .finally(() => {
                     this.selections = []
                 })

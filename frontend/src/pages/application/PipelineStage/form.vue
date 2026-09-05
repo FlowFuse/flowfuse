@@ -1,11 +1,11 @@
 <template>
     <ff-loading
         v-if="loading.create"
-        message="Creating Pipeline Stage..."
+        :message="$t('ui.creatingPipelineStage')"
     />
     <ff-loading
         v-else-if="loading.update"
-        message="Updating Pipeline Stage..."
+        :message="$t('ui.updatingPipelineStage')"
     />
     <form
         class="space-y-6"
@@ -17,51 +17,47 @@
 
         <!-- Form Description -->
         <div class="mb-8 text-sm text-gray-500">
-            <template v-if="isEdit">
-                Update existing pipeline stage from {{ pipeline?.name }}.
-            </template>
-            <template v-else>
-                Create a new pipeline stage for {{ pipeline?.name }}.
-            </template>
+            <template v-if="isEdit">{{ $t('ui.updateExistingPipelineStageFromP0', { p0: pipeline?.name }) }}</template>
+            <template v-else>{{ $t('ui.createANewPipelineStageForP0', { p0: pipeline?.name }) }}</template>
         </div>
 
         <div>
-            <label class="w-full block text-sm font-medium text-gray-700 mb-2">Stage Type</label>
+            <label class="w-full block text-sm font-medium text-gray-700 mb-2">{{ $t('ui.stageType') }}</label>
             <ff-tile-selection v-model="input.stageType" data-form="stage-type">
                 <ff-tile-selection-option
-                    label="Hosted Instance"
+                    :label="$t('ui.hostedInstance')"
                     :value="StageType.INSTANCE"
                     description=""
                     color="#8F0000"
                     :disabled="!allowInstanceSelection"
-                    disabledTooltip="Cannot add Hosted Instance after a device group"
+                    :disabledTooltip="$t('ui.cannotAddHostedInstanceAfterADeviceGroup')"
                 >
                     <template #icon><IconNodeRedSolid /></template>
                 </ff-tile-selection-option>
                 <ff-tile-selection-option
-                    label="Remote Instance"
+                    :label="$t('ui.remoteInstance')"
                     :value="StageType.DEVICE"
                     description=""
                     color="var(--ff-palette-teal-700)"
                     :disabled="!allowInstanceSelection"
-                    disabledTooltip="Cannot add Remote Instance after a device group"
+                    :disabledTooltip="$t('ui.cannotAddRemoteInstanceAfterADeviceGroup')"
                 >
                     <template #icon><IconDeviceSolid /></template>
                 </ff-tile-selection-option>
                 <ff-tile-selection-option
                     v-if="deviceGroupsEnabled"
-                    label="Device Group"
+                    :label="$t('ui.deviceGroup2')"
                     :value="StageType.DEVICEGROUP"
                     description=""
                     color="var(--ff-palette-teal-700)"
                     :disabled="isFirstStage || !allowDeviceGroupSelection"
-                    disabledTooltip="Device Groups cannot be the first stage or proceed non Device Group stages"
+                    :disabledTooltip="$t('ui.deviceGroupsCannotBeTheFirstStageOrProceedNonDev')"
                 >
                     <template #icon><IconDeviceGroupSolid /></template>
                 </ff-tile-selection-option>
                 <ff-tile-selection-option
                     v-if="gitReposEnabled"
-                    label="Git Repository"
+                    :label="$t('ui.gitRepository2')"
                     :value="StageType.GITREPO"
                     description=""
                     color="#e46133"
@@ -76,10 +72,10 @@
             v-model="input.name"
             type="text"
             data-form="stage-name"
-            placeholder="e.g. Development, Staging, Production"
+            :placeholder="$t('ui.eGDevelopmentStagingProduction')"
         >
             <template #default>
-                Stage Name
+                {{ $t('ui.stageName') }}
             </template>
         </FormRow>
 
@@ -87,7 +83,7 @@
         <div class="flex space-x-4">
             <form-row v-if="input.stageType === StageType.INSTANCE" container-class="w-full" data-form="stage-instance">
                 <template #default>
-                    Choose Hosted Instance
+                    {{ $t('ui.chooseHostedInstance') }}
                 </template>
                 <template #input>
                     <ff-combobox
@@ -95,7 +91,7 @@
                         class="w-full grow max-w-sm ff-combobox"
                         :options="instanceOptions"
                         :disabled="instanceDropdownDisabled"
-                        placeholder="Choose Instance"
+                        :placeholder="$t('ui.chooseInstance')"
                     />
                 </template>
             </form-row>
@@ -106,7 +102,7 @@
                 data-form="stage-device"
             >
                 <template #default>
-                    Choose Remote Instance
+                    {{ $t('ui.chooseRemoteInstance') }}
                 </template>
                 <template #input>
                     <ff-combobox
@@ -114,7 +110,7 @@
                         class="w-full grow max-w-sm ff-combobox"
                         :options="deviceOptions"
                         :disabled="deviceDropdownDisabled"
-                        placeholder="Choose Remote Instance"
+                        :placeholder="$t('ui.chooseRemoteInstance')"
                     />
                 </template>
             </form-row>
@@ -130,7 +126,7 @@
                 class="grow"
             >
                 <template #default>
-                    Choose Device Group
+                    {{ $t('ui.chooseDeviceGroup') }}
                 </template>
             </FormRow>
             <div v-else-if="input.stageType === StageType.GITREPO" class="w-full space-y-4">
@@ -141,10 +137,10 @@
                     class="grow"
                 >
                     <template #default>
-                        Choose Git Token
+                        {{ $t('ui.chooseGitToken') }}
                     </template>
                     <template #description>
-                        This token is used to authenticate with your Git provider. To manage your tokens, go to <strong>Team Settings -> Integrations</strong>.
+                        {{ $t('ui.thisTokenIsUsedToAuthenticateWithYourGitProvider') }} <strong>Team Settings -> {{ $t('ui.integrations') }}</strong>.
                     </template>
                 </FormRow>
                 <FormRow
@@ -155,10 +151,10 @@
                     :placeholder="gitPlaceholder"
                 >
                     <template #default>
-                        Repository URL
+                        {{ $t('ui.repositoryUrl') }}
                     </template>
                     <template #description>
-                        Supports GitHub, Azure DevOps, and any HTTPS Git server (GitLab, Bitbucket, self-hosted).
+                        {{ $t('ui.supportsGithubAzureDevopsAndAnyHttpsGitServerGit') }}
                     </template>
                 </FormRow>
                 <FormRow
@@ -169,23 +165,23 @@
                     :placeholder="isFirstStage ? 'e.g. snapshot.json' : 'Generate filename from source stage'"
                 >
                     <template #default>
-                        Snapshot Filename
+                        {{ $t('ui.snapshotFilename') }}
                     </template>
                     <template #description>
-                        The filename to use for the snapshot. <span v-if="!isFirstStage">If left blank, the name will be generated from the source stage when pushing to the repository.</span>
+                        {{ $t('ui.theFilenameToUseForTheSnapshot') }} <span v-if="!isFirstStage">{{ $t('ui.ifLeftBlankTheNameWillBeGeneratedFromTheSourceSt') }}</span>
                     </template>
                 </FormRow>
                 <FormRow
                     v-model="input.branch"
                     type="text"
                     data-form="stage-repo-branch"
-                    placeholder="default: main"
+                    :placeholder="$t('ui.defaultMain')"
                 >
                     <template #default>
-                        Push Branch
+                        {{ $t('ui.pushBranch') }}
                     </template>
                     <template #description>
-                        The branch to push snapshots to. The branch must already exist on the repository.
+                        {{ $t('ui.theBranchToPushSnapshotsToTheBranchMustAlreadyEx') }}
                     </template>
                 </FormRow>
                 <FormRow
@@ -195,10 +191,10 @@
                     :placeholder="'default: ' + (input.branch || 'main')"
                 >
                     <template #default>
-                        Pull Branch
+                        {{ $t('ui.pullBranch') }}
                     </template>
                     <template #description>
-                        The branch to pull snapshots from. If not set it will use the Push Branch. The branch must already exist on the repository.
+                        {{ $t('ui.theBranchToPullSnapshotsFromIfNotSetItWillUseThe') }}
                     </template>
                 </FormRow>
                 <FormRow
@@ -207,15 +203,14 @@
                     data-form="stage-repo-password"
                 >
                     <template #default>
-                        Flow Credentials Key
+                        {{ $t('ui.flowCredentialsKey') }}
                     </template>
                     <template #description>
-                        This is a secret token used to encrypt flow credentials when pushed to the repository. You will need to provide
-                        this key when importing the snapshot into another instance.
+                        {{ $t('ui.thisIsASecretTokenUsedToEncryptFlowCredentialsWh') }}
                     </template>
                 </FormRow>
             </div>
-            <div v-else class="text-sm text-gray-500">Please select a stage type</div>
+            <div v-else class="text-sm text-gray-500">{{ $t('ui.pleaseSelectAStageType') }}</div>
 
             <div
                 v-if="input.deviceGroupId === 'new'"
@@ -225,17 +220,17 @@
                     v-model="newDeviceGroupInput.name"
                     type="text"
                     data-form="stage-device-group-name"
-                    placeholder="e.g. Development, Staging, Production"
+                    :placeholder="$t('ui.eGDevelopmentStagingProduction')"
                     :required="input.deviceGroupId === 'new'"
                 >
-                    Group Name
+                    {{ $t('ui.groupName') }}
                 </FormRow>
                 <FormRow
                     v-model="newDeviceGroupInput.description"
                     type="text"
                     data-form="stage-device-group-description"
                 >
-                    Group Description
+                    {{ $t('ui.groupDescription') }}
                 </FormRow>
             </div>
         </div>
@@ -246,53 +241,53 @@
             v-model="input.action"
             :options="actionOptions"
             data-form="stage-action"
-            placeholder="Select Action"
+            :placeholder="$t('ui.selectAction')"
         >
             <template #default>
-                Select Action
+                {{ $t('ui.selectAction') }}
                 <InformationCircleIcon class="ff-icon ff-icon-sm text-gray-800 cursor-pointer hover:text-blue-700" @click="$refs['help-dialog'].show()" />
             </template>
             <template #description>
-                When this stage is pushed to the next, which action will be performed?
+                {{ $t('ui.whenThisStageIsPushedToTheNextWhichActionWillBeP') }}
             </template>
         </FormRow>
 
-        <ff-dialog v-if="input.stageType !== StageType.DEVICEGROUP" ref="help-dialog" class="ff-dialog-box--info" header="Snapshot Actions">
+        <ff-dialog v-if="input.stageType !== StageType.DEVICEGROUP" ref="help-dialog" class="ff-dialog-box--info" :header="$t('ui.snapshotActions')">
             <template #default>
                 <div class="flex gap-8">
                     <slot name="pictogram"><img src="../../../images/pictograms/snapshot_red.png"></slot>
                     <div v-if="input.stageType === StageType.INSTANCE">
                         <p>
-                            When an instance Pipeline stage type is triggered an Instance Snapshot is deployed to the next stage. You can configure how this stage picks what snapshot to deploy.
+                            {{ $t('ui.whenAnInstancePipelineStageTypeIsTriggeredAnInst') }}
                         </p>
                         <p>
-                            <b>Create New Snapshot:</b> Creates a new snapshot using the current flows and settings.
+                            <b>{{ $t('ui.createNewSnapshot2') }}</b> {{ $t('ui.createsANewSnapshotUsingTheCurrentFlowsAndSettin') }}
                         </p>
                         <p>
-                            <b>Use Latest Instance Snapshot:</b> Uses the most recent existing snapshot of the instance. The deploy will fail if no snapshot exists.
+                            <b>{{ $t('ui.useLatestInstanceSnapshot') }}</b> {{ $t('ui.usesTheMostRecentExistingSnapshotOfTheInstanceTh') }}
                         </p>
                         <p>
-                            <b>Prompt to Select Snapshot:</b> Will ask at deploy time, which snapshot from the source stage should be copied to the next stage.
+                            <b>{{ $t('ui.promptToSelectSnapshot') }}</b> {{ $t('ui.willAskAtDeployTimeWhichSnapshotFromTheSourceSta') }}
                         </p>
                     </div>
                     <div v-else-if="input.stageType === StageType.DEVICE">
                         <p>
-                            When a device Pipeline stage type is triggered an Device Snapshot is deployed to the next stage. You can configure how this stage picks what snapshot to deploy.
+                            {{ $t('ui.whenADevicePipelineStageTypeIsTriggeredAnDeviceS') }}
                         </p>
                         <p>
-                            <b>Use Active Snapshot:</b> Will use the snapshot currently active on the device. The deploy will fail if there is no active snapshot.
+                            <b>{{ $t('ui.useActiveSnapshot2') }}</b> {{ $t('ui.willUseTheSnapshotCurrentlyActiveOnTheDeviceTheD') }}
                         </p>
                         <p>
-                            <b>Use Latest Device Snapshot:</b> Uses the most recent snapshot created from the device. The deploy will fail if no snapshot exists.
+                            <b>{{ $t('ui.useLatestDeviceSnapshot') }}</b> {{ $t('ui.usesTheMostRecentSnapshotCreatedFromTheDeviceThe') }}
                         </p>
                         <p>
-                            <b>Prompt to Select Snapshot:</b> Will ask at deploy time, which snapshot from the source stage should be copied to the next stage.
+                            <b>{{ $t('ui.promptToSelectSnapshot') }}</b> {{ $t('ui.willAskAtDeployTimeWhichSnapshotFromTheSourceSta') }}
                         </p>
                     </div>
                 </div>
             </template>
             <template #actions>
-                <ff-button @click="$refs['help-dialog'].close()">Close</ff-button>
+                <ff-button @click="$refs['help-dialog'].close()">{{ $t('ui.close') }}</ff-button>
             </template>
         </ff-dialog>
 
@@ -305,13 +300,13 @@
             :disabled="!input.instanceId || !sourceStage"
             class="max-w-md"
         >
-            Deploy to Devices
+            {{ $t('ui.deployToDevices') }}
             <template v-if="!sourceStage">- Not available for first stage in pipeline</template>
             <template v-else-if="!input.instanceId">
-                - Only available when an instance is selected
+                {{ $t('ui.onlyAvailableWhenAnInstanceIsSelected') }}
             </template>
             <template #description>
-                When this stage is deployed to changes will also be be deployed to all devices connected to this stages instance.
+                {{ $t('ui.whenThisStageIsDeployedToChangesWillAlsoBeBeDepl') }}
             </template>
         </FormRow>
 
@@ -320,7 +315,7 @@
                 class="ff-btn--secondary"
                 @click="$router.back()"
             >
-                Cancel
+                {{ $t('ui.cancel') }}
             </ff-button>
 
             <ff-button
@@ -329,10 +324,10 @@
                 type="submit"
             >
                 <span v-if="isEdit">
-                    Update Stage
+                    {{ $t('ui.updateStage') }}
                 </span>
                 <span v-else>
-                    Add Stage
+                    {{ $t('ui.addStage') }}
                 </span>
             </ff-button>
         </div>
@@ -354,6 +349,8 @@ import IconDeviceGroupSolid from '../../../components/icons/DeviceGroupSolid.js'
 import IconDeviceSolid from '../../../components/icons/DeviceSolid.js'
 import IconGit from '../../../components/icons/Git.js'
 import IconNodeRedSolid from '../../../components/icons/NodeRedSolid.js'
+
+import { t } from '../../../i18n.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
@@ -646,12 +643,12 @@ export default {
             ]
 
             if (this.input.stageType === StageType.INSTANCE) {
-                options.unshift({ value: StageAction.CREATE_SNAPSHOT, label: 'Create new instance snapshot' })
+                options.unshift({ value: StageAction.CREATE_SNAPSHOT, label: t('ui.createNewInstanceSnapshot') })
             } else if (this.input.stageType === StageType.DEVICE) {
-                options.unshift({ value: StageAction.USE_ACTIVE_SNAPSHOT, label: 'Use active snapshot' })
+                options.unshift({ value: StageAction.USE_ACTIVE_SNAPSHOT, label: t('ui.useActiveSnapshot') })
             }
             if (!this.isFirstStage && this.isLastStage) {
-                options.unshift({ value: StageAction.NONE, label: 'Do nothing' })
+                options.unshift({ value: StageAction.NONE, label: t('ui.doNothing') })
             }
 
             return options
@@ -690,7 +687,7 @@ export default {
         },
         'input.pushPath' (newPushPath, oldPushPath) {
             if (newPushPath === '' && this.isFirstStage) {
-                this.errors.pushPath = 'Please enter a valid filename'
+                this.errors.pushPath = t('ui.pleaseEnterAValidFilename')
             } else {
                 this.errors.pushPath = ''
             }

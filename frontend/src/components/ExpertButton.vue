@@ -9,7 +9,7 @@
                 @click="onExpertClick"
             >
                 <img src="/ff-minimal-red.svg" alt="FlowFuse" class="w-5 h-5 -ml-1 mr-0.5 shrink-0">
-                <span>Expert</span>
+                <span>{{ $t('ui.expert') }}</span>
             </button>
             <button
                 v-if="showMcpToggle"
@@ -29,6 +29,8 @@
 
 <script>
 import { mapActions, mapState } from 'pinia'
+
+import { t } from '../i18n.js'
 
 import McpIcon from './icons/McpIcon.js'
 
@@ -93,7 +95,7 @@ export default {
             // twice. Only the call that actually closed it speaks, so the second toggle
             // cannot report the same switch again.
             if (await this.disableMcp()) {
-                alerts.emit('MCP session closed due to team switch.', 'info')
+                alerts.emit(t('ui.mcpSessionClosedDueToTeamSwitch'), 'info')
             }
         }
     },
@@ -117,11 +119,11 @@ export default {
             if (!this.team) return
             this.enableMcp(this.team)
             // Not a confirmation: nothing is targeting it yet, which is what the amber says
-            alerts.emit('MCP session exposed. Third-party agents can now target this tab.', 'info')
+            alerts.emit(t('ui.mcpSessionExposedThirdPartyAgentsCanNowTargetThi'), 'info')
         },
         async stopMcp () {
             if (await this.disableMcp()) {
-                alerts.emit('MCP session closed.', 'info')
+                alerts.emit(t('ui.mcpSessionClosed'), 'info')
             }
         }
     }

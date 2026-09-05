@@ -8,7 +8,7 @@
         <slot name="default">
             <div>
                 {{ message }}.
-                <span v-if="!onlyCustomMessage">Please <a class="ff-link" href="https://flowfuse.com/docs/upgrade/open-source-to-premium/" target="_blank" rel="noopener noreferrer">upgrade</a> your instance of FlowFuse in order to use it.</span>
+                <span v-if="!onlyCustomMessage">{{ $t('ui.please') }} <a class="ff-link" href="https://flowfuse.com/docs/upgrade/open-source-to-premium/" target="_blank" rel="noopener noreferrer">{{ $t('ui.upgrade2') }}</a> {{ $t('ui.yourInstanceOfFlowfuseInOrderToUseIt') }}</span>
             </div>
         </slot>
         <SparklesIcon class="ff-icon ml-2" style="stroke-width: 1px;" />
@@ -18,6 +18,8 @@
 <script>
 import { SparklesIcon } from '@heroicons/vue/24/outline'
 
+import { t } from '../../i18n.js'
+
 export default {
     name: 'FeatureUnavailable',
     components: {
@@ -26,7 +28,7 @@ export default {
     props: {
         message: {
             type: String,
-            default: 'This feature is not available with your current license'
+            default: t('ui.thisFeatureIsNotAvailableWithYourCurrentLicense')
         },
         minimal: {
             type: Boolean,

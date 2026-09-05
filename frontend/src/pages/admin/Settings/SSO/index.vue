@@ -1,5 +1,5 @@
 <template>
-    <FormHeading>SSO Configurations</FormHeading>
+    <FormHeading>{{ $t('ui.ssoConfigurations') }}</FormHeading>
     <ff-data-table
         data-el="sso-providers"
         :columns="providerColumns"
@@ -13,12 +13,12 @@
                 <template #icon-right>
                     <PlusSmallIcon />
                 </template>
-                Create SSO Configuration
+                {{ $t('ui.createSsoConfiguration') }}
             </ff-button>
         </template>
         <template #context-menu="{row}">
-            <ff-kebab-item label="Edit" @click.stop="providerSelected(row)" />
-            <ff-kebab-item label="Delete" kind="danger" @click.stop="deleteProvider(row)" />
+            <ff-kebab-item :label="$t('ui.edit')" @click.stop="providerSelected(row)" />
+            <ff-kebab-item :label="$t('ui.delete')" kind="danger" @click.stop="deleteProvider(row)" />
         </template>
     </ff-data-table>
 </template>
@@ -30,6 +30,7 @@ import { mapState } from 'pinia'
 import ssoApi from '../../../../api/sso.js'
 import FormHeading from '../../../../components/FormHeading.vue'
 
+import { t } from '../../../../i18n.js'
 import Alerts from '../../../../services/alerts.js'
 import Dialog from '../../../../services/dialog.js'
 
@@ -52,10 +53,10 @@ export default {
         ...mapState(useAccountSettingsStore, ['features']),
         providerColumns () {
             return [
-                { label: 'Active', key: 'active', class: ['w-16'] },
-                { label: 'Type', key: 'type', class: ['w-16'] },
-                { label: 'Configuration Name', key: 'name' },
-                { label: 'Email Domain', key: 'domainFilter' }
+                { label: t('ui.active'), key: 'active', class: ['w-16'] },
+                { label: t('ui.type'), key: 'type', class: ['w-16'] },
+                { label: t('ui.configurationName'), key: 'name' },
+                { label: t('ui.emailDomain'), key: 'domainFilter' }
             ]
         }
     },
@@ -86,9 +87,9 @@ export default {
         },
         deleteProvider: function (provider) {
             Dialog.show({
-                header: 'Delete SSO Provider',
+                header: t('ui.deleteSsoProvider'),
                 kind: 'danger',
-                text: 'Are you sure you want to delete this SSO configuration? Any users with a matching email domain will no longer be able to login using SSO and will have to reset their FlowFuse password to continue.',
+                text: t('ui.areYouSureYouWantToDeleteThisSsoConfigurationAny'),
                 confirmLabel: 'Delete'
             }, async () => {
                 ssoApi.deleteProvider(provider.id)

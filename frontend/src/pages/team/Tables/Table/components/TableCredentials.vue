@@ -3,30 +3,30 @@
         <section class="database flex-1">
             <div class="title">
                 <CircleStackIcon class="ff-icon ff-icon-sm" />
-                <h3>Database Details</h3>
+                <h3>{{ $t('ui.databaseDetails') }}</h3>
             </div>
             <div class="database-details">
                 <dl>
                     <div class="flex item">
-                        <dt>Database ID:</dt>
+                        <dt>{{ $t('ui.databaseId') }}</dt>
                         <dd>
                             <text-copier :text="database.credentials.database" class="ff-text-copier" />
                         </dd>
                     </div>
                     <div class="flex item">
-                        <dt>Host:</dt>
+                        <dt>{{ $t('ui.host2') }}</dt>
                         <dd>
                             <text-copier :text="database.credentials.host" class="ff-text-copier" />
                         </dd>
                     </div>
                     <div class="flex item">
-                        <dt>Port</dt>
+                        <dt>{{ $t('ui.port') }}</dt>
                         <dd>
                             <text-copier :text="database.credentials.port" class="ff-text-copier" />
                         </dd>
                     </div>
                     <div v-if="database.credentials.ssl" class="flex item">
-                        <dt>SSL</dt>
+                        <dt>{{ $t('ui.ssl') }}</dt>
                         <dd>
                             <text-copier :text="database.credentials.ssl" class="ff-text-copier" />
                         </dd>
@@ -37,18 +37,18 @@
         <section class="credentials flex-1">
             <div class="title">
                 <LockClosedIcon class="ff-icon ff-icon-sm" />
-                <h3>Client Credentials</h3>
+                <h3>{{ $t('ui.clientCredentials') }}</h3>
             </div>
             <div class="client-details">
                 <dl>
                     <div class="flex item">
-                        <dt>Username:</dt>
+                        <dt>{{ $t('ui.username2') }}</dt>
                         <dd>
                             <text-copier :text="database.credentials.user" class="ff-text-copier" />
                         </dd>
                     </div>
                     <div class="flex item">
-                        <dt>Password:</dt>
+                        <dt>{{ $t('ui.password2') }}</dt>
                         <dd>
                             <password-field
                                 :password="database.credentials.password"

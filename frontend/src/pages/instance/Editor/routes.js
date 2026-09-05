@@ -1,3 +1,4 @@
+import { t } from '../../../i18n.js'
 import InstanceSettings from '../Settings/index.vue'
 import InstanceSettingsRoutes from '../Settings/routes.js'
 import VersionHistory from '../VersionHistory/index.vue'
@@ -14,7 +15,7 @@ export default [
         name: 'instance-editor',
         component: InstanceEditor,
         meta: {
-            title: 'Instance - Editor',
+            title: t('ui.instanceEditor'),
             layout: 'immersive'
         },
         redirect: to => {
@@ -37,7 +38,7 @@ export default [
                 name: 'instance-editor-settings',
                 component: InstanceSettings,
                 meta: {
-                    title: 'Instance - Settings',
+                    title: t('ui.instanceSettings2'),
                     layout: 'immersive'
                 },
                 redirect: to => {
@@ -58,7 +59,7 @@ export default [
                 name: 'instance-editor-version-history',
                 component: VersionHistory,
                 meta: {
-                    title: 'Instance - Version History',
+                    title: t('ui.instanceVersionHistory'),
                     layout: 'immersive'
                 },
                 redirect: to => {
@@ -79,7 +80,7 @@ export default [
                 name: 'instance-editor-expert',
                 component: () => import('../../../components/expert/Expert.vue'),
                 meta: {
-                    title: 'Hosted Instance - Expert',
+                    title: t('ui.hostedInstanceExpert'),
                     layout: 'immersive'
                 }
             }

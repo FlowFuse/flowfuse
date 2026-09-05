@@ -1,7 +1,5 @@
 <template>
-    <div class="w-full bg-red-50 text-red-500 p-4 rounded-lg block border border-red-300 mb-4">
-        Error ({{ errorCode }}): {{ errorMessage }}
-    </div>
+    <div class="w-full bg-red-50 text-red-500 p-4 rounded-lg block border border-red-300 mb-4">{{ $t('ui.errorP0P1', { p0: errorCode, p1: errorMessage }) }}</div>
 </template>
 
 <script>

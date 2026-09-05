@@ -3,17 +3,17 @@
         <template #header>
             <ff-page-header :title="isNew ? 'Create a new template' : template.name">
                 <template #breadcrumbs>
-                    <ff-nav-breadcrumb :to="{path: '/admin/templates'}">Templates</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb :to="{path: '/admin/templates'}">{{ $t('ui.templates') }}</ff-nav-breadcrumb>
                 </template>
                 <template #tools>
                     <div class="text-right space-x-4 flex h-8">
                         <template v-if="!isNew">
-                            <ff-button v-if="unsavedChanges" kind="secondary" class="ml-4" data-el="discard-changes" @click="cancelEdit">Discard changes</ff-button>
-                            <ff-button class="ml-4" :disabled="hasErrors || !unsavedChanges" @click="showSaveTemplateDialog">Save changes</ff-button>
+                            <ff-button v-if="unsavedChanges" kind="secondary" class="ml-4" data-el="discard-changes" @click="cancelEdit">{{ $t('ui.discardChanges') }}</ff-button>
+                            <ff-button class="ml-4" :disabled="hasErrors || !unsavedChanges" @click="showSaveTemplateDialog">{{ $t('ui.saveChanges2') }}</ff-button>
                         </template>
                         <template v-else-if="isNew">
-                            <ff-button :to="{ name: 'admin-templates' }" kind="secondary">Cancel</ff-button>
-                            <ff-button :disabled="hasErrors || !createValid" class="ml-4" @click="createTemplate">Create template</ff-button>
+                            <ff-button :to="{ name: 'admin-templates' }" kind="secondary">{{ $t('ui.cancel') }}</ff-button>
+                            <ff-button :disabled="hasErrors || !createValid" class="ml-4" @click="createTemplate">{{ $t('ui.createTemplate') }}</ff-button>
                         </template>
                     </div>
                 </template>
@@ -33,6 +33,7 @@ import { mapState } from 'pinia'
 
 import templateApi from '../../../api/templates.js'
 import SectionSideMenu from '../../../components/SectionSideMenu.vue'
+import { t } from '../../../i18n.js'
 import alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -197,7 +198,7 @@ export default {
         'editable.name' (v) {
             if (v === '') {
                 this.createValid = false
-                this.editable.errors.name = 'Required'
+                this.editable.errors.name = t('ui.required')
             } else {
                 this.createValid = true
                 this.editable.errors.name = ''
@@ -268,7 +269,7 @@ export default {
                 lines.push('NOTE: Existing instances will not inherit the modules in this list.  They must be added manually in the instance settings.')
             }
             Dialog.show({
-                header: 'Update Template',
+                header: t('ui.updateTemplate'),
                 text: lines.join('\n'),
                 confirmLabel: 'Save Template'
             }, this.saveTemplate)
@@ -317,7 +318,7 @@ export default {
                 if (err.response?.data) {
                     alerts.emit(err.response.data.error, 'warning')
                 } else {
-                    alerts.emit('Unknown Error. Check logs.', 'warning')
+                    alerts.emit(t('ui.unknownErrorCheckLogs'), 'warning')
                 }
                 console.error(err)
             }
@@ -355,7 +356,7 @@ export default {
                 if (err.response?.data) {
                     alerts.emit(err.response.data.error, 'warning')
                 } else {
-                    alerts.emit('Unknown Error. Check logs.', 'warning')
+                    alerts.emit(t('ui.unknownErrorCheckLogs'), 'warning')
                 }
                 console.error(err)
             }

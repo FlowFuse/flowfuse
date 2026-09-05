@@ -1,22 +1,20 @@
 <template>
     <form class="px-4 sm:px-6 lg:px-8 mt-8 space-y-4  pt-4">
-        <FormHeading>3. Options</FormHeading>
+        <FormHeading>{{ $t('ui.n3Options') }}</FormHeading>
         <FormRow v-model="input.telemetry" type="checkbox">
-            Enable collection of anonymous statistics
+            {{ $t('ui.enableCollectionOfAnonymousStatistics') }}
             <template #description>
                 <p>
-                    We collect anonymous statistics about how FlowFuse is used.
-                    This allows us to improve how it works and make a better product.
+                    {{ $t('ui.weCollectAnonymousStatisticsAboutHowFlowfuseIsUs') }}
                 </p>
                 <p>
-                    For more information about the data we collect and how it is used,
-                    please see our <a class="forge-link" href="https://flowfuse.com/docs/admin/telemetry/" target="_blank">Usage Data Collection Policy</a>
+                    {{ $t('ui.forMoreInformationAboutTheDataWeCollectAndHowItI') }} <a class="forge-link" href="https://flowfuse.com/docs/admin/telemetry/" target="_blank">{{ $t('ui.usageDataCollectionPolicy') }}</a>
                 </p>
             </template>
         </FormRow>
         <div class="space-x-2">
             <ff-button class="mt-6" @click="applyOptions()">
-                Next
+                {{ $t('ui.next') }}
             </ff-button>
         </div>
     </form>

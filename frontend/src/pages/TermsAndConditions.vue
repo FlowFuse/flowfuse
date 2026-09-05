@@ -2,16 +2,16 @@
     <ff-layout-box class="ff-terms-and-conditions ff--center-box">
         <form class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6" @submit.prevent>
             <p>
-                Welcome {{ user.name }}, the <a target="_blank" :href="settings['user:tcs-url']">FlowFuse Terms &amp; Conditions</a> have been updated.
+                {{ $t('ui.welcomeP0The', { p0: user.name }) }}<a target="_blank" :href="settings['user:tcs-url']">FlowFuse Terms &amp; Conditions</a> {{ $t('ui.haveBeenUpdated') }}
             </p>
             <p>
-                Please review the changes before you continue.
+                {{ $t('ui.pleaseReviewTheChangesBeforeYouContinue') }}
             </p>
             <ff-checkbox v-model="accept" data-action="accept-terms-check">
-                I accept
+                {{ $t('ui.iAccept') }}
             </ff-checkbox>
-            <ff-button :disabled="!accept || loading" kind="primary" data-action="accept-terms-button" @click="acceptAction">Continue</ff-button>
-            <ff-button kind="tertiary" data-action="logout-terms-button" @click="logout">Log out</ff-button>
+            <ff-button :disabled="!accept || loading" kind="primary" data-action="accept-terms-button" @click="acceptAction">{{ $t('ui.continue') }}</ff-button>
+            <ff-button kind="tertiary" data-action="logout-terms-button" @click="logout">{{ $t('ui.logOut') }}</ff-button>
         </form>
     </ff-layout-box>
 </template>

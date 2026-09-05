@@ -1,9 +1,9 @@
 <template>
-    <ff-loading v-if="loading" message="Personal Access Tokens" />
-    <SectionTopMenu hero="Access Tokens" help-header="Access Tokens" info="A list of access tokens that can be used to interact with the platform API." />
+    <ff-loading v-if="loading" :message="$t('ui.personalAccessTokens')" />
+    <SectionTopMenu :hero="$t('ui.accessTokens')" :help-header="$t('ui.accessTokens')" :info="$t('ui.aListOfAccessTokensThatCanBeUsedToInteractWithTh')" />
     <ff-data-table
         data-el="tokens-table"
-        :rows="tokens" :columns="columns" :show-search="true" search-placeholder="Search Tokens..."
+        :rows="tokens" :columns="columns" :show-search="true" :search-placeholder="$t('ui.searchTokens')"
         :show-load-more="false"
     >
         <template #actions>
@@ -11,16 +11,16 @@
                 <template #icon-left>
                     <PlusIcon />
                 </template>
-                Add Token
+                {{ $t('ui.addToken') }}
             </ff-button>
         </template>
         <template #context-menu="{row}">
-            <ff-kebab-item data-action="edit-token" label="Edit" @click="editToken(row)" />
-            <ff-kebab-item data-action="delete-token" label="Delete" @click="deleteToken(row)" />
+            <ff-kebab-item data-action="edit-token" :label="$t('ui.edit')" @click="editToken(row)" />
+            <ff-kebab-item data-action="delete-token" :label="$t('ui.delete')" @click="deleteToken(row)" />
         </template>
         <template v-if="tokens.length === 0" #table>
             <div class="ff-no-data ff-no-data-large">
-                You don't have any tokens yet
+                {{ $t('ui.youDonTHaveAnyTokensYet') }}
             </div>
         </template>
     </ff-data-table>
@@ -35,12 +35,12 @@ import { markRaw } from 'vue'
 import userApi from '../../../api/user.js'
 
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import { t } from '../../../i18n.js'
 import ExpiryCell from '../components/ExpiryCell.vue'
 
 import TokenCreated from './dialogs/TokenCreated.vue'
 import TokenDialog from './dialogs/TokenDialog.vue'
 
-import { pluralize } from '@/composables/strings/String.js'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 export default {
@@ -63,9 +63,9 @@ export default {
         },
         columns () {
             return [
-                { label: 'Name', key: 'name', sortable: true },
+                { label: t('ui.name'), key: 'name', sortable: true },
                 {
-                    label: 'Teams',
+                    label: t('ui.teams'),
                     key: 'teams',
                     sortable: false,
                     component: {
@@ -84,14 +84,14 @@ export default {
                                     if (!this.teams || this.teams.length === 0) {
                                         return 'This token has access to all teams in your account'
                                     }
-                                    return `This Token is scoped to the following ${pluralize('team', this.teams.length)}: \n${this.teams.map(t => t.name).join('\n')}`
+                                    return `${this.$t('ui.thisTokenIsScopedToTheFollowingTeams', this.teams.length)}\n${this.teams.map(t => t.name).join('\n')}`
                                 }
                             }
                         })
                     }
                 },
                 {
-                    label: 'Read Only',
+                    label: t('ui.readOnly'),
                     key: 'readOnly',
                     sortable: false,
                     component: {
@@ -103,7 +103,7 @@ export default {
                     }
                 },
                 {
-                    label: 'Admin Access',
+                    label: t('ui.adminAccess'),
                     key: 'adminOptIn',
                     sortable: false,
                     hidden: !this.isAdmin,
@@ -116,7 +116,7 @@ export default {
                     }
                 },
                 {
-                    label: 'Expires',
+                    label: t('ui.expires'),
                     key: 'expiresAt',
                     component: {
                         is: markRaw(ExpiryCell)

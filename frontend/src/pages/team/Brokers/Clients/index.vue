@@ -2,18 +2,18 @@
     <div class="unified-namespace-clients">
         <feature-unavailable-to-team v-if="reachedClientLimit" class="-mt-2">
             <div>
-                You’ve hit your current broker clients limit.
-                <router-link class="ff-link" :to="{ name: 'team-change-type', params: { team_slug: team.slug } }">Upgrade</router-link>
-                your team for more capacity or get in touch with sales for assistance.
+                {{ $t('ui.youVeHitYourCurrentBrokerClientsLimit') }}
+                <router-link class="ff-link" :to="{ name: 'team-change-type', params: { team_slug: team.slug } }">{{ $t('ui.upgrade') }}</router-link>
+                {{ $t('ui.yourTeamForMoreCapacityOrGetInTouchWithSalesForA') }}
             </div>
         </feature-unavailable-to-team>
         <div class="title mb-5 flex gap-3 items-center">
             <RssIcon class="ff-icon-sm" />
-            <h3 class="my-2" data-el="subtitle">MQTT Broker</h3>
+            <h3 class="my-2" data-el="subtitle">{{ $t('ui.mqttBroker') }}</h3>
         </div>
 
         <div class="space-y-6">
-            <ff-loading v-if="loading" message="Loading Clients..." />
+            <ff-loading v-if="loading" :message="$t('ui.loadingClients')" />
             <template v-else>
                 <section v-if="clients.length > 0">
                     <div class="header ff-data-table--options">
@@ -21,7 +21,7 @@
                             v-model="filterTerm"
                             class="ff-data-table--search"
                             data-form="search"
-                            placeholder="Search Clients..."
+                            :placeholder="$t('ui.searchClients')"
                         >
                             <template #icon><MagnifyingGlassIcon /></template>
                         </ff-text-input>
@@ -35,13 +35,13 @@
                             <template #icon-left>
                                 <PlusSmallIcon />
                             </template>
-                            Create Client
+                            {{ $t('ui.createClient') }}
                         </ff-button>
                     </div>
                     <div class="clients-wrapper">
                         <div class="header grid grid-cols-6 gap-4 font-bold">
-                            <span class="username">Username/ClientId</span>
-                            <span class="rules">Rules</span>
+                            <span class="username">{{ $t('ui.usernameClientid') }}</span>
+                            <span class="rules">{{ $t('ui.rules') }}</span>
                         </div>
                         <ul data-el="clients-list" class="clients-list">
                             <li
@@ -55,7 +55,7 @@
                                 />
                             </li>
                             <li v-if="!filteredClients.length" class="text-center p-5">
-                                No clients found by that name.
+                                {{ $t('ui.noClientsFoundByThatName') }}
                             </li>
                         </ul>
                     </div>
@@ -64,10 +64,10 @@
                     <template #img>
                         <img src="../../../../images/empty-states/mqtt-empty.png" alt="logo">
                     </template>
-                    <template #header>Create your first Broker Client</template>
+                    <template #header>{{ $t('ui.createYourFirstBrokerClient') }}</template>
                     <template #message>
-                        <p>It looks like you haven't created any MQTT clients.</p>
-                        <p>Get started by adding your first client to manage topic permissions and secure communications within your broker.</p>
+                        <p>{{ $t('ui.itLooksLikeYouHavenTCreatedAnyMqttClients') }}</p>
+                        <p>{{ $t('ui.getStartedByAddingYourFirstClientToManageTopicPe') }}</p>
                     </template>
                     <template #actions>
                         <section class="flex gap-4 flex-col">
@@ -80,7 +80,7 @@
                                 <template #icon-left>
                                     <PlusSmallIcon />
                                 </template>
-                                Create Client
+                                {{ $t('ui.createClient') }}
                             </ff-button>
                         </section>
                     </template>
@@ -102,6 +102,7 @@ import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnav
 import usePermissions from '../../../../composables/Permissions.js'
 import { getTeamProperty } from '../../../../composables/TeamProperties.js'
 import { slugify } from '../../../../composables/strings/String.js'
+import { t } from '../../../../i18n.js'
 import clipboardMixin from '../../../../mixins/Clipboard.js'
 import Alerts from '../../../../services/alerts.js'
 import Dialog from '../../../../services/dialog.js'
@@ -184,8 +185,8 @@ export default {
         },
         async onDeleteClient (client) {
             await Dialog.show({
-                header: 'Delete Client',
-                text: 'Are you sure you want to delete this Client?',
+                header: t('ui.deleteClient'),
+                text: t('ui.areYouSureYouWantToDeleteThisClient'),
                 kind: 'danger',
                 confirmLabel: 'Delete'
             }, async () => {

@@ -1,10 +1,10 @@
 <template>
     <section data-el="add-device-to-group-dialog" class="add-device-to-group-dialog">
-        <p>Are you sure you want to continue?</p>
+        <p>{{ $t('ui.areYouSureYouWantToContinue') }}</p>
 
         <notice-banner
             class="my-5"
-            text="These Remote Instances will be cleared of any active pipeline snapshot."
+            :text="$t('ui.theseRemoteInstancesWillBeClearedOfAnyActivePipe')"
         />
 
         <device-list

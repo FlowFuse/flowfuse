@@ -1,13 +1,13 @@
 <template>
     <section class="ff-audit-log flex flex-col flex-1 overflow-auto">
-        <ff-loading v-if="loading" message="Loading Activity..." />
+        <ff-loading v-if="loading" :message="$t('ui.loadingActivity')" />
         <template v-else>
             <div v-if="hasNoEntries && !loading" class="ff-no-data ff-no-data-large">
-                No Activity Found
+                {{ $t('ui.noActivityFound') }}
             </div>
             <ff-accordion v-for="(logEntries, date, $index) in logEntriesByDate" :key="date" :label="date" :set-open="$index < 3" data-el="accordion" :disabled="disableAccordion">
                 <template #meta>
-                    <span>{{ logEntries.length }} Event{{ logEntries.length === 1 ? '' : 's' }}</span>
+                    <span>{{ logEntries.length }} {{ $t('ui.plEvent', logEntries.length) }}</span>
                 </template>
                 <template #content>
                     <div v-for="entry in logEntries" :key="entry.id">
@@ -16,8 +16,8 @@
                 </template>
             </ff-accordion>
             <div v-if="!hasNoEntries && showLoadMore !== false && nextCursor" class="px-8 py-4">
-                <a v-if="!loading" class="forge-button-inline" @click.stop="loadMore">Load more...</a>
-                <div v-else class="text-gray-500">Loading...</div>
+                <a v-if="!loading" class="forge-button-inline" @click.stop="loadMore">{{ $t('ui.loadMore') }}</a>
+                <div v-else class="text-gray-500">{{ $t('ui.loading') }}</div>
             </div>
         </template>
     </section>

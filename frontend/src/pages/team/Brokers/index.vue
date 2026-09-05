@@ -16,20 +16,20 @@
                 </template>
 
                 <template #helptext>
-                    <p>The <b>Broker</b> feature provides a framework for managing and visualizing your entire data ecosystem, consolidating MQTT broker instances and topic structures within a single interface.</p>
+                    <p>{{ $t('ui.the') }}<b>{{ $t('ui.broker') }}</b> {{ $t('ui.featureProvidesAFrameworkForManagingAndVisualizi') }}</p>
                     <template v-if="isTeamBroker">
-                        <p>The FlowFuse Team Broker is an MQTT broker ready to start using within your team.</p>
-                        <p>The <b>Client</b> page allows you to manage the clients that have access to the Broker, with customizable Access Control List (ACL) rules for secure and controlled data flow.</p>
+                        <p>{{ $t('ui.theFlowfuseTeamBrokerIsAnMqttBrokerReadyToStartU') }}</p>
+                        <p>{{ $t('ui.the') }}<b>{{ $t('ui.client') }}</b> {{ $t('ui.pageAllowsYouToManageTheClientsThatHaveAccessToT') }}</p>
                     </template>
-                    <p>The topic <b>Hierarchy</b> offers a clear, organized visualization of the topics being used within your broker.</p>
-                    <p>These components deliver an integrated approach to managing client connections, security settings, and message flow, supporting efficient and secure data communication across your system.</p>
-                    <p>Documentation <a href="https://flowfuse.com/docs/user/teambroker" target="_blank">here</a></p>
+                    <p>{{ $t('ui.theTopic') }} <b>{{ $t('ui.hierarchy') }}</b> {{ $t('ui.offersAClearOrganizedVisualizationOfTheTopicsBei') }}</p>
+                    <p>{{ $t('ui.theseComponentsDeliverAnIntegratedApproachToMana') }}</p>
+                    <p>{{ $t('ui.documentation') }} <a href="https://flowfuse.com/docs/user/teambroker" target="_blank">{{ $t('ui.here') }}</a></p>
                 </template>
 
                 <template #tools>
                     <section v-if="!loading && shouldDisplayTools && featuresCheck.isExternalMqttBrokerFeatureEnabled" class="flex gap-3 flex-wrap">
-                        <ff-toggle-switch v-if="activeBrokerId !== 'team-broker'" v-ff-tooltip:bottom="'Connect to Third Party Broker'" :modelValue="active" mode="async" :loading="statePending" @click="toggleAgent" />
-                        <ff-toggle-switch v-else v-ff-tooltip:bottom="'Team Broker is always connected'" :modelValue="true" mode="async" :loading="statePending" :disabled="true" />
+                        <ff-toggle-switch v-if="activeBrokerId !== 'team-broker'" v-ff-tooltip:bottom="$t('ui.connectToThirdPartyBroker')" :modelValue="active" mode="async" :loading="statePending" @click="toggleAgent" />
+                        <ff-toggle-switch v-else v-ff-tooltip:bottom="$t('ui.teamBrokerIsAlwaysConnected')" :modelValue="true" mode="async" :loading="statePending" :disabled="true" />
                         <ff-listbox
                             v-if="brokers.length > 1"
                             v-model="activeBrokerId"
@@ -44,14 +44,14 @@
                             @click="$router.push({ name: 'team-brokers-add', params: {brokerId: ''} })"
                         >
                             <template #icon-left><PlusIcon /></template>
-                            Add Broker
+                            {{ $t('ui.addBroker') }}
                         </ff-button>
                     </section>
                 </template>
             </ff-page-header>
         </template>
 
-        <ff-loading v-if="loading" message="Loading Brokers..." />
+        <ff-loading v-if="loading" :message="$t('ui.loadingBrokers')" />
 
         <EmptyState
             v-else-if="!featuresCheck.isMqttBrokerFeatureEnabled"
@@ -63,10 +63,10 @@
                 <img src="../../../images/empty-states/mqtt-forbidden.png" alt="pipelines-logo">
             </template>
             <template #header>
-                <span>Brokers Not Available</span>
+                <span>{{ $t('ui.brokersNotAvailable') }}</span>
             </template>
             <template #message>
-                <p>The <b>Brokers</b> feature provides a centralized framework for managing and visualizing your entire data ecosystem, consolidating MQTT broker instances and topic structures within a single interface.</p>
+                <p>{{ $t('ui.the') }}<b>{{ $t('ui.brokers') }}</b> {{ $t('ui.featureProvidesACentralizedFrameworkForManagingA') }}</p>
             </template>
         </EmptyState>
 
@@ -85,6 +85,7 @@ import EmptyState from '../../../components/EmptyState.vue'
 import FfLoading from '../../../components/Loading.vue'
 
 import usePermissions from '../../../composables/Permissions.js'
+import { t } from '../../../i18n.js'
 import { Roles } from '../../../utils/roles.js'
 
 import BrokerStatusBadge from './components/BrokerStatusBadge.vue'
@@ -163,18 +164,18 @@ export default {
 
             return [
                 {
-                    label: 'Hierarchy',
+                    label: t('ui.hierarchy'),
                     to: { name: 'team-brokers-hierarchy', params: this.$route.params },
                     tag: 'team-brokers-hierarchy'
                 },
                 {
-                    label: 'Clients',
+                    label: t('ui.clients'),
                     to: { name: 'team-brokers-clients', params: this.$route.params },
                     tag: 'team-brokers-clients',
                     hidden: !this.isTeamBroker
                 },
                 {
-                    label: 'Settings',
+                    label: t('ui.settings'),
                     to: { name: 'team-brokers-settings', params: this.$route.params },
                     tag: 'team-brokers-settings',
                     hidden: this.isTeamBroker
@@ -195,7 +196,7 @@ export default {
                 }
             case this.isCreationPage:
                 return {
-                    title: 'Add a new Broker',
+                    title: t('ui.addANewBroker'),
                     context: 'Simplified MQTT broker setup and management.'
                 }
             default:

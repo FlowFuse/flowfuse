@@ -9,24 +9,24 @@
             <slot name="description" />
             <form class="space-y-6 mt-2">
                 <FormRow v-model="input.name" data-form="device-name" :error="errors.name" :disabled="editDisabled" container-class="w-full">
-                    <template #default>Name</template>
-                    <template #description>Provide a unique, identifiable name for your Remote Instance.</template>
+                    <template #default>{{ $t('ui.name') }}</template>
+                    <template #description>{{ $t('ui.provideAUniqueIdentifiableNameForYourRemoteInsta') }}</template>
                 </FormRow>
                 <FormRow v-model="input.type" data-form="device-type" :error="errors.type" :disabled="editDisabled" container-class="w-full">
-                    <template #default>Type</template>
-                    <template #description>Use this field to better identify your Remote Instance.</template>
+                    <template #default>{{ $t('ui.type') }}</template>
+                    <template #description>{{ $t('ui.useThisFieldToBetterIdentifyYourRemoteInstance') }}</template>
                 </FormRow>
                 <FormRow
                     v-if="showApplicationsList"
                     v-model="input.application"
                     :options="applicationsList"
                     :disabled="noApplications || loading.applications"
-                    placeholder="Select an application"
+                    :placeholder="$t('ui.selectAnApplication')"
                     data-form="application"
                     container-class="w-full"
                 >
-                    <template #description>Assign the Remote Instance to an Application (recommended).</template>
-                    Application
+                    <template #description>{{ $t('ui.assignTheRemoteInstanceToAnApplicationRecommende') }}</template>
+                    {{ $t('ui.application') }}
                 </FormRow>
                 <div v-if="deviceIsBillable">
                     <InstanceChargesTable
@@ -51,6 +51,7 @@ import teamApi from '../../../../api/team.js'
 import FormRow from '../../../../components/FormRow.vue'
 import usePermissions from '../../../../composables/Permissions.js'
 import { getTeamProperty } from '../../../../composables/TeamProperties.js'
+import { t } from '../../../../i18n.js'
 import formatCurrency from '../../../../mixins/Currency.js'
 import alerts from '../../../../services/alerts.js'
 
@@ -200,7 +201,7 @@ export default {
                 // Update
                 devicesApi.updateDevice(this.device.id, opts).then((response) => {
                     this.$emit('deviceUpdated', response)
-                    alerts.emit('Device successfully updated.', 'confirmation')
+                    alerts.emit(t('ui.deviceSuccessfullyUpdated'), 'confirmation')
                     this.close()
                 }).catch(err => {
                     console.error(err.response.data)
@@ -217,7 +218,7 @@ export default {
                 devicesApi.create(opts).then((response) => {
                     if (!this.instance && !this.application && !this.input.application) {
                         this.$emit('deviceCreated', response)
-                        alerts.emit('Device successfully created.', 'confirmation')
+                        alerts.emit(t('ui.deviceSuccessfullyCreated'), 'confirmation')
                     } else if (this.instance) {
                         const creds = response.credentials
                         // TODO: should the create allow a device to be created
@@ -229,7 +230,7 @@ export default {
                             // so they can be displayed to the user
                             response.credentials = creds
                             this.$emit('deviceCreated', response)
-                            alerts.emit('Device successfully created.', 'confirmation')
+                            alerts.emit(t('ui.deviceSuccessfullyCreated'), 'confirmation')
                         })
                     } else if (this.application || this.input.application) {
                         const application = this.input.application
@@ -242,7 +243,7 @@ export default {
                             // so they can be displayed to the user
                             response.credentials = creds
                             this.$emit('deviceCreated', response)
-                            alerts.emit('Device successfully created.', 'confirmation')
+                            alerts.emit(t('ui.deviceSuccessfullyCreated'), 'confirmation')
                         })
                     }
                     this.close()
@@ -254,7 +255,7 @@ export default {
                         if (/name/.test(err.response.data.error)) {
                             this.errors.name = err.response.data.error
                         } else {
-                            alerts.emit('Failed to create device: ' + err.response.data.error, 'warning', 7500)
+                            alerts.emit(t('ui.failedToCreateDevice') + err.response.data.error, 'warning', 7500)
                         }
                     }
                 })

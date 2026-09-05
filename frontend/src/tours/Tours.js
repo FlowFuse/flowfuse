@@ -1,6 +1,7 @@
 import { offset } from '@floating-ui/dom'
 import { useShepherd } from 'vue-shepherd'
 
+import { t } from '../i18n.js'
 import Product from '../services/product.js'
 
 import 'shepherd.js/dist/css/shepherd.css'
@@ -107,13 +108,13 @@ function create (id, tourJson, onCloseHook) {
             // which secondary button do we need?
             if (i === 0) {
                 buttons.push({
-                    text: 'Exit',
+                    text: t('ui.exit'),
                     action: tour.cancel,
                     secondary: true
                 })
             } else {
                 buttons.push({
-                    text: 'Back',
+                    text: t('ui.back'),
                     action: onBack,
                     secondary: true
                 })
@@ -122,12 +123,12 @@ function create (id, tourJson, onCloseHook) {
             // which primary button do we need?
             if (i !== steps - 1) {
                 buttons.push({
-                    text: 'Next',
+                    text: t('ui.next'),
                     action: onNext
                 })
             } else {
                 buttons.push({
-                    text: 'Finish',
+                    text: t('ui.finish'),
                     action: tour.complete
                 })
             }

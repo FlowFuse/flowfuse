@@ -3,7 +3,7 @@
         <template #header>
             <ff-page-header :title="application?.name" :tabs="navigation">
                 <template #breadcrumbs>
-                    <ff-nav-breadcrumb v-if="team" :to="{name: 'team-applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb v-if="team" :to="{name: 'team-applications', params: {team_slug: team.slug}}">{{ $t('ui.applications') }}</ff-nav-breadcrumb>
                 </template>
             </ff-page-header>
         </template>
@@ -38,6 +38,7 @@ import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import usePermissions from '../../composables/Permissions.js'
 
 import { useActiveApplication } from '../../composables/useActiveApplication'
+import { t } from '../../i18n.js'
 import instanceActionsMixin from '../../mixins/InstanceActions.js'
 import alerts from '../../services/alerts.js'
 import { applyLiveState } from '../../utils/applyLiveState.js'
@@ -99,24 +100,24 @@ export default {
         navigation () {
             const routes = [
                 {
-                    label: 'Hosted Instances',
+                    label: t('ui.hostedInstances'),
                     to: { name: 'application-instances' },
                     tag: 'application-overview'
                     // icon: ProjectsIcon
                 },
                 {
-                    label: 'Remote Instances',
+                    label: t('ui.remoteInstances'),
                     to: { name: 'application-devices' },
                     tag: 'application-devices-overview'
                     // icon: CpuChipIcon
                 },
                 {
-                    label: 'Dashboards',
+                    label: t('ui.dashboards'),
                     to: { name: 'application-dashboards' },
                     tag: 'application-dashboards'
                 },
                 {
-                    label: 'Device Groups',
+                    label: t('ui.deviceGroups'),
                     to: { name: 'application-device-groups' },
                     tag: 'application-devices-groups-overview',
                     // icon: CpuChipIcon,
@@ -124,13 +125,13 @@ export default {
                     featureUnavailable: !this.features?.deviceGroups
                 },
                 {
-                    label: 'Snapshots',
+                    label: t('ui.snapshots'),
                     to: { name: 'application-snapshots' },
                     tag: 'application-snapshots'
                     // icon: ClockIcon
                 },
                 {
-                    label: 'Pipelines',
+                    label: t('ui.pipelines'),
                     to: { name: 'application-pipelines' },
                     tag: 'application-pipelines',
                     // icon: PipelinesIcon,
@@ -138,27 +139,27 @@ export default {
                     featureUnavailable: !this.features?.['devops-pipelines']
                 },
                 {
-                    label: 'Logs',
+                    label: t('ui.logs'),
                     to: { name: 'application-logs' },
                     tag: 'application-logs'
                     // icon: CommandLineIcon
                 },
                 {
-                    label: 'Audit Log',
+                    label: t('ui.auditLog'),
                     to: { name: 'application-activity' },
                     tag: 'application-activity',
                     // icon: Bars4Icon,
                     hidden: !this.hasPermission('application:audit-log', { application: this.application })
                 },
                 {
-                    label: 'Dependencies',
+                    label: t('ui.dependencies'),
                     to: { name: 'application-dependencies' },
                     tag: 'application-dependencies',
                     // icon: Cog8ToothIcon,
                     hidden: !this.hasPermission('application:bom', { application: this.application })
                 },
                 {
-                    label: 'Settings',
+                    label: t('ui.settings'),
                     to: { name: 'application-settings' },
                     tag: 'application-settings'
                     // icon: Cog8ToothIcon
@@ -185,7 +186,7 @@ export default {
         },
         application (application, previous) {
             if (previous && !application && !this.pageLoader && this.$route.params.id) {
-                alerts.emit('This application has been deleted.', 'warning')
+                alerts.emit(t('ui.thisApplicationHasBeenDeleted'), 'warning')
                 this.$router.push({ name: 'team-applications', params: { team_slug: this.team?.slug } })
             }
         },
@@ -233,12 +234,12 @@ export default {
                 await this.deleteApplicationEntity(this.application.id, this.team.id)
                 await useContextStore().refreshTeam()
                 this.$router.push({ name: 'team-applications' })
-                alerts.emit('Application successfully deleted.', 'confirmation')
+                alerts.emit(t('ui.applicationSuccessfullyDeleted'), 'confirmation')
             } catch (err) {
                 if (err.response?.data?.error) {
                     alerts.emit(`Application failed to delete: ${err.response.data.error}`, 'warning', 10000)
                 } else {
-                    alerts.emit('Application failed to delete', 'warning')
+                    alerts.emit(t('ui.applicationFailedToDelete'), 'warning')
                 }
             }
             this.setPageLoader(false)

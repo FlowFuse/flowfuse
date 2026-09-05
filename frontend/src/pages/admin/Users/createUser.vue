@@ -5,9 +5,9 @@
                 <template #breadcrumbs>
                     <div class="grow">
                         <div class="text-gray-800 text-xl">
-                            <router-link class="ff-link font-bold" :to="{name: 'admin-users'}">Users</router-link>
+                            <router-link class="ff-link font-bold" :to="{name: 'admin-users'}">{{ $t('ui.users') }}</router-link>
                             <ChevronRightIcon class="ff-icon" />
-                            <span>Create</span>
+                            <span>{{ $t('ui.create') }}</span>
                         </div>
                     </div>
                 </template>
@@ -15,20 +15,20 @@
         </template>
         <div class="max-w-2xl">
             <form class="space-y-6">
-                <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
-                <FormRow v-model="input.name" :placeholder="input.username" :error="errors.name">Full Name</FormRow>
-                <FormRow v-model="input.email" :error="errors.email">Email</FormRow>
-                <FormRow id="password" v-model="input.password" type="password" :error="errors.password">Password</FormRow>
-                <FormRow id="password_confirm" v-model="input.password_confirm" type="password" :error="errors.password_confirm">Confirm Password</FormRow>
-                <FormRow id="isAdmin" v-model="input.isAdmin" type="checkbox">Administrator</FormRow>
-                <FormHeading>Team options</FormHeading>
+                <FormRow v-model="input.username" :error="errors.username">{{ $t('ui.username') }}</FormRow>
+                <FormRow v-model="input.name" :placeholder="input.username" :error="errors.name">{{ $t('ui.fullName') }}</FormRow>
+                <FormRow v-model="input.email" :error="errors.email">{{ $t('ui.email') }}</FormRow>
+                <FormRow id="password" v-model="input.password" type="password" :error="errors.password">{{ $t('ui.password') }}</FormRow>
+                <FormRow id="password_confirm" v-model="input.password_confirm" type="password" :error="errors.password_confirm">{{ $t('ui.confirmPassword') }}</FormRow>
+                <FormRow id="isAdmin" v-model="input.isAdmin" type="checkbox">{{ $t('ui.administrator') }}</FormRow>
+                <FormHeading>{{ $t('ui.teamOptions') }}</FormHeading>
                 <FormRow id="createDefaultTeam" v-model="input.createDefaultTeam" type="checkbox">
-                    Create personal team
-                    <template #description>A user needs to be in a team to create projects</template>
+                    {{ $t('ui.createPersonalTeam') }}
+                    <template #description>{{ $t('ui.aUserNeedsToBeInATeamToCreateProjects') }}</template>
                 </FormRow>
-                <!-- <FormRow v-model="input.addToTeam">Add to existing team</FormRow> -->
+                <!-- <FormRow v-model="input.addToTeam">{{ $t('ui.addToExistingTeam') }}</FormRow> -->
                 <ff-button :disabled="!formValid" @click="createUser()">
-                    Create user
+                    {{ $t('ui.createUser') }}
                 </ff-button>
             </form>
         </div>
@@ -43,6 +43,8 @@ import usersApi from '../../../api/users.js'
 
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
+
+import { t } from '../../../i18n.js'
 
 import ConfirmAdminGrantDialog from './dialogs/ConfirmAdminGrantDialog.vue'
 
@@ -86,33 +88,33 @@ export default {
     watch: {
         'input.username': function (v) {
             if (v && !/^[a-z0-9-_]+$/i.test(v)) {
-                this.errors.username = 'Must only contain a-z 0-9 - _'
+                this.errors.username = t('ui.mustOnlyContainAZ09')
             } else {
                 this.errors.username = ''
             }
         },
         'input.email': function (v) {
             if (v && !/.+@.+/.test(v)) {
-                this.errors.email = 'Enter a valid email address'
+                this.errors.email = t('ui.enterAValidEmailAddress')
             } else {
                 this.errors.email = ''
             }
         },
         'input.password': function (v) {
             if (this.input.password.length < 8) {
-                this.errors.password = 'Password must be at least 8 characters'
+                this.errors.password = t('ui.passwordMustBeAtLeast8Characters')
                 return
             }
             if (this.input.password.length > 128) {
-                this.errors.password = 'Password too long'
+                this.errors.password = t('ui.passwordTooLong')
                 return
             }
             if (this.input.password === this.input.username) {
-                this.errors.password = 'Password must not match username'
+                this.errors.password = t('ui.passwordMustNotMatchUsername')
                 return
             }
             if (this.input.password === this.input.email) {
-                this.errors.password = 'Password must not match email'
+                this.errors.password = t('ui.passwordMustNotMatchEmail')
                 return
             }
             const zxcvbnResult = zxcvbn(this.input.password)
@@ -124,7 +126,7 @@ export default {
         },
         'input.name': function (v) {
             if (v && /:\/\//i.test(v)) {
-                this.errors.name = 'Names can not be URLs'
+                this.errors.name = t('ui.namesCanNotBeUrls')
             } else {
                 this.errors.name = ''
             }
@@ -153,13 +155,13 @@ export default {
                 console.error(err.response.data)
                 if (err.response?.data) {
                     if (/username/.test(err.response.data.error)) {
-                        this.errors.username = 'Username unavailable'
+                        this.errors.username = t('ui.usernameUnavailable')
                     }
                     if (/password/.test(err.response.data.error)) {
-                        this.errors.password = 'Invalid username'
+                        this.errors.password = t('ui.invalidUsername')
                     }
                     if (/email/.test(err.response.data.error)) {
-                        this.errors.email = 'Email unavailable'
+                        this.errors.email = t('ui.emailUnavailable')
                     }
                 }
             })

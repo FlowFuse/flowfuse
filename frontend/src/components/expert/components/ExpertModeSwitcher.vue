@@ -12,6 +12,7 @@
 <script>
 import { mapActions, mapState } from 'pinia'
 
+import { t } from '../../../i18n.js'
 import ToggleButtonGroup from '../../elements/ToggleButtonGroup.vue'
 
 import { useProductExpertStore } from '@/stores/product-expert.js'
@@ -30,8 +31,8 @@ export default {
         ...mapState(useProductExpertStore, ['agentMode']),
         agentModeButtons () {
             return [
-                { title: 'Support', value: 'support-agent' },
-                { title: 'Insights', value: 'insights-agent' }
+                { title: t('ui.support'), value: 'support-agent' },
+                { title: t('ui.insights'), value: 'insights-agent' }
             ]
         },
         agentModeWrapper: {

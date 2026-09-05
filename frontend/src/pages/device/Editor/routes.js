@@ -1,3 +1,4 @@
+import { t } from '../../../i18n.js'
 import { children } from '../routes.js'
 
 import DeviceEditor from './index.vue'
@@ -19,7 +20,7 @@ export default [
         name: 'device-editor',
         component: DeviceEditor,
         meta: {
-            title: 'Device - Editor',
+            title: t('ui.deviceEditor'),
             layout: 'immersive'
         },
         redirect: to => {
@@ -36,7 +37,7 @@ export default [
                 name: 'device-editor-expert',
                 component: () => import('../../../components/expert/Expert.vue'),
                 meta: {
-                    title: 'Remote Instance - Expert',
+                    title: t('ui.remoteInstanceExpert'),
                     layout: 'immersive'
                 }
             }

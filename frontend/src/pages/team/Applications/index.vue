@@ -1,20 +1,20 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Applications">
+            <ff-page-header :title="$t('ui.applications')">
                 <template #context>
-                    View all of your Node-RED instances.
+                    {{ $t('ui.viewAllOfYourNodeRedInstances') }}
                 </template>
                 <template #help-header>
-                    Applications
+                    {{ $t('ui.applications') }}
                 </template>
                 <template #pictogram>
                     <img src="../../../images/pictograms/application_red.png">
                 </template>
                 <template #helptext>
-                    <p>Each Application can host multiple Node-RED instances, both Hosted and Remote.</p>
-                    <p>Click an Application header to go to the overview of that Application.</p>
-                    <p>Click an Instance within an Application to go to the Instance's overview.</p>
+                    <p>{{ $t('ui.eachApplicationCanHostMultipleNodeRedInstancesBo') }}</p>
+                    <p>{{ $t('ui.clickAnApplicationHeaderToGoToTheOverviewOfThatA') }}</p>
+                    <p>{{ $t('ui.clickAnInstanceWithinAnApplicationToGoToTheInsta') }}</p>
                 </template>
                 <template #tools>
                     <ff-button
@@ -27,7 +27,7 @@
                         <template #icon-left>
                             <PlusSmallIcon />
                         </template>
-                        Create Application
+                        {{ $t('ui.createApplication') }}
                     </ff-button>
                 </template>
             </ff-page-header>
@@ -38,7 +38,7 @@
                     v-model="filterTerm"
                     class="ff-data-table--search"
                     data-form="search"
-                    placeholder="Search Applications, Instances and Devices..."
+                    :placeholder="$t('ui.searchApplicationsInstancesAndDevices')"
                 >
                     <template #icon><MagnifyingGlassIcon /></template>
                 </ff-text-input>
@@ -55,7 +55,7 @@
                     </transition-group>
                 </ul>
                 <p v-else class="no-results">
-                    No Data Found. Try Another Search.
+                    {{ $t('ui.noDataFoundTryAnotherSearch') }}
                 </p>
             </template>
 
@@ -63,12 +63,12 @@
                 <template #img>
                     <img src="../../../images/empty-states/team-applications.png">
                 </template>
-                <template #header>Get Started with your First Application</template>
+                <template #header>{{ $t('ui.getStartedWithYourFirstApplication') }}</template>
                 <template #message>
-                    <p>Applications in FlowFuse are used to manage groups of Node-RED Instances</p>
+                    <p>{{ $t('ui.applicationsInFlowfuseAreUsedToManageGroupsOfNod3') }}</p>
                     <p>
-                        Instances within Applications can be connected as
-                        <a class="ff-link" href="https://flowfuse.com/docs/user/staged-deployments" target="_blank">Staged Deployments.</a>
+                        {{ $t('ui.instancesWithinApplicationsCanBeConnectedAs') }}
+                        <a class="ff-link" href="https://flowfuse.com/docs/user/staged-deployments" target="_blank">{{ $t('ui.stagedDeployments') }}</a>
                     </p>
                 </template>
                 <template #actions>
@@ -82,14 +82,14 @@
                         <template #icon-left>
                             <PlusSmallIcon />
                         </template>
-                        Create Application
+                        {{ $t('ui.createApplication') }}
                     </ff-button>
                 </template>
                 <template #note>
                     <p>
-                        The FlowFuse team also have more planned for Applications, including
+                        {{ $t('ui.theFlowfuseTeamAlsoHaveMorePlannedForApplication') }}
                         <a class="ff-link" href="https://github.com/FlowFuse/flowfuse/issues/1734" target="_blank">
-                            shared settings across Instances</a>.
+                            {{ $t('ui.sharedSettingsAcrossInstances') }}</a>.
                     </p>
                 </template>
             </EmptyState>
@@ -105,6 +105,8 @@ import { mapActions, mapState } from 'pinia'
 
 import EmptyState from '../../../components/EmptyState.vue'
 import usePermissions from '../../../composables/Permissions.js'
+
+import { t } from '../../../i18n.js'
 
 import ApplicationListItem from './components/Application.vue'
 
@@ -127,7 +129,7 @@ export default {
     data () {
         return {
             columns: [
-                { label: 'Name', class: ['grow'], key: 'name', sortable: true }
+                { label: t('ui.name'), class: ['grow'], key: 'name', sortable: true }
             ],
             filterTerm: '',
             isSearching: false

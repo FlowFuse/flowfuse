@@ -3,11 +3,11 @@
         <template #default>
             <form class="space-y-4" @submit.prevent>
                 <FormRow v-model="input.name" data-form="token-name" :disabled="edit">
-                    Token name
+                    {{ $t('ui.tokenName2') }}
                 </FormRow>
-                <ff-checkbox v-model="input.expires" data-form="expiry-toggle" label="Add Expiry Date" />
+                <ff-checkbox v-model="input.expires" data-form="expiry-toggle" :label="$t('ui.addExpiryDate')" />
                 <FormRow :disabled="!input.expires" :error="dateError">
-                    Expires
+                    {{ $t('ui.expires') }}
                     <template #input>
                         <div class="ff-input ff-text-input">
                             <input v-model="input.expiresAt" type="date" :min="new Date(Date.now() + 60 * 60 * 24 * 1000).toISOString().split('T')[0]" max="2199-12-31" :disabled="!input.expires">

@@ -10,9 +10,9 @@
         </div>
         <div class="flex gap-6 justify-center relative z-10 flex-wrap mt-4">
             <div v-if="isBillingEnabled && annualBillingAvailable" class="text-sm font-medium text-gray-400 flex items-center gap-2">
-                <span :class="{'text-gray-800': !isAnnualBilling }">Monthly</span>
+                <span :class="{'text-gray-800': !isAnnualBilling }">{{ $t('ui.monthly') }}</span>
                 <ff-toggle-switch v-model="isAnnualBilling" />
-                <span :class="{'text-gray-800': isAnnualBilling }">Yearly</span>
+                <span :class="{'text-gray-800': isAnnualBilling }">{{ $t('ui.yearly') }}</span>
             </div>
         </div>
     </div>

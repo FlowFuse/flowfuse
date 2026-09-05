@@ -1,7 +1,7 @@
 <template>
     <div class="space-y-6">
-        <FormHeading>Active Sessions</FormHeading>
-        <p class="mb-4 italic text-red-800">A list of active login sessions.</p>
+        <FormHeading>{{ $t('ui.activeSessions') }}</FormHeading>
+        <p class="mb-4 italic text-red-800">{{ $t('ui.aListOfActiveLoginSessions') }}</p>
     </div>
 </template>
 

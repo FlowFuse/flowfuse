@@ -1,6 +1,6 @@
 <template>
     <form class="space-y-6" ref="password_form" @submit.prevent>
-        <div>You must set a new password before continuing</div>
+        <div>{{ $t('ui.youMustSetANewPasswordBeforeContinuing') }}</div>
         <FormRow
             type="password"
             @enter="focusPassword"
@@ -9,7 +9,7 @@
             ref="row-old"
             container-class="max-w-full"
         >
-            Old Password
+            {{ $t('ui.oldPassword') }}
         </FormRow>
         <FormRow
             type="password"
@@ -19,7 +19,7 @@
             ref="row-new"
             container-class="max-w-full"
         >
-            New Password
+            {{ $t('ui.newPassword') }}
         </FormRow>
         <FormRow
             type="password"
@@ -29,12 +29,12 @@
             ref="row-confirm"
             container-class="max-w-full"
         >
-            Confirm
+            {{ $t('ui.confirm') }}
         </FormRow>
         <ff-button @click="changePassword" type="submit">
-            Change Password
+            {{ $t('ui.changePassword2') }}
         </ff-button>
-        <ff-button kind="tertiary" @click="logout">Log out</ff-button>
+        <ff-button kind="tertiary" @click="logout">{{ $t('ui.logOut') }}</ff-button>
         <div v-if="errors.password_change" class="ml-4 text-red-400 font-medium inline text-sm">{{ errors.password_change }}</div>
     </form>
 </template>
@@ -43,6 +43,7 @@
 import { mapState } from 'pinia'
 
 import userApi from '../../api/user.js'
+import { t } from '../../i18n.js'
 import FormRow from '../FormRow.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
@@ -72,26 +73,26 @@ export default {
             this.errors.password_change = ''
 
             if (this.input.old_password === '') {
-                this.errors.old_password = 'Enter your current password'
+                this.errors.old_password = t('ui.enterYourCurrentPassword')
                 return false
             }
             if (this.input.password === '') {
-                this.errors.password = 'Enter a new password'
+                this.errors.password = t('ui.enterANewPassword')
                 return false
             }
             if (this.input.password.length < 8) {
-                this.errors.password = 'Password too short'
+                this.errors.password = t('ui.passwordTooShort')
                 return false
             }
             if (this.input.password !== this.input.password_confirm) {
-                this.errors.password_confirm = 'Passwords do not match'
+                this.errors.password_confirm = t('ui.passwordsDoNotMatch')
                 return false
             }
             userApi.changePassword(this.input.old_password, this.input.password).then(() => {
                 useAccountAuthStore().checkState()
                 this.$router.go()
             }).catch(e => {
-                this.errors.password_change = 'Password change failed'
+                this.errors.password_change = t('ui.passwordChangeFailed')
                 console.error(e)
             })
         },
@@ -116,7 +117,7 @@ export default {
     watch: {
         loginError (newError, oldError) {
             this.focusOldPassword()
-            this.errors.username = 'Login failed'
+            this.errors.username = t('ui.loginFailed')
         }
     },
     components: {

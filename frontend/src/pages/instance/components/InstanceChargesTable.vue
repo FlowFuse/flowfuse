@@ -5,7 +5,7 @@
             data-el="charges-table"
         >
             <h1 class="text-lg font-medium mb-2 border-b border-gray-700">
-                Charges
+                {{ $t('ui.charges') }}
             </h1>
             <div
                 class="grid grid gap-x-1 gap-y-4 text-sm text-sm mt-4 ml-4"
@@ -20,7 +20,7 @@
                         class="text-right"
                     >
                         <template v-if="trialMode">
-                            Free during the trial, then
+                            {{ $t('ui.freeDuringTheTrialThen') }}
                         </template>
                         {{ formatCurrency(pricingDetails.cost) }}
                     </div>
@@ -35,10 +35,10 @@
                 </template>
                 <template v-if="subscription?.customer?.balance">
                     <div v-if="subscription.customer.balance < 0" data-el="credit-balance-row">
-                        Credit Balance
+                        {{ $t('ui.creditBalance') }}
                     </div>
                     <div v-else data-el="credit-balance-row">
-                        Debit Balance
+                        {{ $t('ui.debitBalance') }}
                     </div>
                     <div
                         data-el="credit-balance-amount"
@@ -55,13 +55,9 @@
             data-el="payable-now-summary"
         >
             <span v-if="prorationMode === 'create_prorations'">
-                This will be added to your next invoice
+                {{ $t('ui.thisWillBeAddedToYourNextInvoice') }}
             </span>
-            <span v-else>
-                You will be charged {{ formatCurrency(selectedCostAfterCredit) }} now
-                <span v-if="pricingDetails?.interval">
-                    then {{ formatCurrency(pricingDetails.cost) }} /{{ pricingDetails.interval }}
-                </span>
+            <span v-else>{{ $t('ui.youWillBeChargedP0Now', { p0: formatCurrency(selectedCostAfterCredit) }) }}<span v-if="pricingDetails?.interval">{{ $t('ui.thenP0P1', { p0: formatCurrency(pricingDetails.cost), p1: pricingDetails.interval }) }}</span>
             </span>
         </div>
     </template>

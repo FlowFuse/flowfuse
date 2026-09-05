@@ -32,7 +32,7 @@
         <section v-if="showFooter" class="footer my-10">
             <slot name="footer">
                 <section class="flex gap-3">
-                    <ff-button class="flex-1" kind="secondary" :disabled="!canGoToPreviousStep" @click="previousStep">Back</ff-button>
+                    <ff-button class="flex-1" kind="secondary" :disabled="!canGoToPreviousStep" @click="previousStep">{{ $t('ui.back') }}</ff-button>
                     <ff-button class="flex-1" :disabled="disableNextStep" @click="nextStep">{{ nextStepLabel }}</ff-button>
                 </section>
             </slot>
@@ -41,6 +41,7 @@
 </template>
 
 <script>
+import { t } from '../../i18n.js'
 import FfLoading from '../Loading.vue'
 
 import StepSlider from './StepSlider.vue'
@@ -66,7 +67,7 @@ export default {
         lastStepLabel: {
             type: String,
             required: false,
-            default: 'Finish'
+            default: () => t('ui.finish')
         },
         loadingOverlay: {
             type: Boolean,
@@ -76,7 +77,7 @@ export default {
         loadingOverlayText: {
             type: String,
             required: false,
-            default: 'Loading...'
+            default: t('ui.loading')
         },
         showFooter: {
             type: Boolean,

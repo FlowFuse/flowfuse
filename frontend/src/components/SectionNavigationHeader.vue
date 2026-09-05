@@ -35,7 +35,7 @@
             </div>
         </template>
         <template #actions>
-            <ff-button @click="$refs['help-dialog'].close()">Close</ff-button>
+            <ff-button @click="$refs['help-dialog'].close()">{{ $t('ui.close') }}</ff-button>
         </template>
     </ff-dialog>
 </template>

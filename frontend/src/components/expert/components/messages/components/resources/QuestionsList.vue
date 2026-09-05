@@ -34,16 +34,16 @@
                 :disabled="disabled || !allAnswered"
                 @click="$emit('select', compose())"
             >
-                Send
+                {{ $t('ui.send') }}
             </ff-button>
             <ff-button
                 kind="secondary"
                 size="small"
                 :disabled="disabled || !allAnswered"
-                title="Edit before sending"
+                :title="$t('ui.editBeforeSending')"
                 @click="$emit('edit', compose())"
             >
-                Edit
+                {{ $t('ui.edit') }}
             </ff-button>
         </div>
     </div>

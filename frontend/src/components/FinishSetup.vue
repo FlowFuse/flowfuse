@@ -1,7 +1,7 @@
 <template>
     <ff-button :kind="kind" data-action="finish-setup" @click="finishSetup">
         <template #icon-left><ExclamationTriangleIcon class="ff-icon" /></template>
-        Finish Setup
+        {{ $t('ui.finishSetup') }}
     </ff-button>
     <DeviceCredentialsDialog ref="deviceCredentialsDialog" />
 </template>

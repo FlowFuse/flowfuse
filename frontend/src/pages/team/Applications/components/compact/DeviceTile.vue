@@ -12,9 +12,9 @@
             </div>
             <div class="detail-wrapper">
                 <span class="detail">
-                    Last seen:
+                    {{ $t('ui.lastSeen3') }}
                     <DaysSince v-if="device.lastSeenAt" :date="device.lastSeenAt" />
-                    <template v-else>never</template>
+                    <template v-else>{{ $t('ui.never') }}</template>
                 </span>
             </div>
         </div>
@@ -23,25 +23,25 @@
             <ff-kebab-menu v-else-if="shouldDisplayKebabMenu">
                 <ff-kebab-item
                     v-if="hasPermission('device:edit')"
-                    label="Edit Details"
+                    :label="$t('ui.editDetails')"
                     @click.stop="$emit('device-action',{action: 'edit', id: device.id})"
                 />
                 <ff-kebab-item
                     v-if="displayingApplication && hasPermission('device:edit')"
-                    label="Remove from Application"
+                    :label="$t('ui.removeFromApplication')"
                     data-action="device-remove-from-application"
                     @click.stop="$emit('device-action',{action: 'removeFromApplication', id: device.id})"
                 />
                 <ff-kebab-item
                     v-if="hasPermission('device:edit')"
                     kind="danger"
-                    label="Regenerate Configuration"
+                    :label="$t('ui.regenerateConfiguration')"
                     @click.stop="$emit('device-action',{action: 'updateCredentials', id: device.id})"
                 />
                 <ff-kebab-item
                     v-if="hasPermission('device:delete')"
                     kind="danger"
-                    label="Delete Device"
+                    :label="$t('ui.deleteDevice')"
                     @click.stop="$emit('device-action',{action: 'delete', id: device.id})"
                 />
             </ff-kebab-menu>

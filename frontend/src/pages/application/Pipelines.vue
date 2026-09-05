@@ -1,24 +1,21 @@
 <template>
     <SectionTopMenu
-        hero="DevOps Pipelines"
-        help-header="FlowFuse - DevOps Pipelines"
-        info="Configure automated deployments between your Instances"
+        :hero="$t('ui.devopsPipelines')"
+        :help-header="$t('ui.flowfuseDevopsPipelines')"
+        :info="$t('ui.configureAutomatedDeploymentsBetweenYourInstance')"
     >
         <template #pictogram>
             <img src="../../images/pictograms/pipeline_red.png">
         </template>
         <template #helptext>
             <p>
-                DevOps Pipelines are used to link multiple Node-RED instances together
-                in a deployment pipeline.
+                {{ $t('ui.devopsPipelinesAreUsedToLinkMultipleNodeRedInsta') }}
             </p>
             <p>
-                This is normally used to define "Development" instances, where you can
-                test your new flows without fear or breaking "Production" environments.
+                {{ $t('ui.thisIsNormallyUsedToDefineDevelopmentInstancesWh') }}
             </p>
             <p>
-                Then, when you're ready, you could run a given stage of the pipeline to
-                promote your instance to "Staging" or "Production".
+                {{ $t('ui.thenWhenYouReReadyYouCouldRunAGivenStageOfThePip') }}
             </p>
         </template>
         <template #tools>
@@ -34,13 +31,13 @@
                 <template #icon-left>
                     <PlusSmallIcon />
                 </template>
-                Add Pipeline
+                {{ $t('ui.addPipeline') }}
             </ff-button>
         </template>
     </SectionTopMenu>
     <ff-loading
         v-if="loading"
-        message="Loading Pipelines..."
+        :message="$t('ui.loadingPipelines')"
     />
     <div v-else-if="pipelines?.length > 0" class="pt-4 space-y-6" data-el="pipelines-list">
         <PipelineRow
@@ -60,22 +57,19 @@
         />
     </div>
     <EmptyState v-else :featureUnavailable="!featureEnabled">
-        <template #header>Add your Application's First DevOps Pipeline</template>
+        <template #header>{{ $t('ui.addYourApplicationSFirstDevopsPipeline') }}</template>
         <template #img>
             <img src="../../images/empty-states/application-pipelines.png">
         </template>
         <template #message>
             <p>
-                DevOps Pipelines are used to link multiple Node-RED instances together
-                in a deployment pipeline.
+                {{ $t('ui.devopsPipelinesAreUsedToLinkMultipleNodeRedInsta') }}
             </p>
             <p>
-                This is normally used to define "Development" instances, where you can
-                test your new flows without fear or breaking "Production" environments.
+                {{ $t('ui.thisIsNormallyUsedToDefineDevelopmentInstancesWh') }}
             </p>
             <p>
-                Then, when you're ready, you could run a given stage of the pipeline to
-                promote your instance to "Staging" or "Production".
+                {{ $t('ui.thenWhenYouReReadyYouCouldRunAGivenStageOfThePip') }}
             </p>
         </template>
         <template #actions>
@@ -89,7 +83,7 @@
                 data-action="pipeline-add"
             >
                 <template #icon-left><PlusSmallIcon /></template>
-                Add Pipeline
+                {{ $t('ui.addPipeline') }}
             </ff-button>
         </template>
     </EmptyState>

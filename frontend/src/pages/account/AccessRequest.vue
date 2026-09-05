@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col items-center">
-        <h2>An application would like to connect to your account</h2>
+        <h2>{{ $t('ui.anApplicationWouldLikeToConnectToYourAccount') }}</h2>
         <div v-if="user" class="flex flex-row justify-center">
             <div class="flex">
                 <RectangleGroupIcon class="w-12" />
@@ -13,11 +13,11 @@
             </div>
         </div>
         <div class="my-4">
-            This application will have access to your teams and instances.
+            {{ $t('ui.thisApplicationWillHaveAccessToYourTeamsAndInsta') }}
         </div>
         <div class="ff-actions flex flex-row">
-            <ff-button class="mx-8" data-action="deny-access" @click="denyAccess">Deny</ff-button>
-            <ff-button class="mx-8" data-action="allow-access" @click="allowAccess">Allow</ff-button>
+            <ff-button class="mx-8" data-action="deny-access" @click="denyAccess">{{ $t('ui.deny') }}</ff-button>
+            <ff-button class="mx-8" data-action="allow-access" @click="allowAccess">{{ $t('ui.allow') }}</ff-button>
         </div>
     </div>
 </template>

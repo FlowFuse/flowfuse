@@ -6,26 +6,26 @@
             </div>
         </div>
         <p class="text-gray-600 italic text-sm">
-            Note: For more detailed instructions on installing the Device Agent, checkout the documentation
-            <a href="https://flowfuse.com/docs/device-agent/" target="_blank">here</a>.
+            {{ $t('ui.noteForMoreDetailedInstructionsOnInstallingTheDe') }}
+            <a href="https://flowfuse.com/docs/device-agent/" target="_blank">{{ $t('ui.here') }}</a>.
         </p>
 
-        <label class="block font-bold mt-4 mb-2">Connect Agent to FlowFuse</label>
+        <label class="block font-bold mt-4 mb-2">{{ $t('ui.connectAgentToFlowfuse') }}</label>
         <TerminalCommandSection
-            title="Then, with the Device Agent installed, run the following command, on your hardware, to connect it to FlowFuse:"
+            :title="$t('ui.thenWithTheDeviceAgentInstalledRunTheFollowingCo')"
             :command="otcCommand"
         />
 
         <div class="text-gray-600 italic text-sm">
-            <span>Notes:</span>
+            <span>{{ $t('ui.notes') }}</span>
             <ul class="list-disc list-inside ml-2">
-                <li>this command is single use and expires in 24h.</li>
-                <li>requires device-agent v2.1 or later (follow the manual setup below for older versions).</li>
+                <li>{{ $t('ui.thisCommandIsSingleUseAndExpiresIn24h') }}</li>
+                <li>{{ $t('ui.requiresDeviceAgentV21OrLaterFollowTheManualSetu') }}</li>
             </ul>
         </div>
 
         <details class="mt-4">
-            <summary class="mt-6 cursor-pointer">Show manual setup instructions</summary>
+            <summary class="mt-6 cursor-pointer">{{ $t('ui.showManualSetupInstructions') }}</summary>
             <ManualInstall class="mt-4" :device="device" />
         </details>
     </section>

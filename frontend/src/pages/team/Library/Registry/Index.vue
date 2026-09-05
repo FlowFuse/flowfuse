@@ -4,7 +4,7 @@
         <FeatureUnavailableToTeam v-else-if="!featuresCheck.isPrivateRegistryFeatureEnabledForTeam" />
     </div>
     <div class="-mt-2">
-        <SectionTopMenu hero="Custom Node Catalog" info="Your Team's private Node catalog. Here you can publish private npm repositories for your team to use within your Node-RED Instances.">
+        <SectionTopMenu :hero="$t('ui.customNodeCatalog')" :info="$t('ui.yourTeamSPrivateNodeCatalogHereYouCanPublishPriv')">
             <template #tools>
                 <div v-if="enabled" class="flex gap-2">
                     <ff-button
@@ -15,7 +15,7 @@
                         <template #icon-left>
                             <ArrowPathIcon />
                         </template>
-                        Refresh
+                        {{ $t('ui.refresh') }}
                     </ff-button>
                     <ff-button
                         v-if="canPublish"
@@ -25,7 +25,7 @@
                         <template #icon-left>
                             <ArrowUpCircleIcon />
                         </template>
-                        Publish
+                        {{ $t('ui.publish') }}
                     </ff-button>
                 </div>
             </template>
@@ -33,20 +33,19 @@
     </div>
     <div>
         <div v-if="loading">
-            <ff-loading message="Loading Registry..." />
+            <ff-loading :message="$t('ui.loadingRegistry')" />
         </div>
         <EmptyState v-else-if="!registry.length" data-el="team-no-devices">
             <template #img>
                 <img src="../../../../images/empty-states/team-library.png" alt="placeholder-image">
             </template>
-            <template #header>Publish Your First Custom Nodes</template>
+            <template #header>{{ $t('ui.publishYourFirstCustomNodes') }}</template>
             <template #message>
                 <p>
-                    Store and manage your own private NodeJS and Node-RED packages.
+                    {{ $t('ui.storeAndManageYourOwnPrivateNodejsAndNodeRedPack') }}
                 </p>
                 <p>
-                    FlowFuse hosts a private NPM registry for your team. Anything you publish to this registry
-                    will then be made available to install within all of your Node-RED Instances via the Node-RED Palette Manager.
+                    {{ $t('ui.flowfuseHostsAPrivateNpmRegistryForYourTeamAnyth') }}
                 </p>
             </template>
             <template v-if="enabled" #actions>
@@ -58,7 +57,7 @@
                     <template #icon-left>
                         <ArrowPathIcon />
                     </template>
-                    Refresh
+                    {{ $t('ui.refresh') }}
                 </ff-button>
                 <ff-button
                     v-if="canPublish"
@@ -69,12 +68,12 @@
                     <template #icon-left>
                         <ArrowUpCircleIcon />
                     </template>
-                    Publish
+                    {{ $t('ui.publish') }}
                 </ff-button>
             </template>
         </EmptyState>
         <div v-else class="mt-3 space-y-2">
-            <label class="block text-lg font-medium" data-el="registry-count">{{ registry.length }} package<template v-if="registry.length > 1">s</template></label>
+            <label class="block text-lg font-medium" data-el="registry-count">{{ $t('ui.p0Package', { p0: registry.length }) }}<template v-if="registry.length > 1">s</template></label>
             <ul class="ff-registry-list">
                 <RegistryEntry v-for="pkg in registry" :key="pkg.name" :pkg="pkg" />
             </ul>

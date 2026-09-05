@@ -7,14 +7,14 @@
                 data-el="flows"
             >
                 <div class="header flex flex-row justify-between mb-2">
-                    <span class="title font-bold">Flows:</span>
+                    <span class="title font-bold">{{ $t('ui.flows2') }}</span>
                     <ff-button
                         size="small"
                         kind="secondary"
                         data-action="compare-snapshot"
                         @click="showCompareSnapshotDialog(snapshot)"
                     >
-                        Compare
+                        {{ $t('ui.compare') }}
                     </ff-button>
                 </div>
                 <information-well
@@ -22,14 +22,14 @@
                     :class="{['items-center justify-center']: !flows.length}"
                 >
                     <flow-viewer v-if="flows.length" :flow="flows" />
-                    <span v-else class="text-gray-400">No flows found</span>
+                    <span v-else class="text-gray-400">{{ $t('ui.noFlowsFound') }}</span>
                 </information-well>
             </section>
 
             <div class="flex flex-col flex-1 gap-4">
                 <section class="name">
                     <div class="header flex flex-row justify-between">
-                        <span class="title font-bold">Name:</span>
+                        <span class="title font-bold">{{ $t('ui.name2') }}</span>
                     </div>
                     <p v-if="!isEditing" class="text-gray-600">
                         {{ snapshot.name }}
@@ -45,7 +45,7 @@
 
                 <section v-if="snapshot.user" class="author">
                     <div class="header flex flex-row justify-between">
-                        <span class="title font-bold">Author:</span>
+                        <span class="title font-bold">{{ $t('ui.author') }}</span>
                     </div>
                     <div>
                         {{ snapshot.user.username }}
@@ -54,7 +54,7 @@
 
                 <section class="description">
                     <div class="header flex flex-row justify-between">
-                        <span class="title font-bold">Description:</span>
+                        <span class="title font-bold">{{ $t('ui.description2') }}</span>
                     </div>
                     <p v-if="!isEditing" class="text-gray-600">
                         {{ snapshot.description.length > 0 ? snapshot.description : 'No description provided' }}
@@ -73,7 +73,7 @@
 
                 <section v-if="snapshot.createdSince" class="date-created">
                     <div class="header flex flex-row justify-between">
-                        <span class="title font-bold">Date Created:</span>
+                        <span class="title font-bold">{{ $t('ui.dateCreated') }}</span>
                     </div>
                     <div class="flex gap-5">
                         <p class="text-gray-600">{{ snapshot.createdSince }}</p>
@@ -88,7 +88,7 @@
 
         <section class="actions flex flex-col gap-3">
             <div class="header flex flex-row justify-between">
-                <span class="title font-bold">Actions:</span>
+                <span class="title font-bold">{{ $t('ui.actions2') }}</span>
             </div>
             <div class="flex flex-col gap-2">
                 <div class="flex flex-row gap-1">
@@ -98,7 +98,7 @@
                         data-action="download-snapshot"
                         @click="showDownloadSnapshotDialog(snapshot)"
                     >
-                        Download Snapshot
+                        {{ $t('ui.downloadSnapshot') }}
                         <template #icon-left>
                             <ArrowDownTrayIcon class="ff-icon" />
                         </template>
@@ -109,7 +109,7 @@
                         data-action="download-package-json"
                         @click="downloadSnapshotPackage(snapshot)"
                     >
-                        Download package.json
+                        {{ $t('ui.downloadPackageJson') }}
                         <template #icon-left>
                             <DocumentArrowDownIcon class="ff-icon" />
                         </template>
@@ -123,7 +123,7 @@
                     data-action="set-as"
                     @click="showDeviceTargetDialog(snapshot)"
                 >
-                    Set as Device Target
+                    {{ $t('ui.setAsDeviceTarget') }}
                     <template #icon-left>
                         <CpuChipIcon class="ff-icon" />
                     </template>
@@ -135,7 +135,7 @@
                     data-action="delete"
                     @click="showDeleteSnapshotDialog(snapshot)"
                 >
-                    Delete Snapshot
+                    {{ $t('ui.deleteSnapshot') }}
                     <template #icon-left>
                         <TrashIcon class="ff-icon" />
                     </template>
@@ -163,6 +163,7 @@ import DeviceApi from '../../../api/devices.js'
 
 import snapshotsApi from '../../../api/snapshots.js'
 import usePermissions from '../../../composables/Permissions.js'
+import { t } from '../../../i18n.js'
 import snapshotsMixin from '../../../mixins/Snapshots.js'
 import SnapshotExportDialog from '../../../pages/application/Snapshots/components/dialogs/SnapshotExportDialog.vue'
 import Alerts from '../../../services/alerts.js'
@@ -328,7 +329,7 @@ export default defineComponent({
                 title: this.snapshot.name,
                 actions: [
                     {
-                        label: 'Discard',
+                        label: t('ui.discard'),
                         kind: 'secondary',
                         handler: () => {
                             this.isEditing = false
@@ -343,7 +344,7 @@ export default defineComponent({
                         }
                     },
                     {
-                        label: 'Edit',
+                        label: t('ui.edit'),
                         kind: 'secondary',
                         iconLeft: PencilSquareIcon,
                         handler: () => {
@@ -360,7 +361,7 @@ export default defineComponent({
                         }
                     },
                     {
-                        label: 'Save',
+                        label: t('ui.save'),
                         kind: 'primary',
                         iconLeft: DocumentArrowDownIcon,
                         handler: () => {
@@ -377,7 +378,7 @@ export default defineComponent({
                         }
                     },
                     {
-                        label: 'Restore',
+                        label: t('ui.restore'),
                         kind: 'primary',
                         iconLeft: ClockIcon,
                         handler: () => this.isDevice ? this.deployDeviceSnapshot(this.snapshot.id) : this.showRollbackDialog(this.snapshot),
@@ -432,7 +433,7 @@ export default defineComponent({
         },
         validate () {
             if (!this.input.name) {
-                this.errors.name = 'Name is required'
+                this.errors.name = t('ui.nameIsRequired')
             } else {
                 this.errors.name = ''
             }

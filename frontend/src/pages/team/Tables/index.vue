@@ -1,9 +1,9 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Tables" :tabs="tabs">
+            <ff-page-header :title="$t('ui.tables')" :tabs="tabs">
                 <template #context>
-                    Manage your Database tables all in one place with FlowFuse Tables
+                    {{ $t('ui.manageYourDatabaseTablesAllInOnePlaceWithFlowfus') }}
                 </template>
             </ff-page-header>
         </template>
@@ -19,16 +19,16 @@
                     <template #img>
                         <img alt="empty-state-logo" src="../../../images/empty-states/application-instances.png">
                     </template>
-                    <template #header>Tables are not available!</template>
+                    <template #header>{{ $t('ui.tablesAreNotAvailable') }}</template>
                     <template #message>
                         <p>
-                            This feature is not supported for your Team Tier or in your Platform settings. Explore upgrade options to enable it.
+                            {{ $t('ui.thisFeatureIsNotSupportedForYourTeamTierOrInYour') }}
                         </p>
                     </template>
                 </EmptyState>
             </template>
             <template v-else>
-                <ff-loading v-if="loading || pendingTeamChange" message="Loading Databases..." />
+                <ff-loading v-if="loading || pendingTeamChange" :message="$t('ui.loadingDatabases')" />
 
                 <router-view v-else v-slot="{ Component }">
                     <transition name="page-fade" mode="out-in">

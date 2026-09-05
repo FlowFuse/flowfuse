@@ -1,5 +1,5 @@
 <template>
-    <h1>SQL Editor</h1>
+    <h1>{{ $t('ui.sqlEditor') }}</h1>
 </template>
 
 <script>

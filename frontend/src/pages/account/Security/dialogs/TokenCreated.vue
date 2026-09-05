@@ -1,12 +1,12 @@
 <template>
-    <ff-dialog ref="dialog" data-el="add-token-confirmation" header="Token Created">
+    <ff-dialog ref="dialog" data-el="add-token-confirmation" :header="$t('ui.tokenCreated')">
         <template #default>
-            <p>Your token is <code>{{ token?.token }}</code></p>
-            <p>This is the only time it will be shown, so please ensure you make a note</p>
+            <p>{{ $t('ui.yourTokenIs') }} <code>{{ token?.token }}</code></p>
+            <p>{{ $t('ui.thisIsTheOnlyTimeItWillBeShownSoPleaseEnsureYouM') }}</p>
         </template>
         <template #actions>
-            <ff-button v-if="!!clipboardSupported" data-action="token-confirmation-copy" kind="secondary" @click="copy()">Copy to Clipboard</ff-button>
-            <ff-button data-action="token-confirmation-done" class="ml-4" @click="close()">Done</ff-button>
+            <ff-button v-if="!!clipboardSupported" data-action="token-confirmation-copy" kind="secondary" @click="copy()">{{ $t('ui.copyToClipboard') }}</ff-button>
+            <ff-button data-action="token-confirmation-done" class="ml-4" @click="close()">{{ $t('ui.done') }}</ff-button>
         </template>
     </ff-dialog>
 </template>

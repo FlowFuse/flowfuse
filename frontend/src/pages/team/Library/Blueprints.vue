@@ -20,22 +20,22 @@
             <img src="../../../images/empty-states/team-library.png" alt="team-logo">
         </template>
         <template #header>
-            <span>No Blueprints Available</span>
+            <span>{{ $t('ui.noBlueprintsAvailable') }}</span>
         </template>
         <template #message>
             <p v-if="isAdminUser">
-                Blueprints can be created in your admin settings. They will be made available to all teams on the platform.
+                {{ $t('ui.blueprintsCanBeCreatedInYourAdminSettingsTheyWil') }}
             </p>
             <p v-else>
-                Speak to your platform Admin in order to use Blueprints.
+                {{ $t('ui.speakToYourPlatformAdminInOrderToUseBlueprints') }}
             </p>
         </template>
         <template v-if="isAdminUser" #actions>
             <ff-button v-if="featuresCheck.isSharedLibraryFeatureEnabled" :to="{name: 'admin-flow-blueprints'}" data-el="go-to-blueprints">
-                Go To Blueprints
+                {{ $t('ui.goToBlueprints') }}
             </ff-button>
             <ff-button v-else :to="{name: 'admin-templates-template'}" :disabled="true">
-                Add To Library
+                {{ $t('ui.addToLibrary') }}
                 <template #icon-right><PlusIcon /></template>
             </ff-button>
         </template>

@@ -5,7 +5,7 @@
                 :kind="selection === BLUEPRINT_SECTION_KEY ? 'primary' : 'secondary'"
                 class="w-full max-w-md" @click.prevent="onSectionClick(BLUEPRINT_SECTION_KEY)"
             >
-                Select a Blueprint
+                {{ $t('ui.selectABlueprint') }}
             </ff-button>
 
             <span>or</span>
@@ -14,7 +14,7 @@
                 :kind="selection === IMPORT_SECTION_KEY ? 'primary' : 'secondary'"
                 class="w-full max-w-md" @click.prevent="onSectionClick(IMPORT_SECTION_KEY)"
             >
-                Import Flows
+                {{ $t('ui.importFlows') }}
             </ff-button>
         </div>
 

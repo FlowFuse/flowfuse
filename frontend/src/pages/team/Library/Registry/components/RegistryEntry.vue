@@ -6,7 +6,7 @@
         </div>
         <div class="font-mono flex flex-col items-end">
             v{{ version }}
-            <span class="text-xs text-gray-400">{{ lastUpdated }} ago</span>
+            <span class="text-xs text-gray-400">{{ $t('ui.p0Ago', { p0: lastUpdated }) }}</span>
         </div>
     </li>
 </template>

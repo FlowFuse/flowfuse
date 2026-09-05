@@ -1,5 +1,5 @@
 <template>
-    <ff-loading v-if="loading" message="Loading Logs..." />
+    <ff-loading v-if="loading" :message="$t('ui.loadingLogs')" />
     <template v-else>
         <div v-if="device?.status && deviceOnline" class="mx-auto text-xs border ff-code-surface rounded-sm p-2 font-mono flex flex-col w-full overflow-auto">
             <template v-if="logEntries.length > 0">
@@ -17,10 +17,10 @@
                 </span>
             </template>
             <template v-else>
-                <div class="font-mono p-4 text-gray-400 text-center">Waiting for logs...</div>
+                <div class="font-mono p-4 text-gray-400 text-center">{{ $t('ui.waitingForLogs') }}</div>
             </template>
         </div>
-        <div v-else class="ff-no-data my-2">Logs Unavailable</div>
+        <div v-else class="ff-no-data my-2">{{ $t('ui.logsUnavailable') }}</div>
     </template>
 </template>
 

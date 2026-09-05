@@ -6,8 +6,8 @@
             </div>
         </div>
         <p class="text-gray-600 italic text-sm">
-            Note: For more detailed instructions on installing the Device Agent, checkout the documentation
-            <a href="https://flowfuse.com/docs/device-agent/" target="_blank">here</a>.
+            {{ $t('ui.noteForMoreDetailedInstructionsOnInstallingTheDe') }}
+            <a href="https://flowfuse.com/docs/device-agent/" target="_blank">{{ $t('ui.here') }}</a>.
         </p>
     </section>
 </template>
@@ -15,21 +15,23 @@
 <script>
 import { mapState } from 'pinia'
 
+import { t } from '../../../../../../i18n.js'
+
 import TerminalCommandSection from './TerminalCommandSection.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 const OS_CONFIG = {
     windows: {
-        title: 'Open an elevated Command Prompt and run:',
+        title: t('ui.openAnElevatedCommandPromptAndRun'),
         commandPrefix: 'powershell -c "irm https://flowfuse.github.io/device-agent/get.ps1|iex" && flowfuse-device-agent-installer.exe'
     },
     macos: {
-        title: 'Open Terminal and run:',
+        title: t('ui.openTerminalAndRun'),
         commandPrefix: '/bin/bash -c "$(curl -fsSL https://flowfuse.github.io/device-agent/get.sh)" && \\\n./flowfuse-device-agent-installer'
     },
     linux: {
-        title: 'Open Terminal and run:',
+        title: t('ui.openTerminalAndRun'),
         commandPrefix: '/bin/bash -c "$(curl -fsSL https://flowfuse.github.io/device-agent/get.sh)" && \\\n./flowfuse-device-agent-installer'
     }
 }

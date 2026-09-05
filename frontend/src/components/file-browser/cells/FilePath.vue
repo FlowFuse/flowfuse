@@ -5,7 +5,7 @@
         </text-copier>
         <span v-else class="path" :title="path">{{ path }}</span>
     </div>
-    <span v-else class="not-available">Not Available</span>
+    <span v-else class="not-available">{{ $t('ui.notAvailable') }}</span>
 </template>
 
 <script>

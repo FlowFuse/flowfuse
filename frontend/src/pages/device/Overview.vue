@@ -1,22 +1,22 @@
 <template>
     <div class="ff-device-overview flex gap-4 flex-wrap">
         <div class="flex flex-1 flex-col gap-4">
-            <InfoCard header="Connection:">
+            <InfoCard :header="$t('ui.connection')">
                 <template #icon>
                     <WifiIcon />
                 </template>
                 <template #content>
-                    <InfoCardRow property="Last Seen:">
+                    <InfoCardRow :property="$t('ui.lastSeen2')">
                         <template #value>
                             <DeviceLastSeenBadge :last-seen-at="lastSeenAt" :last-seen-ms="lastSeenMs" :last-seen-since="lastSeenSince" />
                         </template>
                     </InfoCardRow>
-                    <InfoCardRow property="Status:">
+                    <InfoCardRow :property="$t('ui.status2')">
                         <template #value>
                             <StatusBadge :status="device.status" :instanceId="device.id" instanceType="device" />
                         </template>
                     </InfoCardRow>
-                    <InfoCardRow v-if="nrLocalLoginOptionPossible" property="Node-RED Local Login:">
+                    <InfoCardRow v-if="nrLocalLoginOptionPossible" :property="$t('ui.nodeRedLocalLogin2')">
                         <template #value>
                             <div class="flex items-center space-x-2">
                                 <StatusBadge
@@ -32,12 +32,12 @@
                     </InfoCardRow>
                 </template>
             </InfoCard>
-            <InfoCard header="Deployment:">
+            <InfoCard :header="$t('ui.deployment')">
                 <template #icon>
                     <RectangleGroupIcon />
                 </template>
                 <template #content>
-                    <InfoCardRow property="Agent Version:">
+                    <InfoCardRow :property="$t('ui.agentVersion')">
                         <template #value>
                             <StatusBadge
                                 :status="agentVersionWarning ? 'error' : 'success'"
@@ -45,7 +45,7 @@
                             />
                         </template>
                     </InfoCardRow>
-                    <InfoCardRow property="Node-RED Version:">
+                    <InfoCardRow :property="$t('ui.nodeRedVersion3')">
                         <template #value>
                             <StatusBadge
                                 :status="nrVersionWarning ? 'error' : 'success'"
@@ -53,15 +53,15 @@
                             />
                         </template>
                     </InfoCardRow>
-                    <InfoCardRow property="Application:">
+                    <InfoCardRow :property="$t('ui.application2')">
                         <template #value>
                             <ff-team-link v-if="device?.application" :to="{name: 'application', params: { id: device.application.id }}">
                                 {{ device.application?.name }}
                             </ff-team-link>
-                            <span v-else>None</span>
+                            <span v-else>{{ $t('ui.none') }}</span>
                         </template>
                     </InfoCardRow>
-                    <InfoCardRow property="Group:">
+                    <InfoCardRow :property="$t('ui.group')">
                         <template #value>
                             <section class="flex items-center gap-3">
                                 <ff-team-link
@@ -76,12 +76,12 @@
                                 </ff-team-link>
 
                                 <template v-else>
-                                    <span v-if="canBeAssignedToGroups">None</span>
+                                    <span v-if="canBeAssignedToGroups">{{ $t('ui.none') }}</span>
                                     <span
-                                        v-else title="Only application owned instances can be assigned to groups."
+                                        v-else :title="$t('ui.onlyApplicationOwnedInstancesCanBeAssignedToGrou')"
                                         class="cursor-help text-gray-500 italic"
                                     >
-                                        Not Applicable
+                                        {{ $t('ui.notApplicable') }}
                                     </span>
                                 </template>
 
@@ -97,17 +97,17 @@
                             </section>
                         </template>
                     </InfoCardRow>
-                    <InfoCardRow v-if="device.ownerType!=='application'" property="Instance:">
+                    <InfoCardRow v-if="device.ownerType!=='application'" :property="$t('ui.instance')">
                         <template #value>
                             <router-link v-if="device?.instance" :to="{name: 'instance', params: { id: device.instance.id }}">
                                 {{ device.instance?.name }}
                             </router-link>
-                            <span v-else>None</span>
+                            <span v-else>{{ $t('ui.none') }}</span>
                         </template>
                     </InfoCardRow>
-                    <InfoCardRow property="Active Snapshot:">
+                    <InfoCardRow :property="$t('ui.activeSnapshot')">
                         <template #value>
-                            <span v-ff-tooltip:left="'Set Active Snapshots via Pipelines'" class="flex gap-2 pr-2">
+                            <span v-ff-tooltip:left="$t('ui.setActiveSnapshotsViaPipelines')" class="flex gap-2 pr-2">
                                 <span class="flex items-center space-x-2 text-gray-500 italic">
                                     <ExclamationTriangleIcon class="text-yellow-600 w-4" v-if="!device.activeSnapshot || !targetSnapshotDeployed" />
                                     <CheckCircleIcon class="text-green-700 w-4" v-else />
@@ -120,15 +120,15 @@
                                     </div>
                                 </template>
                                 <template v-else>
-                                    No Snapshot Deployed
+                                    {{ $t('ui.noSnapshotDeployed') }}
                                 </template>
                             </span>
                         </template>
                     </InfoCardRow>
 
-                    <InfoCardRow property="Target Snapshot:">
+                    <InfoCardRow :property="$t('ui.targetSnapshot')">
                         <template #value>
-                            <span v-ff-tooltip:left="'Set Target Snapshots via Pipelines'" class="flex gap-2 pr-2">
+                            <span v-ff-tooltip:left="$t('ui.setTargetSnapshotsViaPipelines')" class="flex gap-2 pr-2">
                                 <span class="flex items-center space-x-2 pt-1 text-gray-500 italic">
                                     <ExclamationTriangleIcon class="text-yellow-600 w-4" v-if="!device.targetSnapshot" />
                                     <CheckCircleIcon class="text-green-700 w-4" v-else />
@@ -140,13 +140,13 @@
                                     </div>
                                 </template>
                                 <template v-else>
-                                    No Target Snapshot Set
+                                    {{ $t('ui.noTargetSnapshotSet') }}
                                 </template>
                             </span>
                         </template>
                     </InfoCardRow>
 
-                    <InfoCardRow property="Device Mode">
+                    <InfoCardRow :property="$t('ui.deviceMode')">
                         <template #value>
                             <DeviceModeBadge :mode="device.mode" type="text" />
                         </template>
@@ -157,14 +157,14 @@
         <div class="flex-1">
             <FormHeading>
                 <div class="flex gap-2 items-center text-xl">
-                    <ArrowTrendingUpIcon class="ff-icon" />Recent Activity
+                    <ArrowTrendingUpIcon class="ff-icon" />{{ $t('ui.recentActivity') }}
                 </div>
             </FormHeading>
             <div class="ff-device-overview-audit">
                 <AuditLog :entries="auditLog" :showLoadMore="false" :disableAccordion="true" :disableAssociations="true" />
             </div>
             <div class="pb-4 text-center">
-                <router-link to="./audit-log" class="forge-button-inline">More...</router-link>
+                <router-link to="./audit-log" class="forge-button-inline">{{ $t('ui.more') }}</router-link>
             </div>
         </div>
     </div>

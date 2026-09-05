@@ -5,23 +5,23 @@
             <AuditLog :entries="logEntries" :associations="associations" :loading="loading" />
         </div>
         <div class="ff-audit-log-filters flex-1 flex flex-col overflow-auto">
-            <SectionTopMenu hero="Filters" />
+            <SectionTopMenu :hero="$t('ui.filters')" />
             <slot name="extraFilters" />
-            <FormHeading class="mt-4">Event Type:</FormHeading>
+            <FormHeading class="mt-4">{{ $t('ui.eventType') }}</FormHeading>
             <div data-el="filter-event-types">
                 <ff-listbox
                     v-model="auditFilters.event"
                     :options="typeOptions"
-                    placeholder="Show All"
+                    :placeholder="$t('ui.showAll')"
                     class="w-full"
                 />
             </div>
-            <FormHeading class="mt-4">User:</FormHeading>
+            <FormHeading class="mt-4">{{ $t('ui.user') }}</FormHeading>
             <div data-el="filter-users">
                 <ff-listbox
                     v-model="auditFilters.username"
                     :options="userOptions"
-                    placeholder="Show All"
+                    :placeholder="$t('ui.showAll')"
                     class="w-full"
                 />
             </div>
@@ -32,6 +32,7 @@
 <script>
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
+import { t } from '../../i18n.js'
 import AuditEventsService from '../../services/audit-events.js'
 import FfListbox from '../../ui-components/components/form/ListBox.vue'
 import FormHeading from '../FormHeading.vue'
@@ -84,13 +85,13 @@ export default {
     computed: {
         typeOptions () {
             return [
-                { label: 'Show All', value: '' },
+                { label: t('ui.showAll'), value: '' },
                 ...this.auditFilters.types.map(type => ({ label: type[0], value: type[1][0] }))
             ]
         },
         userOptions () {
             return [
-                { label: 'Show All', value: '' },
+                { label: t('ui.showAll'), value: '' },
                 ...this.auditFilters.users.map(user => ({
                     label: `${user.name} (${user.username})`,
                     value: user.username

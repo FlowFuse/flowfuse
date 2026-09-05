@@ -6,9 +6,9 @@
             </div>
             <div class="counter truncate">
                 <span class="truncate">
-                    <span v-if="instancesCount > 0" class="instance-counter">{{ instancesCount }} x Hosted Instances</span>
+                    <span v-if="instancesCount > 0" class="instance-counter">{{ $t('ui.p0XHostedInstances', { p0: instancesCount }) }}</span>
                     <span v-if="hasInstances & hasDevices" class="delimiter">, </span>
-                    <span v-if="devicesCount > 0" class="devices-counter">{{ devicesCount }} x Remote Instances</span>
+                    <span v-if="devicesCount > 0" class="devices-counter">{{ $t('ui.p0XRemoteInstances', { p0: devicesCount }) }}</span>
                 </span>
             </div>
         </template>
@@ -19,7 +19,7 @@
                 </li>
                 <li v-if="hasMore" class="ff-show-more" @click="showMore">
                     <ChevronDoubleDownIcon class="ff-icon-sm" />
-                    <p>Show More</p>
+                    <p>{{ $t('ui.showMore') }}</p>
                     <ChevronDoubleDownIcon class="ff-icon-sm" />
                 </li>
             </ul>

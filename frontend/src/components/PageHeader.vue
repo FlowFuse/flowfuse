@@ -57,7 +57,7 @@
                 />
                 <nav-item
                     v-if="canCreateTeam"
-                    label="Create New Team" :icon="plusIcon"
+                    :label="$t('nav.createNewTeam')" :icon="plusIcon"
                     class="create"
                     @click="mobileTeamSelectionOpen = false; $router.push({name: 'team-create'})"
                 />
@@ -147,7 +147,7 @@ export default {
         navigationOptions () {
             return [
                 {
-                    label: 'User Settings',
+                    label: this.$t('nav.userSettings'),
                     icon: Cog8ToothIcon,
                     tag: 'user-settings',
                     onclick: this.$router.push,
@@ -155,7 +155,7 @@ export default {
                     hidden: false
                 },
                 {
-                    label: 'Admin Settings',
+                    label: this.$t('nav.adminSettings'),
                     icon: AdjustmentsVerticalIcon,
                     tag: 'admin-settings',
                     onclick: this.$router.push,
@@ -163,26 +163,26 @@ export default {
                     hidden: !this.user.admin
                 },
                 {
-                    label: 'Documentation',
+                    label: this.$t('nav.documentation'),
                     icon: QuestionMarkCircleIcon,
                     tag: 'documentation',
                     onclick: (route) => window.open(route.url, '_blank'),
                     onclickparams: { url: 'https://flowfuse.com/docs/' }
                 },
                 {
-                    label: 'Getting Started',
+                    label: this.$t('nav.gettingStarted'),
                     icon: AcademicCapIcon,
                     tag: 'getting-started',
                     onclick: this.openEducationModal
                 },
                 {
-                    label: 'Welcome Tour',
+                    label: this.$t('nav.welcomeTour'),
                     icon: CursorArrowRaysIcon,
                     tag: 'welcome-tour',
                     onclick: this.startWelcomeTour
                 },
                 {
-                    label: 'Sign Out',
+                    label: this.$t('nav.signOut'),
                     icon: ArrowLeftOnRectangleIcon,
                     tag: 'sign-out',
                     onclick: this.signOut,

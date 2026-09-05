@@ -1,11 +1,11 @@
 <template>
     <section class="flex gap-5 flex-col md:flex-row mb-5 md:mb-0">
         <div class="ff-instance-info">
-            <FormHeading>Instances</FormHeading>
+            <FormHeading>{{ $t('ui.instances') }}</FormHeading>
             <table class="table-fixed w-full border border-separate rounded-sm">
                 <tbody>
                     <tr>
-                        <td class="align-top pt-3"><FormHeading><ProjectsIcon />Hosted Instances</FormHeading></td>
+                        <td class="align-top pt-3"><FormHeading><ProjectsIcon />{{ $t('ui.hostedInstances') }}</FormHeading></td>
                         <td>
                             <table class="border-none w-full hosted-instances-usage p-0!">
                                 <tbody>
@@ -23,7 +23,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <td><FormHeading><CpuChipIcon />Remote Instances</FormHeading></td>
+                        <td><FormHeading><CpuChipIcon />{{ $t('ui.remoteInstances') }}</FormHeading></td>
                         <td class="text-right">
                             <usage-value
                                 :used="team.deviceCount"
@@ -36,23 +36,23 @@
         </div>
 
         <div class="ff-instance-info w-full md:w-auto">
-            <FormHeading>Team</FormHeading>
+            <FormHeading>{{ $t('ui.team2') }}</FormHeading>
             <table class="table-fixed w-full border border-separate rounded-sm">
                 <tbody>
                     <tr class="border-b">
-                        <td class="font-medium flex items-center gap-2"><UsersIcon class="ff-icon ff-icon-md" /> Users</td>
+                        <td class="font-medium flex items-center gap-2"><UsersIcon class="ff-icon ff-icon-md" /> {{ $t('ui.users') }}</td>
                         <td class="py-2 text-right">
                             <usage-value :used="team.memberCount" :limit="getTeamProperty('users_limit') ?? null" />
                         </td>
                     </tr>
                     <tr class="border-b">
-                        <td class="font-medium flex items-center gap-2"><RssIcon class="ff-icon ff-icon-md" /> Brokers</td>
+                        <td class="font-medium flex items-center gap-2"><RssIcon class="ff-icon ff-icon-md" /> {{ $t('ui.brokers') }}</td>
                         <td class="py-2 text-right">
                             <usage-value :used="team.brokerCount" />
                         </td>
                     </tr>
                     <tr class="border-b">
-                        <td class="font-medium flex items-center gap-2"><IdentificationIcon class="ff-icon ff-icon-md" /> Broker Clients</td>
+                        <td class="font-medium flex items-center gap-2"><IdentificationIcon class="ff-icon ff-icon-md" /> {{ $t('ui.brokerClients') }}</td>
                         <td class="py-2 text-right">
                             <usage-value :used="team.teamBrokerClientsCount" :limit="getTeamProperty('teamBroker_clients_limit') ?? null" />
                         </td>

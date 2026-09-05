@@ -1,17 +1,16 @@
 <template>
-    <ff-dialog ref="dialog" header="Remove User" kind="danger" confirm-label="Remove" :disable-primary="disableConfirm" @confirm="confirm()">
+    <ff-dialog ref="dialog" :header="$t('ui.removeUser')" kind="danger" :confirm-label="$t('ui.remove')" :disable-primary="disableConfirm" @confirm="confirm()">
         <template v-if="user" #default>
             <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
                     <template v-if="ownerCount < 2 && user.role === 'owner'">
                         <p class="text-sm text-gray-500">
-                            You cannot remove <span class="font-bold">{{ user.username }}</span> as
-                            they are the only owner of the team.
+                            {{ $t('ui.youCannotRemove') }} <span class="font-bold">{{ user.username }}</span> {{ $t('ui.asTheyAreTheOnlyOwnerOfTheTeam') }}
                         </p>
                     </template>
                     <template v-else>
                         <p class="text-sm text-gray-500">
-                            Are you sure you want to remove <span class="font-bold">{{ user.username }}</span> from the team <span class="font-bold">{{ team.name }}</span>?
+                            {{ $t('ui.areYouSureYouWantToRemove') }} <span class="font-bold">{{ user.username }}</span> {{ $t('ui.fromTheTeam') }} <span class="font-bold">{{ team.name }}</span>?
                         </p>
                     </template>
                 </div>

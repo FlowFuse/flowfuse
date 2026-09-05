@@ -7,15 +7,10 @@
         <SparklesIcon class="ff-icon mr-2" style="stroke-width: 1px;" />
         <slot>
             <div>
-                <span v-if="fullMessage">
-                    {{ fullMessage }}
-                    Please <router-link class="ff-link" href="#" :to="upgradePath">upgrade</router-link>
-                    your Team to continue.
+                <span v-if="fullMessage">{{ $t('ui.p0Please', { p0: fullMessage }) }}<router-link class="ff-link" href="#" :to="upgradePath">{{ $t('ui.upgrade2') }}</router-link>
+                    {{ $t('ui.yourTeamToContinue') }}
                 </span>
-                <span v-else>
-                    {{ featureName }} is not available for your current Team.
-                    Please
-                    <router-link class="ff-link" href="#" :to="upgradePath">upgrade</router-link> your Team in order to use it.
+                <span v-else>{{ $t('ui.p0IsNotAvailableForYourCurrentTeamPlease', { p0: featureName }) }}<router-link class="ff-link" href="#" :to="upgradePath">{{ $t('ui.upgrade2') }}</router-link> {{ $t('ui.yourTeamInOrderToUseIt') }}
                 </span>
             </div>
         </slot>
@@ -28,6 +23,8 @@ import { SparklesIcon } from '@heroicons/vue/24/outline'
 
 import { mapState } from 'pinia'
 
+import { t } from '../../i18n.js'
+
 import { useContextStore } from '@/stores/context.js'
 
 export default {
@@ -38,7 +35,7 @@ export default {
     props: {
         featureName: {
             type: String,
-            default: 'This feature'
+            default: t('ui.thisFeature')
         },
         fullMessage: {
             type: String,

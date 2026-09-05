@@ -1,17 +1,17 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Library" :tabs="navigation">
+            <ff-page-header :title="$t('ui.library')" :tabs="navigation">
                 <template #context>
-                    Common resources that are shared across all of your Team's Node-RED instances.
+                    {{ $t('ui.commonResourcesThatAreSharedAcrossAllOfYourTeamS') }}
                 </template>
                 <template #pictogram>
                     <img src="../../../images/pictograms/library_red.png" alt="logo">
                 </template>
                 <template #helptext>
-                    <p>In Node-RED you can export and import flows and functions, and save them to your Team Library.</p>
-                    <p>The contents of your Team Library are available across any of your application instances in FlowFuse.</p>
-                    <p>You can read more about <a href="https://nodered.org/docs/user-guide/editor/workspace/import-export" target="_blank">Import &amp; Exporting Flows</a> in the Node-RED documentation</p>
+                    <p>{{ $t('ui.inNodeRedYouCanExportAndImportFlowsAndFunctionsA') }}</p>
+                    <p>{{ $t('ui.theContentsOfYourTeamLibraryAreAvailableAcrossAn') }}</p>
+                    <p>{{ $t('ui.youCanReadMoreAbout') }} <a href="https://nodered.org/docs/user-guide/editor/workspace/import-export" target="_blank">Import &amp; Exporting Flows</a> {{ $t('ui.inTheNodeRedDocumentation') }}</p>
                 </template>
             </ff-page-header>
         </template>
@@ -23,6 +23,8 @@
 <script>
 import { mapState } from 'pinia'
 
+import { t } from '../../../i18n.js'
+
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
@@ -32,13 +34,13 @@ export default {
         navigation () {
             const list = [
                 {
-                    label: 'Team Library',
+                    label: t('ui.teamLibrary'),
                     to: {
                         name: 'team-library-files'
                     }
                 },
                 {
-                    label: 'Blueprints',
+                    label: t('ui.blueprints'),
                     to: {
                         name: 'team-library-blueprints'
                     }
@@ -46,7 +48,7 @@ export default {
             ]
             if (this.featuresCheck?.isPrivateRegistryFeatureEnabledForPlatform) {
                 list.splice(1, 0, {
-                    label: 'Custom Nodes',
+                    label: t('ui.customNodes'),
                     featureUnavailable: !this.featuresCheck?.isPrivateRegistryFeatureEnabledForPlatform || !this.featuresCheck?.isPrivateRegistryFeatureEnabledForTeam,
                     to: {
                         name: 'team-library-registry'

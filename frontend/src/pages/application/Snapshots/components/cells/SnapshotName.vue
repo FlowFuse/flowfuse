@@ -7,7 +7,7 @@
             <template v-if="description">
                 <details v-if="!clippedDetails" class="text-gray-500 float-left">
                     <summary class="cursor-pointer">
-                        Description
+                        {{ $t('ui.description') }}
                     </summary>
                     <div
                         class="whitespace-pre-line absolute border drop-shadow-md rounded-sm bg-white p-2 z-10"

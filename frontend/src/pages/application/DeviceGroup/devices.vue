@@ -1,10 +1,10 @@
 <template>
     <main v-if="!deviceGroup?.id">
-        <ff-loading message="Loading Device Group..." />
+        <ff-loading :message="$t('ui.loadingDeviceGroup')" />
     </main>
     <div v-else class="w-full" data-el="device-group-devices">
         <div class="mb-3">
-            <SectionTopMenu hero="Device Group Membership" info="">
+            <SectionTopMenu :hero="$t('ui.deviceGroupMembership')" info="">
                 <template #tools>
                     <div v-if="!editMode && !hasChanges" class="flex flex-wrap justify-end items-end gap-x-2 gap-y-2 mt-0 mb-1">
                         <ff-button
@@ -12,12 +12,12 @@
                             data-action="edit-device-group"
                             kind="primary" size="small" class="w-24 whitespace-nowrap" @click="editMode = true"
                         >
-                            Edit
+                            {{ $t('ui.edit') }}
                         </ff-button>
                     </div>
                     <div v-else class="flex flex-wrap justify-end items-end gap-x-2 gap-y-2 mt-0 mb-1">
-                        <ff-button kind="secondary" size="small" class="w-24 whitespace-nowrap" @click="cancelChanges">Cancel</ff-button>
-                        <ff-button kind="primary" size="small" :disabled="!hasChanges" class="w-24 whitespace-nowrap" @click="saveChanges">Save Changes</ff-button>
+                        <ff-button kind="secondary" size="small" class="w-24 whitespace-nowrap" @click="cancelChanges">{{ $t('ui.cancel') }}</ff-button>
+                        <ff-button kind="primary" size="small" :disabled="!hasChanges" class="w-24 whitespace-nowrap" @click="saveChanges">{{ $t('ui.saveChanges') }}</ff-button>
                     </div>
                 </template>
             </SectionTopMenu>
@@ -26,20 +26,20 @@
         <div class="flex flex-col sm:flex-row">
             <div v-if="editMode" class="w-full sm:w-1/2 order-3 sm:order-1">
                 <div class="flex justify-between items-center mb-1">
-                    <h3 class="text-gray-800 block text-sm font-medium mb-1 min-w-0 truncate">Available remote instances</h3>
+                    <h3 class="text-gray-800 block text-sm font-medium mb-1 min-w-0 truncate">{{ $t('ui.availableRemoteInstances') }}</h3>
                     <ff-button
                         size="small" class="w-28 whitespace-nowrap mb-1"
                         :disabled="!selectedAvailableDevices.length || !hasPermission('application:device-group:create', {application})"
                         @click="addDevicesToGroup()"
                     >
-                        Add Devices
+                        {{ $t('ui.addDevices') }}
                     </ff-button>
                 </div>
                 <ff-data-table
                     :columns="tableColsRW"
                     :show-search="true"
-                    search-placeholder="Search..."
-                    no-data-message="No Devices available"
+                    :search-placeholder="$t('ui.search')"
+                    :no-data-message="$t('ui.noDevicesAvailable')"
                     @update:search="updateAvailableDeviceListDebounced"
                     @update:sort="updateAvailableDevicesSort"
                 >
@@ -61,14 +61,14 @@
             <div :class="editMode ? 'w-full sm:w-1/2 order-1 sm:order-3' : 'w-full'">
                 <div v-if="editMode" class="flex justify-between items-center mb-1">
                     <!-- <h2 class="text-xl font-bold min-w-0 truncate">{{ deviceGroup.name }}</h2> -->
-                    <h3 class="text-gray-800 block text-sm font-medium mb-1 min-w-0 truncate">Group Members</h3>
-                    <ff-button size="small" class="w-28 whitespace-nowrap mb-1" :disabled="!selectedMemberDevices.length" @click="removeDevicesFromGroup()">Remove Devices</ff-button>
+                    <h3 class="text-gray-800 block text-sm font-medium mb-1 min-w-0 truncate">{{ $t('ui.groupMembers') }}</h3>
+                    <ff-button size="small" class="w-28 whitespace-nowrap mb-1" :disabled="!selectedMemberDevices.length" @click="removeDevicesFromGroup()">{{ $t('ui.removeDevices') }}</ff-button>
                 </div>
 
                 <ff-data-table
                     :columns="editMode ? tableColsRW : tableColsRO"
                     :show-search="true"
-                    search-placeholder="Search..."
+                    :search-placeholder="$t('ui.search')"
                     :no-data-message="localMemberDevices?.length ? 'No Devices found, try another search term' : 'No Devices assigned to this group'"
                     data-el="device-group-members"
                     @update:search="updateMemberDevicesListDebounced"
@@ -102,7 +102,7 @@ import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import DeployNotice from '../../../components/notices/device-groups/DeployNotice.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
-import { pluralize } from '../../../composables/strings/String.js'
+import { t } from '../../../i18n.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -155,14 +155,14 @@ export default {
                 direction: 'desc'
             },
             tableColsRO: [
-                { label: 'Name', key: 'name', sortable: true, class: 'w-1/3' },
-                { label: 'Type', key: 'type', sortable: true, class: 'w-1/3' },
-                { label: 'Active Snapshot', key: 'type', sortable: true, class: 'w-1/3' }
+                { label: t('ui.name'), key: 'name', sortable: true, class: 'w-1/3' },
+                { label: t('ui.type'), key: 'type', sortable: true, class: 'w-1/3' },
+                { label: t('ui.activeSnapshot2'), key: 'type', sortable: true, class: 'w-1/3' }
             ],
             tableColsRW: [
                 { label: '', key: 'selected', sortable: true },
-                { label: 'Name', key: 'name', sortable: true, class: 'w-1/3' },
-                { label: 'Type', key: 'type', sortable: true, class: 'w-2/3' }
+                { label: t('ui.name'), key: 'name', sortable: true, class: 'w-1/3' },
+                { label: t('ui.type'), key: 'type', sortable: true, class: 'w-2/3' }
             ]
         }
     },
@@ -339,12 +339,12 @@ export default {
 
             if (addedCount > 0) {
                 if (removedCount === 0) {
-                    text.push(`<h3>${addedCount === 1 ? 'One' : 'Multiple'} Remote ${pluralize('Instance', addedCount)} will be added to this group.</h3>`)
+                    text.push(`<h3>${addedCount === 1 ? this.$t('ui.oneRemoteInstanceWillBeAdded') : this.$t('ui.multipleRemoteInstancesWillBeAdded')}</h3>`)
                 }
                 if (this.deviceGroup.targetSnapshot?.id) {
                     const component = h(DeployNotice, {
                         targetSnapshot: this.deviceGroup.targetSnapshot,
-                        title: `The below snapshot will be deployed to the Remote ${pluralize('Instance', addedCount)} being added to this group:`
+                        title: this.$t('ui.theBelowSnapshotWillBeDeployedToTheAddedRemote', addedCount)
                     })
                     notices.push(component)
                 }
@@ -366,7 +366,7 @@ export default {
             const html = text.join('\n')
 
             Dialog.show({
-                header: 'Update device group members',
+                header: t('ui.updateDeviceGroupMembers'),
                 kind: 'danger',
                 html,
                 notices,
@@ -380,9 +380,9 @@ export default {
                         this.editMode = false
                         if (deviceIds.length === 0 && this.deviceGroup.targetSnapshot) {
                             Dialog.show({
-                                header: 'Empty Device Group',
+                                header: t('ui.emptyDeviceGroup'),
                                 kind: 'danger',
-                                text: 'Do you want to clear the Target Snapshot for this empty Device Group?',
+                                text: t('ui.doYouWantToClearTheTargetSnapshotForThisEmptyDev'),
                                 confirmLabel: 'Clear',
                                 cancelLabel: 'No'
                             }, async () => {

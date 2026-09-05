@@ -1,27 +1,27 @@
 <template>
-    <ff-dialog ref="dialog" header="Download Snapshot" confirm-label="Download" :closeOnConfirm="false" :disable-primary="!formValid" data-el="snapshot-download-dialog" @confirm="confirm()">
+    <ff-dialog ref="dialog" :header="$t('ui.downloadSnapshot')" :confirm-label="$t('ui.download')" :closeOnConfirm="false" :disable-primary="!formValid" data-el="snapshot-download-dialog" @confirm="confirm()">
         <template #default>
             <form data-form="snapshot-export" @submit.prevent>
                 <ExportInstanceComponents
                     v-model="parts"
-                    :error="errors.parts" header="Select the components to include in the snapshot"
+                    :error="errors.parts" :header="$t('ui.selectTheComponentsToIncludeInTheSnapshot')"
                     data-form="export-snapshot-components"
                 />
                 <template v-if="needsSecret">
                     <FormRow containerClass="w-auto mt-6" :error="errors.secret" data-form="snapshot-secret">
-                        Secret
+                        {{ $t('ui.secret') }}
                         <template #description>
-                            <p class="text-sm">A key used to encrypt any credentials in the snapshot's flow.</p>
+                            <p class="text-sm">{{ $t('ui.aKeyUsedToEncryptAnyCredentialsInTheSnapshotSFlo') }}</p>
                         </template>
                         <template #input>
                             <div class="flex items-center w-full">
-                                <ff-text-input ref="secret" v-model="input.secret" type="text" placeholder="Secret" />
-                                <ff-button v-ff-tooltip:top="'Random Secret'" kind="secondary" size="small" class="ml-2" data-el="refresh" @click="input.secret = generateRandomKey()">
+                                <ff-text-input ref="secret" v-model="input.secret" type="text" :placeholder="$t('ui.secret')" />
+                                <ff-button v-ff-tooltip:top="$t('ui.randomSecret')" kind="secondary" size="small" class="ml-2" data-el="refresh" @click="input.secret = generateRandomKey()">
                                     <template #icon>
                                         <ArrowPathIcon />
                                     </template>
                                 </ff-button>
-                                <ff-button v-if="clipboardSupported" v-ff-tooltip:top="'Copy to Clipboard'" kind="secondary" size="small" class="ml-2" @click="copySecret()">
+                                <ff-button v-if="clipboardSupported" v-ff-tooltip:top="$t('ui.copyToClipboard')" kind="secondary" size="small" class="ml-2" @click="copySecret()">
                                     <template #icon>
                                         <ClipboardDocumentIcon />
                                     </template>
@@ -29,7 +29,7 @@
                             </div>
                         </template>
                     </FormRow>
-                    <div class="mt-2">Please make a note of the secret used to encrypt the snapshot credentials. It will be required when importing the snapshot.</div>
+                    <div class="mt-2">{{ $t('ui.pleaseMakeANoteOfTheSecretUsedToEncryptTheSnapsh') }}</div>
                 </template>
             </form>
         </template>
@@ -41,6 +41,7 @@ import { ArrowPathIcon, ClipboardDocumentIcon } from '@heroicons/vue/24/outline'
 import snapshotsApi from '../../../../../api/snapshots.js'
 import FormRow from '../../../../../components/FormRow.vue'
 import { downloadData } from '../../../../../composables/Download.js'
+import { t } from '../../../../../i18n.js'
 import clipboardMixin from '../../../../../mixins/Clipboard.js'
 import alerts from '../../../../../services/alerts.js'
 import ExportInstanceComponents from '../../../../instance/components/ExportImportComponents.vue'
@@ -99,11 +100,11 @@ export default {
         validate () {
             if (this.needsSecret) {
                 if (!this.input.secret) {
-                    this.errors.secret = 'Secret is required'
+                    this.errors.secret = t('ui.secretIsRequired')
                 } else if (this.input.secret.length < 8) {
-                    this.errors.secret = 'Secret must be at least 8 characters'
+                    this.errors.secret = t('ui.secretMustBeAtLeast8Characters')
                 } else if (/^\s/.test(this.input.secret) || /\s$/.test(this.input.secret)) {
-                    this.errors.secret = 'Secret cannot start or end with a space'
+                    this.errors.secret = t('ui.secretCannotStartOrEndWithASpace')
                 } else {
                     this.errors.secret = ''
                 }
@@ -111,7 +112,7 @@ export default {
                 this.errors.secret = ''
             }
             if (this.parts.flows === false && this.parts.envVars === false) {
-                this.errors.parts = 'At least one component must be selected'
+                this.errors.parts = t('ui.atLeastOneComponentMustBeSelected')
             } else {
                 this.errors.parts = ''
             }
@@ -133,11 +134,11 @@ export default {
                 }).then(data => {
                     const snapshotDate = data.updatedAt.replace(/[-:]/g, '').replace(/\..*$/, '').replace('T', '-')
                     downloadData(data, `snapshot-${this.snapshot.id}-${snapshotDate}.json`)
-                    alerts.emit('Snapshot exported.', 'confirmation')
+                    alerts.emit(t('ui.snapshotExported'), 'confirmation')
                     this.$refs.dialog.close()
                 }).catch(err => {
                     console.error(err)
-                    alerts.emit('Failed to download snapshot.', 'error')
+                    alerts.emit(t('ui.failedToDownloadSnapshot'), 'error')
                 }).finally(() => {
                     this.submitted = false
                 })
@@ -150,10 +151,10 @@ export default {
         },
         copySecret () {
             this.copyToClipboard(this.input.secret).then(() => {
-                alerts.emit('Copied to Clipboard.', 'confirmation')
+                alerts.emit(t('ui.copiedToClipboard'), 'confirmation')
             }).catch((err) => {
                 console.warn('Clipboard write permission denied: ', err)
-                alerts.emit('Clipboard write permission denied.', 'warning')
+                alerts.emit(t('ui.clipboardWritePermissionDenied'), 'warning')
             })
         }
     }

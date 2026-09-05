@@ -5,15 +5,15 @@
         :show-search="true"
         :rows-selectable="isRowSelectable"
         :no-data-message="noDataMessages"
-        search-placeholder="Search Files"
+        :search-placeholder="$t('ui.searchFiles')"
         :loading="loading"
         :disabled="disabled"
-        loading-message="Loading directory..."
+        :loading-message="$t('ui.loadingDirectory')"
         data-el="files-table"
         @row-selected="directoryClicked"
     >
         <template #actions>
-            <!-- <DropdownMenu data-el="bulk-actions-dropdown" buttonClass="ff-btn ff-btn--secondary" :options="bulkActionsDropdownOptions">Actions</DropdownMenu> -->
+            <!-- <DropdownMenu data-el="bulk-actions-dropdown" buttonClass="ff-btn ff-btn--secondary" :options="bulkActionsDropdownOptions">{{ $t('ui.actions') }}</DropdownMenu> -->
             <ff-button
                 data-action="refresh-items"
                 :disabled="disabled"
@@ -23,7 +23,7 @@
                 <template #icon-right>
                     <ArrowPathIcon />
                 </template>
-                Refresh
+                {{ $t('ui.refresh') }}
             </ff-button>
             <ff-button
                 v-if="!isReadOnly"
@@ -35,7 +35,7 @@
                 <template #icon-right>
                     <PlusIcon />
                 </template>
-                New Folder
+                {{ $t('ui.newFolder') }}
             </ff-button>
             <ff-button
                 v-if="!isReadOnly"
@@ -47,46 +47,46 @@
                 <template #icon-right>
                     <ArrowUpTrayIcon />
                 </template>
-                Upload
+                {{ $t('ui.upload') }}
             </ff-button>
         </template>
         <template #context-menu="{row}">
             <template v-if="!isReadOnly && row.type === 'directory'">
-                <ff-kebab-item label="Edit Folder" data-action="edit-folder" @click.stop="editFolder(row)" />
-                <ff-kebab-item kind="danger" data-action="delete-folder" label="Delete Folder" @click.stop="deleteFolder(row)" />
+                <ff-kebab-item :label="$t('ui.editFolder')" data-action="edit-folder" @click.stop="editFolder(row)" />
+                <ff-kebab-item kind="danger" data-action="delete-folder" :label="$t('ui.deleteFolder')" @click.stop="deleteFolder(row)" />
             </template>
             <template v-if="!isReadOnly && row.type === 'file'">
-                <ff-kebab-item kind="danger" data-action="delete-file" label="Delete File" @click.stop="deleteFile(row)" />
+                <ff-kebab-item kind="danger" data-action="delete-file" :label="$t('ui.deleteFile')" @click.stop="deleteFile(row)" />
             </template>
         </template>
     </ff-data-table>
     <!-- Dialog: New Folder -->
     <ff-dialog
-        ref="new-folder" data-el="new-folder-dialog" header="New Folder"
+        ref="new-folder" data-el="new-folder-dialog" :header="$t('ui.newFolder')"
         :disablePrimary="!forms.newFolder.name"
         @confirm="createFolder" @cancel="cleanupModal('createFolder')"
     >
         <p style="margin-bottom: 12px">
-            Please provide a name for the new folder.
+            {{ $t('ui.pleaseProvideANameForTheNewFolder') }}
         </p>
-        <ff-text-input v-model="forms.newFolder.name" placeholder="New Folder" />
+        <ff-text-input v-model="forms.newFolder.name" :placeholder="$t('ui.newFolder')" />
     </ff-dialog>
     <!-- Dialog: Edit Folder -->
-    <ff-dialog ref="edit-folder" data-el="edit-folder-dialog" header="Edit Folder" :disablePrimary="!forms.newFolder.name" @confirm="updateFolder">
+    <ff-dialog ref="edit-folder" data-el="edit-folder-dialog" :header="$t('ui.editFolder')" :disablePrimary="!forms.newFolder.name" @confirm="updateFolder">
         <p style="margin-bottom: 12px">
-            Please update the name for the folder.
+            {{ $t('ui.pleaseUpdateTheNameForTheFolder') }}
         </p>
-        <ff-text-input v-model="forms.newFolder.name" placeholder="Folder Name" />
+        <ff-text-input v-model="forms.newFolder.name" :placeholder="$t('ui.folderName')" />
     </ff-dialog>
     <!-- Dialog: Upload File -->
     <ff-dialog
-        ref="upload-file" data-el="upload-file-dialog" header="Upload File"
+        ref="upload-file" data-el="upload-file-dialog" :header="$t('ui.uploadFile')"
         :disablePrimary="!forms.file"
         @cancel="cleanupModal('uploadFile')"
         @confirm="uploadFile"
     >
         <p style="margin-bottom: 12px">
-            Please select a file to upload (max 5mb).
+            {{ $t('ui.pleaseSelectAFileToUploadMax5mb') }}
         </p>
         <ff-file-upload ref="fileUpload" v-model="forms.file" />
     </ff-dialog>
@@ -101,6 +101,7 @@ import AssetsAPI from '../../api/assets.js'
 import FFFileUpload from '../../components/FileUpload.vue'
 import usePermissions from '../../composables/Permissions.js'
 
+import { t } from '../../i18n.js'
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 
@@ -212,18 +213,18 @@ export default {
                 },
                 {
                     key: 'name',
-                    label: 'Name',
+                    label: t('ui.name'),
                     sortable: true
                 },
                 {
                     key: 'size',
-                    label: 'Size',
+                    label: t('ui.size'),
                     sortable: true,
                     component: { is: markRaw(ItemSize) }
                 },
                 {
                     key: 'filepath',
-                    label: 'File Path',
+                    label: t('ui.filePath'),
                     sortable: true,
                     component: {
                         is: markRaw(ItemFilePath),
@@ -235,7 +236,7 @@ export default {
                 },
                 {
                     key: 'url',
-                    label: 'URL',
+                    label: t('ui.url2'),
                     sortable: true,
                     component: {
                         is: markRaw(ItemFilePath),
@@ -250,7 +251,7 @@ export default {
                 },
                 {
                     key: 'lastModified',
-                    label: 'Last Modified',
+                    label: t('ui.lastModified'),
                     sortable: true
                 }
             ]
@@ -295,7 +296,7 @@ export default {
         },
         deleteFolder (folder) {
             Dialog.show({
-                header: 'Delete Folder',
+                header: t('ui.deleteFolder'),
                 kind: 'danger',
                 text: 'Are you sure you want to delete this folder? All of this folder\'s contents will be removed too. Once deleted, there is no going back.',
                 confirmLabel: 'Delete'
@@ -315,9 +316,9 @@ export default {
         },
         deleteFile (file) {
             Dialog.show({
-                header: 'Delete File',
+                header: t('ui.deleteFile'),
                 kind: 'danger',
-                text: 'Are you sure you want to delete this file? Once deleted, there is no going back.',
+                text: t('ui.areYouSureYouWantToDeleteThisFileOnceDeletedTher'),
                 confirmLabel: 'Delete'
             }, async () => {
                 try {

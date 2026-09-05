@@ -1,4 +1,5 @@
 import InstanceApi from '../api/instances.js'
+import { t } from '../i18n.js'
 import alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 import { InstanceStateMutator } from '../utils/InstanceStateMutator.js'
@@ -16,7 +17,7 @@ export default {
                 mutator.setStateAsPendingFromServer()
             } catch (err) {
                 console.warn('Instance start failed.', err)
-                alerts.emit('Instance start failed.', 'warning')
+                alerts.emit(t('ui.instanceStartFailed'), 'warning')
 
                 mutator.restoreState()
             }
@@ -29,14 +30,14 @@ export default {
                 mutator.setStateAsPendingFromServer()
             } catch (err) {
                 console.warn('Instance restart failed.', err)
-                alerts.emit('Instance restart failed.', 'warning')
+                alerts.emit(t('ui.instanceRestartFailed'), 'warning')
 
                 mutator.restoreState()
             }
         },
         instanceShowConfirmSuspend (instance) {
             Dialog.show({
-                header: 'Suspend Instance',
+                header: t('ui.suspendInstance'),
                 text: `Are you sure you want to suspend ${instance.name}`,
                 confirmLabel: 'Suspend',
                 kind: 'danger'
@@ -47,10 +48,10 @@ export default {
                 InstanceApi.suspendInstance(instance).then(() => {
                     mutator.setStateAsPendingFromServer()
 
-                    alerts.emit('Instance suspend request succeeded.', 'confirmation')
+                    alerts.emit(t('ui.instanceSuspendRequestSucceeded'), 'confirmation')
                 }).catch(err => {
                     console.warn(err)
-                    alerts.emit('Instance failed to suspend.', 'warning')
+                    alerts.emit(t('ui.instanceFailedToSuspend'), 'warning')
 
                     mutator.restoreState()
                 })

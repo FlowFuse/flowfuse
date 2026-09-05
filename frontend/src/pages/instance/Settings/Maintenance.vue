@@ -2,20 +2,20 @@
     <div class="maintenance">
         <section data-el="scheduled-upgrade" class="scheduled-upgrade">
             <FeatureUnavailable v-if="!featuresCheck.isInstanceAutoStackUpdateFeatureEnabledForPlatform" />
-            <FormHeading>Scheduled Restarts/Upgrades</FormHeading>
+            <FormHeading>{{ $t('ui.scheduledRestartsUpgrades') }}</FormHeading>
             <FormRow v-model="scheduledUpgrade.enabled" :disabled="!allowDisable" type="checkbox" class="mt-5" container-class="max-w-xl">
-                Enabled
+                {{ $t('ui.enabled') }}
                 <template #description>
-                    Select the days of the week and the hour during which the automatic upgrade will occur if available. The upgrade will start within the selected hour.
+                    {{ $t('ui.selectTheDaysOfTheWeekAndTheHourDuringWhichTheAu') }}
                 </template>
             </FormRow>
             <FormRow v-model="scheduledUpgrade.restart" :disabled="!scheduledUpgrade.enabled" type="checkbox">
-                Restart even if no update available
+                {{ $t('ui.restartEvenIfNoUpdateAvailable') }}
                 <template #description>
-                    This will trigger a Node-RED restart even if no update is available.
+                    {{ $t('ui.thisWillTriggerANodeRedRestartEvenIfNoUpdateIsAv') }}
                 </template>
             </FormRow>
-            <p class="my-3"><span class="font-bold">Note:</span> All times are stated in UTC.</p>
+            <p class="my-3"><span class="font-bold">{{ $t('ui.note') }}</span> {{ $t('ui.allTimesAreStatedInUtc') }}</p>
             <div class="my-5 flex flex-col gap-5 max-w-xl">
                 <!-- <pre>{{ scheduledUpgrade }}</pre> -->
                 <ul class="days-selector flex flex-row flex-wrap justify-start gap-3">
@@ -44,7 +44,7 @@
                         ignoreTimeValidation
                         hoursGridIncrement
                         :enableMinutes="false"
-                        placeholder="Time Range"
+                        :placeholder="$t('ui.timeRange')"
                         timezone="UTC"
                         :format="format"
                         :min-time="{ hours: 0, minutes: 0, seconds: 0 }"
@@ -63,6 +63,7 @@ import instanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
+import { t } from '../../../i18n.js'
 import Alerts from '../../../services/alerts.js'
 import DateTimePicker from '../../../ui-components/components/form/DateTime.vue'
 
@@ -96,31 +97,31 @@ export default {
             weekDays: [
                 {
                     id: 0,
-                    label: 'Sunday'
+                    label: t('ui.sunday')
                 },
                 {
                     id: 1,
-                    label: 'Monday'
+                    label: t('ui.monday')
                 },
                 {
                     id: 2,
-                    label: 'Tuesday'
+                    label: t('ui.tuesday')
                 },
                 {
                     id: 3,
-                    label: 'Wednesday'
+                    label: t('ui.wednesday')
                 },
                 {
                     id: 4,
-                    label: 'Thursday'
+                    label: t('ui.thursday')
                 },
                 {
                     id: 5,
-                    label: 'Friday'
+                    label: t('ui.friday')
                 },
                 {
                     id: 6,
-                    label: 'Saturday'
+                    label: t('ui.saturday')
                 }
             ],
             unsavedChanges: false,

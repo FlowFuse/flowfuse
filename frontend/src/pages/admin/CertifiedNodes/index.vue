@@ -1,19 +1,18 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="FlowFuse Nodes" :tabs="sideNavigation" />
+            <ff-page-header :title="$t('ui.flowfuseNodes')" :tabs="sideNavigation" />
         </template>
         <div class="grow">
-            <ff-loading v-if="loading" message="Saving Settings..." />
+            <ff-loading v-if="loading" :message="$t('ui.savingSettings')" />
             <FormRow v-model="input.registryToken" type="password" :label="'FlowFuse Registry Token'">
-                Access token for the FlowFuse NPM registry
+                {{ $t('ui.accessTokenForTheFlowfuseNpmRegistry') }}
                 <template #description>
-                    Access to Certified Nodes, or FlowFuse Exclusive nodes requires an access token for the FlowFuse NPM registry.
-                    To obtain an access token, please contact <a target="_blank" class="underline" href="https://flowfuse.com/support">FlowFuse Support</a>.
+                    {{ $t('ui.accessToCertifiedNodesOrFlowfuseExclusiveNodesRe') }} <a target="_blank" class="underline" href="https://flowfuse.com/support">{{ $t('ui.flowfuseSupport') }}</a>.
                 </template>
             </FormRow>
             <div class="pt-8">
-                <ff-button :disabled="!saveEnabled" data-action="save-settings" @click="saveChanges">Save settings</ff-button>
+                <ff-button :disabled="!saveEnabled" data-action="save-settings" @click="saveChanges">{{ $t('ui.saveSettings2') }}</ff-button>
             </div>
         </div>
     </ff-page>

@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" :header="title" confirm-label="Create" :disable-primary="!formValid" :closeOnConfirm="false" @confirm="confirm()" @cancel="cancel">
+    <ff-dialog ref="dialog" :header="title" :confirm-label="$t('ui.create')" :disable-primary="!formValid" :closeOnConfirm="false" @confirm="confirm()" @cancel="cancel">
         <template #default>
             <form class="space-y-6 mt-2" @submit.prevent>
                 <FormRow
@@ -8,10 +8,10 @@
                     data-form="snapshot-name"
                     container-class="max-w-full"
                 >
-                    Name
+                    {{ $t('ui.name') }}
                 </FormRow>
                 <FormRow data-form="snapshot-description" container-class="max-w-full" :disabled="loadingDescription">
-                    Description
+                    {{ $t('ui.description') }}
                     <template #input>
                         <textarea
                             v-model="input.description"
@@ -31,12 +31,12 @@
                         data-form="set-as-target"
                     >
                         <span v-ff-tooltip:right="setAsTargetToolTip" class="">
-                            Set as Target <QuestionMarkCircleIcon class="ff-icon" style="margin: 0px 0px 0px 4px; height: 18px;" />
+                            {{ $t('ui.setAsTarget') }} <QuestionMarkCircleIcon class="ff-icon" style="margin: 0px 0px 0px 4px; height: 18px;" />
                         </span>
                     </FormRow>
                     <ff-popover
                         v-if="featuresCheck.isGeneratedSnapshotDescriptionFeatureEnabled"
-                        button-text="Generate with AI"
+                        :button-text="$t('ui.generateWithAi')"
                         button-kind="tertiary"
                         :disabled="loadingDescription"
                     >
@@ -46,8 +46,8 @@
                         <template #panel="{ close }">
                             <section>
                                 <popover-item
-                                    title="Use latest manual snapshot"
-                                    description="Compare with latest manually created snapshot"
+                                    :title="$t('ui.useLatestManualSnapshot')"
+                                    :description="$t('ui.compareWithLatestManuallyCreatedSnapshot')"
                                     @click="onPopoverItemClick('latest',close)"
                                 >
                                     <template #icon>
@@ -55,7 +55,7 @@
                                     </template>
                                 </popover-item>
                                 <popover-item
-                                    title="or search for a specific snapshot"
+                                    :title="$t('ui.orSearchForASpecificSnapshot')"
                                     class="bg-gray-100 hover:bg-gray-100 border-t border-gray-200"
                                 >
                                     <template #content>
@@ -64,7 +64,7 @@
                                                 v-model="selectedSnapshot"
                                                 class="flex-1"
                                                 :fetch-remote-options="searchSnapshots"
-                                                placeholder="Search snapshots"
+                                                :placeholder="$t('ui.searchSnapshots')"
                                                 :disabled="loadingDescription"
                                             >
                                                 <template #option="{ option, selected, active }">
@@ -113,6 +113,7 @@ import deviceApi from '../../../api/devices.js'
 import snapshotApi from '../../../api/projectSnapshots.js'
 
 import FormRow from '../../../components/FormRow.vue'
+import { t } from '../../../i18n.js'
 import alerts from '../../../services/alerts.js'
 import PopoverItem from '../../../ui-components/components/PopoverItem.vue'
 
@@ -139,7 +140,7 @@ export default {
         },
         title: {
             type: String,
-            default: 'Create Snapshot'
+            default: t('ui.createSnapshot')
         }
     },
     emits: ['device-upload-failed', 'device-upload-success', 'canceled'],
@@ -233,7 +234,7 @@ export default {
                     this.input.description = payload.join('\n\n')
                 })
                 .catch(e => {
-                    alerts.emit('Something went wrong, failed to generate a description.', 'error')
+                    alerts.emit(t('ui.somethingWentWrongFailedToGenerateADescription'), 'error')
                 })
                 .finally(() => {
                     this.loadingDescription = false

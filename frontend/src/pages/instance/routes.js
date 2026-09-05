@@ -2,6 +2,8 @@
  * INFO: Instances were previously called projects, lots of the code still refers to an instance as a project
  * For all code under src/pages/instance project and instance are synonymous, but instance should be used going forward.
  */
+import { t } from '../../i18n.js'
+
 import InstanceAssets from './Assets.vue'
 import InstanceAuditLog from './AuditLog.vue'
 import InstanceDashboard from './Dashboard/index.vue'
@@ -35,7 +37,7 @@ const children = [
         name: 'instance-audit-log',
         component: InstanceAuditLog,
         meta: {
-            title: 'Instance - Activity'
+            title: t('ui.instanceActivity')
         }
     },
     {
@@ -43,7 +45,7 @@ const children = [
         name: 'instance-logs',
         component: InstanceLogs,
         meta: {
-            title: 'Instance - Logs',
+            title: t('ui.instanceLogs'),
             shouldPoll: true
         }
     },
@@ -52,7 +54,7 @@ const children = [
         name: 'instance-devices',
         component: InstanceRemoteInstances,
         meta: {
-            title: 'Instance - Remote Instances'
+            title: t('ui.instanceRemoteInstances')
         }
     },
     {
@@ -60,7 +62,7 @@ const children = [
         name: 'instance-assets',
         component: InstanceAssets,
         meta: {
-            title: 'Instance - Assets'
+            title: t('ui.instanceAssets')
         }
     },
     {
@@ -68,7 +70,7 @@ const children = [
         component: InstanceSettings,
         name: 'instance-settings',
         meta: {
-            title: 'Instance - Settings'
+            title: t('ui.instanceSettings2')
         },
         redirect: to => {
             return { name: 'instance-settings-general', params: { id: to.params.id } }
@@ -80,7 +82,7 @@ const children = [
         name: 'instance-version-history',
         component: VersionHistory,
         meta: {
-            title: 'Instance - Version History'
+            title: t('ui.instanceVersionHistory')
         },
         redirect: to => {
             return { name: 'instance-version-history-timeline', params: { id: to.params.id } }
@@ -92,7 +94,7 @@ const children = [
         name: 'instance-performance',
         component: InstancePerformance,
         meta: {
-            title: 'Instance - Performance'
+            title: t('ui.instancePerformance')
         }
     }
 ]
@@ -117,7 +119,7 @@ export default [
                 name: 'instance',
                 component: Instance,
                 meta: {
-                    title: 'Instance - Overview'
+                    title: t('ui.instanceOverview')
                 },
                 children
             },
@@ -126,7 +128,7 @@ export default [
                 name: 'instance-duplicate',
                 component: DuplicateInstance,
                 meta: {
-                    title: 'Instance - Duplicate'
+                    title: t('ui.instanceDuplicate')
                 }
             }
         ]

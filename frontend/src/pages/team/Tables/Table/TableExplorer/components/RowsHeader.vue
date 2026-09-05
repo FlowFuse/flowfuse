@@ -5,7 +5,7 @@
             <MenuCollapse v-else />
         </button>
         <button
-            class="refresh-table" type="button" title="Refresh table data"
+            class="refresh-table" type="button" :title="$t('ui.refreshTableData')"
             :disabled="!tableSelection"
             @click="refreshTable"
         >

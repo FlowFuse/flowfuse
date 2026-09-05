@@ -1,20 +1,20 @@
 <template>
     <ff-page>
-        <ff-loading v-if="loading" message="Updating Team..." />
+        <ff-loading v-if="loading" :message="$t('ui.updatingTeam')" />
         <div v-else>
             <form class="space-y-8 flex flex-col items-center">
                 <div>
-                    <FormHeading>Change your team type</FormHeading>
+                    <FormHeading>{{ $t('ui.changeYourTeamType') }}</FormHeading>
                     <div v-if="isUnmanaged" class="space-y-2">
                         <p>
-                            Your team type cannot currently be managed from the dashboard.
+                            {{ $t('ui.yourTeamTypeCannotCurrentlyBeManagedFromTheDashb') }}
                         </p>
                         <p>
-                            Please contact <a href="https://flowfuse.com/support/" class="underline" target="_blank">Support</a> for help.
+                            {{ $t('ui.pleaseContact') }} <a href="https://flowfuse.com/support/" class="underline" target="_blank">{{ $t('ui.support') }}</a> {{ $t('ui.forHelp') }}
                         </p>
                     </div>
                     <div v-else-if="isCurrentUnavailable">
-                        <p>Your current team plan is no longer available. Please select a new plan to continue.</p>
+                        <p>{{ $t('ui.yourCurrentTeamPlanIsNoLongerAvailablePleaseSele') }}</p>
                     </div>
                 </div>
                 <!-- TeamType Type -->
@@ -31,34 +31,32 @@
                     </ff-tile-selection>
                 </div>
                 <div v-if="billingEnabled && annualBillingAvailable" class="text-sm font-medium text-gray-400 flex items-center gap-2">
-                    <span :class="{'text-gray-800': !isAnnualBilling }">Monthly</span>
+                    <span :class="{'text-gray-800': !isAnnualBilling }">{{ $t('ui.monthly') }}</span>
                     <ff-toggle-switch v-model="isAnnualBilling" />
-                    <span :class="{'text-gray-800': isAnnualBilling }">Yearly</span>
+                    <span :class="{'text-gray-800': isAnnualBilling }">{{ $t('ui.yearly') }}</span>
                 </div>
                 <div class="max-w-md w-full">
                     <template v-if="upgradeErrors.length > 0">
                         <div class="mb-8 text-sm text-gray-500 space-y-2">
-                            <p>Your current usage of the platform is higher than that available to the {{ input.teamType?.name }} team.</p>
-                            <p>To change to this type, you will need to reduce your usage:</p>
+                            <p>{{ $t('ui.yourCurrentUsageOfThePlatformIsHigherThanThatAva', { p0: input.teamType?.name }) }}</p>
+                            <p>{{ $t('ui.toChangeToThisTypeYouWillNeedToReduceYourUsage') }}</p>
                             <ul class="space-y-2 list-disc ml-8">
-                                <li v-for="(error, index) in upgradeErrors" :key="index">
-                                    {{ error.error }}. {{ input.teamType?.name }} teams are limited to {{ error.limit }}, this team currently has {{ error.count }}.
-                                </li>
+                                <li v-for="(error, index) in upgradeErrors" :key="index">{{ $t('ui.p0P1TeamsAreLimitedToP2ThisTeamCurrentlyHasP3', { p0: error.error, p1: input.teamType?.name, p2: error.limit, p3: error.count }) }}</li>
                             </ul>
                         </div>
                     </template>
                     <template v-else-if="billingEnabled">
                         <div class="mb-8 text-sm text-gray-500 space-y-2 text-center">
-                            <p v-if="isContactRequired">To learn more about our {{ input.teamType?.name }} plan, including the option to purchase an extended trial, click below to contact our sales team.</p>
-                            <p v-if="trialMode && !trialHasEnded">Setting up billing will bring your free trial to an end</p>
-                            <p v-if="!isContactRequired && team.suspended">Setting up billing will unsuspend your team</p>
-                            <p v-if="isUpgradingFromMonthlyToYearly">Any additional Hosted or Remote Instances will also switch to yearly billing.</p>
-                            <p v-if="!isContactRequired"> Your billing subscription will be updated to reflect the new costs</p>
+                            <p v-if="isContactRequired">{{ $t('ui.toLearnMoreAboutOurP0PlanIncludingTheOptionToPur', { p0: input.teamType?.name }) }}</p>
+                            <p v-if="trialMode && !trialHasEnded">{{ $t('ui.settingUpBillingWillBringYourFreeTrialToAnEnd') }}</p>
+                            <p v-if="!isContactRequired && team.suspended">{{ $t('ui.settingUpBillingWillUnsuspendYourTeam') }}</p>
+                            <p v-if="isUpgradingFromMonthlyToYearly">{{ $t('ui.anyAdditionalHostedOrRemoteInstancesWillAlsoSwit') }}</p>
+                            <p v-if="!isContactRequired"> {{ $t('ui.yourBillingSubscriptionWillBeUpdatedToReflectThe') }}</p>
                         </div>
                     </template>
                     <div class="flex gap-x-4">
                         <ff-button kind="secondary" data-action="cancel-change-team-type" class="flex-1" @click="$router.back()">
-                            Cancel
+                            {{ $t('ui.cancel') }}
                         </ff-button>
                         <template v-if="!isContactRequired">
                             <ff-button
@@ -67,8 +65,8 @@
                                 :disabled="!formValid" data-action="change-team-type"
                                 @click="updateTeam()"
                             >
-                                <span v-if="isUpgradingFromMonthlyToYearly">Switch to Yearly Billing</span>
-                                <span v-else>Change team type</span>
+                                <span v-if="isUpgradingFromMonthlyToYearly">{{ $t('ui.switchToYearlyBilling') }}</span>
+                                <span v-else>{{ $t('ui.changeTeamType2') }}</span>
                             </ff-button>
                             <ff-button
                                 v-else :disabled="!formValid"
@@ -76,12 +74,12 @@
                                 class="flex-1"
                                 @click="setupBilling()"
                             >
-                                Setup Payment Details
+                                {{ $t('ui.setupPaymentDetails') }}
                             </ff-button>
                         </template>
                         <template v-else>
                             <ff-button :disabled="!formValid" data-action="contact-sales" class="flex-1" @click="sendContact()">
-                                Talk to sales
+                                {{ $t('ui.talkToSales') }}
                             </ff-button>
                         </template>
                     </div>

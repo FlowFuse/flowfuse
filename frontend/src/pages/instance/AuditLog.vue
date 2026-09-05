@@ -1,10 +1,10 @@
 <template>
     <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" :associations="associations" logType="project" :loading="loading" @load-entries="loadEntries">
         <template #title>
-            <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in within this instance." />
+            <SectionTopMenu :hero="$t('ui.auditLog')" :info="$t('ui.recordedEventsThatHaveTakenPlaceInWithinThisInst')" />
         </template>
         <template #extraFilters>
-            <FormHeading class="mt-4">Event Scope:</FormHeading>
+            <FormHeading class="mt-4">{{ $t('ui.eventScope') }}</FormHeading>
             <div data-el="filter-event-types">
                 <ff-listbox
                     v-model="auditFilters.selectedEventScope"
@@ -14,7 +14,7 @@
                     class="w-full"
                 />
                 <ff-checkbox v-if="(auditFilters.selectedEventScope || 'device') !== 'device'" v-model="auditFilters.includeChildren" class="mt-2" data-action="include-children-check">
-                    Include Devices
+                    {{ $t('ui.includeDevices') }}
                 </ff-checkbox>
             </div>
         </template>

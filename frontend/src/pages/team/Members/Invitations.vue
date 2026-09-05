@@ -1,13 +1,13 @@
 <template>
     <div>
-        <ff-loading v-if="loading" message="Loading Invitations..." />
+        <ff-loading v-if="loading" :message="$t('ui.loadingInvitations')" />
         <form v-else class="space-y-6">
             <div class="text-right" />
             <ff-data-table data-el="invites-table" :columns="inviteColumns" :rows="invitations">
                 <template #row-actions="{row}">
                     <ff-button
                         v-if="!!settings.email"
-                        v-ff-tooltip:left="'Resend Email Invitation'"
+                        v-ff-tooltip:left="$t('ui.resendEmailInvitation')"
                         kind="tertiary"
                         class="ff-btn-xs ff-btn--tertiary"
                         data-action="remove-invite"
@@ -39,6 +39,7 @@ import teamApi from '../../../api/team.js'
 import InviteUserCell from '../../../components/tables/cells/InviteUserCell.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
+import { t } from '../../../i18n.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -65,9 +66,9 @@ export default {
             loading: false,
             invitations: [],
             inviteColumns: [
-                { label: 'User', class: ['grow'], component: { is: markRaw(InviteUserCell), map: { user: 'invitee' } }, key: 'invitee' },
-                { label: 'Role', class: ['w-40'], key: 'roleName' },
-                { label: 'Expires In', class: ['w-40'], key: 'expires' }
+                { label: t('ui.user2'), class: ['grow'], component: { is: markRaw(InviteUserCell), map: { user: 'invitee' } }, key: 'invitee' },
+                { label: t('ui.role'), class: ['w-40'], key: 'roleLabel' },
+                { label: t('ui.expiresIn'), class: ['w-40'], key: 'expires' }
             ]
         }
     },
@@ -85,7 +86,7 @@ export default {
     methods: {
         async removeInvite (invite) {
             return Dialog.show({
-                header: 'Delete Invitation',
+                header: t('ui.deleteInvitation'),
                 kind: 'danger',
                 html: `Are you sure you want to delete the invitation sent to <i>${invite.invitee.email || invite.invitee.name}</i> ?`,
                 confirmLabel: 'Delete'
@@ -101,7 +102,7 @@ export default {
         },
         async resendInvite (invite) {
             return Dialog.show({
-                header: 'Resend Invitation',
+                header: t('ui.resendInvitation'),
                 kind: 'primary',
                 html: `Do you want to resend the invitation to <i>${invite.invitee.email || invite.invitee.name}</i> ?`,
                 confirmLabel: 'Resend'

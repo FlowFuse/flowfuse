@@ -1,20 +1,19 @@
 <template>
-    <ff-loading v-if="loading" message="Changing Password..." />
+    <ff-loading v-if="loading" :message="$t('ui.changingPassword')" />
     <form v-else class="space-y-6">
-        <FormHeading>Two-factor Authentication</FormHeading>
+        <FormHeading>{{ $t('ui.twoFactorAuthentication') }}</FormHeading>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="grow">
                 <div class="max-w-sm">
-                    Two-factor authentication helps to secure your account by requiring a second
-                    layer of identification.
+                    {{ $t('ui.twoFactorAuthenticationHelpsToSecureYourAccountB') }}
                 </div>
                 <div v-if="user.sso_enabled" class="max-w-sm mt-2">
-                    Note: when signing in via your SSO provider, you will not be challenged for your two-factor authentication code
+                    {{ $t('ui.noteWhenSigningInViaYourSsoProviderYouWillNotBeC') }}
                 </div>
             </div>
             <div class="min-w-fit shrink-0">
-                <ff-button v-if="!user.mfa_enabled" data-action="enable-mfa" kind="primary" @click="setupMFA()">Enable two-factor authentication</ff-button>
-                <ff-button v-else data-action="disable-mfa" kind="danger" @click="disableMFA()">Disable two-factor authentication</ff-button>
+                <ff-button v-if="!user.mfa_enabled" data-action="enable-mfa" kind="primary" @click="setupMFA()">{{ $t('ui.enableTwoFactorAuthentication') }}</ff-button>
+                <ff-button v-else data-action="disable-mfa" kind="danger" @click="disableMFA()">{{ $t('ui.disableTwoFactorAuthentication') }}</ff-button>
             </div>
         </div>
     </form>
@@ -27,6 +26,7 @@ import { mapState } from 'pinia'
 import userApi from '../../../api/user.js'
 import FormHeading from '../../../components/FormHeading.vue'
 
+import { t } from '../../../i18n.js'
 import Dialog from '../../../services/dialog.js'
 
 import MFASetupDialog from './dialogs/MFASetupDialog.vue'
@@ -57,9 +57,9 @@ export default {
         },
         disableMFA () {
             Dialog.show({
-                header: 'Disable Two-Factor Authentication',
+                header: t('ui.disableTwoFactorAuthentication2'),
                 kind: 'danger',
-                text: 'Are you sure you want to disable two-factor authentication?',
+                text: t('ui.areYouSureYouWantToDisableTwoFactorAuthenticatio'),
                 confirmLabel: 'Disable'
             }, async () => {
                 await userApi.disableMFA()

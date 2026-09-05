@@ -2,12 +2,12 @@
     <form class="space-y-6">
         <TemplateSettingsSecurity v-model="editable" :editTemplate="false" :instance="project" :team="team" />
         <div v-if="!!settings.features.httpBearerTokens && editable.settings.httpNodeAuth_type === 'flowforge-user'">
-            <FormHeading>HTTP Node Bearer Tokens</FormHeading>
+            <FormHeading>{{ $t('ui.httpNodeBearerTokens') }}</FormHeading>
             <div v-if="hasTeamLevelTokenPermission">
                 <div v-if="projectLauncherCompatible">
                     <ff-data-table
                         data-el="tokens-table"
-                        :rows="tokens" :columns="columns" :show-search="true" search-placeholder="Search Tokens..."
+                        :rows="tokens" :columns="columns" :show-search="true" :search-placeholder="$t('ui.searchTokens')"
                         :show-load-more="false"
                     >
                         <template #actions>
@@ -15,22 +15,22 @@
                                 <template #icon-left>
                                     <PlusSmallIcon />
                                 </template>
-                                Add Token
+                                {{ $t('ui.addToken') }}
                             </ff-button>
                         </template>
                         <template #context-menu="{row}">
-                            <ff-kebab-item data-action="edit-token" label="Edit" @click="editToken(row)" />
-                            <ff-kebab-item data-action="delete-token" label="Delete" @click="deleteToken(row)" />
+                            <ff-kebab-item data-action="edit-token" :label="$t('ui.edit')" @click="editToken(row)" />
+                            <ff-kebab-item data-action="delete-token" :label="$t('ui.delete')" @click="deleteToken(row)" />
                         </template>
                         <template v-if="tokens.length === 0" #table>
                             <div class="ff-no-data ff-no-data-large">
-                                You don't have any tokens yet
+                                {{ $t('ui.youDonTHaveAnyTokensYet') }}
                             </div>
                         </template>
                     </ff-data-table>
                 </div>
                 <div v-else>
-                    Upgrade your Node-RED Version to enable this feature
+                    {{ $t('ui.upgradeYourNodeRedVersionToEnableThisFeature') }}
                 </div>
             </div>
         </div>
@@ -50,6 +50,7 @@ import { useRouter } from 'vue-router'
 import InstanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import usePermissions from '../../../composables/Permissions.js'
+import { t } from '../../../i18n.js'
 import Dialog from '../../../services/dialog.js'
 import TokenCreated from '../../account/Security/dialogs/TokenCreated.vue'
 import ExpiryCell from '../../account/components/ExpiryCell.vue'
@@ -109,10 +110,10 @@ export default {
             original: {},
             tokens: [],
             columns: [
-                { label: 'Name', key: 'name', sortable: true },
+                { label: t('ui.name'), key: 'name', sortable: true },
                 // { label: 'Scope', key: 'scope' },
                 {
-                    label: 'Expires',
+                    label: t('ui.expires'),
                     key: 'expiresAt',
                     component: {
                         is: markRaw(ExpiryCell)
@@ -259,7 +260,7 @@ export default {
             // is instance running
             if (this.project.meta.state === 'running') {
                 Dialog.show({
-                    header: 'Restart Required',
+                    header: t('ui.restartRequired'),
                     html: '<p>Instance settings have been successfully updated, but the Instance must be restarted for these settings to take effect.</p><p>Would you like to restart the Instance now?</p>',
                     confirmLabel: 'Restart Now',
                     cancelLabel: 'Restart Later'

@@ -15,15 +15,15 @@
                     v-model="input.username"
                     :error="errors.username"
                     class="mb-2"
-                    placeholder="Client Username"
+                    :placeholder="$t('ui.clientUsername')"
                     :disabled="isEditing || isOwned"
                     data-el="username"
                 >
-                    Username
+                    {{ $t('ui.username') }}
                 </FormRow>
                 <template v-if="!isOwned">
                     <FormRow v-model="input.password" class="mb-2" type="password" :placeholder="passwordPlaceholder" data-el="password">
-                        Password
+                        {{ $t('ui.password') }}
                     </FormRow>
                     <FormRow
                         v-model="input.passwordConfirm"
@@ -32,13 +32,13 @@
                         :placeholder="passwordConfirmationPlaceholder"
                         data-el="confirm-password"
                     >
-                        Confirm Password
+                        {{ $t('ui.confirmPassword') }}
                     </FormRow>
                 </template>
             </div>
             <div class="acls">
                 <h3 class="flex justify-between">
-                    <span>Access Control Rules</span>
+                    <span>{{ $t('ui.accessControlRules') }}</span>
                     <span data-action="add-acl">
                         <ff-button kind="tertiary" size="small" @click="addAcl">
                             <PlusIcon class="ff-icon" />
@@ -47,10 +47,10 @@
                 </h3>
                 <div class="headers flex gap-2.5 items-center">
                     <label class="flex-1 text-gray-800 block text-sm font-medium mb-1">
-                        Action
+                        {{ $t('ui.action') }}
                     </label>
                     <label class="flex-1 text-gray-800 block text-sm font-medium mb-1">
-                        Pattern
+                        {{ $t('ui.pattern') }}
                     </label>
                 </div>
                 <ul data-el="acl-list">
@@ -77,6 +77,8 @@ import { mapActions, mapState } from 'pinia'
 import brokerApi from '../../../../../api/broker.js'
 import FormRow from '../../../../../components/FormRow.vue'
 import { generateUuid } from '../../../../../composables/strings/String.js'
+
+import { t } from '../../../../../i18n.js'
 
 import AclItem from './AclItem.vue'
 
@@ -228,14 +230,14 @@ export default {
         validateForm () {
             let passesValidation = true
             if (this.input.password !== this.input.passwordConfirm) {
-                this.errors.password = 'The provided passwords do not match.'
+                this.errors.password = t('ui.theProvidedPasswordsDoNotMatch')
                 passesValidation = false
             } else {
                 this.errors.password = null
             }
 
             if (!this.isEditing && this.clients.find(c => c.username === this.input.username)) {
-                this.errors.username = 'Client name already exists.'
+                this.errors.username = t('ui.clientNameAlreadyExists')
                 passesValidation = false
             } else {
                 this.errors.username = null

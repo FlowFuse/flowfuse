@@ -8,7 +8,7 @@
         </div>
     </template>
     <template v-else>
-        Please verify your email address to access teams
+        {{ $t('ui.pleaseVerifyYourEmailAddressToAccessTeams') }}
     </template>
 </template>
 
@@ -16,6 +16,8 @@
 import { mapState } from 'pinia'
 
 import SectionSideMenu from '../../../components/SectionSideMenu.vue'
+
+import { t } from '../../../i18n.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountStore } from '@/stores/account.js'
@@ -44,9 +46,9 @@ export default {
     },
     async mounted () {
         this.sideNavigation = [
-            { name: 'Teams', path: { name: 'user-teams' } }
+            { name: t('ui.tabTeams'), path: { name: 'user-teams' } }
         ]
-        this.sideNavigation.push({ name: 'Invitations', path: { name: 'user-invitations' } })
+        this.sideNavigation.push({ name: t('ui.tabInvitations'), path: { name: 'user-invitations' } })
         this.updateInvitations()
     },
     methods: {
@@ -54,7 +56,7 @@ export default {
             if (this.teamInvitationsCount > 0) {
                 this.sideNavigation[1].name = `Invitations (${this.teamInvitationsCount})`
             } else {
-                this.sideNavigation[1].name = 'Invitations'
+                this.sideNavigation[1].name = t('ui.tabInvitations')
             }
         }
     }

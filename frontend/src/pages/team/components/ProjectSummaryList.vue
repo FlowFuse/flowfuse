@@ -9,7 +9,7 @@
                             <div class="text-base text-gray-800">{{ application.name }}</div>
                         </div>
                         <div class="flex space-x-2 mt-4">
-                            <i>To-do: No status or updated at for applications.</i>
+                            <i>{{ $t('ui.toDoNoStatusOrUpdatedAtForApplications') }}</i>
                         </div>
                     </div>
                     <div class="flex">
@@ -22,7 +22,7 @@
             <div class="forge-button-tertiary text-xs border-dashed">
                 <router-link :to="{name: 'team-application-create'}" class="px-1 py-4 flex w-full">
                     <div class="grow">
-                        <div class="text-base flex items-center"><PlusSmallIcon class="w-5 h-5 -ml-1 mr-1" /> Create Application</div>
+                        <div class="text-base flex items-center"><PlusSmallIcon class="w-5 h-5 -ml-1 mr-1" /> {{ $t('ui.createApplication') }}</div>
                     </div>
                     <div class="flex">
                         <ChevronRightIcon class="w-3" />

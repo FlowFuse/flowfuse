@@ -1,14 +1,15 @@
 import { highlightElement } from '../composables/Ux.js'
+import { t } from '../i18n.js'
 
 export const id = 'welcome'
 export default [
     {
-        title: 'Welcome to FlowFuse!',
-        text: '<p>Welcome to FlowFuse, the complete platform for building, managing and deploying your Node-RED applications.</p><p><b>Let\'s take a quick tour to get you started.</b></p>'
+        title: t('ui.welcomeToFlowfuse'),
+        text: t('ui.tourWelcomeIntro')
     },
     {
-        title: 'Concept: Hosted Instances',
-        text: '<p><b>Hosted Instances</b> refer to instances of Node-RED running on the <i>same</i> host as FlowFuse.</p>',
+        title: t('ui.conceptHostedInstances'),
+        text: t('ui.tourHostedInstances'),
         attachTo: {
             element: '[data-el="dashboard-section-hosted"]',
             on: 'bottom'
@@ -17,8 +18,8 @@ export default [
         modalOverlayOpeningRadius: 6
     },
     {
-        title: 'Recently Modified Hosted Instances',
-        text: '<p>Here, you can get quick access to your most recently modified Hosted Instances, jumping straight into editing or managing them.</p>',
+        title: t('ui.recentlyModifiedHostedInstances'),
+        text: t('ui.tourRecentlyModified'),
         attachTo: {
             element: '[data-el="dashboard-section-hosted"] .recently-modified',
             on: 'bottom'
@@ -27,8 +28,8 @@ export default [
         modalOverlayOpeningRadius: 6
     },
     {
-        title: 'Concept: Remote Instances',
-        text: '<p><b>Remote Instances</b> are Node-RED instances that are managed and deployed <i>remotely</i>, most commonly used for deploying Node-RED to the Edge.</p><p>Example include hardware in factories or a Raspberry Pi on your desk. FlowFuse can manage thousands of remote Node-RED deployments.</p>',
+        title: t('ui.conceptRemoteInstances'),
+        text: t('ui.tourRemoteInstances'),
         attachTo: {
             element: '[data-el="dashboard-section-remote"]',
             on: 'bottom'
@@ -37,8 +38,8 @@ export default [
         modalOverlayOpeningRadius: 6
     },
     {
-        title: 'Manage Recent Remote Activity',
-        text: '<p>Similarly, you can get quick access to your Remote Instances, with Remote Instances not fully setup, or in <b>Error</b> state getting flagged.</p>',
+        title: t('ui.manageRecentRemoteActivity'),
+        text: t('ui.tourRemoteQuickAccess'),
         attachTo: {
             element: '[data-el="dashboard-section-remote"] .recently-modified',
             on: 'bottom'
@@ -47,8 +48,8 @@ export default [
         modalOverlayOpeningRadius: 6
     },
     {
-        title: 'Recent Team Activity',
-        text: '<p>FlowFuse keeps an Audit Log of all actions taken in the team so you can easily keep track of changes and actions taken by fellow team members.</p>',
+        title: t('ui.recentTeamActivity'),
+        text: t('ui.tourAuditLog'),
         attachTo: {
             element: '[data-el="dashboard-section-audit"]',
             on: 'bottom'
@@ -57,7 +58,7 @@ export default [
         modalOverlayOpeningRadius: 6
     },
     {
-        title: 'Search Your Team',
+        title: t('ui.searchYourTeam'),
         text: `
             <p>The quickest way to navigate FlowFuse is the global search bar. You can quickly find any Hosted Instances, Remote Instances, and Applications in your team.</p>
             <p>Click the search bar or press <b>Ctrl+K</b> (Windows/Linux) or <b>Cmd+K</b> (Mac) to open it and get searching across your resources.</p>
@@ -89,12 +90,12 @@ export default [
                     this.updateStepOptions({
                         buttons: [
                             {
-                                text: 'Back',
+                                text: t('ui.back'),
                                 action: this.tour.back,
                                 classes: 'shepherd-button-secondary'
                             },
                             {
-                                text: 'Finish',
+                                text: t('ui.finish'),
                                 action: this.tour.complete,
                                 classes: 'shepherd-button-primary'
                             }

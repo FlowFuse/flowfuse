@@ -3,18 +3,18 @@
         <template #header>
             <ff-page-header>
                 <template #breadcrumbs>
-                    <ff-nav-breadcrumb>Home</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb>{{ $t('ui.home') }}</ff-nav-breadcrumb>
                 </template>
             </ff-page-header>
         </template>
 
         <div id="team-dashboard" class="page-wrapper overflow-auto" :data-team="team.slug">
             <transition name="fade" mode="out-in">
-                <ff-loading v-if="loading || pendingTeamChange" message="Loading Dashboard..." />
+                <ff-loading v-if="loading || pendingTeamChange" :message="$t('ui.loadingDashboard')" />
 
                 <div v-else class="ff-team-dashboard">
                     <section class="instances-section flex gap-3 mb-3 flex-wrap">
-                        <DashboardSection title="Hosted Instances" type="hosted">
+                        <DashboardSection :title="$t('ui.hostedInstances')" type="hosted">
                             <template #icon>
                                 <ProjectsIcon class="ff-icon-lg" />
                             </template>
@@ -45,14 +45,14 @@
                                     <template #icon-left>
                                         <PlusIcon class="ff-icon" />
                                     </template>
-                                    Add Instance
+                                    {{ $t('ui.addInstance') }}
                                 </ff-button>
                             </template>
 
                             <RecentlyModifiedInstances :total-instances="totalInstances" @delete-instance="openDeleteInstanceForm" />
                         </DashboardSection>
 
-                        <DashboardSection title="Remote Instances" type="remote">
+                        <DashboardSection :title="$t('ui.remoteInstances')" type="remote">
                             <template #icon>
                                 <CpuChipIcon class="ff-icon-lg" />
                             </template>
@@ -78,7 +78,7 @@
                                     <img class="w-24" src="../../../images/empty-states/team-devices.png">
                                 </template>
                                 <template #message>
-                                    Remote Instances are not available to your team.
+                                    {{ $t('ui.remoteInstancesAreNotAvailableToYourTeam') }}
                                 </template>
                             </EmptyState>
                             <template #actions>
@@ -93,13 +93,13 @@
                                     <template #icon-left>
                                         <PlusIcon class="ff-icon" />
                                     </template>
-                                    Add Instance
+                                    {{ $t('ui.addInstance') }}
                                 </ff-button>
                             </template>
                         </DashboardSection>
                     </section>
 
-                    <DashboardSection title="Recent Activity" class="overflow-auto" type="audit">
+                    <DashboardSection :title="$t('ui.recentActivity')" class="overflow-auto" type="audit">
                         <template #icon>
                             <CircleStackIcon class="ff-icon-lg" />
                         </template>
@@ -126,10 +126,10 @@
     >
         <template #description>
             <p v-if="!featuresCheck?.isHostedInstancesEnabledForTeam && tours.firstDevice">
-                Describe your new Remote Instance here, e.g. "Raspberry Pi", "Allen-Bradley PLC", etc.
+                {{ $t('ui.describeYourNewRemoteInstanceHereEGRaspberryPiAl') }}
             </p>
             <p v-else>
-                Remote Instances are managed using the <a href="https://flowfuse.com/docs/user/devices/" target="_blank">FlowFuse Device Agent</a>. The agent will need to be setup on the hardware where you want your Remote Instance to run.
+                {{ $t('ui.remoteInstancesAreManagedUsingThe') }} <a href="https://flowfuse.com/docs/user/devices/" target="_blank">{{ $t('ui.flowfuseDeviceAgent') }}</a>{{ $t('ui.theAgentWillNeedToBeSetupOnTheHardwareWhereYouWa') }}
             </p>
         </template>
     </TeamDeviceCreateDialog>

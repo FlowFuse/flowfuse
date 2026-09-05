@@ -1,18 +1,17 @@
 <template>
-    <ff-dialog ref="dialog" header="Remote Instance Provisioning Configuration">
+    <ff-dialog ref="dialog" :header="$t('ui.remoteInstanceProvisioningConfiguration')">
         <template #default>
             <form class="space-y-6 mt-2">
                 <p class="text-sm text-gray-500">
-                    To auto provision your Remote Instance on the platform, use the following
-                    configuration. Make a note of it as this is the only time you will see it.
+                    {{ $t('ui.toAutoProvisionYourRemoteInstanceOnThePlatformUs') }}
                 </p>
                 <pre class="overflow-auto text-sm p-4 border rounded-sm ff-code-surface">{{ credentials }}</pre>
             </form>
         </template>
         <template #actions>
-            <ff-button v-if="!!clipboardSupported" kind="secondary" @click="copy()">Copy to Clipboard</ff-button>
-            <ff-button kind="secondary" @click="downloadCredentials()"><template #icon-left><DocumentArrowDownIcon /></template>Download device.yml</ff-button>
-            <ff-button class="ml-4" @click="close()">Done</ff-button>
+            <ff-button v-if="!!clipboardSupported" kind="secondary" @click="copy()">{{ $t('ui.copyToClipboard') }}</ff-button>
+            <ff-button kind="secondary" @click="downloadCredentials()"><template #icon-left><DocumentArrowDownIcon /></template>{{ $t('ui.downloadDeviceYml') }}</ff-button>
+            <ff-button class="ml-4" @click="close()">{{ $t('ui.done') }}</ff-button>
         </template>
     </ff-dialog>
 </template>

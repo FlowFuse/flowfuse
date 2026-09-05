@@ -1,3 +1,5 @@
+import { t } from '../../i18n.js'
+
 import ApplicationActivity from './Activity.vue'
 import ApplicationCreateInstanceMultiStep from './CreateInstanceMultiStep.vue'
 import ApplicationDashboards from './Dashboards.vue'
@@ -38,7 +40,7 @@ export default [
         name: 'application',
         component: ApplicationIndex,
         meta: {
-            title: 'Application - Overview'
+            title: t('ui.applicationOverview')
         },
         children: [
             {
@@ -46,7 +48,7 @@ export default [
                 name: 'application-instances',
                 component: ApplicationOverview,
                 meta: {
-                    title: 'Application - Instances'
+                    title: t('ui.applicationInstances2')
                 }
             },
             {
@@ -54,7 +56,7 @@ export default [
                 name: 'application-dashboards',
                 component: ApplicationDashboards,
                 meta: {
-                    title: 'Application - Dashboards'
+                    title: t('ui.applicationDashboards')
                 }
             },
             {
@@ -62,7 +64,7 @@ export default [
                 name: 'application-devices',
                 component: ApplicationDevices,
                 meta: {
-                    title: 'Application - Devices'
+                    title: t('ui.applicationDevices')
                 }
             },
             {
@@ -70,7 +72,7 @@ export default [
                 name: 'application-device-groups',
                 component: ApplicationDeviceGroups,
                 meta: {
-                    title: 'Application - Devices Groups'
+                    title: t('ui.applicationDevicesGroups')
                 }
             },
             {
@@ -78,7 +80,7 @@ export default [
                 name: 'application-snapshots',
                 component: ApplicationSnapshots,
                 meta: {
-                    title: 'Application - Snapshots'
+                    title: t('ui.applicationSnapshots')
                 }
             },
             {
@@ -86,7 +88,7 @@ export default [
                 name: 'application-pipelines',
                 component: ApplicationPipelines,
                 meta: {
-                    title: 'Application - Pipelines'
+                    title: t('ui.applicationPipelines')
                 }
             },
             {
@@ -100,7 +102,7 @@ export default [
                         name: 'application-settings-general',
                         component: ApplicationSettingsGeneral,
                         meta: {
-                            title: 'Application Settings - General'
+                            title: t('ui.applicationSettingsGeneral')
                         }
                     },
                     {
@@ -108,7 +110,7 @@ export default [
                         name: 'application-settings-user-access',
                         component: ApplicationSettingsUserAccess,
                         meta: {
-                            title: 'Application Settings - User Access'
+                            title: t('ui.applicationSettingsUserAccess')
                         }
                     }
                 ]
@@ -118,7 +120,7 @@ export default [
                 component: ApplicationLogs,
                 name: 'application-logs',
                 meta: {
-                    title: 'Application - Logs',
+                    title: t('ui.applicationLogs'),
                     shouldPoll: true
                 }
             },
@@ -127,7 +129,7 @@ export default [
                 name: 'application-activity',
                 component: ApplicationActivity,
                 meta: {
-                    title: 'Application - Activity'
+                    title: t('ui.applicationActivity')
                 }
             },
             // { path: 'debug', component: ApplicationDebug }
@@ -137,7 +139,7 @@ export default [
                 name: 'application-pipeline-create',
                 component: ApplicationPipelineCreate,
                 meta: {
-                    title: 'Pipeline - Create'
+                    title: t('ui.pipelineCreate')
                 }
             },
 
@@ -146,7 +148,7 @@ export default [
                 name: 'application-pipeline-edit',
                 component: ApplicationPipelineIndex,
                 meta: {
-                    title: 'Pipeline'
+                    title: t('ui.pipeline')
                 },
                 redirect: { name: 'application-pipeline-stage-create' },
                 children: [
@@ -155,7 +157,7 @@ export default [
                         name: 'application-pipeline-stage-create',
                         component: ApplicationPipelineStageCreate,
                         meta: {
-                            title: 'Pipeline Stage - Create'
+                            title: t('ui.pipelineStageCreate')
                         }
                     },
                     {
@@ -163,7 +165,7 @@ export default [
                         name: 'application-pipeline-stage-edit',
                         component: ApplicationPipelineStageEdit,
                         meta: {
-                            title: 'Pipeline Stage - Edit'
+                            title: t('ui.pipelineStageEdit')
                         }
                     }
                 ]
@@ -173,7 +175,7 @@ export default [
                 name: 'application-dependencies',
                 component: Dependencies,
                 meta: {
-                    title: 'Dependencies'
+                    title: t('ui.dependencies')
                 }
             }
         ]
@@ -183,12 +185,12 @@ export default [
         name: 'application-create-instance',
         component: ApplicationCreateInstanceMultiStep,
         meta: {
-            title: 'Application - Instances - Create',
+            title: t('ui.applicationInstancesCreate'),
             menu: {
                 type: 'back',
                 backTo: ({ query, params }) => {
                     return {
-                        label: 'Back',
+                        label: t('ui.back'),
                         to: { name: 'application-instances', params, query }
                     }
                 }
@@ -200,7 +202,7 @@ export default [
         name: 'application-device-group',
         component: ApplicationDeviceGroupIndex,
         meta: {
-            title: 'Application - Device Group'
+            title: t('ui.applicationDeviceGroup')
         },
         redirect: { name: 'application-device-group-devices' },
         children: [
@@ -209,7 +211,7 @@ export default [
                 name: 'application-device-group-devices',
                 component: ApplicationDeviceGroupDevices,
                 meta: {
-                    title: 'Application - Device Group - Members'
+                    title: t('ui.applicationDeviceGroupMembers')
                 }
             },
             {
@@ -217,7 +219,7 @@ export default [
                 name: 'application-device-group-settings',
                 component: ApplicationDeviceGroupSettings,
                 meta: {
-                    title: 'Application - Device Group - Settings'
+                    title: t('ui.applicationDeviceGroupSettings')
                 },
                 redirect: {
                     name: 'application-device-group-settings-general'
@@ -228,7 +230,7 @@ export default [
                         name: 'application-device-group-settings-general',
                         component: ApplicationDeviceGroupSettingsGeneral,
                         meta: {
-                            title: 'Application - Device Group - Settings - General'
+                            title: t('ui.applicationDeviceGroupSettingsGeneral')
                         }
                     },
                     {
@@ -236,7 +238,7 @@ export default [
                         name: 'application-device-group-settings-environment',
                         component: ApplicationDeviceGroupSettingsEnvironment,
                         meta: {
-                            title: 'Application - Device Group - Settings - Environment'
+                            title: t('ui.applicationDeviceGroupSettingsEnvironment')
                         }
                     }
                 ]

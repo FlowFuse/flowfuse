@@ -1,11 +1,10 @@
 <template>
-    <FormHeading>Email Configuration</FormHeading>
+    <FormHeading>{{ $t('ui.emailConfiguration') }}</FormHeading>
     <template v-if="!settings.email">
         <p>
-            Email is not currently configured for the platform. This restricts some
-            of the available features.
+            {{ $t('ui.emailIsNotCurrentlyConfiguredForThePlatformThisR') }}
         </p>
-        <p>To configure email, refer to the documentation.</p>
+        <p>{{ $t('ui.toConfigureEmailReferToTheDocumentation') }}</p>
     </template>
     <template v-else>
         <table class="">

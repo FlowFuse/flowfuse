@@ -1,3 +1,5 @@
+const { SUPPORTED_LOCALES } = require('../../i18n/locales')
+
 const sharedUser = require('./shared/users')
 const UserInvitations = require('./userInvitations')
 const UserNotifications = require('./userNotifications')
@@ -163,7 +165,10 @@ module.exports = async function (app) {
                     username: { type: 'string' },
                     email: { type: 'string' },
                     tcs_accepted: { type: 'boolean' },
-                    defaultTeam: { type: 'string' }
+                    defaultTeam: { type: 'string' },
+                    // null clears the preference, letting the platform
+                    // negotiate a locale from the request instead
+                    language: { type: ['string', 'null'], enum: [...SUPPORTED_LOCALES, null] }
                 }
             },
             response: {

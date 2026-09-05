@@ -1,7 +1,7 @@
 <template>
     <SectionTopMenu>
         <template #hero>
-            <toggle-button-group :buttons="pageToggle" data-nav="page-toggle" title="View" :visually-hide-title="true" />
+            <toggle-button-group :buttons="pageToggle" data-nav="page-toggle" :title="$t('ui.view')" :visually-hide-title="true" />
         </template>
         <template v-if="!isInImmersiveMode" #pictogram>
             <img v-if="$route.name.includes('timeline')" alt="info" src="../../../images/pictograms/timeline_red.png">
@@ -9,23 +9,23 @@
         </template>
         <template v-if="!isInImmersiveMode" #helptext>
             <template v-if="$route.name.includes('timeline')">
-                <p>The <b>Timeline</b> provides a concise, chronological view of key activities within your Node-RED instance.</p>
-                <p>It tracks various events such as pipeline stage deployments, snapshot restorations, flow deployments, snapshot creations, and updates to instance settings.</p>
-                <p>This compact view helps you quickly understand the history of your instance, offering clear insight into when and what changes have been made.</p>
+                <p>{{ $t('ui.the') }}<b>{{ $t('ui.timeline') }}</b> {{ $t('ui.providesAConciseChronologicalViewOfKeyActivities') }}</p>
+                <p>{{ $t('ui.itTracksVariousEventsSuchAsPipelineStageDeployme') }}</p>
+                <p>{{ $t('ui.thisCompactViewHelpsYouQuicklyUnderstandTheHisto') }}</p>
             </template>
             <template v-else-if="$route.name.includes('snapshots')">
-                <p><b>Snapshots</b> generate a point-in-time backup of your Node-RED flow, credentials and runtime settings.</p>
+                <p><b>{{ $t('ui.snapshots') }}</b> {{ $t('ui.generateAPointInTimeBackupOfYourNodeRedFlowCrede') }}</p>
                 <p>Snapshots are also required for deploying to devices. In the Deployments page of a Project, you can define your “Target Snapshot”, which will then be deployed to all connected devices.</p>
-                <p>You can also generate Snapshots directly from any instance of Node-RED using the <a target="_blank" href="https://github.com/FlowFuse/nr-tools-plugin">FlowFuse NR Tools Plugin.</a></p>
+                <p>{{ $t('ui.youCanAlsoGenerateSnapshotsDirectlyFromAnyInstan') }} <a target="_blank" href="https://github.com/FlowFuse/nr-tools-plugin">{{ $t('ui.flowfuseNrToolsPlugin') }}</a></p>
             </template>
         </template>
         <template #tools>
             <section class="flex gap-2 items-center self-center flex-wrap">
                 <ff-checkbox
                     v-model="showDeviceSnapshotsOnly"
-                    v-ff-tooltip:left="'Untick this to show snapshots from other Instances within this application'"
+                    v-ff-tooltip:left="$t('ui.untickThisToShowSnapshotsFromOtherInstancesWithi')"
                     data-form="device-only-snapshots"
-                    label="Instance Snapshots Only"
+                    :label="$t('ui.instanceSnapshotsOnly')"
                     class="truncate"
                 />
                 <ff-button
@@ -36,7 +36,7 @@
                     @click="showImportSnapshotDialog"
                 >
                     <template #icon-left><ArrowUpTrayIcon /></template>
-                    <span class="hidden sm:inline upload-snapshot-text">Upload Snapshot</span>
+                    <span class="hidden sm:inline upload-snapshot-text">{{ $t('ui.uploadSnapshot') }}</span>
                 </ff-button>
                 <ff-button
                     v-if="hasPermission('device:snapshot:create', { application: device.application })"
@@ -48,7 +48,7 @@
                     @click="showCreateSnapshotDialog"
                 >
                     <template #icon-left><PlusSmallIcon /></template>
-                    <span class="hidden sm:inline create-snapshot-text">Create Snapshot</span>
+                    <span class="hidden sm:inline create-snapshot-text">{{ $t('ui.createSnapshot') }}</span>
                 </ff-button>
             </section>
         </template>
@@ -72,7 +72,7 @@
     <SnapshotCreateDialog
         v-if="device"
         ref="snapshotCreateDialog"
-        title="Create Device Snapshot"
+        :title="$t('ui.createDeviceSnapshot')"
         data-el="dialog-create-device-snapshot"
         :show-set-as-target="true"
         :device="device"
@@ -83,7 +83,7 @@
     <SnapshotImportDialog
         v-if="device"
         ref="snapshotImportDialog"
-        title="Upload Snapshot"
+        :title="$t('ui.uploadSnapshot')"
         data-el="dialog-import-snapshot"
         :show-owner-select="false"
         :owner="device"
@@ -102,6 +102,7 @@ import SnapshotImportDialog from '../../../components/dialogs/SnapshotImportDial
 import ToggleButtonGroup from '../../../components/elements/ToggleButtonGroup.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
+import { t } from '../../../i18n.js'
 import Alerts from '../../../services/alerts.js'
 
 import SnapshotCreateDialog from '../dialogs/SnapshotCreateDialog.vue'
@@ -134,7 +135,7 @@ export default {
             reloadHooks: [],
             pageToggle: [
                 {
-                    title: 'Snapshots',
+                    title: t('ui.snapshots'),
                     to: {
                         name: (() => (this.$route.name.startsWith('device-editor')
                             ? 'device-editor-snapshots'
@@ -143,7 +144,7 @@ export default {
                     }
                 },
                 {
-                    title: 'Timeline',
+                    title: t('ui.timeline'),
                     to: {
                         name: (() => (this.$route.name.startsWith('device-editor')
                             ? 'device-editor-version-history-timeline'

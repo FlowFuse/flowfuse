@@ -1,7 +1,7 @@
 <template>
     <ff-loading
         v-if="loading"
-        message="Creating Pipeline..."
+        :message="$t('ui.creatingPipeline')"
     />
     <form
         v-else
@@ -16,7 +16,7 @@
         <div class="px-4 space-y-6">
             <!-- Form Description -->
             <div class="mb-6 text-sm text-gray-500">
-                Create a DevOps Pipeline for linking Node-RED Instances together.
+                {{ $t('ui.createADevopsPipelineForLinkingNodeRedInstancesT') }}
             </div>
 
             <!-- Pipeline Options -->
@@ -26,7 +26,7 @@
                 data-form="pipeline-name"
             >
                 <template #default>
-                    Pipeline name
+                    {{ $t('ui.pipelineName') }}
                 </template>
             </FormRow>
 
@@ -35,7 +35,7 @@
                     class="ff-btn--secondary"
                     @click="$router.back()"
                 >
-                    Cancel
+                    {{ $t('ui.cancel') }}
                 </ff-button>
 
                 <ff-button
@@ -43,7 +43,7 @@
                     :data-action="'create-pipeline'"
                     type="submit"
                 >
-                    Create Pipeline
+                    {{ $t('ui.createPipeline') }}
                 </ff-button>
             </div>
         </div>

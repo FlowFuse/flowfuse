@@ -1,17 +1,17 @@
 <template>
     <form class="space-y-4" @submit.prevent>
-        <FormHeading>General</FormHeading>
+        <FormHeading>{{ $t('ui.general') }}</FormHeading>
         <FormRow v-model="editableTemplate.name" :error="editableTemplate.errors.name">
-            Name
+            {{ $t('ui.name') }}
             <template #append><ChangeIndicator :value="editableTemplate.changed.name" /></template>
         </FormRow>
         <FormRow v-model="editableTemplate.active" type="checkbox">
-            Active
-            <template #description>Users can only select from active templates</template>
+            {{ $t('ui.active') }}
+            <template #description>{{ $t('ui.usersCanOnlySelectFromActiveTemplates') }}</template>
             <template #append><ChangeIndicator :value="editableTemplate.changed.active" /></template>
         </FormRow>
         <FormRow v-model="editableTemplate.description" :error="editableTemplate.errors.description">
-            Description
+            {{ $t('ui.description') }}
             <template #append><ChangeIndicator :value="editableTemplate.changed.description" /></template>
         </FormRow>
         <TemplateSettingsEditor v-model="editableTemplate" :editTemplate="editTemplate" />

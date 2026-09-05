@@ -1,18 +1,18 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Audit Log">
+            <ff-page-header :title="$t('ui.auditLog')">
                 <template #context>
-                    Detailed recording of all activity at the team-level.
+                    {{ $t('ui.detailedRecordingOfAllActivityAtTheTeamLevel') }}
                 </template>
             </ff-page-header>
         </template>
         <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" :associations="associations" logType="team" :loading="loading" @load-entries="loadEntries">
             <template #title>
-                <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in this Team." />
+                <SectionTopMenu :hero="$t('ui.auditLog')" :info="$t('ui.recordedEventsThatHaveTakenPlaceInThisTeam')" />
             </template>
             <template #extraFilters>
-                <FormHeading class="mt-4">Event Scope:</FormHeading>
+                <FormHeading class="mt-4">{{ $t('ui.eventScope') }}</FormHeading>
                 <div data-el="filter-event-types">
                     <ff-listbox
                         v-model="auditFilters.selectedEventScope"
@@ -23,13 +23,13 @@
                     />
                     <ff-checkbox v-if="(auditFilters.selectedEventScope || 'device') !== 'device'" v-model="auditFilters.includeChildren" class="mt-2" data-action="include-children-check">
                         <template v-if="auditFilters.selectedEventScope === 'team'">
-                            Applications, Instances and Devices <!-- shortened to prevent wrapping -->
+                            {{ $t('ui.applicationsInstancesAndDevices') }} <!-- shortened to prevent wrapping -->
                         </template>
                         <template v-else-if="auditFilters.selectedEventScope === 'application'">
-                            Include Instances and Devices
+                            {{ $t('ui.includeInstancesAndDevices') }}
                         </template>
                         <template v-else-if="auditFilters.selectedEventScope === 'project'">
-                            Include Devices
+                            {{ $t('ui.includeDevices') }}
                         </template>
                     </ff-checkbox>
                 </div>

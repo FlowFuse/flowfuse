@@ -1,6 +1,6 @@
 <template>
     <div class="mb-3">
-        <SectionTopMenu hero="Device Group Settings" info="" />
+        <SectionTopMenu :hero="$t('ui.deviceGroupSettings')" info="" />
     </div>
     <div class="flex flex-col sm:flex-row">
         <SectionSideMenu :options="sideNavigation" />

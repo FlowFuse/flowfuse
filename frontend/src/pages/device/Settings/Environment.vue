@@ -12,7 +12,7 @@
                 size="small" :disabled="isUpdateButtonDisabled" @click="saveSettings()" data-el="submit"
                 v-if="hasPermission('device:edit-env', applicationContext)"
             >
-                Save Settings
+                {{ $t('ui.saveSettings') }}
             </ff-button>
         </div>
     </form>
@@ -21,6 +21,7 @@
 <script>
 import deviceApi from '../../../api/devices.js'
 import usePermissions from '../../../composables/Permissions.js'
+import { t } from '../../../i18n.js'
 import alerts from '../../../services/alerts.js'
 import dialog from '../../../services/dialog.js'
 import TemplateSettingsEnvironment from '../../admin/Template/sections/Environment.vue'
@@ -32,9 +33,9 @@ export default {
     beforeRouteLeave: async function (_to, _from, next) {
         if (this.unsavedChanges) {
             const dialogOpts = {
-                header: 'Unsaved changes',
+                header: t('ui.unsavedChanges'),
                 kind: 'danger',
-                text: 'You have unsaved changes. Are you sure you want to leave?',
+                text: t('ui.youHaveUnsavedChangesAreYouSureYouWantToLeave'),
                 confirmLabel: 'Yes, lose changes'
             }
             const answer = await dialog.showAsync(dialogOpts)
@@ -163,7 +164,7 @@ export default {
             })
             await deviceApi.updateSettings(this.device.id, settings)
             this.$emit('device-updated')
-            alerts.emit('Device settings successfully updated. NOTE: changes will be applied once the device restarts.', 'confirmation', 6000)
+            alerts.emit(t('ui.deviceSettingsSuccessfullyUpdatedNoteChangesWill'), 'confirmation', 6000)
         },
         onFormValidated (hasErrors) {
             this.hasError = hasErrors

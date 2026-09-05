@@ -5,6 +5,7 @@ import { nextTick } from 'vue'
 import settingsApi from '../api/settings.js'
 import teamApi from '../api/team.js'
 import userApi from '../api/user.js'
+import { setLocale } from '../i18n.js'
 import { handoffFromPopup, isPopupContext } from '../utils/popupContext.js'
 
 import getAppOrchestrator from '@/services/app.orchestrator'
@@ -28,6 +29,20 @@ import { useUxNavigationStore } from '@/stores/ux-navigation.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 import { useUxStore } from '@/stores/ux.js'
 
+/**
+ * Apply a user's stored language preference, if they expressed one.
+ *
+ * A user with no preference is left on whatever locale was negotiated from the
+ * browser at startup — this must not quietly reset them to English.
+ *
+ * @param {object} [user] a user profile as returned by the API
+ */
+function applyUserLocale (user) {
+    if (user?.language) {
+        setLocale(user.language)
+    }
+}
+
 export const useAccountAuthStore = defineStore('account-auth', {
     state: () => ({
         user: null,
@@ -46,6 +61,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
         },
         login (user) {
             this.user = user
+            applyUserLocale(user)
             this.loginInflight = false
         },
         setLoginInflight () {
@@ -60,6 +76,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
         },
         setUser (user) {
             this.user = user
+            applyUserLocale(user)
         },
         setRedirectUrl (url) {
             this.redirectUrlAfterLogin = url
@@ -73,6 +90,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
         async checkIfAuthenticated () {
             const user = await userApi.getUser()
             this.user = user
+            applyUserLocale(user)
         },
         async checkState (redirectUrlAfterLogin) {
             // Lazy require to break circular: account-auth.js → routes.js → Home.vue → ... → account-auth.js

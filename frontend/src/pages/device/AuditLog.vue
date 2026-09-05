@@ -1,6 +1,6 @@
 <template>
     <div class="mb-3">
-        <SectionTopMenu hero="Audit Log" info="" />
+        <SectionTopMenu :hero="$t('ui.auditLog')" info="" />
     </div>
     <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" logType="device" :loading="loading" @load-entries="loadEntries" />
 </template>

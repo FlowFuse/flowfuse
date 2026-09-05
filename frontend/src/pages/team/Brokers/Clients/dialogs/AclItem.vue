@@ -31,6 +31,7 @@
 import { MinusIcon } from '@heroicons/vue/20/solid'
 
 import FormRow from '../../../../../components/FormRow.vue'
+import { t } from '../../../../../i18n.js'
 import FfListbox from '../../../../../ui-components/components/form/ListBox.vue'
 
 export default {
@@ -63,9 +64,9 @@ export default {
                 pattern: ''
             },
             actions: [
-                { label: 'Publish & Subscribe', value: 'both' },
-                { label: 'Subscribe', value: 'subscribe' },
-                { label: 'Publish', value: 'publish' }
+                { label: t('ui.publishSubscribe'), value: 'both' },
+                { label: t('ui.subscribe'), value: 'subscribe' },
+                { label: t('ui.publish'), value: 'publish' }
             ]
         }
     },

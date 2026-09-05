@@ -3,7 +3,7 @@
         <template #header>
             <ff-page-header :title="pageTitle">
                 <template #context>
-                    Applications are used to manage and group together your Node-RED instances.
+                    {{ $t('ui.applicationsAreUsedToManageAndGroupTogetherYourN') }}
                 </template>
                 <template #tools>
                     <section class="flex gap-3">
@@ -14,7 +14,7 @@
                             data-el="previous-step"
                             @click="$refs.multiStepForm.goToPreviousStep()"
                         >
-                            Back
+                            {{ $t('ui.back') }}
                         </ff-button>
                         <ff-button
                             class="flex-1 whitespace-nowrap"
@@ -32,7 +32,7 @@
         <MultiStepApplicationsInstanceForm
             ref="multiStepForm" :applications="[]"
             :show-instance-follow-up="!isFreeTeamType"
-            last-step-label="Create Application"
+            :last-step-label="$t('ui.createApplication')"
             @form-success="onApplicationCreated"
             @previous-step-state-changed="form.previousButtonState = $event"
             @next-step-state-changed="form.nextButtonState = $event"

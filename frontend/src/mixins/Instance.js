@@ -3,6 +3,7 @@ import { mapActions, mapState } from 'pinia'
 import InstanceApi from '../api/instances.js'
 import SnapshotApi from '../api/projectSnapshots.js'
 import usePermissions from '../composables/Permissions.js'
+import { t } from '../i18n.js'
 import alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 import { InstanceStateMutator } from '../utils/InstanceStateMutator.js'
@@ -55,18 +56,18 @@ export default {
         },
         showConfirmSuspendDialog () {
             Dialog.show({
-                header: 'Suspend Instance',
-                text: 'Are you sure you want to suspend this instance?',
+                header: t('ui.suspendInstance'),
+                text: t('ui.areYouSureYouWantToSuspendThisInstance'),
                 confirmLabel: 'Suspend',
                 kind: 'danger'
             }, () => {
                 this.instanceStateMutator.setStateOptimistically('suspending')
                 InstanceApi.suspendInstance(this.instance).then(() => {
                     this.instanceStateMutator.setStateAsPendingFromServer()
-                    alerts.emit('Instance suspend request succeeded.', 'confirmation')
+                    alerts.emit(t('ui.instanceSuspendRequestSucceeded'), 'confirmation')
                 }).catch(err => {
                     console.warn(err)
-                    alerts.emit('Instance failed to suspend.', 'warning')
+                    alerts.emit(t('ui.instanceFailedToSuspend'), 'warning')
                     this.instanceStateMutator.restoreState()
                 })
             })

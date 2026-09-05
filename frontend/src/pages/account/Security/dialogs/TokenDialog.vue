@@ -3,22 +3,21 @@
         <template #default>
             <form class="space-y-4" @submit.prevent>
                 <p class="text-sm text-gray-500">
-                    Personal access tokens allow external tools and scripts to authenticate with the platform API on your behalf.
-                    Configure the token's permissions below to control what it can access.
+                    {{ $t('ui.personalAccessTokensAllowExternalToolsAndScripts') }}
                 </p>
 
                 <!-- Token Name -->
                 <div class="border-t pt-4">
-                    <label class="block text-sm font-medium mb-1">Token Name</label>
-                    <p class="text-gray-500 text-sm mb-2">A descriptive name to help you identify this token later.</p>
+                    <label class="block text-sm font-medium mb-1">{{ $t('ui.tokenName') }}</label>
+                    <p class="text-gray-500 text-sm mb-2">{{ $t('ui.aDescriptiveNameToHelpYouIdentifyThisTokenLater') }}</p>
                     <FormRow v-model="input.name" data-form="token-name" :disabled="edit" />
                 </div>
 
                 <!-- Expiry -->
                 <div class="border-t pt-4">
-                    <label class="block text-sm font-medium mb-1">Expiry</label>
-                    <p class="text-gray-500 text-sm mb-2">Set an expiration date after which the token will stop working. Recommended for security.</p>
-                    <ff-checkbox v-model="input.expires" data-form="expiry-toggle" label="Add Expiry Date" />
+                    <label class="block text-sm font-medium mb-1">{{ $t('ui.expiry') }}</label>
+                    <p class="text-gray-500 text-sm mb-2">{{ $t('ui.setAnExpirationDateAfterWhichTheTokenWillStopWor') }}</p>
+                    <ff-checkbox v-model="input.expires" data-form="expiry-toggle" :label="$t('ui.addExpiryDate')" />
                     <div v-if="input.expires" class="mt-2 ml-6">
                         <FormRow v-model="input.expiresAt" data-form="token-expiry" type="date" />
                     </div>
@@ -26,15 +25,15 @@
 
                 <!-- Read Only -->
                 <div class="border-t pt-4">
-                    <label class="block text-sm font-medium mb-1">Access Level</label>
-                    <p class="text-gray-500 text-sm mb-2">Restrict this token to read-only operations. Write operations like creating, updating, or deleting resources will be denied.</p>
-                    <ff-checkbox v-model="input.readOnly" data-form="readonly-toggle" label="Read Only" />
+                    <label class="block text-sm font-medium mb-1">{{ $t('ui.accessLevel') }}</label>
+                    <p class="text-gray-500 text-sm mb-2">{{ $t('ui.restrictThisTokenToReadOnlyOperationsWriteOperat') }}</p>
+                    <ff-checkbox v-model="input.readOnly" data-form="readonly-toggle" :label="$t('ui.readOnly')" />
                 </div>
 
                 <!-- Team Scope -->
                 <div class="border-t pt-4">
-                    <label class="block text-sm font-medium mb-1">Team Scope</label>
-                    <p class="text-gray-500 text-sm mb-2">Limit this token to specific teams. If none are selected, the token can access all teams you belong to.</p>
+                    <label class="block text-sm font-medium mb-1">{{ $t('ui.teamScope') }}</label>
+                    <p class="text-gray-500 text-sm mb-2">{{ $t('ui.limitThisTokenToSpecificTeamsIfNoneAreSelectedTh') }}</p>
                     <div v-if="teams.length > 0" class="space-y-2 ml-2">
                         <ff-checkbox
                             v-for="team in teams"
@@ -46,15 +45,15 @@
                         />
                     </div>
                     <div v-if="input.teamIds.length === 0" class="mt-2 text-sm text-yellow-600">
-                        This token will have access to all teams you belong to, including teams you join in the future.
+                        {{ $t('ui.thisTokenWillHaveAccessToAllTeamsYouBelongToIncl') }}
                     </div>
                 </div>
 
                 <!-- Admin Opt-In -->
                 <div v-if="isAdmin" class="border-t pt-4">
-                    <label class="block text-sm font-medium mb-1">Admin Access</label>
-                    <p class="text-gray-500 text-sm mb-2">By default, tokens do not carry admin privileges even if your account is an admin. Enable this to grant admin-level access to the token.</p>
-                    <ff-checkbox v-model="input.adminOptIn" data-form="admin-optin-toggle" label="Enable Admin Privileges" />
+                    <label class="block text-sm font-medium mb-1">{{ $t('ui.adminAccess') }}</label>
+                    <p class="text-gray-500 text-sm mb-2">{{ $t('ui.byDefaultTokensDoNotCarryAdminPrivilegesEvenIfYo') }}</p>
+                    <ff-checkbox v-model="input.adminOptIn" data-form="admin-optin-toggle" :label="$t('ui.enableAdminPrivileges')" />
                 </div>
             </form>
         </template>

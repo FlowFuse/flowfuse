@@ -24,7 +24,7 @@
                     <router-link class="flex content-center" :to="{ name: 'application', params: { id: entry.scope.id }}"><RectangleGroupIcon class="ff-icon relative invisible lg:visible" /> <span class="truncate ml-2 leading-normal!">{{ association.name }}</span></router-link>
                 </template>
                 <template v-else-if="entry.scope.type === 'team'">
-                    <router-link class="flex content-center" :to="'#'"><UserGroupIcon class="ff-icon relative invisible lg:visible" /> <span class="truncate ml-2 leading-normal!">This Team</span></router-link>
+                    <router-link class="flex content-center" :to="'#'"><UserGroupIcon class="ff-icon relative invisible lg:visible" /> <span class="truncate ml-2 leading-normal!">{{ $t('ui.thisTeam') }}</span></router-link>
                 </template>
             </div>
         </div>

@@ -2,20 +2,13 @@
     <div>{{ formattedRole }}</div>
 </template>
 <script>
-import { capitalize } from '../../../composables/strings/String.js'
-import { RoleNames, Roles } from '../../../utils/roles.js'
+import { roleLabel } from '../../../utils/roleLabels.js'
 export default {
     name: 'UserRoleCell',
     props: ['role'],
-    setup () {
-        return { capitalize }
-    },
     computed: {
         formattedRole () {
-            return this.capitalize(this.roles[this.role])
-        },
-        roles () {
-            return { ...RoleNames, [Roles.None]: 'No Access' }
+            return roleLabel(this.role)
         }
     }
 }

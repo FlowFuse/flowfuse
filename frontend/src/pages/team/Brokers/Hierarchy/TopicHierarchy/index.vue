@@ -1,18 +1,18 @@
 <template>
     <div class="unified-namespace-hierarchy">
-        <main-title title="Topic Hierarchy">
+        <main-title :title="$t('ui.topicHierarchy')">
             <template #actions>
-                <ff-toggle-switch v-if="isTeamBroker" v-ff-tooltip:bottom="'FlowFuse Broker is always monitoring for new topics'" :disabled="true" :modelValue="true">
+                <ff-toggle-switch v-if="isTeamBroker" v-ff-tooltip:bottom="$t('ui.flowfuseBrokerIsAlwaysMonitoringForNewTopics')" :disabled="true" :modelValue="true">
                     <SignalIcon />
                 </ff-toggle-switch>
-                <ff-toggle-switch v-else v-model="isConnected" v-ff-tooltip:bottom="'FlowFuse will automatically monitor third-party brokers for new topics when connected'" :disabled="true">
+                <ff-toggle-switch v-else v-model="isConnected" v-ff-tooltip:bottom="$t('ui.flowfuseWillAutomaticallyMonitorThirdPartyBroker')" :disabled="true">
                     <SignalIcon />
                 </ff-toggle-switch>
                 <ff-button v-if="shouldDisplayRefreshButton" kind="secondary" @click="$emit('refresh-hierarchy')">
                     <template #icon><ArrowPathIcon /></template>
                 </ff-button>
                 <ff-button v-if="shouldDisplaySchemaButton" :to="{ name: 'team-broker-docs', params: { brokerId: $route.params.brokerId } }">
-                    Open Schema
+                    {{ $t('ui.openSchema') }}
                 </ff-button>
             </template>
         </main-title>
@@ -22,7 +22,7 @@
                 v-model="filterTerm"
                 class="ff-data-table--search"
                 data-form="search"
-                placeholder="Search topics..."
+                :placeholder="$t('ui.searchTopics')"
             >
                 <template #icon><MagnifyingGlassIcon /></template>
                 <template #icon-right>
@@ -30,7 +30,7 @@
                 </template>
             </ff-text-input>
 
-            <ff-loading v-if="loading" message="Loading Topics..." />
+            <ff-loading v-if="loading" :message="$t('ui.loadingTopics')" />
 
             <template v-else>
                 <section v-if="filteredTopics.length > 0" class="topics">
@@ -53,11 +53,11 @@
                     <template #img>
                         <img src="../../../../../images/empty-states/mqtt-empty.png" alt="logo">
                     </template>
-                    <template #header>No Matching Topics Found</template>
+                    <template #header>{{ $t('ui.noMatchingTopicsFound') }}</template>
                     <template #message>
-                        <p>We couldn't find any topics that match your search criteria.</p>
-                        <p>Try adjusting your search or ensure that your MQTT clients have published relevant topics to the broker.</p>
-                        <p>If topics were recently published, there may be a short delay before they appear.</p>
+                        <p>{{ $t('ui.weCouldnTFindAnyTopicsThatMatchYourSearchCriteri') }}</p>
+                        <p>{{ $t('ui.tryAdjustingYourSearchOrEnsureThatYourMqttClient') }}</p>
+                        <p>{{ $t('ui.ifTopicsWereRecentlyPublishedThereMayBeAShortDel') }}</p>
                     </template>
                 </EmptyState>
 
@@ -65,11 +65,11 @@
                     <template #img>
                         <img src="../../../../../images/empty-states/mqtt-empty.png" alt="logo">
                     </template>
-                    <template #header>Start Building Your Topic Hierarchy</template>
+                    <template #header>{{ $t('ui.startBuildingYourTopicHierarchy') }}</template>
                     <template #message>
-                        <p>It looks like no topics have been detected yet.</p>
-                        <p>Topics are automatically detected as your MQTT clients publish events to the broker. Get started by connecting a client and publishing your first message.</p>
-                        <p>Note there may be a short delay before the topics are shown here.</p>
+                        <p>{{ $t('ui.itLooksLikeNoTopicsHaveBeenDetectedYet') }}</p>
+                        <p>{{ $t('ui.topicsAreAutomaticallyDetectedAsYourMqttClientsP') }}</p>
+                        <p>{{ $t('ui.noteThereMayBeAShortDelayBeforeTheTopicsAreShown') }}</p>
                     </template>
                 </EmptyState>
             </template>

@@ -15,6 +15,7 @@ import App from './App.vue'
 import Loading from './components/Loading.vue'
 import SectionNavigationHeader from './components/SectionNavigationHeader.vue'
 import TeamLink from './components/router-links/TeamLink.vue'
+import i18n from './i18n.js'
 import PageLayout from './layouts/Page.vue'
 import router from './routes.js'
 import Alerts from './services/alerts.js'
@@ -36,6 +37,7 @@ const app = createApp(App)
     .use(pinia)
     .use(router)
     .use(VueShepherdPlugin)
+    .use(i18n)
 
 const servicesOrchestrator = getAppOrchestrator()
 

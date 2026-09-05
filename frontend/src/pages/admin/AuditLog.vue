@@ -1,9 +1,9 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Platform Audit Log">
+            <ff-page-header :title="$t('ui.platformAuditLog')">
                 <template #context>
-                    Recorded events that have taken place at the Platform level.
+                    {{ $t('ui.recordedEventsThatHaveTakenPlaceAtThePlatformLev') }}
                 </template>
             </ff-page-header>
         </template>

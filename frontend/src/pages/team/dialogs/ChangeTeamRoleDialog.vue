@@ -1,17 +1,16 @@
 <template>
-    <ff-dialog ref="dialog" header="Change Role" confirm-label="Change" :disable-primary="ownerCount < 2 && isOwner" @confirm="confirm()">
+    <ff-dialog ref="dialog" :header="$t('ui.changeRole')" :confirm-label="$t('ui.change')" :disable-primary="ownerCount < 2 && isOwner" @confirm="confirm()">
         <template v-if="user" #default>
             <form class="space-y-6" @submit.prevent>
                 <div class="space-y-2">
                     <template v-if="ownerCount < 2 && isOwner">
                         <p class="text-sm text-gray-500">
-                            You cannot change the role for <span class="font-bold">{{ user.username }}</span> as
-                            they are the only owner of the team.
+                            {{ $t('ui.youCannotChangeTheRoleFor') }} <span class="font-bold">{{ user.username }}</span> {{ $t('ui.asTheyAreTheOnlyOwnerOfTheTeam') }}
                         </p>
                     </template>
                     <template v-else>
                         <p class="text-sm text-gray-500 mb-6">
-                            Select a role for <span class="font-bold">{{ user.username }}</span>:
+                            {{ $t('ui.selectARoleFor') }} <span class="font-bold">{{ user.username }}</span>:
                         </p>
                         <ff-radio-group v-model="input.role" orientation="vertical" :options="roleOptions" />
                     </template>
@@ -24,6 +23,7 @@
 <script>
 
 import teamApi from '../../../api/team.js'
+import { t } from '../../../i18n.js'
 import alerts from '../../../services/alerts.js'
 import { Roles } from '../../../utils/roles.js'
 
@@ -66,21 +66,21 @@ export default {
     setup () {
         return {
             roleOptions: [{
-                label: 'Owner',
+                label: t('ui.owner'),
                 value: Roles.Owner,
-                description: 'Owners can add and remove members to the team and create applications and instances'
+                description: t('ui.ownersCanAddAndRemoveMembersToTheTeamAndCreateAp')
             }, {
-                label: 'Member',
+                label: t('ui.member'),
                 value: Roles.Member,
-                description: 'Members can access the team instances'
+                description: t('ui.membersCanAccessTheTeamInstances')
             }, {
-                label: 'Viewer',
+                label: t('ui.viewer'),
                 value: Roles.Viewer,
-                description: 'Viewers can access the team instances, but not make any changes'
+                description: t('ui.viewersCanAccessTheTeamInstancesButNotMakeAnyCha')
             }, {
-                label: 'Dashboard Only',
+                label: t('ui.dashboardOnly'),
                 value: Roles.Dashboard,
-                description: 'Dashboard users can only access the dashboards or HTTP endpoints created by the Node-RED instances when FlowFuse authentication is enabled'
+                description: t('ui.dashboardUsersCanOnlyAccessTheDashboardsOrHttpEn')
             }],
             show (team, user, ownerCount) {
                 this.$refs.dialog.show()

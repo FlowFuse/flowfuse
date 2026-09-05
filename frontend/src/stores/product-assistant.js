@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import SemVer from 'semver'
 
+import { t } from '../i18n.js'
+
 import { useUrlHelper } from '@/composables/UrlHelper'
 import getAppOrchestrator from '@/services/app.orchestrator'
 import { useContextStore } from '@/stores/context.js'
@@ -139,14 +141,14 @@ const ALL_CONTEXT_OPTIONS = [
     {
         value: 'palette',
         name: 'Palette',
-        label: 'Add Palette to context',
+        label: t('ui.addPaletteToContext'),
         menuIcon: 'CubeIcon',
         showAsChip: true
     },
     {
         value: 'visible-debug-logs',
         name: 'Debug Logs',
-        label: 'Add Debug Logs (all visible)',
+        label: t('ui.addDebugLogsAllVisible'),
         menuIcon: 'Bars4Icon',
         showAsChip: false,
         onSelectAction: 'requestDebugLogContextVisibleEntries'
@@ -154,7 +156,7 @@ const ALL_CONTEXT_OPTIONS = [
     {
         value: 'visible-debug-errors',
         name: 'Error Logs',
-        label: 'Add Debug Logs (errors only)',
+        label: t('ui.addDebugLogsErrorsOnly'),
         menuIcon: 'Bars4Icon',
         showAsChip: false,
         onSelectAction: 'requestDebugLogContextVisibleErrorEntries'

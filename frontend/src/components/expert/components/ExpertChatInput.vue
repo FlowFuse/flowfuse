@@ -13,16 +13,16 @@
                 :disabled="isWaitingForResponse && !isSessionExpired"
                 @click="handleStartOver"
             >
-                Start over
+                {{ $t('ui.startOver') }}
             </button>
             <div class="right-buttons">
                 <default-chip
                     v-if="!isInsightsAgent"
                     class="plan-mode-chip"
-                    text="Plan mode"
+                    :text="$t('ui.planMode')"
                     :modelValue="planMode"
                     :disabled="isWaitingForResponse"
-                    title="Plan mode: the Expert proposes a plan before making any changes, and acts only once you approve it."
+                    :title="$t('ui.planModeTheExpertProposesAPlanBeforeMakingAnyCha')"
                     data-el="expert-plan-mode-toggle"
                     @toggle="setPlanMode(!planMode)"
                 >
@@ -37,7 +37,7 @@
                     class="btn-settings"
                     data-el="expert-settings-menu"
                     aria-label="Expert settings"
-                    title="Expert settings"
+                    :title="$t('ui.expertSettings')"
                     @click="openSettings"
                 >
                     <Cog8ToothIcon class="btn-settings__icon" />
@@ -69,7 +69,7 @@
                         class="btn-stop"
                         @click="handleStop"
                     >
-                        Stop
+                        {{ $t('ui.stop') }}
                     </button>
                     <button
                         v-else-if="!isSessionExpired"
@@ -78,7 +78,7 @@
                         :disabled="!canSend"
                         @click="handleSend"
                     >
-                        Send
+                        {{ $t('ui.send') }}
                     </button>
                 </div>
             </div>
@@ -86,16 +86,16 @@
 
         <ff-dialog
             ref="settingsDialog"
-            header="Expert settings"
-            confirm-label="Done"
+            :header="$t('ui.expertSettings')"
+            :confirm-label="$t('ui.done')"
             :can-be-canceled="false"
             data-el="expert-settings-dialog"
             boxClass="max-w-[54rem]!"
         >
             <div class="expert-settings">
                 <div class="expert-settings__group">
-                    <FormHeading>Follow-up questions</FormHeading>
-                    <p>When a request needs more detail, choose how the Expert asks for it.</p>
+                    <FormHeading>{{ $t('ui.followUpQuestions') }}</FormHeading>
+                    <p>{{ $t('ui.whenARequestNeedsMoreDetailChooseHowTheExpertAsk') }}</p>
                     <ff-radio-group
                         v-model="questionCadenceWrapper"
                         orientation="vertical"
@@ -104,8 +104,8 @@
                     />
                 </div>
                 <div class="expert-settings__group">
-                    <FormHeading>Tool permissions</FormHeading>
-                    <p>Choose which actions the Expert can run, and which need your approval.</p>
+                    <FormHeading>{{ $t('ui.toolPermissions') }}</FormHeading>
+                    <p>{{ $t('ui.chooseWhichActionsTheExpertCanRunAndWhichNeedYou') }}</p>
                     <tool-permissions-settings :in-editor="isImmersive" />
                 </div>
             </div>
@@ -117,6 +117,7 @@
 import { Cog8ToothIcon } from '@heroicons/vue/20/solid'
 import { mapActions, mapState } from 'pinia'
 
+import { t } from '../../../i18n.js'
 import FormHeading from '../../FormHeading.vue'
 import ResizeBar from '../../ResizeBar.vue'
 
@@ -198,8 +199,8 @@ export default {
         ]),
         questionCadenceOptions () {
             return [
-                { label: 'All at once', value: 'all', description: 'Asks every open question together in a single turn.' },
-                { label: 'One at a time', value: 'one', description: 'Asks one question, then follows up based on your answer.' }
+                { label: t('ui.allAtOnce'), value: 'all', description: t('ui.asksEveryOpenQuestionTogetherInASingleTurn') },
+                { label: t('ui.oneAtATime'), value: 'one', description: t('ui.asksOneQuestionThenFollowsUpBasedOnYourAnswer') }
             ]
         },
         questionCadenceWrapper: {

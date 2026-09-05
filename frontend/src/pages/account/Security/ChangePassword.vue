@@ -1,15 +1,15 @@
 <template>
-    <ff-loading v-if="loading" message="Changing Password..." />
+    <ff-loading v-if="loading" :message="$t('ui.changingPassword')" />
     <form v-else class="space-y-6">
-        <FormHeading>Change password</FormHeading>
-        <FormRow id="old_password" v-model="input.old_password" type="password" :error="errors.old_password">Old Password</FormRow>
-        <FormRow id="password" v-model="input.password" type="password" :error="errors.password">New Password</FormRow>
-        <FormRow id="password_confirm" v-model="input.password_confirm" type="password" :error="errors.password_confirm">Confirm</FormRow>
+        <FormHeading>{{ $t('ui.changePassword') }}</FormHeading>
+        <FormRow id="old_password" v-model="input.old_password" type="password" :error="errors.old_password">{{ $t('ui.oldPassword') }}</FormRow>
+        <FormRow id="password" v-model="input.password" type="password" :error="errors.password">{{ $t('ui.newPassword') }}</FormRow>
+        <FormRow id="password_confirm" v-model="input.password_confirm" type="password" :error="errors.password_confirm">{{ $t('ui.confirm') }}</FormRow>
         <ff-button :disabled="!formValid" @click="changePassword">
-            Change password
+            {{ $t('ui.changePassword') }}
         </ff-button>
         <div v-if="errors.password_change" class="ml-4 text-red-400 font-medium inline text-sm">{{ errors.password_change }}</div>
-        <div v-if="changeComplete" class="ml-4 font-medium inline text-md">Password changed</div>
+        <div v-if="changeComplete" class="ml-4 font-medium inline text-md">{{ $t('ui.passwordChanged') }}</div>
     </form>
 </template>
 
@@ -19,6 +19,8 @@ import { mapState } from 'pinia'
 import userApi from '../../../api/user.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
+
+import { t } from '../../../i18n.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 
@@ -60,23 +62,23 @@ export default {
     watch: {
         'input.password': function (v) {
             if (this.input.password.length < 8) {
-                this.errors.password = 'Password must be at least 8 characters'
+                this.errors.password = t('ui.passwordMustBeAtLeast8Characters')
                 return
             }
             if (this.input.password.length > 128) {
-                this.errors.password = 'Password too long'
+                this.errors.password = t('ui.passwordTooLong')
                 return
             }
             if (this.input.password === this.user.username) {
-                this.errors.password = 'Password must not match username'
+                this.errors.password = t('ui.passwordMustNotMatchUsername')
                 return
             }
             if (this.input.password === this.user.email) {
-                this.errors.password = 'Password must not match email'
+                this.errors.password = t('ui.passwordMustNotMatchEmail')
                 return
             }
             if (this.input.password === this.input.old_password) {
-                this.errors.password = 'New password must not match old password'
+                this.errors.password = t('ui.newPasswordMustNotMatchOldPassword')
                 return
             }
             const zxcvbnResult = zxcvbn(this.input.password)
@@ -101,7 +103,7 @@ export default {
                 this.changeComplete = true
             }).catch(e => {
                 this.changeComplete = false
-                this.errors.password_change = 'Password change failed'
+                this.errors.password_change = t('ui.passwordChangeFailed')
                 console.error(e)
             }).finally(() => {
                 this.loading = false

@@ -1,14 +1,14 @@
 <template>
     <div class="ff--immersive-editor-wrapper dashboards-viewer" :class="{ resizing: isResizing }" data-el="dashboards-viewer">
         <DashboardDrawer :home-route="homeRoute" @resizing="v => isResizing = v">
-            <ff-loading v-if="loading && instances.length === 0" message="Loading Dashboards..." />
+            <ff-loading v-if="loading && instances.length === 0" :message="$t('ui.loadingDashboards')" />
             <template v-else-if="instances.length">
                 <div class="dashboards-viewer--search">
                     <ff-text-input
                         v-model="searchTerm"
                         class="ff-data-table--search"
                         data-form="search-dashboards"
-                        placeholder="Search dashboards..."
+                        :placeholder="$t('ui.searchDashboards')"
                     >
                         <template #icon>
                             <MagnifyingGlassIcon />
@@ -27,9 +27,7 @@
                         <span class="dashboards-viewer--list-item-name">{{ instance.name }}</span>
                         <InstanceStatusBadge :status="instance.status" :instanceId="instance.id" instanceType="instance" />
                     </li>
-                    <li v-if="visibleInstances.length === 0" class="dashboards-viewer--list-empty">
-                        No dashboards match "{{ searchTerm }}".
-                    </li>
+                    <li v-if="visibleInstances.length === 0" class="dashboards-viewer--list-empty">{{ $t('ui.noDashboardsMatchP0', { p0: searchTerm }) }}</li>
                 </ul>
             </template>
         </DashboardDrawer>

@@ -10,7 +10,7 @@
                 kind="secondary" class="ff-more-info"
                 @click.prevent="openInANewTab(blueprint.externalUrl)"
             >
-                More Info
+                {{ $t('ui.moreInfo') }}
             </ff-button>
             <MagnifyingGlassIcon v-if="altPreviewButton" class="ff-icon alt-preview" @click.stop.prevent="preview" />
         </div>
@@ -27,14 +27,14 @@
                     kind="secondary"
                     @click.prevent="openInANewTab(blueprint.externalUrl)"
                 >
-                    More Info
+                    {{ $t('ui.moreInfo') }}
                 </ff-button>
                 <div
-                    v-ff-tooltip:bottom="'Default Blueprint'"
+                    v-ff-tooltip:bottom="$t('ui.defaultBlueprint')"
                     class="text-green-600 flex items-center gap-1"
                 >
                     <CheckCircleIcon class="ff-icon-lg" />
-                    <label class="text-green-800">Default</label>
+                    <label class="text-green-800">{{ $t('ui.default') }}</label>
                 </div>
             </div>
             <div v-if="displaySelectButton || displayPreviewButton" class="right flex gap-2">
@@ -49,10 +49,10 @@
                     </template>
                 </ff-button>
                 <ff-button v-if="!editable" data-action="select-blueprint" @click="choose(blueprint)">
-                    Select
+                    {{ $t('ui.select') }}
                 </ff-button>
                 <ff-button v-else data-action="edit-blueprint" @click="$emit('selected', blueprint)">
-                    Edit
+                    {{ $t('ui.edit') }}
                 </ff-button>
             </div>
         </div>

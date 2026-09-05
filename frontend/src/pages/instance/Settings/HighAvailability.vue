@@ -1,39 +1,36 @@
 <template>
-    <ff-loading v-if="updating" message="Updating Instance..." />
+    <ff-loading v-if="updating" :message="$t('ui.updatingInstance')" />
     <template v-else>
         <FeatureUnavailableToTeam v-if="!haFeatureAvailable" />
-        <FormHeading>High Availability</FormHeading>
+        <FormHeading>{{ $t('ui.highAvailability') }}</FormHeading>
         <FormRow>
             <template #description>
                 <p class="mb-3">
-                    High Availability mode allows you to run multiple copies
-                    of your Node-RED instance, with incoming work distributed
-                    between them.
+                    {{ $t('ui.highAvailabilityModeAllowsYouToRunMultipleCopies') }}
                 </p>
                 <p>
-                    This feature is currently free to use, but
-                    will become a chargeable feature in a future release.
+                    {{ $t('ui.thisFeatureIsCurrentlyFreeToUseButWillBecomeACha') }}
                 </p>
                 <p>
-                    When HA mode is enabled the following restrictions apply:
+                    {{ $t('ui.whenHaModeIsEnabledTheFollowingRestrictionsApply') }}
                 </p>
                 <ul class="list-disc pl-6">
-                    <li>Enabling or disabling HA mode requires a restart of the Instance.</li>
+                    <li>{{ $t('ui.enablingOrDisablingHaModeRequiresARestartOfTheIn') }}</li>
                     <li>Flows cannot be directly modified in an HA Instance; the editor is disabled.</li>
-                    <li>A DevOps Pipeline should be created to deploy new flows to the instance.</li>
-                    <li>Any internal state of the flows is not shared between the HA copies.</li>
+                    <li>{{ $t('ui.aDevopsPipelineShouldBeCreatedToDeployNewFlowsTo') }}</li>
+                    <li>{{ $t('ui.anyInternalStateOfTheFlowsIsNotSharedBetweenTheH') }}</li>
                 </ul>
                 <p>
-                    Check the documentation for more information about <a class="underline" href="https://flowfuse.com/docs/user/high-availability/">High Availability</a>.
+                    {{ $t('ui.checkTheDocumentationForMoreInformationAbout') }} <a class="underline" href="https://flowfuse.com/docs/user/high-availability/">{{ $t('ui.highAvailability') }}</a>.
                 </p>
             </template>
             <template #input>&nbsp;</template>
         </FormRow>
         <template v-if="!isHA">
-            <ff-button :disabled="!haFeatureAvailable" kind="secondary" data-nav="enable-ha" @click="enableHA()">Enable HA mode</ff-button>
+            <ff-button :disabled="!haFeatureAvailable" kind="secondary" data-nav="enable-ha" @click="enableHA()">{{ $t('ui.enableHaMode') }}</ff-button>
         </template>
         <template v-else>
-            <ff-button :disabled="!haFeatureAvailable" kind="secondary" data-nav="disable-ha" @click="disableHA()">Disable HA mode</ff-button>
+            <ff-button :disabled="!haFeatureAvailable" kind="secondary" data-nav="disable-ha" @click="disableHA()">{{ $t('ui.disableHaMode') }}</ff-button>
         </template>
     </template>
 </template>
@@ -47,6 +44,7 @@ import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 import usePermissions from '../../../composables/Permissions.js'
+import { t } from '../../../i18n.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -110,7 +108,7 @@ export default {
         },
         async enableHA () {
             const msg = {
-                header: 'Enable High Availability mode',
+                header: t('ui.enableHighAvailabilityMode'),
                 text: `Enabling HA mode will require a restart of the instance.
                        Once enabled, the editor will be disabled. The flows can only be updated by using a DevOps Pipeline to deploy to this instance from another one, or by disabling HA mode first.`
             }
@@ -128,8 +126,8 @@ export default {
         },
         async disableHA () {
             const msg = {
-                header: 'Disable High Availability mode',
-                text: 'Disabling HA mode will require a restart of the instance.'
+                header: t('ui.disableHighAvailabilityMode'),
+                text: t('ui.disablingHaModeWillRequireARestartOfTheInstance')
             }
             Dialog.show(msg, async () => {
                 this.updating = true

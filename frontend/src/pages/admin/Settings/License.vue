@@ -1,19 +1,19 @@
 <template>
-    <ff-loading v-if="loading.updating" message="Updating License..." />
-    <ff-loading v-if="loading.checking" message="Checking License..." />
+    <ff-loading v-if="loading.updating" :message="$t('ui.updatingLicense')" />
+    <ff-loading v-if="loading.checking" :message="$t('ui.checkingLicense')" />
     <div v-else-if="!isLoading" class="space-y-6">
         <template v-if="!editing.license">
-            <FormHeading>License</FormHeading>
+            <FormHeading>{{ $t('ui.license') }}</FormHeading>
             <template v-if="license">
                 <table data-el="license-details">
                     <tbody>
                         <tr v-if="license.dev"><td class="font-medium p-2 pr-4 align-top" colspan="2" /></tr>
-                        <tr><td class="font-medium p-2 pr-4 align-top">Type</td><td class="p-2"><span v-if="!license.dev">FlowFuse Enterprise Edition</span><span v-else class="font-bold">FlowFuse Development Only</span></td></tr>
-                        <tr><td class="font-medium p-2 pr-4 align-top">License ID</td><td class="p-2">{{ license.id }}</td></tr>
-                        <tr><td class="font-medium p-2 pr-4 align-top">Organisation</td><td class="p-2">{{ license.organisation }}</td></tr>
-                        <tr v-if="!!license.tier"><td class="font-medium p-2 pr-4 align-top">Tier</td><td class="p-2">{{ license.tier }}</td></tr>
-                        <tr v-if="!!license.tiers"><td class="font-medium p-2 pr-4 align-top">Tier Entitlements</td><td class="p-2">{{ license.tiers }}</td></tr>
-                        <tr><td class="font-medium p-2 pr-4 align-top">Expires</td><td class="p-2">{{ license.expires }}<br><span class="text-xs">{{ license.expiresAt }}</span></td></tr>
+                        <tr><td class="font-medium p-2 pr-4 align-top">{{ $t('ui.type') }}</td><td class="p-2"><span v-if="!license.dev">{{ $t('ui.flowfuseEnterpriseEdition') }}</span><span v-else class="font-bold">{{ $t('ui.flowfuseDevelopmentOnly') }}</span></td></tr>
+                        <tr><td class="font-medium p-2 pr-4 align-top">{{ $t('ui.licenseId') }}</td><td class="p-2">{{ license.id }}</td></tr>
+                        <tr><td class="font-medium p-2 pr-4 align-top">{{ $t('ui.organisation') }}</td><td class="p-2">{{ license.organisation }}</td></tr>
+                        <tr v-if="!!license.tier"><td class="font-medium p-2 pr-4 align-top">{{ $t('ui.tier') }}</td><td class="p-2">{{ license.tier }}</td></tr>
+                        <tr v-if="!!license.tiers"><td class="font-medium p-2 pr-4 align-top">{{ $t('ui.tierEntitlements') }}</td><td class="p-2">{{ license.tiers }}</td></tr>
+                        <tr><td class="font-medium p-2 pr-4 align-top">{{ $t('ui.expires') }}</td><td class="p-2">{{ license.expires }}<br><span class="text-xs">{{ license.expiresAt }}</span></td></tr>
                     </tbody>
                 </table>
                 <details><pre class="wrap-break-word">{{ license }}</pre></details>
@@ -21,39 +21,39 @@
             <template v-else>
                 <table>
                     <tbody>
-                        <tr><td class="font-medium p-2 pr-4 align-top">Type</td><td class="p-2">FlowFuse Community Edition</td></tr>
+                        <tr><td class="font-medium p-2 pr-4 align-top">{{ $t('ui.type') }}</td><td class="p-2">{{ $t('ui.flowfuseCommunityEdition') }}</td></tr>
                     </tbody>
                 </table>
             </template>
             <div class="space-x-4 whitespace-nowrap">
-                <ff-button data-form="update-licence" @click="editLicense">Update license</ff-button>
+                <ff-button data-form="update-licence" @click="editLicense">{{ $t('ui.updateLicense') }}</ff-button>
             </div>
         </template>
         <template v-if="editing.license">
-            <FormHeading>1. Upload new license</FormHeading>
+            <FormHeading>{{ $t('ui.n1UploadNewLicense') }}</FormHeading>
             <template v-if="!inspectedLicense">
-                <FormRow id="license" ref="row-license" v-model="input.license" :error="errors.license" placeholder="Enter new license" data-form="license" />
+                <FormRow id="license" ref="row-license" v-model="input.license" :error="errors.license" :placeholder="$t('ui.enterNewLicense')" data-form="license" />
                 <div class="space-x-4 whitespace-nowrap flex">
-                    <ff-button @click="cancelEditLicense">Cancel</ff-button>
-                    <ff-button :disabled="!formValid" data-form="check-license" @click="inspectLicense">Check license</ff-button>
+                    <ff-button @click="cancelEditLicense">{{ $t('ui.cancel') }}</ff-button>
+                    <ff-button :disabled="!formValid" data-form="check-license" @click="inspectLicense">{{ $t('ui.checkLicense') }}</ff-button>
                 </div>
             </template>
             <template v-if="inspectedLicense">
-                <FormHeading>2. Check license details</FormHeading>
+                <FormHeading>{{ $t('ui.n2CheckLicenseDetails') }}</FormHeading>
                 <table>
                     <tbody>
-                        <tr v-if="inspectedLicense.dev"><td class="font-medium p-2 pr-4 align-top" colspan="2">Development-mode Only</td></tr>
-                        <tr><td class="font-medium p-2 pr-4 align-top">License ID</td><td class="p-2">{{ inspectedLicense.id }}</td></tr>
-                        <tr><td class="font-medium p-2 pr-4 align-top">Organisation</td><td class="p-2">{{ inspectedLicense.organisation }}</td></tr>
-                        <tr v-if="!!inspectedLicense.tier"><td class="font-medium p-2 pr-4 align-top">Tier</td><td class="p-2">{{ inspectedLicense.tier }}</td></tr>
-                        <tr v-if="!!inspectedLicense.tiers"><td class="font-medium p-2 pr-4 align-top">Tier Entitlements</td><td class="p-2">{{ inspectedLicense.tiers }}</td></tr>
-                        <tr><td class="font-medium p-2 pr-4 align-top">Expires</td><td class="p-2">{{ inspectedLicense.expires }}<br><span class="text-xs">{{ inspectedLicense.expiresAt }}</span></td></tr>
+                        <tr v-if="inspectedLicense.dev"><td class="font-medium p-2 pr-4 align-top" colspan="2">{{ $t('ui.developmentModeOnly') }}</td></tr>
+                        <tr><td class="font-medium p-2 pr-4 align-top">{{ $t('ui.licenseId') }}</td><td class="p-2">{{ inspectedLicense.id }}</td></tr>
+                        <tr><td class="font-medium p-2 pr-4 align-top">{{ $t('ui.organisation') }}</td><td class="p-2">{{ inspectedLicense.organisation }}</td></tr>
+                        <tr v-if="!!inspectedLicense.tier"><td class="font-medium p-2 pr-4 align-top">{{ $t('ui.tier') }}</td><td class="p-2">{{ inspectedLicense.tier }}</td></tr>
+                        <tr v-if="!!inspectedLicense.tiers"><td class="font-medium p-2 pr-4 align-top">{{ $t('ui.tierEntitlements') }}</td><td class="p-2">{{ inspectedLicense.tiers }}</td></tr>
+                        <tr><td class="font-medium p-2 pr-4 align-top">{{ $t('ui.expires') }}</td><td class="p-2">{{ inspectedLicense.expires }}<br><span class="text-xs">{{ inspectedLicense.expiresAt }}</span></td></tr>
                     </tbody>
                 </table>
                 <details><pre class="wrap-break-word">{{ inspectedLicense }}</pre></details>
                 <div class="space-x-4 whitespace-nowrap flex">
-                    <ff-button kind="secondary" @click="cancelEditLicense">Cancel</ff-button>
-                    <ff-button kind="primary" data-form="submit" @click="applyLicense">Apply license</ff-button>
+                    <ff-button kind="secondary" @click="cancelEditLicense">{{ $t('ui.cancel') }}</ff-button>
+                    <ff-button kind="primary" data-form="submit" @click="applyLicense">{{ $t('ui.applyLicense') }}</ff-button>
                 </div>
             </template>
         </template>
@@ -66,6 +66,8 @@ import { mapActions } from 'pinia'
 import adminApi from '../../../api/admin.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
+
+import { t } from '../../../i18n.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
@@ -131,7 +133,7 @@ export default {
                 if (err.response && err.response.data && err.response.data.error) {
                     this.errors.license = err.response.data.error
                 } else {
-                    this.errors.license = 'Error inspecting license'
+                    this.errors.license = t('ui.errorInspectingLicense')
                 }
                 this.loading.checking = false
             }
@@ -151,7 +153,7 @@ export default {
                 if (err.response && err.response.data && err.response.data.error) {
                     this.errors.license = err.response.data.error
                 } else {
-                    this.errors.license = 'Error applying license'
+                    this.errors.license = t('ui.errorApplyingLicense')
                 }
                 this.loading.updating = false
             }

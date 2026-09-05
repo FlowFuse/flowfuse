@@ -1,11 +1,11 @@
 <template>
-    <main-title title="Payload Schema" class="mt-1" />
+    <main-title :title="$t('ui.payloadSchema2')" class="mt-1" />
 
     <div class="ff-topic-inspecting">
         <section class="schema-wrapper flex flex-col overflow-auto h-full">
-            <sub-title title="Schema" :icon="CodeBracketSquareIcon">
+            <sub-title :title="$t('ui.schema')" :icon="CodeBracketSquareIcon">
                 <template v-if="canClearSuggestion" #actions>
-                    <span v-ff-tooltip:left="'Clear accepted suggestion'">
+                    <span v-ff-tooltip:left="$t('ui.clearAcceptedSuggestion')">
                         <XCircleIcon class="ff-icon-sm cursor-pointer text-red-500" @click="$emit('clear-suggestion')" />
                     </span>
                 </template>
@@ -14,7 +14,7 @@
         </section>
 
         <section v-if="!hasDefinedSchema && supportedInferredTypeSuggestions" class="suggestions-wrapper">
-            <sub-title title="Suggestions" :icon="LightBulbIcon" />
+            <sub-title :title="$t('ui.suggestions')" :icon="LightBulbIcon" />
             <topic-suggestions>
                 <topic-suggestion
                     :suggestion="inferredSchema"

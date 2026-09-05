@@ -1,25 +1,25 @@
 <template>
     <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" :associations="associations" :logType="logScope" :loading="loading" @load-entries="loadEntries">
         <template #title>
-            <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in within this application." />
+            <SectionTopMenu :hero="$t('ui.auditLog')" :info="$t('ui.recordedEventsThatHaveTakenPlaceInWithinThisAppl')" />
         </template>
         <template #extraFilters>
-            <FormHeading class="mt-4">Event Scope:</FormHeading>
+            <FormHeading class="mt-4">{{ $t('ui.eventScope') }}</FormHeading>
             <div data-el="filter-event-types">
                 <ff-listbox
                     v-model="auditFilters.selectedEventScope"
                     :options="instanceList"
-                    placeholder="This Application"
+                    :placeholder="$t('ui.thisApplication')"
                     value-key="id"
                     label-key="name"
                     class="w-full"
                 />
                 <ff-checkbox v-model="auditFilters.includeChildren" class="mt-2" data-action="include-children-check">
                     <template v-if="logScope === 'application'">
-                        Include Instances and Devices
+                        {{ $t('ui.includeInstancesAndDevices') }}
                     </template>
                     <template v-else-if="logScope === 'project'">
-                        Include Devices
+                        {{ $t('ui.includeDevices') }}
                     </template>
                 </ff-checkbox>
             </div>

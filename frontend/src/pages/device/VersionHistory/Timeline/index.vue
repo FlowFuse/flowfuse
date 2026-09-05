@@ -4,7 +4,7 @@
         <FeatureUnavailableToTeam v-else-if="!featuresCheck.isTimelineFeatureEnabledForTeam" />
         <section v-if="featuresCheck.isTimelineFeatureEnabled" id="visual-timeline" class="relative flex-1 flex flex-col overflow-auto">
             <transition name="fade" mode="out-in">
-                <ff-loading v-if="loading" message="Loading Timeline..." class="absolute top-0" />
+                <ff-loading v-if="loading" :message="$t('ui.loadingTimeline')" class="absolute top-0" />
                 <ul v-else-if="activeTimeline.length" ref="timeline" data-el="timeline-list" class="timeline">
                     <li v-for="event in activeTimeline" :key="event.id">
                         <timeline-event
@@ -29,12 +29,12 @@
                         <img src="../../../../images/empty-states/instance-timeline.png" alt="pipelines-logo">
                     </template>
                     <template #header>
-                        <span>Nothing to see here just yet!</span>
+                        <span>{{ $t('ui.nothingToSeeHereJustYet') }}</span>
                     </template>
                     <template #message>
-                        <p>The Timeline provides a concise, chronological view of key activities within your Node-RED instance.</p>
-                        <p>It tracks various events such as pipeline stage deployments, snapshot restorations, flow deployments, snapshot creations, and updates to instance settings.</p>
-                        <p>This compact view helps you quickly understand the history of your instance, offering clear insight into when and what changes have been made.</p>
+                        <p>{{ $t('ui.theTimelineProvidesAConciseChronologicalViewOfKe') }}</p>
+                        <p>{{ $t('ui.itTracksVariousEventsSuchAsPipelineStageDeployme') }}</p>
+                        <p>{{ $t('ui.thisCompactViewHelpsYouQuicklyUnderstandTheHisto') }}</p>
                     </template>
                 </empty-state>
             </transition>
@@ -45,12 +45,12 @@
                     <img src="../../../../images/empty-states/instance-timeline.png" alt="pipelines-logo">
                 </template>
                 <template #header>
-                    <span>Timeline Not Available</span>
+                    <span>{{ $t('ui.timelineNotAvailable') }}</span>
                 </template>
                 <template #message>
-                    <p>The Timeline provides a concise, chronological view of key activities within your Node-RED instance.</p>
-                    <p>It tracks various events such as pipeline stage deployments, snapshot restorations, flow deployments, snapshot creations, and updates to instance settings.</p>
-                    <p>This compact view helps you quickly understand the history of your instance, offering clear insight into when and what changes have been made.</p>
+                    <p>{{ $t('ui.theTimelineProvidesAConciseChronologicalViewOfKe') }}</p>
+                    <p>{{ $t('ui.itTracksVariousEventsSuchAsPipelineStageDeployme') }}</p>
+                    <p>{{ $t('ui.thisCompactViewHelpsYouQuicklyUnderstandTheHisto') }}</p>
                 </template>
             </empty-state>
         </section>
@@ -72,6 +72,7 @@ import AssetDetailDialog from '../../../../components/dialogs/AssetDetailDialog.
 import SnapshotEditDialog from '../../../../components/dialogs/SnapshotEditDialog.vue'
 import TimelineEvent from '../../../../components/version-history/timeline/TimelineEvent.vue'
 import { scrollTo } from '../../../../composables/Ux.js'
+import { t } from '../../../../i18n.js'
 import snapshotsMixin from '../../../../mixins/Snapshots.js'
 import Alerts from '../../../../services/alerts.js'
 import Dialog from '../../../../services/dialog.js'
@@ -175,7 +176,7 @@ export default {
         showRollbackDialog (snapshot, alterLoadingState = false) {
             return new Promise((resolve) => {
                 Dialog.show({
-                    header: 'Restore Snapshot',
+                    header: t('ui.restoreSnapshot'),
                     kind: 'danger',
                     text: `This will overwrite the current remote instance.
                        All changes to the flows, settings and environment variables made since the last snapshot will be lost.

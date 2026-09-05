@@ -1,5 +1,6 @@
 import { AdjustmentsVerticalIcon } from '@heroicons/vue/24/outline'
 
+import { t } from '../../i18n.js'
 import ensureAdmin from '../../utils/ensureAdmin.js'
 
 import PlatformAuditLog from './AuditLog.vue'
@@ -44,7 +45,7 @@ export default [
         icon: AdjustmentsVerticalIcon,
         component: Admin,
         meta: {
-            title: 'Admin - Overview',
+            title: t('ui.adminOverview'),
             menu: 'admin'
         },
         children: [
@@ -54,7 +55,7 @@ export default [
                 path: 'settings',
                 component: AdminSettings,
                 meta: {
-                    title: 'Admin - Settings'
+                    title: t('ui.adminSettings2')
                 },
                 redirect: '/admin/settings/general',
                 children: [
@@ -76,11 +77,11 @@ export default [
                 name: 'admin-settings-sso-edit',
                 component: AdminSettingsSSOEdit,
                 meta: {
-                    title: 'Admin - Settings - SSO Configuration',
+                    title: t('ui.adminSettingsSsoConfiguration'),
                     menu: {
                         type: 'back',
                         backTo: {
-                            label: 'Back to SSO',
+                            label: t('ui.backToSso'),
                             to: { name: 'admin-settings-sso' }
                         }
                     }
@@ -94,7 +95,7 @@ export default [
                         path: '',
                         component: AdminUsers,
                         meta: {
-                            title: 'Admin - Users'
+                            title: t('ui.adminUsers')
                         },
                         redirect: { name: 'admin-users-general' },
                         children: [
@@ -107,7 +108,7 @@ export default [
                         path: 'create',
                         component: AdminCreateUser,
                         meta: {
-                            title: 'Admin - Create User'
+                            title: t('ui.adminCreateUser')
                         }
                     },
                     {
@@ -115,7 +116,7 @@ export default [
                         path: ':id',
                         component: AdminUserDetails,
                         meta: {
-                            title: 'Admin - User'
+                            title: t('ui.adminUser')
                         }
                     }
                 ]
@@ -125,7 +126,7 @@ export default [
                 path: 'teams',
                 component: AdminTeams,
                 meta: {
-                    title: 'Admin - Teams'
+                    title: t('ui.adminTeams')
                 }
             },
             {
@@ -133,7 +134,7 @@ export default [
                 path: 'team-types',
                 component: AdminTeamTypes,
                 meta: {
-                    title: 'Admin - Team Types'
+                    title: t('ui.adminTeamTypes')
                 }
             },
             {
@@ -141,7 +142,7 @@ export default [
                 path: 'instance-types',
                 component: AdminInstanceTypes,
                 meta: {
-                    title: 'Admin - Instance Types'
+                    title: t('ui.adminInstanceTypes')
                 }
             },
             {
@@ -149,7 +150,7 @@ export default [
                 path: 'stacks',
                 component: AdminStacks,
                 meta: {
-                    title: 'Admin - Stacks'
+                    title: t('ui.adminStacks')
                 }
             },
             {
@@ -157,7 +158,7 @@ export default [
                 path: 'templates',
                 redirect: { name: 'admin-templates-list' },
                 meta: {
-                    title: 'Admin - Templates'
+                    title: t('ui.adminTemplates')
                 },
                 children: [
                     {
@@ -171,11 +172,11 @@ export default [
                         redirect: { name: 'admin-templates-template-settings' },
                         component: AdminTemplate,
                         meta: {
-                            title: 'Admin - Template',
+                            title: t('ui.adminTemplate'),
                             menu: {
                                 type: 'back',
                                 backTo: {
-                                    label: 'Back to Templates',
+                                    label: t('ui.backToTemplates'),
                                     to: { name: 'admin-templates-list' }
                                 }
                             }
@@ -195,7 +196,7 @@ export default [
                 path: 'flow-blueprints',
                 component: AdminFlowBlueprints,
                 meta: {
-                    title: 'Admin - Flow Blueprints'
+                    title: t('ui.adminFlowBlueprints')
                 }
             },
             {
@@ -203,7 +204,7 @@ export default [
                 path: 'audit-log',
                 component: PlatformAuditLog,
                 meta: {
-                    title: 'Admin - Logs'
+                    title: t('ui.adminLogs')
                 }
             },
             {
@@ -211,7 +212,7 @@ export default [
                 path: 'notifications-hub',
                 component: NotificationsHub,
                 meta: {
-                    title: 'Admin - Notifications Hub'
+                    title: t('ui.adminNotificationsHub')
                 }
             },
             {
@@ -219,7 +220,7 @@ export default [
                 path: 'certified-nodes',
                 component: AdminCertifiedNodes,
                 meta: {
-                    title: 'Admin - FlowFuse Nodes'
+                    title: t('ui.adminFlowfuseNodes')
                 }
             }
         ]

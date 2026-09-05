@@ -1,23 +1,23 @@
 <template>
     <SectionTopMenu
-        hero="Application Device Groups"
-        help-header="FlowFuse - Application Device Groups"
-        info="Device Groups provide a way of managing multiple Remote instances together, for example deploying to multiple Remote Instances via a Pipeline."
+        :hero="$t('ui.applicationDeviceGroups')"
+        :help-header="$t('ui.flowfuseApplicationDeviceGroups')"
+        :info="$t('ui.deviceGroupsProvideAWayOfManagingMultipleRemoteI')"
     >
         <template #pictogram>
             <img src="../../images/pictograms/device_group_red.png">
         </template>
         <template #helptext>
-            <p>Application Device Groups permit the grouping of Application assigned Remote Instances.</p>
-            <p>The Groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
+            <p>{{ $t('ui.applicationDeviceGroupsPermitTheGroupingOfApplic') }}</p>
+            <p>{{ $t('ui.theGroupsCanThenBeSetAsTheTargetInADevopsPipelin') }}</p>
         </template>
     </SectionTopMenu>
     <ff-loading
         v-if="loading"
-        message="Loading Device Groups..."
+        :message="$t('ui.loadingDeviceGroups')"
     />
     <div v-else-if="deviceGroups?.length > 0" class="pt-4 space-y-6" data-el="device-group-list">
-        <ff-data-table v-model:search="tableSearch" :columns="tableColumns" :rows="deviceGroups" :show-search="true" search-placeholder="Filter..." data-el="device-groups-table" :rows-selectable="true" @row-selected="editDeviceGroup">
+        <ff-data-table v-model:search="tableSearch" :columns="tableColumns" :rows="deviceGroups" :show-search="true" :search-placeholder="$t('ui.filter')" data-el="device-groups-table" :rows-selectable="true" @row-selected="editDeviceGroup">
             <template #actions>
                 <ff-button
                     data-action="create-device-group"
@@ -25,19 +25,19 @@
                     @click="showCreateDeviceGroupDialog"
                 >
                     <template #icon-left><PlusSmallIcon /></template>
-                    Add Device Group
+                    {{ $t('ui.addDeviceGroup') }}
                 </ff-button>
             </template>
         </ff-data-table>
     </div>
     <EmptyState v-else :featureUnavailable="!featureEnabledForPlatform" :featureUnavailableToTeam="!featureEnabledForTeam" :featureUnavailableMessage="'Device Groups are an enterprise feature'">
-        <template #header>Add your Application's First Device Group</template>
+        <template #header>{{ $t('ui.addYourApplicationSFirstDeviceGroup') }}</template>
         <template #img>
             <img src="../../images/empty-states/application-device-groups.png">
         </template>
         <template #message>
-            <p>Application Device Groups permit the grouping of Remote Instances, managed by this Application.</p>
-            <p>The device groups can then be set as the target in a Pipeline to update multiple Remote Instances in a single operation</p>
+            <p>{{ $t('ui.applicationDeviceGroupsPermitTheGroupingOfRemote') }}</p>
+            <p>{{ $t('ui.theDeviceGroupsCanThenBeSetAsTheTargetInAPipelin') }}</p>
         </template>
         <template #actions>
             <ff-button
@@ -46,26 +46,26 @@
                 @click="showCreateDeviceGroupDialog"
             >
                 <template #icon-left><PlusSmallIcon /></template>
-                Add Device Group
+                {{ $t('ui.addDeviceGroup') }}
             </ff-button>
         </template>
     </EmptyState>
 
-    <ff-dialog ref="create-dialog" class="ff-dialog-box--info" header="Create Application Device Group">
+    <ff-dialog ref="create-dialog" class="ff-dialog-box--info" :header="$t('ui.createApplicationDeviceGroup')">
         <template #default>
             <slot name="helptext">
-                <p>Enter the name and description of the Device Group to create.</p>
+                <p>{{ $t('ui.enterTheNameAndDescriptionOfTheDeviceGroupToCrea') }}</p>
             </slot>
             <div class="flex gap-4 mt-4">
                 <div class="grow">
-                    <FormRow v-model="input.name" :error="!input.name ? 'required' : ''" data-form="name">Name</FormRow>
-                    <FormRow v-model="input.description" data-form="name">Description</FormRow>
+                    <FormRow v-model="input.name" :error="!input.name ? 'required' : ''" data-form="name">{{ $t('ui.name') }}</FormRow>
+                    <FormRow v-model="input.description" data-form="name">{{ $t('ui.description') }}</FormRow>
                 </div>
             </div>
         </template>
         <template #actions>
-            <ff-button kind="secondary" @click="$refs['create-dialog'].close()">Cancel</ff-button>
-            <ff-button kind="primary" @click="createDeviceGroup">Create</ff-button>
+            <ff-button kind="secondary" @click="$refs['create-dialog'].close()">{{ $t('ui.cancel') }}</ff-button>
+            <ff-button kind="primary" @click="createDeviceGroup">{{ $t('ui.create') }}</ff-button>
         </template>
     </ff-dialog>
 </template>
@@ -82,6 +82,7 @@ import FormRow from '../../components/FormRow.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import usePermissions from '../../composables/Permissions.js'
 
+import { t } from '../../i18n.js'
 import Alerts from '../../services/alerts.js'
 
 import TargetSnapshotCell from './components/cells/TargetSnapshot.vue'
@@ -125,26 +126,26 @@ export default {
             },
             tableColumns: [
                 {
-                    label: 'Name',
+                    label: t('ui.name'),
                     key: 'name',
                     sortable: true,
                     class: 'w-1/4 whitespace-nowrap'
                 },
                 {
-                    label: 'Description',
+                    label: t('ui.description'),
                     key: 'description',
                     sortable: true,
                     class: 'w-1/3'
                 },
                 {
-                    label: 'Target Snapshot',
+                    label: t('ui.targetSnapshot2'),
                     key: 'description',
                     sortable: true,
                     class: 'w-full',
                     component: { is: markRaw(TargetSnapshotCell) }
                 },
                 {
-                    label: 'Device count',
+                    label: t('ui.deviceCount'),
                     key: 'deviceCount',
                     sortable: true,
                     class: 'w-1/4 whitespace-nowrap'

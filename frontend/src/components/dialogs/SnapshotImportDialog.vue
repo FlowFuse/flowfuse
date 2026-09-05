@@ -1,35 +1,35 @@
 <template>
-    <ff-dialog ref="dialog" :header="title" confirm-label="Upload" :disable-primary="!formValid" :closeOnConfirm="false" @confirm="confirm()" @cancel="cancel">
+    <ff-dialog ref="dialog" :header="title" :confirm-label="$t('ui.upload')" :disable-primary="!formValid" :closeOnConfirm="false" @confirm="confirm()" @cancel="cancel">
         <template #default>
             <form class="space-y-6 mt-2" @submit.prevent>
                 <FormRow :error="validateField.file ? errors.file : ''" data-form="import-snapshot-filename">
-                    Snapshot File
+                    {{ $t('ui.snapshotFile') }}
                     <template #input>
                         <ff-text-input v-model="input.file" :error="errors.file" disabled />
                     </template>
                     <template #append>
                         <input id="fileUpload" ref="fileUpload" type="file" accept="application/json, text/plain, *" style="display:none;">
-                        <ff-button v-ff-tooltip:top="'Select Snapshot'" kind="tertiary" @click="selectSnapshot">
+                        <ff-button v-ff-tooltip:top="$t('ui.selectSnapshot')" kind="tertiary" @click="selectSnapshot">
                             <template #icon><DocumentIcon /></template>
-                            <!-- <span class="hidden sm:flex pl-1">Select Snapshot</span> -->
+                            <!-- <span class="hidden sm:flex pl-1">{{ $t('ui.selectSnapshot') }}</span> -->
                         </ff-button>
                     </template>
                 </FormRow>
-                <FormRow v-model="input.name" :error="validateField.name ? errors.name : ''" data-form="import-snapshot-name">Name</FormRow>
+                <FormRow v-model="input.name" :error="validateField.name ? errors.name : ''" data-form="import-snapshot-name">{{ $t('ui.name') }}</FormRow>
                 <FormRow data-form="import-snapshot-description">
-                    Description
+                    {{ $t('ui.description') }}
                     <template #input>
                         <textarea v-model="input.description" rows="8" class="ff-input ff-text-input" style="height: auto" />
                     </template>
                 </FormRow>
                 <ImportInstanceComponents
                     v-model="parts"
-                    header="Select the components to include in the upload"
+                    :header="$t('ui.selectTheComponentsToIncludeInTheUpload')"
                     :error="validateField.parts ? errors.parts : ''"
                     :showCredentials="snapshotNeedsSecret"
                     data-form="import-snapshot-components"
                 />
-                <FormRow v-if="snapshotNeedsSecret && parts.flows !== false && parts.credentials !== false" v-model="input.secret" :error="validateField.secret ? errors.secret : ''" data-form="import-snapshot-secret">Credentials Secret</FormRow>
+                <FormRow v-if="snapshotNeedsSecret && parts.flows !== false && parts.credentials !== false" v-model="input.secret" :error="validateField.secret ? errors.secret : ''" data-form="import-snapshot-secret">{{ $t('ui.credentialsSecret') }}</FormRow>
             </form>
         </template>
     </ff-dialog>
@@ -39,6 +39,7 @@
 import { DocumentIcon } from '@heroicons/vue/24/outline'
 
 import snapshotsApi from '../../api/snapshots.js'
+import { t } from '../../i18n.js'
 import ImportInstanceComponents from '../../pages/instance/components/ExportImportComponents.vue'
 import alerts from '../../services/alerts.js'
 import { isSnapshot } from '../../utils/snapshot.js'
@@ -62,7 +63,7 @@ export default {
         },
         title: {
             type: String,
-            default: 'Upload Snapshot'
+            default: t('ui.uploadSnapshot')
         }
     },
     emits: ['snapshot-import-failed', 'snapshot-import-success', 'canceled'],
@@ -175,8 +176,8 @@ export default {
                     }
                 } catch (e) {
                     console.warn(e)
-                    alerts.emit('Failed to read snapshot file')
-                    this.errors.file = 'Invalid snapshot file'
+                    alerts.emit(t('ui.failedToReadSnapshotFile'))
+                    this.errors.file = t('ui.invalidSnapshotFile')
                 } finally {
                     this.validate()
                 }

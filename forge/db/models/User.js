@@ -39,6 +39,9 @@ module.exports = {
             }
         },
         tcs_accepted: { type: DataTypes.DATE, allowNull: true },
+        // A BCP 47 locale tag. Null means 'no preference' — the platform then
+        // negotiates one from the request. See forge/i18n.
+        language: { type: DataTypes.STRING, allowNull: true, defaultValue: null },
         suspended: {
             type: DataTypes.BOOLEAN,
             defaultValue: false

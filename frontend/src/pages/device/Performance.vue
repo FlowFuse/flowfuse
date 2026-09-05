@@ -1,5 +1,5 @@
 <template>
-    <SectionTopMenu hero="Remote Performance" help-header="FlowFuse - Remote Performance" info="Performance metrics for your Remote Node-RED Instance" />
+    <SectionTopMenu :hero="$t('ui.remotePerformance')" :help-header="$t('ui.flowfuseRemotePerformance')" :info="$t('ui.performanceMetricsForYourRemoteNodeRedInstance')" />
     <DevicePerformance :device="device" />
 </template>
 

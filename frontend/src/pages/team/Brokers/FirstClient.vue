@@ -3,10 +3,10 @@
         <template #img>
             <img src="../../../images/empty-states/mqtt-empty.png" alt="logo">
         </template>
-        <template #header>Create your first Broker Client</template>
+        <template #header>{{ $t('ui.createYourFirstBrokerClient') }}</template>
         <template #message>
-            <p>It looks like you haven't created any MQTT clients.</p>
-            <p>Get started by adding your first client to manage topic permissions and secure communications within your broker.</p>
+            <p>{{ $t('ui.itLooksLikeYouHavenTCreatedAnyMqttClients') }}</p>
+            <p>{{ $t('ui.getStartedByAddingYourFirstClientToManageTopicPe') }}</p>
         </template>
         <template #actions>
             <section class="flex gap-4 flex-col">
@@ -19,14 +19,14 @@
                     <template #icon-left>
                         <PlusSmallIcon />
                     </template>
-                    Create Client
+                    {{ $t('ui.createClient') }}
                 </ff-button>
                 <ff-button
                     data-action="back"
                     kind="tertiary"
                     @click="$router.back()"
                 >
-                    Cancel
+                    {{ $t('ui.cancel') }}
                 </ff-button>
             </section>
         </template>

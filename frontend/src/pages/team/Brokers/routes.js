@@ -1,3 +1,5 @@
+import { t } from '../../../i18n.js'
+
 import BrokerChoose from './ChooseBroker.vue'
 import BrokersClients from './Clients/index.vue'
 import BrokerDocs from './Docs/index.vue'
@@ -12,7 +14,7 @@ export default [{
     path: 'brokers',
     component: Brokers,
     meta: {
-        title: 'Team - MQTT Broker'
+        title: t('ui.teamMqttBroker')
     },
     children: [
         {
@@ -23,7 +25,7 @@ export default [{
                     path: 'hierarchy',
                     component: BrokersHierarchy,
                     meta: {
-                        title: 'Team - MQTT Broker Topic Hierarchy'
+                        title: t('ui.teamMqttBrokerTopicHierarchy')
                     }
                 },
                 {
@@ -31,7 +33,7 @@ export default [{
                     path: 'clients',
                     component: BrokersClients,
                     meta: {
-                        title: 'Team - MQTT Broker Clients'
+                        title: t('ui.teamMqttBrokerClients')
                     }
                 },
                 {
@@ -39,7 +41,7 @@ export default [{
                     path: 'settings',
                     component: BrokerSettings,
                     meta: {
-                        title: 'Team - New MQTT Broker'
+                        title: t('ui.teamNewMqttBroker')
                     }
                 }
             ]
@@ -49,7 +51,7 @@ export default [{
             path: 'add',
             component: BrokerChoose,
             meta: {
-                title: 'Team - Add MQTT Brokers'
+                title: t('ui.teamAddMqttBrokers')
             }
         },
         {
@@ -57,7 +59,7 @@ export default [{
             path: 'new',
             component: BrokerNew,
             meta: {
-                title: 'Team - New MQTT Broker'
+                title: t('ui.teamNewMqttBroker')
             }
         },
         {
@@ -65,7 +67,7 @@ export default [{
             path: 'first-client',
             component: FirstClient,
             meta: {
-                title: 'Team - New MQTT Client'
+                title: t('ui.teamNewMqttClient')
             }
         }
     ]
@@ -74,7 +76,7 @@ export default [{
     path: 'brokers/:brokerId/docs',
     component: BrokerDocs,
     meta: {
-        title: 'Topic Hierarchy Documentation',
+        title: t('ui.topicHierarchyDocumentation'),
         layout: 'docs'
     }
 }]

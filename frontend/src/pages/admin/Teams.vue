@@ -1,7 +1,7 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Teams" />
+            <ff-page-header :title="$t('ui.teams')" />
         </template>
         <div class="ff-admin-audit">
             <div>
@@ -11,20 +11,20 @@
                     :rows="teams"
                     :rows-selectable="true"
                     :show-search="true"
-                    search-placeholder="Search Teams..."
+                    :search-placeholder="$t('ui.searchTeams')"
                     :search-fields="['name', 'id']"
                     :show-load-more="!!nextCursor"
                     :loading="loading"
-                    loading-message="Loading Teams"
-                    no-data-message="No Teams Found"
+                    :loading-message="$t('ui.loadingTeams')"
+                    :no-data-message="$t('ui.noTeamsFound')"
                     data-el="teams-table"
                     @row-selected="viewTeam"
                     @load-more="loadItems"
                 />
             </div>
             <div>
-                <SectionTopMenu hero="Filters" />
-                <FormHeading class="mt-4">Sort:</FormHeading>
+                <SectionTopMenu :hero="$t('ui.filters')" />
+                <FormHeading class="mt-4">{{ $t('ui.sort') }}</FormHeading>
                 <div data-el="sort-options">
                     <ff-dropdown v-model="filters.sortBy" class="w-full">
                         <ff-dropdown-option
@@ -33,7 +33,7 @@
                         />
                     </ff-dropdown>
                 </div>
-                <FormHeading class="mt-4">Team Type:</FormHeading>
+                <FormHeading class="mt-4">{{ $t('ui.teamType') }}</FormHeading>
                 <div data-el="filter-team-types" class="pl-2 space-y-2">
                     <FormRow
                         v-for="teamType in teamTypes"
@@ -46,13 +46,13 @@
                 </div>
 
                 <template v-if="features.billing">
-                    <FormHeading class="mt-4">Billing State:</FormHeading>
+                    <FormHeading class="mt-4">{{ $t('ui.billingState') }}</FormHeading>
                     <div data-el="filter-team-types" class="pl-2 space-y-2">
-                        <FormRow v-model="filters.suspended" type="checkbox">Suspended</FormRow>
-                        <FormRow v-model="filters.billing.active" :disabled="filters.suspended" type="checkbox">Active</FormRow>
-                        <FormRow v-model="filters.billing.trial" :disabled="filters.suspended" type="checkbox">Trial</FormRow>
-                        <FormRow v-model="filters.billing.canceled" :disabled="filters.suspended" type="checkbox">Canceled</FormRow>
-                        <FormRow v-model="filters.billing.unmanaged" :disabled="filters.suspended" type="checkbox">Unmanaged</FormRow>
+                        <FormRow v-model="filters.suspended" type="checkbox">{{ $t('ui.suspended') }}</FormRow>
+                        <FormRow v-model="filters.billing.active" :disabled="filters.suspended" type="checkbox">{{ $t('ui.active') }}</FormRow>
+                        <FormRow v-model="filters.billing.trial" :disabled="filters.suspended" type="checkbox">{{ $t('ui.trial') }}</FormRow>
+                        <FormRow v-model="filters.billing.canceled" :disabled="filters.suspended" type="checkbox">{{ $t('ui.canceled') }}</FormRow>
+                        <FormRow v-model="filters.billing.unmanaged" :disabled="filters.suspended" type="checkbox">{{ $t('ui.unmanaged') }}</FormRow>
                     </div>
                 </template>
             </div>
@@ -74,6 +74,8 @@ import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import TeamCell from '../../components/tables/cells/TeamCell.vue'
 import TeamTypeCell from '../../components/tables/cells/TeamTypeCell.vue'
 
+import { t } from '../../i18n.js'
+
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 
@@ -86,20 +88,20 @@ export default {
     },
     data () {
         const columns = [
-            { label: 'Name', component: { is: markRaw(TeamCell) } },
-            { label: 'Created', class: ['w-64'], key: 'createdAtFormatted' },
-            { label: 'Type', key: 'type', component: { is: markRaw(TeamTypeCell) } },
-            { label: 'Members', class: ['w-54', 'text-center'], key: 'memberCount' },
-            { label: 'Instances', class: ['w-54', 'text-center'], key: 'instanceCount' },
-            { label: 'Devices', class: ['w-54', 'text-center'], key: 'deviceCount' }
+            { label: t('ui.name'), component: { is: markRaw(TeamCell) } },
+            { label: t('ui.created'), class: ['w-64'], key: 'createdAtFormatted' },
+            { label: t('ui.type'), key: 'type', component: { is: markRaw(TeamTypeCell) } },
+            { label: t('ui.members'), class: ['w-54', 'text-center'], key: 'memberCount' },
+            { label: t('ui.instances'), class: ['w-54', 'text-center'], key: 'instanceCount' },
+            { label: t('ui.devices'), class: ['w-54', 'text-center'], key: 'deviceCount' }
         ]
         return {
             teams: [],
             teamSearch: '',
             teamTypes: [],
             sortOptions: [
-                { id: 'createdAt-desc', label: 'Newest' },
-                { id: 'created-asc', label: 'Oldest' }
+                { id: 'createdAt-desc', label: t('ui.newest') },
+                { id: 'created-asc', label: t('ui.oldest') }
             ],
             filters: {
                 teamType: {},
@@ -158,7 +160,7 @@ export default {
         })
         if (this.features.billing) {
             this.columns.push(
-                { label: 'Billing', key: 'billingSummary' }
+                { label: t('ui.billing'), key: 'billingSummary' }
             )
         }
         await this.loadItems(true)

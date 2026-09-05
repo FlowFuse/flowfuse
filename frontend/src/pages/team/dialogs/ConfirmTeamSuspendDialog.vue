@@ -1,16 +1,15 @@
 <template>
-    <ff-dialog ref="dialog" data-el="suspend-team-dialog" :header="'Suspend Team: \'' + team?.name + '\''" kind="danger" confirm-label="Suspend" :disable-primary="!formValid" @confirm="confirm()">
+    <ff-dialog ref="dialog" data-el="suspend-team-dialog" :header="'Suspend Team: \'' + team?.name + '\''" kind="danger" :confirm-label="$t('ui.suspend')" :disable-primary="!formValid" @confirm="confirm()">
         <template #default>
             <form v-if="team" class="space-y-6" @submit.prevent>
                 <p>
-                    Are you sure you want to suspend this team? This will stop all instances and prevent any further activity in the team.
-                    You will still be able to unsuspended the team at any time.
+                    {{ $t('ui.areYouSureYouWantToSuspendThisTeamThisWillStopAl') }}
                 </p>
                 <p>
-                    Name: <span class="font-bold">{{ team?.name }}</span>
+                    {{ $t('ui.name2') }} <span class="font-bold">{{ team?.name }}</span>
                 </p>
                 <p>
-                    Please type in the team name to confirm.
+                    {{ $t('ui.pleaseTypeInTheTeamNameToConfirm') }}
                 </p>
                 <FormRow id="projectName" v-model="input.teamName" :placeholder="'Team Name'" data-form="team-name" />
             </form>

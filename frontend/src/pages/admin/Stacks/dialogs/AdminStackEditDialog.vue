@@ -1,28 +1,24 @@
 <template>
     <ff-dialog ref="dialog" :header="dialogTitle" :confirm-label="stack ? 'Save' : 'Create'" :disable-primary="!formValid || loading" @confirm="confirm()">
         <template #default>
-            <ff-loading v-if="loading" message="Creating Stack..." />
+            <ff-loading v-if="loading" :message="$t('ui.creatingStack')" />
             <form v-else class="space-y-6" @submit.prevent>
-                <div v-if="input.replaces">
-                    This will create a new stack to replace '{{ input.replaces.name }}'.
-                    The existing stack will be marked inactive and will not be
-                    available for use by new instances.
-                </div>
+                <div v-if="input.replaces">{{ $t('ui.thisWillCreateANewStackToReplaceP0TheExistingSta', { p0: input.replaces.name }) }}</div>
                 <FormRow v-model="input.name" :error="errors.name" :disabled="editDisabled">
-                    Name
+                    {{ $t('ui.name') }}
                     <template #description>An internal name for the stack. This must be unique and can only contain a-z 0-9 - _ / @ .</template>
                 </FormRow>
                 <FormRow v-model="input.label" :error="errors.label">
-                    Label
-                    <template #description>This is how the stack is shown to users.</template>
+                    {{ $t('ui.label') }}
+                    <template #description>{{ $t('ui.thisIsHowTheStackIsShownToUsers') }}</template>
                 </FormRow>
-                <FormRow v-model="input.active" type="checkbox">Active</FormRow>
+                <FormRow v-model="input.active" type="checkbox">{{ $t('ui.active') }}</FormRow>
                 <template v-if="!editDisabled">
                     <FormRow id="projectType" v-model="input.projectType" :options="instanceTypes" :disabled="editTypeDisabled" :error="errors.projectType">
-                        Instance Type
+                        {{ $t('ui.instanceType') }}
                         <template #description>
-                            <div v-if="editTypeDisabled">Stacks cannot be moved to a different instance type</div>
-                            <div v-else-if="stack && !stack.projectType">You can assign this stack to an instance type as a one-time action. Once assigned you cannot move it.</div>
+                            <div v-if="editTypeDisabled">{{ $t('ui.stacksCannotBeMovedToADifferentInstanceType') }}</div>
+                            <div v-else-if="stack && !stack.projectType">{{ $t('ui.youCanAssignThisStackToAnInstanceTypeAsAOneTimeA') }}</div>
                         </template>
                     </FormRow>
                     <template v-for="(prop) in stackProperties" :key="prop.name">
@@ -33,8 +29,7 @@
                     </template>
                 </template>
                 <div v-else>
-                    This stack is being used by instances. Its properties cannot
-                    be modified, other than to change its active state and label
+                    {{ $t('ui.thisStackIsBeingUsedByInstancesItsPropertiesCann') }}
                 </div>
             </form>
         </template>
@@ -49,6 +44,7 @@ import stacksApi from '../../../../api/stacks.js'
 
 import FormRow from '../../../../components/FormRow.vue'
 
+import { t } from '../../../../i18n.js'
 import Alerts from '../../../../services/alerts.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
@@ -69,7 +65,7 @@ export default {
                 this.input = { active: true, name: '', properties: {}, replaces: null }
                 this.errors = {}
                 if (this.instanceTypes.length === 0) {
-                    this.errors.projectType = 'No instance types available. Ask an Administrator to create a new instance type definition'
+                    this.errors.projectType = t('ui.noInstanceTypesAvailableAskAnAdministratorToCrea2')
                 }
             },
             showEdit (stack) {
@@ -180,7 +176,7 @@ export default {
         },
         'input.name': function (v) {
             if (v && !/^[a-z0-9-_/@.]+$/i.test(v)) {
-                this.errors.name = 'Must only contain a-z 0-9 - _ / @ .'
+                this.errors.name = t('ui.mustOnlyContainAZ092')
             } else {
                 this.errors.name = ''
             }
@@ -242,7 +238,7 @@ export default {
                         console.error(err.response.data)
                         if (err.response.data) {
                             if (/name/.test(err.response.data.error)) {
-                                this.errors.name = 'Name unavailable'
+                                this.errors.name = t('ui.nameUnavailable')
                             }
                             Alerts.emit(err.response.data.error, 'warning')
                         }
@@ -260,7 +256,7 @@ export default {
                         console.error(err.response.data)
                         if (err.response.data) {
                             if (/name/.test(err.response.data.error)) {
-                                this.errors.name = 'Name unavailable'
+                                this.errors.name = t('ui.nameUnavailable')
                             }
                             Alerts.emit(err.response.data.error, 'warning')
                         }

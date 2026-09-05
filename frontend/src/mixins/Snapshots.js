@@ -2,6 +2,7 @@ import InstanceApi from '../api/instances.js'
 import SnapshotApi from '../api/projectSnapshots.js'
 import SnapshotsApi from '../api/snapshots.js'
 import { downloadData } from '../composables/Download.js'
+import { t } from '../i18n.js'
 import Alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 import Product from '../services/product.js'
@@ -25,7 +26,7 @@ export default {
         showRollbackDialog (snapshot, alterLoadingState = false) {
             return new Promise((resolve) => {
                 Dialog.show({
-                    header: 'Restore Snapshot',
+                    header: t('ui.restoreSnapshot'),
                     kind: 'danger',
                     text: `This will overwrite the current instance.
                        All changes to the flows, settings and environment variables made since the last snapshot will be lost.
@@ -79,8 +80,8 @@ export default {
         showDeleteSnapshotDialog (snapshot) {
             return new Promise((resolve) => {
                 Dialog.show({
-                    header: 'Delete Snapshot',
-                    text: 'Are you sure you want to delete this snapshot?',
+                    header: t('ui.deleteSnapshot'),
+                    text: t('ui.areYouSureYouWantToDeleteThisSnapshot'),
                     kind: 'danger',
                     confirmLabel: 'Delete'
                 }, async () => {
@@ -101,7 +102,7 @@ export default {
         // snapshot actions - set as device target
         showDeviceTargetDialog (snapshot) {
             Dialog.show({
-                header: 'Set Device Target Snapshot',
+                header: t('ui.setDeviceTargetSnapshot'),
                 text: `Are you sure you want to set this snapshot as the device target?
                        All devices assigned to this instance will be restarted on this snapshot.`,
                 confirmLabel: 'Set Target'

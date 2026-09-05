@@ -2,20 +2,20 @@
     <div class="topic-schema">
         <template v-if="schema === null">
             <p class="text-center opacity-50">
-                No schema defined
+                {{ $t('ui.noSchemaDefined') }}
             </p>
         </template>
         <template v-else-if="!isAllowedSchema">
             <section class="topic-schema-unknown">
-                We haven't been able to determine the payload format
+                {{ $t('ui.weHavenTBeenAbleToDetermineThePayloadFormat') }}
             </section>
         </template>
         <template v-else>
             <section class="type">
-                <span class="type"><b>Type</b>: {{ typeText }}</span>
+                <span class="type"><b>{{ $t('ui.type') }}</b>: {{ typeText }}</span>
             </section>
             <section v-if="!isPrimitiveSchema" ref="schemaContainer" class="schema-container mt-2">
-                <b>Schema</b>:
+                <b>{{ $t('ui.schema') }}</b>:
                 <object-properties v-if="schemaType === 'object'" :properties="schema.properties" />
                 <array-properties v-else-if="schemaType === 'array'" :items="schema.items" />
             </section>

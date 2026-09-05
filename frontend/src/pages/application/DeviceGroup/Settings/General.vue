@@ -1,50 +1,50 @@
 <template>
     <form class="space-y-4" @submit.prevent>
         <section data-el="device-group-settings-general">
-            <FormHeading class="mt-0.5">Device Group Settings</FormHeading>
+            <FormHeading class="mt-0.5">{{ $t('ui.deviceGroupSettings') }}</FormHeading>
             <FormRow
                 v-model="input.name" data-el="application-device-group-name"
                 :type="!hasPermission('application:device-group:update', { application }) ? 'uneditable' : 'text'"
                 :error="errors.name"
                 :disabled="!!errors.name"
             >
-                The name of the group
+                {{ $t('ui.theNameOfTheGroup') }}
             </FormRow>
             <FormRow
                 v-model="input.description" data-el="application-device-group-description"
                 :type="!hasPermission('application:device-group:update', { application }) ? 'uneditable' : 'text'"
             >
-                A description of the group
+                {{ $t('ui.aDescriptionOfTheGroup') }}
             </FormRow>
             <ff-button
                 v-if="hasPermission('application:device-group:update', { application })"
                 size="small" :disabled="!unsavedChanges || hasError" data-action="save-general-settings"
                 @click="saveSettings()"
             >
-                Save Settings
+                {{ $t('ui.saveSettings') }}
             </ff-button>
         </section>
 
         <section v-if="hasPermission('application:device-group:update', { application })" data-el="target-snapshot">
-            <FormHeading class="text-red-700">Clear Target Snapshot</FormHeading>
+            <FormHeading class="text-red-700">{{ $t('ui.clearTargetSnapshot') }}</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="grow">
-                    <div class="max-w-sm pr-2">Clearing the groups target snapshot will reset the target of all devices in the group.</div>
+                    <div class="max-w-sm pr-2">{{ $t('ui.clearingTheGroupsTargetSnapshotWillResetTheTarge') }}</div>
                 </div>
                 <div class="min-w-fit shrink-0">
-                    <ff-button class="w-36" kind="danger" data-action="clear-device-group-target-snapshot" :disabled="!hasTargetSnapshot" @click="clearTargetSnapshot">Clear Target</ff-button>
+                    <ff-button class="w-36" kind="danger" data-action="clear-device-group-target-snapshot" :disabled="!hasTargetSnapshot" @click="clearTargetSnapshot">{{ $t('ui.clearTarget') }}</ff-button>
                 </div>
             </div>
         </section>
 
         <section v-if="hasPermission('application:device-group:delete', { application })" data-el="delete-device-group">
-            <FormHeading class="text-red-700">Delete Device Group</FormHeading>
+            <FormHeading class="text-red-700">{{ $t('ui.deleteDeviceGroup') }}</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="grow">
-                    <div class="max-w-sm pr-2">Deleting the device group will reset all devices in the group. This action cannot be undone.</div>
+                    <div class="max-w-sm pr-2">{{ $t('ui.deletingTheDeviceGroupWillResetAllDevicesInTheGr') }}</div>
                 </div>
                 <div class="min-w-fit shrink-0">
-                    <ff-button class="w-36" kind="danger" data-action="delete-device-group" @click="deleteGroup">Delete Group</ff-button>
+                    <ff-button class="w-36" kind="danger" data-action="delete-device-group" @click="deleteGroup">{{ $t('ui.deleteGroup') }}</ff-button>
                 </div>
             </div>
         </section>
@@ -56,6 +56,7 @@ import ApplicationApi from '../../../../api/application.js'
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
 import usePermissions from '../../../../composables/Permissions.js'
+import { t } from '../../../../i18n.js'
 import Alerts from '../../../../services/alerts.js'
 import Dialog from '../../../../services/dialog.js'
 
@@ -141,7 +142,7 @@ export default {
                 return
             }
             Dialog.show({
-                header: 'Delete Account',
+                header: t('ui.deleteAccount'),
                 kind: 'danger',
                 text: `Are you sure you want to delete this device group?
                        This action cannot be undone.`,
@@ -171,7 +172,7 @@ export default {
                 return
             }
             Dialog.show({
-                header: 'Clear Target Snapshot',
+                header: t('ui.clearTargetSnapshot'),
                 kind: 'danger',
                 text: `Are you sure you want to clear the target snapshot?
                        This will cause all devices in the group to to have their target snapshot setting cleared.`,

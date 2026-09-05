@@ -1,7 +1,7 @@
 <template>
     <ff-dialog
         ref="dialog"
-        header="Add Git Personal Access Token"
+        :header="$t('ui.addGitPersonalAccessToken')"
         confirm-label="Add"
         :disable-primary="!formValid"
         @confirm="confirm()"
@@ -10,12 +10,12 @@
             <CascadingSelector v-model="input.type" :node="providerTree" />
 
             <form class="space-y-6 mt-4 mb-2">
-                <FormRow v-model="input.name" data-form="token-name" :error="errors.name">Name</FormRow>
-                <FormRow v-model="input.token" data-form="token-value">Token</FormRow>
-                <FormRow v-if="input.type === 'generic'" v-model="input.username" data-form="username">Username</FormRow>
+                <FormRow v-model="input.name" data-form="token-name" :error="errors.name">{{ $t('ui.name') }}</FormRow>
+                <FormRow v-model="input.token" data-form="token-value">{{ $t('ui.token') }}</FormRow>
+                <FormRow v-if="input.type === 'generic'" v-model="input.username" data-form="username">{{ $t('ui.username') }}</FormRow>
                 <FormRow v-if="input.type === 'generic'" data-form="ca-certificate">
-                    CA Certificate (optional)
-                    <template #description>Only needed for self-hosted servers that use a private certificate authority.</template>
+                    {{ $t('ui.caCertificateOptional') }}
+                    <template #description>{{ $t('ui.onlyNeededForSelfHostedServersThatUseAPrivateCer') }}</template>
                     <template #input><textarea v-model="input.caCertificate" class="font-mono w-full" rows="6" placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----" /></template>
                 </FormRow>
             </form>
@@ -25,6 +25,8 @@
 
 <script>
 import { markRaw } from 'vue'
+
+import { t } from '../../../../i18n.js'
 
 import AzureInstructions from './components/CreateGitTokenDialog/AzureInstructions.vue'
 import GenericInstructions from './components/CreateGitTokenDialog/GenericInstructions.vue'
@@ -83,17 +85,17 @@ export default {
                     {
                         id: 'github',
                         component: markRaw(GitHubInstructions),
-                        props: { label: 'GitHub', icon: markRaw(GitHubIcon) }
+                        props: { label: t('ui.github'), icon: markRaw(GitHubIcon) }
                     },
                     {
                         id: 'azure',
                         component: markRaw(AzureInstructions),
-                        props: { label: 'Azure DevOps', icon: markRaw(AzureIcon) }
+                        props: { label: t('ui.azureDevops'), icon: markRaw(AzureIcon) }
                     },
                     {
                         id: 'generic',
                         component: markRaw(GenericInstructions),
-                        props: { label: 'Other', icon: markRaw(GitIcon) }
+                        props: { label: t('ui.other'), icon: markRaw(GitIcon) }
                     }
                 ]
             }
@@ -127,7 +129,7 @@ export default {
             this.$emit('token-creating')
             teamApi.createGitToken(opts.team, opts).then((response) => {
                 this.$emit('token-created', response)
-                alerts.emit('Git Token successfully added.', 'confirmation')
+                alerts.emit(t('ui.gitTokenSuccessfullyAdded'), 'confirmation')
             }).catch(err => {
                 this.$emit('token-created', null)
                 console.error(err.response.data)
@@ -135,7 +137,7 @@ export default {
                     if (/name/.test(err.response.data.error)) {
                         this.errors.name = err.response.data.error
                     } else {
-                        alerts.emit('Failed to add git token: ' + err.response.data.error, 'warning', 7500)
+                        alerts.emit(t('ui.failedToAddGitToken') + err.response.data.error, 'warning', 7500)
                     }
                 }
             })

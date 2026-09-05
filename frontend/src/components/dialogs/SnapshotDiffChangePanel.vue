@@ -37,7 +37,7 @@
                 >
                     <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                 </svg>
-                <span>Property</span>
+                <span>{{ $t('ui.property') }}</span>
                 <span class="font-semibold text-gray-700">{{ label ?? prop }}</span>
                 <span class="ml-auto flex items-center gap-2">
                     <template v-if="!collapsed">
@@ -45,22 +45,22 @@
                         <button
                             v-if="hasLongLines"
                             class="text-gray-400 hover:text-gray-600 px-1 py-0.5 rounded-sm hover:bg-gray-200"
-                            title="Toggle word wrap"
+                            :title="$t('ui.toggleWordWrap')"
                             @click.stop="wrapped = !wrapped"
-                        >Wrap</button>
+                        >{{ $t('ui.wrap') }}</button>
                         <!-- Prettify button (shown when value looks like JSON) -->
                         <button
                             v-if="canPrettify && !prettified"
                             class="text-gray-400 hover:text-gray-600 px-1 py-0.5 rounded-sm hover:bg-gray-200"
-                            title="Pretty-print JSON and re-diff"
+                            :title="$t('ui.prettyPrintJsonAndReDiff')"
                             @click.stop="prettify"
-                        >Prettify</button>
+                        >{{ $t('ui.prettify') }}</button>
                         <button
                             v-if="prettified"
                             class="text-blue-500 hover:text-blue-700 px-1 py-0.5 rounded-sm hover:bg-blue-50"
-                            title="Show raw values"
+                            :title="$t('ui.showRawValues')"
                             @click.stop="unprettify"
-                        >Raw</button>
+                        >{{ $t('ui.raw') }}</button>
                     </template>
                     <span class="text-gray-400">{{ changeSummary }}</span>
                 </span>
@@ -77,7 +77,7 @@
                             >
                                 <span class="line-num border-r border-blue-200 text-blue-400" />
                                 <span class="line-num border-r border-blue-200 text-blue-400" />
-                                <span class="px-3 flex-1 text-center">&#8597; {{ line.count }} unchanged line{{ line.count === 1 ? '' : 's' }}</span>
+                                <span class="px-3 flex-1 text-center">{{ $t('ui.n8597P0UnchangedLineP1', { p0: line.count, p1: line.count === 1 ? '' : 's' }) }}</span>
                             </div>
                             <!-- Diff line -->
                             <div

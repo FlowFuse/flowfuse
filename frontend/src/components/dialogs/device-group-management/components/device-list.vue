@@ -1,12 +1,12 @@
 <template>
     <ff-accordion
         class="device-list-accordion max-h-[500px]"
-        label="Show selection"
+        :label="$t('ui.showSelection')"
         data-el="selection-accordion"
         :overflows-content="true"
     >
         <template #meta>
-            <span class="italic text-gray-500">{{ devices.length }} Remote {{ pluralize('Instance', devices.length) }}</span>
+            <span class="italic text-gray-500">{{ devices.length }} {{ $t('ui.plRemoteInstance', devices.length) }}</span>
         </template>
         <template #content>
             <ff-data-table
@@ -21,7 +21,7 @@
                         class="hover:text-indigo-900 hover:bg-transparent!"
                         @click="onRemoveFromSelection(row)"
                     >
-                        Remove
+                        {{ $t('ui.remove') }}
                     </ff-button>
                 </template>
             </ff-data-table>
@@ -33,6 +33,7 @@
 import { mapState } from 'pinia'
 
 import { pluralize } from '../../../../composables/strings/String.js'
+import { t } from '../../../../i18n.js'
 import FfDataTable from '../../../../ui-components/components/data-table/DataTable.vue'
 import Accordion from '../../../Accordion.vue'
 
@@ -55,9 +56,9 @@ export default {
         ...mapState(useUxDialogStore, ['dialog']),
         columns () {
             return [
-                { label: 'Name', key: 'name', class: ['grow'], sortable: true },
-                { label: 'Application', key: 'application.name', sortable: true },
-                { label: 'Instance', key: 'instance.name', sortable: true }
+                { label: t('ui.name'), key: 'name', class: ['grow'], sortable: true },
+                { label: t('ui.application'), key: 'application.name', sortable: true },
+                { label: t('ui.instance2'), key: 'instance.name', sortable: true }
             ]
         }
     },

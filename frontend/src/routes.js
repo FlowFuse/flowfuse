@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+import { t } from './i18n.js'
 import Home from './pages/Home.vue'
 import PageNotFound from './pages/PageNotFound.vue'
 
@@ -24,7 +25,7 @@ const routes = [
         component: Home,
         icon: 'HomeIcon',
         meta: {
-            title: 'Home'
+            title: t('ui.home')
         }
     },
     ...AccountRoutes,
@@ -39,7 +40,7 @@ const routes = [
         name: 'page-not-found',
         path: '/:pathMatch(.*)*',
         meta: {
-            title: 'Whoops - Not Found!',
+            title: t('ui.whoopsNotFound'),
             menu: 'none',
             transition: true
         },
