@@ -706,6 +706,8 @@ module.exports = function (app) {
     const ACLS = {
         forge_platform: {
             sub: [
+                // Receive cluster heartbeat from the platform
+                { topic: /^ff\/v1\/platform\/[^/]+\/heartbeat$/ },
                 // Receive status events from project launchers
                 // - ff/v1/<team>/l/<instance>/status
                 { topic: /^ff\/v1\/[^/]+\/l\/[^/]+\/status$/, shared: true },
@@ -735,6 +737,8 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/[^/]+\/u\/[^/]+\/s\/[^/]+\/[^/]+$/, shared: true }
             ],
             pub: [
+                // Heartbeat topic - platform can publish to its heartbeat topic to ensure broker is alive and we're connected
+                { topic: /^ff\/v1\/platform\/[^/]+\/heartbeat$/ },
                 // Send commands to project launchers
                 // - ff/v1/+/l/+/command
                 { topic: /^ff\/v1\/[^/]+\/l\/[^/]+\/command$/ },

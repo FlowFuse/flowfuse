@@ -13,6 +13,20 @@ class CommsClient extends EventEmitter {
         super()
         this.app = app
         this.platformId = uuidv4()
+
+        // Heartbeat properties
+        // - topic to pub/sub heartbeat on
+        this.heartbeatTopic = `ff/v1/platform/${this.platformId}/heartbeat`
+        // - Interval timer to publish heartbeat to broker
+        this.heartbeatPublisher = null
+        // - Interval timer to check for heartbeat from broker
+        this.heartbeatWatchdog = null
+        // - Timestamp of last heartbeat received from broker
+        this.lastHeartbeatSeenAt = 0
+        // - Flag indicating if a heartbeat has been seen from the broker
+        this.heartbeatSeen = false
+        // - Flag indicating if a heartbeat warning has been logged
+        this.heartbeatWarned = false
     }
 
     async init () {
@@ -32,11 +46,76 @@ class CommsClient extends EventEmitter {
                 }
             }
             this.client = mqtt.connect(this.app.config.broker.url, brokerConfig)
+
+            const setupWatchdog = () => {
+                // The watchdog is a mechanism to monitor the connection to the broker.
+                // It publishes a heartbeat message to the broker and expects to receive it.
+                // If the heartbeat fails to arrive within a certain time it will bounce the connection
+
+                this.lastHeartbeatSeenAt = Date.now()
+                this.heartbeatSeen = false
+                if (this.heartbeatWatchdog) {
+                    clearInterval(this.heartbeatWatchdog)
+                    this.heartbeatWatchdog = null
+                }
+                if (this.heartbeatPublisher) {
+                    clearInterval(this.heartbeatPublisher)
+                    this.heartbeatPublisher = null
+                }
+                this.heartbeatWatchdog = setInterval(async () => {
+                    // Check the last heartbeat received from the broker. If it is more than 30 seconds old, log a warning.
+                    const now = Date.now()
+                    const delta = now - this.lastHeartbeatSeenAt
+                    if (delta < 30000) {
+                        return
+                    }
+                    if (delta < 60000 || !this.heartbeatSeen) {
+                        if (!this.heartbeatWarned) {
+                            this.app.log.warn(`No comms heartbeat received for ${delta} ms`)
+                            this.heartbeatWarned = true
+                        }
+                        return
+                    }
+                    this.app.log.warn(`No comms heartbeat received for ${delta} ms - reconnecting`)
+                    try {
+                        // Reset the flag so failures will be logged after reconnect
+                        this.heartbeatWarned = false
+                        // Force a disconnect
+                        await this.disconnect(true)
+                        // Reinitialise a new client and re-subscribe to topics
+                        await this.init()
+                    } catch (err) {
+                        this.app.log.error(`Error reconnecting to comms broker: ${err.toString()}`)
+                    }
+                }, 5000) // check every 5 seconds
+                this.heartbeatPublisher = setInterval(() => {
+                    if (this.client?.connected) {
+                        this.app.log.debug('Sending comms broker heartbeat')
+                        this.client.publish(this.heartbeatTopic, Date.now().toString(), { qos: 0 })
+                    }
+                }, 15000) // send heartbeat every 15 seconds
+            }
+
             this.client.on('connect', () => {
                 this.app.log.info('Connected to comms broker')
+                // Enable the connection watchdog to monitor the connection.
+                setupWatchdog()
             })
             this.client.on('reconnect', () => {
                 this.app.log.info('Reconnecting to comms broker')
+            })
+            this.client.on('close', () => {
+                this.app.log.info('Disconnected from comms broker')
+                // Not connected. Stop the watchdog timers if they are running
+                // They will be restarted when the connection is re-established.
+                if (this.heartbeatWatchdog) {
+                    clearInterval(this.heartbeatWatchdog)
+                    this.heartbeatWatchdog = null
+                }
+                if (this.heartbeatPublisher) {
+                    clearInterval(this.heartbeatPublisher)
+                    this.heartbeatPublisher = null
+                }
             })
             this.client.on('disconnect', (disconnectPacket) => {
                 const rc = disconnectPacket?.reasonCode || 'unknown reason code'
@@ -52,6 +131,23 @@ class CommsClient extends EventEmitter {
                 const ownerId = topicParts[4]
                 const messageType = topicParts[5]
 
+                /** Platform heartbeat topic
+                 * ff/v1/platform/${this.platformId}/heartbeat
+                 */
+                if (topic === this.heartbeatTopic) {
+                    this.heartbeatSeen = true
+                    this.lastHeartbeatSeenAt = Date.now()
+                    const heartbeatSentAt = parseInt(message.toString())
+                    if (this.heartbeatWarned) {
+                        // We have warned of a missing heartbeat, but now we have received one. Log that the connection is healthy again.
+                        this.app.log.info(`Comms broker heartbeat received (${this.lastHeartbeatSeenAt - heartbeatSentAt} ms round-trip)`)
+                        this.heartbeatWarned = false
+                    } else {
+                        // Otherwise debug-level log it
+                        this.app.log.debug(`Comms broker heartbeat received (${this.lastHeartbeatSeenAt - heartbeatSentAt} ms round-trip)`)
+                    }
+                    return
+                }
                 /**
                  * 3rd Party Mcp events
                  */
@@ -272,6 +368,8 @@ class CommsClient extends EventEmitter {
                 }
             })
             this.client.subscribe([
+                // Platform heartbeat - not shared subscription
+                this.heartbeatTopic,
                 // Launcher status - shared subscription
                 '$share/platform/ff/v1/+/l/+/status',
                 // Device status - shared subscription
@@ -313,10 +411,10 @@ class CommsClient extends EventEmitter {
                 data.type = error?.name || error?.constructor?.name || 'Error'
                 data.message = error?.message || error?.toString()
             }
-            this.client.publish(responseTopic, JSON.stringify(data), mqttOptions)
+            this.client?.publish(responseTopic, JSON.stringify(data), mqttOptions)
         }
         const onSuccess = (result) => {
-            this.client.publish(responseTopic, JSON.stringify(result), mqttOptions)
+            this.client?.publish(responseTopic, JSON.stringify(result), mqttOptions)
         }
         return { onSuccess, onError }
     }
@@ -343,9 +441,22 @@ class CommsClient extends EventEmitter {
         }
     }
 
-    async disconnect () {
+    async disconnect (force = false) {
+        if (this.heartbeatPublisher) {
+            clearInterval(this.heartbeatPublisher)
+            this.heartbeatPublisher = null
+        }
+        if (this.heartbeatWatchdog) {
+            clearInterval(this.heartbeatWatchdog)
+            this.heartbeatWatchdog = null
+        }
         if (this.client) {
-            this.client.end()
+            const client = this.client
+            // Avoid transient use of a client being disconnected
+            this.client = null
+            await client.endAsync(force)
+            // Disarm listeners on the client
+            client.removeAllListeners()
         }
     }
 }
