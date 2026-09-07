@@ -18,6 +18,7 @@ import LibraryRoutes from './Library/routes.js'
 import TeamMembersMembers from './Members/General.vue'
 import TeamMembersInvitations from './Members/Invitations.vue'
 import TeamMembers from './Members/index.vue'
+import TeamOnboarding from './Onboarding.vue'
 import TeamPerformance from './Performance/index.vue'
 import TeamPipelines from './Pipelines/index.vue'
 import TeamSettingsDanger from './Settings/Danger.vue'
@@ -252,6 +253,17 @@ export default [
         name: 'register-device',
         meta: {
             title: 'Register Remote Instance',
+            layout: 'plain'
+        }
+    },
+    {
+        // AI-led onboarding. Deliberately outside the `team` route tree: the
+        // plain layout has no RightDrawer. The page itself 404s when onboarding doesn't apply.
+        path: '/team/:team_slug/onboarding',
+        component: TeamOnboarding,
+        name: 'team-onboarding',
+        meta: {
+            title: 'Team - Getting Started',
             layout: 'plain'
         }
     },
