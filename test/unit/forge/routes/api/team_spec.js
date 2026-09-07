@@ -1323,6 +1323,33 @@ describe('Team API', function () {
     describe('Create team', async function () {
         // POST /api/v1/teams
         // - Admin/Owner/Member
+        it('creates a default application when the auto-create application setting is on', async function () {
+            await app.settings.set('user:team:auto-create:application', true)
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/teams',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: { name: 'create-team-1', slug: 'create-team-1', type: app.defaultTeamType.hashid }
+            })
+            response.statusCode.should.equal(200)
+            const team = await app.db.models.Team.bySlug('create-team-1')
+            const applications = await app.db.models.Application.byTeam(team.id)
+            applications.should.have.length(1)
+            applications[0].should.have.property('name', `${TestObjects.alice.name}'s Application`)
+        })
+
+        it('does not create a default application by default', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/teams',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: { name: 'create-team-2', slug: 'create-team-2', type: app.defaultTeamType.hashid }
+            })
+            response.statusCode.should.equal(200)
+            const team = await app.db.models.Team.bySlug('create-team-2')
+            const applications = await app.db.models.Application.byTeam(team.id)
+            applications.should.have.length(0)
+        })
     })
 
     describe('Delete team', async function () {
