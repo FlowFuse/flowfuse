@@ -1,8 +1,9 @@
 <template>
     <div ref="messagesWrapper" class="messages-wrapper">
         <ul class="flex flex-col gap-3">
-            <li v-for="message in messages" :key="message._uuid" class="flex flex-col gap-3">
-                <component :is="messageTypes[message._type]" v-if="messageTypes[message._type]" v-bind="{...message}" />
+            <li v-for="entry in renderList" :key="entryKey(entry)" class="flex flex-col gap-3">
+                <collapsed-question-turn v-if="entry.kind === 'folded-turn'" :turn="entry" />
+                <component :is="messageTypes[entry.message._type]" v-else-if="messageTypes[entry.message._type]" v-bind="{...entry.message}" />
             </li>
             <li v-if="isWaitingForResponse">
                 <expert-loading-indicator />
@@ -16,9 +17,12 @@
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
 
+import { buildCollapsedTranscript } from '../composables/collapseTranscript.js'
+
 import ExpertLoadingIndicator from './ExpertLoadingIndicator.vue'
 
 import AiMessage from './messages/AiMessage.vue'
+import CollapsedQuestionTurn from './messages/CollapsedQuestionTurn.vue'
 import HumanMessage from './messages/HumanMessage.vue'
 import SystemMessage from './messages/SystemMessage.vue'
 
@@ -27,7 +31,13 @@ import { useProductExpertStore } from '@/stores/product-expert.js'
 
 export default {
     name: 'ExpertMessages',
-    components: { ExpertLoadingIndicator },
+    components: { CollapsedQuestionTurn, ExpertLoadingIndicator },
+    inject: {
+        expertSurface: {
+            from: 'expert-surface',
+            default: 'drawer'
+        }
+    },
     emits: ['resizing'],
     data () {
         return {
@@ -43,6 +53,15 @@ export default {
                 human: markRaw(HumanMessage),
                 system: markRaw(SystemMessage)
             }
+        },
+        renderList () {
+            // The onboarding surface folds answered question turns into quiet
+            // lines (the collapsing-transcript treatment); the drawer renders
+            // the transcript as-is.
+            if (this.expertSurface === 'onboarding') {
+                return buildCollapsedTranscript(this.messages)
+            }
+            return this.messages.map(message => ({ kind: 'message', message }))
         }
     },
     mounted () {
@@ -54,6 +73,9 @@ export default {
         window.removeEventListener('keydown', this.onKeyDown)
     },
     methods: {
+        entryKey (entry) {
+            return entry.kind === 'folded-turn' ? entry.questionsMessage._uuid : entry.message._uuid
+        },
         onKeyDown (e) {
             if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'd') {
                 e.preventDefault()
