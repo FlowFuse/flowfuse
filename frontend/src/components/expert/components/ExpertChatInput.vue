@@ -5,8 +5,10 @@
             direction="horizontal"
             @mousedown="onStartResize"
         />
-        <!-- Action buttons row -->
-        <div class="action-buttons">
+        <!-- Action buttons row. Hidden during onboarding: the conversation is
+             the whole flow there, so Start over, Plan mode and settings only
+             offer ways to derail it. -->
+        <div v-if="expertSurface !== 'onboarding'" class="action-buttons">
             <button
                 type="button"
                 class="btn-start-over"
@@ -146,6 +148,10 @@ export default {
         togglePinWithWidth: {
             from: 'togglePinWithWidth',
             default: () => () => {} // No-op function when not provided
+        },
+        expertSurface: {
+            from: 'expert-surface',
+            default: 'drawer'
         }
     },
     emits: ['send', 'stop'],
@@ -227,6 +233,9 @@ export default {
             }
             if (this.requestingPlanChange) {
                 return 'Describe a change to the plan, or paste an edited version'
+            }
+            if (this.expertSurface === 'onboarding') {
+                return 'Or just tell me in your own words'
             }
             return this.isInsightsAgent
                 ? 'Tell us what you want to know about'
