@@ -1,5 +1,3 @@
-const crypto = require('crypto')
-
 const { Op } = require('sequelize')
 
 const { Roles } = require('../../lib/roles')
@@ -515,17 +513,6 @@ module.exports = async function (app) {
         }
     })
 
-    async function createTeamApplication (user, team) {
-        const applicationName = `${user.name}'s Application`
-        const application = await app.db.models.Application.create({
-            name: applicationName.charAt(0).toUpperCase() + applicationName.slice(1),
-            TeamId: team.id
-        })
-        await app.auditLog.Team.application.created(user, null, team, application)
-        await app.auditLog.Application.application.created(user, null, application)
-        return application
-    }
-
     /**
      * Create a new team
      * /api/v1/teams
@@ -625,25 +612,11 @@ module.exports = async function (app) {
                     await app.billing.setupTrialTeamSubscription(team, request.session.User)
                     // In trial mode, we may also auto-create their first application and instance
                     if (app.settings.get('user:team:auto-create:instanceType')) {
-                        const instanceTypeId = app.settings.get('user:team:auto-create:instanceType')
-                        const instanceType = await app.db.models.ProjectType.byId(instanceTypeId)
-                        const instanceStack = await instanceType?.getDefaultStack() || (await instanceType.getProjectStacks())?.[0]
-                        const instanceTemplate = await app.db.models.ProjectTemplate.findOne({ where: { active: true } })
-                        if (!instanceType) {
-                            app.log.warn(`Unable to create Trial Instance in team ${team.hashid}: Instance type with id ${instanceTypeId} from 'user:team:auto-create:instanceType' not found`)
-                        } else if (!instanceStack) {
-                            app.log.warn(`Unable to create Trial Instance in team ${team.hashid}: Unable to find a stack for use with instance type ${instanceTypeId}`)
-                        } else if (!instanceTemplate) {
-                            app.log.warn(`Unable to create Trial Instance in team ${team.hashid}: Unable to find the default instance template`)
-                        } else {
-                            const safeTeamName = team.name.toLowerCase().replace(/[\W_]/g, '-')
-                            const safeUserName = request.session.User.username.toLowerCase().replace(/[\W_]/g, '-')
-                            const application = await createTeamApplication(request.session.User, team)
+                        try {
+                            await app.db.controllers.Team.provisionDefaultWorkspace(team, request.session.User)
                             defaultTeamCreated = true
-                            const instanceProperties = {
-                                name: `${safeTeamName}-${safeUserName}-${crypto.randomBytes(4).toString('hex')}`
-                            }
-                            await app.db.controllers.Project.create(team, application, request.session.User, instanceType, instanceStack, instanceTemplate, instanceProperties)
+                        } catch (err) {
+                            app.log.warn(`Unable to create Trial Instance in team ${team.hashid}: ${err.message}`)
                         }
                     }
                 } else {
@@ -657,7 +630,7 @@ module.exports = async function (app) {
             }
             // Haven't created an application yet, but settings say we should
             if (!defaultTeamCreated && app.settings.get('user:team:auto-create:application')) {
-                await createTeamApplication(request.session.User, team)
+                await app.db.controllers.Team.createDefaultApplication(team, request.session.User)
             }
             await appendBillingDetails(teamView, team, request)
             reply.send(teamView)
