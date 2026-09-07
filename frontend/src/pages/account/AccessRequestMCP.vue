@@ -80,8 +80,9 @@ export default {
     },
     data () {
         return {
-            accessLevel: 'full',
-            teamScope: 'all',
+            // No defaults: the user must make an explicit choice before Allow enables
+            accessLevel: null,
+            teamScope: null,
             selectedTeamIds: [],
             teams: [],
             submitting: false,
@@ -103,6 +104,7 @@ export default {
         },
         disableAllow () {
             if (this.submitting) return true
+            if (!this.accessLevel || !this.teamScope) return true
             if (this.teamScope === 'specific' && this.selectedTeamIds.length === 0) return true
             return false
         }
