@@ -17,6 +17,7 @@ const Permissions = {
     'team:read': { description: 'View a Team', role: Roles.Dashboard, access: 'read' },
     'team:edit': { description: 'Edit Team', role: Roles.Owner, access: 'write' },
     'team:delete': { description: 'Delete Team', role: Roles.Owner, access: 'write' },
+    'team:default-workspace:create': { description: 'Provision the default workspace in a Team', role: Roles.Member, access: 'write' },
     'team:audit-log': { description: 'Access Team Audit Log', role: Roles.Owner, access: 'read' },
     'team:device:bulk-delete': { description: 'Delete Devices', role: Roles.Owner, access: 'write' },
     'team:device:bulk-edit': { description: 'Edit Devices', role: Roles.Owner, access: 'write' },
