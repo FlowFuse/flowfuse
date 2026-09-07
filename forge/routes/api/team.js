@@ -655,6 +655,53 @@ module.exports = async function (app) {
     })
 
     /**
+     * Provision the default workspace (application + instance) in an empty team.
+     * Gives a team the same starting point a classic signup would have created.
+     * Only available when AI-led onboarding is enabled, as classic signups
+     * already provision at email verification.
+     * /api/v1/teams/:teamId/default-workspace
+     */
+    app.post('/:teamId/default-workspace', {
+        preHandler: app.needsPermission('team:default-workspace:create'),
+        schema: {
+            summary: 'Provision the default application and instance in an empty team',
+            tags: ['Teams'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        application: { $ref: 'ApplicationSummary' },
+                        instance: { $ref: 'Instance' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        if (!app.config.features.enabled('aiOnboarding')) {
+            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+        try {
+            const { application, instance } = await app.db.controllers.Team.provisionDefaultWorkspace(request.team, request.session.User)
+            reply.send({
+                application: app.db.views.Application.applicationSummary(application),
+                instance: await app.db.views.Project.project(instance, { includeSettings: false })
+            })
+        } catch (err) {
+            const statusCode = err.code === 'team_not_empty' ? 409 : 400
+            reply.code(statusCode).send({ code: err.code || 'unexpected_error', error: err.message })
+        }
+    })
+
+    /**
      * Delete a team
      * /api/v1/teams/:teamId
      */
