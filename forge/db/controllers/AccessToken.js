@@ -14,6 +14,11 @@ const MCP_ACCESS_TOKEN_REMAINING_LIMIT = 1000 * 60 * 5 // 5 minutes
 
 const DEFAULT_DEVICE_OTC_EXPIRY = 1000 * 60 * 60 * 24 // 24 hours
 
+// Cap a proposed expiry (ms) so an MCP grant never outlives its consent-chosen end date
+function capToGrant (timestamp, grantExpiresAtMs) {
+    return grantExpiresAtMs ? Math.min(timestamp, grantExpiresAtMs) : timestamp
+}
+
 /*
  * fft - project
  * ffpr - password reset
@@ -273,11 +278,11 @@ module.exports = {
         await app.settings.set('platform:stats:token', false)
     },
 
-    createMCPOAuthToken: async function (app, userId, { readOnly = false, teamIds = [] } = {}) {
+    createMCPOAuthToken: async function (app, userId, { readOnly = false, teamIds = [], grantExpiresAt = null } = {}) {
         const token = generateToken(32, 'ffpat')
         const refreshToken = generateToken(32, 'ffpat')
-        const expiresAt = Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY
-        const refreshTokenExpiresAt = Date.now() + DEFAULT_REFRESH_TOKEN_EXPIRY
+        const expiresAt = capToGrant(Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY, grantExpiresAt)
+        const refreshTokenExpiresAt = capToGrant(Date.now() + DEFAULT_REFRESH_TOKEN_EXPIRY, grantExpiresAt)
 
         await app.db.sequelize.transaction(async (t) => {
             const tok = await app.db.models.AccessToken.create({
@@ -287,6 +292,7 @@ module.exports = {
                 scope: '',
                 expiresAt,
                 refreshTokenExpiresAt,
+                grantExpiresAt,
                 readOnly,
                 adminOptIn: false,
                 ownerId: '' + userId,
@@ -474,10 +480,11 @@ module.exports = {
             return { token: cached.token, expiresAt: cached.expiresAt, refreshToken }
         }
 
+        const grantExpiresAtMs = existingToken.grantExpiresAt ? existingToken.grantExpiresAt.getTime() : null
         const token = generateToken(32, prefix)
-        const expiresAt = Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY
+        const expiresAt = capToGrant(Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY, grantExpiresAtMs)
         await app.db.models.AccessToken.update(
-            { token, expiresAt, refreshTokenExpiresAt: Date.now() + DEFAULT_REFRESH_TOKEN_EXPIRY },
+            { token, expiresAt, refreshTokenExpiresAt: capToGrant(Date.now() + DEFAULT_REFRESH_TOKEN_EXPIRY, grantExpiresAtMs) },
             { where: { refreshToken: existingToken.refreshToken } }
         )
         await cache?.set(cacheKey, { token, expiresAt })
