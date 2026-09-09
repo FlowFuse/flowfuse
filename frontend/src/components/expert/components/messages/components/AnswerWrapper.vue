@@ -83,6 +83,11 @@
             :plan="answer.content"
             :message-uuid="messageUuid"
             :answer-uuid="answer._uuid"
+            :name="answer.name || ''"
+            :description="answer.description || ''"
+            :status="answer.status || 'proposed'"
+            :active="isActivePlan"
+            :awaiting-approval="isAwaitingPlanApproval"
             :disabled="interactionDisabled"
             :should-stream="shouldStream"
             class="mb-3"
@@ -171,7 +176,7 @@ export default {
     },
     computed: {
         ...mapState(useProductAssistantStore, ['supportedActions', 'toolApprovalStatuses']),
-        ...mapState(useProductExpertStore, ['agentMode', 'isWaitingForResponse', 'messages']),
+        ...mapState(useProductExpertStore, ['agentMode', 'isWaitingForResponse', 'messages', 'activePlanId']),
         isLatestMessage () {
             const msgs = this.messages || []
             return msgs.length > 0 && msgs[msgs.length - 1]?._uuid === this.messageUuid
@@ -234,6 +239,12 @@ export default {
         },
         isPlanAnswer () {
             return this.answer.kind === 'plan'
+        },
+        isAwaitingPlanApproval () {
+            return (this.answer.status || 'proposed') === 'proposed' && !this.interactionDisabled
+        },
+        isActivePlan () {
+            return !!this.answer.planId && this.answer.planId === this.activePlanId
         },
         isEditorContext () {
             // In editor context, the route name includes 'editor'
