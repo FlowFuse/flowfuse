@@ -30,6 +30,7 @@ import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductExpertSupportAgentStore } from '@/stores/product-expert-support-agent.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
+import { useUxStore } from '@/stores/ux.js'
 
 export default {
     name: 'TeamOnboarding',
@@ -53,14 +54,17 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
+        ...mapState(useUxStore, ['isOnboardingIntake']),
         notAvailable () {
-            // Mirrors the backend's guards: the on-demand provisioning
-            // endpoint 404s without the flag and 409s once instances exist,
-            // so this page is only reachable in the same window.
+            // Gated on the intake stage rather than on the team being empty:
+            // the Expert provisions the workspace partway through the
+            // conversation, so an instance existing is not a reason to send the
+            // user away. isOnboarding outlives this page, so it is the wrong
+            // gate too: it stays true once the Expert moves them to the editor.
             if (!this.team) {
                 return false
             }
-            return !this.featuresCheck.isAiOnboardingFeatureEnabled || this.team.instanceCount > 0
+            return !this.featuresCheck.isAiOnboardingFeatureEnabled || !this.isOnboardingIntake
         }
     },
     watch: {
@@ -134,6 +138,9 @@ export default {
                     return
                 }
             }
+            // They have said they would rather do it themselves, so stop
+            // treating them as mid-onboarding
+            useUxStore().endOnboarding()
             this.$router.push({ name: 'team-home', params: { team_slug: this.team.slug } })
         }
     }

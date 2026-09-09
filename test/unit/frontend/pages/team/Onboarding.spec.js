@@ -7,7 +7,8 @@ const mocks = vi.hoisted(() => {
         settingsStore: { featuresCheck: {} },
         accountStore: { setTeam: vi.fn().mockResolvedValue() },
         expertStore: { messages: [], hydrateMessages: vi.fn() },
-        supportAgentStore: { reset: vi.fn() }
+        supportAgentStore: { reset: vi.fn() },
+        uxStore: { isOnboardingIntake: true, endOnboarding: vi.fn() }
     }
 })
 
@@ -25,6 +26,9 @@ vi.mock('@/stores/product-expert.js', () => ({
 }))
 vi.mock('@/stores/product-expert-support-agent.js', () => ({
     useProductExpertSupportAgentStore: () => mocks.supportAgentStore
+}))
+vi.mock('@/stores/ux.js', () => ({
+    useUxStore: () => mocks.uxStore
 }))
 // The real panel drags in the whole expert component tree (including
 // @flowfuse/flow-renderer, which does not load under vitest); the page only
@@ -74,6 +78,8 @@ describe('Onboarding page', () => {
         mocks.contextStore.team = { id: 't1', slug: 'ateam', instanceCount: 0 }
         mocks.settingsStore.featuresCheck = { isAiOnboardingFeatureEnabled: true }
         mocks.accountStore.setTeam.mockClear()
+        mocks.uxStore.isOnboardingIntake = true
+        mocks.uxStore.endOnboarding.mockClear()
         routerReplace.mockClear()
     })
 
@@ -96,12 +102,21 @@ describe('Onboarding page', () => {
         expect(wrapper.find('[data-stub="expert-panel"]').exists()).toBe(false)
     })
 
-    test('redirects to the 404 page when the team already has instances', async () => {
-        mocks.contextStore.team = { id: 't1', slug: 'ateam', instanceCount: 2 }
+    test('redirects to the 404 page once onboarding has moved past intake', async () => {
+        mocks.uxStore.isOnboardingIntake = false
         const wrapper = await mountPage()
         expect(routerReplace).toHaveBeenCalledTimes(1)
         expect(routerReplace).toHaveBeenCalledWith(expect.objectContaining({ name: 'page-not-found' }))
         expect(wrapper.find('[data-stub="expert-panel"]').exists()).toBe(false)
+    })
+
+    // The Expert provisions the workspace partway through the conversation, so
+    // an instance appearing must not throw the user off the page they are on
+    test('stays available once the workspace has been provisioned', async () => {
+        mocks.contextStore.team = { id: 't1', slug: 'ateam', instanceCount: 2 }
+        const wrapper = await mountPage()
+        expect(routerReplace).not.toHaveBeenCalled()
+        expect(wrapper.find('[data-stub="expert-panel"]').exists()).toBe(true)
     })
 
     test('replaces rather than pushes, so the user cannot go back into onboarding', async () => {
@@ -180,6 +195,15 @@ describe('Onboarding page', () => {
             await flushPromises()
             expect(teamApi.provisionDefaultWorkspace).toHaveBeenCalledWith('t1')
             expect(routerPush).toHaveBeenCalledWith({ name: 'team-home', params: { team_slug: 'ateam' } })
+        })
+
+        // Without this they would be treated as mid-onboarding forever, and the
+        // Expert would keep being told so on every turn
+        test('ends onboarding on the way out', async () => {
+            const wrapper = await mountPage()
+            await wrapper.find('[data-action="skip-onboarding"]').trigger('click')
+            await flushPromises()
+            expect(mocks.uxStore.endOnboarding).toHaveBeenCalledTimes(1)
         })
 
         test('an already-provisioned team still lands on the team home', async () => {
