@@ -1,18 +1,39 @@
 import { defineStore } from 'pinia'
 
+// Where a user is in the AI-led onboarding process.
+//   null       undecided, nothing has resolved it yet
+//   'intake'   in the onboarding conversation, on the onboarding page
+//   'building' the Expert has taken them into the editor, still onboarding
+//   'done'     finished or skipped, and not to be started again
+export const ONBOARDING_STAGES = Object.freeze({
+    INTAKE: 'intake',
+    BUILDING: 'building',
+    DONE: 'done'
+})
+
+const ACTIVE_ONBOARDING_STAGES = [ONBOARDING_STAGES.INTAKE, ONBOARDING_STAGES.BUILDING]
+
 export const useUxStore = defineStore('ux', {
     state: () => ({
         userActions: {
             hasOpenedDeviceEditor: false
         },
         isNewlyCreatedUser: false,
-        isOnboarding: null,
+        onboardingStage: null,
         overlay: false
     }),
+    getters: {
+        // Sent to the Expert with every turn, so it spans the whole process
+        // rather than just the part spent on the onboarding page
+        isOnboarding: (state) => ACTIVE_ONBOARDING_STAGES.includes(state.onboardingStage),
+        // The onboarding page only exists for the conversation. Once the Expert
+        // takes the user into the editor the drawer carries on without it.
+        isOnboardingIntake: (state) => state.onboardingStage === ONBOARDING_STAGES.INTAKE
+    },
     actions: {
         setNewlyCreatedUser () {
             this.isNewlyCreatedUser = true
-            this.isOnboarding = true
+            this.onboardingStage = ONBOARDING_STAGES.INTAKE
         },
         validateUserAction (action) {
             if (Object.prototype.hasOwnProperty.call(this.userActions, action)) {
@@ -24,16 +45,22 @@ export const useUxStore = defineStore('ux', {
             const oneWeekAgo = new Date()
             oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
             this.isNewlyCreatedUser = userCreatedDate >= oneWeekAgo.getTime()
-            if (this.isOnboarding === null) {
-                this.isOnboarding = this.isNewlyCreatedUser
+            // Only seeds while undecided. isNewlyCreatedUser is recomputed on
+            // every boot for a week, so seeding unconditionally would restart
+            // onboarding for anyone who had already finished or skipped it.
+            if (this.onboardingStage === null) {
+                this.onboardingStage = this.isNewlyCreatedUser
+                    ? ONBOARDING_STAGES.INTAKE
+                    : ONBOARDING_STAGES.DONE
             }
         },
-        endOnboarding () { this.isOnboarding = false },
+        startOnboardingBuild () { this.onboardingStage = ONBOARDING_STAGES.BUILDING },
+        endOnboarding () { this.onboardingStage = ONBOARDING_STAGES.DONE },
         openOverlay () { this.overlay = true },
         closeOverlay () { this.overlay = false }
     },
     persist: {
-        pick: ['isNewlyCreatedUser', 'isOnboarding', 'userActions'],
+        pick: ['isNewlyCreatedUser', 'onboardingStage', 'userActions'],
         storage: localStorage
     }
 })
