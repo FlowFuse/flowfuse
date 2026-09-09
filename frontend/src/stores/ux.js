@@ -6,10 +6,14 @@ export const useUxStore = defineStore('ux', {
             hasOpenedDeviceEditor: false
         },
         isNewlyCreatedUser: false,
+        isOnboarding: null,
         overlay: false
     }),
     actions: {
-        setNewlyCreatedUser () { this.isNewlyCreatedUser = true },
+        setNewlyCreatedUser () {
+            this.isNewlyCreatedUser = true
+            this.isOnboarding = true
+        },
         validateUserAction (action) {
             if (Object.prototype.hasOwnProperty.call(this.userActions, action)) {
                 this.userActions[action] = true
@@ -20,12 +24,16 @@ export const useUxStore = defineStore('ux', {
             const oneWeekAgo = new Date()
             oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
             this.isNewlyCreatedUser = userCreatedDate >= oneWeekAgo.getTime()
+            if (this.isOnboarding === null) {
+                this.isOnboarding = this.isNewlyCreatedUser
+            }
         },
+        endOnboarding () { this.isOnboarding = false },
         openOverlay () { this.overlay = true },
         closeOverlay () { this.overlay = false }
     },
     persist: {
-        pick: ['isNewlyCreatedUser', 'userActions'],
+        pick: ['isNewlyCreatedUser', 'isOnboarding', 'userActions'],
         storage: localStorage
     }
 })
