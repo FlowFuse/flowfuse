@@ -85,7 +85,6 @@
             :answer-uuid="answer._uuid"
             :name="answer.name || ''"
             :description="answer.description || ''"
-            :status="answer.status || 'proposed'"
             :active="isActivePlan"
             :awaiting-approval="isAwaitingPlanApproval"
             :disabled="interactionDisabled"
@@ -241,7 +240,7 @@ export default {
             return this.answer.kind === 'plan'
         },
         isAwaitingPlanApproval () {
-            return (this.answer.status || 'proposed') === 'proposed' && !this.interactionDisabled
+            return !this.isActivePlan && !this.interactionDisabled
         },
         isActivePlan () {
             return !!this.answer.planId && this.answer.planId === this.activePlanId

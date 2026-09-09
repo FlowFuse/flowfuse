@@ -8,16 +8,38 @@
             class="plan-body"
         />
         <div class="plan-actions">
-            <ff-button kind="primary" size="small" :disabled="disabled" @click="$emit('approve')">
+            <ff-button
+                kind="primary"
+                size="small"
+                :disabled="disabled"
+                @click="$emit('approve')"
+            >
                 Approve
             </ff-button>
-            <ff-button kind="secondary" size="small" :disabled="disabled" title="Load the plan into the message box to edit it yourself" @click="$emit('edit-manual')">
+            <ff-button
+                kind="secondary"
+                size="small"
+                :disabled="disabled"
+                title="Load the plan into the message box to edit it yourself"
+                @click="$emit('edit-manual')"
+            >
                 Edit
             </ff-button>
-            <ff-button kind="secondary" size="small" :disabled="disabled" title="Tell the Expert what to change and get an updated plan" @click="$emit('request-changes')">
+            <ff-button
+                kind="secondary"
+                size="small"
+                :disabled="disabled"
+                title="Tell the Expert what to change and get an updated plan"
+                @click="$emit('request-changes')"
+            >
                 Request changes
             </ff-button>
-            <ff-button kind="tertiary" size="small" :disabled="disabled" @click="$emit('reject')">
+            <ff-button
+                kind="tertiary"
+                size="small"
+                :disabled="disabled"
+                @click="$emit('reject')"
+            >
                 Reject
             </ff-button>
         </div>
@@ -27,7 +49,6 @@
         <template v-if="awaitingApproval">
             <div class="plan-head">
                 <span class="plan-name">Plan: {{ name }}</span>
-                <span class="plan-status" :class="`is-${status}`">{{ statusLabel }}</span>
             </div>
             <p v-if="description" class="plan-desc">{{ description }}</p>
             <rich-content
@@ -38,16 +59,38 @@
                 class="plan-body"
             />
             <div class="plan-actions">
-                <ff-button kind="primary" size="small" :disabled="disabled" @click="$emit('approve')">
+                <ff-button
+                    kind="primary"
+                    size="small"
+                    :disabled="disabled"
+                    @click="$emit('approve')"
+                >
                     Approve
                 </ff-button>
-                <ff-button kind="secondary" size="small" :disabled="disabled" title="Load the plan into the message box to edit it yourself" @click="$emit('edit-manual')">
+                <ff-button
+                    kind="secondary"
+                    size="small"
+                    :disabled="disabled"
+                    title="Load the plan into the message box to edit it yourself"
+                    @click="$emit('edit-manual')"
+                >
                     Edit
                 </ff-button>
-                <ff-button kind="secondary" size="small" :disabled="disabled" title="Tell the Expert what to change and get an updated plan" @click="$emit('request-changes')">
+                <ff-button
+                    kind="secondary"
+                    size="small"
+                    :disabled="disabled"
+                    title="Tell the Expert what to change and get an updated plan"
+                    @click="$emit('request-changes')"
+                >
                     Request changes
                 </ff-button>
-                <ff-button kind="tertiary" size="small" :disabled="disabled" @click="$emit('reject')">
+                <ff-button
+                    kind="tertiary"
+                    size="small"
+                    :disabled="disabled"
+                    @click="$emit('reject')"
+                >
                     Reject
                 </ff-button>
             </div>
@@ -56,7 +99,6 @@
             <template #header>
                 <span class="plan-name">Plan: {{ name }}</span>
                 <span v-if="active" class="plan-badge">Active</span>
-                <span class="plan-status" :class="`is-${status}`">{{ statusLabel }}</span>
             </template>
             <p v-if="description" class="plan-desc">{{ description }}</p>
             <rich-content
@@ -74,8 +116,6 @@
 import CollapsibleSection from '../CollapsibleSection.vue'
 
 import RichContent from './RichContent.vue'
-
-const STATUS_LABELS = { proposed: 'Proposed', approved: 'Approved', rejected: 'Rejected' }
 
 export default {
     name: 'PlanCard',
@@ -101,10 +141,6 @@ export default {
             type: String,
             default: ''
         },
-        status: {
-            type: String,
-            default: 'proposed'
-        },
         active: {
             type: Boolean,
             default: false
@@ -126,9 +162,6 @@ export default {
     computed: {
         hasStructure () {
             return this.name.length > 0
-        },
-        statusLabel () {
-            return STATUS_LABELS[this.status] || STATUS_LABELS.proposed
         }
     },
     mounted () {
@@ -140,10 +173,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-// Render like a normal answer: no card border/background, just the plan content
-// followed by the action buttons. The gap spaces the buttons from the content.
-// The plan content inherits the message bubble's font-size, line-height and
-// colour, so the Markdown renders exactly like any other chat answer.
 .expert-plan {
     display: flex;
     flex-direction: column;
@@ -158,24 +187,6 @@ export default {
 
 .plan-name {
     font-weight: 600;
-}
-
-.plan-status {
-    font-size: 0.75rem;
-    padding: 0.0625rem 0.5rem;
-    border-radius: 999px;
-    border: 1px solid var(--ff-color-border);
-    color: var(--ff-color-text-subtle);
-
-    &.is-approved {
-        color: var(--ff-color-success);
-        border-color: var(--ff-color-success);
-    }
-
-    &.is-rejected {
-        color: var(--ff-color-danger);
-        border-color: var(--ff-color-danger);
-    }
 }
 
 .plan-badge {
@@ -201,10 +212,6 @@ export default {
 .plan-collapsed {
     :deep(.ff-collapsible--header) {
         gap: 0.5rem;
-    }
-
-    .plan-status {
-        margin-left: auto;
     }
 }
 </style>
