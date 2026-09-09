@@ -4,10 +4,9 @@
  * Every event a browser tab emits arrives on one topic shape:
  *   ff/v1/<teamHash>/u/<userHash>/s/<sessionId>/<event>
  *
- * `disconnected` is the connection's last will. The broker holds it for a short delay (the
- * will delay interval) and publishes it only if the tab has not reconnected, so a reload does
- * not fire it. New consumers of that signal belong in handleDisconnected - they should not
- * need a topic of their own.
+ * `disconnected` is the connection's last will. The broker publishes it when a
+ * tab goes away without a clean disconnect. New consumers of that signal belong in
+ * handleDisconnected - they should not need a topic of their own.
  *
  * Traffic also goes the other way: notifyMcp publishes to one tab on
  * ff/v1/<teamHash>/u/<userHash>/s/<sessionId>/mcp/<event>. The ACL pins the session
