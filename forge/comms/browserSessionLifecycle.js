@@ -4,9 +4,9 @@
  * Every event a browser tab emits arrives on one topic shape:
  *   ff/v1/<teamHash>/u/<userHash>/s/<sessionId>/<event>
  *
- * `disconnected` is the connection's last will. The broker publishes it when a
- * tab goes away without a clean disconnect. New consumers of that signal belong in
- * handleDisconnected - they should not need a topic of their own.
+ * `disconnected` is the connection's last will. A reload fires it too, so it is flagged for a
+ * grace window (BrowserSession.markDisconnected) rather than dropped. New consumers of that
+ * signal belong in handleDisconnected - they should not need a topic of their own.
  *
  * Traffic also goes the other way: notifyMcp publishes to one tab on
  * ff/v1/<teamHash>/u/<userHash>/s/<sessionId>/mcp/<event>. The ACL pins the session
@@ -45,11 +45,11 @@ class BrowserSessionLifecycleHandler {
     }
 
     /**
-     * The tab's connection is gone. Fans out to every subsystem that keeps
-     * per-session state.
+     * The tab's connection is gone, but a reload looks the same from here. Flag it for the
+     * grace window instead of dropping it, so a reconnecting tab keeps its pins.
      */
     async handleDisconnected (userId, sessionId) {
-        await this.app.db.controllers.BrowserSession.removeSession(userId, sessionId)
+        await this.app.db.controllers.BrowserSession.markDisconnected(userId, sessionId)
     }
 
     /**
