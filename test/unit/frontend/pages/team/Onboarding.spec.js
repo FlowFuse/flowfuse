@@ -32,9 +32,6 @@ vi.mock('@/stores/product-expert-support-agent.js', () => ({
 vi.mock('@/components/expert/Expert.vue', () => ({
     default: { name: 'ExpertPanel', template: '<div data-stub="expert-panel" />' }
 }))
-vi.mock('@/pages/PageNotFound.vue', () => ({
-    default: { name: 'PageNotFound', template: '<div data-stub="page-not-found" />' }
-}))
 vi.mock('@/api/team.ts', () => ({
     default: {
         provisionDefaultWorkspace: vi.fn().mockResolvedValue({ application: {}, instance: {} })
@@ -48,6 +45,7 @@ import teamApi from '../../../../../frontend/src/api/team.ts'
 import Onboarding from '../../../../../frontend/src/pages/team/Onboarding.vue'
 
 const routerPush = vi.fn()
+const routerReplace = vi.fn()
 
 async function mountPage () {
     const wrapper = mount(Onboarding, {
@@ -57,8 +55,13 @@ async function mountPage () {
                 teleport: true
             },
             mocks: {
-                $route: { params: { team_slug: 'ateam' } },
-                $router: { push: routerPush }
+                $route: {
+                    params: { team_slug: 'ateam' },
+                    path: '/team/ateam/onboarding',
+                    query: {},
+                    hash: ''
+                },
+                $router: { push: routerPush, replace: routerReplace }
             }
         }
     })
@@ -71,6 +74,7 @@ describe('Onboarding page', () => {
         mocks.contextStore.team = { id: 't1', slug: 'ateam', instanceCount: 0 }
         mocks.settingsStore.featuresCheck = { isAiOnboardingFeatureEnabled: true }
         mocks.accountStore.setTeam.mockClear()
+        routerReplace.mockClear()
     })
 
     test('resolves the team from the route slug', async () => {
@@ -81,28 +85,39 @@ describe('Onboarding page', () => {
     test('renders the onboarding surface for an empty team with the flag on', async () => {
         const wrapper = await mountPage()
         expect(wrapper.find('[data-stub="expert-panel"]').exists()).toBe(true)
-        expect(wrapper.find('[data-stub="page-not-found"]').exists()).toBe(false)
+        expect(routerReplace).not.toHaveBeenCalled()
     })
 
-    test('renders the 404 page when the aiOnboarding feature is off', async () => {
+    test('redirects to the 404 page when the aiOnboarding feature is off', async () => {
         mocks.settingsStore.featuresCheck = { isAiOnboardingFeatureEnabled: false }
         const wrapper = await mountPage()
-        expect(wrapper.find('[data-stub="page-not-found"]').exists()).toBe(true)
+        expect(routerReplace).toHaveBeenCalledTimes(1)
+        expect(routerReplace).toHaveBeenCalledWith(expect.objectContaining({ name: 'page-not-found' }))
         expect(wrapper.find('[data-stub="expert-panel"]').exists()).toBe(false)
     })
 
-    test('renders the 404 page when the team already has instances', async () => {
+    test('redirects to the 404 page when the team already has instances', async () => {
         mocks.contextStore.team = { id: 't1', slug: 'ateam', instanceCount: 2 }
         const wrapper = await mountPage()
-        expect(wrapper.find('[data-stub="page-not-found"]').exists()).toBe(true)
+        expect(routerReplace).toHaveBeenCalledTimes(1)
+        expect(routerReplace).toHaveBeenCalledWith(expect.objectContaining({ name: 'page-not-found' }))
         expect(wrapper.find('[data-stub="expert-panel"]').exists()).toBe(false)
     })
 
-    test('renders neither surface nor 404 while the team is still loading', async () => {
+    test('replaces rather than pushes, so the user cannot go back into onboarding', async () => {
+        mocks.settingsStore.featuresCheck = { isAiOnboardingFeatureEnabled: false }
+        await mountPage()
+        expect(routerPush).not.toHaveBeenCalled()
+        expect(routerReplace).toHaveBeenCalledWith(expect.objectContaining({
+            params: { pathMatch: ['team', 'ateam', 'onboarding'] }
+        }))
+    })
+
+    test('renders nothing and does not redirect while the team is still loading', async () => {
         mocks.contextStore.team = null
         const wrapper = await mountPage()
-        expect(wrapper.find('[data-stub="page-not-found"]').exists()).toBe(false)
         expect(wrapper.find('[data-stub="expert-panel"]').exists()).toBe(false)
+        expect(routerReplace).not.toHaveBeenCalled()
     })
 
     test('provides the onboarding surface variant to the expert components', async () => {
@@ -140,7 +155,7 @@ describe('Onboarding page', () => {
             expect(mocks.supportAgentStore.reset).not.toHaveBeenCalled()
         })
 
-        test('does not seed on the 404 rendering', async () => {
+        test('does not seed when the page is redirecting away', async () => {
             mocks.settingsStore.featuresCheck = { isAiOnboardingFeatureEnabled: false }
             await mountPage()
             expect(mocks.expertStore.hydrateMessages).not.toHaveBeenCalled()
@@ -177,7 +192,7 @@ describe('Onboarding page', () => {
             expect(routerPush).toHaveBeenCalledWith({ name: 'team-home', params: { team_slug: 'ateam' } })
         })
 
-        test('does not offer the way out on the 404 rendering', async () => {
+        test('does not offer the way out when the page is redirecting away', async () => {
             mocks.settingsStore.featuresCheck = { isAiOnboardingFeatureEnabled: false }
             const wrapper = await mountPage()
             expect(wrapper.find('[data-action="skip-onboarding"]').exists()).toBe(false)

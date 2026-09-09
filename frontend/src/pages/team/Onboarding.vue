@@ -1,7 +1,6 @@
 <template>
     <div class="ff-team-onboarding" data-page="team-onboarding">
-        <PageNotFound v-if="notAvailable" />
-        <template v-else-if="team">
+        <template v-if="team && !notAvailable">
             <!-- The layout's header (the teleport target) finishes mounting
                  after this page does, so the teleport waits a tick -->
             <Teleport v-if="teleportReady" to="#plain-layout-actions">
@@ -25,7 +24,6 @@ import { mapState } from 'pinia'
 import teamApi from '@/api/team.ts'
 import ExpertPanel from '@/components/expert/Expert.vue'
 import { ONBOARDING_FIXTURE_MESSAGES } from '@/composables/Components/expert/onboardingFixture.js'
-import PageNotFound from '@/pages/PageNotFound.vue'
 import Alerts from '@/services/alerts.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
@@ -36,8 +34,7 @@ import { useProductExpertStore } from '@/stores/product-expert.js'
 export default {
     name: 'TeamOnboarding',
     components: {
-        ExpertPanel,
-        PageNotFound
+        ExpertPanel
     },
     provide () {
         return {
@@ -79,6 +76,22 @@ export default {
             immediate: true,
             handler () {
                 this.seedFixtureTranscript()
+            }
+        },
+        notAvailable: {
+            immediate: true,
+            handler (unavailable) {
+                if (unavailable) {
+                    // Replace rather than push: onboarding is not somewhere the
+                    // user should be able to go Back to. The path is kept so the
+                    // 404 reports the URL that was actually asked for.
+                    this.$router.replace({
+                        name: 'page-not-found',
+                        params: { pathMatch: this.$route.path.substring(1).split('/') },
+                        query: this.$route.query,
+                        hash: this.$route.hash
+                    })
+                }
             }
         }
     },
