@@ -34,6 +34,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         questionCadence: 'all', // 'all' = ask every clarifying question at once, 'one' = one at a time
         planMode: false,
         inFlightUpdates: [],
+        activeTaskList: null,
         pendingInput: '',
         // One-shot chat composer command, consumed and cleared like pendingInput.
         // 'request-plan-change' focuses an empty composer for the plan card's "Request
@@ -417,7 +418,9 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
             }
 
-            this._addInFlightUpdate(payload.status || payload.toolname || 'Processing request...')
+            if (parsedTopic.inflightType !== 'expert:tasks') {
+                this._addInFlightUpdate(payload.status || payload.toolname || 'Processing request...')
+            }
 
             const responseTopic = topicHelper.buildTopic({
                 entityType: parsedTopic.entityType,
@@ -445,6 +448,26 @@ export const useProductExpertStore = defineStore('product-expert', {
                     }
                 })
                 break
+            case parsedTopic.inflightType === 'expert:tasks': {
+                const items = Array.isArray(payload.items) ? payload.items : []
+                this.activeTaskList = items.length
+                    ? { planId: payload.planId ?? null, title: payload.title || 'Planning', items }
+                    : null
+                await mqttService.publishMessage(connectionKey, {
+                    qos: 2,
+                    topic: responseTopic,
+                    payload: JSON.stringify({
+                        ack: true
+                    }),
+                    correlationData: transactionId,
+                    userProperties: {
+                        sessionId,
+                        transactionId: chatTransactionId,
+                        origin: window.origin || window.location.origin
+                    }
+                })
+                break
+            }
             case parsedTopic.inflightType === 'automation-ui:mcp-get-features': {
                 // handle UI MCP features request
                 try {
@@ -629,6 +652,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             agentStore.sessionId = uuidv4()
             agentStore.messages = []
+            this.activeTaskList = null
 
             // A new chat drops the per-session tool grants ("Always allow/deny for this chat")
             // and the resolved-approval outcomes tied to the messages we just cleared.

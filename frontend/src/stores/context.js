@@ -145,15 +145,10 @@ export const useContextStore = defineStore('context', {
                 supportsPlatformUIAutomation: useAccountSettingsStore().featuresCheck?.isExpertPlatformAutomationFeatureEnabled ?? false,
                 questionCadence: useProductExpertStore().questionCadence,
                 planMode: useProductExpertStore().planMode,
-                // Capability flags: signal that this version can render the question,
-                // plan, and approval cards. Older instances omit them and the agent drops
-                // the matching tool / runs in backward-compatible mode.
                 supportsQuestions: true,
                 supportsPlanMode: true,
                 supportsHITL: true,
-                // Human-in-the-loop tool permissions (#421). The agent gates each
-                // flow-building tool call against this map; canUseWriteTools drives
-                // role inheritance (fail-closed) for write/delete tools.
+                supportsPlansAndTasks: true,
                 toolPermissions: assistantStore.resolvedToolPermissions,
                 canUseWriteTools: hasAMinimumTeamRoleOf(Roles.Member, this.teamMembership)
             }
