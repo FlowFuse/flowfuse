@@ -544,13 +544,13 @@ class MqttService extends BaseService implements MqttServiceI {
             keepalive: 45,
             ...(credentials.will && {
                 clean: false,
-                properties: { sessionExpiryInterval: 30 },
+                properties: { sessionExpiryInterval: 20 },
                 will: {
                     topic: credentials.will.topic,
                     payload: credentials.will.payload,
                     qos: 1,
                     retain: false,
-                    properties: { willDelayInterval: 20 }
+                    properties: { willDelayInterval: 15 }
                 }
             })
         })
