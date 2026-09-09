@@ -31,12 +31,6 @@ const activeBrowserSessionCache = 'browserSessions-active'
 const ACTIVE_BROWSER_SESSION_CACHE_TTL = 1_800_000
 const ACTIVE_BROWSER_SESSION_CACHE_MAX = 10_000
 
-const DISCONNECT_GRACE_MS = 30_000
-
-function isPastDisconnectGrace (session) {
-    return !!session?.disconnectedAt && (Date.now() - session.disconnectedAt) > DISCONNECT_GRACE_MS
-}
-
 /**
  * Refresh the TTLs of every pin referencing a browser session and return the
  * pinned MCP session ids. Both directions of each pin are touched so the pair
@@ -95,25 +89,6 @@ async function notifyPinnedClients (app, userId, browserSessionId, mcpSessionIds
     }
 }
 
-async function purgeSession (app, userId, browserSessionId) {
-    const cache = app.caches.getCache(browserSessionCache)
-    await cache.del(`${userId}:${browserSessionId}`)
-    // Drop any MCP pins referencing this browser session so it stops reporting as active
-    const activeCache = app.caches.getCache(activeBrowserSessionCache)
-    const keys = await activeCache.scan(`browser-to-mcp::${escapeGlob(userId)}:${escapeGlob(browserSessionId)}:*`)
-    for (const key of keys) {
-        const mcpSessionId = await activeCache.get(key)
-        await activeCache.del(key)
-        if (mcpSessionId) {
-            // only clear the reverse entry if it still points at this browser session
-            const pinned = await activeCache.get(`mcp-to-browser::${userId}:${mcpSessionId}`)
-            if (pinned === browserSessionId) {
-                await activeCache.del(`mcp-to-browser::${userId}:${mcpSessionId}`)
-            }
-        }
-    }
-}
-
 module.exports = {
     init (app) {
         // Create a cache for browser session presence. Each entry is a tab snapshot, keyed by userId:sessionId.
@@ -153,21 +128,22 @@ module.exports = {
     },
 
     async removeSession (app, userId, browserSessionId) {
-        await purgeSession(app, userId, browserSessionId)
-    },
-
-    /**
-     * Flag a disconnected session rather than dropping it, so a reload that fires the will
-     * keeps its pins. A later heartbeat replaces the snapshot and clears the flag; reads treat
-     * it as gone once the grace window passes.
-     */
-    async markDisconnected (app, userId, browserSessionId) {
         const cache = app.caches.getCache(browserSessionCache)
-        const session = await cache.get(`${userId}:${browserSessionId}`)
-        if (!session) {
-            return
+        await cache.del(`${userId}:${browserSessionId}`)
+        // Drop any MCP pins referencing this browser session so it stops reporting as active
+        const activeCache = app.caches.getCache(activeBrowserSessionCache)
+        const keys = await activeCache.scan(`browser-to-mcp::${escapeGlob(userId)}:${escapeGlob(browserSessionId)}:*`)
+        for (const key of keys) {
+            const mcpSessionId = await activeCache.get(key)
+            await activeCache.del(key)
+            if (mcpSessionId) {
+                // only clear the reverse entry if it still points at this browser session
+                const pinned = await activeCache.get(`mcp-to-browser::${userId}:${mcpSessionId}`)
+                if (pinned === browserSessionId) {
+                    await activeCache.del(`mcp-to-browser::${userId}:${mcpSessionId}`)
+                }
+            }
         }
-        await cache.set(`${userId}:${browserSessionId}`, { ...session, disconnectedAt: Date.now() })
     },
 
     async getSessionsByUser (app, userId) {
@@ -176,8 +152,7 @@ module.exports = {
         const prefix = `${userId}:`
         const sessions = []
         for (const [key, value] of Object.entries(allEntries)) {
-            // A session past its disconnect grace is gone even though its snapshot lingers to TTL.
-            if (key.startsWith(prefix) && !isPastDisconnectGrace(value)) {
+            if (key.startsWith(prefix)) {
                 sessions.push(value)
             }
         }
@@ -219,15 +194,7 @@ module.exports = {
         await activeCache.get(`browser-to-mcp::${userId}:${browserSessionId}:${mcpSessionId}`)
         const cache = app.caches.getCache(browserSessionCache)
         const session = await cache.get(`${userId}:${browserSessionId}`)
-        if (!session) {
-            return null
-        }
-        // Past the grace window with no reconnecting heartbeat: the tab is gone, so drop it now.
-        if (isPastDisconnectGrace(session)) {
-            await purgeSession(app, userId, browserSessionId)
-            return null
-        }
-        return session
+        return session || null
     },
 
     /**

@@ -1,5 +1,4 @@
 const should = require('should')
-const sinon = require('sinon')
 
 const setup = require('../routes/setup')
 
@@ -245,96 +244,26 @@ describe('BrowserSessionLifecycleHandler', function () {
     })
 
     describe('disconnected handling (connection died)', function () {
-        // The grace is a Date.now() comparison, so drive the clock through a stub rather than
-        // wait it out. setImmediate stays real so the async cache work between steps settles.
-        let now
-        let nowStub
-
-        async function settle () {
+        it('removes the session entry when the last will fires', async function () {
+            client.emit('browser-session', {
+                userId: 'user12',
+                sessionId: 'session1',
+                event: 'heartbeat',
+                payload: { visibility: 'visible' }
+            })
             await new Promise(resolve => setImmediate(resolve))
-        }
-
-        beforeEach(function () {
-            now = 1_000_000
-            nowStub = sinon.stub(Date, 'now').callsFake(() => now)
-        })
-
-        afterEach(function () {
-            nowStub.restore()
-        })
-
-        it('keeps the session listed while the grace window is still open', async function () {
-            client.emit('browser-session', {
-                userId: 'user12',
-                sessionId: 'session1',
-                event: 'heartbeat',
-                payload: { visibility: 'visible' }
-            })
-            await settle()
-
-            client.emit('browser-session', {
-                userId: 'user12',
-                sessionId: 'session1',
-                event: 'disconnected',
-                payload: {}
-            })
-            await settle()
-
-            // A reload fires the same will, so the entry must still be here for the tab to return to.
             ;(await handler.getSessionsByUser('user12')).should.have.length(1)
-        })
-
-        it('drops the session once the grace window passes with no heartbeat', async function () {
-            client.emit('browser-session', {
-                userId: 'user12b',
-                sessionId: 'session1',
-                event: 'heartbeat',
-                payload: { visibility: 'visible' }
-            })
-            await settle()
 
             client.emit('browser-session', {
-                userId: 'user12b',
+                userId: 'user12',
                 sessionId: 'session1',
                 event: 'disconnected',
                 payload: {}
             })
-            await settle()
+            await new Promise(resolve => setImmediate(resolve))
 
-            now += 60_000
-
-            ;(await handler.getSessionsByUser('user12b')).should.have.length(0)
-        })
-
-        it('clears the disconnect flag when the tab reconnects and heartbeats', async function () {
-            client.emit('browser-session', {
-                userId: 'user12c',
-                sessionId: 'session1',
-                event: 'heartbeat',
-                payload: { visibility: 'visible' }
-            })
-            await settle()
-
-            client.emit('browser-session', {
-                userId: 'user12c',
-                sessionId: 'session1',
-                event: 'disconnected',
-                payload: {}
-            })
-            await settle()
-
-            // The reloaded tab comes back before the window closes.
-            client.emit('browser-session', {
-                userId: 'user12c',
-                sessionId: 'session1',
-                event: 'heartbeat',
-                payload: { visibility: 'visible' }
-            })
-            await settle()
-
-            now += 60_000
-
-            ;(await handler.getSessionsByUser('user12c')).should.have.length(1)
+            const sessions = await handler.getSessionsByUser('user12')
+            sessions.should.have.length(0)
         })
 
         it('is a no-op for a tab that never registered presence', async function () {
@@ -344,7 +273,7 @@ describe('BrowserSessionLifecycleHandler', function () {
                 event: 'disconnected',
                 payload: {}
             })
-            await settle()
+            await new Promise(resolve => setImmediate(resolve))
 
             const sessions = await handler.getSessionsByUser('user13')
             sessions.should.have.length(0)

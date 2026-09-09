@@ -1,5 +1,4 @@
 const should = require('should')
-const sinon = require('sinon')
 
 const setup = require('../setup')
 
@@ -182,53 +181,6 @@ describe('BrowserSession controller', function () {
             ;(await controller.getActiveMcpSessions('u40', 'tab-1')).should.deepEqual(['mcp-1'])
         })
     })
-
-    describe('disconnect grace', function () {
-        let now
-        let nowStub
-
-        beforeEach(function () {
-            now = 1_000_000
-            nowStub = sinon.stub(Date, 'now').callsFake(() => now)
-        })
-
-        afterEach(function () {
-            nowStub.restore()
-        })
-
-        it('keeps a pin resolvable while a disconnected tab is inside the grace window', async function () {
-            await controller.recordPresence('u50', 'tab-1', { visibility: 'visible' })
-            await controller.setActiveBrowserSession('u50', 'mcp-1', 'tab-1')
-
-            await controller.markDisconnected('u50', 'tab-1')
-
-            // The reload has not returned yet, but the pin must still resolve.
-            ;(await controller.getActiveBrowserSession('u50', 'mcp-1')).should.have.property('sessionId', 'tab-1')
-        })
-
-        it('drops the pin and presence once the grace window passes', async function () {
-            await controller.recordPresence('u51', 'tab-1', { visibility: 'visible' })
-            await controller.setActiveBrowserSession('u51', 'mcp-1', 'tab-1')
-
-            await controller.markDisconnected('u51', 'tab-1')
-            now += 60_000
-
-            should(await controller.getActiveBrowserSession('u51', 'mcp-1')).be.null()
-            ;(await controller.getActiveMcpSessions('u51', 'tab-1')).should.deepEqual([])
-        })
-
-        it('a reconnecting heartbeat clears the flag so the pin survives', async function () {
-            await controller.recordPresence('u52', 'tab-1', { visibility: 'visible' })
-            await controller.setActiveBrowserSession('u52', 'mcp-1', 'tab-1')
-
-            await controller.markDisconnected('u52', 'tab-1')
-            await controller.recordPresence('u52', 'tab-1', { visibility: 'visible' })
-            now += 60_000
-
-            ;(await controller.getActiveBrowserSession('u52', 'mcp-1')).should.have.property('sessionId', 'tab-1')
-        })
-    })
-
     describe('client notifications', function () {
         let originalComms
         let sent
