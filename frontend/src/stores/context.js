@@ -50,9 +50,7 @@ export const useContextStore = defineStore('context', {
         isImmersiveEditor () {
             return this.editorEntityType !== null
         },
-        // Whether the loaded entity matches the route, so presence publishes the right topicParts
-        // instead of a stale one from the page just left. Editors advertise flow_building, so a
-        // team fallback there is the MCP routing failure - they must resolve their exact entity.
+        // Whether the loaded entity matches the route, so presence never publishes a stale one.
         isExpertContextReady (state) {
             const route = state.route
             if (!route) {
@@ -68,8 +66,7 @@ export const useContextStore = defineStore('context', {
             }
 
             const { entityType, entityId } = useMqttExpertTopicHelper().getEntityTopicPaths()
-            // Resolving to the team is the steady state for team and global pages; any deeper
-            // entity must belong to this route rather than the one whose loader has not landed.
+            // The team is the steady state for team and global pages; any deeper entity must belong to this route.
             if (entityType === 't') {
                 return !!this.team?.id
             }
