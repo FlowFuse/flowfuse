@@ -801,6 +801,9 @@ module.exports = async function (app) {
             if (request.body.type) {
                 auditLogFunc = app.auditLog.Team.team.type.changed
                 let billingIntervalUpgrade = false
+                // If the request is from an admin, and the team has unmanaged billing, we allow the admin
+                // to override the limit checks and change the team type.
+                let isAdminOverridingLimits = false
                 const bodyOptions = { ...request.body }
                 const targetTypeId = bodyOptions.type
                 delete bodyOptions.type
@@ -821,6 +824,12 @@ module.exports = async function (app) {
                     const sameTeamType = targetTypeId === request.team.TeamType.hashid
 
                     billingIntervalUpgrade = sameTeamType && upgradingToYearlySubscription && currentlyOnMonthlySubscription
+
+                    // An admin user is changing the type of a team without a managed subscription.
+                    // Disable the limit checks for this operation
+                    if (request.session.User?.admin && subscription.isUnmanaged()) {
+                        isAdminOverridingLimits = true
+                    }
                 }
 
                 if (targetTypeId !== request.team.TeamType.hashid || billingIntervalUpgrade) {
@@ -835,7 +844,9 @@ module.exports = async function (app) {
                     }
                     // Two stage process to update team type
                     // - first we check its allowed.
-                    await request.team.checkTeamTypeUpdateAllowed(targetTeamType)
+                    if (!isAdminOverridingLimits) {
+                        await request.team.checkTeamTypeUpdateAllowed(targetTeamType)
+                    }
                     // - then we apply it
                     await request.team.updateTeamType(targetTeamType, { interval: billingInterval })
                 } else {
