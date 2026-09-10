@@ -20,9 +20,6 @@ export const useUxStore = defineStore('ux', {
         },
         isNewlyCreatedUser: false,
         onboardingStage: null,
-        // Set once at registration and consumed on the next arrival, so a new
-        // signup is taken to onboarding exactly one time. Persisted because
-        // verification reloads the app before anything can act on it.
         shouldEnterOnboarding: false,
         overlay: false
     }),
@@ -61,6 +58,11 @@ export const useUxStore = defineStore('ux', {
                 this.onboardingStage = this.isNewlyCreatedUser
                     ? ONBOARDING_STAGES.INTAKE
                     : ONBOARDING_STAGES.DONE
+                // Resolving the stage is itself a one-shot, so raising the
+                // entry flag here is too. Email verification is not a reliable
+                // hook: it only happens when the platform is set up to require
+                // it, and a user who is verified already never sees it.
+                this.shouldEnterOnboarding = this.isNewlyCreatedUser
             }
         },
         startOnboardingBuild () { this.onboardingStage = ONBOARDING_STAGES.BUILDING },

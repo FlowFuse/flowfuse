@@ -50,6 +50,7 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 import { useUxLoadingStore } from '@/stores/ux-loading.js'
+import { useUxStore } from '@/stores/ux.js'
 
 export default {
     name: 'HomePage',
@@ -66,7 +67,7 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useDataFarmTeamsStore, { teams: 'teamList', defaultUserTeam: 'defaultUserTeam' }),
-        ...mapState(useAccountSettingsStore, ['settings']),
+        ...mapState(useAccountSettingsStore, ['settings', 'featuresCheck']),
         ...mapState(useAccountAuthStore, ['user', 'redirectUrlAfterLogin']),
         ...mapState(useUxLoadingStore, ['appLoader']),
         canCreateTeam () {
@@ -88,13 +89,20 @@ export default {
             }
 
             // Only bounce to team view if there's no redirectUrlAfterLogin set
+            // these should be route guards
             if (this.user.email_verified) {
-                if (this.team || this.defaultUserTeam) {
+                const teamSlug = this.team?.slug || this.defaultUserTeam?.slug
+                if (teamSlug) {
+                    // A newly registered user is taken to AI-led onboarding once
+                    if (this.featuresCheck?.isAiOnboardingFeatureEnabled && useUxStore().consumeOnboardingEntry()) {
+                        return this.$router.push({
+                            name: 'team-onboarding',
+                            params: { team_slug: teamSlug }
+                        })
+                    }
                     this.$router.push({
                         name: 'team',
-                        params: {
-                            team_slug: this.team?.slug || this.defaultUserTeam?.slug
-                        }
+                        params: { team_slug: teamSlug }
                     })
                 }
             }
