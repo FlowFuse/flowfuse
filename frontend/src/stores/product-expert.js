@@ -418,7 +418,11 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
             }
 
-            this._addInFlightUpdate(payload.status || payload.toolname || 'Processing request...')
+            // expert:tasks has its own panel; its status rides expert:status-message.
+            // Every other inflight type feeds the loading line.
+            if (parsedTopic.inflightType !== 'expert:tasks') {
+                this._addInFlightUpdate(payload.status || payload.toolname || 'Processing request...')
+            }
 
             const responseTopic = topicHelper.buildTopic({
                 entityType: parsedTopic.entityType,
@@ -447,14 +451,10 @@ export const useProductExpertStore = defineStore('product-expert', {
                 })
                 break
             case parsedTopic.inflightType === 'expert:tasks': {
-                // Only replace the list when the message carries one; status-only
-                // pings omit `items` and update the loading line above without
-                // touching the panel.
-                if (Array.isArray(payload.items)) {
-                    this.activeTaskList = payload.items.length
-                        ? { planId: payload.planId ?? null, title: payload.title || 'Tasks', items: payload.items }
-                        : null
-                }
+                const items = Array.isArray(payload.items) ? payload.items : []
+                this.activeTaskList = items.length
+                    ? { planId: payload.planId ?? null, title: payload.title || 'Tasks', items }
+                    : null
                 await mqttService.publishMessage(connectionKey, {
                     qos: 2,
                     topic: responseTopic,
