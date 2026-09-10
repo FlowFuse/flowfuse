@@ -419,9 +419,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
             }
 
-            if (parsedTopic.inflightType !== 'expert:tasks') {
-                this._addInFlightUpdate(payload.status || payload.toolname || 'Processing request...')
-            }
+            this._addInFlightUpdate(payload.status || payload.toolname || 'Processing request...')
 
             const responseTopic = topicHelper.buildTopic({
                 entityType: parsedTopic.entityType,
