@@ -36,7 +36,9 @@ export default [
         path: '/account/request/:id/mcp',
         component: AccessRequestMCP,
         meta: {
-            layout: 'modal'
+            layout: 'modal',
+            // The team list can grow past the viewport, so allow this page to scroll
+            centerBox: true
         }
     },
     {
