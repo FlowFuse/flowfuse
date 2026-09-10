@@ -131,8 +131,6 @@ export const FEATURE_CONFIGS: FeatureConfig[] = [
         output: 'isAiOnboardingFeatureEnabled',
         platformKey: 'aiOnboarding',
         dependsOn: 'isExpertAssistantFeatureEnabled',
-        // The onboarding conversation runs over MQTT, so it also needs the
-        // same broker chain the product-expert store's `shouldUseMqtt` checks
         dependsOnPlatform: 'externalBroker',
         dependsOnTeam: 'teamBroker'
     },
