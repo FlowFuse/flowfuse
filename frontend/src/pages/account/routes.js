@@ -37,7 +37,6 @@ export default [
         component: AccessRequestMCP,
         meta: {
             layout: 'modal',
-            // The team list can grow past the viewport, so allow this page to scroll
             centerBox: true
         }
     },
