@@ -14,6 +14,13 @@ Because the agent is yours, so is the model it runs on.
 
 Any MCP client that supports the HTTP transport can connect. That is the only requirement.
 
+Pick your agent for the address to copy and the steps that apply to it:
+
+::agent-setup-tabs{:exclude-expert="true" :signup="false" surface="docs"}
+::
+
+The same three steps, written out:
+
 1. **Add the FlowFuse MCP address in your agent's connector settings.** See [where to add it, per agent](#where-to-add-it-per-agent) if you are not sure where yours lives.
 
    On FlowFuse Cloud:
@@ -64,11 +71,6 @@ When you ask for flow work, your agent will guide you to connect an editor sessi
 
 The agents below are the common ones and where their settings live. Every other AI Agent that supports MCP over HTTP connects the same way.
 
-Pick yours for the address and the steps that apply to it:
-
-::agent-setup-tabs{:exclude-expert="true" :signup="false" surface="docs"}
-::
-
 ### Microsoft Copilot
 
 In **Copilot Studio**, open your agent's **Tools** page, select **Add a tool**, then **New tool**, then **Model Context Protocol**. Give the server a name and a description saying what it is for, since the orchestrator uses that description to decide when to call it, and enter the FlowFuse MCP address as the server URL.
@@ -79,7 +81,7 @@ Access through Copilot Studio runs over Power Platform connectors, so any Power 
 
 ### ChatGPT
 
-Custom connectors live behind developer mode. A workspace administrator enables it under **Workspace Settings**, then **Permissions & Roles**, before anyone can add one. The connector itself is then added from the prompt dashboard, with the MCP address, and you sign in there.
+Custom connectors live behind developer mode. Turn it on under **Settings**, then **Apps & Connectors**, then **Advanced settings**, then add FlowFuse by URL and sign in. Developer mode needs a paid plan, so it is not available on the free tier.
 
 ### Claude
 

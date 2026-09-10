@@ -166,7 +166,51 @@ describe('FlowFuse platform admin users', () => {
             cy.get('[data-el="splash"]').should('not.exist')
         })
 
-        it('can customise the content of the "Sign Up" screen', () => {
+        it('can customise the content of the "Sign Up" screen - splash only', () => {
+            cy.intercept('GET', '/api/*/settings').as('getSettings')
+
+            cy.visit('/admin/settings/general')
+            cy.wait('@getSettings')
+
+            cy.get('[data-el="splash"]').type('<h1>Welcome to FlowFuse</h1>')
+            cy.get('[data-el="banner"]').clear()
+
+            cy.get('[data-action="save-settings"]').click()
+
+            cy.logout()
+
+            cy.visit('/')
+
+            cy.get('[data-action="sign-up"]').click()
+
+            cy.url().should('include', '/account/create')
+
+            cy.get('[data-el="banner-text"]').should('not.exist')
+            cy.get('[data-el="splash"]').contains('Welcome to FlowFuse')
+        })
+        it('can customise the content of the "Sign Up" screen - banner only', () => {
+            cy.intercept('GET', '/api/*/settings').as('getSettings')
+
+            cy.visit('/admin/settings/general')
+            cy.wait('@getSettings')
+
+            cy.get('[data-el="splash"]').clear()
+            cy.get('[data-el="banner"]').type('this is banner')
+
+            cy.get('[data-action="save-settings"]').click()
+
+            cy.logout()
+
+            cy.visit('/')
+
+            cy.get('[data-action="sign-up"]').click()
+
+            cy.url().should('include', '/account/create')
+
+            cy.get('[data-el="banner-text"]').contains('this is banner')
+            cy.get('[data-el="splash"]').should('not.exist')
+        })
+        it('can customise the content of the "Sign Up" screen - splash and banner', () => {
             cy.intercept('GET', '/api/*/settings').as('getSettings')
 
             cy.visit('/admin/settings/general')
@@ -185,8 +229,14 @@ describe('FlowFuse platform admin users', () => {
 
             cy.url().should('include', '/account/create')
 
-            cy.get('[data-el="banner-text"]').contains('this is banner')
+            // For the regular page, with both configured, only the splash should be shown
+            cy.get('[data-el="banner-text"]').should('not.exist')
             cy.get('[data-el="splash"]').contains('Welcome to FlowFuse')
+
+            // For the popup, with both configured, only the banner should be shown
+            cy.visit('/account/create?context=popup')
+            cy.get('[data-el="banner-text"]').contains('this is banner')
+            cy.get('[data-el="splash"]').should('not.exist')
         })
     })
 })

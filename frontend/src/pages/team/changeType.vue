@@ -26,7 +26,7 @@
                             :price="billingEnabled ? (!isAnnualBilling ? teamType.billingPrice : teamType.annualBillingPrice) : ''"
                             :price-interval="billingEnabled ? (!isAnnualBilling ? teamType.billingInterval : teamType.annualBillingInterval) : ''"
                             :value="teamType.id"
-                            :disabled="isUnmanaged || (isAnnualBilling && !teamType.annualBillingPrice && !teamType.properties?.billing?.requireContact)"
+                            :disabled="(isUnmanaged && !user.admin) || (isAnnualBilling && !teamType.annualBillingPrice && !teamType.properties?.billing?.requireContact)"
                         />
                     </ff-tile-selection>
                 </div>
@@ -36,6 +36,9 @@
                     <span :class="{'text-gray-800': isAnnualBilling }">Yearly</span>
                 </div>
                 <div class="max-w-md w-full">
+                    <div v-if="isUnmanaged && user.admin" class="mb-8 text-sm space-y-2 border border-red-500 rounded-md p-4 bg-red-50">
+                        <b>Admin:</b> You are changing the team type whilst in manual billing mode. Please ensure that you have the correct billing information set up for this team type.
+                    </div>
                     <template v-if="upgradeErrors.length > 0">
                         <div class="mb-8 text-sm text-gray-500 space-y-2">
                             <p>Your current usage of the platform is higher than that available to the {{ input.teamType?.name }} team.</p>
@@ -47,7 +50,7 @@
                             </ul>
                         </div>
                     </template>
-                    <template v-else-if="billingEnabled">
+                    <template v-else-if="billingEnabled && !isUnmanaged">
                         <div class="mb-8 text-sm text-gray-500 space-y-2 text-center">
                             <p v-if="isContactRequired">To learn more about our {{ input.teamType?.name }} plan, including the option to purchase an extended trial, click below to contact our sales team.</p>
                             <p v-if="trialMode && !trialHasEnded">Setting up billing will bring your free trial to an end</p>
@@ -62,7 +65,7 @@
                         </ff-button>
                         <template v-if="!isContactRequired">
                             <ff-button
-                                v-if="!billingEnabled || !billingMissing"
+                                v-if="!billingEnabled || !billingMissing || (user.admin && isUnmanaged)"
                                 class="flex-1"
                                 :disabled="!formValid" data-action="change-team-type"
                                 @click="updateTeam()"
@@ -149,7 +152,7 @@ export default {
         formValid () {
             const isChangingTeamType = this.input.teamTypeId !== this.team.type.id
 
-            return !this.isUnmanaged &&
+            return (!this.isUnmanaged || this.user.admin) &&
                     this.input.teamTypeId &&
                     this.isSelectionAvailable &&
                     (this.billingMissing || isChangingTeamType || this.isUpgradingFromMonthlyToYearly) &&

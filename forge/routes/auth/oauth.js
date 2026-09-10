@@ -383,13 +383,14 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                     readOnly: { type: 'boolean' },
-                    teamIds: { type: 'array', items: { type: 'string' } }
+                    teamIds: { type: 'array', items: { type: 'string' } },
+                    expiresAt: { type: 'number' }
                 }
             }
         }
     }, async function (request, reply) {
         const requestId = request.params.id
-        const { readOnly = false, teamIds = [] } = request.body
+        const { readOnly = false, teamIds = [], expiresAt } = request.body
 
         const session = await app.db.models.OAuthSession.findOne({ where: { id: requestId } })
         if (!session) {
@@ -403,8 +404,13 @@ module.exports = async function (app) {
         if (!requestObject.mcp) {
             return badRequest(reply, 'invalid_request', 'Invalid request')
         }
+        // The grant must expire: in the future, at most one year out
+        const ONE_YEAR = 1000 * 60 * 60 * 24 * 365
+        if (!expiresAt || expiresAt <= Date.now() || expiresAt > Date.now() + ONE_YEAR) {
+            return badRequest(reply, 'invalid_request', 'Invalid expiresAt')
+        }
 
-        session.value = { ...requestObject, readOnly, teamIds }
+        session.value = { ...requestObject, readOnly, teamIds, expiresAt }
         await session.save()
 
         reply.send({ status: 'ok' })
@@ -523,7 +529,8 @@ module.exports = async function (app) {
                     requestObject.userId,
                     {
                         readOnly: requestObject.readOnly || false,
-                        teamIds: requestObject.teamIds || []
+                        teamIds: requestObject.teamIds || [],
+                        grantExpiresAt: requestObject.expiresAt || null
                     }
                 )
                 const response = {
@@ -598,6 +605,9 @@ module.exports = async function (app) {
                 reply.send(response)
             }
         } else if (grant_type === 'refresh_token') {
+            if (!refresh_token) {
+                return badRequest(reply, 'invalid_request', 'Invalid refresh_token')
+            }
             // ff-plugin and MCP clients are user-scoped; only project/device
             // clients need their resource ownership re-checked on refresh.
             let refreshAuthClient = null

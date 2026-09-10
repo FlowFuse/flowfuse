@@ -188,6 +188,47 @@ describe('buildFeatureChecks', () => {
         })
     })
 
+    describe('ai onboarding', () => {
+        // isAiOnboardingFeatureEnabled -> platformKey 'aiOnboarding',
+        // dependsOn 'isExpertAssistantFeatureEnabled', dependsOnPlatform 'externalBroker', dependsOnTeam 'teamBroker'
+        const enabledPlatform = platformState({ features: { aiOnboarding: true, expertAssistant: true, ai: true, externalBroker: true } })
+        const enabledTeam = team({ features: { teamBroker: true } })
+
+        test('enabled when the flag and all dependencies are enabled', () => {
+            const checks = buildFeatureChecks(enabledPlatform, enabledTeam)
+            expect(checks.isAiOnboardingFeatureEnabled).toBe(true)
+        })
+
+        test('disabled when the platform flag is missing', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { expertAssistant: true, ai: true, externalBroker: true } }),
+                enabledTeam
+            )
+            expect(checks.isAiOnboardingFeatureEnabled).toBe(false)
+        })
+
+        test('forced false when the expert assistant dependency is disabled', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { aiOnboarding: true, expertAssistant: true, ai: false, externalBroker: true } }),
+                enabledTeam
+            )
+            expect(checks.isAiOnboardingFeatureEnabled).toBe(false)
+        })
+
+        test('forced false when the platform external broker dependency is missing', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { aiOnboarding: true, expertAssistant: true, ai: true } }),
+                enabledTeam
+            )
+            expect(checks.isAiOnboardingFeatureEnabled).toBe(false)
+        })
+
+        test('forced false when the team broker dependency is missing', () => {
+            const checks = buildFeatureChecks(enabledPlatform, team())
+            expect(checks.isAiOnboardingFeatureEnabled).toBe(false)
+        })
+    })
+
     describe('posthogKey', () => {
         // isMcpThirdPartyFeatureEnabled -> platform+team+ai deps, posthogKey 'MCP_THIRD_PARTY'
         const fullyEnabledState = platformState({ features: { mcpThirdParty: true, ai: true } })
