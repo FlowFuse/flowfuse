@@ -46,10 +46,6 @@ module.exports = {
             }
         },
         refreshTokenExpiresAt: { type: DataTypes.DATE },
-        // Holds the sha256 of the last rotated-out refresh token (set directly,
-        // already hashed) so rotation can distinguish a retry from a replay.
-        previousRefreshToken: { type: DataTypes.STRING },
-        previousRefreshTokenRotatedAt: { type: DataTypes.DATE },
         // Consent-chosen end of an MCP OAuth grant; refresh cannot extend past it
         grantExpiresAt: { type: DataTypes.DATE },
         name: { type: DataTypes.STRING },
@@ -62,6 +58,8 @@ module.exports = {
         this.belongsTo(M.Device, { foreignKey: 'ownerId', constraints: false })
         this.belongsTo(M.User, { foreignKey: 'ownerId', constraints: false })
         this.hasMany(M.AccessTokenTeamScope)
+        // Retired refresh tokens for this grant; revoking the grant prunes its lineage.
+        this.hasMany(M.AccessTokenRefreshRotation, { onDelete: 'CASCADE' })
     },
     finders: function (M) {
         return {
@@ -84,6 +82,13 @@ module.exports = {
                 byRefreshToken: async (refreshToken) => {
                     const hashedToken = sha256(refreshToken)
                     return await this.findOne({ where: { refreshToken: hashedToken } })
+                },
+                // Resolve a rotated-out refresh token to its retirement record (grant id
+                // and when it was retired), so the controller can tell a grace-window
+                // retry from a replay without scanning the AccessTokens table.
+                byRotatedRefreshToken: async (refreshToken) => {
+                    const hashedToken = sha256(refreshToken)
+                    return await M.AccessTokenRefreshRotation.findOne({ where: { tokenHash: hashedToken } })
                 },
                 getProvisioningTokens: async (pagination = {}, team) => {
                     // pagination not implemented at this time

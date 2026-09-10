@@ -2,14 +2,6 @@ const { Op } = require('sequelize')
 
 const { generateToken, generateNumericToken, sha256, randomPhrase, DEFAULT_TOKEN_SESSION_EXPIRY, DEFAULT_REFRESH_TOKEN_EXPIRY } = require('../utils')
 
-// Concurrent refreshes of the same refresh token converge on one rotation result
-// via this shared cache (Valkey in production) rather than each minting its own
-// and racing on the row. The result carries the new refresh token so every caller
-// is handed the same one; a stale cached access token is re-minted once within
-// this window of expiry so a client is never handed a token about to die.
-const MCP_ACCESS_TOKEN_CACHE = 'mcp-oauth-access-token'
-const MCP_ACCESS_TOKEN_REMAINING_LIMIT = 1000 * 60 * 5 // 5 minutes
-
 // A rotated-out refresh token stays valid for this long so a concurrent or retried
 // refresh still succeeds; presenting it after the window is treated as a replay.
 const MCP_REFRESH_TOKEN_GRACE = 1000 * 60 // 60 seconds
@@ -465,9 +457,6 @@ module.exports = {
             return tokenUpdates
         }
 
-        const cache = app.caches?.getCache?.(MCP_ACCESS_TOKEN_CACHE, { ttl: DEFAULT_TOKEN_SESSION_EXPIRY, max: 10000 })
-        const cacheKey = sha256(refreshToken)
-
         // The presented token is the current one: rotate it.
         if (existingToken) {
             // Once the refresh lifetime has passed the grant is over: remove it
@@ -476,63 +465,62 @@ module.exports = {
                 await existingToken.destroy()
                 return null
             }
-            // A concurrent refresh may already have rotated this token; reuse its
-            // result so both callers receive the same new refresh token.
-            const cached = await cache?.get(cacheKey)
-            if (cached && cached.expiresAt - Date.now() > MCP_ACCESS_TOKEN_REMAINING_LIMIT) {
-                return { token: cached.token, expiresAt: cached.expiresAt, refreshToken: cached.refreshToken }
-            }
             const grantExpiresAtMs = existingToken.grantExpiresAt ? existingToken.grantExpiresAt.getTime() : null
             const token = generateToken(32, prefix)
             const newRefreshToken = generateToken(32, prefix)
             const expiresAt = capToGrant(Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY, grantExpiresAtMs)
-            // Compare-and-swap on the current refresh token: the update only matches
-            // while this token is still current, so of two simultaneous refreshes
+            // Compare-and-swap on the current refresh token: this single update only
+            // matches while the token is still current, so of two simultaneous refreshes
             // exactly one rotates and the other sees zero rows affected.
             const [rotatedCount] = await app.db.models.AccessToken.update(
                 {
                     token,
                     expiresAt,
                     refreshToken: newRefreshToken,
-                    refreshTokenExpiresAt: capToGrant(Date.now() + DEFAULT_REFRESH_TOKEN_EXPIRY, grantExpiresAtMs),
-                    previousRefreshToken: existingToken.refreshToken,
-                    previousRefreshTokenRotatedAt: new Date()
+                    refreshTokenExpiresAt: capToGrant(Date.now() + DEFAULT_REFRESH_TOKEN_EXPIRY, grantExpiresAtMs)
                 },
                 { where: { refreshToken: existingToken.refreshToken } }
             )
-            if (rotatedCount === 0) {
-                // A concurrent refresh won the swap; return its result rather than a
-                // token that never made it onto the row.
-                const winner = await cache?.get(cacheKey)
-                if (winner) {
-                    return { token: winner.token, expiresAt: winner.expiresAt, refreshToken: winner.refreshToken }
-                }
-                return null
+            if (rotatedCount > 0) {
+                // The rotation won: retire the presented token so a lagging or replayed
+                // refresh resolves through the DB, without caching any token plaintext.
+                await app.db.models.AccessTokenRefreshRotation.create({
+                    tokenHash: existingToken.refreshToken,
+                    rotatedAt: new Date(),
+                    AccessTokenId: existingToken.id
+                })
+                return { token, expiresAt, refreshToken: newRefreshToken }
             }
-            await cache?.set(cacheKey, { token, expiresAt, refreshToken: newRefreshToken })
-            return { token, expiresAt, refreshToken: newRefreshToken }
+            // A concurrent refresh won the swap, so the token we hold is now rotated
+            // out. Fall through and resolve it deterministically from the DB.
         }
 
-        // Not the current token: it may be one just rotated out. byRefreshToken
-        // stores the sha256, so match the presented token's hash here too.
-        const rotated = await app.db.models.AccessToken.findOne({ where: { previousRefreshToken: cacheKey } })
-        if (!rotated) {
+        // Not the current token: resolve it as a rotated-out token of a grant.
+        const retired = await app.db.models.AccessToken.byRotatedRefreshToken(refreshToken)
+        if (!retired) {
             return null
         }
-        const rotatedAt = rotated.previousRefreshTokenRotatedAt ? rotated.previousRefreshTokenRotatedAt.getTime() : 0
-        if (Date.now() - rotatedAt <= MCP_REFRESH_TOKEN_GRACE) {
-            // Within the grace window this is a retry or a lagging concurrent
-            // refresh: hand back the tokens the rotation produced.
-            const cached = await cache?.get(cacheKey)
-            if (cached) {
-                return { token: cached.token, expiresAt: cached.expiresAt, refreshToken: cached.refreshToken }
-            }
+        const grant = await app.db.models.AccessToken.findOne({ where: { id: retired.AccessTokenId } })
+        if (!grant) {
             return null
         }
-        // After the grace window the same token is a replay: revoke the grant so
-        // its access tokens stop working and the client must re-authorize.
-        await rotated.destroy()
-        return null
+        if (Date.now() - retired.rotatedAt.getTime() <= MCP_REFRESH_TOKEN_GRACE) {
+            // Within the grace window this is a retry or a lagging concurrent refresh:
+            // re-mint a fresh access token for the grant and return it. No refresh token
+            // is issued, so the client keeps its current one (RFC 6749 section 6).
+            const grantExpiresAtMs = grant.grantExpiresAt ? grant.grantExpiresAt.getTime() : null
+            const token = generateToken(32, prefix)
+            const expiresAt = capToGrant(Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY, grantExpiresAtMs)
+            await app.db.models.AccessToken.update({ token, expiresAt }, { where: { id: grant.id } })
+            return { token, expiresAt }
+        }
+        // After the grace window the token is a replay: revoke the whole grant so its
+        // access tokens stop working and the client must re-authorize (RFC 9700 section
+        // 4.14.2). The grant's rotation lineage cascades away with it.
+        const grantId = grant.id
+        const userId = parseInt(grant.ownerId)
+        await grant.destroy()
+        return { replay: true, grantId, userId }
     },
 
     /**

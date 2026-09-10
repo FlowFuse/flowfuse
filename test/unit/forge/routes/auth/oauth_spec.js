@@ -5,7 +5,7 @@ const should = require('should')
 const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
-const { base64URLEncode } = FF_UTIL.require('forge/db/utils')
+const { base64URLEncode, sha256 } = FF_UTIL.require('forge/db/utils')
 
 describe('OAuth', async function () {
     let app
@@ -470,7 +470,8 @@ describe('OAuth', async function () {
             const { verifier, challenge } = pkce()
             const authResponse = await mcpApp.inject({ method: 'GET', url: authorizeURL(clientID, redirectURI, challenge), cookies: { sid } })
             const requestId = /\/account\/request\/([^/]+)\/mcp$/.exec(authResponse.headers.location)[1]
-            await mcpApp.inject({ method: 'PUT', url: `/account/authorize/${requestId}/consent`, payload: { readOnly: false, teamIds: [] }, cookies: { sid } })
+            const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000
+            await mcpApp.inject({ method: 'PUT', url: `/account/authorize/${requestId}/consent`, payload: { readOnly: false, teamIds: [], expiresAt }, cookies: { sid } })
             const completeResponse = await mcpApp.inject({ method: 'GET', url: `/account/complete/${requestId}`, cookies: { sid } })
             const authCode = new URL(completeResponse.headers.location).searchParams.get('code')
             const first = (await mcpApp.inject({
@@ -490,19 +491,22 @@ describe('OAuth', async function () {
             rotated.access_token.should.be.a.String().and.startWith('ffpat')
             rotated.refresh_token.should.be.a.String().and.not.equal(first.refresh_token)
 
-            // presenting the rotated-out token again within the grace window returns the
-            // current tokens rather than an error, so a retried or racing refresh still succeeds
+            // presenting the rotated-out token again within the grace window re-mints a fresh
+            // access token but no refresh token, so a retried or racing refresh still succeeds
             const graceResponse = await mcpApp.inject({
                 method: 'POST',
                 url: '/account/token',
                 payload: { grant_type: 'refresh_token', client_id: clientID, refresh_token: first.refresh_token }
             })
             graceResponse.should.have.property('statusCode', 200)
-            graceResponse.json().refresh_token.should.equal(rotated.refresh_token)
+            graceResponse.json().access_token.should.be.a.String().and.startWith('ffpat')
+            graceResponse.json().should.not.have.property('refresh_token')
 
-            // push the rotation past the grace window so the rotated-out token reads as a replay
-            const row = await mcpApp.db.models.AccessToken.byRefreshToken(rotated.refresh_token)
-            await row.update({ previousRefreshTokenRotatedAt: new Date(Date.now() - 1000 * 60 * 60) })
+            // push the retirement past the grace window so the rotated-out token reads as a replay
+            await mcpApp.db.models.AccessTokenRefreshRotation.update(
+                { rotatedAt: new Date(Date.now() - 1000 * 60 * 60) },
+                { where: { tokenHash: sha256(first.refresh_token) } }
+            )
 
             const replayResponse = await mcpApp.inject({
                 method: 'POST',

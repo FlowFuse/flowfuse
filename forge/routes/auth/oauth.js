@@ -14,6 +14,11 @@ function badRequest (reply, error, description) {
     })
 }
 
+// Defence in depth on the refresh grant: cap how often a single caller can present
+// refresh tokens, so probing the endpoint with guessed values is throttled.
+const MCP_REFRESH_RATE_WINDOW = 1000 * 60 // 60 seconds
+const MCP_REFRESH_RATE_MAX = 30
+
 // A loopback redirect_uri may vary its port between registration and use
 // (RFC 8252 Section 7.3); localhost and 127.0.0.1 are interchangeable.
 function isLoopbackHost (hostname) {
@@ -608,6 +613,13 @@ module.exports = async function (app) {
             if (!refresh_token) {
                 return badRequest(reply, 'invalid_request', 'Invalid refresh_token')
             }
+            const rateCache = app.caches?.getCache?.('mcp-refresh-rate', { ttl: MCP_REFRESH_RATE_WINDOW, max: 100000 })
+            const rateCount = (await rateCache?.get(request.ip)) || 0
+            if (rateCount >= MCP_REFRESH_RATE_MAX) {
+                reply.code(429).send({ error: 'slow_down', description: 'Too many refresh attempts' })
+                return
+            }
+            await rateCache?.set(request.ip, rateCount + 1)
             // ff-plugin and MCP clients are user-scoped; only project/device
             // clients need their resource ownership re-checked on refresh.
             let refreshAuthClient = null
@@ -617,17 +629,15 @@ module.exports = async function (app) {
                     return badRequest(reply, 'invalid_request', 'Invalid client_id')
                 }
             }
-            const isMcpClient = refreshAuthClient?.ownerType === 'mcp'
-            const existingToken = await app.db.models.AccessToken.byRefreshToken(refresh_token)
-            // A rotated-out MCP refresh token is no longer the row's current token, so
-            // byRefreshToken cannot find it. refreshToken() resolves the current-or-previous
-            // token, including the grace window and replay detection, so defer to it for
-            // MCP clients rather than rejecting an already-rotated token here.
-            if (!existingToken && !isMcpClient) {
-                badRequest(reply, 'invalid_request', 'Invalid refresh_token')
-                return
-            }
             if (refreshAuthClient && refreshAuthClient.ownerType !== 'mcp') {
+                // Project/device clients re-check resource ownership on refresh, so the
+                // token must still resolve. MCP tokens are resolved by refreshToken()
+                // below, which owns the rotation grace window and replay detection.
+                const existingToken = await app.db.models.AccessToken.byRefreshToken(refresh_token)
+                if (!existingToken) {
+                    badRequest(reply, 'invalid_request', 'Invalid refresh_token')
+                    return
+                }
                 // Check the owner of the existing session still has access to the project
                 // this client is owned by
                 let owner = null
@@ -658,7 +668,16 @@ module.exports = async function (app) {
                 }
             }
             const accessToken = await app.db.controllers.AccessToken.refreshToken(refresh_token)
-            if (!accessToken) {
+            if (!accessToken || accessToken.replay) {
+                if (accessToken?.replay) {
+                    // A rotated-out token was replayed after its grace window and the grant
+                    // was revoked; record it so a forced re-consent is explainable later.
+                    await app.auditLog.User.account.mcpRefreshTokenReplay(accessToken.userId, null, {
+                        info: 'MCP refresh token replay detected; grant revoked',
+                        client: client_id,
+                        grant: accessToken.grantId
+                    })
+                }
                 badRequest(reply, 'invalid_request', 'Invalid refresh_token')
                 return
             }
@@ -666,8 +685,12 @@ module.exports = async function (app) {
             const response = {
                 access_token: accessToken.token,
                 token_type: 'bearer',
-                expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000),
-                refresh_token: accessToken.refreshToken
+                expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000)
+            }
+            // A within-grace refresh re-mints only the access token; omitting refresh_token
+            // tells the client to keep its current one (RFC 6749 section 6).
+            if (accessToken.refreshToken) {
+                response.refresh_token = accessToken.refreshToken
             }
             reply.send(response)
         } else {
