@@ -18,6 +18,21 @@ body:
       - Enterprise Tier Only (EE)
       - Other (See comments)
 - type: dropdown
+  id: expert-sync
+  attributes:
+    label: Does this need to be reflected in the FlowFuse Expert?
+    description: New or changed platform capabilities usually need matching Expert work, either MCP tooling so the Expert can drive the feature, or a skill so it knows how to use it. Select everything that applies.
+    multiple: true
+    options:
+      - No Expert impact
+      - Needs new MCP tooling
+      - Needs existing MCP tooling updated
+      - Needs a new skill
+      - Needs an existing skill updated
+      - Not sure, needs input
+  validations:
+      required: true
+- type: dropdown
   id: estimation
   attributes:
     label: Have you provided an initial effort estimate for this issue?
