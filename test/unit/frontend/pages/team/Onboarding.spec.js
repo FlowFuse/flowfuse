@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => {
         contextStore: { team: null },
         settingsStore: { featuresCheck: {} },
         accountStore: { setTeam: vi.fn().mockResolvedValue() },
-        expertStore: { messages: [], hydrateMessages: vi.fn() },
+        expertStore: { messages: [], openConversation: vi.fn() },
         supportAgentStore: { reset: vi.fn() },
         uxStore: { isOnboardingIntake: true, endOnboarding: vi.fn() }
     }
@@ -146,40 +146,51 @@ describe('Onboarding page', () => {
         expect(wrapper.vm.$options.provide.call(wrapper.vm)['expert-surface']).toBe('onboarding')
     })
 
-    describe('fixture transcript', () => {
+    describe('opening the conversation', () => {
         beforeEach(() => {
-            mocks.expertStore.hydrateMessages.mockClear()
+            mocks.expertStore.openConversation.mockClear()
             mocks.supportAgentStore.reset.mockClear()
             mocks.expertStore.messages = []
         })
 
-        test('seeds the placeholder conversation when the transcript is empty', async () => {
+        test('asks the Expert to open the conversation when the transcript is empty', async () => {
             await mountPage()
-            expect(mocks.expertStore.hydrateMessages).toHaveBeenCalledTimes(1)
-            const seeded = mocks.expertStore.hydrateMessages.mock.calls[0][0]
-            expect(Array.isArray(seeded)).toBe(true)
-            expect(seeded.length).toBeGreaterThan(0)
+            expect(mocks.expertStore.openConversation).toHaveBeenCalledTimes(1)
             expect(mocks.supportAgentStore.reset).not.toHaveBeenCalled()
         })
 
-        test('replaces a transcript that only holds canned messages', async () => {
+        // Arriving from the drawer leaves its canned welcome behind; it is not a
+        // conversation, so it gets cleared rather than opened on top of
+        test('clears a transcript that only holds canned messages first', async () => {
             mocks.expertStore.messages = [{ _type: 'ai', generated: true }]
             await mountPage()
             expect(mocks.supportAgentStore.reset).toHaveBeenCalledTimes(1)
-            expect(mocks.expertStore.hydrateMessages).toHaveBeenCalledTimes(1)
+            expect(mocks.expertStore.openConversation).toHaveBeenCalledTimes(1)
         })
 
-        test('does not reseed a real conversation', async () => {
+        // This is what makes the page resumable: a conversation already in
+        // progress is picked up rather than restarted
+        test('leaves a real conversation alone', async () => {
             mocks.expertStore.messages = [{ _type: 'human', content: 'hello' }]
             await mountPage()
-            expect(mocks.expertStore.hydrateMessages).not.toHaveBeenCalled()
+            expect(mocks.expertStore.openConversation).not.toHaveBeenCalled()
             expect(mocks.supportAgentStore.reset).not.toHaveBeenCalled()
         })
 
-        test('does not seed when the page is redirecting away', async () => {
+        test('does not open when the page is redirecting away', async () => {
             mocks.settingsStore.featuresCheck = { isAiOnboardingFeatureEnabled: false }
             await mountPage()
-            expect(mocks.expertStore.hydrateMessages).not.toHaveBeenCalled()
+            expect(mocks.expertStore.openConversation).not.toHaveBeenCalled()
+        })
+
+        // The team watcher can fire more than once before the opening turn comes
+        // back, and an empty transcript would let it through every time
+        test('only opens once even if the team resolves again', async () => {
+            const wrapper = await mountPage()
+            mocks.contextStore.team = { id: 't1', slug: 'ateam', instanceCount: 0 }
+            await wrapper.vm.$nextTick()
+            wrapper.vm.openConversation()
+            expect(mocks.expertStore.openConversation).toHaveBeenCalledTimes(1)
         })
     })
 
