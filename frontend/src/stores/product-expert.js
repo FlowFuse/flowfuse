@@ -849,8 +849,11 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         hydrateMessages (messages) {
             if (!messages) return
-            const isAiMessage = (message) => message.answer && Array.isArray(message.answer)
-            const isUserMessage = (message) => Object.prototype.hasOwnProperty.call(message, 'query') && message.query
+            // both predicates must return real booleans: the switch(true)
+            // below matches with strict equality, so a truthy string (e.g.
+            // the query text) would silently never match
+            const isAiMessage = (message) => Boolean(message.answer && Array.isArray(message.answer))
+            const isUserMessage = (message) => Boolean(Object.prototype.hasOwnProperty.call(message, 'query') && message.query)
 
             messages.forEach((message) => {
                 switch (true) {
