@@ -119,6 +119,43 @@ describe('ux store', () => {
         })
     })
 
+    describe('entering onboarding', () => {
+        it('is not pending by default', () => {
+            expect(useUxStore().consumeOnboardingEntry()).toBe(false)
+        })
+
+        it('is pending after registration', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            expect(store.shouldEnterOnboarding).toBe(true)
+        })
+
+        it('only fires once', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            expect(store.consumeOnboardingEntry()).toBe(true)
+            expect(store.consumeOnboardingEntry()).toBe(false)
+        })
+
+        // An account under a week old resolves to intake on every boot, but
+        // that must not keep sending them back to the onboarding page
+        it('is not raised by the account-age check', () => {
+            const store = useUxStore()
+            const recent = new Date()
+            recent.setDate(recent.getDate() - 2)
+            store.checkIfIsNewlyCreatedUser({ createdAt: recent.toISOString() })
+            expect(store.onboardingStage).toBe('intake')
+            expect(store.shouldEnterOnboarding).toBe(false)
+        })
+
+        it('is dropped when onboarding ends before it was consumed', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.endOnboarding()
+            expect(store.consumeOnboardingEntry()).toBe(false)
+        })
+    })
+
     it('validateUserAction only updates known keys', () => {
         const store = useUxStore()
         store.validateUserAction('hasOpenedDeviceEditor')

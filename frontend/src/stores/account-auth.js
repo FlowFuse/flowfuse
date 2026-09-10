@@ -145,7 +145,18 @@ export const useAccountAuthStore = defineStore('account-auth', {
                         await useAccountStore().setTeam(team)
                     }
                     useUxLoadingStore().clearAppLoader()
-                    if (redirectUrlAfterLogin) {
+                    // A freshly registered user goes to AI-led onboarding once.
+                    // The flag is consumed either way, so this never fires again
+                    // and never overrides where they chose to go afterwards.
+                    // Loses to an explicit destination: someone who registered
+                    // by accepting an invitation is headed somewhere specific,
+                    // and their team is not a fresh empty one.
+                    const enteringOnboarding = useUxStore().consumeOnboardingEntry() && !redirectUrlAfterLogin
+                    const contextTeam = useContextStore().team
+                    if (enteringOnboarding && contextTeam &&
+                        useAccountSettingsStore().featuresCheck?.isAiOnboardingFeatureEnabled) {
+                        router.push({ name: 'team-onboarding', params: { team_slug: contextTeam.slug } })
+                    } else if (redirectUrlAfterLogin) {
                         // If this is a user-driven login, take them to the profile page
                         router.push(redirectUrlAfterLogin)
                         // Clear the redirectUrl on nextTick
