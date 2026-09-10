@@ -3,7 +3,6 @@
         v-if="items.length"
         class="ff-expert-tasklist"
         :auto-open="active"
-        open-up
     >
         <template #header>
             <ListBulletIcon class="ff-expert-tasklist--glyph" />
@@ -17,7 +16,7 @@
                 class="ff-expert-tasklist--row"
                 :class="`is-${item.status}`"
             >
-                {{ item.text }}
+                {{ item.text }}<span class="ff-expert-tasklist--status">{{ statusLabel(item.status) }}</span>
             </li>
         </ul>
     </collapsible-section>
@@ -39,7 +38,7 @@ export default {
         title: {
             type: String,
             required: false,
-            default: 'Planning'
+            default: 'Tasks'
         }
     },
     computed: {
@@ -48,6 +47,18 @@ export default {
         },
         active () {
             return this.items.some(item => item.status === 'in_progress' || item.status === 'pending')
+        }
+    },
+    methods: {
+        statusLabel (status) {
+            switch (status) {
+            case 'in_progress':
+                return '(In Progress)'
+            case 'done':
+                return '(Done)'
+            default:
+                return '(To Do)'
+            }
         }
     }
 }
@@ -70,6 +81,7 @@ export default {
 }
 
 .ff-expert-tasklist--title {
+    font-size: 1rem;
     font-weight: 500;
 }
 
@@ -80,14 +92,14 @@ export default {
 
 .ff-expert-tasklist--body {
     list-style: disc;
-    padding: 0.75rem 1rem 0.25rem 2rem;
+    padding: 0.75rem 1rem 1.25rem 2rem;
     max-height: 40vh;
     overflow-y: auto;
     cursor: default;
 }
 
 .ff-expert-tasklist--row {
-    font-size: 0.875rem;
+    font-size: 1rem;
     line-height: 1.4;
     color: var(--ff-color-text);
 
@@ -102,6 +114,20 @@ export default {
 
     &.is-in_progress {
         font-style: italic;
+    }
+}
+
+.ff-expert-tasklist--status {
+    margin-left: 0.375rem;
+    font-size: 0.875rem;
+    display: inline-block;
+    text-decoration: none;
+    font-style: normal;
+    white-space: nowrap;
+    color: var(--ff-color-text-subtle);
+
+    .is-in_progress & {
+        color: var(--ff-color-accent);
     }
 }
 </style>

@@ -451,7 +451,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             case parsedTopic.inflightType === 'expert:tasks': {
                 const items = Array.isArray(payload.items) ? payload.items : []
                 this.activeTaskList = items.length
-                    ? { planId: payload.planId ?? null, title: payload.title || 'Planning', items }
+                    ? { planId: payload.planId ?? null, title: payload.title || 'Tasks', items }
                     : null
                 await mqttService.publishMessage(connectionKey, {
                     qos: 2,
@@ -1359,7 +1359,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         }
     },
     persist: {
-        pick: ['shouldWakeUpAssistant', 'questionCadence', 'agentMode'],
+        pick: ['shouldWakeUpAssistant', 'questionCadence', 'agentMode', 'activeTaskList'],
         storage: sessionStorage
     }
 })
