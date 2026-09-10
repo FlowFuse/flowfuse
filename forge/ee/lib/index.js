@@ -52,6 +52,11 @@ async function commonFeatures (app, opts) {
     // explicitly disabled in the config.
     const isMcpThirdPartyEnabled = isAiEnabled && (app.config?.expert?.enabled ?? false)
     app.config.features.register('mcpThirdParty', isMcpThirdPartyEnabled, true)
+
+    // Set the AI-led onboarding flag. Hidden and config-only: off unless
+    // expert.onboarding.enabled is explicitly set in the config.
+    const isAiOnboardingEnabled = isAiEnabled && (app.config?.expert?.enabled ?? false) && app.config?.expert?.onboarding?.enabled === true
+    app.config.features.register('aiOnboarding', isAiOnboardingEnabled, true)
 }
 
 module.exports = fp(async function (app, opts) {
