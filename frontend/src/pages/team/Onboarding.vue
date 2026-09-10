@@ -7,6 +7,7 @@
                 <a
                     href="#"
                     class="skip-onboarding"
+                    :class="{ 'has-engaged': hasEngaged }"
                     data-action="skip-onboarding"
                     @click.prevent="skipOnboarding"
                 >Set it up myself</a>
@@ -45,13 +46,22 @@ export default {
     data () {
         return {
             provisioning: false,
-            teleportReady: false
+            teleportReady: false,
+            // How many turns the user had contributed when the page opened.
+            // Anything beyond it is them engaging, which lets the seeded
+            // transcript exist without counting as engagement.
+            initialUserTurns: null,
+            hasEngaged: false
         }
     },
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
         ...mapState(useUxStore, ['isOnboardingIntake']),
+        ...mapState(useProductExpertStore, ['messages']),
+        userTurns () {
+            return this.messages.filter(message => message._type === 'human').length
+        },
         notAvailable () {
             if (!this.team) {
                 return false
@@ -72,6 +82,19 @@ export default {
             immediate: true,
             handler () {
                 this.seedFixtureTranscript()
+            }
+        },
+        userTurns: {
+            immediate: true,
+            handler (turns) {
+                // Engagement is the user answering or saying something, not a
+                // timer, so the control only recedes once they have committed
+                // to the conversation
+                if (this.initialUserTurns === null) {
+                    this.initialUserTurns = turns
+                } else if (turns > this.initialUserTurns) {
+                    this.hasEngaged = true
+                }
             }
         },
         notAvailable: {
@@ -151,9 +174,27 @@ export default {
     text-decoration: underline;
     text-underline-offset: 3px;
     white-space: nowrap;
+    transition: opacity 0.4s ease;
 
     &:hover {
         color: var(--ff-color-text-strong);
+    }
+
+    /* Still reachable once they are in the conversation, just no longer
+       competing with it for attention */
+    &.has-engaged {
+        opacity: 0.45;
+
+        &:hover,
+        &:focus-visible {
+            opacity: 1;
+        }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .skip-onboarding {
+        transition: none;
     }
 }
 

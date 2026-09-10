@@ -1,5 +1,6 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
+import { reactive } from 'vue'
 
 const mocks = vi.hoisted(() => {
     return {
@@ -47,6 +48,11 @@ import teamApi from '../../../../../frontend/src/api/team.ts'
 
 // imported after mocks so vi.mock hoisting resolves correctly
 import Onboarding from '../../../../../frontend/src/pages/team/Onboarding.vue'
+
+// The store mocks are plain objects, so the page's computeds would never see a
+// change. The mock factories read this property when called, so swapping in a
+// reactive version here is picked up.
+mocks.expertStore = reactive(mocks.expertStore)
 
 const routerPush = vi.fn()
 const routerReplace = vi.fn()
@@ -187,6 +193,44 @@ describe('Onboarding page', () => {
         test('offers a way out of onboarding', async () => {
             const wrapper = await mountPage()
             expect(wrapper.find('[data-action="skip-onboarding"]').exists()).toBe(true)
+        })
+
+        // A seeded or resumed transcript is not the user engaging, so the
+        // control has to stay at full weight until they contribute a turn
+        test('stays prominent until the user contributes a turn', async () => {
+            mocks.expertStore.messages = [
+                { _type: 'ai', generated: true },
+                { _type: 'human', content: 'seeded' }
+            ]
+            const wrapper = await mountPage()
+            expect(wrapper.find('[data-action="skip-onboarding"]').classes()).not.toContain('has-engaged')
+        })
+
+        test('recedes once the user contributes a turn', async () => {
+            mocks.expertStore.messages = [{ _type: 'ai', generated: true }]
+            const wrapper = await mountPage()
+            expect(wrapper.find('[data-action="skip-onboarding"]').classes()).not.toContain('has-engaged')
+
+            mocks.expertStore.messages = [
+                { _type: 'ai', generated: true },
+                { _type: 'human', content: 'a dashboard please' }
+            ]
+            await wrapper.vm.$nextTick()
+
+            expect(wrapper.find('[data-action="skip-onboarding"]').classes()).toContain('has-engaged')
+        })
+
+        test('stays reachable after it recedes', async () => {
+            mocks.expertStore.messages = []
+            const wrapper = await mountPage()
+            mocks.expertStore.messages = [{ _type: 'human', content: 'hello' }]
+            await wrapper.vm.$nextTick()
+
+            const control = wrapper.find('[data-action="skip-onboarding"]')
+            expect(control.exists()).toBe(true)
+            await control.trigger('click')
+            await flushPromises()
+            expect(teamApi.provisionDefaultWorkspace).toHaveBeenCalledWith('t1')
         })
 
         test('provisions the default workspace and lands on the team home', async () => {
