@@ -447,10 +447,14 @@ export const useProductExpertStore = defineStore('product-expert', {
                 })
                 break
             case parsedTopic.inflightType === 'expert:tasks': {
-                const items = Array.isArray(payload.items) ? payload.items : []
-                this.activeTaskList = items.length
-                    ? { planId: payload.planId ?? null, title: payload.title || 'Tasks', items }
-                    : null
+                // Only replace the list when the message carries one; status-only
+                // pings omit `items` and update the loading line above without
+                // touching the panel.
+                if (Array.isArray(payload.items)) {
+                    this.activeTaskList = payload.items.length
+                        ? { planId: payload.planId ?? null, title: payload.title || 'Tasks', items: payload.items }
+                        : null
+                }
                 await mqttService.publishMessage(connectionKey, {
                     qos: 2,
                     topic: responseTopic,
