@@ -367,6 +367,44 @@ module.exports = {
                         count,
                         teams: rows
                     }
+                },
+                /**
+                 * The ids of every team matching a search and filter, with no
+                 * pagination. For callers that need the whole matching set
+                 * rather than a page of it, such as selecting every team an
+                 * announcement should go to.
+                 *
+                 * Shares its where-clause construction with getAll so the ids
+                 * cannot drift from the list the admin is looking at.
+                 *
+                 * @param {Object} pagination search options; `query` only, any cursor is ignored
+                 * @param {Object} where additional filters, as built for getAll
+                 * @param {number} idLimit hard cap on how many ids are returned
+                 * @returns {{ids: string[], count: number, truncated: boolean}}
+                 */
+                getAllIds: async (pagination = {}, where = {}, idLimit = 10000) => {
+                    where = buildPaginationSearchClause({ query: pagination.query }, where, ['Team.name'])
+                    if (pagination.query) {
+                        const queryId = M.Team.decodeHashid(pagination.query)
+                        if (queryId && queryId.length === 1) {
+                            // The query term is a valid hashid - go look it up
+                            where = { id: queryId }
+                        }
+                    }
+                    const include = []
+                    if (app.billing) {
+                        // The billing filter references $Subscription.status$
+                        include.push({ model: app.db.models.Subscription, attributes: [] })
+                    }
+                    const [rows, count] = await Promise.all([
+                        this.findAll({ where, include, attributes: ['id'], order: [['id', 'ASC']], limit: idLimit + 1 }),
+                        this.count({ where, include })
+                    ])
+                    return {
+                        ids: rows.slice(0, idLimit).map(row => row.hashid),
+                        count,
+                        truncated: rows.length > idLimit
+                    }
                 }
             },
             instance: {

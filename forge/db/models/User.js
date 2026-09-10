@@ -314,6 +314,7 @@ module.exports = {
                  * @param {Boolean} options.count only return a count of results
                  * @param {Boolean} options.summary whether to return a limited user object that only contains id: default false
                  * @param {Array} options.teamTypes limit to teams of certain types
+                 * @param {Array} options.teams limit to an explicit list of team ids
                  * @param {Array} options.billing array of billing states to include
                  * @returns Array of users who have at least one of the specific roles, or a count
                  */
@@ -349,15 +350,19 @@ module.exports = {
                             }
                         }
                     }
+                    if (options.teams) {
+                        // Target an explicit set of teams, by raw id
+                        query.include.include.where.id = { [Op.in]: options.teams }
+                    }
                     if (options.teamTypes) {
                         query.include.include.where.TeamTypeId = { [Op.in]: options.teamTypes }
-                        if (options.billing) {
-                            query.include.include.include = {
-                                model: app.db.models.Subscription,
-                                attributes: ['status'],
-                                where: {
-                                    status: { [Op.in]: options.billing.map(opt => opt.toLowerCase()) }
-                                }
+                    }
+                    if (options.billing) {
+                        query.include.include.include = {
+                            model: app.db.models.Subscription,
+                            attributes: ['status'],
+                            where: {
+                                status: { [Op.in]: options.billing.map(opt => opt.toLowerCase()) }
                             }
                         }
                     }
