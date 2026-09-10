@@ -75,17 +75,12 @@ export default {
         }
     },
     computed: {
-        // A hand-typed or edited reply doesn't match the question lines, so
-        // every entry resolves to null; fall back to the raw reply text once.
         hasMatchedAnswers () {
             return this.turn.entries.some(entry => entry.answer !== null)
         }
     },
     methods: {
         ...mapActions(useProductExpertStore, ['setPendingInput']),
-        // One chip per pick: QuestionsList composes multi-select answers as a
-        // comma-separated list, so split for display only. Editing any chip
-        // loads the whole answer line, since a resend replaces the full turn.
         chipsFor (entry) {
             if (entry.answer) {
                 return entry.answer.split(', ')
