@@ -17,7 +17,7 @@
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
 
-import { buildCollapsedTranscript } from '../composables/collapseTranscript.js'
+import { buildCollapsedTranscript } from '../../../composables/Components/expert/collapseTranscript.js'
 
 import ExpertLoadingIndicator from './ExpertLoadingIndicator.vue'
 
@@ -55,9 +55,7 @@ export default {
             }
         },
         renderList () {
-            // The onboarding surface folds answered question turns into quiet
-            // lines (the collapsing-transcript treatment); the drawer renders
-            // the transcript as-is.
+            // The onboarding surface folds answered question turns into quiet while the drawer renders the transcript as-is.
             if (this.expertSurface === 'onboarding') {
                 return buildCollapsedTranscript(this.messages)
             }
