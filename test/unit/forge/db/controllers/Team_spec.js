@@ -190,4 +190,100 @@ describe('Team controller', function () {
             throw new Error('Allowed last owner to be removed')
         })
     })
+
+    describe('createDefaultApplication', function () {
+        it('creates an application named after the user and audits it', async function () {
+            const user = await app.db.models.User.byUsername('alice')
+            const team = await app.factory.createTeam({ name: 'default-app-team' })
+
+            const application = await app.db.controllers.Team.createDefaultApplication(team, user)
+
+            application.should.have.property('name', "Alice Skywalker's Application")
+            application.should.have.property('TeamId', team.id)
+
+            const auditEntries = await app.db.models.AuditLog.findAll({ where: { event: 'application.created' } })
+            auditEntries.should.have.length(2)
+        })
+    })
+
+    describe('provisionDefaultWorkspace', function () {
+        let projectType
+        let originalTeamLimit
+        before(async function () {
+            originalTeamLimit = app.license.defaults.teams
+            app.license.defaults.teams = 50
+            await app.factory.createProjectTemplate({ name: 'provision-template', settings: {}, policy: {} }, app.TestObjects.userAlice)
+            projectType = await app.factory.createProjectType({ name: 'provision-type', description: '', properties: {} })
+            await app.factory.createStack({ name: 'provision-stack' }, projectType)
+
+            const teamTypeProperties = app.TestObjects.defaultTeamType.properties
+            teamTypeProperties.instances = { [projectType.hashid]: { active: true } }
+            app.TestObjects.defaultTeamType.properties = teamTypeProperties
+            await app.TestObjects.defaultTeamType.save()
+        })
+
+        after(function () {
+            app.license.defaults.teams = originalTeamLimit
+        })
+
+        beforeEach(async function () {
+            await app.settings.set('user:team:auto-create:instanceType', projectType.hashid)
+        })
+
+        it('creates a default application and instance in an empty team', async function () {
+            const user = await app.db.models.User.byUsername('alice')
+            const team = await app.factory.createTeam({ name: 'provision team one' })
+
+            const result = await app.db.controllers.Team.provisionDefaultWorkspace(team, user)
+
+            result.should.have.property('applicationCreated', true)
+            result.application.should.have.property('name', "Alice Skywalker's Application")
+            result.instance.name.should.match(/^provision-team-one-alice-[0-9a-f]{8}$/)
+
+            const instances = await app.db.models.Project.byTeam(team.hashid)
+            instances.should.have.length(1)
+        })
+
+        it('reuses an existing application', async function () {
+            const user = await app.db.models.User.byUsername('alice')
+            const team = await app.factory.createTeam({ name: 'provision team two' })
+            const existingApplication = await app.factory.createApplication({ name: 'existing-app' }, team)
+
+            const result = await app.db.controllers.Team.provisionDefaultWorkspace(team, user)
+
+            result.should.have.property('applicationCreated', false)
+            result.application.should.have.property('id', existingApplication.id)
+
+            const applications = await app.db.models.Application.byTeam(team.id)
+            applications.should.have.length(1)
+        })
+
+        it('refuses to provision a team that already has instances', async function () {
+            const user = await app.db.models.User.byUsername('alice')
+            const team = await app.factory.createTeam({ name: 'provision team three' })
+            await app.db.controllers.Team.provisionDefaultWorkspace(team, user)
+
+            try {
+                await app.db.controllers.Team.provisionDefaultWorkspace(team, user)
+            } catch (err) {
+                err.should.have.property('code', 'team_not_empty')
+                return
+            }
+            throw new Error('Provisioned a non-empty team')
+        })
+
+        it('throws when the instance type setting is not set', async function () {
+            await app.settings.set('user:team:auto-create:instanceType', null)
+            const user = await app.db.models.User.byUsername('alice')
+            const team = await app.factory.createTeam({ name: 'provision team four' })
+
+            try {
+                await app.db.controllers.Team.provisionDefaultWorkspace(team, user)
+            } catch (err) {
+                err.should.have.property('code', 'invalid_instance_type')
+                return
+            }
+            throw new Error('Provisioned without an instance type')
+        })
+    })
 })
