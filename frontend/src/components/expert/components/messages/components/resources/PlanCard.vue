@@ -186,15 +186,17 @@ export default {
 }
 
 .plan-name {
+    font-size: 1.125rem;
     font-weight: 600;
+    color: var(--ff-color-text);
 }
 
 .plan-badge {
     font-size: 0.75rem;
     padding: 0.0625rem 0.5rem;
     border-radius: 999px;
-    background: var(--ff-color-accent-surface);
-    color: var(--ff-color-accent-text);
+    background: var(--ff-color-accent);
+    color: var(--ff-color-text-on-brand);
 }
 
 .plan-desc {
@@ -212,6 +214,10 @@ export default {
 .plan-collapsed {
     :deep(.ff-collapsible--header) {
         gap: 0.5rem;
+    }
+
+    .plan-desc {
+        margin-bottom: 0.75rem;
     }
 }
 </style>
