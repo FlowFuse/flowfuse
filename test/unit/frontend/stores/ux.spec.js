@@ -137,14 +137,35 @@ describe('ux store', () => {
             expect(store.consumeOnboardingEntry()).toBe(false)
         })
 
-        // An account under a week old resolves to intake on every boot, but
-        // that must not keep sending them back to the onboarding page
-        it('is not raised by the account-age check', () => {
+        function daysAgo (n) {
+            const date = new Date()
+            date.setDate(date.getDate() - n)
+            return date.toISOString()
+        }
+
+        // Email verification is not a reliable hook, so the flag is raised
+        // where the stage first resolves instead
+        it('is raised when the stage first resolves for a new account', () => {
             const store = useUxStore()
-            const recent = new Date()
-            recent.setDate(recent.getDate() - 2)
-            store.checkIfIsNewlyCreatedUser({ createdAt: recent.toISOString() })
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(2) })
             expect(store.onboardingStage).toBe('intake')
+            expect(store.shouldEnterOnboarding).toBe(true)
+        })
+
+        it('is not raised for an account older than a week', () => {
+            const store = useUxStore()
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(30) })
+            expect(store.shouldEnterOnboarding).toBe(false)
+        })
+
+        // Resolving the stage happens once, so this cannot fire on every boot
+        it('is not raised again on later boots', () => {
+            const store = useUxStore()
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(2) })
+            expect(store.consumeOnboardingEntry()).toBe(true)
+
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(2) })
+
             expect(store.shouldEnterOnboarding).toBe(false)
         })
 
