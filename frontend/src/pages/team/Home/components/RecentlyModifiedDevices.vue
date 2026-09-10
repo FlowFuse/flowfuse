@@ -23,8 +23,10 @@
         <div v-else class="no-devices flex flex-col flex-1 justify-center text-gray-500 italic">
             <p class="text-center self-center">
                 No remote Node-RED Instances found.
-                <span class="text-indigo-500 cursor-pointer" @click.stop.prevent="openCreateDialog">Add a Remote Instance</span>
-                to get started.
+                <template v-if="!teamDeviceLimitReached">
+                    <span class="text-indigo-500 cursor-pointer" @click.stop.prevent="openCreateDialog">Add a Remote Instance</span>
+                    to get started.
+                </template>
             </p>
         </div>
 
@@ -56,6 +58,7 @@ import { mapState } from 'pinia'
 import teamAPI from '../../../../api/team.js'
 
 import TeamLink from '../../../../components/router-links/TeamLink.vue'
+import { getTeamProperty } from '../../../../composables/TeamProperties.js'
 
 import DeviceActions from '../../../../mixins/DeviceActions.js'
 import DeviceTile from '../../Applications/components/compact/DeviceTile.vue'
@@ -91,6 +94,14 @@ export default {
         ...mapState(useContextStore, ['team']),
         instancesLeft () {
             return this.totalDevices - this.devices.length
+        },
+        teamDeviceLimitReached () {
+            const teamTypeDeviceLimit = getTeamProperty(this.team, 'devices.limit')
+            if (teamTypeDeviceLimit > -1 && this.totalDevices >= teamTypeDeviceLimit) {
+                // Device specific limit has been reached
+                return true
+            }
+            return false
         }
     },
     mounted () {
