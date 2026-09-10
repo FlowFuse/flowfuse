@@ -23,11 +23,7 @@ export const useUxStore = defineStore('ux', {
         overlay: false
     }),
     getters: {
-        // Sent to the Expert with every turn, so it spans the whole process
-        // rather than just the part spent on the onboarding page
         isOnboarding: (state) => ACTIVE_ONBOARDING_STAGES.includes(state.onboardingStage),
-        // The onboarding page only exists for the conversation. Once the Expert
-        // takes the user into the editor the drawer carries on without it.
         isOnboardingIntake: (state) => state.onboardingStage === ONBOARDING_STAGES.INTAKE
     },
     actions: {

@@ -39,9 +39,6 @@ export default {
     },
     provide () {
         return {
-            // Switches the shared expert components into the onboarding
-            // treatment (collapsing transcript, no info banner, no canned
-            // welcome message). The drawer keeps the 'drawer' default.
             'expert-surface': 'onboarding'
         }
     },
@@ -56,11 +53,6 @@ export default {
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
         ...mapState(useUxStore, ['isOnboardingIntake']),
         notAvailable () {
-            // Gated on the intake stage rather than on the team being empty:
-            // the Expert provisions the workspace partway through the
-            // conversation, so an instance existing is not a reason to send the
-            // user away. isOnboarding outlives this page, so it is the wrong
-            // gate too: it stays true once the Expert moves them to the editor.
             if (!this.team) {
                 return false
             }
@@ -86,9 +78,7 @@ export default {
             immediate: true,
             handler (unavailable) {
                 if (unavailable) {
-                    // Replace rather than push: onboarding is not somewhere the
-                    // user should be able to go Back to. The path is kept so the
-                    // 404 reports the URL that was actually asked for.
+                    // Replace rather than push: onboarding is not somewhere the user should be able to go Back to.
                     this.$router.replace({
                         name: 'page-not-found',
                         params: { pathMatch: this.$route.path.substring(1).split('/') },
@@ -138,8 +128,6 @@ export default {
                     return
                 }
             }
-            // They have said they would rather do it themselves, so stop
-            // treating them as mid-onboarding
             useUxStore().endOnboarding()
             this.$router.push({ name: 'team-home', params: { team_slug: this.team.slug } })
         }
