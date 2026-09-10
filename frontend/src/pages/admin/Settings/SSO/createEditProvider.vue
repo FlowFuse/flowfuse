@@ -18,6 +18,7 @@
                 </ff-button>
                 <template v-else>
                     <FormRow v-model="input.active" type="checkbox">Active</FormRow>
+                    <FormRow v-model="input.options.debugEnabled" type="checkbox">Enable Debug Logging</FormRow>
                     <template v-if="input.type === 'saml'">
                         <FormRow v-model="provider.acsURL" type="uneditable">ACS URL</FormRow>
                         <FormRow v-model="provider.entityID" type="uneditable">Entity ID / Issuer</FormRow>
@@ -190,7 +191,8 @@ export default {
                     groupAdminName: '',
                     groupPrefixLength: 0,
                     groupSuffixLength: 0,
-                    sendIdpHint: false
+                    sendIdpHint: false,
+                    debugEnabled: false
                 }
             },
             errors: {},
@@ -358,7 +360,8 @@ export default {
                     groupAssertionName: 'ff-roles',
                     groupPrefixLength: 0,
                     groupSuffixLength: 0,
-                    sendIdpHint: false
+                    sendIdpHint: false,
+                    debugEnabled: false
                 }
             } else {
                 this.loading = true
@@ -391,6 +394,7 @@ export default {
                 // groupTeams is stored as an array - convert to multi-line string for the edit form
                 this.input.options.groupTeams = (this.input.options.groupTeams || []).join('\n')
                 this.input.options.sendIdpHint = this.input.options.sendIdpHint ?? false
+                this.input.options.debugEnabled = this.input.options.debugEnabled ?? false
             } else {
                 // eslint-disable-next-line no-template-curly-in-string
                 this.input.options.userFilter = this.input.options.userFilter || '(uid=${username})'
