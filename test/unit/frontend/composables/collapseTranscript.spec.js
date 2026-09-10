@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { buildCollapsedTranscript } from '../../../../../frontend/src/components/expert/composables/collapseTranscript.js'
+import { buildCollapsedTranscript } from '../../../../frontend/src/composables/Components/expert/collapseTranscript.js'
 
 function aiMessage (uuid, answer) {
     return { _uuid: uuid, _type: 'ai', answer }

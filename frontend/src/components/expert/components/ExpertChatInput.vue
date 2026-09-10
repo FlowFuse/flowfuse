@@ -5,9 +5,6 @@
             direction="horizontal"
             @mousedown="onStartResize"
         />
-        <!-- Action buttons row. Hidden during onboarding: the conversation is
-             the whole flow there, so Start over, Plan mode and settings only
-             offer ways to derail it. -->
         <div v-if="expertSurface !== 'onboarding'" class="action-buttons">
             <button
                 type="button"
