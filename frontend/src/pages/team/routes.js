@@ -257,8 +257,6 @@ export default [
         }
     },
     {
-        // AI-led onboarding. Deliberately outside the `team` route tree: the
-        // plain layout has no RightDrawer. The page itself 404s when onboarding doesn't apply.
         path: '/team/:team_slug/onboarding',
         component: TeamOnboarding,
         name: 'team-onboarding',
