@@ -1,14 +1,6 @@
 /**
- * Track rotated-out MCP refresh tokens so rotation can tell a legitimate concurrent
- * or retried refresh from a replay.
- *
- * Each MCP refresh rotates the refresh token: a new one is issued and the presented
- * one is retired into this table with the moment it was retired. Presenting a retired
- * token within a short grace window is a retry or a lagging concurrent refresh;
- * presenting it after the window is a replay and revokes the grant. Keeping the full
- * lineage (not only the immediately previous token) means a token retired several
- * rotations ago is still recognised as belonging to the grant. The hash is unique and
- * indexed, so resolving a presented token never scans the AccessTokens table.
+ * Track rotated-out MCP refresh tokens so a later presentation can be resolved as a
+ * grace-window retry or a replay.
  */
 
 const { DataTypes } = require('sequelize')

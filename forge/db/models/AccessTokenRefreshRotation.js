@@ -1,16 +1,6 @@
 /**
- * AccessTokenRefreshRotation
- *
- * One row per refresh token that has been rotated out of an MCP OAuth grant.
- * Rotation retires the presented refresh token and records its hash here with the
- * moment it was retired. On the next refresh the controller resolves a non-current
- * token through this table: within the grace window it is a retry or a lagging
- * concurrent refresh; after the window it is a replay and the whole grant is revoked.
- *
- * Keeping the full lineage (not just the immediately previous token) means a token
- * retired several rotations ago is still recognised as belonging to the grant, so an
- * attacker who refreshes twice cannot bury the victim's stolen-then-retired token.
- * The hash is unique and indexed, so the lookup never scans the AccessTokens table.
+ * A refresh token rotated out of an MCP OAuth grant, retained as lineage so a
+ * later presentation resolves to a grace-window retry or a replay to revoke.
  */
 const { DataTypes } = require('sequelize')
 
@@ -22,9 +12,7 @@ module.exports = {
             primaryKey: true,
             autoIncrement: true
         },
-        // sha256 of the retired refresh token, set directly (already hashed).
         tokenHash: { type: DataTypes.STRING, allowNull: false },
-        // When this token was rotated out, used to bound the grace window.
         rotatedAt: { type: DataTypes.DATE, allowNull: false }
     },
     meta: {

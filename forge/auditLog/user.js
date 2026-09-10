@@ -43,8 +43,6 @@ module.exports = {
             async changeEmailConfirmed (actionedBy, error, user) {
                 await log('account.change-email-confirmed', actionedBy, generateBody({ error, user }))
             },
-            // A rotated-out MCP refresh token was replayed after its grace window, so the
-            // grant was revoked. `info` carries the client and grant id for support.
             async mcpRefreshTokenReplay (actionedBy, error, info) {
                 await log('account.mcp-refresh-token-replay', actionedBy, generateBody({ error, info }))
             }

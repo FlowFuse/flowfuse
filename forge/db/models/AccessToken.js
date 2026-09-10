@@ -58,7 +58,6 @@ module.exports = {
         this.belongsTo(M.Device, { foreignKey: 'ownerId', constraints: false })
         this.belongsTo(M.User, { foreignKey: 'ownerId', constraints: false })
         this.hasMany(M.AccessTokenTeamScope)
-        // Retired refresh tokens for this grant; revoking the grant prunes its lineage.
         this.hasMany(M.AccessTokenRefreshRotation, { onDelete: 'CASCADE' })
     },
     finders: function (M) {
@@ -83,9 +82,6 @@ module.exports = {
                     const hashedToken = sha256(refreshToken)
                     return await this.findOne({ where: { refreshToken: hashedToken } })
                 },
-                // Resolve a rotated-out refresh token to its retirement record (grant id
-                // and when it was retired), so the controller can tell a grace-window
-                // retry from a replay without scanning the AccessTokens table.
                 byRotatedRefreshToken: async (refreshToken) => {
                     const hashedToken = sha256(refreshToken)
                     return await M.AccessTokenRefreshRotation.findOne({ where: { tokenHash: hashedToken } })

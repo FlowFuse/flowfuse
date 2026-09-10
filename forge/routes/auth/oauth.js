@@ -14,8 +14,7 @@ function badRequest (reply, error, description) {
     })
 }
 
-// Defence in depth on the refresh grant: cap how often a single caller can present
-// refresh tokens, so probing the endpoint with guessed values is throttled.
+// Per-caller cap on the refresh grant, throttling probes with guessed tokens.
 const MCP_REFRESH_RATE_WINDOW = 1000 * 60 // 60 seconds
 const MCP_REFRESH_RATE_MAX = 30
 
@@ -620,8 +619,6 @@ module.exports = async function (app) {
                 return
             }
             await rateCache?.set(request.ip, rateCount + 1)
-            // ff-plugin and MCP clients are user-scoped; only project/device
-            // clients need their resource ownership re-checked on refresh.
             let refreshAuthClient = null
             if (client_id !== 'ff-plugin') {
                 refreshAuthClient = await app.db.controllers.AuthClient.getAuthClient(client_id, client_secret)
@@ -630,9 +627,8 @@ module.exports = async function (app) {
                 }
             }
             if (refreshAuthClient && refreshAuthClient.ownerType !== 'mcp') {
-                // Project/device clients re-check resource ownership on refresh, so the
-                // token must still resolve. MCP tokens are resolved by refreshToken()
-                // below, which owns the rotation grace window and replay detection.
+                // MCP tokens are resolved by refreshToken() below, which owns the grace
+                // window and replay detection; other clients re-check ownership here.
                 const existingToken = await app.db.models.AccessToken.byRefreshToken(refresh_token)
                 if (!existingToken) {
                     badRequest(reply, 'invalid_request', 'Invalid refresh_token')
@@ -670,8 +666,6 @@ module.exports = async function (app) {
             const accessToken = await app.db.controllers.AccessToken.refreshToken(refresh_token)
             if (!accessToken || accessToken.replay) {
                 if (accessToken?.replay) {
-                    // A rotated-out token was replayed after its grace window and the grant
-                    // was revoked; record it so a forced re-consent is explainable later.
                     await app.auditLog.User.account.mcpRefreshTokenReplay(accessToken.userId, null, {
                         info: 'MCP refresh token replay detected; grant revoked',
                         client: client_id,
@@ -687,8 +681,7 @@ module.exports = async function (app) {
                 token_type: 'bearer',
                 expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000)
             }
-            // A within-grace refresh re-mints only the access token; omitting refresh_token
-            // tells the client to keep its current one (RFC 6749 section 6).
+            // A within-grace refresh omits refresh_token so the client keeps its current one.
             if (accessToken.refreshToken) {
                 response.refresh_token = accessToken.refreshToken
             }

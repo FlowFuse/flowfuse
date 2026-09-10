@@ -491,8 +491,7 @@ describe('OAuth', async function () {
             rotated.access_token.should.be.a.String().and.startWith('ffpat')
             rotated.refresh_token.should.be.a.String().and.not.equal(first.refresh_token)
 
-            // presenting the rotated-out token again within the grace window re-mints a fresh
-            // access token but no refresh token, so a retried or racing refresh still succeeds
+            // within grace the rotated-out token re-mints an access token but no refresh token
             const graceResponse = await mcpApp.inject({
                 method: 'POST',
                 url: '/account/token',
