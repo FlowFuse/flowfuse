@@ -34,6 +34,7 @@ import userApi from '../api/user.js'
 import FFLayoutBox from '../layouts/Box.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 import { useUxStore } from '@/stores/ux.js'
 
@@ -51,7 +52,8 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountAuthStore, ['user'])
+        ...mapState(useAccountAuthStore, ['user']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck'])
     },
     methods: {
         ...mapActions(useUxStore, ['setNewlyCreatedUser']),
@@ -60,7 +62,9 @@ export default {
             try {
                 await userApi.verifyEmailToken(this.token)
                 clearTimeout(this.resendTimeout)
-                this.presentTour()
+                if (!this.featuresCheck?.isAiOnboardingFeatureEnabled) {
+                    this.presentTour()
+                }
                 this.setNewlyCreatedUser()
                 this.$router.go()
             } catch (err) {
