@@ -20,6 +20,10 @@ export const useUxStore = defineStore('ux', {
         },
         isNewlyCreatedUser: false,
         onboardingStage: null,
+        // Set once at registration and consumed on the next arrival, so a new
+        // signup is taken to onboarding exactly one time. Persisted because
+        // verification reloads the app before anything can act on it.
+        shouldEnterOnboarding: false,
         overlay: false
     }),
     getters: {
@@ -30,6 +34,15 @@ export const useUxStore = defineStore('ux', {
         setNewlyCreatedUser () {
             this.isNewlyCreatedUser = true
             this.onboardingStage = ONBOARDING_STAGES.INTAKE
+            this.shouldEnterOnboarding = true
+        },
+        // Returns whether this arrival should go to onboarding, and clears the
+        // flag either way: it is a one-shot, so a user who navigates elsewhere
+        // later is not dragged back.
+        consumeOnboardingEntry () {
+            const shouldEnter = this.shouldEnterOnboarding
+            this.shouldEnterOnboarding = false
+            return shouldEnter
         },
         validateUserAction (action) {
             if (Object.prototype.hasOwnProperty.call(this.userActions, action)) {
@@ -51,12 +64,15 @@ export const useUxStore = defineStore('ux', {
             }
         },
         startOnboardingBuild () { this.onboardingStage = ONBOARDING_STAGES.BUILDING },
-        endOnboarding () { this.onboardingStage = ONBOARDING_STAGES.DONE },
+        endOnboarding () {
+            this.onboardingStage = ONBOARDING_STAGES.DONE
+            this.shouldEnterOnboarding = false
+        },
         openOverlay () { this.overlay = true },
         closeOverlay () { this.overlay = false }
     },
     persist: {
-        pick: ['isNewlyCreatedUser', 'onboardingStage', 'userActions'],
+        pick: ['isNewlyCreatedUser', 'onboardingStage', 'shouldEnterOnboarding', 'userActions'],
         storage: localStorage
     }
 })
