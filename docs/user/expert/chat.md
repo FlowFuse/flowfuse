@@ -158,7 +158,7 @@ For example, if you ask Expert to "add three nodes" with Write set to *Ask*, it 
 | Action type | What it covers | Actions |
 |---|---|---|
 | **Read** | View only, no changes | List Applications, Get Application, Get Application Hosted Instances, Get Application Remote Instances, Get Application Instances Status, Get Application Audit Log, List Teams, Get Team, Get Hosted Instance, Get Hosted Instance Status, Get Hosted Instance Logs, Check Hosted Instance Name Availability, List Team Remote Instances, Get Remote Instance, Get Remote Instance Status, List Hosted Instance Snapshots, List Remote Instance Snapshots, List Hosted Instance Types, List Stacks, List Templates, List Blueprints, Open Hosted Instance, Open Hosted Instance Editor |
-| **Write** | Create or change resources | Create Application, Create Hosted Instance, Create Remote Instance, Assign Remote Instance To Application, Create Hosted Instance Snapshot, Create Remote Instance Snapshot |
+| **Write** | Create or change resources | Create Application, Create Hosted Instance, Create Remote Instance, Assign Remote Instance To Application, Create Hosted Instance Snapshot, Create Remote Instance Snapshot, Suspend Hosted Instance |
 
 #### Context: What the Expert Can See
 
