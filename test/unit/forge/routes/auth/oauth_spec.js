@@ -530,6 +530,34 @@ describe('OAuth', async function () {
             response.json().should.have.property('error', 'invalid_request')
         })
 
+        it('rate limits the refresh grant per IP and resets once the window elapses', async function () {
+            const clientID = (await register()).json().client_id
+            const rateCache = mcpApp.caches.getCache('mcp-refresh-rate')
+            rateCache.lru.clear()
+
+            async function fire () {
+                const response = await mcpApp.inject({
+                    method: 'POST',
+                    url: '/account/token',
+                    payload: { grant_type: 'refresh_token', client_id: clientID, refresh_token: 'ffp_not-a-real-token' }
+                })
+                return response.statusCode
+            }
+
+            // The gate runs before the token lookup, so volume alone throttles the IP.
+            for (let i = 0; i < 30; i++) {
+                (await fire()).should.not.equal(429)
+            }
+            (await fire()).should.equal(429)
+
+            // An IP at the cap still resets once its window has elapsed, rather than
+            // staying blocked while it keeps sending traffic.
+            const [key] = await rateCache.keys()
+            await rateCache.set(key, { windowStart: Date.now() - 1000 * 60 - 1, count: 30 })
+            const afterReset = await fire()
+            afterReset.should.not.equal(429)
+        })
+
         describe('consent expiry validation', function () {
             // Start an authorize flow and return the consent request id
             async function startConsent () {

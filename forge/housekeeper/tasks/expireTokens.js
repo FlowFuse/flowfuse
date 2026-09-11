@@ -1,5 +1,6 @@
 const { Op } = require('sequelize')
 
+const { DEFAULT_REFRESH_TOKEN_EXPIRY } = require('../../db/utils')
 const { randomInt } = require('../utils')
 
 module.exports = {
@@ -21,6 +22,11 @@ module.exports = {
                     { refreshTokenExpiresAt: { [Op.lt]: Date.now() } }
                 ]
             }
+        })
+        // Rotation rows outlive their usefulness once the retired refresh token they track
+        // could no longer be presented, so prune anything older than the refresh lifetime.
+        await app.db.models.AccessTokenRefreshRotation.destroy({
+            where: { rotatedAt: { [Op.lt]: Date.now() - DEFAULT_REFRESH_TOKEN_EXPIRY } }
         })
         // Remove any OAuthSession objects that were created more than 5 minutes ago
         await app.db.models.OAuthSession.destroy({ where: { createdAt: { [Op.lt]: Date.now() - 1000 * 60 * 5 } } })

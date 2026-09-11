@@ -48,7 +48,5 @@ module.exports = {
             unique: true
         })
     },
-    down: async (context) => {
-        await context.dropTable('AccessTokenRefreshRotations')
-    }
+    down: async (context) => {}
 }
