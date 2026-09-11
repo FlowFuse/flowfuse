@@ -156,6 +156,10 @@ export default {
         messageUuid: {
             type: String,
             required: true
+        },
+        instant: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['streaming-complete'],
@@ -317,7 +321,7 @@ export default {
             return this.streamedComponents.length >= this.componentStreamingOrder.indexOf(key)
         },
         shouldStream () {
-            return !this.answer._streamed
+            return !this.instant && !this.answer._streamed
         }
     },
     watch: {
@@ -369,7 +373,7 @@ export default {
             if (this.hasToolApproval) this.componentStreamingOrder.push('tool-approval-card')
         },
         async onComponentComplete (key) {
-            if (!this.shouldStream) await this.waitFor(200)
+            if (!this.shouldStream && !this.instant) await this.waitFor(200)
 
             this.streamedComponents.push(key)
         },
