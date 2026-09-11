@@ -465,7 +465,15 @@ module.exports.init = async function (app) {
             } else {
                 app.log.debug(`SAML Group Assertions for ${user.username} ${JSON.stringify(groupAssertions)}`)
             }
-            for (const ga of groupAssertions) {
+            for (let ga of groupAssertions) {
+                if (providerOpts.groupIdMap && providerOpts.groupIdMap[ga]) {
+                    if (providerOpts.debugEnabled) {
+                        app.log.info(`Mapping Group ID ${ga} to Group Name ${providerOpts.groupIdMap[ga]}`)
+                    } else {
+                        app.log.debug(`Mapping Group ID ${ga} to Group Name ${providerOpts.groupIdMap[ga]}`)
+                    }
+                    ga = providerOpts.groupIdMap[ga]
+                }
                 // Trim prefix/postfix from group name
                 let shortGA = ga
                 if (providerOpts.groupPrefixLength || providerOpts.groupSuffixLength) {
