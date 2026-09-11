@@ -46,6 +46,8 @@ module.exports = {
             }
         },
         refreshTokenExpiresAt: { type: DataTypes.DATE },
+        // Consent-chosen end of an MCP OAuth grant; refresh cannot extend past it
+        grantExpiresAt: { type: DataTypes.DATE },
         name: { type: DataTypes.STRING },
         readOnly: { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: false },
         adminOptIn: { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: false }
@@ -116,7 +118,7 @@ module.exports = {
                             name: { [Op.ne]: null }
                         },
                         order: [['id', 'ASC']],
-                        attributes: ['id', 'name', 'scope', 'expiresAt', 'readOnly', 'adminOptIn'],
+                        attributes: ['id', 'name', 'scope', 'expiresAt', 'readOnly', 'adminOptIn', 'refreshTokenExpiresAt', 'grantExpiresAt'],
                         include: [{
                             model: M.AccessTokenTeamScope,
                             include: [{
