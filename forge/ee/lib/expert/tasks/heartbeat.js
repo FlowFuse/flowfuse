@@ -4,7 +4,7 @@ const { randomInt } = require('../../../../housekeeper/utils')
 const { syncBridge } = require('../emxq-bridge/setup.js')
 const sleep = async (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
-module.exports = ({ schedule, startDelay, maxResponseTime, maxSuccessiveFailureCount } = {}) => {
+module.exports = ({ schedule, startDelay, maxResponseTime, maxSuccessiveFailureCount, maxResyncAttempts } = {}) => {
     const now = Date.now()
     if (startDelay === undefined || startDelay === null) {
         startDelay = 2 * 60 * 1000 // default to 2 minutes if not provided (0 is a valid value, meaning no delay)
@@ -20,6 +20,7 @@ module.exports = ({ schedule, startDelay, maxResponseTime, maxSuccessiveFailureC
     startDelay = +startDelay
     maxResponseTime = +maxResponseTime
     maxSuccessiveFailureCount = +(maxSuccessiveFailureCount ?? 3)
+    maxResyncAttempts = +(maxResyncAttempts ?? 5) // stop re-synchronizing after this many attempts, leaving the bridge down
 
     // Check everything is in order and throw if not
     if (!Number.isFinite(startDelay) || startDelay < 0) {
@@ -30,6 +31,9 @@ module.exports = ({ schedule, startDelay, maxResponseTime, maxSuccessiveFailureC
     }
     if (!Number.isFinite(maxSuccessiveFailureCount) || maxSuccessiveFailureCount < 0) {
         throw new RangeError(`maxSuccessiveFailureCount must be a non-negative number, got ${maxSuccessiveFailureCount}`)
+    }
+    if (!Number.isFinite(maxResyncAttempts) || maxResyncAttempts < 1) {
+        throw new RangeError(`maxResyncAttempts must be a positive number, got ${maxResyncAttempts}`)
     }
 
     // Validate schedule (basic/non-exhaustive):
@@ -67,13 +71,23 @@ module.exports = ({ schedule, startDelay, maxResponseTime, maxSuccessiveFailureC
 
             // Request a heartbeat from the Expert Agent via the bridge
             expertCommsHandler.requestBridgeHeartbeat(maxResponseTime, async (err, result) => {
-                if (err && result.errorCount > 0 && result.errorCount % maxSuccessiveFailureCount === 0) {
-                    app.log.error(`Expert Agent bridge heartbeat failed ${result.errorCount} times in a row, re-synchronizing the bridge`)
-                    try {
-                        await syncBridge(app, { force: true }) // force tears down and re-creates the bridge.
-                    } catch (syncErr) {
-                        app.log.error(`Error synchronizing bridge after heartbeat failure: ${syncErr.message}`)
-                    }
+                if (!err || result.errorCount <= 0 || result.errorCount % maxSuccessiveFailureCount !== 0) {
+                    return
+                }
+                // Fail closed: once we have re-synchronized maxResyncAttempts times without
+                // recovery, leave the bridge down until a heartbeat succeeds and resets errorCount.
+                const resyncCap = maxSuccessiveFailureCount * maxResyncAttempts
+                if (result.errorCount > resyncCap) {
+                    return
+                }
+                app.log.error(`Expert Agent bridge heartbeat failed ${result.errorCount} times in a row, re-synchronizing the bridge`)
+                try {
+                    await syncBridge(app, { force: true }) // force tears down and re-creates the bridge.
+                } catch (syncErr) {
+                    app.log.error(`Error synchronizing bridge after heartbeat failure: ${syncErr.message}`)
+                }
+                if (result.errorCount === resyncCap) {
+                    app.log.error(`Expert Agent bridge re-synchronized ${maxResyncAttempts} times without recovery, leaving it down until a heartbeat succeeds`)
                 }
             })
         }
