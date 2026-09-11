@@ -28,7 +28,7 @@
         <div v-if="showAiConnectorButton" class="ff-main-navigation__footer">
             <button type="button" class="ff-ai-connector-nav-button" data-el="ai-connector-nav-button" @click="onAiConnectorClick">
                 <McpIcon class="ff-ai-connector-nav-button__icon" />
-                <span>Connect an AI agent</span>
+                <span>Connect your AI agent</span>
             </button>
         </div>
     </div>

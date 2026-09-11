@@ -1,14 +1,10 @@
 <template>
     <ff-dialog
         ref="dialog"
-        header="Connect an AI agent to FlowFuse"
-        box-class="max-w-[52rem]! w-full!"
+        header="Connect your AI agent to FlowFuse"
+        box-class="max-w-[64rem]! w-full!"
     >
         <template #default>
-            <p class="ai-connector__intro">
-                Point your own AI agent at FlowFuse over MCP. It can then read and act on your instances, applications and devices, with you choosing the teams it reaches and whether it can edit or only read.
-            </p>
-
             <div class="ff-agent-card">
                 <div class="ff-agent-tabs" role="tablist" aria-label="Choose your AI agent">
                     <button
@@ -41,7 +37,7 @@
                     <div class="ff-agent-step">
                         <p class="ff-agent-step__num">01</p>
                         <p class="ff-agent-step__title">Copy the FlowFuse connector URL</p>
-                        <p class="ff-agent-step__body">You will paste this into your agent in the next step.</p>
+                        <p class="ff-agent-step__body">Paste it into your agent in the next step.</p>
                         <div class="ff-agent-step__cta">
                             <div class="ai-connector__command">
                                 <code class="ai-connector__endpoint">{{ endpoint }}</code>
@@ -74,16 +70,16 @@
                     <div class="ff-agent-step">
                         <p class="ff-agent-step__num">03</p>
                         <p class="ff-agent-step__title">Sign in and choose what it reaches</p>
-                        <p class="ff-agent-step__body">Which teams the agent may act on, and whether it has editing rights or read access only.</p>
+                        <p class="ff-agent-step__body">Pick which teams it acts on, and whether it can edit or only read.</p>
                     </div>
                 </div>
             </div>
         </template>
 
         <template #actions>
-            <a href="https://flowfuse.com/docs/user/expert/third-party-agents/" class="ff-link mr-auto" target="_blank" rel="noopener">Read the documentation</a>
-            <a href="https://flowfuse.com/ai/" class="ff-link" target="_blank" rel="noopener">More about FlowFuse AI</a>
-            <ff-button kind="secondary" @click="close">Close</ff-button>
+            <ff-button kind="secondary" @click="openExternal('https://flowfuse.com/docs/user/expert/third-party-agents/')">Read the documentation</ff-button>
+            <ff-button kind="secondary" class="mr-auto" @click="openExternal('https://flowfuse.com/ai/')">More about FlowFuse AI</ff-button>
+            <ff-button kind="primary" @click="close">Close</ff-button>
         </template>
     </ff-dialog>
 </template>
@@ -103,11 +99,20 @@ import { useUxToursStore } from '@/stores/ux-tours.js'
 
 const CLIENTS = [
     {
+        id: 'claude',
+        logo: '/images/ai/agents/claude.svg',
+        name: 'Claude',
+        step2Title: 'Add a custom connector',
+        step2Body: 'Paste the URL.',
+        step2Label: 'Open Claude',
+        step2Url: 'https://claude.ai/'
+    },
+    {
         id: 'copilot',
         logo: '/images/ai/agents/microsoft-copilot.svg',
         name: 'Microsoft Copilot',
         step2Title: 'Copilot Studio, Tools, Add a tool',
-        step2Body: 'Choose Model Context Protocol and paste the URL. Describe what it is for: the orchestrator reads that to decide when to call it.',
+        step2Body: 'Pick Model Context Protocol, paste the URL.',
         step2Label: 'Open Copilot Studio',
         step2Url: 'https://copilotstudio.microsoft.com/'
     },
@@ -116,25 +121,16 @@ const CLIENTS = [
         logo: '/images/ai/agents/chatgpt.svg',
         name: 'ChatGPT',
         step2Title: 'Settings, Apps & Connectors, Advanced settings',
-        step2Body: 'Turn on developer mode there, then add FlowFuse by URL. Developer mode needs a paid plan, so it is not on the free tier.',
+        step2Body: 'Enable developer mode, add by URL. Paid plans only.',
         step2Label: 'Open ChatGPT',
         step2Url: 'https://chatgpt.com/'
-    },
-    {
-        id: 'claude',
-        logo: '/images/ai/agents/claude.svg',
-        name: 'Claude',
-        step2Title: 'Add a custom connector',
-        step2Body: 'Where custom connectors are available on your plan, add one and paste the URL. On Team and Enterprise an owner adds it once for everyone.',
-        step2Label: 'Open Claude',
-        step2Url: 'https://claude.ai/'
     },
     {
         id: 'local',
         icon: true,
         name: 'Local and Custom Agents',
         step2Title: "Your MCP client's config",
-        step2Body: 'Any MCP-capable client works, pointed at your own model, so nothing has to leave your network.',
+        step2Body: 'Any MCP client, pointed at your own model.',
         step2Label: 'See the documentation',
         step2Url: 'https://flowfuse.com/docs/user/expert/'
     }
@@ -206,6 +202,9 @@ export default {
                     alerts.emit('Clipboard write permission denied.', 'warning')
                 })
         },
+        openExternal (url) {
+            window.open(url, '_blank', 'noopener')
+        },
         close () {
             this.closeModal('aiConnector')
         }
@@ -214,12 +213,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.ai-connector__intro {
-    margin: 0 0 20px;
-    line-height: 1.5;
-    color: var(--ff-color-text-subtle);
-}
-
 .ff-agent-card {
     container-type: inline-size;
     overflow: hidden;
@@ -350,7 +343,8 @@ export default {
 .ai-connector__endpoint {
     font-family: var(--ff-font-mono, monospace);
     font-size: 13px;
-    word-break: break-all;
+    white-space: nowrap;
+    overflow-x: auto;
     color: var(--ff-color-text-default);
 }
 
