@@ -550,8 +550,7 @@ describe('OAuth', async function () {
             }
             (await fire()).should.equal(429)
 
-            // An IP at the cap still resets once its window has elapsed, rather than
-            // staying blocked while it keeps sending traffic.
+            // an elapsed window resets the counter even while the IP keeps sending
             const [key] = await rateCache.keys()
             await rateCache.set(key, { windowStart: Date.now() - 1000 * 60 - 1, count: 30 })
             const afterReset = await fire()

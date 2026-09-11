@@ -615,9 +615,7 @@ module.exports = async function (app) {
             const rateCache = app.caches?.getCache?.('mcp-refresh-rate', { ttl: MCP_REFRESH_RATE_WINDOW, max: 100000 })
             const now = Date.now()
             const rateEntry = await rateCache?.get(request.ip)
-            // Anchor the window on its first request: the cache resets an entry's TTL on
-            // every set(), so relying on expiry alone would never reset the counter for an
-            // IP that keeps refreshing.
+            // The cache renews an entry's TTL on each set, so the window is anchored on windowStart.
             const inWindow = rateEntry && now - rateEntry.windowStart < MCP_REFRESH_RATE_WINDOW
             const rateCount = inWindow ? rateEntry.count : 0
             if (rateCount >= MCP_REFRESH_RATE_MAX) {

@@ -23,8 +23,7 @@ module.exports = {
                 ]
             }
         })
-        // Rotation rows outlive their usefulness once the retired refresh token they track
-        // could no longer be presented, so prune anything older than the refresh lifetime.
+        // Past the refresh lifetime a rotation row can no longer be presented, so prune it.
         await app.db.models.AccessTokenRefreshRotation.destroy({
             where: { rotatedAt: { [Op.lt]: Date.now() - DEFAULT_REFRESH_TOKEN_EXPIRY } }
         })
