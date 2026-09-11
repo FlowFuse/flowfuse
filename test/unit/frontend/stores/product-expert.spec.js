@@ -33,6 +33,25 @@ vi.mock('@/stores/ux-drawers.js', () => ({
     }))
 }))
 
+const { publishMessage } = vi.hoisted(() => ({ publishMessage: vi.fn() }))
+
+vi.mock('@/services/app.orchestrator', () => ({
+    default: () => ({ $services: { mqtt: { publishMessage } } })
+}))
+
+vi.mock('@/composables/services/MqttExpertTopicHelper', () => ({
+    useMqttExpertTopicHelper: () => ({
+        parseTopic: () => ({ inflightType: 'expert:tasks', entityType: 'team', entityId: 't1', agentChannel: 'support' }),
+        buildTopic: () => 'response/topic'
+    })
+}))
+
+vi.mock('@/stores/account-auth.js', () => ({
+    useAccountAuthStore: vi.fn(() => ({ getSessionId: () => 'browser-session-x' }))
+}))
+
+vi.mock('@/subscribers/team-subscriber.contract', () => ({ connectionKey: () => 'team/key' }))
+
 // imported after mocks so vi.mock hoisting resolves correctly
 const { useProductExpertStore } = await import('@/stores/product-expert.js')
 const { useProductExpertSupportAgentStore } = await import('@/stores/product-expert-support-agent.js')
@@ -316,6 +335,56 @@ describe('product-expert store', () => {
 
             expect(supportAgent.messages).toHaveLength(0)
             expect(store.loadingVariant).toBe(SUPPORT_AGENT)
+        })
+    })
+
+    describe('stopInflightChat', () => {
+        it('marks the chat stopped and clears the task list', () => {
+            const store = useProductExpertStore()
+            useProductExpertSupportAgentStore().activeTaskList = {
+                planId: null, title: 'Tasks', items: [{ id: 't1', text: 'x', status: 'in_progress' }]
+            }
+
+            store.stopInflightChat()
+
+            expect(store._chatStopped).toBe(true)
+            expect(store.activeTaskList).toBeNull()
+        })
+    })
+
+    describe('handleInFlightRequest task surface', () => {
+        const surface = (status) => ({
+            topic: 'in/topic',
+            payload: { items: [{ id: 't1', text: 'Do a thing', status }], title: 'Tasks', planId: 'p1' },
+            transactionId: 'tx1',
+            sessionId: 'chat-1',
+            chatTransactionId: 'ctx1'
+        })
+
+        it('applies and acks a surface trailing the reply for the active session', async () => {
+            const store = useProductExpertStore()
+            useProductExpertSupportAgentStore().sessionId = 'chat-1'
+            store._chatStopped = false
+
+            await store.handleInFlightRequest(surface('done'))
+
+            expect(store.activeTaskList).toEqual({
+                planId: 'p1', title: 'Tasks', items: [{ id: 't1', text: 'Do a thing', status: 'done' }]
+            })
+            expect(publishMessage).toHaveBeenCalledTimes(1)
+            expect(JSON.parse(publishMessage.mock.calls[0][1].payload)).toEqual({ ack: true })
+        })
+
+        it('acks but does not apply a surface that arrives after a stop', async () => {
+            const store = useProductExpertStore()
+            useProductExpertSupportAgentStore().sessionId = 'chat-1'
+            store._chatStopped = true
+
+            await store.handleInFlightRequest(surface('in_progress'))
+
+            expect(store.activeTaskList).toBeNull()
+            expect(publishMessage).toHaveBeenCalledTimes(1)
+            expect(JSON.parse(publishMessage.mock.calls[0][1].payload)).toEqual({ ack: true })
         })
     })
 })

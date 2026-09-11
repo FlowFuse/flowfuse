@@ -39,6 +39,8 @@ export const useProductExpertStore = defineStore('product-expert', {
         // 'request-plan-change' focuses an empty composer for the plan card's "Request
         // changes"; 'reset' clears a plan loaded via "Edit manually" but not sent.
         composerCommand: null,
+        // Set on stop/drop, cleared on the next send: a surface after a stop acks but does not apply.
+        _chatStopped: false,
         _seenTransactionIds: new Map(),
         // Open human-in-the-loop approval batch (#421). When a turn defers a tool batch
         // for approval the agent ends the turn and returns the card(s); we hold the
@@ -305,6 +307,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             if (!mqttService.hasClient(mqttConnectionKey)) await this.establishMqttComms()
 
             // add the query as an inFlight request
+            this._chatStopped = false
             this._inFlightRequests.set(transactionId, { query, transactionId })
 
             const { entityId, entityType } = mqttTopicHelper.getEntityTopicPaths()
@@ -377,19 +380,17 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
         },
         async handleInFlightRequest ({ topic, message, payload: parsedPayload, transactionId, sessionId, chatTransactionId } = {}) {
-            // Match the originating chat request explicitly (not just the first entry) so a
-            // concurrent in-flight request — e.g. an open tool approval — can't shadow it and
-            // cause us to drop a valid in-flight request.
-            const inFlightRequest = Array.from(this._inFlightRequests.values())
-                .find(r => r.transactionId === chatTransactionId)
-
             // A third-party MCP request is addressed to this tab's browser session rather
             // than a chat session, and has no originating chat request to correlate with,
-            // so it bypasses both checks below. Everything else keeps today's behaviour.
+            // so it bypasses the check below. Everything else keeps today's behaviour.
             const isBrowserSession = !!sessionId && sessionId === useAccountAuthStore().getSessionId()
 
-            // dismiss inFlight requests that don't match the existing sessionId or the inFlight message transactionId
-            if (!isBrowserSession && (sessionId !== this.sessionId || !inFlightRequest)) return
+            // dismiss messages from a different chat session
+            if (!isBrowserSession && sessionId !== this.sessionId) return
+
+            // A chat surface can trail the reply that emptied the in-flight map; it is still
+            // acked and applied. One that trails a stop is acked but not applied.
+            const suppressChatState = !isBrowserSession && this._chatStopped
 
             const servicesOrchestrator = getAppOrchestrator()
             const assistantStore = useProductAssistantStore()
@@ -420,7 +421,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             // expert:tasks has its own panel; its status rides expert:status-message.
             // Every other inflight type feeds the loading line.
-            if (parsedTopic.inflightType !== 'expert:tasks') {
+            if (parsedTopic.inflightType !== 'expert:tasks' && !suppressChatState) {
                 this._addInFlightUpdate(payload.status || payload.toolname || 'Processing request...')
             }
 
@@ -451,10 +452,12 @@ export const useProductExpertStore = defineStore('product-expert', {
                 })
                 break
             case parsedTopic.inflightType === 'expert:tasks': {
-                const items = Array.isArray(payload.items) ? payload.items : []
-                this._agentStore.activeTaskList = items.length
-                    ? { planId: payload.planId ?? null, title: payload.title || 'Tasks', items }
-                    : null
+                if (!suppressChatState) {
+                    const items = Array.isArray(payload.items) ? payload.items : []
+                    this._agentStore.activeTaskList = items.length
+                        ? { planId: payload.planId ?? null, title: payload.title || 'Tasks', items }
+                        : null
+                }
                 try {
                     await mqttService.publishMessage(connectionKey, {
                         qos: 2,
@@ -659,6 +662,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             agentStore.sessionId = uuidv4()
             agentStore.messages = []
             agentStore.activeTaskList = null
+            this._chatStopped = false
 
             // A new chat drops the per-session tool grants ("Always allow/deny for this chat")
             // and the resolved-approval outcomes tied to the messages we just cleared.
@@ -896,9 +900,6 @@ export const useProductExpertStore = defineStore('product-expert', {
             })
         },
         async _onMqttMessage  (topic, message, packet) {
-            // ignore any messages if inFlightRequests has been cleared (it means that the chat was stopped mid-flight)
-            if (this._inFlightRequests.size === 0) return
-
             const topicHelper = useMqttExpertTopicHelper()
             const parsedTopic = topicHelper.parseTopic(topic)
             const transactionId = packet.properties?.correlationData ? new TextDecoder().decode(packet.properties.correlationData) : null
@@ -919,6 +920,8 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             switch (true) {
             case parsedTopic.isReply: // final chat response
+                // no pending request means the chat was stopped or already resolved; ignore
+                if (this._inFlightRequests.size === 0) return
                 // remove inFlight request because it is now resolved
                 this._inFlightRequests.delete(transactionId)
                 // handle the response
@@ -1362,6 +1365,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
             }
             this._inFlightRequests.clear()
+            this._chatStopped = true
             this._agentStore.activeTaskList = null
         }
     },
