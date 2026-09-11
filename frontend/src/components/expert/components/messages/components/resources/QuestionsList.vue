@@ -80,8 +80,7 @@ export default {
             type: Boolean,
             default: false
         },
-        // A previously sent answer to restore (picks and typed text), so a card keeps
-        // its state after a page refresh. Null on a fresh, unanswered card.
+        // a previously sent answer (picks and typed text) to restore after a page refresh
         initialAnswer: {
             type: Object,
             default: null
@@ -95,10 +94,8 @@ export default {
             selections: initial?.selections
                 ? initial.selections.map(picks => [...picks])
                 : this.questions.map(() => []),
-            // one free-text answer per question; empty until the user types their own
             freeTexts: initial?.freeTexts ? [...initial.freeTexts] : this.questions.map(() => ''),
-            // whether the typed answer is the chosen one (its radio/checkbox is on). Kept
-            // separate from freeTexts so a typed-but-unpicked answer stays in the field.
+            // separate from freeTexts so a typed-but-unpicked answer stays in the field
             freeTextSelected: initial?.freeTextSelected ? [...initial.freeTextSelected] : this.questions.map(() => false),
             // ff-radio-group expects an options array; the option label doubles as its value.
             // disabled is mirrored from the prop in the watcher below so a stale card greys out.
@@ -135,8 +132,7 @@ export default {
         },
         setSingle (qIndex, label) {
             this.selections.splice(qIndex, 1, label === null || label === undefined ? [] : [label])
-            // Single-select: picking an option deselects the typed answer. The text stays
-            // in the field so the user can go back to it, it just is not the chosen answer.
+            // picking an option deselects the typed answer, but leaves the text in the field
             if (label !== null && label !== undefined) {
                 this.freeTextSelected.splice(qIndex, 1, false)
             }
@@ -149,8 +145,8 @@ export default {
             this.selections.splice(qIndex, 1, next)
         },
         selectFreeText (qIndex) {
+            // single-select: the typed answer and the options are mutually exclusive
             this.freeTextSelected.splice(qIndex, 1, true)
-            // Single-select: the typed answer and the options are mutually exclusive.
             this.selections.splice(qIndex, 1, [])
         },
         toggleFreeText (qIndex, checked) {
@@ -161,17 +157,14 @@ export default {
             if (value.trim().length === 0) {
                 return
             }
-            // Typing chooses the typed answer; on single-select that clears any picked option,
-            // on multi-select it is added alongside whatever options are already checked.
+            // typing chooses the typed answer; on single-select that clears any picked option
             this.freeTextSelected.splice(qIndex, 1, true)
             if (!this.questions[qIndex].multiSelect) {
                 this.selections.splice(qIndex, 1, [])
             }
         },
         compose () {
-            // always send one "question: answer(s)" line per question, even for a single
-            // question, so the agent always sees both the question and the chosen answer.
-            // A chosen typed answer joins the picks so the line keeps the same shape as before.
+            // one "question answer(s)" line per question, unchanged in shape from before
             return this.questions
                 .map((q, i) => {
                     const answers = [...(this.selections[i] || [])]
@@ -184,8 +177,7 @@ export default {
                 .join('\n')
         },
         submit () {
-            // Send the agent the composed text (unchanged shape) plus the raw answer state,
-            // which the parent persists so the card keeps its picks after a refresh.
+            // emit the composed text plus the raw answer state the parent persists for refresh
             this.$emit('select', {
                 query: this.compose(),
                 answer: {
@@ -242,8 +234,7 @@ export default {
     align-items: center;
     gap: 0;
 
-    // The control keeps its 25px label gutter (empty label) so the field's left edge
-    // lines up under the option labels above; centre the control against the field.
+    // keep the control's label gutter so the field lines up under the option labels, and centre the control
     :deep(.ff-radio-btn),
     :deep(.ff-checkbox) {
         min-height: 32px;
@@ -261,7 +252,7 @@ export default {
     min-width: 0;
 }
 
-// Match the greyed-out treatment the options get on a past (disabled) card.
+// match the greyed-out treatment the options get on a disabled card
 .question-free-text--disabled {
     cursor: not-allowed;
 

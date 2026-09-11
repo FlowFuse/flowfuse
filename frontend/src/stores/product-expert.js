@@ -39,8 +39,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         // 'request-plan-change' focuses an empty composer for the plan card's "Request
         // changes"; 'reset' clears a plan loaded via "Edit manually" but not sent.
         composerCommand: null,
-        // Answers chosen on question cards, keyed by the card's answer uuid, so a sent card
-        // keeps its picks and typed answer after a page refresh. { [answerUuid]: { selections, freeTexts, freeTextSelected } }
+        // question-card answers keyed by answer uuid, so a sent card survives a refresh
         questionAnswers: {},
         _seenTransactionIds: new Map(),
         // Open human-in-the-loop approval batch (#421). When a turn defers a tool batch

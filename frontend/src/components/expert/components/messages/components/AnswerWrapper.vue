@@ -374,7 +374,6 @@ export default {
             this.streamedComponents.push(key)
         },
         onQuestionsSubmit ({ query, answer }) {
-            // Persist the picks and typed answer so the sent card keeps them after a refresh.
             this.saveQuestionAnswer(this.answer._uuid, answer)
             this.handleQuery({ query })
         },
