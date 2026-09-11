@@ -26,24 +26,39 @@
                     <span v-if="opt.description" class="option-description">{{ opt.description }}</span>
                 </ff-checkbox>
             </div>
+
+            <div class="question-free-text" :class="{ 'question-free-text--disabled': disabled }">
+                <ff-radio-button
+                    v-if="!q.multiSelect"
+                    label=""
+                    value="__free-text__"
+                    :checked="freeTextSelected[qIndex]"
+                    :disabled="disabled"
+                    @select="() => selectFreeText(qIndex)"
+                />
+                <ff-checkbox
+                    v-else
+                    :model-value="freeTextSelected[qIndex]"
+                    :disabled="disabled"
+                    @update:model-value="checked => toggleFreeText(qIndex, checked)"
+                />
+                <ff-text-input
+                    class="question-free-text__input"
+                    :model-value="freeTexts[qIndex]"
+                    :disabled="disabled"
+                    placeholder="Type your own answer..."
+                    @update:model-value="value => setFreeText(qIndex, value)"
+                />
+            </div>
         </div>
         <div class="questions-actions">
             <ff-button
                 kind="primary"
                 size="small"
                 :disabled="disabled || !allAnswered"
-                @click="$emit('select', compose())"
+                @click="submit"
             >
                 Send
-            </ff-button>
-            <ff-button
-                kind="secondary"
-                size="small"
-                :disabled="disabled || !allAnswered"
-                title="Edit before sending"
-                @click="$emit('edit', compose())"
-            >
-                Edit
             </ff-button>
         </div>
     </div>
@@ -64,13 +79,27 @@ export default {
         shouldStream: {
             type: Boolean,
             default: false
+        },
+        // A previously sent answer to restore (picks and typed text), so a card keeps
+        // its state after a page refresh. Null on a fresh, unanswered card.
+        initialAnswer: {
+            type: Object,
+            default: null
         }
     },
-    emits: ['select', 'edit', 'streaming-complete'],
+    emits: ['select', 'streaming-complete'],
     data () {
+        const initial = this.initialAnswer
         return {
             // one array of selected option labels per question
-            selections: this.questions.map(() => []),
+            selections: initial?.selections
+                ? initial.selections.map(picks => [...picks])
+                : this.questions.map(() => []),
+            // one free-text answer per question; empty until the user types their own
+            freeTexts: initial?.freeTexts ? [...initial.freeTexts] : this.questions.map(() => ''),
+            // whether the typed answer is the chosen one (its radio/checkbox is on). Kept
+            // separate from freeTexts so a typed-but-unpicked answer stays in the field.
+            freeTextSelected: initial?.freeTextSelected ? [...initial.freeTextSelected] : this.questions.map(() => false),
             // ff-radio-group expects an options array; the option label doubles as its value.
             // disabled is mirrored from the prop in the watcher below so a stale card greys out.
             optionSets: this.questions.map(q => (q.options || []).map(opt => ({
@@ -83,7 +112,11 @@ export default {
     },
     computed: {
         allAnswered () {
-            return this.questions.every((q, i) => (this.selections[i] || []).length > 0)
+            return this.questions.every((q, i) => {
+                const hasSelection = (this.selections[i] || []).length > 0
+                const hasFreeText = this.freeTextSelected[i] && (this.freeTexts[i] || '').trim().length > 0
+                return hasSelection || hasFreeText
+            })
         }
     },
     watch: {
@@ -102,6 +135,11 @@ export default {
         },
         setSingle (qIndex, label) {
             this.selections.splice(qIndex, 1, label === null || label === undefined ? [] : [label])
+            // Single-select: picking an option deselects the typed answer. The text stays
+            // in the field so the user can go back to it, it just is not the chosen answer.
+            if (label !== null && label !== undefined) {
+                this.freeTextSelected.splice(qIndex, 1, false)
+            }
         },
         setMulti (qIndex, label, checked) {
             const current = this.selections[qIndex] || []
@@ -110,12 +148,52 @@ export default {
                 : current.filter(l => l !== label)
             this.selections.splice(qIndex, 1, next)
         },
+        selectFreeText (qIndex) {
+            this.freeTextSelected.splice(qIndex, 1, true)
+            // Single-select: the typed answer and the options are mutually exclusive.
+            this.selections.splice(qIndex, 1, [])
+        },
+        toggleFreeText (qIndex, checked) {
+            this.freeTextSelected.splice(qIndex, 1, checked)
+        },
+        setFreeText (qIndex, value) {
+            this.freeTexts.splice(qIndex, 1, value)
+            if (value.trim().length === 0) {
+                return
+            }
+            // Typing chooses the typed answer; on single-select that clears any picked option,
+            // on multi-select it is added alongside whatever options are already checked.
+            this.freeTextSelected.splice(qIndex, 1, true)
+            if (!this.questions[qIndex].multiSelect) {
+                this.selections.splice(qIndex, 1, [])
+            }
+        },
         compose () {
             // always send one "question: answer(s)" line per question, even for a single
-            // question, so the agent always sees both the question and the chosen answer
+            // question, so the agent always sees both the question and the chosen answer.
+            // A chosen typed answer joins the picks so the line keeps the same shape as before.
             return this.questions
-                .map((q, i) => `${q.question} ${(this.selections[i] || []).join(', ')}`)
+                .map((q, i) => {
+                    const answers = [...(this.selections[i] || [])]
+                    const freeText = (this.freeTexts[i] || '').trim()
+                    if (this.freeTextSelected[i] && freeText) {
+                        answers.push(freeText)
+                    }
+                    return `${q.question} ${answers.join(', ')}`
+                })
                 .join('\n')
+        },
+        submit () {
+            // Send the agent the composed text (unchanged shape) plus the raw answer state,
+            // which the parent persists so the card keeps its picks after a refresh.
+            this.$emit('select', {
+                query: this.compose(),
+                answer: {
+                    selections: this.selections.map(picks => [...picks]),
+                    freeTexts: [...this.freeTexts],
+                    freeTextSelected: [...this.freeTextSelected]
+                }
+            })
         }
     }
 }
@@ -157,6 +235,48 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+}
+
+.question-free-text {
+    display: flex;
+    align-items: center;
+    gap: 0;
+
+    // The control keeps its 25px label gutter (empty label) so the field's left edge
+    // lines up under the option labels above; centre the control against the field.
+    :deep(.ff-radio-btn),
+    :deep(.ff-checkbox) {
+        min-height: 32px;
+        align-items: center;
+    }
+
+    :deep(.checkbox) {
+        top: 50%;
+        transform: translateY(-50%);
+    }
+}
+
+.question-free-text__input {
+    flex: 1;
+    min-width: 0;
+}
+
+// Match the greyed-out treatment the options get on a past (disabled) card.
+.question-free-text--disabled {
+    cursor: not-allowed;
+
+    :deep(.ff-text-input) {
+        background-color: transparent;
+        border-color: var(--ff-color-border);
+    }
+
+    :deep(input) {
+        color: var(--ff-color-text-subtle);
+    }
+
+    :deep(input::placeholder) {
+        color: var(--ff-color-text-subtle);
+    }
 }
 
 // The checkbox slot renders both the label and (optionally) its description; stack them.
