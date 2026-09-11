@@ -277,17 +277,38 @@ describe('data-farm-hosted-instances store', () => {
         })
     })
 
+    describe('markLauncherVersionWarned', () => {
+        it('records an id once and is idempotent', () => {
+            const store = useDataFarmHostedInstancesStore()
+            expect(store.launcherVersionWarnedIds.has('i1')).toBe(false)
+
+            store.markLauncherVersionWarned('i1')
+            store.markLauncherVersionWarned('i1')
+
+            expect(store.launcherVersionWarnedIds.has('i1')).toBe(true)
+            expect(store.launcherVersionWarnedIds.size).toBe(1)
+        })
+
+        it('ignores a falsy id', () => {
+            const store = useDataFarmHostedInstancesStore()
+            store.markLauncherVersionWarned(undefined)
+            expect(store.launcherVersionWarnedIds.size).toBe(0)
+        })
+    })
+
     describe('reset', () => {
         it('clears all state', async () => {
             vi.spyOn(teamApi, 'getInstances').mockResolvedValue({ projects: [instance('i1')], meta: { total: 1 } })
             const store = useDataFarmHostedInstancesStore()
             await store.fetchTeamInstancesPage('team-1')
+            store.markLauncherVersionWarned('i1')
 
             store.reset()
 
             expect(store.instancesById).toEqual({})
             expect(store.currentPageIds).toEqual([])
             expect(store.total).toBe(0)
+            expect(store.launcherVersionWarnedIds.size).toBe(0)
         })
     })
 })

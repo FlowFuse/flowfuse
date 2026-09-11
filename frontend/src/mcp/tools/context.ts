@@ -14,6 +14,7 @@ const tools: McpToolDefinition[] = [
             application the user is talking about without them having to spell it out.
             If there are still things you are not sure about after reading the response, ask the user to clarify.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
+        _meta: { requiresBrowserSession: true },
         inputSchema: {
             type: 'object',
             properties: {}

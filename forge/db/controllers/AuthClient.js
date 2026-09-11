@@ -42,6 +42,17 @@ module.exports = {
         return client
     },
 
+    // Register a public MCP client (RFC 7591). No owner, no secret: PKCE only,
+    // and the generated clientID is the sole credential.
+    createMCPClient: async function (app, { name, redirectURIs } = {}) {
+        return app.db.models.AuthClient.create({
+            clientID: generateToken(32, 'ffmcp'),
+            ownerType: 'mcp',
+            name: name || 'MCP Agent',
+            redirectURIs: redirectURIs || []
+        })
+    },
+
     removeClientForDevice: async function (app, device) {
         const existingAuthClient = await device.getAuthClient()
         if (existingAuthClient) {

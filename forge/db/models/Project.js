@@ -144,11 +144,13 @@ module.exports = {
     hooks: function (M, app) {
         return {
             beforeCreate: async (project, opts) => {
-                // if the product is licensed, we permit overage
-                const isLicensed = app.license.active()
-                if (isLicensed !== true) {
-                    const { instances } = await app.license.usage('instances')
-                    if (instances.count >= instances.limit) {
+                if (app.license.active() && app.license.status().expired) {
+                    throw new Error('license expired')
+                }
+                const { instances } = await app.license.usage('instances')
+                if (instances.count >= instances.limit) {
+                    // Potential overage - check if overage is permitted by the license
+                    if (!app.license.allowOverage('instances')) {
                         throw new Error('license limit reached')
                     }
                 }

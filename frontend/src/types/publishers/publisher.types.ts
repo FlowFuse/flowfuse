@@ -16,9 +16,16 @@ export interface TeamPublisherI extends Publisher {
     isConnected(): boolean
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface TabPresencePublisherI extends TeamPublisherI {
+    /**
+     * Publish a heartbeat now rather than waiting out the interval. Callers use it
+     * whenever something has just changed what the platform should know about this tab.
+     */
+    announcePresence(): void
+}
+
 export type PublisherInstances = {
-    // concrete publishers added here as needed
+    tabPresence: TabPresencePublisherI | null
 }
 
 export interface CreatePublisherOptions<TTransport extends Transport = Transport> {

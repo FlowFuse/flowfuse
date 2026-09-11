@@ -37,7 +37,7 @@ const getTeamTypes = async (cursor, limit, filter) => {
                     teamType.annualBillingInterval = annualInterval
                 }
             } else {
-                teamType.billingPrice = 'free'
+                teamType.billingPrice = ''
                 teamType.billingInterval = ''
             }
             return teamType

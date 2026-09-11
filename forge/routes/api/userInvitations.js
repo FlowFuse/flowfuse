@@ -31,7 +31,11 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const invitations = await app.db.models.Invitation.forUser(request.session.User)
-        const result = app.db.views.Invitation.invitationList(invitations)
+        let result = app.db.views.Invitation.invitationList(invitations)
+        const allowTeam = app.patTeamScopeFilter(request)
+        if (allowTeam) {
+            result = result.filter(invite => allowTeam(invite.team.id))
+        }
         reply.send({
             meta: {}, // For future pagination
             count: result.length,

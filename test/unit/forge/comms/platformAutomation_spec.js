@@ -24,16 +24,18 @@ describe('PlatformAutomationHandler', function () {
         }
     }
 
-    function invokeToolCall ({ userId, toolName, args, meta }) {
+    function invokeToolCall ({ userId, toolName, args, meta, scope, mcpSessionId }) {
         return new Promise((resolve) => {
             const onSuccess = (result) => resolve({ ok: true, result })
             const onError = (message, code, err) => resolve({ ok: false, message, code, err })
             handler.eventHandler(
                 {
                     userId,
+                    mcpSessionId,
                     command: 'mcp-call-tool',
                     data: { name: toolName, input: args || {} },
-                    meta
+                    meta,
+                    scope
                 },
                 onSuccess,
                 onError
@@ -149,6 +151,55 @@ describe('PlatformAutomationHandler', function () {
         })
     })
 
+    describe('third-party session token', function () {
+        const MCP_SESSION_TOKEN_CACHE = 'mcp-session-token'
+
+        afterEach(async function () {
+            const cache = app.caches.getCache(MCP_SESSION_TOKEN_CACHE)
+            await cache.del('session-with-token')
+        })
+
+        it('injects the caller PAT and marks source mcp when the door recorded a token', async function () {
+            const { token: callerToken } = await app.expert.mcp.getOrCreatePlatformToken(app.adminUser)
+            const cache = app.caches.getCache(MCP_SESSION_TOKEN_CACHE)
+            await cache.set('session-with-token', callerToken)
+
+            const platformTokenSpy = sinon.spy(app.expert.mcp, 'getOrCreatePlatformToken')
+            const injectSpy = sinon.spy(app, 'inject')
+            const nonceSpy = sinon.spy(app.nonceStore, 'createSourceNonce')
+            const tool = handler.findTool('platform_list_teams')
+
+            const res = await invokeToolCall({
+                userId: app.adminUser.hashid,
+                toolName: 'platform_list_teams',
+                mcpSessionId: 'session-with-token',
+                meta: { toolDefinition: { annotations: tool.annotations } }
+            })
+
+            res.ok.should.be.true()
+            platformTokenSpy.called.should.be.false()
+            injectSpy.firstCall.args[0].headers.authorization.should.equal(`Bearer ${callerToken}`)
+            nonceSpy.firstCall.args[0].should.have.property('source', 'mcp')
+        })
+
+        it('mints a platform token and marks source mcp:expert when the session has no recorded token', async function () {
+            const platformTokenSpy = sinon.spy(app.expert.mcp, 'getOrCreatePlatformToken')
+            const nonceSpy = sinon.spy(app.nonceStore, 'createSourceNonce')
+            const tool = handler.findTool('platform_list_teams')
+
+            const res = await invokeToolCall({
+                userId: app.adminUser.hashid,
+                toolName: 'platform_list_teams',
+                mcpSessionId: 'session-without-token',
+                meta: { toolDefinition: { annotations: tool.annotations } }
+            })
+
+            res.ok.should.be.true()
+            platformTokenSpy.calledOnce.should.be.true()
+            nonceSpy.firstCall.args[0].should.have.property('source', 'mcp:expert')
+        })
+    })
+
     describe('platform_get_remote_instance_status', function () {
         afterEach(function () {
             delete app.comms
@@ -187,8 +238,66 @@ describe('PlatformAutomationHandler', function () {
                 meta: { toolDefinition: { annotations: tool.annotations } }
             })
 
+            // A missing comms stack is a real failure, so it must arrive as an error envelope.
+            // Returned as a bare { error } object it had no statusCode, so formatResponse
+            // passed it through as a successful result.
             res.ok.should.be.true()
-            res.result.should.have.property('error', 'Device communications not available')
+            res.result.should.have.property('isError', true)
+            res.result.should.have.property('code', 503)
+            res.result.content.code.should.equal('unexpected_error')
+            res.result.content.error.should.match(/Device communications are not available/)
+        })
+    })
+
+    describe('unknown user', function () {
+        it('errors instead of reporting a silent empty success', async function () {
+            const tool = handler.findTool('platform_get_active_user')
+
+            const res = await invokeToolCall({
+                userId: 'not-a-real-user-hashid',
+                toolName: 'platform_get_active_user',
+                meta: { toolDefinition: { annotations: tool.annotations } }
+            })
+
+            // The tool-call branch used to be wrapped in a bare `if (user)` with no else, so an
+            // unresolvable userId left result as {} and fired onSuccess - a call that appeared to
+            // succeed while doing nothing at all.
+            res.ok.should.be.false()
+            res.code.should.equal('MCP_PLATFORM_USER_NOT_FOUND')
+        })
+    })
+
+    describe('caller scope', function () {
+        function callActiveUser (message) {
+            const tool = handler.findTool('platform_get_active_user')
+            return invokeToolCall({
+                ...message,
+                userId: app.adminUser.hashid,
+                toolName: 'platform_get_active_user',
+                meta: { toolDefinition: { annotations: tool.annotations }, ...message.meta }
+            })
+        }
+
+        it('passes the caller scope through to the tool handler', async function () {
+            const res = await callActiveUser({ scope: { readOnly: true, teams: [app.team.hashid] } })
+
+            res.ok.should.be.true()
+            res.result.should.have.property('username', app.adminUser.username)
+            res.result.token.should.eql({ readOnly: true, allTeams: false, teams: [app.team.hashid] })
+        })
+
+        it('accepts the caller scope on meta', async function () {
+            const res = await callActiveUser({ meta: { scope: { readOnly: true, teams: [] } } })
+
+            res.ok.should.be.true()
+            res.result.token.should.eql({ readOnly: true, allTeams: true, teams: [] })
+        })
+
+        it('treats a call with no scope as full user access', async function () {
+            const res = await callActiveUser({})
+
+            res.ok.should.be.true()
+            res.result.token.should.eql({ readOnly: false, allTeams: true, teams: [] })
         })
     })
 
@@ -262,6 +371,37 @@ describe('PlatformAutomationHandler', function () {
             entry.source.should.equal('mcp:expert')
             const body = JSON.parse(entry.body)
             body.sourceContext.should.have.property('toolName', 'platform_create_application')
+        })
+
+        it('tool call from a session with a recorded token produces an audit entry with source mcp', async function () {
+            const { token: callerToken } = await app.expert.mcp.getOrCreatePlatformToken(app.adminUser)
+            const cache = app.caches.getCache('mcp-session-token')
+            await cache.set('audit-trail-third-party-session', callerToken)
+
+            try {
+                const tool = handler.findTool('platform_create_application')
+
+                const res = await invokeToolCall({
+                    userId: app.adminUser.hashid,
+                    toolName: 'platform_create_application',
+                    mcpSessionId: 'audit-trail-third-party-session',
+                    args: { name: 'audit-trail-third-party-app', teamId: app.team.hashid },
+                    meta: { toolDefinition: { annotations: tool.annotations } }
+                })
+
+                res.ok.should.be.true()
+
+                const entry = await app.db.models.AuditLog.findOne({
+                    where: { event: 'application.created' },
+                    order: [['createdAt', 'DESC']]
+                })
+                should.exist(entry)
+                entry.source.should.equal('mcp')
+                const body = JSON.parse(entry.body)
+                body.sourceContext.should.have.property('toolName', 'platform_create_application')
+            } finally {
+                await cache.del('audit-trail-third-party-session')
+            }
         })
     })
 })

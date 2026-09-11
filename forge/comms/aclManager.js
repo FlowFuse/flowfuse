@@ -18,7 +18,14 @@ module.exports = function (app) {
         const toolAccessPermission = {
             'automation:select-nodes': 'project:flows:view',
             'automation:get-nodes': 'project:flows:view',
-            'automation:get-flows': 'project:flows:view'
+            'automation:get-flows': 'project:flows:view',
+            // Platform-UI automation rides the same inflight channel but never touches flows.
+            // Discovery returns static tool definitions, and the tools themselves (ui_get_context,
+            // ui_list_routes, ui_navigate) are all readOnlyHint - so they only need view access.
+            // Without these entries both fall through to the project:flows:edit default below,
+            // which locks read-only navigation out for anyone who cannot edit flows.
+            'automation-ui:mcp-get-features': 'project:flows:view',
+            'automation-ui:mcp-call-tool': 'project:flows:view'
         }
         const requiredPermission = toolAccessPermission[toolName] || 'project:flows:edit' // default to highest level of access if tool isn't in the list, to be safe
 
@@ -123,8 +130,9 @@ module.exports = function (app) {
                 return false
             }
         },
-        checkUserIsTeamMember: async function (requestParts, usernameParts) {
-            // requestParts = [ fullTopic , <teamHash> [, <userHash> [, <sessionId>]] ]
+        checkTeamUserSession: async function (requestParts, usernameParts) {
+            // requestParts = [ fullTopic , <teamHash> [, <userHash>] ] - v1
+            // requestParts = [ fullTopic , <teamHash>, <userHash>, <sessionId> ] - v2 (MCP)
             // usernameParts = [ 'fe-team', <userHash>, <teamHash>, <sessionId> ]
             const topicTeamHash = requestParts[1]
             const usernameUserHash = usernameParts[1]
@@ -760,7 +768,10 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', isPlatform: true, isPub: true, agent: 'platform' },
                 // platform can publish third-party MCP requests to the central gateway
                 // - ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/request
-                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/request$/, verify: 'checkMcpTopic', isPlatform: true, isPub: true }
+                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/request$/, verify: 'checkMcpTopic', isPlatform: true, isPub: true },
+                // platform can tell one browser tab about its MCP state
+                // - ff/v1/<team>/u/<user>/s/<session>/mcp/clients
+                { topic: /^ff\/v1\/[^/]+\/u\/[^/]+\/s\/[^/]+\/mcp\/clients$/ }
             ]
         },
         project: {
@@ -818,9 +829,9 @@ module.exports = function (app) {
         teamFrontend: {
             sub: [
                 // - ff/v1/<team>/t/updated
-                { topic: /^ff\/v1\/([^/]+)\/t\/updated$/, verify: 'checkUserIsTeamMember' },
+                { topic: /^ff\/v1\/([^/]+)\/t\/updated$/, verify: 'checkTeamUserSession' },
                 // - ff/v1/<team>/u/<user>/membership
-                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/membership$/, verify: 'checkUserIsTeamMember' },
+                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/membership$/, verify: 'checkTeamUserSession' },
                 // - ff/v1/<team>/p/+/state
                 { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/state$/, verify: 'checkTeamStateSub' },
                 // - ff/v1/<team>/d/+/state
@@ -830,12 +841,14 @@ module.exports = function (app) {
                 // - ff/v1/<team>/p/+/created|updated|deleted
                 { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/(created|updated|deleted)$/, verify: 'checkTeamStateSub' },
                 // - ff/v1/expert/<user>/<session>/+/+/mcp/inflight/+/request
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/mcp\/inflight\/([^/]+)\/request$/, verify: 'checkMcpInflightTopic', allowWildcard: { entity: true, inflightType: true }, isSub: true }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/mcp\/inflight\/([^/]+)\/request$/, verify: 'checkMcpInflightTopic', allowWildcard: { entity: true, inflightType: true }, isSub: true },
+                // - ff/v1/<team>/u/<user>/s/<session>/mcp/clients
+                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/s\/([^/]+)\/mcp\/clients$/, verify: 'checkTeamUserSession' }
             ],
             pub: [
                 // - ff/v1/<team>/u/<user>/s/<session>/<heartbeat|close|disconnected>
                 //   `disconnected` is the last will, published by the broker, not the tab
-                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/s\/([^/]+)\/(heartbeat|close|disconnected)$/, verify: 'checkUserIsTeamMember' },
+                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/s\/([^/]+)\/(heartbeat|close|disconnected)$/, verify: 'checkTeamUserSession' },
                 // - ff/v1/expert/<user>/<session>/<a|p|d|t>/<entityId>/mcp/inflight/<type>/response
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/mcp\/inflight\/([^/]+)\/response$/, verify: 'checkMcpInflightTopic', isPub: true }
             ]

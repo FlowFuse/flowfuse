@@ -47,7 +47,7 @@ const eventsRegistry = {
         propertyValue: true
     },
     'editor:close': {
-        nodeRedEvent: 'testing stuff matey',
+        nodeRedEvent: 'editor:close',
         propertyBag: 'editorState',
         propertyName: 'editorOpen',
         propertyValue: false

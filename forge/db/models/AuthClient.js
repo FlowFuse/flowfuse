@@ -18,7 +18,19 @@ module.exports = {
             }
         },
         ownerId: { type: DataTypes.STRING },
-        ownerType: { type: DataTypes.STRING }
+        // 'project'/'device' for editor auth clients; 'mcp' for dynamically registered MCP clients (public, no secret)
+        ownerType: { type: DataTypes.STRING },
+        name: { type: DataTypes.STRING, allowNull: true },
+        redirectURIs: {
+            type: DataTypes.TEXT,
+            get () {
+                const rawValue = this.getDataValue('redirectURIs')
+                return rawValue ? JSON.parse(rawValue) : []
+            },
+            set (value) {
+                this.setDataValue('redirectURIs', JSON.stringify(value || []))
+            }
+        }
     },
     associations: function (M) {
         this.belongsTo(M.Project, { foreignKey: 'ownerId', constraints: false })

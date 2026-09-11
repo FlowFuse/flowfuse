@@ -41,6 +41,10 @@ module.exports = async function (app) {
         if (app.license.active() && app.billing && app.db.controllers.Subscription.freeTrialCreditEnabled()) {
             response.free_trial_available = await app.db.controllers.Subscription.userEligibleForFreeTrialCredit(user)
         }
+        const allowTeam = app.patTeamScopeFilter(request)
+        if (allowTeam && response.defaultTeam && !allowTeam(response.defaultTeam)) {
+            delete response.defaultTeam
+        }
 
         reply.send(response)
     })
@@ -128,7 +132,11 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const teams = await app.db.models.Team.forUser(request.session.User)
-        const result = await app.db.views.Team.userTeamList(teams)
+        let result = await app.db.views.Team.userTeamList(teams)
+        const allowTeam = app.patTeamScopeFilter(request)
+        if (allowTeam) {
+            result = result.filter(team => allowTeam(team.id))
+        }
         reply.send({
             meta: {}, // For future pagination
             count: result.length,

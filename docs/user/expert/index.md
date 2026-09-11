@@ -42,6 +42,12 @@ AI features within the Node-RED editor include inline code completions, flow aut
 
 [Learn more about AI in Node-RED](/docs/user/expert/node-red-embedded-ai/)
 
+## Using Your Own AI Agent
+
+Connect your own AI agent, such as Microsoft Copilot, ChatGPT or Claude, to manage your platform and build and edit flows in your Node-RED instances.
+
+[Learn more about connecting your own agent](/docs/user/expert/third-party-agents/)
+
 ## Data Privacy
 
 No data from FlowFuse is used by third-party AI service providers for training models.
