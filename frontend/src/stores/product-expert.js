@@ -69,7 +69,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         isWaitingForResponse () { return !!this._agentStore.abortController || this._inFlightRequests.size > 0 },
         isSupportAgent: (state) => state.agentMode === SUPPORT_AGENT,
         isInsightsAgent: (state) => state.agentMode === INSIGHTS_AGENT,
-        activePlanId: (state) => state.activeTaskList?.planId ?? null,
+        activePlanId () { return this.activeTaskList?.planId ?? null },
         hasSelectedCapabilities () {
             return useProductExpertInsightsAgentStore().selectedCapabilities?.length > 0
         },
