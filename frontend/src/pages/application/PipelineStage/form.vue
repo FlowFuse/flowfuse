@@ -725,10 +725,20 @@ export default {
             const type = this.selectedGitTokenType
             if (url === '') {
                 this.errors.url = ''
-            } else if (type === 'github' || type === 'azure') {
-                this.errors.url = (/^https:\/\/github\.com\/[^/]+\/[^/]+$/.test(url) || /^https:\/\/dev\.azure\.com\/[^/]+\/[^/]\/_git\/[^/]+$/.test(url))
+            } else if (type === 'github') {
+                // github url can be in the form of:
+                //  - https://github.com/org/repo
+                this.errors.url = /^https:\/\/github\.com\/[^/]+\/[^/]+\/?$/.test(url)
                     ? ''
-                    : 'Please enter a valid GitHub or Azure DevOps repository URL'
+                    : 'Please enter a valid GitHub repository URL'
+            } else if (type === 'azure') {
+                // azure devops url can be in the form of:
+                //  - https://dev.azure.com/org/project/_git/repo
+                //  - https://dev.azure.com/org/_git/repo
+                //  - https://org@dev.azure.com/org/project/_git/repo
+                this.errors.url = /^https:\/\/(?:[^/]+@)?dev\.azure\.com\/[^/]+(?:\/[^/]+)?\/_git\/[^/]+\/?$/.test(url)
+                    ? ''
+                    : 'Please enter a valid Azure DevOps repository URL'
             } else {
                 this.errors.url = /^https:\/\//i.test(url) ? '' : 'Please enter a valid HTTPS repository URL'
             }
@@ -771,6 +781,15 @@ export default {
                 if (this.repoStageHasCredentialSecret && (!this.input.credentialSecret || this.input.credentialSecret === '__PLACEHOLDER__')) {
                     // Don't send back a blank/placeholder value to avoid overwriting the existing value
                     delete this.input.credentialSecret
+                }
+                // Check for azure url with org username - if found, strip the org username from the url
+                // https://foo@dev.azure.com/... -> https://dev.azure.com/...
+                if (this.selectedGitTokenType === 'azure') {
+                    const url = this.input.url
+                    const match = url.match(/^https:\/\/([^/]+)@dev\.azure\.com\/(.+)$/)
+                    if (match) {
+                        this.input.url = `https://dev.azure.com/${match[2]}`
+                    }
                 }
             }
 

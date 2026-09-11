@@ -87,7 +87,7 @@
                                     v-ff-tooltip:left="!hasPermission('device:create') && 'Your role does not allow creating new remote instances. Contact a team admin to change your role.'"
                                     data-action="create-project"
                                     kind="secondary"
-                                    :disabled="!hasPermission('device:create')"
+                                    :disabled="!hasPermission('device:create') || teamDeviceLimitReached"
                                     @click="showCreateDeviceDialog"
                                 >
                                     <template #icon-left>
@@ -147,6 +147,7 @@ import ProjectsIcon from '../../../components/icons/Projects.js'
 import InstanceStat from '../../../components/tiles/InstanceCounter.vue'
 import { useInstanceStates } from '../../../composables/InstanceStates.js'
 import usePermissions from '../../../composables/Permissions.js'
+import { getTeamProperty } from '../../../composables/TeamProperties.js'
 import Alerts from '../../../services/alerts.js'
 import ConfirmInstanceDeleteDialog from '../../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import DeviceCredentialsDialog from '../Devices/dialogs/DeviceCredentialsDialog.vue'
@@ -223,6 +224,14 @@ export default {
             return this.deviceStateCounts
                 ? Object.values(this.deviceStateCounts).reduce((total, count) => total + count, 0)
                 : 0
+        },
+        teamDeviceLimitReached () {
+            const teamTypeDeviceLimit = getTeamProperty(this.team, 'devices.limit')
+            if (teamTypeDeviceLimit > -1 && this.team.deviceCount >= teamTypeDeviceLimit) {
+                // Device specific limit has been reached
+                return true
+            }
+            return false
         }
     },
     async mounted () {
