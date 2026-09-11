@@ -8,6 +8,7 @@ export const useProductExpertSupportAgentStore = defineStore('product-expert-sup
         context: null,
         sessionId: null,
         messages: [],
+        activeTaskList: null,
 
         // Session timing
         abortController: null,
@@ -28,7 +29,7 @@ export const useProductExpertSupportAgentStore = defineStore('product-expert-sup
         }
     },
     persist: {
-        pick: ['context', 'messages', 'sessionId', 'sessionStartTime', 'sessionWarningShown', 'sessionExpiredShown'],
+        pick: ['context', 'messages', 'activeTaskList', 'sessionId', 'sessionStartTime', 'sessionWarningShown', 'sessionExpiredShown'],
         storage: sessionStorage,
         afterHydrate ({ store }) {
             store.messages.forEach(msg => {

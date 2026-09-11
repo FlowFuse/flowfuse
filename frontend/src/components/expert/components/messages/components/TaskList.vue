@@ -2,7 +2,7 @@
     <collapsible-section
         v-if="items.length"
         class="ff-expert-tasklist"
-        :auto-open="active"
+        auto-open
     >
         <template #header>
             <ListBulletIcon class="ff-expert-tasklist--glyph" />
@@ -44,9 +44,6 @@ export default {
     computed: {
         doneCount () {
             return this.items.filter(item => item.status === 'done').length
-        },
-        active () {
-            return this.items.some(item => item.status === 'in_progress' || item.status === 'pending')
         }
     },
     methods: {
