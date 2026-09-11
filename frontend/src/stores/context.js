@@ -50,6 +50,28 @@ export const useContextStore = defineStore('context', {
         isImmersiveEditor () {
             return this.editorEntityType !== null
         },
+        // Whether the loaded entity matches the route, so presence never publishes a stale one.
+        isExpertContextReady (state) {
+            const route = state.route
+            if (!route) {
+                return false
+            }
+
+            const editorType = this.editorEntityType
+            if (editorType === 'instance') {
+                return state.instance?.id === route.params.id
+            }
+            if (editorType === 'device') {
+                return state.device?.id === route.params.id
+            }
+
+            const { entityType, entityId } = useMqttExpertTopicHelper().getEntityTopicPaths()
+            // The team is the steady state for team and global pages; any deeper entity must belong to this route.
+            if (entityType === 't') {
+                return !!this.team?.id
+            }
+            return Object.values(route.params).flat().includes(entityId)
+        },
         expert (state) {
             const authStore = useAccountAuthStore()
             const assistantStore = useProductAssistantStore()

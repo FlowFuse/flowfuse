@@ -1,3 +1,23 @@
+#### 3.0.2: Release
+
+ - Allow admin to modify type of team in manual billing mode (#8456)
+ - [201] Mobile sign up + popup: Remove background image (#8455)
+ - Remove stray border tick on horizontal resize bars (#8443)
+ - Fix form validation of azure repo urls (#8452)
+ - Run only forge unit and system tests in the postgres CI job (#8435)
+ - [8424] Show MCP tokens as auto-renewing in the tokens list (#8430)
+ - [8426] Add a required expiry date to the MCP consent screen (#8428)
+ - [8425] Enforce a grant expiry on MCP OAuth tokens (#8427)
+ - Require explicit access level and team scope on the MCP consent screen (#8419)
+ - Keep refreshable tokens out of the nightly expireTokens sweep (#8420)
+ - Return 400 for a refresh_token grant with no refresh_token (#8423)
+ - ci: Group all development dependecies into single PR (#8413)
+ - build(deps): bump aws-actions/configure-aws-credentials from 6.2.3 to 6.2.4 (#8402)
+ - build(deps): bump docker/setup-qemu-action from 4.2.0 to 4.3.0 (#8401)
+ - build(deps): bump benc-uk/workflow-dispatch from 1.3.2 to 1.3.3 (#8400)
+ - ci: Ignore patch bumps and group development dependecies (#8399)
+ - Only show top-banner if no left-banner set (#8360)
+
 #### 3.0.1: Release
 
  - Fix error for `lock file's globals@17.11.0 does not satisfy globals@17.12.0` (#8357)

@@ -131,7 +131,7 @@ jobs:
           FF_TEST_DB_POSTGRES_PASSWORD: secret
           FF_TEST_DB_POSTGRES_DATABASE: flowforge
           NODE_OPTIONS: "--max-old-space-size=6144"
-        run: npm run test
+        run: npm run test:unit:forge && npm run test:system
 
   ui-unit-tests:
     if: ${{ needs.check-changes.outputs.run_ui_tests == 'true' }}
