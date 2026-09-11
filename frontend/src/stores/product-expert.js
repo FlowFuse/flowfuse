@@ -34,7 +34,6 @@ export const useProductExpertStore = defineStore('product-expert', {
         questionCadence: 'all', // 'all' = ask every clarifying question at once, 'one' = one at a time
         planMode: false,
         inFlightUpdates: [],
-        activeTaskList: null,
         pendingInput: '',
         // One-shot chat composer command, consumed and cleared like pendingInput.
         // 'request-plan-change' focuses an empty composer for the plan card's "Request
@@ -64,6 +63,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         abortController () { return this._agentStore.abortController },
         messages () { return this._agentStore.messages },
+        activeTaskList () { return this._agentStore.activeTaskList },
         hasMessages () { return this._agentStore.messages.length > 0 },
         isSessionExpired () { return this._agentStore.sessionExpiredShown },
         isWaitingForResponse () { return !!this._agentStore.abortController || this._inFlightRequests.size > 0 },
@@ -452,22 +452,26 @@ export const useProductExpertStore = defineStore('product-expert', {
                 break
             case parsedTopic.inflightType === 'expert:tasks': {
                 const items = Array.isArray(payload.items) ? payload.items : []
-                this.activeTaskList = items.length
+                this._agentStore.activeTaskList = items.length
                     ? { planId: payload.planId ?? null, title: payload.title || 'Tasks', items }
                     : null
-                await mqttService.publishMessage(connectionKey, {
-                    qos: 2,
-                    topic: responseTopic,
-                    payload: JSON.stringify({
-                        ack: true
-                    }),
-                    correlationData: transactionId,
-                    userProperties: {
-                        sessionId,
-                        transactionId: chatTransactionId,
-                        origin: window.origin || window.location.origin
-                    }
-                })
+                try {
+                    await mqttService.publishMessage(connectionKey, {
+                        qos: 2,
+                        topic: responseTopic,
+                        payload: JSON.stringify({
+                            ack: true
+                        }),
+                        correlationData: transactionId,
+                        userProperties: {
+                            sessionId,
+                            transactionId: chatTransactionId,
+                            origin: window.origin || window.location.origin
+                        }
+                    })
+                } catch (e) {
+                    console.warn('expert:tasks ack failed:', e)
+                }
                 break
             }
             case parsedTopic.inflightType === 'automation-ui:mcp-get-features': {
@@ -654,7 +658,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             agentStore.sessionId = uuidv4()
             agentStore.messages = []
-            this.activeTaskList = null
+            agentStore.activeTaskList = null
 
             // A new chat drops the per-session tool grants ("Always allow/deny for this chat")
             // and the resolved-approval outcomes tied to the messages we just cleared.
@@ -1358,10 +1362,11 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
             }
             this._inFlightRequests.clear()
+            this._agentStore.activeTaskList = null
         }
     },
     persist: {
-        pick: ['shouldWakeUpAssistant', 'questionCadence', 'agentMode', 'activeTaskList'],
+        pick: ['shouldWakeUpAssistant', 'questionCadence', 'agentMode'],
         storage: sessionStorage
     }
 })
