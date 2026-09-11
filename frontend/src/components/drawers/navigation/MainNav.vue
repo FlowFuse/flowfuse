@@ -24,6 +24,13 @@
                 </ul>
             </li>
         </ul>
+
+        <div v-if="showAiConnectorButton" class="ff-main-navigation__footer">
+            <button type="button" class="ff-ai-connector-nav-button" data-el="ai-connector-nav-button" @click="onAiConnectorClick">
+                <McpIcon class="ff-ai-connector-nav-button__icon" />
+                <span>Connect an AI agent</span>
+            </button>
+        </div>
     </div>
 </template>
 
@@ -32,18 +39,25 @@ import { ChevronLeftIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 
 import NavItem from '../../NavItem.vue'
+import McpIcon from '../../icons/McpIcon.js'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
+import { useUxToursStore } from '@/stores/ux-tours.js'
 
 export default {
     name: 'MainNav',
-    components: { NavItem },
+    components: { NavItem, McpIcon },
     emits: ['option-selected'],
     computed: {
         ...mapState(useUxNavigationStore, ['mainNav', 'mainNavContext']),
         ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
+        showAiConnectorButton () {
+            return this.featuresCheck.isAiFeatureEnabled && this.featuresCheck.isMcpThirdPartyFeatureEnabled
+        },
         nearestMetaMenu () {
             if (this.$route?.meta?.menu) {
                 return this.$route.meta.menu
@@ -128,7 +142,12 @@ export default {
     methods: {
         ...mapActions(useUxDrawersStore, ['closeLeftDrawer']),
         ...mapActions(useUxNavigationStore, ['setMainNavContext', 'setMainNavBackButton']),
+        ...mapActions(useUxToursStore, ['openAiConnectorModal']),
         onMenuItemClick () {
+            this.closeLeftDrawer()
+        },
+        onAiConnectorClick () {
+            this.openAiConnectorModal()
             this.closeLeftDrawer()
         },
         setBackButton () {
@@ -141,5 +160,42 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.ff-main-navigation {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
 
+    .ff-menu-groups {
+        flex: 1 0 auto;
+    }
+
+    &__footer {
+        margin-top: auto;
+        padding: 10px;
+        border-top: 1px solid var(--ff-color-border);
+    }
+}
+
+.ff-ai-connector-nav-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    color: var(--ff-color-text-default);
+    transition: background-color .15s;
+
+    &:hover {
+        background: var(--ff-color-bg-surface-raised);
+    }
+
+    &__icon {
+        height: 18px;
+        width: 18px;
+        flex: none;
+        color: var(--ff-color-accent-strong);
+    }
+}
 </style>
