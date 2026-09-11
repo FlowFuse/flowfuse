@@ -20,7 +20,7 @@ module.exports = ({ schedule, startDelay, maxResponseTime, maxSuccessiveFailureC
     startDelay = +startDelay
     maxResponseTime = +maxResponseTime
     maxSuccessiveFailureCount = +(maxSuccessiveFailureCount ?? 3)
-    maxResyncAttempts = +(maxResyncAttempts ?? 5) // stop re-synchronizing after this many attempts, leaving the bridge down
+    maxResyncAttempts = +(maxResyncAttempts ?? 3) // stop re-synchronizing after this many attempts, leaving the bridge down
 
     // Check everything is in order and throw if not
     if (!Number.isFinite(startDelay) || startDelay < 0) {
