@@ -227,7 +227,7 @@ export default {
         },
         teamDeviceLimitReached () {
             const teamTypeDeviceLimit = getTeamProperty(this.team, 'devices.limit')
-            if (teamTypeDeviceLimit > -1 && this.totalDevices >= teamTypeDeviceLimit) {
+            if (teamTypeDeviceLimit > -1 && this.team.deviceCount >= teamTypeDeviceLimit) {
                 // Device specific limit has been reached
                 return true
             }
