@@ -4,12 +4,13 @@
             <!-- The layout's header (the teleport target) finishes mounting
                  after this page does, so the teleport waits a tick -->
             <Teleport v-if="teleportReady" to="#plain-layout-actions">
-                <a
-                    href="#"
+                <ff-button
+                    kind="tertiary"
                     class="skip-onboarding"
                     data-action="skip-onboarding"
-                    @click.prevent="skipOnboarding"
-                >Set it up myself</a>
+                    :disabled="provisioning"
+                    @click="skipOnboarding"
+                >Set it up myself</ff-button>
             </Teleport>
             <div class="onboarding-column">
                 <ExpertPanel />
