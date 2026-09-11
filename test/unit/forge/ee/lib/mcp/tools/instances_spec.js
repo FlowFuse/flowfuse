@@ -585,4 +585,25 @@ describe('MCP Instances Tools', function () {
             response.should.equal(routeResponse)
         })
     })
+
+    describe('platform_suspend_hosted_instance', function () {
+        const tool = getTool('platform_suspend_hosted_instance')
+
+        it('posts to the suspend action endpoint for the given instance', async function () {
+            const suspendResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
+            inject.withArgs({ method: 'POST', url: '/api/v1/projects/instance1/actions/suspend' }).resolves(suspendResponse)
+
+            const response = await tool.handler({ hostedInstanceId: 'instance1' }, { inject })
+
+            response.should.equal(suspendResponse)
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 400, json: () => ({ code: 'project_suspended' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ hostedInstanceId: 'instance1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
 })

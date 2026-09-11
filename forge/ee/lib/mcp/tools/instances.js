@@ -357,6 +357,23 @@ module.exports = [
             const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/dashboard-instances` })
             return response
         }
+    },
+    {
+        name: 'platform_suspend_hosted_instance',
+        title: 'Suspend Hosted Instance',
+        description: `FlowFuse platform automation tool:
+            Suspends a hosted instance, stopping its running Node-RED runtime.
+            Credentials, flow and packages are stored securely, and will continue execution when the hosted instance is started again.
+            Use this to stop an instance from running (e.g. to save on resources) without deleting it.
+            Check platform_get_hosted_instance_status first if you need to confirm the instance is currently running before suspending it.`,
+        annotations: { readOnlyHint: false, destructiveHint: false },
+        inputSchema: {
+            hostedInstanceId: z.string().describe('The ID or hashid of the hosted instance')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'POST', url: `/api/v1/projects/${args.hostedInstanceId}/actions/suspend` })
+            return response
+        }
     }
 ]
 
