@@ -14,6 +14,10 @@ function badRequest (reply, error, description) {
     })
 }
 
+// Per-caller cap on the refresh grant, throttling probes with guessed tokens.
+const MCP_REFRESH_RATE_WINDOW = 1000 * 60 // 60 seconds
+const MCP_REFRESH_RATE_MAX = 30
+
 // A loopback redirect_uri may vary its port between registration and use
 // (RFC 8252 Section 7.3); localhost and 127.0.0.1 are interchangeable.
 function isLoopbackHost (hostname) {
@@ -608,13 +612,17 @@ module.exports = async function (app) {
             if (!refresh_token) {
                 return badRequest(reply, 'invalid_request', 'Invalid refresh_token')
             }
-            const existingToken = await app.db.models.AccessToken.byRefreshToken(refresh_token)
-            if (!existingToken) {
-                badRequest(reply, 'invalid_request', 'Invalid refresh_token')
+            const rateCache = app.caches?.getCache?.('mcp-refresh-rate', { ttl: MCP_REFRESH_RATE_WINDOW, max: 100000 })
+            const now = Date.now()
+            const rateEntry = await rateCache?.get(request.ip)
+            // The cache renews an entry's TTL on each set, so the window is anchored on windowStart.
+            const inWindow = rateEntry && now - rateEntry.windowStart < MCP_REFRESH_RATE_WINDOW
+            const rateCount = inWindow ? rateEntry.count : 0
+            if (rateCount >= MCP_REFRESH_RATE_MAX) {
+                reply.code(429).send({ error: 'slow_down', description: 'Too many refresh attempts' })
                 return
             }
-            // Only project/device clients re-check resource ownership on refresh;
-            // ff-plugin and MCP clients are user-scoped.
+            await rateCache?.set(request.ip, { windowStart: inWindow ? rateEntry.windowStart : now, count: rateCount + 1 })
             let refreshAuthClient = null
             if (client_id !== 'ff-plugin') {
                 refreshAuthClient = await app.db.controllers.AuthClient.getAuthClient(client_id, client_secret)
@@ -623,6 +631,13 @@ module.exports = async function (app) {
                 }
             }
             if (refreshAuthClient && refreshAuthClient.ownerType !== 'mcp') {
+                // MCP tokens are resolved by refreshToken() below, which owns the grace
+                // window and replay detection; other clients re-check ownership here.
+                const existingToken = await app.db.models.AccessToken.byRefreshToken(refresh_token)
+                if (!existingToken) {
+                    badRequest(reply, 'invalid_request', 'Invalid refresh_token')
+                    return
+                }
                 // Check the owner of the existing session still has access to the project
                 // this client is owned by
                 let owner = null
@@ -653,7 +668,14 @@ module.exports = async function (app) {
                 }
             }
             const accessToken = await app.db.controllers.AccessToken.refreshToken(refresh_token)
-            if (!accessToken) {
+            if (!accessToken || accessToken.replay) {
+                if (accessToken?.replay) {
+                    await app.auditLog.User.account.mcpRefreshTokenReplay(accessToken.userId, null, {
+                        info: 'MCP refresh token replay detected; grant revoked',
+                        client: client_id,
+                        grant: accessToken.grantId
+                    })
+                }
                 badRequest(reply, 'invalid_request', 'Invalid refresh_token')
                 return
             }
@@ -661,8 +683,11 @@ module.exports = async function (app) {
             const response = {
                 access_token: accessToken.token,
                 token_type: 'bearer',
-                expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000),
-                refresh_token: accessToken.refreshToken
+                expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000)
+            }
+            // A within-grace refresh omits refresh_token so the client keeps its current one.
+            if (accessToken.refreshToken) {
+                response.refresh_token = accessToken.refreshToken
             }
             reply.send(response)
         } else {

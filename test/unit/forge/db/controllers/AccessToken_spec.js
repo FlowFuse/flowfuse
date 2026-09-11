@@ -1,4 +1,5 @@
 const should = require('should') // eslint-disable-line
+const { sha256 } = require('../../../../../forge/db/utils')
 const setup = require('../setup')
 
 describe('AccessToken controller', function () {
@@ -340,8 +341,7 @@ describe('AccessToken controller', function () {
             return app.db.controllers.AccessToken.createMCPOAuthToken(TestObjects.alice.id, opts)
         }
 
-        // Move the row's access and/or refresh token expiry, so the refresh
-        // behaviour can be exercised without waiting for real time to pass.
+        // Move the row's token expiries so refresh behaviour can be exercised at once.
         async function setRowExpiry (refreshToken, { accessMs, refreshMs } = {}) {
             const row = await app.db.models.AccessToken.byRefreshToken(refreshToken)
             const updates = {}
@@ -352,6 +352,14 @@ describe('AccessToken controller', function () {
                 updates.refreshTokenExpiresAt = new Date(Date.now() + refreshMs)
             }
             await app.db.models.AccessToken.update(updates, { where: { id: row.id } })
+        }
+
+        // Move when a rotated-out token was retired, to exercise the grace window.
+        async function ageRotation (rotatedRefreshToken, ms) {
+            await app.db.models.AccessTokenRefreshRotation.update(
+                { rotatedAt: new Date(Date.now() + ms) },
+                { where: { tokenHash: sha256(rotatedRefreshToken) } }
+            )
         }
 
         it('creates a user token with a refresh token that outlives the access token', async function () {
@@ -388,7 +396,7 @@ describe('AccessToken controller', function () {
             ;(await app.db.models.AccessToken.count()).should.equal(0)
         })
 
-        it('keeps the refresh token stable and slides its expiry on refresh', async function () {
+        it('rotates the refresh token and slides its expiry on refresh', async function () {
             const original = await createToken()
             // Bring the refresh expiry close so the slide back out to the full
             // lifetime is observable rather than a same-millisecond tie.
@@ -397,21 +405,25 @@ describe('AccessToken controller', function () {
 
             const refreshed = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
             refreshed.token.should.not.equal(original.token)
-            // The refresh token is not rotated.
-            refreshed.refreshToken.should.equal(original.refreshToken)
+            // The refresh token is rotated, and the new access token authenticates.
+            refreshed.refreshToken.should.be.a.String().and.not.equal(original.refreshToken)
+            should.exist(await app.db.controllers.AccessToken.getOrExpire(refreshed.token))
 
-            const after = await app.db.models.AccessToken.byRefreshToken(original.refreshToken)
+            const after = await app.db.models.AccessToken.byRefreshToken(refreshed.refreshToken)
             after.refreshTokenExpiresAt.getTime().should.be.greaterThan(before.refreshTokenExpiresAt.getTime())
         })
 
-        it('reuses the same access token for a repeat refresh within its lifetime', async function () {
+        it('re-mints an access token for a retried refresh within the grace window', async function () {
             const original = await createToken()
             await setRowExpiry(original.refreshToken, { accessMs: -5000 })
 
-            const first = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
-            const second = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
-            second.token.should.equal(first.token)
-            should.exist(await app.db.controllers.AccessToken.getOrExpire(first.token))
+            await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+            // The rotated-out token, presented again within grace, re-mints an access token only.
+            const retry = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+            should.exist(retry)
+            should.exist(await app.db.controllers.AccessToken.getOrExpire(retry.token))
+            should.not.exist(retry.refreshToken)
+            ;(await app.db.models.AccessToken.count()).should.equal(1)
         })
 
         it('fails to refresh once the refresh token lifetime has passed', async function () {
@@ -420,6 +432,64 @@ describe('AccessToken controller', function () {
 
             should.not.exist(await app.db.controllers.AccessToken.refreshToken(original.refreshToken))
             ;(await app.db.models.AccessToken.count()).should.equal(0)
+        })
+
+        it('revokes the grant when a rotated-out token is replayed after the grace window', async function () {
+            const original = await createToken()
+            await setRowExpiry(original.refreshToken, { accessMs: -5000 })
+            const first = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+
+            // Age the retired token beyond the grace window, then present it again.
+            await ageRotation(original.refreshToken, -120000)
+            const replay = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+            replay.should.have.property('replay', true)
+            ;(await app.db.models.AccessToken.count()).should.equal(0)
+            should.not.exist(await app.db.controllers.AccessToken.getOrExpire(first.token))
+        })
+
+        it('detects a replay of a token retired several rotations earlier', async function () {
+            const original = await createToken()
+            await setRowExpiry(original.refreshToken, { accessMs: -5000 })
+            // Rotate twice, leaving the original two rotations back.
+            const first = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+            await app.db.controllers.AccessToken.refreshToken(first.refreshToken)
+
+            // The full lineage still catches the original as a replay past grace.
+            await ageRotation(original.refreshToken, -120000)
+            const replay = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+            replay.should.have.property('replay', true)
+            ;(await app.db.models.AccessToken.count()).should.equal(0)
+        })
+
+        it('returns null for an unknown refresh token', async function () {
+            should.not.exist(await app.db.controllers.AccessToken.refreshToken('ffpat_unknown'))
+        })
+
+        it('lets only one of two simultaneous refreshes rotate the token', async function () {
+            const original = await createToken()
+            await setRowExpiry(original.refreshToken, { accessMs: -5000 })
+
+            const [a, b] = await Promise.all([
+                app.db.controllers.AccessToken.refreshToken(original.refreshToken),
+                app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+            ])
+
+            // Both callers succeed (no false null or replay) and the grant is intact.
+            should.exist(a)
+            should.exist(b)
+            a.should.not.have.property('replay')
+            b.should.not.have.property('replay')
+            ;(await app.db.models.AccessToken.count()).should.equal(1)
+            // Only one rotated the refresh token; the lagging one re-minted access only.
+            const rotations = [a, b].filter(result => result.refreshToken)
+            rotations.length.should.equal(1)
+            const live = []
+            for (const result of [a, b]) {
+                if (await app.db.controllers.AccessToken.getOrExpire(result.token)) {
+                    live.push(result)
+                }
+            }
+            live.length.should.be.aboveOrEqual(1)
         })
 
         describe('with a grant expiry', function () {
@@ -450,7 +520,8 @@ describe('AccessToken controller', function () {
 
                 const refreshed = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
                 should.exist(refreshed)
-                const after = await app.db.models.AccessToken.byRefreshToken(original.refreshToken)
+                // Refresh rotates the token, so the row is now found via the new one.
+                const after = await app.db.models.AccessToken.byRefreshToken(refreshed.refreshToken)
                 after.refreshTokenExpiresAt.getTime().should.be.belowOrEqual(grantExpiresAt)
             })
 

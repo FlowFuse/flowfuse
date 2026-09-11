@@ -17,6 +17,7 @@ describe('Expire Tokens Task', function () {
     })
 
     afterEach(async function () {
+        await app.db.models.AccessTokenRefreshRotation.destroy({ where: {} })
         await app.db.models.AccessToken.destroy({ where: {} })
     })
 
@@ -30,6 +31,14 @@ describe('Expire Tokens Task', function () {
             refreshTokenExpiresAt,
             ownerId: '' + app.user.id,
             ownerType: 'user'
+        })
+    }
+
+    async function createRotation (token, rotatedAt) {
+        return app.db.models.AccessTokenRefreshRotation.create({
+            tokenHash: 'hash-' + Math.random().toString(36).slice(2),
+            rotatedAt,
+            AccessTokenId: token.id
         })
     }
 
@@ -79,5 +88,20 @@ describe('Expire Tokens Task', function () {
 
         const found = await app.db.models.AccessToken.findOne({ where: { id: token.id } })
         should.exist(found)
+    })
+
+    it('prunes rotation rows older than the refresh token lifetime, keeping recent ones', async function () {
+        const token = await createToken({
+            expiresAt: Date.now() + 1000 * 60 * 60,
+            refreshToken: 'ffpat_refresh-live',
+            refreshTokenExpiresAt: Date.now() + 1000 * 60 * 60 * 24
+        })
+        const stale = await createRotation(token, new Date(Date.now() - 1000 * 60 * 60 * 24 * 31))
+        const recent = await createRotation(token, new Date(Date.now() - 1000 * 60))
+
+        await expireTokensTask.run(app)
+
+        should.not.exist(await app.db.models.AccessTokenRefreshRotation.findOne({ where: { id: stale.id } }))
+        should.exist(await app.db.models.AccessTokenRefreshRotation.findOne({ where: { id: recent.id } }))
     })
 })

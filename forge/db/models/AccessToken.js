@@ -58,6 +58,7 @@ module.exports = {
         this.belongsTo(M.Device, { foreignKey: 'ownerId', constraints: false })
         this.belongsTo(M.User, { foreignKey: 'ownerId', constraints: false })
         this.hasMany(M.AccessTokenTeamScope)
+        this.hasMany(M.AccessTokenRefreshRotation, { onDelete: 'CASCADE' })
     },
     finders: function (M) {
         return {
@@ -80,6 +81,10 @@ module.exports = {
                 byRefreshToken: async (refreshToken) => {
                     const hashedToken = sha256(refreshToken)
                     return await this.findOne({ where: { refreshToken: hashedToken } })
+                },
+                byRotatedRefreshToken: async (refreshToken) => {
+                    const hashedToken = sha256(refreshToken)
+                    return await M.AccessTokenRefreshRotation.findOne({ where: { tokenHash: hashedToken } })
                 },
                 getProvisioningTokens: async (pagination = {}, team) => {
                     // pagination not implemented at this time

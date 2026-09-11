@@ -250,6 +250,11 @@
         <span v-if="!error && entry.body?.user">'{{ entry.body.user?.username }}' has registered on FlowFuse.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'account.mcp-refresh-token-replay'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.info">A rotated-out MCP refresh token was replayed, so grant {{ entry.body.info.grant }} (client {{ entry.body.info.client }}) was revoked and must re-authorize.</span>
+        <span v-else-if="!error">An MCP refresh token replay was detected; the grant was revoked.</span>
+    </template>
     <template v-else-if="entry.event === 'account.login' || entry.event === 'auth.login'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.trigger?.name">User '{{ entry.trigger.name }}' has logged in.</span>
