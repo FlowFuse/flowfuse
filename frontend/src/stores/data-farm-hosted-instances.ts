@@ -29,6 +29,7 @@ export const useDataFarmHostedInstancesStore = defineStore('data-farm-hosted-ins
     const instancesById = ref<Record<string, StoreInstance>>({})
     const currentPageIds = ref<string[]>([])
     const total = ref(0)
+    const launcherVersionWarnedIds = ref<Set<string>>(new Set())
 
     const { isRunningState } = useInstanceStates()
 
@@ -151,16 +152,25 @@ export const useDataFarmHostedInstancesStore = defineStore('data-farm-hosted-ins
         return transition(id, 'suspending', instance => instanceApi.suspendInstance(instance))
     }
 
+    function markLauncherVersionWarned (instanceId: string): void {
+        if (instanceId) {
+            launcherVersionWarnedIds.value.add(instanceId)
+        }
+    }
+
     function reset (): void {
         instancesById.value = {}
         currentPageIds.value = []
         total.value = 0
+        launcherVersionWarnedIds.value = new Set()
     }
 
     return {
         instancesById,
         currentPageIds,
         total,
+        launcherVersionWarnedIds,
+        markLauncherVersionWarned,
         currentPageInstanceRefs,
         currentPageInstances,
         fetchTeamInstancesPage,

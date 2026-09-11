@@ -11,7 +11,21 @@
     </SectionTopMenu>
 
     <div class="space-y-6">
-        <ff-loading v-if="loading" message="Loading Tokens..." />
+        <EmptyState
+            v-if="!featuresCheck.isRemoteInstanceFeatureEnabledForPlatform"
+            :feature-unavailable="!featuresCheck.isRemoteInstanceFeatureEnabledForPlatform"
+        >
+            <template #img>
+                <img src="../../../images/empty-states/team-devices.png">
+            </template>
+            <template #header>
+                <span>Remote Instance Provisioning</span>
+            </template>
+            <template #message>
+                Remote Instance Provisioning is not available.
+            </template>
+        </EmptyState>
+        <ff-loading v-else-if="loading" message="Loading Tokens..." />
         <ff-loading v-else-if="creatingToken" message="Creating Token..." />
         <ff-loading v-else-if="deletingItem" message="Deleting Token..." />
         <template v-else>
@@ -69,6 +83,9 @@ import Dialog from '../../../services/dialog.js'
 import CreateProvisioningTokenDialog from '../Devices/dialogs/CreateProvisioningTokenDialog.vue'
 import ProvisioningCredentialsDialog from '../Devices/dialogs/ProvisioningCredentialsDialog.vue'
 
+import EmptyState from '@/components/EmptyState.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
 const TokenFieldFormatter = {
@@ -96,6 +113,7 @@ const AutoAssignToFieldFormatter = {
 export default {
     name: 'TeamDeviceProvisioningTokens',
     components: {
+        EmptyState,
         CreateProvisioningTokenDialog,
         ProvisioningCredentialsDialog,
         SectionTopMenu,
@@ -120,6 +138,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountSettingsStore, ['features', 'featuresCheck']),
         addEnabled: function () {
             return this.hasPermission('team:device:provisioning-token:create')
         },

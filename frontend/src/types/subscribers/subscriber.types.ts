@@ -24,6 +24,8 @@ export type SubscriberInstances = {
     liveStatus: TeamSubscriberI | null
     applications: TeamSubscriberI | null
     hostedInstances: TeamSubscriberI | null
+    mcpInflight: TeamSubscriberI | null
+    mcpSession: TeamSubscriberI | null
 }
 
 export interface CreateSubscriberOptions<TTransport extends Transport = Transport> {

@@ -1,6 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
 // account-auth.js imports routes.js which loads the full Vue component tree
@@ -354,6 +355,73 @@ describe('context store', () => {
             })
         })
 
+        describe('isExpertContextReady', () => {
+            it('returns false when there is no route', () => {
+                const store = useContextStore()
+                expect(store.isExpertContextReady).toBe(false)
+            })
+
+            describe('immersive editors', () => {
+                it('is not ready while the instance the route addresses has not loaded', () => {
+                    const store = useContextStore()
+                    store.updateRoute({ name: 'instance-editor-overview', params: { id: 'inst-1' } })
+                    expect(store.isExpertContextReady).toBe(false)
+                })
+
+                it('is not ready while a stale instance from the previous page is still loaded', () => {
+                    const store = useContextStore()
+                    store.setInstance({ id: 'inst-0' })
+                    store.updateRoute({ name: 'instance-editor-overview', params: { id: 'inst-1' } })
+                    expect(store.isExpertContextReady).toBe(false)
+                })
+
+                it('is ready once the loaded instance matches the route', () => {
+                    const store = useContextStore()
+                    store.updateRoute({ name: 'instance-editor-overview', params: { id: 'inst-1' } })
+                    store.setInstance({ id: 'inst-1' })
+                    expect(store.isExpertContextReady).toBe(true)
+                })
+
+                it('is ready once the loaded device matches a device editor route', () => {
+                    const store = useContextStore()
+                    store.updateRoute({ name: 'device-editor-overview', params: { id: 'dev-1' } })
+                    store.setDevice({ id: 'dev-1' })
+                    expect(store.isExpertContextReady).toBe(true)
+                })
+            })
+
+            describe('non-editor routes', () => {
+                it('is not ready on a team page before the team loads', () => {
+                    const store = useContextStore()
+                    store.updateRoute({ name: 'team-brokers', params: { team_slug: 'alpha' } })
+                    expect(store.isExpertContextReady).toBe(false)
+                })
+
+                it('is ready on a team page once the team is present', () => {
+                    const store = useContextStore()
+                    store.setTeam({ id: 'team-1' })
+                    store.updateRoute({ name: 'team-brokers', params: { team_slug: 'alpha' } })
+                    expect(store.isExpertContextReady).toBe(true)
+                })
+
+                it('is not ready while a stale entity from the previous page is still loaded', () => {
+                    const store = useContextStore()
+                    store.setTeam({ id: 'team-1' })
+                    store.setInstance({ id: 'inst-0' })
+                    store.updateRoute({ name: 'instance-overview', params: { id: 'inst-1' } })
+                    expect(store.isExpertContextReady).toBe(false)
+                })
+
+                it('is ready once the loaded entity belongs to the route', () => {
+                    const store = useContextStore()
+                    store.setTeam({ id: 'team-1' })
+                    store.updateRoute({ name: 'instance-overview', params: { id: 'inst-1' } })
+                    store.setInstance({ id: 'inst-1' })
+                    expect(store.isExpertContextReady).toBe(true)
+                })
+            })
+        })
+
         describe('expert getter', () => {
             it('returns safe defaults if route is null', () => {
                 const store = useContextStore()
@@ -369,6 +437,36 @@ describe('context store', () => {
                 const expert = store.expert
                 expect(expert.teamId).toBe('team-42')
                 expect(expert.teamSlug).toBe('my-team')
+            })
+
+            it('sets telemetryEnabled from the platform setting', () => {
+                const store = useContextStore()
+                const settingsStore = useAccountSettingsStore()
+                settingsStore.settings = { 'telemetry:enabled': true }
+                expect(store.expert.telemetryEnabled).toBe(true)
+                settingsStore.settings = { 'telemetry:enabled': false }
+                expect(store.expert.telemetryEnabled).toBe(false)
+            })
+
+            it('defaults telemetryEnabled to false when the setting is unavailable', () => {
+                const store = useContextStore()
+                expect(store.expert.telemetryEnabled).toBe(false)
+            })
+
+            it('marks deployment cloud only when telemetry:anonymize is false', () => {
+                const store = useContextStore()
+                const settingsStore = useAccountSettingsStore()
+
+                settingsStore.settings = { 'telemetry:anonymize': false }
+                expect(store.expert.deployment).toBe('cloud')
+
+                settingsStore.settings = { 'telemetry:anonymize': true }
+                expect(store.expert.deployment).toBe('self-hosted')
+            })
+
+            it('defaults deployment to self-hosted when the setting is unavailable', () => {
+                const store = useContextStore()
+                expect(store.expert.deployment).toBe('self-hosted')
             })
 
             it('resolves applicationId for a device owned directly by an application', () => {

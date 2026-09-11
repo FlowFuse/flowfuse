@@ -1,6 +1,6 @@
 const { LRUCache } = require('lru-cache')
 
-const { assertStringKey } = require('./util')
+const { assertStringKey, assertStringPattern, globToRegExp } = require('./util')
 
 /** @type {Record<string, Cache>} */
 const caches = {}
@@ -66,6 +66,18 @@ class Cache {
 
     async keys () {
         return [...this.lru.keys()]
+    }
+
+    /**
+     * Find keys matching a redis-style glob pattern ('*', '?', '[abc]', '\' escape),
+     * e.g. 'response:*'. Does not refresh TTLs or recency.
+     * @param {string} pattern glob pattern to match keys against
+     * @returns {Promise<string[]>} the matching keys
+     */
+    async scan (pattern) {
+        assertStringPattern(pattern)
+        const re = globToRegExp(pattern)
+        return [...this.lru.keys()].filter(key => re.test(key))
     }
 
     async all () {

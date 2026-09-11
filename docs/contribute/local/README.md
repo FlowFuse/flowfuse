@@ -24,7 +24,7 @@ The install script has been tested against the following operating systems:
 
  - Raspbian/Raspberry Pi OS versions Buster/Bullseye [^1]
  - Debian Buster/Bullseye
- - Fedora 35
+ - Fedora 40
  - Ubuntu 20.04
  - CentOS 8/RHEL 8/Amazon Linux 2
  - MacOS Big Sur & Monterey on Intel & Apple M processors
@@ -34,7 +34,7 @@ The install script has been tested against the following operating systems:
 
 ### Node.js
 
-FlowFuse requires ***Node.js v20***.
+FlowFuse requires ***Node.js v24***.
 
 #### Linux
 

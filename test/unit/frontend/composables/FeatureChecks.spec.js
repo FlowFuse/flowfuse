@@ -126,6 +126,45 @@ describe('buildFeatureChecks', () => {
         })
     })
 
+    describe('platformSource: settingsRoot', () => {
+        function platformStateWithSettings (settings = {}) {
+            return { features: {}, settings, posthogFlags: {} }
+        }
+
+        // isTelemetryEnabled -> platformKey 'telemetry:enabled' from the settings root
+        test('reads the platform flag from the settings root', () => {
+            const checks = buildFeatureChecks(platformStateWithSettings({ 'telemetry:enabled': true }), team())
+            expect(checks.isTelemetryEnabled).toBe(true)
+        })
+
+        test('defaults to false when the key is missing', () => {
+            const checks = buildFeatureChecks(platformStateWithSettings({}), team())
+            expect(checks.isTelemetryEnabled).toBe(false)
+        })
+    })
+
+    describe('platformDefault', () => {
+        function platformStateWithSettings (settings = {}) {
+            return { features: {}, settings, posthogFlags: {} }
+        }
+
+        // isTelemetryAnonymized -> platformKey 'telemetry:anonymize', platformDefault: true
+        test('defaults to true when the key is missing', () => {
+            const checks = buildFeatureChecks(platformStateWithSettings({}), team())
+            expect(checks.isTelemetryAnonymized).toBe(true)
+        })
+
+        test('is false only when the key is explicitly false', () => {
+            const checks = buildFeatureChecks(platformStateWithSettings({ 'telemetry:anonymize': false }), team())
+            expect(checks.isTelemetryAnonymized).toBe(false)
+        })
+
+        test('is true when the key is explicitly true', () => {
+            const checks = buildFeatureChecks(platformStateWithSettings({ 'telemetry:anonymize': true }), team())
+            expect(checks.isTelemetryAnonymized).toBe(true)
+        })
+    })
+
     describe('dependency gates', () => {
         // isExpertAssistantFeatureEnabled -> optOut, dependsOnPlatform 'ai', dependsOnTeam 'ai' (optOut)
         const enabledState = platformState({ features: { expertAssistant: true, ai: true } })
@@ -146,6 +185,47 @@ describe('buildFeatureChecks', () => {
         test('forced false when the team ai dependency is explicitly disabled', () => {
             const checks = buildFeatureChecks(enabledState, team({ features: { expertAssistant: true, ai: false } }))
             expect(checks.isExpertAssistantFeatureEnabled).toBe(false)
+        })
+    })
+
+    describe('ai onboarding', () => {
+        // isAiOnboardingFeatureEnabled -> platformKey 'aiOnboarding',
+        // dependsOn 'isExpertAssistantFeatureEnabled', dependsOnPlatform 'externalBroker', dependsOnTeam 'teamBroker'
+        const enabledPlatform = platformState({ features: { aiOnboarding: true, expertAssistant: true, ai: true, externalBroker: true } })
+        const enabledTeam = team({ features: { teamBroker: true } })
+
+        test('enabled when the flag and all dependencies are enabled', () => {
+            const checks = buildFeatureChecks(enabledPlatform, enabledTeam)
+            expect(checks.isAiOnboardingFeatureEnabled).toBe(true)
+        })
+
+        test('disabled when the platform flag is missing', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { expertAssistant: true, ai: true, externalBroker: true } }),
+                enabledTeam
+            )
+            expect(checks.isAiOnboardingFeatureEnabled).toBe(false)
+        })
+
+        test('forced false when the expert assistant dependency is disabled', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { aiOnboarding: true, expertAssistant: true, ai: false, externalBroker: true } }),
+                enabledTeam
+            )
+            expect(checks.isAiOnboardingFeatureEnabled).toBe(false)
+        })
+
+        test('forced false when the platform external broker dependency is missing', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { aiOnboarding: true, expertAssistant: true, ai: true } }),
+                enabledTeam
+            )
+            expect(checks.isAiOnboardingFeatureEnabled).toBe(false)
+        })
+
+        test('forced false when the team broker dependency is missing', () => {
+            const checks = buildFeatureChecks(enabledPlatform, team())
+            expect(checks.isAiOnboardingFeatureEnabled).toBe(false)
         })
     })
 

@@ -46,6 +46,8 @@ export default {
     async created () {
         const { types } = await teamTypesApi.getTeamTypes()
         this.types = types.sort((a, b) => a.order - b.order)
+        // If any of the available types has an annualBillingPrice, show the annual billing toggle
+        this.annualBillingAvailable = this.types.some(type => !!type.annualBillingPrice)
     }
 }
 </script>

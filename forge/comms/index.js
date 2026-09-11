@@ -41,7 +41,7 @@ module.exports = fp(async function (app, _opts) {
         const mcpGatewayHandler = McpGatewayHandler(app, client)
         // Owns the browser session topic and dispatches its events. Presence is one
         // consumer of that; anything else needing per-session teardown joins it there.
-        BrowserSessionLifecycleHandler(app, client)
+        const browserSessionHandler = BrowserSessionLifecycleHandler(app, client)
 
         // Not in the current release, but when we handle Launcher status
         // via MQTT, it will arrive here. Compare to the status/device handler in `devices.js`
@@ -58,6 +58,7 @@ module.exports = fp(async function (app, _opts) {
             platformAutomation: platformAutomationHandler,
             expert: expertCommsHandler,
             mcpGateway: mcpGatewayHandler,
+            browserSession: browserSessionHandler,
             platform: {
                 settings: {
                     sync: function (key) {

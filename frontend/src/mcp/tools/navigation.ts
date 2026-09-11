@@ -15,6 +15,7 @@ const tools: McpToolDefinition[] = [
             If the navigation failed, it might be because a newly created entity has not finished setting up yet. Wait a few seconds and try the navigation again.
             If it still does not work after retrying, navigate the user back to the page they were on before and let them know what happened.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
+        _meta: { requiresBrowserSession: true },
         inputSchema: {
             type: 'object',
             properties: {

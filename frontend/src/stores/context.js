@@ -50,6 +50,28 @@ export const useContextStore = defineStore('context', {
         isImmersiveEditor () {
             return this.editorEntityType !== null
         },
+        // Whether the loaded entity matches the route, so presence never publishes a stale one.
+        isExpertContextReady (state) {
+            const route = state.route
+            if (!route) {
+                return false
+            }
+
+            const editorType = this.editorEntityType
+            if (editorType === 'instance') {
+                return state.instance?.id === route.params.id
+            }
+            if (editorType === 'device') {
+                return state.device?.id === route.params.id
+            }
+
+            const { entityType, entityId } = useMqttExpertTopicHelper().getEntityTopicPaths()
+            // The team is the steady state for team and global pages; any deeper entity must belong to this route.
+            if (entityType === 't') {
+                return !!this.team?.id
+            }
+            return Object.values(route.params).flat().includes(entityId)
+        },
         expert (state) {
             const authStore = useAccountAuthStore()
             const assistantStore = useProductAssistantStore()
@@ -63,8 +85,11 @@ export const useContextStore = defineStore('context', {
                     palette: null,
                     debugLog: null,
                     userId: authStore.user?.id || null,
+                    username: authStore.user?.username || null,
+                    deployment: useAccountSettingsStore().featuresCheck?.deployment ?? 'self-hosted',
                     teamId: this.team?.id || null,
                     teamSlug: this.team?.slug || null,
+                    telemetryEnabled: useAccountSettingsStore().featuresCheck?.isTelemetryEnabled ?? false,
                     instanceId: null,
                     deviceId: null,
                     applicationId: null,
@@ -101,8 +126,11 @@ export const useContextStore = defineStore('context', {
                 palette,
                 debugLog: assistantStore.debugLog,
                 userId: authStore.user?.id || null,
+                username: authStore.user?.username || null,
+                deployment: useAccountSettingsStore().featuresCheck?.deployment ?? 'self-hosted',
                 teamId: this.team?.id || null,
                 teamSlug: this.team?.slug || null,
+                telemetryEnabled: useAccountSettingsStore().featuresCheck?.isTelemetryEnabled ?? false,
                 instanceId: state.instance ? state.instance.id : null,
                 deviceId: state.device ? state.device.id : null,
                 applicationId: this.application ? this.application.id : null,

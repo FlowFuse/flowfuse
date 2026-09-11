@@ -104,9 +104,17 @@ module.exports = {
         if (!config.telemetry) {
             config.telemetry = {
                 enabled: true,
+                anonymize: true,
                 plausible: {
                     domain: null
                 }
+            }
+        } else {
+            if (config.telemetry.enabled === undefined) {
+                config.telemetry.enabled = true
+            }
+            if (config.telemetry.anonymize === undefined) {
+                config.telemetry.anonymize = true
             }
         }
 
