@@ -1,6 +1,6 @@
 <template>
     <div class="collapsed-question-turn" :class="{ expanded }">
-        <template v-if="!expanded">
+        <div v-if="!expanded" class="folded-turn">
             <div
                 v-for="(entry, index) in turn.entries"
                 :key="index"
@@ -16,40 +16,56 @@
                 >
                     {{ entry.question }}
                 </button>
-                <div class="folded-answers">
+                <div v-if="chipsFor(entry).length || showSkipped(entry)" class="folded-answers">
                     <button
                         v-for="(chip, chipIndex) in chipsFor(entry)"
                         :key="chipIndex"
                         type="button"
                         class="answer-chip"
                         data-action="edit-answer"
-                        title="Load this answer into the composer to correct it"
+                        title="Edit this answer"
                         @click="editAnswer(entry)"
                     >
                         <span class="chip-label">{{ chip }}</span>
-                        <span class="chip-remove" aria-hidden="true">&times;</span>
+                        <PencilIcon class="chip-edit" aria-hidden="true" />
                     </button>
-                    <span v-if="chipsFor(entry).length === 0" class="skipped-marker">Skipped</span>
+                    <span v-if="showSkipped(entry)" class="skipped-marker">Skipped</span>
                 </div>
             </div>
-        </template>
-        <div v-else class="expanded-messages">
             <button
+                v-if="unmatchedReply"
                 type="button"
-                class="question-text"
-                data-action="toggle-turn"
-                title="Collapse this step"
-                @click="expanded = false"
+                class="answer-chip folded-reply"
+                data-action="edit-answer"
+                title="Edit this answer"
+                @click="editReply"
             >
-                Collapse this step
+                <span class="chip-label">{{ unmatchedReply }}</span>
+                <PencilIcon class="chip-edit" aria-hidden="true" />
             </button>
-            <AiMessage v-bind="{ ...turn.questionsMessage }" />
-            <HumanMessage v-if="turn.replyMessage" v-bind="{ ...turn.replyMessage }" />
         </div>
+        <transition name="expand">
+            <div v-if="expanded" class="expand-wrap">
+                <div class="expanded-messages">
+                    <button
+                        type="button"
+                        class="question-text"
+                        data-action="toggle-turn"
+                        title="Collapse this step"
+                        @click="expanded = false"
+                    >
+                        Collapse this step
+                    </button>
+                    <AiMessage v-bind="{ ...turn.questionsMessage }" :instant="true" />
+                    <HumanMessage v-if="turn.replyMessage" v-bind="{ ...turn.replyMessage }" />
+                </div>
+            </div>
+        </transition>
     </div>
 </template>
 
 <script>
+import { PencilIcon } from '@heroicons/vue/20/solid'
 import { mapActions } from 'pinia'
 
 import AiMessage from './AiMessage.vue'
@@ -61,7 +77,8 @@ export default {
     name: 'CollapsedQuestionTurn',
     components: {
         AiMessage,
-        HumanMessage
+        HumanMessage,
+        PencilIcon
     },
     props: {
         turn: {
@@ -77,25 +94,27 @@ export default {
     computed: {
         hasMatchedAnswers () {
             return this.turn.entries.some(entry => entry.answer !== null)
+        },
+        unmatchedReply () {
+            if (this.hasMatchedAnswers) {
+                return null
+            }
+            return this.turn.replyMessage?.content || null
         }
     },
     methods: {
         ...mapActions(useProductExpertStore, ['setPendingInput']),
         chipsFor (entry) {
-            if (entry.answer) {
-                return entry.answer.split(', ')
-            }
-            if (!this.hasMatchedAnswers && this.turn.replyMessage?.content) {
-                return [this.turn.replyMessage.content]
-            }
-            return []
+            return entry.answer ? entry.answer.split(', ') : []
+        },
+        showSkipped (entry) {
+            return !entry.answer && !this.unmatchedReply
         },
         editAnswer (entry) {
-            if (entry.answer) {
-                this.setPendingInput(`${entry.question} ${entry.answer}`)
-            } else if (this.turn.replyMessage?.content) {
-                this.setPendingInput(this.turn.replyMessage.content)
-            }
+            this.setPendingInput(`${entry.question} ${entry.answer}`)
+        },
+        editReply () {
+            this.setPendingInput(this.turn.replyMessage.content)
         }
     }
 }
@@ -108,13 +127,20 @@ export default {
     gap: 1rem;
 }
 
+.folded-turn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.125rem 0 0.125rem 0.875rem;
+    border-left: 2px solid var(--ff-color-border);
+}
+
 .folded-question {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
-    padding: 0.125rem 0 0.125rem 0.875rem;
-    border-left: 2px solid var(--ff-color-border);
 }
 
 .question-text {
@@ -160,10 +186,11 @@ export default {
     max-width: 22rem;
 }
 
-.chip-remove {
-    font-weight: 400;
+.chip-edit {
+    width: 0.875rem;
+    height: 0.875rem;
     color: var(--ff-color-text-subtle);
-    line-height: 1;
+    flex-shrink: 0;
 }
 
 .skipped-marker {
@@ -172,11 +199,24 @@ export default {
     color: var(--ff-color-text-subtle);
 }
 
+.expand-wrap {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.22s ease;
+}
+
+.expand-enter-from,
+.expand-leave-to {
+    grid-template-rows: 0fr;
+}
+
 .expanded-messages {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
+    min-height: 0;
+    overflow: hidden;
     padding-left: 0.875rem;
     border-left: 2px solid var(--ff-color-accent);
 }

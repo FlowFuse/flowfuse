@@ -83,13 +83,17 @@ describe('CollapsedQuestionTurn', () => {
         expect(mocks.expertStore.setPendingInput).toHaveBeenCalledWith('Q1? Allen-Bradley PLC, over Ethernet')
     })
 
-    test('a free-form reply keeps the raw text as the chip', () => {
+    test('a free-form reply shows once for the turn, not repeated per question', async () => {
         const turn = answeredTurn()
         turn.replyMessage = { _uuid: 'h1', _type: 'human', content: 'typed by hand' }
-        turn.entries = [{ question: 'Q1?', answer: null }]
+        turn.entries = [{ question: 'Q1?', answer: null }, { question: 'Q2?', answer: null }]
         const wrapper = mountTurn(turn)
-        const chip = wrapper.find('[data-action="edit-answer"]')
-        expect(chip.text()).toContain('typed by hand')
+        const chips = wrapper.findAll('[data-action="edit-answer"]')
+        expect(chips.length).toBe(1)
+        expect(chips[0].text()).toContain('typed by hand')
+
+        await chips[0].trigger('click')
+        expect(mocks.expertStore.setPendingInput).toHaveBeenCalledWith('typed by hand')
     })
 
     test('expands to the original messages and folds back', async () => {
