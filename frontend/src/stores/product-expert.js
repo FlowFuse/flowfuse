@@ -63,6 +63,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         abortController () { return this._agentStore.abortController },
         messages () { return this._agentStore.messages },
+        activeTaskList () { return this._agentStore.activeTaskList },
         hasMessages () { return this._agentStore.messages.length > 0 },
         isSessionExpired () { return this._agentStore.sessionExpiredShown },
         isWaitingForResponse () { return !!this._agentStore.abortController || this._inFlightRequests.size > 0 },
@@ -417,7 +418,11 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
             }
 
-            this._addInFlightUpdate(payload.status || payload.toolname || 'Processing request...')
+            // expert:tasks has its own panel; its status rides expert:status-message.
+            // Every other inflight type feeds the loading line.
+            if (parsedTopic.inflightType !== 'expert:tasks') {
+                this._addInFlightUpdate(payload.status || payload.toolname || 'Processing request...')
+            }
 
             const responseTopic = topicHelper.buildTopic({
                 entityType: parsedTopic.entityType,
@@ -445,6 +450,30 @@ export const useProductExpertStore = defineStore('product-expert', {
                     }
                 })
                 break
+            case parsedTopic.inflightType === 'expert:tasks': {
+                const items = Array.isArray(payload.items) ? payload.items : []
+                this._agentStore.activeTaskList = items.length
+                    ? { planId: payload.planId ?? null, title: payload.title || 'Tasks', items }
+                    : null
+                try {
+                    await mqttService.publishMessage(connectionKey, {
+                        qos: 2,
+                        topic: responseTopic,
+                        payload: JSON.stringify({
+                            ack: true
+                        }),
+                        correlationData: transactionId,
+                        userProperties: {
+                            sessionId,
+                            transactionId: chatTransactionId,
+                            origin: window.origin || window.location.origin
+                        }
+                    })
+                } catch (e) {
+                    console.warn('expert:tasks ack failed:', e)
+                }
+                break
+            }
             case parsedTopic.inflightType === 'automation-ui:mcp-get-features': {
                 // handle UI MCP features request
                 try {
@@ -629,6 +658,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             agentStore.sessionId = uuidv4()
             agentStore.messages = []
+            agentStore.activeTaskList = null
 
             // A new chat drops the per-session tool grants ("Always allow/deny for this chat")
             // and the resolved-approval outcomes tied to the messages we just cleared.
@@ -1332,6 +1362,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
             }
             this._inFlightRequests.clear()
+            this._agentStore.activeTaskList = null
         }
     },
     persist: {

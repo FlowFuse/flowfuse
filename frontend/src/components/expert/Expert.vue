@@ -18,6 +18,8 @@
         <!-- Updates Available Banner -->
         <update-banner v-if="isEditorContext && isInstanceRunning" />
 
+        <task-list v-if="activeTaskList" :items="activeTaskList.items" :title="activeTaskList.title" />
+
         <expert-chat-input ref="chatInput" @stop="handleStopGeneration" />
     </div>
 </template>
@@ -30,6 +32,7 @@ import ExpertMessages from './components/ExpertMessages.vue'
 import ExpertModeSwitcher from './components/ExpertModeSwitcher.vue'
 import InfoBanner from './components/InfoBanner.vue'
 import UpdateBanner from './components/UpdateBanner.vue'
+import TaskList from './components/messages/components/TaskList.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
@@ -44,7 +47,8 @@ export default {
         InfoBanner,
         ExpertMessages,
         ExpertChatInput,
-        UpdateBanner
+        UpdateBanner,
+        TaskList
     },
     inject: {
         togglePinWithWidth: {
@@ -75,7 +79,8 @@ export default {
             'abortController',
             'agentMode',
             'messages',
-            'isInsightsAgent'
+            'isInsightsAgent',
+            'activeTaskList'
         ]),
         ...mapState(useUxDrawersStore, {
             isPinned: state => state.rightDrawer.fixed
