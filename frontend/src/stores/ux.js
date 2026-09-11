@@ -20,6 +20,7 @@ export const useUxStore = defineStore('ux', {
         },
         isNewlyCreatedUser: false,
         onboardingStage: null,
+        shouldEnterOnboarding: false,
         overlay: false
     }),
     getters: {
@@ -30,6 +31,15 @@ export const useUxStore = defineStore('ux', {
         setNewlyCreatedUser () {
             this.isNewlyCreatedUser = true
             this.onboardingStage = ONBOARDING_STAGES.INTAKE
+            this.shouldEnterOnboarding = true
+        },
+        // Returns whether this arrival should go to onboarding, and clears the
+        // flag either way: it is a one-shot, so a user who navigates elsewhere
+        // later is not dragged back.
+        consumeOnboardingEntry () {
+            const shouldEnter = this.shouldEnterOnboarding
+            this.shouldEnterOnboarding = false
+            return shouldEnter
         },
         validateUserAction (action) {
             if (Object.prototype.hasOwnProperty.call(this.userActions, action)) {
@@ -48,15 +58,23 @@ export const useUxStore = defineStore('ux', {
                 this.onboardingStage = this.isNewlyCreatedUser
                     ? ONBOARDING_STAGES.INTAKE
                     : ONBOARDING_STAGES.DONE
+                // Resolving the stage is itself a one-shot, so raising the
+                // entry flag here is too. Email verification is not a reliable
+                // hook: it only happens when the platform is set up to require
+                // it, and a user who is verified already never sees it.
+                this.shouldEnterOnboarding = this.isNewlyCreatedUser
             }
         },
         startOnboardingBuild () { this.onboardingStage = ONBOARDING_STAGES.BUILDING },
-        endOnboarding () { this.onboardingStage = ONBOARDING_STAGES.DONE },
+        endOnboarding () {
+            this.onboardingStage = ONBOARDING_STAGES.DONE
+            this.shouldEnterOnboarding = false
+        },
         openOverlay () { this.overlay = true },
         closeOverlay () { this.overlay = false }
     },
     persist: {
-        pick: ['isNewlyCreatedUser', 'onboardingStage', 'userActions'],
+        pick: ['isNewlyCreatedUser', 'onboardingStage', 'shouldEnterOnboarding', 'userActions'],
         storage: localStorage
     }
 })
