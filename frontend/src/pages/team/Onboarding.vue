@@ -25,7 +25,6 @@ import { mapState } from 'pinia'
 
 import teamApi from '@/api/team.ts'
 import ExpertPanel from '@/components/expert/Expert.vue'
-import { ONBOARDING_FIXTURE_MESSAGES } from '@/composables/Components/expert/onboardingFixture.js'
 import Alerts from '@/services/alerts.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
@@ -48,6 +47,7 @@ export default {
         return {
             provisioning: false,
             teleportReady: false,
+            conversationRequested: false,
             // How many turns the user had contributed when the page opened.
             // Anything beyond it is them engaging, which lets the seeded
             // transcript exist without counting as engagement.
@@ -82,7 +82,7 @@ export default {
         team: {
             immediate: true,
             handler () {
-                this.seedFixtureTranscript()
+                this.openConversation()
             }
         },
         userTurns: {
@@ -119,12 +119,8 @@ export default {
         })
     },
     methods: {
-        // TEMPORARY until flowfuse#8369: the Expert can't open a conversation
-        // on its own yet, so seed a placeholder transcript to work against.
-        // A transcript holding only canned messages (`generated`, e.g. the
-        // drawer's welcome text) counts as empty and gets replaced.
-        seedFixtureTranscript () {
-            if (!this.team || this.notAvailable) {
+        openConversation () {
+            if (!this.team || this.notAvailable || this.conversationRequested) {
                 return
             }
             const expertStore = useProductExpertStore()
@@ -134,7 +130,8 @@ export default {
             if (expertStore.messages.length > 0) {
                 useProductExpertSupportAgentStore().reset()
             }
-            expertStore.hydrateMessages(ONBOARDING_FIXTURE_MESSAGES)
+            this.conversationRequested = true
+            expertStore.openConversation()
         },
         async skipOnboarding () {
             if (this.provisioning) {

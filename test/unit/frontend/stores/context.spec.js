@@ -431,6 +431,28 @@ describe('context store', () => {
                 expect(expert.scope).toBe('ff-app')
             })
 
+            // Both branches build the object separately, so a field added to one
+            // and not the other goes missing depending on load timing
+            it('carries the onboarding flag on both the early-return and main paths', async () => {
+                const { useUxStore } = await import('@/stores/ux.js')
+                const store = useContextStore()
+                const uxStore = useUxStore()
+
+                expect(store.route).toBe(null)
+                expect(store.expert.onboarding).toBe(false)
+
+                uxStore.setNewlyCreatedUser()
+                expect(store.expert.onboarding).toBe(true)
+
+                store.setTeamMembership({ role: 30 })
+                store.updateRoute({ name: 'team', fullPath: '/team/a', params: {} })
+                expect(store.route).not.toBe(null)
+                expect(store.expert.onboarding).toBe(true)
+
+                uxStore.endOnboarding()
+                expect(store.expert.onboarding).toBe(false)
+            })
+
             it('includes teamId and teamSlug from context team', () => {
                 const store = useContextStore()
                 store.setTeam({ id: 'team-42', slug: 'my-team' })

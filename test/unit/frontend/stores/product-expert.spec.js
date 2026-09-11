@@ -305,6 +305,81 @@ describe('product-expert store', () => {
         })
     })
 
+    describe('openConversation', () => {
+        it('sends a turn with no query', async () => {
+            const store = useProductExpertStore()
+            const sendQuery = vi.spyOn(store, 'sendQuery').mockResolvedValue(undefined)
+
+            await store.openConversation()
+
+            expect(sendQuery).toHaveBeenCalledWith({ query: '' })
+        })
+
+        // The user has not said anything, so nothing of theirs belongs in the
+        // transcript
+        it('adds no user message', async () => {
+            const store = useProductExpertStore()
+            vi.spyOn(store, 'sendQuery').mockResolvedValue(undefined)
+
+            await store.openConversation()
+
+            expect(store.messages).toHaveLength(0)
+        })
+
+        // The expiry window should start when the user replies, not while they
+        // are still reading the opening question
+        it('does not start the session clock', async () => {
+            const store = useProductExpertStore()
+            const supportAgent = useProductExpertSupportAgentStore()
+            vi.spyOn(store, 'sendQuery').mockResolvedValue(undefined)
+
+            await store.openConversation()
+
+            expect(supportAgent.sessionStartTime).toBe(null)
+        })
+
+        it('gives the session an id', async () => {
+            const store = useProductExpertStore()
+            const supportAgent = useProductExpertSupportAgentStore()
+            vi.spyOn(store, 'sendQuery').mockResolvedValue(undefined)
+
+            await store.openConversation()
+
+            expect(supportAgent.sessionId).toBeTruthy()
+        })
+
+        it('clears the abort controller when the turn settles', async () => {
+            const store = useProductExpertStore()
+            const supportAgent = useProductExpertSupportAgentStore()
+            vi.spyOn(store, 'sendQuery').mockResolvedValue(undefined)
+
+            await store.openConversation()
+
+            expect(supportAgent.abortController).toBe(null)
+        })
+
+        it('surfaces a failure to the user rather than leaving a blank page', async () => {
+            const store = useProductExpertStore()
+            vi.spyOn(store, 'sendQuery').mockRejectedValue(new Error('broker down'))
+
+            await store.openConversation()
+
+            expect(store.messages).toHaveLength(1)
+            expect(store.messages[0].error).toBe(true)
+        })
+
+        it('says nothing when the turn was aborted', async () => {
+            const store = useProductExpertStore()
+            const aborted = new Error('aborted')
+            aborted.name = 'AbortError'
+            vi.spyOn(store, 'sendQuery').mockRejectedValue(aborted)
+
+            await store.openConversation()
+
+            expect(store.messages).toHaveLength(0)
+        })
+    })
+
     describe('reset', () => {
         it('calls reset on the active agent store and resets own state', () => {
             const store = useProductExpertStore()

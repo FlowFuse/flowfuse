@@ -219,6 +219,35 @@ export const useProductExpertStore = defineStore('product-expert', {
         setComposerCommand (command) {
             this.composerCommand = command
         },
+        async openConversation () {
+            const agentStore = this._agentStore
+
+            if (agentStore.sessionId && this.isWaitingForResponse) {
+                return undefined
+            }
+            if (!agentStore.sessionId) {
+                agentStore.sessionId = uuidv4()
+            }
+
+            agentStore.abortController = markRaw(new AbortController())
+            try {
+                const result = await this.sendQuery({ query: '' })
+                if (result) {
+                    await this.handleMessageResponse(result)
+                }
+                return result
+            } catch (error) {
+                if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                    return undefined
+                }
+                if (!this.shouldUseMqtt) {
+                    console.error('Expert API error:', error)
+                }
+                this.addPredefinedAiMessage('Sorry, I could not get started. Please refresh to try again.', { isError: true })
+            } finally {
+                agentStore.abortController = null
+            }
+        },
         async handleQuery ({ query }) {
             const agentStore = this._agentStore
 
