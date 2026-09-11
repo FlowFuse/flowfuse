@@ -59,11 +59,10 @@ export default {
             el.style.overflow = 'hidden'
             el.style.height = '0'
             el.style.opacity = '0'
-            requestAnimationFrame(() => {
-                el.style.transition = `height ${DURATION}ms ease, opacity ${DURATION}ms ease`
-                el.style.height = `${target}px`
-                el.style.opacity = '1'
-            })
+            this.forceReflow(el)
+            el.style.transition = `height ${DURATION}ms ease, opacity ${DURATION}ms ease`
+            el.style.height = `${target}px`
+            el.style.opacity = '1'
             this.onEnd(el, 'height', done)
         },
         onAfterEnter (el) {
@@ -89,12 +88,20 @@ export default {
             return el.offsetHeight
         },
         onEnd (el, prop, done) {
-            const handler = (event) => {
-                if (event.target !== el || event.propertyName !== prop) return
+            let settled = false
+            const finish = () => {
+                if (settled) return
+                settled = true
                 el.removeEventListener('transitionend', handler)
+                clearTimeout(timer)
                 done()
             }
+            const handler = (event) => {
+                if (event.target !== el || event.propertyName !== prop) return
+                finish()
+            }
             el.addEventListener('transitionend', handler)
+            const timer = setTimeout(finish, DURATION + 50)
         }
     }
 }
