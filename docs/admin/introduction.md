@@ -17,17 +17,17 @@ meta:
 
 ## Getting started
 
- - [Understanding the FlowFuse Architecture](/docs/contribute/architecture.md)
+ - [Understanding the FlowFuse Architecture](/docs/contribute/architecture/)
  - [Install/Upgrade](/docs/install) - requirements, deployment models, installation methods and upgrading
- - [`flowforge.yml` configuration](/docs/install/configuration.md) - base platform configuration, done before you run.
- - [First Run Setup](/docs/install/first-run.md) - create your admin user
- - [FlowFuse Concepts](/docs/user/concepts.md)
- - [Usage Telemetry](/docs/admin/telemetry.md)
+ - [`flowforge.yml` configuration](/docs/install/configuration/) - base platform configuration, done before you run.
+ - [First Run Setup](/docs/install/first-run/) - create your admin user
+ - [FlowFuse Concepts](/docs/user/concepts/)
+ - [Usage Telemetry](/docs/admin/telemetry/)
  - [Single-Sign On](/docs/admin/sso/)
  - [Licensing](https://flowfuse.com/pricing/)
- - [User management](/docs/admin/user-management.md)
- - [Platform Monitoring](/docs/admin/monitoring.md)
- - [Soft Launch Enablement](/docs/admin/feature-flags.md)
+ - [User management](/docs/admin/user-management/)
+ - [Platform Monitoring](/docs/admin/monitoring/)
+ - [Soft Launch Enablement](/docs/admin/feature-flags/)
 
 ## Administering FlowFuse
 
@@ -229,9 +229,9 @@ to create and edit the stacks on the platform.
 For Deployment specific information about working with stacks, refer to the
 documentation of your chosen deployment model:
 
- - [Local Stacks](/docs/contribute/local/stacks.md)
- - [Docker Stacks](/docs/install/docker/stacks.md)
- - [Kubernetes Stacks](/docs/install/kubernetes/stacks.md)
+ - [Local Stacks](/docs/contribute/local/stacks/)
+ - [Docker Stacks](/docs/install/docker/stacks/)
+ - [Kubernetes Stacks](/docs/install/kubernetes/stacks/)
 
 #### Create Stack
 
@@ -260,8 +260,8 @@ When prompted for the Node-RED version, the value here depends on the setup you'
 if you ran the script with `latest` and it resulted in `3.1.9` being installed, you should enter `3.1.9`.
 This must match the directory name created in your `stacks` directory. If you changed the
 directory name for any reason, make sure to use that name.
-- **Docker**: Support the container image name ([docs](/docs/install/docker/stacks.md))
-- **k8s**: Support the container image name ([docs](/docs/install/kubernetes/stacks.md))
+- **Docker**: Support the container image name ([docs](/docs/install/docker/stacks/))
+- **k8s**: Support the container image name ([docs](/docs/install/kubernetes/stacks/))
 
 #### Updating Stacks
 
