@@ -93,8 +93,11 @@ export default {
             if (this.user.email_verified) {
                 const teamSlug = this.team?.slug || this.defaultUserTeam?.slug
                 if (teamSlug) {
-                    // A newly registered user is taken to AI-led onboarding once
-                    if (this.featuresCheck?.isAiOnboardingFeatureEnabled && useUxStore().consumeOnboardingEntry()) {
+                    // A newly registered user is taken to AI-led onboarding
+                    // once. Consume the one-shot regardless so it cannot linger
+                    // and fire on a later visit if the feature is toggled on.
+                    const enterOnboarding = useUxStore().consumeOnboardingEntry()
+                    if (enterOnboarding && this.featuresCheck?.isAiOnboardingFeatureEnabled) {
                         return this.$router.push({
                             name: 'team-onboarding',
                             params: { team_slug: teamSlug }
