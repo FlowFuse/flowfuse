@@ -227,5 +227,54 @@ module.exports = [
             const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/devices/provisioning` })
             return response
         }
+    },
+    {
+        name: 'platform_update_remote_instance_settings',
+        title: 'Update Remote Instance Settings',
+        description: `FlowFuse platform automation tool:
+            Updates the settings of a remote instance (device). Only the settings you pass are changed, and the device is notified immediately so changes take effect right away (which can restart Node-RED on the device).
+            Access is role-restricted per field: team Members may change only env and autoSnapshot; palette, editor and security require the Owner role and are SILENTLY IGNORED for non-Owners - the call still replies { status: "okay" }, so verify with platform_get_remote_instance when in doubt.
+            env is a FULL replacement list: variables missing from it are removed. To keep an existing hidden (secret) variable's stored value without knowing it, resend it with hidden true and an empty value.
+            In security, passwords follow the same convention: for httpNodeAuth type "basic" or localAuth enabled, omitting or emptying the password keeps the stored one; a provided password is stored hashed.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            remoteInstanceId,
+            env: z.array(z.object({
+                name: z.string().describe('Environment variable name'),
+                value: z.string().describe('Environment variable value. For an existing hidden variable, pass an empty string (with hidden true) to keep the stored value'),
+                hidden: z.boolean().optional().describe('Whether the value is masked in the UI')
+            })).optional().describe('Full replacement list of the device environment variables'),
+            autoSnapshot: z.boolean().optional().describe('Whether to auto-create a snapshot on each deploy to the device'),
+            palette: z.record(z.string(), z.any()).optional().describe('Palette settings (Owner only; silently ignored otherwise)'),
+            editor: z.record(z.string(), z.any()).optional().describe('Editor settings, e.g. nodeRedVersion (Owner only; silently ignored otherwise)'),
+            security: z.record(z.string(), z.any()).optional().describe('Security settings such as httpNodeAuth or localAuth (Owner only; silently ignored otherwise). Omit passwords to keep the stored ones')
+        },
+        handler: async (args, { inject }) => {
+            const payload = {}
+            for (const key of ['env', 'autoSnapshot', 'palette', 'editor', 'security']) {
+                if (args[key] !== undefined) {
+                    payload[key] = args[key]
+                }
+            }
+            const response = await inject({ method: 'PUT', url: `/api/v1/devices/${args.remoteInstanceId}/settings`, payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_set_remote_instance_mode',
+        title: 'Set Remote Instance Mode',
+        description: `FlowFuse platform automation tool:
+            Switches a remote instance (device) between its two operating modes and notifies the device immediately.
+            "autonomous" is normal fleet operation: the device runs its target snapshot and picks up new target snapshots as they are deployed. "developer" detaches it from fleet updates so its flows can be edited live via the device editor; deploys do not reach it until it returns to autonomous.
+            Requires a licensed platform: unlicensed platforms reject this with 400 "not_licensed".`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            remoteInstanceId,
+            mode: z.enum(['autonomous', 'developer']).describe('Operating mode: "autonomous" for normal fleet operation, "developer" for live editing detached from fleet updates')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'PUT', url: `/api/v1/devices/${args.remoteInstanceId}/mode`, payload: { mode: args.mode } })
+            return response
+        }
     }
 ]

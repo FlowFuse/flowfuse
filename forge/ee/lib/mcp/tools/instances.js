@@ -357,6 +357,227 @@ module.exports = [
             const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/dashboard-instances` })
             return response
         }
+    },
+    {
+        name: 'platform_update_hosted_instance_env',
+        title: 'Update Hosted Instance Environment Variables',
+        description: `FlowFuse platform automation tool:
+            Replaces the full set of environment variables on a hosted instance. Variables missing from the list are removed, so read the current set first (platform_get_hosted_instance_config) and resend everything that should stay.
+            To keep an existing hidden (secret) variable's stored value without knowing it, resend it with hidden true and an empty value. A hidden entry with an empty value that does not already exist on the instance is dropped.
+            Values inherited from the instance's template may be locked and are validated against it; violations fail with "settings_validation".
+            The new values take effect when the instance's flows next restart (use platform_instance_action with restart to apply them immediately).
+            This is the only instance-level write a team Member can make; the wider platform_update_hosted_instance_settings tool needs Owner permissions.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            instanceId: hostedInstanceId.describe('The id (UUID) of the hosted instance whose environment variables to replace'),
+            env: z.array(z.object({
+                name: z.string().describe('Environment variable name'),
+                value: z.string().describe('Environment variable value. For an existing hidden variable, pass an empty string (with hidden true) to keep the stored value'),
+                hidden: z.boolean().optional().describe('Whether the value is masked in the UI')
+            })).describe('Full replacement list of the instance environment variables')
+        },
+        handler: async (args, { inject }) => {
+            // A body of exactly { settings: { env } } is what selects the narrower
+            // project:edit-env permission path on the route - do not add fields here.
+            const response = await inject({ method: 'PUT', url: `/api/v1/projects/${args.instanceId}`, payload: { settings: { env: args.env } } })
+            return response
+        }
+    },
+    {
+        name: 'platform_update_hosted_instance_settings',
+        title: 'Update Hosted Instance Settings',
+        description: `FlowFuse platform automation tool:
+            Updates a hosted instance: rename it, change its settings or launcher settings, switch its instance type or stack, or copy configuration and flows from another instance. Only the fields you pass are changed.
+            CAUTION: changing name, projectType, or stack replies as soon as the change is accepted and then RESTARTS the instance in the background - confirm with the user first, and check platform_get_hosted_instance_status to see it come back. Changing projectType additionally requires passing a matching stack. Names must be unique across the platform (409 "invalid_project_name" otherwise).
+            settings are merged field-by-field into the existing settings and validated against the instance's template ("settings_validation" on violation). To change ONLY environment variables prefer platform_update_hosted_instance_env, which works with Member permissions.
+            sourceProject copies flows/configuration from another instance in the same team onto this one, overwriting its current content - treat it as destructive and confirm with the user. The response returns while the copy runs in the background.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        inputSchema: {
+            instanceId: hostedInstanceId.describe('The id (UUID) of the hosted instance to update'),
+            name: z.string().optional().describe('New name for the instance. Must be unique across the platform; changing it restarts the instance'),
+            settings: z.record(z.string(), z.any()).optional().describe('Instance settings to merge in (palette, editor, security, and so on), validated against the template. For env-only changes use platform_update_hosted_instance_env instead'),
+            launcherSettings: z.object({
+                healthCheckInterval: z.number().optional().describe('Launcher health-check interval in milliseconds, minimum 5000'),
+                disableAutoSafeMode: z.boolean().optional().describe('Whether to disable automatic safe mode after repeated crashes')
+            }).optional().describe('Node-RED launcher settings'),
+            projectType: z.string().optional().describe('The hashid of the instance type to switch to. Requires stack to be passed as well; restarts the instance'),
+            stack: z.string().optional().describe('The hashid of the stack to switch to (see platform_list_hosted_instance_types). Restarts the instance'),
+            sourceProject: z.object({
+                id: z.string().uuid().describe('UUID of the source instance to copy from. Must be in the same team'),
+                options: z.record(z.string(), z.any()).optional().describe('Flags selecting which parts to copy (flows, credentials, envVars, and so on)')
+            }).optional().describe('Copies configuration and flows from another instance onto this one, overwriting current content. Confirm with the user first')
+        },
+        handler: async (args, { inject }) => {
+            const payload = {}
+            for (const key of ['name', 'settings', 'launcherSettings', 'projectType', 'stack', 'sourceProject']) {
+                if (args[key] !== undefined) {
+                    payload[key] = args[key]
+                }
+            }
+            const response = await inject({ method: 'PUT', url: `/api/v1/projects/${args.instanceId}`, payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_import_hosted_instance_flows',
+        title: 'Import Hosted Instance Flows',
+        description: `FlowFuse platform automation tool:
+            Imports flows (and optionally their credentials) into a hosted instance, REPLACING the flows it currently has. If the instance is running, the new flows are deployed immediately. Confirm with the user before importing.
+            flows is the Node-RED flows array serialized as a JSON string. credentials must be the encrypted credentials object (as exported from another instance) serialized as a JSON string, with credsSecret set to the secret that encrypted them - a wrong secret fails with 403 "invalid_credentials_secret".
+            To build whole flows interactively prefer the flow-building editor tools; this tool is for transplanting existing flow JSON.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        inputSchema: {
+            instanceId: hostedInstanceId.describe('The id (UUID) of the hosted instance to import flows into'),
+            flows: z.string().optional().describe('Node-RED flows array serialized as a JSON string. Replaces the instance flows'),
+            credentials: z.string().optional().describe('Encrypted flow credentials object serialized as a JSON string, as exported from another instance'),
+            credsSecret: z.string().optional().describe('Secret used to decrypt the supplied credentials. Required when credentials are supplied')
+        },
+        handler: async (args, { inject }) => {
+            const payload = {}
+            for (const key of ['flows', 'credentials', 'credsSecret']) {
+                if (args[key] !== undefined) {
+                    payload[key] = args[key]
+                }
+            }
+            const response = await inject({ method: 'POST', url: `/api/v1/projects/${args.instanceId}/import`, payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_set_instance_config',
+        title: 'Set Hosted Instance Configuration',
+        description: `FlowFuse platform automation tool:
+            Enables, disables, sets, or clears one configuration surface on a hosted instance. surface picks the config, action picks the transition:
+            ha uses enable/disable. Enabling requires replicas (only 2 is accepted; anything else is a 409). CAUTION: enabling or disabling HA restarts the instance in the background.
+            customHostname uses set/clear. Setting requires hostname; an unavailable hostname is a 409 "hostname_not_available". CAUTION: setting or clearing the hostname restarts the instance in the background.
+            protection uses enable/disable. A protected instance only accepts deploys and pipeline pushes from team Owners. No restart involved.
+            autoUpdateStack uses set/clear. Setting requires schedule and REPLACES the whole weekly schedule of allowed automatic stack-update windows. No restart involved.
+            ha, customHostname and protection are plan-gated features: a team whose plan does not include them gets a 404, indistinguishable from a missing instance. autoUpdateStack has no plan gate.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            instanceId: hostedInstanceId.describe('The id (UUID) of the hosted instance'),
+            surface: z.enum(['ha', 'customHostname', 'protection', 'autoUpdateStack']).describe('Configuration surface to change'),
+            action: z.enum(['enable', 'disable', 'set', 'clear']).describe('Transition to apply: ha/protection use enable/disable, customHostname/autoUpdateStack use set/clear'),
+            replicas: z.literal(2).optional().describe('HA replica count, required when enabling ha. Only 2 is accepted'),
+            hostname: z.string().optional().describe('Custom hostname, required when setting customHostname. A DNS CNAME for it must point at the platform'),
+            schedule: z.array(z.object({
+                day: z.number().min(0).max(6).describe('Day-of-week index the entry applies to (0 = Sunday)'),
+                hour: z.number().min(0).max(23).describe('Hour of the day for the allowed update window'),
+                restart: z.boolean().describe('Whether an automatic stack update may restart the instance in this window')
+            })).optional().describe('Weekly schedule of allowed automatic stack-update windows, required when setting autoUpdateStack. Replaces the entire stored schedule')
+        },
+        handler: async (args, { inject }) => {
+            const surfaces = {
+                ha: { path: 'ha', actions: ['enable', 'disable'] },
+                customHostname: { path: 'customHostname', actions: ['set', 'clear'] },
+                protection: { path: 'protectInstance', actions: ['enable', 'disable'] },
+                autoUpdateStack: { path: 'autoUpdateStack', actions: ['set', 'clear'] }
+            }
+            const surface = surfaces[args.surface]
+            if (!surface.actions.includes(args.action)) {
+                return toolError(400, 'invalid_request', `Surface ${args.surface} uses the actions ${surface.actions.join('/')}, not ${args.action}`)
+            }
+            const url = `/api/v1/projects/${args.instanceId}/${surface.path}`
+            if (args.action === 'disable' || args.action === 'clear') {
+                const response = await inject({ method: 'DELETE', url })
+                return response
+            }
+            let payload
+            if (args.surface === 'ha') {
+                if (args.replicas === undefined) {
+                    return toolError(400, 'invalid_request', 'replicas is required when enabling ha (only 2 is accepted)')
+                }
+                payload = { replicas: args.replicas }
+            } else if (args.surface === 'customHostname') {
+                if (!args.hostname) {
+                    return toolError(400, 'invalid_request', 'hostname is required when setting customHostname')
+                }
+                payload = { hostname: args.hostname }
+            } else if (args.surface === 'autoUpdateStack') {
+                if (!args.schedule) {
+                    return toolError(400, 'invalid_request', 'schedule is required when setting autoUpdateStack')
+                }
+                payload = { schedule: args.schedule }
+            } else {
+                payload = { enabled: true }
+            }
+            const response = await inject({ method: 'PUT', url, payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_update_instance_file',
+        title: 'Update Hosted Instance File',
+        description: `FlowFuse platform automation tool:
+            Updates the properties of an existing file or directory in a hosted instance's file store: either rename/move it with newPath, or set a directory's static sharing config with share. Exactly one of the two per call - it does not upload content (use platform_upload_instance_file for that).
+            share applies to directories only: { root: "/some/path" } serves the directory's contents publicly at that URL path on the instance, {} stops sharing it. Sharing a path that is a file (not a directory) fails with a 404.
+            Static file storage is a plan-gated feature: a team without it enabled gets a 404 error.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            instanceId: hostedInstanceId.describe('The id (UUID) of the hosted instance'),
+            path: z.string().describe('Path of the existing file or directory, relative to the file-store root, with "/" separators (as listed by platform_list_hosted_instance_files)'),
+            newPath: z.string().optional().describe('New path for a rename or move, relative to the file-store root. Provide exactly one of newPath or share'),
+            share: z.record(z.string(), z.any()).optional().describe('Directory sharing config: { root: "/url/path" } to serve the directory publicly at that path on the instance, {} to stop sharing. Provide exactly one of newPath or share')
+        },
+        handler: async (args, { inject }) => {
+            const hasNewPath = args.newPath !== undefined
+            const hasShare = args.share !== undefined
+            if (hasNewPath === hasShare) {
+                return toolError(400, 'invalid_request', 'Provide exactly one of newPath (rename/move) or share (directory sharing)')
+            }
+            const payload = hasNewPath ? { path: args.newPath } : { share: args.share }
+            const response = await inject({ method: 'PUT', url: `/api/v1/projects/${args.instanceId}/files/_/${encodeURIComponent(args.path)}`, payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_upload_instance_file',
+        title: 'Upload Hosted Instance File',
+        description: `FlowFuse platform automation tool:
+            Writes to a hosted instance's file store: either uploads text content as a file, or creates a directory. Exactly one of content or directoryName per call.
+            With content, path is the FULL destination path of the file (including its name) and the content is stored there, replacing any existing file. Only text content is supported through this tool.
+            With directoryName, path is the EXISTING parent directory ("" for the root) and a directory of that name is created inside it.
+            Static file storage is a plan-gated feature: a team without it enabled gets a 404 error.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        inputSchema: {
+            instanceId: hostedInstanceId.describe('The id (UUID) of the hosted instance'),
+            path: z.string().describe('With content: the full destination file path including the file name. With directoryName: the existing parent directory path (empty string for the root). Use "/" separators'),
+            content: z.string().optional().describe('Text content to store as the file at path, replacing any existing file. Provide exactly one of content or directoryName'),
+            directoryName: z.string().optional().describe('Name of the directory to create inside path. Provide exactly one of content or directoryName')
+        },
+        handler: async (args, { inject }) => {
+            const hasContent = args.content !== undefined
+            const hasDirectory = args.directoryName !== undefined
+            if (hasContent === hasDirectory) {
+                return toolError(400, 'invalid_request', 'Provide exactly one of content (file upload) or directoryName (create a directory)')
+            }
+            const url = `/api/v1/projects/${args.instanceId}/files/_/${encodeURIComponent(args.path)}`
+            if (hasDirectory) {
+                const response = await inject({ method: 'POST', url, payload: { path: args.directoryName } })
+                return response
+            }
+            // The route only accepts file content as multipart/form-data, so build a
+            // single-part body by hand; the target name comes from the URL path, not
+            // the part's filename.
+            const boundary = 'FlowFuseMcpFileUploadBoundary29b18a7f'
+            const filename = args.path.split('/').pop()
+            const payload = [
+                `--${boundary}`,
+                `Content-Disposition: form-data; name="file"; filename="${filename}"`,
+                'Content-Type: application/octet-stream',
+                '',
+                args.content,
+                `--${boundary}--`,
+                ''
+            ].join('\r\n')
+            const response = await inject({
+                method: 'POST',
+                url,
+                headers: { 'content-type': `multipart/form-data; boundary=${boundary}` },
+                payload
+            })
+            return response
+        }
     }
 ]
 
