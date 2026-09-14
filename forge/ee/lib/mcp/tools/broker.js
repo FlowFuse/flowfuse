@@ -119,5 +119,65 @@ module.exports = [
             const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/broker/${args.brokerId}/schema` })
             return response
         }
+    },
+    {
+        name: 'platform_broker_lifecycle_action',
+        title: 'Broker Lifecycle Action',
+        description: `FlowFuse platform automation tool:
+            Starts, stops, or suspends a broker's topic-collection agent: the platform process that connects to the broker to observe topics and build the topic schema. It does NOT start or stop the MQTT broker service itself, so message traffic is unaffected.
+            start launches the agent (creating it first for "team-broker" if needed); stop pauses collection but keeps the agent; suspend tears the agent down - for "team-broker" that removes the agent entirely, and platform_get_broker will then report just { state: "suspended" }.
+            Check the broker's current state with platform_get_broker before calling: for "team-broker", starting an agent that is already running, or stopping one that is not running, gets no response from the API.
+            This tool requires the enterprise license tier and the team broker feature enabled for the team; if the team does not have it enabled, the request returns a not found response.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            brokerId: z.string().describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid"),
+            action: z.enum(['start', 'stop', 'suspend']).describe('Lifecycle transition to apply to the broker topic-collection agent')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'POST', url: `/api/v1/teams/${args.teamId}/brokers/${args.brokerId}/${args.action}` })
+            return response
+        }
+    },
+    {
+        name: 'platform_create_broker_topic',
+        title: 'Create Broker Topics',
+        description: `FlowFuse platform automation tool:
+            Records one or more MQTT topics against a broker, optionally with metadata, so they appear in the broker's topic list and schema without having been observed on the wire.
+            This is a fire-and-forget write: the response is always an empty 201 and reports nothing per topic - entries without a topic string are skipped silently, and re-creating a recently written topic can be ignored by a server-side cache. Verify the result with platform_list_broker_topics, and use platform_update_broker_topic to change an existing topic's metadata rather than re-creating it.
+            This tool requires the enterprise license tier and the team broker feature enabled for the team; if the team does not have it enabled, the request returns a not found response.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            brokerId: z.string().describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid"),
+            topics: z.array(z.object({
+                topic: z.string().describe('MQTT topic string, e.g. "factory/line1/temperature"'),
+                metadata: z.record(z.string(), z.any()).optional().describe('Arbitrary topic metadata, e.g. { description: "..." }')
+            })).min(1).describe('Topics to record on the broker')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'POST', url: `/api/v1/teams/${args.teamId}/brokers/${args.brokerId}/topics`, payload: args.topics })
+            return response
+        }
+    },
+    {
+        name: 'platform_update_broker_topic',
+        title: 'Update Broker Topic',
+        description: `FlowFuse platform automation tool:
+            Replaces the metadata of a single recorded broker topic. Only metadata can be changed - the topic string and inferred payload schema are read-only here.
+            The metadata you pass replaces the stored object entirely, so include every field that should remain. Find topic ids with platform_list_broker_topics.
+            Returns the updated topic, or a 404 when the topic does not exist on that broker.
+            This tool requires the enterprise license tier and the team broker feature enabled for the team; if the team does not have it enabled, the request returns a not found response.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            brokerId: z.string().describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid"),
+            topicId: z.string().describe('The hashid of the topic to update, as returned by platform_list_broker_topics'),
+            metadata: z.record(z.string(), z.any()).describe('Replacement metadata object for the topic, e.g. { description: "..." }')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'PUT', url: `/api/v1/teams/${args.teamId}/brokers/${args.brokerId}/topics/${args.topicId}`, payload: { metadata: args.metadata } })
+            return response
+        }
     }
 ]
