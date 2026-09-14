@@ -104,6 +104,7 @@ import product from '../../services/product.js'
 
 import chatgptLogo from '../icons/ai-agents/chatgpt.svg'
 import claudeLogo from '../icons/ai-agents/claude.svg'
+import geminiLogo from '../icons/ai-agents/gemini.svg'
 import copilotLogo from '../icons/ai-agents/microsoft-copilot.svg'
 
 const CLIENTS = [
@@ -133,6 +134,15 @@ const CLIENTS = [
         step2Body: 'Enable developer mode, add by URL. Paid plans only.',
         step2Label: 'Open ChatGPT',
         step2Url: 'https://chatgpt.com/'
+    },
+    {
+        id: 'gemini',
+        logo: geminiLogo,
+        name: 'Gemini',
+        step2Title: 'Settings & help, Connected Apps, Add a custom app',
+        step2Body: 'Paste the URL. Gemini Spark only, US personal accounts.',
+        step2Label: 'Open Gemini',
+        step2Url: 'https://gemini.google.com/'
     },
     {
         id: 'local',

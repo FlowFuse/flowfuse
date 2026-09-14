@@ -89,6 +89,12 @@ Where custom connectors are available on your plan, add one and enter the FlowFu
 
 On Team and Enterprise plans an owner adds the connector for the organisation first, and then each person connects and signs in individually.
 
+### Gemini
+
+In the Gemini web app, open **Settings & help**, then **Connected Apps**, then add a custom app and enter the FlowFuse MCP address. FlowFuse supports Dynamic Client Registration, so there is no client ID or secret to fill in.
+
+Custom apps run in Gemini Spark, which Google currently limits to personal accounts in the US, so this is not available to everyone yet.
+
 ### Command-line and editor agents
 
 Claude Code, Cursor, Visual Studio Code and Gemini CLI all connect to the same address. Where a client supports OAuth, sign in; otherwise use a token, see [clients without a sign-in flow](#clients-without-a-sign-in-flow).
