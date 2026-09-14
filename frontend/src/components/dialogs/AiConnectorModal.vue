@@ -15,7 +15,7 @@
                     @click="selectClient(client.id)"
                 >
                     <span class="ff-agent-tab__icon" aria-hidden="true">
-                        <component :is="client.icon" v-if="client.icon" />
+                        <ServerIcon v-if="client.icon" />
                         <img v-else :src="client.logo" alt="">
                     </span>
                     <span>{{ client.name }}</span>
@@ -96,7 +96,7 @@
 </template>
 
 <script>
-import { ArrowTopRightOnSquareIcon, ClipboardDocumentIcon, CommandLineIcon, ServerIcon } from '@heroicons/vue/24/outline'
+import { ArrowTopRightOnSquareIcon, ClipboardDocumentIcon, ServerIcon } from '@heroicons/vue/24/outline'
 
 import clipboardMixin from '../../mixins/Clipboard.js'
 import alerts from '../../services/alerts.js'
@@ -140,7 +140,7 @@ const CLIENTS = [
     // is correct on Cloud and self-hosted without the reader editing it.
     {
         id: 'claude-code',
-        icon: CommandLineIcon,
+        logo: claudeLogo,
         name: 'Claude Code',
         step1Title: 'Copy the prompt',
         step1Body: 'This is the whole setup.',
@@ -152,7 +152,7 @@ const CLIENTS = [
     },
     {
         id: 'codex',
-        icon: CommandLineIcon,
+        logo: chatgptLogo,
         name: 'Codex',
         step1Title: 'Copy the prompt',
         step1Body: 'This is the whole setup.',
@@ -164,7 +164,7 @@ const CLIENTS = [
     },
     {
         id: 'local',
-        icon: ServerIcon,
+        icon: true,
         name: 'Local and Custom Agents',
         step2Title: "Your MCP client's config",
         step2Body: 'Any MCP client, pointed at your own model.',
@@ -175,10 +175,7 @@ const CLIENTS = [
 
 export default {
     name: 'AiConnectorModal',
-    // ServerIcon and CommandLineIcon are not registered: the tab glyph is chosen
-    // per client and rendered through <component :is>, so they are values here
-    // rather than tags in the template.
-    components: { ArrowTopRightOnSquareIcon, ClipboardDocumentIcon },
+    components: { ArrowTopRightOnSquareIcon, ClipboardDocumentIcon, ServerIcon },
     mixins: [clipboardMixin],
     data () {
         return {
