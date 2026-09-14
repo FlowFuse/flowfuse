@@ -11,7 +11,9 @@
                     data-action="skip-onboarding"
                     :disabled="provisioning"
                     @click="skipOnboarding"
-                >Set it up myself</ff-button>
+                >
+                   Set it up myself
+                </ff-button>
             </Teleport>
             <div class="onboarding-column">
                 <ExpertPanel />
