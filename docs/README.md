@@ -195,11 +195,11 @@ Once you're more comfortable with FlowFuse, you may want to explore some of our 
       <p>A complete set of FlowFuse-maintained nodes for data sharing between instances, MQTT messaging, AI/ONNX models, MCP agent integrations, and enterprise data features.<p>
       <ul>
          <li><a href="/docs/user/projectnodes/">FlowFuse Project Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="/docs/flowfuse-nodes/mcp/">FlowFuse MCP Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="/docs/flowfuse-nodes/flowfuse-tables/">FlowFuse Tables Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="/docs/flowfuse-nodes/ai/">FlowFuse AI Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="https://flowfuse.com/docs/flowfuse-nodes/mcp/">FlowFuse MCP Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="https://flowfuse.com/docs/flowfuse-nodes/flowfuse-tables/">FlowFuse Tables Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="https://flowfuse.com/docs/flowfuse-nodes/ai/">FlowFuse AI Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
          <li><a href="/docs/user/mqtt-nodes/">FlowFuse MQTT Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="/docs/flowfuse-nodes/">See all the Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="https://flowfuse.com/docs/flowfuse-nodes/">See all the Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
       </ul>
    </div>
    <div class="ff-tile ff-offering-tile">
