@@ -2030,6 +2030,56 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/teams/{teamId}/default-workspace": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Provision the default application and instance in an empty team */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    teamId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            application?: components["schemas"]["ApplicationSummary"];
+                            instance?: components["schemas"]["Instance"];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teams/{teamId}/comms-credentials": {
         parameters: {
             query?: never;
@@ -10312,6 +10362,11 @@ export interface components {
             expiresAt: string | null;
             readOnly?: boolean;
             adminOptIn?: boolean;
+            autoRenews?: {
+                every?: number;
+                until?: string | null;
+                chosen?: boolean;
+            } | null;
             teams?: {
                 id?: string;
                 name?: string | null;

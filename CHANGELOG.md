@@ -1,3 +1,38 @@
+#### 3.0.2: Release
+
+ - Allow admin to modify type of team in manual billing mode (#8456)
+ - [201] Mobile sign up + popup: Remove background image (#8455)
+ - Remove stray border tick on horizontal resize bars (#8443)
+ - Fix form validation of azure repo urls (#8452)
+ - Run only forge unit and system tests in the postgres CI job (#8435)
+ - [8424] Show MCP tokens as auto-renewing in the tokens list (#8430)
+ - [8426] Add a required expiry date to the MCP consent screen (#8428)
+ - [8425] Enforce a grant expiry on MCP OAuth tokens (#8427)
+ - Require explicit access level and team scope on the MCP consent screen (#8419)
+ - Keep refreshable tokens out of the nightly expireTokens sweep (#8420)
+ - Return 400 for a refresh_token grant with no refresh_token (#8423)
+ - ci: Group all development dependecies into single PR (#8413)
+ - build(deps): bump aws-actions/configure-aws-credentials from 6.2.3 to 6.2.4 (#8402)
+ - build(deps): bump docker/setup-qemu-action from 4.2.0 to 4.3.0 (#8401)
+ - build(deps): bump benc-uk/workflow-dispatch from 1.3.2 to 1.3.3 (#8400)
+ - ci: Ignore patch bumps and group development dependecies (#8399)
+ - Only show top-banner if no left-banner set (#8360)
+
+#### 3.0.1: Release
+
+ - Fix error for `lock file's globals@17.11.0 does not satisfy globals@17.12.0` (#8357)
+ - build(deps-dev): bump webpack from 5.109.2 to 5.110.2 (#8348)
+ - build(deps): bump @sentry/vue from 10.70.0 to 10.72.0 (#8346)
+ - build(deps-dev): bump @typescript-eslint/parser from 8.67.0 to 8.68.0 (#8349)
+ - build(deps): bump nodemailer from 9.0.5 to 9.0.6 (#8353)
+ - [7918] Update the logo variant for dark backgrounds (#8322)
+ - docs: correct the ChatGPT developer mode path (#8316)
+ - docs: use the shared agent picker on the third-party agents page (#8313)
+ - docs: correct the ChatGPT and Claude connector steps (#8314)
+ - build(deps): bump ldapts from 8.1.8 to 9.0.0 (#7815)
+ - Update localfs docs for NodeJS 24 (#8315)
+ - build(deps): bump google-auth-library from 10.9.1 to 11.0.2 (#8202)
+
 #### 3.0.0: Release
 
  - Move MCP comms lifecycle out of the Expert button and into the orchestrator (#8307)

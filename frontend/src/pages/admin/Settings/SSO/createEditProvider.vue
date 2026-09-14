@@ -18,6 +18,7 @@
                 </ff-button>
                 <template v-else>
                     <FormRow v-model="input.active" type="checkbox">Active</FormRow>
+                    <FormRow v-model="input.options.debugEnabled" type="checkbox">Enable Debug Logging</FormRow>
                     <template v-if="input.type === 'saml'">
                         <FormRow v-model="provider.acsURL" type="uneditable">ACS URL</FormRow>
                         <FormRow v-model="provider.entityID" type="uneditable">Entity ID / Issuer</FormRow>
@@ -29,7 +30,7 @@
                             Identity Provider Issuer ID / URL
                             <template #description>Supplied by your Identity Provider</template>
                         </FormRow>
-                        <FormRow v-model="input.options.cert">
+                        <FormRow v-model="input.options.cert" class="max-w-xl">
                             X.509 Certificate Public Key
                             <template #description>Supplied by your Identity Provider</template>
                             <template #input><textarea v-model="input.options.cert" class="font-mono w-full" placeholder="---BEGIN CERTIFICATE---&#10;loremipsumdolorsitamet&#10;consecteturadipiscinge&#10;---END CERTIFICATE---&#10;" rows="6" /></template>
@@ -114,6 +115,12 @@
                             Group Name Suffix Length
                             <template #description>The length of any suffix added to the FlowFuse Group Name format</template>
                         </FormRow>
+                        <FormRow v-model="input.options.groupIdMap" class="max-w-xl">
+                            Group ID/name mappings
+                            <template #description>If the SAML provider only returns Group IDs (certain Entra configurations for example), provide a list of GroupId to GroupName mappings - one per line</template>
+                            <template #input><textarea v-model="input.options.groupIdMap" class="font-mono w-full" rows="6" placeholder="123-abc-456 ff-example-owners" /></template>
+                        </FormRow>
+
                         <FormRow v-model="input.options.groupAllTeams" :options="[{ value:true, label: 'Apply to all teams' }, { value:false, label: 'Apply to selected teams' }]">
                             Team Scope
                             <template #description>Should this apply to all teams on the platform, or just a restricted list of teams</template>
@@ -190,7 +197,9 @@ export default {
                     groupAdminName: '',
                     groupPrefixLength: 0,
                     groupSuffixLength: 0,
-                    sendIdpHint: false
+                    groupIdMap: '',
+                    sendIdpHint: false,
+                    debugEnabled: false
                 }
             },
             errors: {},
@@ -304,6 +313,7 @@ export default {
                     delete opts.options.groupTeams
                     delete opts.options.groupAdmin
                     delete opts.options.groupAdminName
+                    delete opts.options.groupIdMap
                 } else {
                     if (opts.options.groupAllTeams) {
                         delete opts.options.groupTeams
@@ -311,6 +321,20 @@ export default {
                     } else {
                         // groupTeams is stored as an array of team ids.
                         opts.options.groupTeams = opts.options.groupTeams.split(/(?:\r|\n|\r\n)/).filter(n => n.trim().length > 0)
+                    }
+                    // groupIdMap is stored as an object of groupId:groupName pairs. Convert from multi-line string to object.
+                    if (opts.options.groupIdMap) {
+                        const groupIdMap = {}
+                        opts.options.groupIdMap.split(/(?:\r|\n|\r\n)/).forEach(line => {
+                            // Split on only the first whitespace, to allow for group names with spaces
+                            const [groupId, groupName] = line.trim().split(/\s+(.*)/, 2)
+                            if (groupId && groupName) {
+                                groupIdMap[groupId] = groupName
+                            }
+                        })
+                        opts.options.groupIdMap = groupIdMap
+                    } else {
+                        delete opts.options.groupIdMap
                     }
                     if (!opts.options.groupAdmin) {
                         delete opts.options.groupAdminName
@@ -358,7 +382,8 @@ export default {
                     groupAssertionName: 'ff-roles',
                     groupPrefixLength: 0,
                     groupSuffixLength: 0,
-                    sendIdpHint: false
+                    sendIdpHint: false,
+                    debugEnabled: false
                 }
             } else {
                 this.loading = true
@@ -390,7 +415,13 @@ export default {
                 this.input.options.groupAssertionName = this.input.options.groupAssertionName || 'ff-roles'
                 // groupTeams is stored as an array - convert to multi-line string for the edit form
                 this.input.options.groupTeams = (this.input.options.groupTeams || []).join('\n')
+                // groupIdMap is stored as an object - convert to multi-line string for the edit form
+                if (this.input.options.groupIdMap && typeof this.input.options.groupIdMap === 'object') {
+                    this.input.options.groupIdMap = Object.entries(this.input.options.groupIdMap).map(([groupId, groupName]) => `${groupId} ${groupName}`).join('\n')
+                }
+                this.input.options.groupPrefixLength = this.input.options.groupPrefixLength ?? 0
                 this.input.options.sendIdpHint = this.input.options.sendIdpHint ?? false
+                this.input.options.debugEnabled = this.input.options.debugEnabled ?? false
             } else {
                 // eslint-disable-next-line no-template-curly-in-string
                 this.input.options.userFilter = this.input.options.userFilter || '(uid=${username})'

@@ -338,6 +338,48 @@ describe('Accounts API', async function () {
                 instance.safeName.should.match(/team-user-user3-(\w)+/)
             })
 
+            it('skips application and instance creation when AI onboarding is enabled', async function () {
+                app.config.features.register('aiOnboarding', true, true)
+                try {
+                    app.settings.set('user:signup', true)
+                    app.settings.set('user:team:auto-create', true)
+                    app.settings.set('user:team:auto-create:instanceType', app.projectType.hashid)
+
+                    const response = await registerUser({
+                        username: 'flaguser',
+                        password: '12345678',
+                        name: 'Flag User',
+                        email: 'flaguser@example.com'
+                    })
+                    response.statusCode.should.equal(200)
+
+                    const user = await app.db.models.User.findOne({ where: { username: 'flaguser' } })
+                    const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
+                    const verifyResponse = await app.inject({
+                        method: 'POST',
+                        url: '/account/verify/token',
+                        payload: {
+                            token: verificationToken.token
+                        },
+                        cookies: { sid: TestObjects.tokens.flaguser }
+                    })
+                    verifyResponse.statusCode.should.equal(200)
+
+                    // The team is still created
+                    const teamMemberships = await app.db.models.Team.forUser(user)
+                    teamMemberships.length.should.equal(1)
+
+                    // ...but with nothing in it
+                    const applications = await app.db.models.Application.byTeam(teamMemberships[0].Team.id)
+                    applications.length.should.equal(0)
+                    const instances = await app.db.models.Project.byUser(user)
+                    instances.length.should.equal(0)
+                } finally {
+                    app.config.features.register('aiOnboarding', false, true)
+                    app.settings.set('user:team:auto-create:instanceType', null)
+                }
+            })
+
             it('auto-creates an application & instance if instanceType option is set and there is no application yet', async function () {
                 app.settings.set('user:signup', true)
                 app.settings.set('user:team:auto-create', true)

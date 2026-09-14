@@ -421,6 +421,49 @@ describe('AccessToken controller', function () {
             should.not.exist(await app.db.controllers.AccessToken.refreshToken(original.refreshToken))
             ;(await app.db.models.AccessToken.count()).should.equal(0)
         })
+
+        describe('with a grant expiry', function () {
+            const DAY = 24 * 60 * 60 * 1000
+
+            it('stores the grant expiry and caps the refresh window at it', async function () {
+                const grantExpiresAt = Date.now() + 10 * DAY
+                const result = await createToken({ grantExpiresAt })
+
+                const row = await app.db.models.AccessToken.byRefreshToken(result.refreshToken)
+                row.grantExpiresAt.getTime().should.equal(grantExpiresAt)
+                // 10 days is inside the 30 day window, so the cap applies
+                row.refreshTokenExpiresAt.getTime().should.equal(grantExpiresAt)
+            })
+
+            it('keeps the default refresh window when the grant expiry is further out', async function () {
+                const grantExpiresAt = Date.now() + 365 * DAY
+                const result = await createToken({ grantExpiresAt })
+
+                const row = await app.db.models.AccessToken.byRefreshToken(result.refreshToken)
+                row.refreshTokenExpiresAt.getTime().should.be.approximately(Date.now() + 30 * DAY, 5000)
+            })
+
+            it('cannot slide the refresh window past the grant expiry', async function () {
+                const grantExpiresAt = Date.now() + 1 * DAY
+                const original = await createToken({ grantExpiresAt })
+                await setRowExpiry(original.refreshToken, { accessMs: -5000 })
+
+                const refreshed = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+                should.exist(refreshed)
+                const after = await app.db.models.AccessToken.byRefreshToken(original.refreshToken)
+                after.refreshTokenExpiresAt.getTime().should.be.belowOrEqual(grantExpiresAt)
+            })
+
+            it('cannot mint an access token that outlives the grant expiry', async function () {
+                const grantExpiresAt = Date.now() + 10 * 60 * 1000
+                const original = await createToken({ grantExpiresAt })
+                await setRowExpiry(original.refreshToken, { accessMs: -5000 })
+
+                const refreshed = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+                should.exist(refreshed)
+                refreshed.expiresAt.should.be.belowOrEqual(grantExpiresAt)
+            })
+        })
     })
 
     describe('getOrExpire', function () {

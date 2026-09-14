@@ -10,6 +10,7 @@ import { useDataFarmApplicationsStore } from './data-farm-applications'
 import { useDataFarmTeamsStore } from './data-farm-teams'
 import { useProductAssistantStore } from './product-assistant.js'
 import { useProductExpertStore } from './product-expert.js'
+import { useUxStore } from './ux.js'
 
 import { useMqttExpertTopicHelper } from '@/composables/services/MqttExpertTopicHelper'
 
@@ -50,6 +51,28 @@ export const useContextStore = defineStore('context', {
         isImmersiveEditor () {
             return this.editorEntityType !== null
         },
+        // Whether the loaded entity matches the route, so presence never publishes a stale one.
+        isExpertContextReady (state) {
+            const route = state.route
+            if (!route) {
+                return false
+            }
+
+            const editorType = this.editorEntityType
+            if (editorType === 'instance') {
+                return state.instance?.id === route.params.id
+            }
+            if (editorType === 'device') {
+                return state.device?.id === route.params.id
+            }
+
+            const { entityType, entityId } = useMqttExpertTopicHelper().getEntityTopicPaths()
+            // The team is the steady state for team and global pages; any deeper entity must belong to this route.
+            if (entityType === 't') {
+                return !!this.team?.id
+            }
+            return Object.values(route.params).flat().includes(entityId)
+        },
         expert (state) {
             const authStore = useAccountAuthStore()
             const assistantStore = useProductAssistantStore()
@@ -79,7 +102,8 @@ export const useContextStore = defineStore('context', {
                     selectedNodes: null,
                     scope: this.isImmersive ? 'immersive' : 'ff-app',
                     questionCadence: useProductExpertStore().questionCadence,
-                    planMode: useProductExpertStore().planMode
+                    planMode: useProductExpertStore().planMode,
+                    onboarding: useUxStore().isOnboarding
                 }
             }
 
@@ -123,6 +147,7 @@ export const useContextStore = defineStore('context', {
                 supportsPlatformUIAutomation: useAccountSettingsStore().featuresCheck?.isExpertPlatformAutomationFeatureEnabled ?? false,
                 questionCadence: useProductExpertStore().questionCadence,
                 planMode: useProductExpertStore().planMode,
+                onboarding: useUxStore().isOnboarding,
                 // Capability flags: signal that this version can render the question,
                 // plan, and approval cards. Older instances omit them and the agent drops
                 // the matching tool / runs in backward-compatible mode.
