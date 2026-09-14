@@ -49,6 +49,9 @@
                                 </li>
                             </ul>
                         </div>
+                        <div v-if="isUnmanaged && user.admin" class="mb-8 text-sm space-y-2 border border-red-500 rounded-md p-4 bg-red-50">
+                            <b>Admin:</b> You can override these limits <i>after</i> you change the team type. Go to the Team Settings page and apply the required limit overrides.
+                        </div>
                     </template>
                     <template v-else-if="billingEnabled && !isUnmanaged">
                         <div class="mb-8 text-sm text-gray-500 space-y-2 text-center">
@@ -156,7 +159,8 @@ export default {
                     this.input.teamTypeId &&
                     this.isSelectionAvailable &&
                     (this.billingMissing || isChangingTeamType || this.isUpgradingFromMonthlyToYearly) &&
-                    this.upgradeErrors.length === 0
+                    // An admin can override errors if the team is unmanaged, otherwise there must be no errors
+                    (this.upgradeErrors.length === 0 || (this.isUnmanaged && this.user.admin))
         },
         isUpgradingFromMonthlyToYearly () {
             const inputTeamHasAnnual = Object.prototype.hasOwnProperty.call(this.input, 'teamType') &&

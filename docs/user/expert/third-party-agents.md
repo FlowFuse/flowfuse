@@ -14,6 +14,13 @@ Because the agent is yours, so is the model it runs on.
 
 Any MCP client that supports the HTTP transport can connect. That is the only requirement.
 
+Pick your agent for the address to copy and the steps that apply to it:
+
+::agent-setup-tabs{:exclude-expert="true" :signup="false" surface="docs"}
+::
+
+The same three steps, written out:
+
 1. **Add the FlowFuse MCP address in your agent's connector settings.** See [where to add it, per agent](#where-to-add-it-per-agent) if you are not sure where yours lives.
 
    On FlowFuse Cloud:
@@ -63,11 +70,6 @@ When you ask for flow work, your agent will guide you to connect an editor sessi
 ## Where to add it, per agent
 
 The agents below are the common ones and where their settings live. Every other AI Agent that supports MCP over HTTP connects the same way.
-
-Pick yours for the address and the steps that apply to it:
-
-::agent-setup-tabs{:exclude-expert="true" :signup="false" surface="docs"}
-::
 
 ### Microsoft Copilot
 

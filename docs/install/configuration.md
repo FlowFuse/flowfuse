@@ -167,7 +167,7 @@ Additionally, you can configure your own instance of FlowFuse to report back to 
 - [PostHog](https://posthog.com/) _(recommended)_: You will require your own API key to pass into the `yml`, which will begin the logging of user interactions.
 - [Plausible](https://plausible.io/): _(deprecated since 0.9 and will be removed in the future)_: You can setup your own account, and pass the relevant domain to the `yml` in the telemetry configuration
 
-For more information about this feature, see [here](/docs/admin/telemetry.md)
+For more information about this feature, see [here](/docs/admin/telemetry/)
 
 Option        | Description
 --------------|------------
@@ -231,7 +231,7 @@ broker, but some features will not be available:
 
 - Without a broker: Project Nodes, Device Actions and Remote Device Editing are unavailable.
 - The following features additionally require the platform broker to be EMQX:
-  the [Team Broker](/docs/user/teambroker.md), [FlowFuse Expert](/docs/user/expert/)
+  the [Team Broker](/docs/user/teambroker/), [FlowFuse Expert](/docs/user/expert/)
   and live device log and performance views in the platform UI.
 
 [Mosquitto](https://mosquitto.org/) is supported at a legacy level for existing
@@ -317,9 +317,9 @@ This is done by adding `10-file.js` in the **Exclude nodes by filename**
 section of your instance settings under the **Palette** section.
 
 This setting is modifiable only by a Team owner and only if it has not been
-locked in the [template](/docs/user/concepts.md#template) by the platform Administrator.
+locked in the [template](/docs/user/concepts/#template) by the platform Administrator.
 
-[Click here](/docs/user/filenodes.md), to learn more about the usage of the FlowFuse File Nodes.
+[Click here](/docs/user/filenodes/), to learn more about the usage of the FlowFuse File Nodes.
 
 ## Content Security Policy
 
