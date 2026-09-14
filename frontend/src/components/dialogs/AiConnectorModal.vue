@@ -15,7 +15,7 @@
                     @click="selectClient(client.id)"
                 >
                     <span class="ff-agent-tab__icon" aria-hidden="true">
-                        <ServerIcon v-if="client.icon" />
+                        <component :is="client.icon" v-if="client.icon" />
                         <img v-else :src="client.logo" alt="">
                     </span>
                     <span>{{ client.name }}</span>
@@ -33,12 +33,12 @@
             >
                 <div class="ff-agent-step">
                     <p class="ff-agent-step__num">01</p>
-                    <p class="ff-agent-step__title">Copy the FlowFuse connector URL</p>
-                    <p class="ff-agent-step__body">Paste it into your agent in the next step.</p>
+                    <p class="ff-agent-step__title">{{ client.step1Title || 'Copy the FlowFuse connector URL' }}</p>
+                    <p class="ff-agent-step__body">{{ client.step1Body || 'Paste it into your agent in the next step.' }}</p>
                     <div class="ff-agent-step__cta">
                         <div class="ai-connector__command">
-                            <code class="ai-connector__endpoint">{{ endpoint }}</code>
-                            <ff-button kind="primary" size="small" @click="copyEndpoint">
+                            <code class="ai-connector__endpoint">{{ stepOneText(client) }}</code>
+                            <ff-button kind="primary" size="small" @click="copyStepOne(client)">
                                 <template #icon-right><ClipboardDocumentIcon /></template>
                                 Copy
                             </ff-button>
@@ -96,7 +96,7 @@
 </template>
 
 <script>
-import { ArrowTopRightOnSquareIcon, ClipboardDocumentIcon, ServerIcon } from '@heroicons/vue/24/outline'
+import { ArrowTopRightOnSquareIcon, ClipboardDocumentIcon, CommandLineIcon, ServerIcon } from '@heroicons/vue/24/outline'
 
 import clipboardMixin from '../../mixins/Clipboard.js'
 import alerts from '../../services/alerts.js'
@@ -134,9 +134,37 @@ const CLIENTS = [
         step2Label: 'Open ChatGPT',
         step2Url: 'https://chatgpt.com/'
     },
+    // A coding agent installs the connector into itself, so its tab is the prompt
+    // and nothing else. Nothing here to go stale when a client changes how remote
+    // servers are added, and the prompt carries this platform's own address, so it
+    // is correct on Cloud and self-hosted without the reader editing it.
+    {
+        id: 'claude-code',
+        icon: CommandLineIcon,
+        name: 'Claude Code',
+        step1Title: 'Copy the prompt',
+        step1Body: 'This is the whole setup.',
+        step1Command: url => `Add the FlowFuse MCP tool at ${url}. Then ask me to complete the sign-in in the browser that opens.`,
+        step2Title: 'Paste it into Claude Code',
+        step2Body: 'It adds the connector itself, then asks you to finish signing in.',
+        step2Label: 'See the documentation',
+        step2Url: 'https://flowfuse.com/docs/user/expert/third-party-agents/'
+    },
+    {
+        id: 'codex',
+        icon: CommandLineIcon,
+        name: 'Codex',
+        step1Title: 'Copy the prompt',
+        step1Body: 'This is the whole setup.',
+        step1Command: url => `Add the FlowFuse MCP tool at ${url}. Then ask me to complete the sign-in in the browser that opens.`,
+        step2Title: 'Paste it into Codex',
+        step2Body: 'It adds the connector itself, then asks you to finish signing in.',
+        step2Label: 'See the documentation',
+        step2Url: 'https://flowfuse.com/docs/user/expert/third-party-agents/'
+    },
     {
         id: 'local',
-        icon: true,
+        icon: ServerIcon,
         name: 'Local and Custom Agents',
         step2Title: "Your MCP client's config",
         step2Body: 'Any MCP client, pointed at your own model.',
@@ -147,7 +175,10 @@ const CLIENTS = [
 
 export default {
     name: 'AiConnectorModal',
-    components: { ArrowTopRightOnSquareIcon, ClipboardDocumentIcon, ServerIcon },
+    // ServerIcon and CommandLineIcon are not registered: the tab glyph is chosen
+    // per client and rendered through <component :is>, so they are values here
+    // rather than tags in the template.
+    components: { ArrowTopRightOnSquareIcon, ClipboardDocumentIcon },
     mixins: [clipboardMixin],
     data () {
         return {
@@ -168,8 +199,14 @@ export default {
             this.activeClient = id
             this.capture('cta-ai-agent-tab', { position: id })
         },
-        copyEndpoint () {
-            this.copyToClipboard(this.endpoint)
+        // Most tabs show the bare address. A coding-agent tab shows a prompt built
+        // around it, so step one is whatever that client asks for rather than a
+        // fixed string. Both go through the same copy path and the same event.
+        stepOneText (client) {
+            return client.step1Command ? client.step1Command(this.endpoint) : this.endpoint
+        },
+        copyStepOne (client) {
+            this.copyToClipboard(this.stepOneText(client))
                 .then(() => {
                     this.capture('cta-copy-mcp-endpoint', { position: this.activeClient })
                     alerts.emit('Copied to Clipboard.', 'confirmation')
