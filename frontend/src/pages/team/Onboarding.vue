@@ -7,6 +7,7 @@
                 <ff-button
                     kind="tertiary"
                     class="skip-onboarding"
+                    :class="{ 'has-engaged': hasEngaged }"
                     data-action="skip-onboarding"
                     :disabled="provisioning"
                     @click="skipOnboarding"
@@ -46,13 +47,22 @@ export default {
     data () {
         return {
             provisioning: false,
-            teleportReady: false
+            teleportReady: false,
+            // How many turns the user had contributed when the page opened.
+            // Anything beyond it is them engaging, which lets the seeded
+            // transcript exist without counting as engagement.
+            initialUserTurns: null,
+            hasEngaged: false
         }
     },
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
         ...mapState(useUxStore, ['isOnboardingIntake']),
+        ...mapState(useProductExpertStore, ['messages']),
+        userTurns () {
+            return this.messages.filter(message => message._type === 'human').length
+        },
         notAvailable () {
             if (!this.team) {
                 return false
@@ -73,6 +83,21 @@ export default {
             immediate: true,
             handler () {
                 this.seedFixtureTranscript()
+                // The baseline is taken here, after the seed, rather than in
+                // the userTurns watcher: on a direct page load that watcher
+                // fires before the team resolves and would count the seeded
+                // turns as engagement
+                if (this.team && this.initialUserTurns === null) {
+                    this.initialUserTurns = this.userTurns
+                }
+            }
+        },
+        userTurns (turns) {
+            // Engagement is the user answering or saying something, not a
+            // timer, so the control only recedes once they have committed
+            // to the conversation
+            if (this.initialUserTurns !== null && turns > this.initialUserTurns) {
+                this.hasEngaged = true
             }
         },
         notAvailable: {
@@ -152,9 +177,27 @@ export default {
     text-decoration: underline;
     text-underline-offset: 3px;
     white-space: nowrap;
+    transition: opacity 0.4s ease;
 
     &:hover {
         color: var(--ff-color-text-strong);
+    }
+
+    /* Still reachable once they are in the conversation, just no longer
+       competing with it for attention */
+    &.has-engaged {
+        opacity: 0.45;
+
+        &:hover,
+        &:focus-visible {
+            opacity: 1;
+        }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .skip-onboarding {
+        transition: none;
     }
 }
 
