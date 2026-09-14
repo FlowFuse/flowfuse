@@ -44,7 +44,7 @@ AI features within the Node-RED editor include inline code completions, flow aut
 
 ## Using Your Own AI Agent
 
-Connect your own AI agent, such as Microsoft Copilot, ChatGPT or Claude, to manage your platform and build and edit flows in your Node-RED instances.
+Connect your own AI agent, such as Microsoft Copilot, ChatGPT or Claude, to manage your platform and build and edit flows in your Node-RED instances. It acts on the same capabilities as FlowFuse Expert, through the [FlowFuse MCP server](/docs/user/mcp/).
 
 [Learn more about connecting your own agent](/docs/user/expert/third-party-agents/)
 

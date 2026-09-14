@@ -45,7 +45,7 @@ Your agent is now connected. OAuth lets you connect by signing in. If your MCP c
 
 ## What your agent can do, and what you grant
 
-Ask your agent what it can do in a given team or instance if you want the current picture, since its tools reflect the instance it is connected to.
+Ask your agent what it can do in a given team or instance if you want the current picture, since its tools reflect the instance it is connected to. For the full surface, see [what agents can do on FlowFuse](/docs/user/mcp/), which covers both platform automation and flow building for any connected agent.
 
 **With read access**, an agent can see your teams and applications with their activity history, your hosted and remote instances with their live status and runtime logs, your snapshots, and your FlowFuse Tables databases including table schemas and row data. It can also see which instance types, templates and blueprints your team has available.
 
