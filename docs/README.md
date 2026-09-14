@@ -79,7 +79,7 @@ It covers everything from setup, to usage, and development. All [contributions](
       <p>Hosted solution, nothing to install anything, jump straight in.</p>
       <ul style="margin-top: 0; margin-bottom: 0;">
          <li class="ff-offering-cta"><a href="https://app.flowfuse.com/account/create">Sign Up for Free<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="">Upgrading Teams<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="/docs/cloud/billing/#team-billing">Upgrading Teams<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
          <li><a href="/docs/cloud/billing/">Billing<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
          <li><a href="/docs/cloud/introduction/#single-sign-on">Single Sign On<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
       </ul>
@@ -120,7 +120,7 @@ Here are some quick reference links to our most popular topics. You can also vie
          <span>Centralized management of re-usable flows and functions.</span>
       </div>
    </a>
-   <a class="ff-tile ff-product-feature-tile" href="/docs/user/snapshots/">
+   <a class="ff-tile ff-product-feature-tile" href="/docs/user/devops-pipelines/">
       <div class="ff-product-feature-tile-decorator">
          <svg class="ff-icon" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 24 24" style="enable-background:new 0 0 24 24;" xml:space="preserve"><g class="st0"><path d="M7,15.8 M7,3.1 M7,15.8V4.2C7,3.5,6.5,3,5.8,3H3.9C3.2,3,2.6,3.5,2.6,4.2v11.6"/><path d="M14,15.8 M14,3.1 M14,15.8V4.2C14,3.5,13.5,3,12.8,3h-1.9c-0.7,0-1.2,0.5-1.2,1.2v11.6"/><path d="M21,3.1 M21,15c0-2.7,0-10.8,0-10.8C21,3.5,20.5,3,19.8,3h-1.9c-0.7,0-1.2,0.5-1.2,1.2V11"/><path d="M17.2,22.5c-0.2,0-0.4-0.1-0.5-0.2c-0.3-0.3-0.3-0.8,0-1.1l2.5-2.5H3c-0.4,0-0.8-0.3-0.8-0.8s0.3-0.8,0.8-0.8h16.2l-2.5-2.5c-0.3-0.3-0.3-0.8,0-1.1s0.8-0.3,1.1,0l3.8,3.8c0.1,0.1,0.1,0.2,0.2,0.2c0,0.1,0.1,0.2,0.1,0.3s0,0.2-0.1,0.3c0,0.1-0.1,0.2-0.2,0.2l-3.8,3.8C17.6,22.4,17.4,22.5,17.2,22.5z"/></g></svg>
       </div>
@@ -129,7 +129,7 @@ Here are some quick reference links to our most popular topics. You can also vie
          <span>Deploy flows between Test, Staging & Production Environments.</span>
       </div>
    </a>
-   <a class="ff-tile ff-product-feature-tile" href="/docs/user/device-groups/">
+   <a class="ff-tile ff-product-feature-tile" href="/docs/device-agent/introduction/">
       <div class="ff-product-feature-tile-decorator">
          <svg class="ff-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Zm.75-12h9v9h-9v-9Z" /></svg>
       </div>
@@ -162,7 +162,7 @@ Once you're more comfortable with FlowFuse, you may want to explore some of our 
       </div>
       <div>
          <label>Managing Teams</label>
-         <span>Host your Instances at a custom subdomain</span>
+         <span>Invite people, set their roles, and control who can do what.</span>
       </div>
    </a>
    <a class="ff-tile ff-product-feature-tile" href="/docs/user/custom-hostnames/">
@@ -175,7 +175,7 @@ Once you're more comfortable with FlowFuse, you may want to explore some of our 
          <span>Host your Instances at a custom subdomain</span>
       </div>
    </a>
-   <a class="ff-tile ff-product-feature-tile" href="/docs/user/device-groups/">
+   <a class="ff-tile ff-product-feature-tile" href="/docs/user/high-availability/">
       <div class="ff-product-feature-tile-decorator">
          <svg class="ff-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" /></svg>
       </div>
@@ -195,11 +195,11 @@ Once you're more comfortable with FlowFuse, you may want to explore some of our 
       <p>A complete set of FlowFuse-maintained nodes for data sharing between instances, MQTT messaging, AI/ONNX models, MCP agent integrations, and enterprise data features.<p>
       <ul>
          <li><a href="/docs/user/projectnodes/">FlowFuse Project Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="https://flowfuse.com/node-red/flowfuse/mcp/">FlowFuse MCP Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="https://flowfuse.com/node-red/flowfuse/flowfuse-tables/">FlowFuse Tables Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="https://flowfuse.com/node-red/flowfuse/ai/">FlowFuse AI Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="/docs/flowfuse-nodes/mcp/">FlowFuse MCP Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="/docs/flowfuse-nodes/flowfuse-tables/">FlowFuse Tables Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="/docs/flowfuse-nodes/ai/">FlowFuse AI Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
          <li><a href="/docs/user/mqtt-nodes/">FlowFuse MQTT Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="https://flowfuse.com/node-red/flowfuse/">See all the Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="/docs/flowfuse-nodes/">See all the Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
       </ul>
    </div>
    <div class="ff-tile ff-offering-tile">
@@ -233,6 +233,7 @@ Once you're more comfortable with FlowFuse, you may want to explore some of our 
 ## Support
 
 - [Troubleshooting](/docs/debugging/)
+- [Community Support](/docs/community-support/)
 - [FlowFuse Cloud Support](/docs/premium-support/)
 
 ## Contributing to FlowFuse
