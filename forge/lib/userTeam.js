@@ -59,51 +59,20 @@ async function completeUserSignup (app, user, { createTeamOverride = false } = {
         }
     }
 
+    // With AI-led onboarding enabled, stop here: the team stays empty and the
+    // default workspace gets provisioned later, on demand.
+    if (app.config.features.enabled('aiOnboarding')) {
+        return
+    }
+
     // only create a starting instance if the flag is set and this user and their teams have no instances
     if (app.settings.get('user:team:auto-create:instanceType') &&
             personalTeam &&
             !((await app.db.models.Project.byUser(user)).length)) {
-        const instanceTypeId = app.settings.get('user:team:auto-create:instanceType')
-
-        const instanceType = await app.db.models.ProjectType.byId(instanceTypeId)
-        const instanceStack = await instanceType?.getDefaultStack() || (await instanceType.getProjectStacks())?.[0]
-        const instanceTemplate = await app.db.models.ProjectTemplate.findOne({ where: { active: true } })
-
-        const userTeamMemberships = await app.db.models.Team.forUser(user)
-        if (userTeamMemberships.length <= 0) {
-            console.warn("Flag to auto-create instance is set ('user:team:auto-create:instanceType'), but user has no team, consider setting 'user:team:auto-create'")
-            return // reply.send({ status: 'okay' })
-        } else if (!instanceType) {
-            throw new Error(`Instance type with id ${instanceTypeId} from 'user:team:auto-create:instanceType' not found`)
-        } else if (!instanceStack) {
-            throw new Error(`Unable to find a stack for use with instance type ${instanceTypeId} to auto-create user instance`)
-        } else if (!instanceTemplate) {
-            throw new Error('Unable to find the default instance template from which to auto-create user instance')
-        }
-
-        const applications = await app.db.models.Application.byTeam(personalTeam.id)
-        let application
-        if (applications.length > 0) {
-            application = applications[0]
-        } else {
-            const applicationName = `${user.name}'s Application`
-
-            application = await app.db.models.Application.create({
-                name: applicationName.charAt(0).toUpperCase() + applicationName.slice(1),
-                TeamId: personalTeam.id
-            })
-
+        const { application, instance, applicationCreated } = await app.db.controllers.Team.provisionDefaultWorkspace(personalTeam, user)
+        if (applicationCreated) {
             await app.auditLog.User.account.verify.autoCreateApplication(user, null, application)
         }
-
-        const safeTeamName = personalTeam.name.toLowerCase().replace(/[\W_]/g, '-')
-        const safeUserName = user.username.toLowerCase().replace(/[\W_]/g, '-')
-
-        const instanceProperties = {
-            name: `${safeTeamName}-${safeUserName}-${crypto.randomBytes(4).toString('hex')}`
-        }
-        const instance = await app.db.controllers.Project.create(personalTeam, application, user, instanceType, instanceStack, instanceTemplate, instanceProperties)
-
         await app.auditLog.User.account.verify.autoCreateInstance(user, null, instance)
     }
 }

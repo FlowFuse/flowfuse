@@ -39,6 +39,8 @@ export const useProductExpertStore = defineStore('product-expert', {
         // 'request-plan-change' focuses an empty composer for the plan card's "Request
         // changes"; 'reset' clears a plan loaded via "Edit manually" but not sent.
         composerCommand: null,
+        // question-card answers keyed by answer uuid, so a sent card survives a refresh
+        questionAnswers: {},
         _seenTransactionIds: new Map(),
         // Open human-in-the-loop approval batch (#421). When a turn defers a tool batch
         // for approval the agent ends the turn and returns the card(s); we hold the
@@ -210,8 +212,43 @@ export const useProductExpertStore = defineStore('product-expert', {
         setPendingInput (text) {
             this.pendingInput = text
         },
+        saveQuestionAnswer (answerUuid, answer) {
+            if (!answerUuid) {
+                return
+            }
+            this.questionAnswers = { ...this.questionAnswers, [answerUuid]: answer }
+        },
         setComposerCommand (command) {
             this.composerCommand = command
+        },
+        async openConversation () {
+            const agentStore = this._agentStore
+
+            if (agentStore.sessionId && this.isWaitingForResponse) {
+                return undefined
+            }
+            if (!agentStore.sessionId) {
+                agentStore.sessionId = uuidv4()
+            }
+
+            agentStore.abortController = markRaw(new AbortController())
+            try {
+                const result = await this.sendQuery({ query: '' })
+                if (result) {
+                    await this.handleMessageResponse(result)
+                }
+                return result
+            } catch (error) {
+                if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                    return undefined
+                }
+                if (!this.shouldUseMqtt) {
+                    console.error('Expert API error:', error)
+                }
+                this.addPredefinedAiMessage('Sorry, I could not get started. Please refresh to try again.', { isError: true })
+            } finally {
+                agentStore.abortController = null
+            }
         },
         async handleQuery ({ query }) {
             const agentStore = this._agentStore
@@ -660,6 +697,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             agentStore.sessionId = uuidv4()
             agentStore.messages = []
             agentStore.activeTaskList = null
+            this.questionAnswers = {}
 
             // A new chat drops the per-session tool grants ("Always allow/deny for this chat")
             // and the resolved-approval outcomes tied to the messages we just cleared.
@@ -1367,7 +1405,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         }
     },
     persist: {
-        pick: ['shouldWakeUpAssistant', 'questionCadence', 'agentMode'],
+        pick: ['shouldWakeUpAssistant', 'questionCadence', 'agentMode', 'questionAnswers'],
         storage: sessionStorage
     }
 })

@@ -274,7 +274,7 @@ async function init (app, opts) {
      */
     app.decorate('blockPAT', async (request, reply) => {
         if (request.session?.isPAT) {
-            reply.code(403).send({ code: 'pat_cannot_create_pat', error: 'PATs cannot create other PATs' })
+            reply.code(403).send({ code: 'pat_cannot_create_pat', error: 'PATs cannot create/edit/delete other PATs' })
         }
     })
 
