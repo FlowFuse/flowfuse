@@ -10,8 +10,7 @@ export const useUxToursStore = defineStore('ux-tours', {
             [WelcomeTourId]: false
         },
         modals: {
-            education: false,
-            aiConnector: false
+            education: false
         },
         completed: {},
         activeTour: null,
@@ -20,7 +19,6 @@ export const useUxToursStore = defineStore('ux-tours', {
     }),
     getters: {
         shouldShowEducationModal: (state) => state.modals.education,
-        isAiConnectorModalOpen: (state) => state.modals.aiConnector,
         // Auto-show once, then hold off for ten days after it was last shown.
         shouldAutoShowAiConnectorModal: (state) => {
             if (!state.aiConnectorLastShownAt) {
@@ -64,8 +62,7 @@ export const useUxToursStore = defineStore('ux-tours', {
         closeModal (modal) {
             this.modals[modal] = false
         },
-        openAiConnectorModal () {
-            this.modals.aiConnector = true
+        markAiConnectorShown () {
             this.aiConnectorLastShownAt = Date.now()
         },
         setWelcomeTour (callback = () => {}) {

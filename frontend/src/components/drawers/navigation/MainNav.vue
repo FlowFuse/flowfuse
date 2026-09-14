@@ -38,6 +38,7 @@
 import { ChevronLeftIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 
+import { useAiConnectorModal } from '../../../composables/AiConnectorModal.js'
 import NavItem from '../../NavItem.vue'
 import McpIcon from '../../icons/McpIcon.js'
 
@@ -45,7 +46,6 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
-import { useUxToursStore } from '@/stores/ux-tours.js'
 
 export default {
     name: 'MainNav',
@@ -142,12 +142,11 @@ export default {
     methods: {
         ...mapActions(useUxDrawersStore, ['closeLeftDrawer']),
         ...mapActions(useUxNavigationStore, ['setMainNavContext', 'setMainNavBackButton']),
-        ...mapActions(useUxToursStore, ['openAiConnectorModal']),
         onMenuItemClick () {
             this.closeLeftDrawer()
         },
         onAiConnectorClick () {
-            this.openAiConnectorModal()
+            useAiConnectorModal().open()
             this.closeLeftDrawer()
         },
         setBackButton () {

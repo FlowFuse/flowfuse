@@ -1,106 +1,115 @@
 <template>
-    <ff-dialog
-        ref="dialog"
-        header="Connect your AI agent to FlowFuse"
-        box-class="max-w-[64rem]! w-full!"
-    >
-        <template #default>
-            <div class="ff-agent-card">
-                <div class="ff-agent-tabs" role="tablist" aria-label="Choose your AI agent">
-                    <button
-                        v-for="client in clients"
-                        :id="`ff-tab-${client.id}`"
-                        :key="client.id"
-                        type="button"
-                        role="tab"
-                        class="ff-agent-tab"
-                        :class="{ 'ff-agent-tab--active': activeClient === client.id }"
-                        :aria-controls="`ff-panel-${client.id}`"
-                        :aria-selected="activeClient === client.id"
-                        @click="selectClient(client.id)"
-                    >
-                        <ServerIcon v-if="client.icon" class="ff-agent-tab__glyph" aria-hidden="true" />
-                        <img v-else :src="client.logo" alt="" aria-hidden="true">
-                        <span>{{ client.name }}</span>
-                    </button>
+    <div class="ff-agent-connector">
+        <div class="ff-agent-card">
+            <div class="ff-agent-tabs" role="tablist" aria-label="Choose your AI agent">
+                <button
+                    v-for="client in clients"
+                    :id="`ff-tab-${client.id}`"
+                    :key="client.id"
+                    type="button"
+                    role="tab"
+                    class="ff-agent-tab"
+                    :class="{ 'ff-agent-tab--active': activeClient === client.id }"
+                    :aria-controls="`ff-panel-${client.id}`"
+                    :aria-selected="activeClient === client.id"
+                    @click="selectClient(client.id)"
+                >
+                    <span class="ff-agent-tab__icon" aria-hidden="true">
+                        <ServerIcon v-if="client.icon" />
+                        <img v-else :src="client.logo" alt="">
+                    </span>
+                    <span>{{ client.name }}</span>
+                </button>
+            </div>
+
+            <div
+                v-for="client in clients"
+                v-show="activeClient === client.id"
+                :id="`ff-panel-${client.id}`"
+                :key="`panel-${client.id}`"
+                role="tabpanel"
+                :aria-labelledby="`ff-tab-${client.id}`"
+                class="ff-agent-panel"
+            >
+                <div class="ff-agent-step">
+                    <p class="ff-agent-step__num">01</p>
+                    <p class="ff-agent-step__title">Copy the FlowFuse connector URL</p>
+                    <p class="ff-agent-step__body">Paste it into your agent in the next step.</p>
+                    <div class="ff-agent-step__cta">
+                        <div class="ai-connector__command">
+                            <code class="ai-connector__endpoint">{{ endpoint }}</code>
+                            <ff-button kind="primary" size="small" @click="copyEndpoint">
+                                <template #icon-right><ClipboardDocumentIcon /></template>
+                                Copy
+                            </ff-button>
+                        </div>
+                    </div>
                 </div>
 
-                <div
-                    v-for="client in clients"
-                    v-show="activeClient === client.id"
-                    :id="`ff-panel-${client.id}`"
-                    :key="`panel-${client.id}`"
-                    role="tabpanel"
-                    :aria-labelledby="`ff-tab-${client.id}`"
-                    class="ff-agent-panel"
-                >
-                    <div class="ff-agent-step">
-                        <p class="ff-agent-step__num">01</p>
-                        <p class="ff-agent-step__title">Copy the FlowFuse connector URL</p>
-                        <p class="ff-agent-step__body">Paste it into your agent in the next step.</p>
-                        <div class="ff-agent-step__cta">
-                            <div class="ai-connector__command">
-                                <code class="ai-connector__endpoint">{{ endpoint }}</code>
-                                <ff-button kind="primary" size="small" @click="copyEndpoint">
-                                    <template #icon-right><ClipboardDocumentIcon /></template>
-                                    Copy
-                                </ff-button>
-                            </div>
-                        </div>
+                <div class="ff-agent-step">
+                    <p class="ff-agent-step__num">02</p>
+                    <p class="ff-agent-step__title">{{ client.step2Title }}</p>
+                    <p class="ff-agent-step__body">{{ client.step2Body }}</p>
+                    <div class="ff-agent-step__cta">
+                        <a
+                            :href="client.step2Url"
+                            class="ff-agent-step__link"
+                            :target="client.step2Url.startsWith('http') ? '_blank' : undefined"
+                            :rel="client.step2Url.startsWith('http') ? 'noopener' : undefined"
+                            @click="capture('cta-ai-open-client', { position: client.id })"
+                        >
+                            <span>{{ client.step2Label }}</span>
+                            <ArrowTopRightOnSquareIcon class="ff-icon" />
+                        </a>
                     </div>
+                </div>
 
-                    <div class="ff-agent-step">
-                        <p class="ff-agent-step__num">02</p>
-                        <p class="ff-agent-step__title">{{ client.step2Title }}</p>
-                        <p class="ff-agent-step__body">{{ client.step2Body }}</p>
-                        <div class="ff-agent-step__cta">
-                            <a
-                                :href="client.step2Url"
-                                class="ff-agent-step__link"
-                                :target="client.step2Url.startsWith('http') ? '_blank' : undefined"
-                                :rel="client.step2Url.startsWith('http') ? 'noopener' : undefined"
-                                @click="capture('cta-ai-open-client', { position: client.id })"
-                            >
-                                <span>{{ client.step2Label }}</span>
-                                <ArrowTopRightOnSquareIcon class="ff-icon" />
-                            </a>
-                        </div>
-                    </div>
-
-                    <div class="ff-agent-step">
-                        <p class="ff-agent-step__num">03</p>
-                        <p class="ff-agent-step__title">Sign in and choose what it reaches</p>
-                        <p class="ff-agent-step__body">Pick which teams it acts on, and whether it can edit or only read.</p>
-                    </div>
+                <div class="ff-agent-step">
+                    <p class="ff-agent-step__num">03</p>
+                    <p class="ff-agent-step__title">Sign in and choose what it reaches</p>
+                    <p class="ff-agent-step__body">Pick which teams it acts on, and whether it can edit or only read.</p>
                 </div>
             </div>
-        </template>
+        </div>
 
-        <template #actions>
-            <ff-button kind="secondary" @click="openExternal('https://flowfuse.com/docs/user/expert/third-party-agents/')">Read the documentation</ff-button>
-            <ff-button kind="secondary" class="mr-auto" @click="openExternal('https://flowfuse.com/ai/')">More about FlowFuse AI</ff-button>
-            <ff-button kind="primary" @click="close">Close</ff-button>
-        </template>
-    </ff-dialog>
+        <div class="ff-agent-links">
+            <a
+                href="https://flowfuse.com/docs/user/expert/third-party-agents/"
+                class="ff-agent-step__link"
+                target="_blank"
+                rel="noopener"
+            >
+                <span>Read the documentation</span>
+                <ArrowTopRightOnSquareIcon class="ff-icon" />
+            </a>
+            <a
+                href="https://flowfuse.com/ai/"
+                class="ff-agent-step__link"
+                target="_blank"
+                rel="noopener"
+            >
+                <span>More about FlowFuse AI</span>
+                <ArrowTopRightOnSquareIcon class="ff-icon" />
+            </a>
+        </div>
+    </div>
 </template>
 
 <script>
 import { ArrowTopRightOnSquareIcon, ClipboardDocumentIcon, ServerIcon } from '@heroicons/vue/24/outline'
 
-import { mapActions, mapState } from 'pinia'
-
 import clipboardMixin from '../../mixins/Clipboard.js'
 import alerts from '../../services/alerts.js'
 import product from '../../services/product.js'
 
-import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useContextStore } from '@/stores/context.js'
-import { useUxToursStore } from '@/stores/ux-tours.js'
+import chatgptLogo from '../icons/ai-agents/chatgpt.svg'
+import claudeLogo from '../icons/ai-agents/claude.svg'
+import copilotLogo from '../icons/ai-agents/microsoft-copilot.svg'
 
 const CLIENTS = [
     {
         id: 'claude',
-        logo: '/images/ai/agents/claude.svg',
+        logo: claudeLogo,
         name: 'Claude',
         step2Title: 'Add a custom connector',
         step2Body: 'Paste the URL.',
@@ -109,7 +118,7 @@ const CLIENTS = [
     },
     {
         id: 'copilot',
-        logo: '/images/ai/agents/microsoft-copilot.svg',
+        logo: copilotLogo,
         name: 'Microsoft Copilot',
         step2Title: 'Copilot Studio, Tools, Add a tool',
         step2Body: 'Pick Model Context Protocol, paste the URL.',
@@ -118,7 +127,7 @@ const CLIENTS = [
     },
     {
         id: 'chatgpt',
-        logo: '/images/ai/agents/chatgpt.svg',
+        logo: chatgptLogo,
         name: 'ChatGPT',
         step2Title: 'Settings, Apps & Connectors, Advanced settings',
         step2Body: 'Enable developer mode, add by URL. Paid plans only.',
@@ -132,7 +141,7 @@ const CLIENTS = [
         step2Title: "Your MCP client's config",
         step2Body: 'Any MCP client, pointed at your own model.',
         step2Label: 'See the documentation',
-        step2Url: 'https://flowfuse.com/docs/user/expert/'
+        step2Url: 'https://flowfuse.com/docs/user/expert/third-party-agents/'
     }
 ]
 
@@ -147,43 +156,11 @@ export default {
         }
     },
     computed: {
-        ...mapState(useUxToursStore, ['isAiConnectorModalOpen', 'shouldAutoShowAiConnectorModal']),
-        ...mapState(useAccountSettingsStore, ['featuresCheck']),
-        ...mapState(useContextStore, ['team']),
         endpoint () {
             return `${window.location.origin}/mcp`
-        },
-        isFeatureEnabled () {
-            return this.featuresCheck.isAiFeatureEnabled && this.featuresCheck.isMcpThirdPartyFeatureEnabled
-        },
-        canAutoShow () {
-            return this.isFeatureEnabled && !!this.team
-        }
-    },
-    watch: {
-        isAiConnectorModalOpen (open) {
-            if (open) {
-                this.$refs.dialog?.show()
-            } else {
-                this.$refs.dialog?.close()
-            }
-        },
-        canAutoShow: {
-            handler (ready) {
-                if (ready && this.shouldAutoShowAiConnectorModal) {
-                    this.openAiConnectorModal()
-                }
-            },
-            immediate: true
-        }
-    },
-    mounted () {
-        if (this.isAiConnectorModalOpen) {
-            this.$refs.dialog.show()
         }
     },
     methods: {
-        ...mapActions(useUxToursStore, ['openAiConnectorModal', 'closeModal']),
         capture (event, properties) {
             product.capture(event, properties)
         },
@@ -201,12 +178,6 @@ export default {
                     console.warn('Clipboard write permission denied: ', err)
                     alerts.emit('Clipboard write permission denied.', 'warning')
                 })
-        },
-        openExternal (url) {
-            window.open(url, '_blank', 'noopener')
-        },
-        close () {
-            this.closeModal('aiConnector')
         }
     }
 }
@@ -219,6 +190,13 @@ export default {
     border: 1px solid var(--ff-color-border);
     border-radius: 12px;
     background: var(--ff-color-bg-surface);
+}
+
+.ff-agent-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
 }
 
 .ff-agent-tabs {
@@ -254,16 +232,20 @@ export default {
         color: var(--ff-color-text-on-brand);
     }
 
-    img {
-        height: 16px;
-        width: auto;
+    // Shared icon box: every tab reserves the same square, whatever glyph plugs in
+    &__icon {
+        display: flex;
         flex: none;
-    }
-
-    &__glyph {
+        align-items: center;
+        justify-content: center;
         height: 16px;
         width: 16px;
-        flex: none;
+
+        img,
+        svg {
+            max-height: 100%;
+            max-width: 100%;
+        }
     }
 }
 

@@ -43,7 +43,6 @@
                 </ff-layout-plain>
             </template>
             <EducationModal />
-            <AiConnectorModal />
         </template>
         <!-- Password Reset Required -->
         <template v-else-if="user && user.password_expired">
@@ -75,7 +74,6 @@ import CookieConsent from './components/CookieConsent.vue'
 import Loading from './components/Loading.vue'
 import Offline from './components/Offline.vue'
 import LicenseBanner from './components/banners/LicenseBanner.vue'
-import AiConnectorModal from './components/dialogs/AiConnectorModal.vue'
 import EducationModal from './components/dialogs/EducationModal.vue'
 import FFLayoutBox from './layouts/Box.vue'
 import FFLayoutDocs from './layouts/Docs.vue'
@@ -101,7 +99,6 @@ import { computePageTitle, isEditorRoute } from '@/utils/page-title'
 export default {
     name: 'App',
     components: {
-        AiConnectorModal,
         CookieConsent,
         EducationModal,
         Login,
