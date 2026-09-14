@@ -95,6 +95,29 @@ module.exports = [
         }
     },
     {
+        name: 'platform_update_application',
+        title: 'Update Application',
+        description: `FlowFuse platform automation tool:
+            Renames an application and updates its description.
+            name is required on every call: the route replaces the stored name each time, and rejects the request when name is missing.
+            description is optional. When omitted, the stored description is left unchanged, BUT the response then reports description as null - do not treat that null as the saved value; call platform_get_application to see the real one.
+            To avoid that ambiguity, prefer reading the current values with platform_get_application first and passing both name and description on every update. Pass an empty string as description to clear it.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            applicationId: applicationId.describe('The hashid of the application to update'),
+            name: z.string().min(1).describe('Name for the application. Required even when only changing the description - pass the current name to keep it'),
+            description: z.string().optional().describe('Description for the application. Omit to leave the stored value unchanged (the response will misreport it as null); pass an empty string to clear it')
+        },
+        handler: async (args, { inject }) => {
+            const payload = { name: args.name }
+            if (args.description !== undefined) {
+                payload.description = args.description
+            }
+            const response = await inject({ method: 'PUT', url: `/api/v1/applications/${args.applicationId}`, payload })
+            return response
+        }
+    },
+    {
         name: 'platform_list_application_snapshots',
         title: 'List Application Snapshots',
         description: `FlowFuse platform automation tool:
