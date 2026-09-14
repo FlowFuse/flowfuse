@@ -10,6 +10,7 @@ import { useDataFarmApplicationsStore } from './data-farm-applications'
 import { useDataFarmTeamsStore } from './data-farm-teams'
 import { useProductAssistantStore } from './product-assistant.js'
 import { useProductExpertStore } from './product-expert.js'
+import { useUxStore } from './ux.js'
 
 import { useMqttExpertTopicHelper } from '@/composables/services/MqttExpertTopicHelper'
 
@@ -101,7 +102,8 @@ export const useContextStore = defineStore('context', {
                     selectedNodes: null,
                     scope: this.isImmersive ? 'immersive' : 'ff-app',
                     questionCadence: useProductExpertStore().questionCadence,
-                    planMode: useProductExpertStore().planMode
+                    planMode: useProductExpertStore().planMode,
+                    onboarding: useUxStore().isOnboarding
                 }
             }
 
@@ -145,6 +147,7 @@ export const useContextStore = defineStore('context', {
                 supportsPlatformUIAutomation: useAccountSettingsStore().featuresCheck?.isExpertPlatformAutomationFeatureEnabled ?? false,
                 questionCadence: useProductExpertStore().questionCadence,
                 planMode: useProductExpertStore().planMode,
+                onboarding: useUxStore().isOnboarding,
                 // Capability flags: signal that this version can render the question,
                 // plan, and approval cards. Older instances omit them and the agent drops
                 // the matching tool / runs in backward-compatible mode.
