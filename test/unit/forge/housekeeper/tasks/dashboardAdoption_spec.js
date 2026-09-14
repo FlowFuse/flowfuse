@@ -1,4 +1,4 @@
-const should = require('should') // eslint-disable-line
+const should = require('should')
 const sinon = require('sinon')
 
 const dashboardAdoptionTask = require('../../../../../forge/housekeeper/tasks/dashboardAdoption')
@@ -55,7 +55,11 @@ describe('Dashboard Adoption Task', function () {
     })
 
     after(async function () {
-        process.env.FF_TELEMETRY_DISABLED = telemetryDisabled
+        if (telemetryDisabled === undefined) {
+            delete process.env.FF_TELEMETRY_DISABLED
+        } else {
+            process.env.FF_TELEMETRY_DISABLED = telemetryDisabled
+        }
         await app.close()
     })
 
@@ -77,20 +81,45 @@ describe('Dashboard Adoption Task', function () {
         const [distinctId, event, properties] = app.product.capture.firstCall.args
         distinctId.should.equal(app.settings.get('instanceId'))
         event.should.equal('$ff-dashboard-adoption')
-        properties.should.match({ with_dashboard: 1, total: 3, pct: 33.3 })
+        properties.should.match({ with_dashboard: 1, total: 4, pct: 25 })
+    })
+
+    it('counts instances that have never reported their settings', async function () {
+        const noSettings = await app.db.models.StorageSettings.findOne({ where: { ProjectId: app.instance.id } })
+        should.not.exist(noSettings)
+
+        await dashboardAdoptionTask.run(app)
+
+        const [, , properties] = app.product.capture.firstCall.args
+        properties.total.should.equal(await app.db.models.Project.count())
     })
 
     it('excludes suspended instances', async function () {
         instances.withDashboard.state = 'suspended'
         await instances.withDashboard.save()
 
-        await dashboardAdoptionTask.run(app)
+        try {
+            await dashboardAdoptionTask.run(app)
 
-        const [, , properties] = app.product.capture.firstCall.args
-        properties.should.match({ with_dashboard: 0, total: 2, pct: 0 })
+            const [, , properties] = app.product.capture.firstCall.args
+            properties.should.match({ with_dashboard: 0, total: 3, pct: 0 })
+        } finally {
+            instances.withDashboard.state = 'running'
+            await instances.withDashboard.save()
+        }
+    })
 
-        instances.withDashboard.state = 'running'
-        await instances.withDashboard.save()
+    it('ignores instances with unparsable runtime settings', async function () {
+        const broken = await createInstanceWithSettings('broken-settings', `{"nodes":{"${DASHBOARD_MODULE}":`)
+
+        try {
+            await dashboardAdoptionTask.run(app)
+
+            const [, , properties] = app.product.capture.firstCall.args
+            properties.should.match({ with_dashboard: 1, total: 5, pct: 20 })
+        } finally {
+            await broken.destroy()
+        }
     })
 
     it('does not report when an unlicensed platform has disabled telemetry', async function () {
