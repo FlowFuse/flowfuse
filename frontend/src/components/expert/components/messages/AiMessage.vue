@@ -6,6 +6,7 @@
             :key="slugify(`${fAnswer.kind}-${fAnswer.title}-${fAnswer.summary}-${fAnswer._uuid}`)"
             :message-uuid="_uuid"
             :answer="fAnswer"
+            :instant="instant"
             @streaming-complete="setSubItemStreamedState(key)"
         />
     </div>
@@ -56,6 +57,10 @@ export default {
         _streamed: {
             required: true,
             type: Boolean
+        },
+        instant: {
+            type: Boolean,
+            default: false
         }
     },
     setup () {
@@ -102,7 +107,7 @@ export default {
         }
     },
     async mounted () {
-        await this.initStreamer(this.filteredAnswers, { shouldStream: !this._streamed })
+        await this.initStreamer(this.filteredAnswers, { shouldStream: !this.instant && !this._streamed })
     },
     methods: { slugify }
 }
