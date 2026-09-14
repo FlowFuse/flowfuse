@@ -329,6 +329,7 @@ module.exports = async function (app) {
      * /api/v1/user/tokens/:id
      */
     app.delete('/tokens/:id', {
+        preHandler: app.blockPAT,
         schema: {
             summary: 'Delete user Personal Access Token',
             tags: ['Tokens'],

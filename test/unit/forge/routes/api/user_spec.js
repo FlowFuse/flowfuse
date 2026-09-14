@@ -1018,6 +1018,31 @@ describe('User API', async function () {
             })
             deleteResponse.statusCode.should.equal(404)
         })
+        it('PAT can not delete PAT', async function () {
+            // Alice create token
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    name: 'Test Token',
+                    scope: ''
+                }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+            const token = json.token
+
+            // Verify PAT cannot delete it's self
+            const deleteResponse = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user/tokens/' + token.id,
+                headers: {
+                    authorization: `Bearer ${token}`
+                }
+            })
+            deleteResponse.statusCode.should.equal(403)
+        })
         it('Lists an MCP OAuth token as auto-renewing', async function () {
             const grantExpiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000
             await app.db.controllers.AccessToken.createMCPOAuthToken(TestObjects.alice.id, { grantExpiresAt })
