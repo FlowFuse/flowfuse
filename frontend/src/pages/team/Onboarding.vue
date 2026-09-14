@@ -83,19 +83,21 @@ export default {
             immediate: true,
             handler () {
                 this.seedFixtureTranscript()
+                // The baseline is taken here, after the seed, rather than in
+                // the userTurns watcher: on a direct page load that watcher
+                // fires before the team resolves and would count the seeded
+                // turns as engagement
+                if (this.team && this.initialUserTurns === null) {
+                    this.initialUserTurns = this.userTurns
+                }
             }
         },
-        userTurns: {
-            immediate: true,
-            handler (turns) {
-                // Engagement is the user answering or saying something, not a
-                // timer, so the control only recedes once they have committed
-                // to the conversation
-                if (this.initialUserTurns === null) {
-                    this.initialUserTurns = turns
-                } else if (turns > this.initialUserTurns) {
-                    this.hasEngaged = true
-                }
+        userTurns (turns) {
+            // Engagement is the user answering or saying something, not a
+            // timer, so the control only recedes once they have committed
+            // to the conversation
+            if (this.initialUserTurns !== null && turns > this.initialUserTurns) {
+                this.hasEngaged = true
             }
         },
         notAvailable: {

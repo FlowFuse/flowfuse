@@ -49,10 +49,11 @@ import teamApi from '../../../../../frontend/src/api/team.ts'
 // imported after mocks so vi.mock hoisting resolves correctly
 import Onboarding from '../../../../../frontend/src/pages/team/Onboarding.vue'
 
-// The store mocks are plain objects, so the page's computeds would never see a
-// change. The mock factories read this property when called, so swapping in a
-// reactive version here is picked up.
+// The store mocks are plain objects, so the page's computeds and watchers
+// would never see a change. The mock factories read these properties when
+// called, so swapping in reactive versions here is picked up.
 mocks.expertStore = reactive(mocks.expertStore)
+mocks.contextStore = reactive(mocks.contextStore)
 
 const routerPush = vi.fn()
 const routerReplace = vi.fn()
@@ -217,6 +218,32 @@ describe('Onboarding page', () => {
             ]
             await wrapper.vm.$nextTick()
 
+            expect(wrapper.find('[data-action="skip-onboarding"]').classes()).toContain('has-engaged')
+        })
+
+        // A direct load or refresh resolves the team after the page mounts, so
+        // the seed lands after the turn baseline would have been captured. The
+        // seeded turns must not read as engagement
+        test('does not count turns seeded after a late team resolve as engagement', async () => {
+            mocks.contextStore.team = null
+            mocks.expertStore.messages = []
+            mocks.expertStore.hydrateMessages.mockImplementationOnce(() => {
+                mocks.expertStore.messages = [
+                    { _type: 'ai', generated: true },
+                    { _type: 'human', content: 'seeded' }
+                ]
+            })
+            const wrapper = await mountPage()
+
+            mocks.contextStore.team = { id: 't1', slug: 'ateam', instanceCount: 0 }
+            await flushPromises()
+            expect(wrapper.find('[data-action="skip-onboarding"]').classes()).not.toContain('has-engaged')
+
+            mocks.expertStore.messages = [
+                ...mocks.expertStore.messages,
+                { _type: 'human', content: 'a dashboard please' }
+            ]
+            await wrapper.vm.$nextTick()
             expect(wrapper.find('[data-action="skip-onboarding"]').classes()).toContain('has-engaged')
         })
 
