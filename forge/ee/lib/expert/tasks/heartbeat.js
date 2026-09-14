@@ -4,7 +4,22 @@ const { randomInt } = require('../../../../housekeeper/utils')
 const { syncBridge } = require('../emxq-bridge/setup.js')
 const sleep = async (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
-module.exports = ({ schedule, startDelay, maxResponseTime, maxSuccessiveFailureCount } = {}) => {
+// Re-sync after `base` failures, then with an exponentially growing gap capped at
+// `maxInterval`, so re-syncs back off instead of firing on a fixed cadence forever.
+function shouldResync (errorCount, base, maxInterval) {
+    let threshold = base
+    let gap = base
+    while (threshold <= errorCount) {
+        if (threshold === errorCount) {
+            return true
+        }
+        gap = Math.min(gap * 2, maxInterval)
+        threshold += gap
+    }
+    return false
+}
+
+module.exports = ({ schedule, startDelay, maxResponseTime, maxSuccessiveFailureCount, maxResyncInterval } = {}) => {
     const now = Date.now()
     if (startDelay === undefined || startDelay === null) {
         startDelay = 2 * 60 * 1000 // default to 2 minutes if not provided (0 is a valid value, meaning no delay)
@@ -20,6 +35,7 @@ module.exports = ({ schedule, startDelay, maxResponseTime, maxSuccessiveFailureC
     startDelay = +startDelay
     maxResponseTime = +maxResponseTime
     maxSuccessiveFailureCount = +(maxSuccessiveFailureCount ?? 3)
+    maxResyncInterval = +(maxResyncInterval ?? 60)
 
     // Check everything is in order and throw if not
     if (!Number.isFinite(startDelay) || startDelay < 0) {
@@ -28,8 +44,11 @@ module.exports = ({ schedule, startDelay, maxResponseTime, maxSuccessiveFailureC
     if (!Number.isFinite(maxResponseTime) || maxResponseTime < 0) {
         throw new RangeError(`maxResponseTime must be a non-negative number of ms, got ${maxResponseTime}`)
     }
-    if (!Number.isFinite(maxSuccessiveFailureCount) || maxSuccessiveFailureCount < 0) {
-        throw new RangeError(`maxSuccessiveFailureCount must be a non-negative number, got ${maxSuccessiveFailureCount}`)
+    if (!Number.isFinite(maxSuccessiveFailureCount) || maxSuccessiveFailureCount < 1) {
+        throw new RangeError(`maxSuccessiveFailureCount must be a positive number, got ${maxSuccessiveFailureCount}`)
+    }
+    if (!Number.isFinite(maxResyncInterval) || maxResyncInterval < 1) {
+        throw new RangeError(`maxResyncInterval must be a positive number, got ${maxResyncInterval}`)
     }
 
     // Validate schedule (basic/non-exhaustive):
@@ -50,6 +69,9 @@ module.exports = ({ schedule, startDelay, maxResponseTime, maxSuccessiveFailureC
 
     const skipUntil = now + startDelay
 
+    let hasConnected = false
+    let loggedNeverConnected = false
+
     return {
         name: 'EmqxExpertBridgeHeartbeat',
         startup: false,
@@ -67,13 +89,33 @@ module.exports = ({ schedule, startDelay, maxResponseTime, maxSuccessiveFailureC
 
             // Request a heartbeat from the Expert Agent via the bridge
             expertCommsHandler.requestBridgeHeartbeat(maxResponseTime, async (err, result) => {
-                if (err && result.errorCount > 0 && result.errorCount % maxSuccessiveFailureCount === 0) {
-                    app.log.error(`Expert Agent bridge heartbeat failed ${result.errorCount} times in a row, re-synchronizing the bridge`)
-                    try {
-                        await syncBridge(app, { force: true }) // force tears down and re-creates the bridge.
-                    } catch (syncErr) {
-                        app.log.error(`Error synchronizing bridge after heartbeat failure: ${syncErr.message}`)
+                if (!result) {
+                    return
+                }
+                if (!err) {
+                    hasConnected = true
+                    return
+                }
+                if (result.errorCount <= 0) {
+                    return
+                }
+                if (!hasConnected) {
+                    // A bridge that has never connected has a config, token or network problem a
+                    // rebuild cannot fix; leave it for EMQX to reconnect once the broker is reachable.
+                    if (!loggedNeverConnected) {
+                        app.log.warn('Expert Agent bridge has not completed a heartbeat yet; not re-synchronizing. Check the central broker is reachable and the token is valid - it will connect automatically once reachable.')
+                        loggedNeverConnected = true
                     }
+                    return
+                }
+                if (!shouldResync(result.errorCount, maxSuccessiveFailureCount, maxResyncInterval)) {
+                    return
+                }
+                app.log.error(`Expert Agent bridge heartbeat failed ${result.errorCount} times in a row, re-synchronizing the bridge`)
+                try {
+                    await syncBridge(app, { force: true }) // force tears down and re-creates the bridge.
+                } catch (syncErr) {
+                    app.log.error(`Error synchronizing bridge after heartbeat failure: ${syncErr.message}`)
                 }
             })
         }
