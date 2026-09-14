@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => {
     return {
         authStore: { user: { username: 'alice' } },
         settingsStore: { featuresCheck: {} },
-        toursStore: { presentTour: vi.fn() },
+        toursStore: { presentTour: vi.fn(), withdrawTour: vi.fn() },
         uxStore: { setNewlyCreatedUser: vi.fn() }
     }
 })
@@ -51,6 +51,7 @@ describe('UnverifiedEmail', () => {
     beforeEach(() => {
         mocks.settingsStore.featuresCheck = {}
         mocks.toursStore.presentTour.mockClear()
+        mocks.toursStore.withdrawTour.mockClear()
         mocks.uxStore.setNewlyCreatedUser.mockClear()
         userApi.verifyEmailToken.mockClear()
         userApi.verifyEmailToken.mockResolvedValue({})
@@ -67,15 +68,18 @@ describe('UnverifiedEmail', () => {
         const wrapper = mountPage()
         await verify(wrapper)
         expect(mocks.toursStore.presentTour).toHaveBeenCalledTimes(1)
+        expect(mocks.toursStore.withdrawTour).not.toHaveBeenCalled()
     })
 
     // The tour and the education modal it opens on close both explain concepts
-    // the onboarding conversation covers by doing
-    test('does not queue the welcome tour when AI onboarding is enabled', async () => {
+    // the onboarding conversation covers by doing. A tour queued on an earlier
+    // visit persists in localStorage, so it gets actively withdrawn too
+    test('withdraws the welcome tour when AI onboarding is enabled', async () => {
         mocks.settingsStore.featuresCheck = { isAiOnboardingFeatureEnabled: true }
         const wrapper = mountPage()
         await verify(wrapper)
         expect(mocks.toursStore.presentTour).not.toHaveBeenCalled()
+        expect(mocks.toursStore.withdrawTour).toHaveBeenCalledTimes(1)
     })
 
     test('still marks the user as newly created either way', async () => {
@@ -92,6 +96,7 @@ describe('UnverifiedEmail', () => {
         const wrapper = mountPage()
         await verify(wrapper)
         expect(mocks.toursStore.presentTour).not.toHaveBeenCalled()
+        expect(mocks.toursStore.withdrawTour).not.toHaveBeenCalled()
         expect(mocks.uxStore.setNewlyCreatedUser).not.toHaveBeenCalled()
     })
 })

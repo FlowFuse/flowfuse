@@ -57,12 +57,15 @@ export default {
     },
     methods: {
         ...mapActions(useUxStore, ['setNewlyCreatedUser']),
-        ...mapActions(useUxToursStore, ['presentTour']),
+        ...mapActions(useUxToursStore, ['presentTour', 'withdrawTour']),
         async submitVerificationToken () {
             try {
                 await userApi.verifyEmailToken(this.token)
                 clearTimeout(this.resendTimeout)
-                if (!this.featuresCheck?.isAiOnboardingFeatureEnabled) {
+                if (this.featuresCheck?.isAiOnboardingFeatureEnabled) {
+                    // clear any tour queued under the standard flow so it cannot fire later
+                    this.withdrawTour()
+                } else {
                     this.presentTour()
                 }
                 this.setNewlyCreatedUser()
