@@ -1,6 +1,10 @@
-import { flushPromises, mount } from '@vue/test-utils'
-import { beforeEach, describe, expect, test, vi } from 'vitest'
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { reactive } from 'vue'
+
+// The store mocks below are shared reactive state, so a page left mounted
+// after its test would keep reacting to later tests' store changes
+enableAutoUnmount(afterEach)
 
 const mocks = vi.hoisted(() => {
     return {
@@ -54,6 +58,14 @@ import Onboarding from '../../../../../frontend/src/pages/team/Onboarding.vue'
 // called, so swapping in reactive versions here is picked up.
 mocks.expertStore = reactive(mocks.expertStore)
 mocks.contextStore = reactive(mocks.contextStore)
+mocks.uxStore = reactive(mocks.uxStore)
+
+// endOnboarding really ends the intake stage: the page watches the stage and
+// redirects to the 404 page when onboarding is over, so a static mock would
+// hide that interaction
+mocks.uxStore.endOnboarding.mockImplementation(() => {
+    mocks.uxStore.isOnboardingIntake = false
+})
 
 const routerPush = vi.fn()
 const routerReplace = vi.fn()
@@ -272,6 +284,23 @@ describe('Onboarding page', () => {
             await flushPromises()
             expect(teamApi.provisionDefaultWorkspace).toHaveBeenCalledWith('t1')
             expect(routerPush).toHaveBeenCalledWith({ name: 'team-home', params: { team_slug: 'ateam' } })
+        })
+
+        // Ending the intake stage while this page is still mounted flips
+        // notAvailable, whose watcher replaces the route with the 404 page,
+        // beating the navigation to the team home. A real navigation only
+        // unmounts the page once it is confirmed, after watchers flush, which
+        // is what the push mock reproduces here
+        test('leaves before ending onboarding, so the 404 redirect cannot fire', async () => {
+            const wrapper = await mountPage()
+            routerPush.mockImplementationOnce(async () => {
+                await wrapper.vm.$nextTick()
+                wrapper.unmount()
+            })
+            await wrapper.find('[data-action="skip-onboarding"]').trigger('click')
+            await flushPromises()
+            expect(routerPush).toHaveBeenCalledWith({ name: 'team-home', params: { team_slug: 'ateam' } })
+            expect(routerReplace).not.toHaveBeenCalled()
         })
 
         // Without this they would be treated as mid-onboarding forever, and the
