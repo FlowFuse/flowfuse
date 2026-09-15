@@ -5,7 +5,7 @@ const should = require('should')
 const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
-const { base64URLEncode } = FF_UTIL.require('forge/db/utils')
+const { base64URLEncode, sha256 } = FF_UTIL.require('forge/db/utils')
 
 describe('OAuth', async function () {
     let app
@@ -465,6 +465,60 @@ describe('OAuth', async function () {
             refreshed.should.have.property('refresh_token')
         })
 
+        it('rotates the refresh token, honours the grace window, and revokes on replay', async function () {
+            const clientID = (await register()).json().client_id
+            const { verifier, challenge } = pkce()
+            const authResponse = await mcpApp.inject({ method: 'GET', url: authorizeURL(clientID, redirectURI, challenge), cookies: { sid } })
+            const requestId = /\/account\/request\/([^/]+)\/mcp$/.exec(authResponse.headers.location)[1]
+            const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000
+            await mcpApp.inject({ method: 'PUT', url: `/account/authorize/${requestId}/consent`, payload: { readOnly: false, teamIds: [], expiresAt }, cookies: { sid } })
+            const completeResponse = await mcpApp.inject({ method: 'GET', url: `/account/complete/${requestId}`, cookies: { sid } })
+            const authCode = new URL(completeResponse.headers.location).searchParams.get('code')
+            const first = (await mcpApp.inject({
+                method: 'POST',
+                url: '/account/token',
+                payload: { grant_type: 'authorization_code', code: authCode, redirect_uri: redirectURI, client_id: clientID, code_verifier: verifier }
+            })).json()
+
+            // refresh rotates: a new refresh token is issued in place of the presented one
+            const rotateResponse = await mcpApp.inject({
+                method: 'POST',
+                url: '/account/token',
+                payload: { grant_type: 'refresh_token', client_id: clientID, refresh_token: first.refresh_token }
+            })
+            rotateResponse.should.have.property('statusCode', 200)
+            const rotated = rotateResponse.json()
+            rotated.access_token.should.be.a.String().and.startWith('ffpat')
+            rotated.refresh_token.should.be.a.String().and.not.equal(first.refresh_token)
+
+            // within grace the rotated-out token re-mints an access token but no refresh token
+            const graceResponse = await mcpApp.inject({
+                method: 'POST',
+                url: '/account/token',
+                payload: { grant_type: 'refresh_token', client_id: clientID, refresh_token: first.refresh_token }
+            })
+            graceResponse.should.have.property('statusCode', 200)
+            graceResponse.json().access_token.should.be.a.String().and.startWith('ffpat')
+            graceResponse.json().should.not.have.property('refresh_token')
+
+            // push the retirement past the grace window so the rotated-out token reads as a replay
+            await mcpApp.db.models.AccessTokenRefreshRotation.update(
+                { rotatedAt: new Date(Date.now() - 1000 * 60 * 60) },
+                { where: { tokenHash: sha256(first.refresh_token) } }
+            )
+
+            const replayResponse = await mcpApp.inject({
+                method: 'POST',
+                url: '/account/token',
+                payload: { grant_type: 'refresh_token', client_id: clientID, refresh_token: first.refresh_token }
+            })
+            replayResponse.should.have.property('statusCode', 400)
+
+            // the grant is revoked, so the current refresh token no longer resolves a row
+            const revoked = await mcpApp.db.models.AccessToken.byRefreshToken(rotated.refresh_token)
+            should.not.exist(revoked)
+        })
+
         it('rejects a refresh_token grant that is missing the refresh_token', async function () {
             const reg = (await register()).json()
             const response = await mcpApp.inject({
@@ -474,6 +528,33 @@ describe('OAuth', async function () {
             })
             response.should.have.property('statusCode', 400)
             response.json().should.have.property('error', 'invalid_request')
+        })
+
+        it('rate limits the refresh grant per IP and resets once the window elapses', async function () {
+            const clientID = (await register()).json().client_id
+            const rateCache = mcpApp.caches.getCache('mcp-refresh-rate')
+            rateCache.lru.clear()
+
+            async function fire () {
+                const response = await mcpApp.inject({
+                    method: 'POST',
+                    url: '/account/token',
+                    payload: { grant_type: 'refresh_token', client_id: clientID, refresh_token: 'ffp_not-a-real-token' }
+                })
+                return response.statusCode
+            }
+
+            // The gate runs before the token lookup, so volume alone throttles the IP.
+            for (let i = 0; i < 30; i++) {
+                (await fire()).should.not.equal(429)
+            }
+            (await fire()).should.equal(429)
+
+            // an elapsed window resets the counter even while the IP keeps sending
+            const [key] = await rateCache.keys()
+            await rateCache.set(key, { windowStart: Date.now() - 1000 * 60 - 1, count: 30 })
+            const afterReset = await fire()
+            afterReset.should.not.equal(429)
         })
 
         describe('consent expiry validation', function () {
