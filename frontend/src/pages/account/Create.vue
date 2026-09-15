@@ -51,7 +51,7 @@
                         <SpinnerIcon v-if="busy || tooManyRequests" class="ff-icon ml-3 w-3.5!" />
                     </span>
                 </ff-button>
-                <GoogleLoginButton label="Sign up with Google" :disabled="busy" />
+                <GoogleLoginButton v-if="googleSignUpEnabled" label="Sign up with Google" :disabled="busy" />
                 <p class="flex text-gray-400 font-light mt-6 gap-2 w-full justify-center">
                     Already registered? <a href="/" data-action="login">Log in here</a>
                 </p>
@@ -155,6 +155,9 @@ export default {
         },
         askJoinReason () {
             return !!window.posthog
+        },
+        googleSignUpEnabled () {
+            return this.settings['platform:sso:google:auto-create']
         }
     },
     watch: {
