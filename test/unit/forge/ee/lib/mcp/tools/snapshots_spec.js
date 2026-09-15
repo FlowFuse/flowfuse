@@ -264,10 +264,10 @@ describe('MCP Snapshots Tools', function () {
             inject.withArgs({
                 method: 'POST',
                 url: '/api/v1/snapshots/import',
-                payload: { ownerId: hostedInstanceId, ownerType: 'instance', snapshot, credentialSecret: 's3cret', components: { envVars: false } }
+                payload: { ownerId: hostedInstanceId, ownerType: 'instance', snapshot, credentialSecret: 's3cret', components: { envVars: 'keys' } }
             }).resolves(routeResponse)
 
-            const response = await tool.handler({ ownerId: hostedInstanceId, ownerType: 'instance', snapshot, credentialSecret: 's3cret', components: { envVars: false } }, { inject })
+            const response = await tool.handler({ ownerId: hostedInstanceId, ownerType: 'instance', snapshot, credentialSecret: 's3cret', components: { envVars: 'keys' } }, { inject })
 
             inject.calledOnce.should.be.true()
             response.should.equal(routeResponse)
@@ -287,6 +287,54 @@ describe('MCP Snapshots Tools', function () {
             await tool.handler({ ownerId: 'device1', ownerType: 'device', snapshot: { name: 'imported', flows: { flows: [] }, settings: {} } }, { inject })
 
             inject.firstCall.args[0].payload.snapshot.settings.should.eql({ env: {} })
+        })
+
+        it('strips env vars up front when components excludes them, so no secret is needed', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ id: 'snapshot2' }) })
+            const encryptedEnv = { name: 'imported', flows: { flows: [] }, settings: { env: { SECRET: { hidden: true, $: 'abc123' } } } }
+
+            await tool.handler({ ownerId: 'device1', ownerType: 'device', snapshot: encryptedEnv, components: { envVars: false } }, { inject })
+
+            inject.calledOnce.should.be.true()
+            inject.firstCall.args[0].payload.snapshot.settings.env.should.eql({})
+        })
+
+        it('rejects a missing credentialSecret when the snapshot has encrypted hidden env values, since the route 500s', async function () {
+            const encryptedEnv = { name: 'imported', flows: { flows: [] }, settings: { env: { SECRET: { hidden: true, $: 'abc123' } } } }
+
+            const response = await tool.handler({ ownerId: 'device1', ownerType: 'device', snapshot: encryptedEnv }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
+        it('rejects a missing credentialSecret when the snapshot has encrypted flow credentials that are not excluded', async function () {
+            const encryptedCreds = { name: 'imported', flows: { flows: [], credentials: { $: 'abc123' } }, settings: { env: {} } }
+
+            const response = await tool.handler({ ownerId: 'device1', ownerType: 'device', snapshot: encryptedCreds }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
+        it('lets an encrypted snapshot through when the credentialSecret is provided', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ id: 'snapshot2' }) })
+            const encrypted = { name: 'imported', flows: { flows: [], credentials: { $: 'abc123' } }, settings: { env: { SECRET: { hidden: true, $: 'abc123' } } } }
+
+            await tool.handler({ ownerId: 'device1', ownerType: 'device', snapshot: encrypted, credentialSecret: 's3cret' }, { inject })
+
+            inject.calledOnce.should.be.true()
+        })
+
+        it('lets encrypted credentials through without a secret when credentials are excluded', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ id: 'snapshot2' }) })
+            const encryptedCreds = { name: 'imported', flows: { flows: [], credentials: { $: 'abc123' } }, settings: { env: {} } }
+
+            await tool.handler({ ownerId: 'device1', ownerType: 'device', snapshot: encryptedCreds, components: { credentials: false } }, { inject })
+
+            inject.calledOnce.should.be.true()
         })
 
         it('passes through an error response', async function () {
