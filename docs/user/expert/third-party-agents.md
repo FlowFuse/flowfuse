@@ -95,15 +95,25 @@ In the Gemini web app, open **Settings & help**, then **Connected Apps**, then a
 
 Custom apps run in Gemini Spark, which Google currently limits to personal accounts in the US, so this is not available to everyone yet.
 
-### Command-line and editor agents
+### Coding agents
 
-Claude Code, Cursor, Visual Studio Code and Gemini CLI all connect to the same address. Where a client supports OAuth, sign in; otherwise use a token, see [clients without a sign-in flow](#clients-without-a-sign-in-flow).
+A coding agent can add the connector to itself. Ask it, rather than editing its configuration by hand:
 
-For Claude Code:
+```
+Add the FlowFuse MCP tool at https://app.flowfuse.com/mcp. Then ask me to complete the sign-in in the browser that opens.
+```
+
+This works in Claude Code and Codex, and in any other agent that can change its own MCP configuration. It also survives those clients changing how a remote server is added, which they do at different times and in different ways.
+
+If you would rather add it yourself, Claude Code takes:
 
 ```bash
 claude mcp add --transport http flowfuse https://app.flowfuse.com/mcp
 ```
+
+### Other command-line and editor agents
+
+Cursor, Visual Studio Code and Gemini CLI all connect to the same address. Where a client supports OAuth, sign in; otherwise use a token, see [clients without a sign-in flow](#clients-without-a-sign-in-flow).
 
 ### Local and self-hosted models
 
