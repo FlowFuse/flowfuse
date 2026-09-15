@@ -37,7 +37,7 @@
                     <p class="ff-agent-step__body">{{ client.step1Body || 'Paste it into your agent in the next step.' }}</p>
                     <div class="ff-agent-step__cta">
                         <div class="ai-connector__command">
-                            <code class="ai-connector__endpoint">{{ stepOneText(client) }}</code>
+                            <code class="ai-connector__endpoint" :class="{ 'ai-connector__endpoint--wrap': client.step1Command }">{{ stepOneText(client) }}</code>
                             <ff-button kind="primary" size="small" @click="copyStepOne(client)">
                                 <template #icon-right><ClipboardDocumentIcon /></template>
                                 Copy
@@ -362,6 +362,15 @@ export default {
     white-space: nowrap;
     overflow-x: auto;
     color: var(--ff-color-text-default);
+}
+
+// A sentence, not an address. Holding one line is right for something you read
+// left to right and paste, but a prompt sized to its whole length pushes out of
+// the modal, and the half you cannot see is the half saying what it does.
+.ai-connector__endpoint--wrap {
+    white-space: pre-wrap;
+    overflow-x: visible;
+    overflow-wrap: anywhere;
 }
 
 @container (min-width: 640px) {
