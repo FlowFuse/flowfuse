@@ -8,7 +8,7 @@
             :class="{ 'has-mode-switcher': isInsightsModeEnabled && isEditorContext }"
             @scroll="handleScroll"
         >
-            <info-banner />
+            <info-banner v-if="!isOnboardingSurface" />
 
             <expert-messages @resizing="scrollToBottom" />
 
@@ -50,6 +50,10 @@ export default {
         togglePinWithWidth: {
             from: 'togglePinWithWidth',
             default: () => () => {} // No-op function when not provided
+        },
+        expertSurface: {
+            from: 'expert-surface',
+            default: 'drawer'
         }
     },
     props: {
@@ -85,6 +89,11 @@ export default {
             // In editor context, the route name includes 'editor'
             return this.$route?.name?.includes('editor') || false
         },
+        isOnboardingSurface () {
+            // In onboarding, the Expert opens the conversation itself, so the
+            // canned welcome message and the support banner stay out of it.
+            return this.expertSurface === 'onboarding'
+        },
         isInsightsModeEnabled () {
             return !!this.featuresCheck?.isExpertInsightsFeatureEnabled
         },
@@ -109,7 +118,9 @@ export default {
                 if (this.isInsightsAgent) {
                     await this.getCapabilities()
                 }
-                this.addWelcomeMessageIfNeeded()
+                if (!this.isOnboardingSurface) {
+                    this.addWelcomeMessageIfNeeded()
+                }
             }
         },
         'instance.meta.state': {
