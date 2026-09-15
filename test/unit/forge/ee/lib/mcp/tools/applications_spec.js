@@ -163,6 +163,44 @@ describe('MCP Applications Tools', function () {
         })
     })
 
+    describe('platform_update_application', function () {
+        const tool = getTool('platform_update_application')
+
+        it('puts the application payload and returns the response', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ id: 'app1' }) }
+            inject.withArgs({ method: 'PUT', url: '/api/v1/applications/app1', payload: { name: 'Renamed App', description: 'new desc' } }).resolves(routeResponse)
+
+            const response = await tool.handler({ applicationId: 'app1', name: 'Renamed App', description: 'new desc' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('omits description from the payload when it is not set', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ id: 'app1' }) })
+
+            await tool.handler({ applicationId: 'app1', name: 'Renamed App' }, { inject })
+
+            inject.firstCall.args[0].payload.should.eql({ name: 'Renamed App' })
+        })
+
+        it('keeps an empty-string description in the payload so it can clear the stored value', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ id: 'app1' }) })
+
+            await tool.handler({ applicationId: 'app1', name: 'Renamed App', description: '' }, { inject })
+
+            inject.firstCall.args[0].payload.should.eql({ name: 'Renamed App', description: '' })
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 403, json: () => ({ code: 'unauthorized' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ applicationId: 'app1', name: 'Renamed App' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
     describe('platform_list_application_snapshots', function () {
         const tool = getTool('platform_list_application_snapshots')
 
