@@ -12,6 +12,7 @@ export const useProductExpertInsightsAgentStore = defineStore('product-expert-in
     state: () => ({
         sessionId: null,
         messages: [],
+        activeTaskList: null,
         abortController: null,
         sessionStartTime: null,
         sessionWarningShown: false,
