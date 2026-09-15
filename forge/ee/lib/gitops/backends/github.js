@@ -89,7 +89,7 @@ module.exports.init = async function (app) {
             await execFilePromised('git', ['add', snapshotFile], { cwd: workingDir })
 
             // 7. commit
-            const commitMessage = `"Update snapshot\n\nSnapshot updated by FlowFuse Pipeline '${options.pipeline.name}', triggered by ${options.user.username}"`
+            const commitMessage = `Update snapshot\n\nSnapshot updated by FlowFuse Pipeline '${options.pipeline.name}', triggered by ${options.user.username}`
             await execFilePromised('git', ['commit', '-m', commitMessage, '--author', author], { cwd: workingDir })
 
             try {
