@@ -75,5 +75,79 @@ module.exports = [
             const response = await inject({ method: 'GET', url })
             return response
         }
+    },
+    {
+        name: 'platform_instance_action',
+        title: 'Instance Lifecycle Action',
+        description: `FlowFuse platform automation tool:
+            Applies a lifecycle action to an instance, changing whether and how it runs. Confirm with the user before stopping, suspending, or restarting anything.
+            Hosted instances accept: start (resume a suspended instance, or start the flows of a stopped one), stop (stop the flows, container keeps running), restart (restart the flows), suspend (shut the container down entirely), and restartStack (suspend then relaunch the container, picking up stack changes). stop, restart, and suspend are rejected with a 400 "project_suspended" while the instance is suspended - use start to bring it back first.
+            Remote instances (devices) accept only restart, which asks the device to restart Node-RED; the device must be online and reachable (400 "no_response" on timeout, "device_suspended" while suspended).
+            Several hosted actions reply { status: "okay" } once the transition has STARTED and finish in the background - check platform_get_hosted_instance_status to confirm the final state.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        inputSchema: {
+            instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
+            instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),
+            action: z.enum(['start', 'stop', 'restart', 'suspend', 'restartStack']).describe('Lifecycle action to apply. Remote instances accept only restart')
+        },
+        handler: async (args, { inject }) => {
+            if (args.instanceType === 'remote' && args.action !== 'restart') {
+                return toolError(400, 'invalid_request', `Remote instances (devices) only support the restart action, not ${args.action}. The other lifecycle actions apply to hosted instances only.`)
+            }
+            const url = args.instanceType === 'remote'
+                ? `/api/v1/devices/${args.instanceId}/actions/restart`
+                : `/api/v1/projects/${args.instanceId}/actions/${args.action}`
+            const response = await inject({ method: 'POST', url })
+            return response
+        }
+    },
+    {
+        name: 'platform_create_instance_http_token',
+        title: 'Create Instance HTTP Token',
+        description: `FlowFuse platform automation tool:
+            Creates an HTTP bearer token for an instance (hosted instance or remote instance/device). External callers present these tokens to authenticate HTTP requests handled by the instance's Node-RED flows; they are not platform API tokens.
+            The response includes the token value itself, and this is the ONLY time it is shown - relay it to the user immediately and treat it as a secret.
+            HTTP bearer tokens are a plan-gated feature (the same gate as FlowFuse User Authentication); a team without it enabled gets a 404 error.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        inputSchema: {
+            instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
+            instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),
+            name: z.string().describe('Human-readable name for the token'),
+            expiresAt: z.string().optional().describe('Token expiry as an ISO 8601 timestamp. Omit for a token that never expires')
+        },
+        handler: async (args, { inject }) => {
+            const base = args.instanceType === 'remote' ? 'devices' : 'projects'
+            const payload = { name: args.name }
+            if (args.expiresAt !== undefined) {
+                payload.expiresAt = args.expiresAt
+            }
+            const response = await inject({ method: 'POST', url: `/api/v1/${base}/${args.instanceId}/httpTokens`, payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_update_instance_http_token',
+        title: 'Update Instance HTTP Token',
+        description: `FlowFuse platform automation tool:
+            Sets or clears the expiry of an existing HTTP bearer token on an instance (hosted instance or remote instance/device). The expiry is the only thing this can change: the token's name and value are fixed at creation.
+            NOTE: omitting expiresAt does not leave the expiry unchanged - it CLEARS it, making the token never expire. Always pass expiresAt when the token should keep or gain an expiry.
+            Find token ids with platform_list_instance_http_tokens. Tokens managed by the FlowFuse Expert cannot be modified.
+            HTTP bearer tokens are a plan-gated feature; a team without it enabled gets a 404 error.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
+            instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),
+            tokenId: z.string().describe('The hashid of the token to update, as returned by platform_list_instance_http_tokens'),
+            expiresAt: z.string().optional().describe('New expiry as an ISO 8601 timestamp. OMITTING THIS CLEARS THE EXPIRY, making the token never expire')
+        },
+        handler: async (args, { inject }) => {
+            const base = args.instanceType === 'remote' ? 'devices' : 'projects'
+            const payload = {}
+            if (args.expiresAt !== undefined) {
+                payload.expiresAt = args.expiresAt
+            }
+            const response = await inject({ method: 'PUT', url: `/api/v1/${base}/${args.instanceId}/httpTokens/${args.tokenId}`, payload })
+            return response
+        }
     }
 ]
