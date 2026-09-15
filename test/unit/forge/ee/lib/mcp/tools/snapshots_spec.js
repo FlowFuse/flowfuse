@@ -181,4 +181,142 @@ describe('MCP Snapshots Tools', function () {
             response.should.equal(errorResponse)
         })
     })
+
+    describe('platform_update_snapshot', function () {
+        const tool = getTool('platform_update_snapshot')
+
+        it('puts name and description onto the snapshot route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ id: 'snapshot1' }) }
+            inject.withArgs({ method: 'PUT', url: '/api/v1/snapshots/snapshot1', payload: { name: 'v2', description: 'second cut' } }).resolves(routeResponse)
+
+            const response = await tool.handler({ snapshotId: 'snapshot1', name: 'v2', description: 'second cut' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('only sends the fields that were provided', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ id: 'snapshot1' }) })
+
+            await tool.handler({ snapshotId: 'snapshot1', name: 'v2' }, { inject })
+
+            inject.firstCall.args[0].payload.should.eql({ name: 'v2' })
+        })
+
+        it('keeps an empty-string description so it can clear the stored value', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ id: 'snapshot1' }) })
+
+            await tool.handler({ snapshotId: 'snapshot1', description: '' }, { inject })
+
+            inject.firstCall.args[0].payload.should.eql({ description: '' })
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ snapshotId: 'snapshot1', name: 'v2' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_export_snapshot', function () {
+        const tool = getTool('platform_export_snapshot')
+
+        it('posts the credential secret to the export route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ id: 'snapshot1', flows: {} }) }
+            inject.withArgs({ method: 'POST', url: '/api/v1/snapshots/snapshot1/export', payload: { credentialSecret: 's3cret' } }).resolves(routeResponse)
+
+            const response = await tool.handler({ snapshotId: 'snapshot1', credentialSecret: 's3cret' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('forwards the components selection when provided', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ id: 'snapshot1' }) })
+
+            await tool.handler({ snapshotId: 'snapshot1', credentialSecret: 's3cret', components: { flows: true, credentials: false, envVars: 'keys' } }, { inject })
+
+            inject.firstCall.args[0].payload.should.eql({ credentialSecret: 's3cret', components: { flows: true, credentials: false, envVars: 'keys' } })
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 400, json: () => ({ code: 'bad_request' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ snapshotId: 'snapshot1', credentialSecret: 's3cret' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_import_snapshot', function () {
+        const tool = getTool('platform_import_snapshot')
+
+        const snapshot = {
+            name: 'imported',
+            flows: { flows: [] },
+            settings: { env: { FOO: 'bar' } }
+        }
+
+        it('posts the snapshot payload to the import route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ id: 'snapshot2' }) }
+            inject.withArgs({
+                method: 'POST',
+                url: '/api/v1/snapshots/import',
+                payload: { ownerId: hostedInstanceId, ownerType: 'instance', snapshot, credentialSecret: 's3cret', components: { envVars: false } }
+            }).resolves(routeResponse)
+
+            const response = await tool.handler({ ownerId: hostedInstanceId, ownerType: 'instance', snapshot, credentialSecret: 's3cret', components: { envVars: false } }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('omits credentialSecret and components when not provided', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ id: 'snapshot2' }) })
+
+            await tool.handler({ ownerId: 'device1', ownerType: 'device', snapshot }, { inject })
+
+            inject.firstCall.args[0].payload.should.eql({ ownerId: 'device1', ownerType: 'device', snapshot })
+        })
+
+        it('fills in settings.env when the snapshot omits it, since the route errors without it', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ id: 'snapshot2' }) })
+
+            await tool.handler({ ownerId: 'device1', ownerType: 'device', snapshot: { name: 'imported', flows: { flows: [] }, settings: {} } }, { inject })
+
+            inject.firstCall.args[0].payload.snapshot.settings.should.eql({ env: {} })
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 400, json: () => ({ code: 'bad_request' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ ownerId: 'device1', ownerType: 'device', snapshot }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_set_instance_device_target', function () {
+        const tool = getTool('platform_set_instance_device_target')
+
+        it('posts the target snapshot to the instance device settings route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
+            inject.withArgs({ method: 'POST', url: `/api/v1/projects/${hostedInstanceId}/devices/settings`, payload: { targetSnapshot: 'snapshot1' } }).resolves(routeResponse)
+
+            const response = await tool.handler({ hostedInstanceId, snapshotId: 'snapshot1' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 400, json: () => ({ code: 'invalid_snapshot' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ hostedInstanceId, snapshotId: 'other' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
 })
