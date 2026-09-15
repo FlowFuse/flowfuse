@@ -37,7 +37,7 @@ The same three steps, written out:
 
 2. **Sign in.** FlowFuse uses OAuth, so your agent sends you to a FlowFuse login page to authenticate, in the same way as any other application you sign in to. If your client asks for an OAuth client ID or secret, leave them blank. FlowFuse registers your client for you.
 
-3. **Choose what the agent may do.** As part of signing in you decide which teams the agent may act on, and whether it has editing rights or read access only.
+3. **Choose what the agent may do.** Signing in takes you to a FlowFuse authorization page. There you pick read-only or full access, scope it to all your teams or specific teams, and set an expiration date for the grant.
 
 Your agent is now connected. OAuth lets you connect by signing in. If your MCP client does not support OAuth, use a token instead, covered in [clients without a sign-in flow](#clients-without-a-sign-in-flow).
 
@@ -47,19 +47,13 @@ Your agent is now connected. OAuth lets you connect by signing in. If your MCP c
 
 Ask your agent what it can do in a given team or instance if you want the current picture, since its tools reflect the instance it is connected to. For the full surface, see [what agents can do on FlowFuse](/docs/user/mcp/), which covers both platform automation and flow building for any connected agent.
 
-**With read access**, an agent can see your teams and applications with their activity history, your hosted and remote instances with their live status and runtime logs, your snapshots, and your FlowFuse Tables databases including table schemas and row data. It can also see which instance types, templates and blueprints your team has available.
+**With read-only access**, an agent can see your teams and applications with their activity history, your hosted and remote instances with their live status and runtime logs, your snapshots, and your FlowFuse Tables databases including table schemas and row data. It can also see which instance types, templates and blueprints your team has available.
 
-**With editing rights**, it can additionally create applications and hosted instances, register remote instances and assign them to applications, take snapshots, and build and edit flows.
+**With full access**, it can additionally create applications and hosted instances, register remote instances and assign them to applications, take snapshots, and build and edit flows.
 
-An agent with read access has no ability to change anything.
+An agent with read-only access has no ability to change anything.
 
-An agent can query your FlowFuse Tables data to answer questions. With editing rights it can go further and build a flow with a [Query Node](/docs/user/ff-tables/#query-nodes) that reads and writes your tables, exactly like a flow you would build yourself.
-
-### Deleting, and deploying
-
-Nothing an agent can do through FlowFuse deletes anything, for now. There is no tool for deleting an instance, an application, a snapshot or a team. Deploying is also done by you, for the same reason.
-
-We are focused on delivering AI in a meaningful way that can act as required both in production setups and in setups where experimentation is permitted, so expect this to develop.
+An agent can query your FlowFuse Tables data to answer questions. With full access it can go further and build a flow with a [Query Node](/docs/user/ff-tables/#query-nodes) that reads and writes your tables, exactly like a flow you would build yourself.
 
 ## Editing flows
 
@@ -115,13 +109,13 @@ How that is written down belongs to the client rather than to FlowFuse. Two JSON
 
 FlowFuse tools carry their recommended usage and permissions, so a connected agent knows what each one is for before it calls it. Most MCP clients then ask you to confirm before they run a tool. That prompt belongs to the client rather than to FlowFuse, so how it looks, and whether you can turn it off, differs between them. FlowFuse Expert's own approval cards are a first-party feature and do not apply here.
 
-What FlowFuse enforces on every call is what you granted: the teams, and read access or editing rights. That is the granularity. It is a boundary around what an agent can reach rather than a per-tool allow list, and it applies the same way whether the grant came from signing in or from the scope on an access token.
+What FlowFuse enforces on every call is what you granted: the teams, and read-only or full access. That is the granularity. It is a boundary around what an agent can reach rather than a per-tool allow list, and it applies the same way whether the grant came from signing in or from the scope on an access token.
 
 Actions an agent takes appear in the [audit log](/docs/user/logs/#ai-agents-and-api-activity), attributed to your account and marked as having come from a connected agent.
 
 ## If something is not working
 
-**A change was refused.** The agent has read access only. Re-connect it and grant editing rights.
+**A change was refused.** The agent has read-only access. Re-connect it and grant full access.
 
 **The agent cannot reach a team.** That team was not included when you signed in. Re-connect and include it.
 

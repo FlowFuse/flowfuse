@@ -39,7 +39,7 @@ Ask the agent what it can do in a given team or instance. Its tools reflect the 
 
 An agent builds and edits flows inside a running Node-RED instance.
 
-Flow work runs in a live editor session, not as a file to import. Point the agent at an open editor session and it builds on the canvas. Node-RED validates as it goes, so the agent catches its own mistakes. Ending the session, closing the tab or switching team ends its access.
+Flow work runs in a live editor session, not as a file to import. Point the agent at an open editor session and it builds on the canvas. Node-RED validates as it goes, so the agent catches its own mistakes.
 
 | Area | Read-only | Full access |
 |---|---|---|
@@ -56,9 +56,11 @@ Nothing goes live until you deploy from Node-RED.
 
 ## Access and permissions
 
-Access is granted per team, by token or OAuth sign-in, at one of two levels:
+Access comes at one of two levels:
 
 - **Read-only** sees everything and changes nothing.
 - **Full access** adds every action in the full-access columns above.
 
-An MCP personal access token is read-only or full-access. OAuth offers the same choice at sign-in.
+With **FlowFuse Expert**, an agent acts with the same access you have on the team you are working in.
+
+With **your own agent**, you choose the access when you connect. Signing in over OAuth takes you to a FlowFuse page where you pick read-only or full access, scope it to all your teams or specific teams, and set an expiration date. A personal access token, for clients without a sign-in flow, carries the same read-only or full-access choice.
