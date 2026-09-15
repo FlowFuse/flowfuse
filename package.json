@@ -100,7 +100,7 @@
         "inquirer": "^14.1.0",
         "jsonwebtoken": "^9.0.0",
         "ldapts": "^9.0.0",
-        "lottie-web-vue": "^2.0.7",
+        "lottie-web-vue": "^3.0.1",
         "lru-cache": "^11.1.0",
         "marked": "^18.0.5",
         "mqtt": "^5.1.1",
