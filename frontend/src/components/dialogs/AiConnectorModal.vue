@@ -33,12 +33,12 @@
             >
                 <div class="ff-agent-step">
                     <p class="ff-agent-step__num">01</p>
-                    <p class="ff-agent-step__title">Copy the FlowFuse connector URL</p>
-                    <p class="ff-agent-step__body">Paste it into your agent in the next step.</p>
+                    <p class="ff-agent-step__title">{{ client.step1Title || 'Copy the FlowFuse connector URL' }}</p>
+                    <p class="ff-agent-step__body">{{ client.step1Body || 'Paste it into your agent in the next step.' }}</p>
                     <div class="ff-agent-step__cta">
                         <div class="ai-connector__command">
-                            <code class="ai-connector__endpoint">{{ endpoint }}</code>
-                            <ff-button kind="primary" size="small" @click="copyEndpoint">
+                            <code class="ai-connector__endpoint" :class="{ 'ai-connector__endpoint--wrap': client.step1Command }">{{ stepOneText(client) }}</code>
+                            <ff-button kind="primary" size="small" @click="copyStepOne(client)">
                                 <template #icon-right><ClipboardDocumentIcon /></template>
                                 Copy
                             </ff-button>
@@ -104,6 +104,7 @@ import product from '../../services/product.js'
 
 import chatgptLogo from '../icons/ai-agents/chatgpt.svg'
 import claudeLogo from '../icons/ai-agents/claude.svg'
+import geminiLogo from '../icons/ai-agents/gemini.svg'
 import copilotLogo from '../icons/ai-agents/microsoft-copilot.svg'
 
 const CLIENTS = [
@@ -133,6 +134,43 @@ const CLIENTS = [
         step2Body: 'Enable developer mode, add by URL. Paid plans only.',
         step2Label: 'Open ChatGPT',
         step2Url: 'https://chatgpt.com/'
+    },
+    {
+        id: 'gemini',
+        logo: geminiLogo,
+        name: 'Gemini',
+        step2Title: 'Settings & help, Connected Apps, Add a custom app',
+        step2Body: 'Paste the URL. Gemini Spark only, US personal accounts.',
+        step2Label: 'Open Gemini',
+        step2Url: 'https://gemini.google.com/'
+    },
+    // A coding agent installs the connector into itself, so its tab is the prompt
+    // and nothing else. Nothing here to go stale when a client changes how remote
+    // servers are added, and the prompt carries this platform's own address, so it
+    // is correct on Cloud and self-hosted without the reader editing it.
+    {
+        id: 'claude-code',
+        logo: claudeLogo,
+        name: 'Claude Code',
+        step1Title: 'Copy the prompt',
+        step1Body: 'This is the whole setup.',
+        step1Command: url => `Add the FlowFuse MCP tool at ${url}. Then ask me to complete the sign-in in the browser that opens.`,
+        step2Title: 'Paste it into Claude Code',
+        step2Body: 'It adds the connector itself, then asks you to finish signing in.',
+        step2Label: 'See the documentation',
+        step2Url: 'https://flowfuse.com/docs/user/expert/third-party-agents/'
+    },
+    {
+        id: 'codex',
+        logo: chatgptLogo,
+        name: 'Codex',
+        step1Title: 'Copy the prompt',
+        step1Body: 'This is the whole setup.',
+        step1Command: url => `Add the FlowFuse MCP tool at ${url}. Then ask me to complete the sign-in in the browser that opens.`,
+        step2Title: 'Paste it into Codex',
+        step2Body: 'It adds the connector itself, then asks you to finish signing in.',
+        step2Label: 'See the documentation',
+        step2Url: 'https://flowfuse.com/docs/user/expert/third-party-agents/'
     },
     {
         id: 'local',
@@ -168,8 +206,14 @@ export default {
             this.activeClient = id
             this.capture('cta-ai-agent-tab', { position: id })
         },
-        copyEndpoint () {
-            this.copyToClipboard(this.endpoint)
+        // Most tabs show the bare address. A coding-agent tab shows a prompt built
+        // around it, so step one is whatever that client asks for rather than a
+        // fixed string. Both go through the same copy path and the same event.
+        stepOneText (client) {
+            return client.step1Command ? client.step1Command(this.endpoint) : this.endpoint
+        },
+        copyStepOne (client) {
+            this.copyToClipboard(this.stepOneText(client))
                 .then(() => {
                     this.capture('cta-copy-mcp-endpoint', { position: this.activeClient })
                     alerts.emit('Copied to Clipboard.', 'confirmation')
@@ -328,6 +372,15 @@ export default {
     white-space: nowrap;
     overflow-x: auto;
     color: var(--ff-color-text-default);
+}
+
+// A sentence, not an address. Holding one line is right for something you read
+// left to right and paste, but a prompt sized to its whole length pushes out of
+// the modal, and the half you cannot see is the half saying what it does.
+.ai-connector__endpoint--wrap {
+    white-space: pre-wrap;
+    overflow-x: visible;
+    overflow-wrap: anywhere;
 }
 
 @container (min-width: 640px) {
