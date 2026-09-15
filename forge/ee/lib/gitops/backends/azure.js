@@ -60,7 +60,7 @@ module.exports.init = async function (app) {
 
             const userGitName = userDetails.data?.authenticatedUser?.customDisplayName || userDetails.data?.authenticatedUser?.providerDisplayName || 'FlowFuse'
             const userGitEmail = userDetails.data?.authenticatedUser?.properties?.Account.$value || `flowfuse@${app.config.domain || 'example.com'}`
-            const author = `${userGitName} <${userGitEmail}>`.replace(/"/g, '\\"')
+            const author = `${userGitName} <${userGitEmail}>`
             workingDir = await fs.mkdtemp(path.join(os.tmpdir(), 'flowfuse-git-repo-'))
 
             // 3. clone repo
