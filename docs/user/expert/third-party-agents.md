@@ -30,7 +30,7 @@ The same three steps, written out:
    Self-hosted, substitute your own platform address:
 
    ```
-   https://flowfuse.example.com/mcp
+   https://<your-flowfuse.domain>/mcp
    ```
 
 2. **Sign in.** FlowFuse uses OAuth, so your agent sends you to a FlowFuse login page. If your client asks for an OAuth client ID or secret, leave them blank; FlowFuse registers your client for you.
