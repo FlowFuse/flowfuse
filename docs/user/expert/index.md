@@ -24,7 +24,7 @@ FlowFuse Expert works in two ways.
 
 ### Chat Interface
 
-The Chat Interface is a conversational AI panel in the FlowFuse platform, also available inside the Node-RED editor. Describe what you want to build and Expert builds it on your canvas. It also answers questions, debugs flows, and queries live operational data.
+The Chat Interface is a conversational AI panel in the FlowFuse platform, also available in immersive mode, which embeds the Node-RED editor. Describe what you want to build and Expert builds it on your canvas. It also answers questions, debugs flows, and queries live operational data.
 
 The Chat Interface has two modes:
 - **Support**: flow-building help, including asking questions, debugging, and building flows on the canvas. Expert can ask clarifying questions, propose a plan before acting, and ask for approval before running actions. It can also act across the platform, such as looking up your instances and creating new ones.

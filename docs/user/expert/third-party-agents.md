@@ -100,7 +100,7 @@ The config format is the client's, not FlowFuse's. Two JSON shapes are common, o
 
 Each FlowFuse tool carries its recommended usage and permissions, so a connected agent knows what it is for before calling it. Most MCP clients then ask you to confirm before running a tool. That prompt is the client's, not FlowFuse's, so its look and whether you can turn it off vary. FlowFuse Expert's own approval cards do not apply here.
 
-What FlowFuse enforces on every call is your grant: the teams, and read-only or full access. It is a boundary around what an agent can reach, not a per-tool allow list, and applies the same whether the grant came from signing in or from a token's scope.
+What FlowFuse enforces on every call is your grant: the teams, and read-only or full access. Each tool carries the access it needs, and FlowFuse rejects a call whose tool reaches past your grant, whether the grant came from signing in or from a token's scope.
 
 Actions an agent takes appear in the [audit log](/docs/user/logs/#ai-agents-and-api-activity), attributed to your account and marked as having come from a connected agent.
 

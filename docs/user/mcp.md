@@ -4,7 +4,7 @@ navTitle: FlowFuse MCP
 
 # FlowFuse MCP Server
 
-FlowFuse is an MCP server. An AI agent connects as a client to operate the platform and build flows.
+FlowFuse exposes an MCP server. An AI agent connects as a client to operate the platform and build flows.
 
 Two clients use it:
 
