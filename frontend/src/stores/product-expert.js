@@ -45,7 +45,8 @@ export const useProductExpertStore = defineStore('product-expert', {
         // Open human-in-the-loop approval batch (#421). When a turn defers a tool batch
         // for approval the agent ends the turn and returns the card(s); we hold the
         // decisions here until every card is answered, then send them back in one resume
-        // message. { decisions: { [toolUseId]: 'approved'|'denied' }, toolKeys: { [id]: key }, remaining: number }
+        // message. Persisted so a refresh mid-batch leaves the pending cards answerable (#8527).
+        // { decisions: { [toolUseId]: 'approved'|'denied' }, toolKeys: { [id]: key }, remaining: number }
         _approvalBatch: null
     }),
     getters: {
@@ -683,7 +684,9 @@ export const useProductExpertStore = defineStore('product-expert', {
             if (!batch) return
             const permStore = useProductAssistantStore()
             for (const id of Object.keys(batch.toolKeys)) {
-                if (!(id in batch.decisions)) permStore.setToolApprovalStatus(id, status)
+                if (!(id in batch.decisions)) {
+                    permStore.setToolApprovalStatus(id, status)
+                }
             }
             this._approvalBatch = null
         },
@@ -1404,7 +1407,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         }
     },
     persist: {
-        pick: ['shouldWakeUpAssistant', 'questionCadence', 'agentMode', 'questionAnswers'],
+        pick: ['shouldWakeUpAssistant', 'questionCadence', 'agentMode', 'questionAnswers', '_approvalBatch'],
         storage: sessionStorage
     }
 })
