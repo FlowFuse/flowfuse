@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => {
         contextStore: { team: null },
         settingsStore: { featuresCheck: {} },
         accountStore: { setTeam: vi.fn().mockResolvedValue() },
+        accountAuthStore: { user: { username: 'alice', avatar: 'alice.png' } },
         expertStore: { messages: [], openConversation: vi.fn() },
         supportAgentStore: { reset: vi.fn() },
         uxStore: { isOnboardingIntake: true, endOnboarding: vi.fn() }
@@ -19,6 +20,9 @@ const mocks = vi.hoisted(() => {
 
 vi.mock('@/stores/context.js', () => ({
     useContextStore: () => mocks.contextStore
+}))
+vi.mock('@/stores/account-auth.js', () => ({
+    useAccountAuthStore: () => mocks.accountAuthStore
 }))
 vi.mock('@/stores/account-settings.js', () => ({
     useAccountSettingsStore: () => mocks.settingsStore
@@ -326,6 +330,32 @@ describe('Onboarding page', () => {
             mocks.settingsStore.featuresCheck = { isAiOnboardingFeatureEnabled: false }
             const wrapper = await mountPage()
             expect(wrapper.find('[data-action="skip-onboarding"]').exists()).toBe(false)
+        })
+    })
+
+    // A stalled onboarding conversation has no other way to leave the app
+    describe('signing out', () => {
+        beforeEach(() => {
+            routerPush.mockClear()
+        })
+
+        test('offers the avatar dropdown next to the escape hatch', async () => {
+            const wrapper = await mountPage()
+            expect(wrapper.find('[data-action="user-options"]').exists()).toBe(true)
+        })
+
+        test('does not offer the avatar dropdown without a signed-in user', async () => {
+            mocks.accountAuthStore.user = null
+            const wrapper = await mountPage()
+            expect(wrapper.find('[data-action="user-options"]').exists()).toBe(false)
+            mocks.accountAuthStore.user = { username: 'alice', avatar: 'alice.png' }
+        })
+
+        // Reuses the same route the main navigation's Sign Out option pushes to
+        test('signs out through the same route the main navigation uses', async () => {
+            const wrapper = await mountPage()
+            wrapper.vm.signOut()
+            expect(routerPush).toHaveBeenCalledWith({ name: 'sign-out' })
         })
     })
 })
