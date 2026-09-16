@@ -14,6 +14,13 @@ Because the agent is yours, so is the model it runs on.
 
 Any MCP client that supports the HTTP transport can connect. That is the only requirement.
 
+Pick your agent for the address to copy and the steps that apply to it:
+
+::agent-setup-tabs{:exclude-expert="true" :signup="false" surface="docs"}
+::
+
+The same three steps, written out:
+
 1. **Add the FlowFuse MCP address in your agent's connector settings.** See [where to add it, per agent](#where-to-add-it-per-agent) if you are not sure where yours lives.
 
    On FlowFuse Cloud:
@@ -64,11 +71,6 @@ When you ask for flow work, your agent will guide you to connect an editor sessi
 
 The agents below are the common ones and where their settings live. Every other AI Agent that supports MCP over HTTP connects the same way.
 
-Pick yours for the address and the steps that apply to it:
-
-::agent-setup-tabs{:exclude-expert="true" :signup="false" surface="docs"}
-::
-
 ### Microsoft Copilot
 
 In **Copilot Studio**, open your agent's **Tools** page, select **Add a tool**, then **New tool**, then **Model Context Protocol**. Give the server a name and a description saying what it is for, since the orchestrator uses that description to decide when to call it, and enter the FlowFuse MCP address as the server URL.
@@ -87,15 +89,25 @@ Where custom connectors are available on your plan, add one and enter the FlowFu
 
 On Team and Enterprise plans an owner adds the connector for the organisation first, and then each person connects and signs in individually.
 
-### Command-line and editor agents
+### Coding agents
 
-Claude Code, Cursor, Visual Studio Code and Gemini CLI all connect to the same address. Where a client supports OAuth, sign in; otherwise use a token, see [clients without a sign-in flow](#clients-without-a-sign-in-flow).
+A coding agent can add the connector to itself. Ask it, rather than editing its configuration by hand:
 
-For Claude Code:
+```
+Add the FlowFuse MCP tool at https://app.flowfuse.com/mcp. Then ask me to complete the sign-in in the browser that opens.
+```
+
+This works in Claude Code and Codex, and in any other agent that can change its own MCP configuration. It also survives those clients changing how a remote server is added, which they do at different times and in different ways.
+
+If you would rather add it yourself, Claude Code takes:
 
 ```bash
 claude mcp add --transport http flowfuse https://app.flowfuse.com/mcp
 ```
+
+### Other command-line and editor agents
+
+Cursor, Visual Studio Code and Gemini CLI all connect to the same address. Where a client supports OAuth, sign in; otherwise use a token, see [clients without a sign-in flow](#clients-without-a-sign-in-flow).
 
 ### Local and self-hosted models
 

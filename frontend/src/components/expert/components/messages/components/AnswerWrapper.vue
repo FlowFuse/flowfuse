@@ -72,9 +72,9 @@
             :questions="answer.questions"
             :disabled="interactionDisabled"
             :should-stream="shouldStream"
+            :initial-answer="questionAnswers[answer._uuid] || null"
             class="mb-3"
             @select="onQuestionsSubmit"
-            @edit="onQuestionsEdit"
             @streaming-complete="onComponentComplete('questions-list')"
         />
 
@@ -156,6 +156,10 @@ export default {
         messageUuid: {
             type: String,
             required: true
+        },
+        instant: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['streaming-complete'],
@@ -171,7 +175,7 @@ export default {
     },
     computed: {
         ...mapState(useProductAssistantStore, ['supportedActions', 'toolApprovalStatuses']),
-        ...mapState(useProductExpertStore, ['agentMode', 'isWaitingForResponse', 'messages']),
+        ...mapState(useProductExpertStore, ['agentMode', 'isWaitingForResponse', 'messages', 'questionAnswers']),
         isLatestMessage () {
             const msgs = this.messages || []
             return msgs.length > 0 && msgs[msgs.length - 1]?._uuid === this.messageUuid
@@ -317,7 +321,7 @@ export default {
             return this.streamedComponents.length >= this.componentStreamingOrder.indexOf(key)
         },
         shouldStream () {
-            return !this.answer._streamed
+            return !this.instant && !this.answer._streamed
         }
     },
     watch: {
@@ -351,7 +355,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useProductExpertStore, ['updateAnswerStreamedState', 'handleQuery', 'setPendingInput', 'setComposerCommand', 'setPlanMode', 'resolveToolApproval']),
+        ...mapActions(useProductExpertStore, ['updateAnswerStreamedState', 'handleQuery', 'setPendingInput', 'setComposerCommand', 'setPlanMode', 'resolveToolApproval', 'saveQuestionAnswer']),
         buildStreamingOrder () {
             // order matters
             // this is where the decision of the streaming order of components is decided
@@ -369,15 +373,13 @@ export default {
             if (this.hasToolApproval) this.componentStreamingOrder.push('tool-approval-card')
         },
         async onComponentComplete (key) {
-            if (!this.shouldStream) await this.waitFor(200)
+            if (!this.shouldStream && !this.instant) await this.waitFor(200)
 
             this.streamedComponents.push(key)
         },
-        onQuestionsSubmit (text) {
-            this.handleQuery({ query: text })
-        },
-        onQuestionsEdit (text) {
-            this.setPendingInput(text)
+        onQuestionsSubmit ({ query, answer }) {
+            this.saveQuestionAnswer(this.answer._uuid, answer)
+            this.handleQuery({ query })
         },
         onPlanApprove () {
             // Approving exits read-only plan mode so the build runs as a normal acting turn,

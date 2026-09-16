@@ -7,6 +7,9 @@
                 <!-- Desktop: Full wordmark logo -->
                 <img class="ff-logo hidden lg:block" :src="wordmarkLogo" alt="FlowFuse">
             </router-link>
+            <!-- Teleport target for page-level header actions (e.g. the
+                 onboarding escape hatch) -->
+            <div id="plain-layout-actions" class="ff-plain-layout-actions" />
         </div>
         <div class="ff-layout--plain--wrapper">
             <!-- <LeftDrawer /> -->
@@ -41,3 +44,12 @@ export default {
     }
 }
 </script>
+
+<style scoped lang="scss">
+.ff-plain-layout-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0 1.5rem;
+}
+</style>

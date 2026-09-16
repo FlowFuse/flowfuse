@@ -4,18 +4,16 @@
             <ChevronRightIcon class="ff-collapsible--chevron" :class="{ rotated: expanded }" />
             <slot name="header" />
         </div>
-        <transition :css="false" @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave">
-            <div v-if="expanded" ref="content" class="ff-collapsible--content">
+        <div class="ff-collapsible--content" :class="{ expanded }">
+            <div class="ff-collapsible--inner" :inert="!expanded">
                 <slot />
             </div>
-        </transition>
+        </div>
     </div>
 </template>
 
 <script>
 import { ChevronRightIcon } from '@heroicons/vue/20/solid'
-
-const DURATION = 220
 
 export default {
     name: 'CollapsibleSection',
@@ -49,59 +47,6 @@ export default {
         toggle () {
             if (this.forceOpen) return
             this.manualExpanded = !this.expanded
-        },
-        reducedMotion () {
-            return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-        },
-        onEnter (el, done) {
-            if (this.reducedMotion()) return done()
-            const target = el.scrollHeight
-            el.style.overflow = 'hidden'
-            el.style.height = '0'
-            el.style.opacity = '0'
-            this.forceReflow(el)
-            el.style.transition = `height ${DURATION}ms ease, opacity ${DURATION}ms ease`
-            el.style.height = `${target}px`
-            el.style.opacity = '1'
-            this.onEnd(el, 'height', done)
-        },
-        onAfterEnter (el) {
-            el.style.height = ''
-            el.style.opacity = ''
-            el.style.overflow = ''
-            el.style.transition = ''
-        },
-        onLeave (el, done) {
-            if (this.reducedMotion()) return done()
-            el.style.overflow = 'hidden'
-            el.style.height = `${el.scrollHeight}px`
-            el.style.opacity = '1'
-            // Force a reflow so the browser registers the start height before collapsing.
-            this.forceReflow(el)
-            el.style.transition = `height ${DURATION}ms ease, opacity ${DURATION}ms ease`
-            el.style.height = '0'
-            el.style.opacity = '0'
-            this.onEnd(el, 'height', done)
-        },
-        forceReflow (el) {
-            // Reading a layout property flushes pending style writes so the next one animates.
-            return el.offsetHeight
-        },
-        onEnd (el, prop, done) {
-            let settled = false
-            const finish = () => {
-                if (settled) return
-                settled = true
-                el.removeEventListener('transitionend', handler)
-                clearTimeout(timer)
-                done()
-            }
-            const handler = (event) => {
-                if (event.target !== el || event.propertyName !== prop) return
-                finish()
-            }
-            el.addEventListener('transitionend', handler)
-            const timer = setTimeout(finish, DURATION + 50)
         }
     }
 }
@@ -139,6 +84,29 @@ export default {
 
     &.rotated {
         transform: rotate(90deg);
+    }
+}
+
+.ff-collapsible--content {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 0.22s ease, opacity 0.22s ease;
+
+    &.expanded {
+        grid-template-rows: 1fr;
+        opacity: 1;
+    }
+}
+
+.ff-collapsible--inner {
+    min-height: 0;
+    overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ff-collapsible--content {
+        transition: none;
     }
 }
 </style>
