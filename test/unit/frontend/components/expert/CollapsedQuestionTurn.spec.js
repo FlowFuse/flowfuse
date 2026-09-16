@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => {
     return {
-        expertStore: { setPendingInput: vi.fn() }
+        expertStore: { setPendingInput: vi.fn(), isWaitingForResponse: false }
     }
 })
 
@@ -43,6 +43,7 @@ function mountTurn (turn = answeredTurn()) {
 describe('CollapsedQuestionTurn', () => {
     beforeEach(() => {
         mocks.expertStore.setPendingInput.mockClear()
+        mocks.expertStore.isWaitingForResponse = false
     })
 
     test('renders one quiet line per question with the pick as a chip', () => {
@@ -58,6 +59,16 @@ describe('CollapsedQuestionTurn', () => {
         const wrapper = mountTurn()
         await wrapper.findAll('[data-action="edit-answer"]')[0].trigger('click')
         expect(mocks.expertStore.setPendingInput).toHaveBeenCalledWith('Q1? Sensors')
+    })
+
+    test('disables the answer chips while a response is in flight', async () => {
+        mocks.expertStore.isWaitingForResponse = true
+        const wrapper = mountTurn()
+        const chip = wrapper.findAll('[data-action="edit-answer"]')[0]
+        expect(chip.attributes('disabled')).toBeDefined()
+
+        await chip.trigger('click')
+        expect(mocks.expertStore.setPendingInput).not.toHaveBeenCalled()
     })
 
     test('an unanswered turn shows a skipped marker and no chips', () => {

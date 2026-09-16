@@ -789,10 +789,18 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             })
         }
     },
-    // Only the user's saved per-team HITL choices persist across sessions; the
-    // catalog/hash, session grants, and all editor/session state are re-derived.
-    persist: {
-        pick: ['toolDefaultsByTeam', 'toolPreferencesByTeam'],
-        storage: localStorage
-    }
+    persist: [
+        // Only the user's saved per-team HITL choices persist across sessions; the
+        // catalog/hash, session grants, and all editor/session state are re-derived.
+        {
+            pick: ['toolDefaultsByTeam', 'toolPreferencesByTeam'],
+            storage: localStorage
+        },
+        // Resolved approval outcomes are chat-scoped: they survive a refresh so an answered
+        // card keeps its outcome instead of offering Allow/Deny again (#8527).
+        {
+            pick: ['toolApprovalStatuses'],
+            storage: sessionStorage
+        }
+    ]
 })
