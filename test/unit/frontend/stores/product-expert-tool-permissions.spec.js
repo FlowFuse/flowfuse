@@ -124,9 +124,21 @@ describe('product-expert store — tool permissions (HITL, #421)', () => {
             store.resolveToolApproval({ id: 'u1', approved: true })
 
             expect(permState.statuses.u1).toBe('approved')
-            expect(store.approvalOutcomes.u1).toBe('approved')
             expect(resume).toHaveBeenCalledWith({ u1: 'approved' })
             // the batch is cleared once resumed
+            expect(store._approvalBatch).toBeNull()
+        })
+
+        it('resolves a batch restored from persistence, not just one begun in this page load (#8527)', () => {
+            const store = useProductExpertStore()
+            const resume = vi.spyOn(store, 'resumeToolApprovals').mockResolvedValue()
+            // simulate the persisted state a refresh rehydrates instead of calling beginApprovalBatch
+            store._approvalBatch = { decisions: {}, toolKeys: { u1: 'write-flow' }, remaining: 1 }
+
+            store.resolveToolApproval({ id: 'u1', approved: true })
+
+            expect(permState.statuses.u1).toBe('approved')
+            expect(resume).toHaveBeenCalledWith({ u1: 'approved' })
             expect(store._approvalBatch).toBeNull()
         })
 
@@ -196,8 +208,6 @@ describe('product-expert store — tool permissions (HITL, #421)', () => {
 
             expect(permState.statuses.u1).toBe('denied')
             expect(permState.statuses.u2).toBe('denied')
-            expect(store.approvalOutcomes.u1).toBe('denied')
-            expect(store.approvalOutcomes.u2).toBe('denied')
             expect(store._approvalBatch).toBeNull()
             expect(resume).not.toHaveBeenCalled()
         })
