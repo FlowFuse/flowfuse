@@ -706,6 +706,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/user/onboarding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Mark the current user's onboarding as complete */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIStatus"];
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/user/change_password": {
         parameters: {
             query?: never;
@@ -10946,6 +10991,7 @@ export interface components {
             sso_enabled?: boolean;
             mfa_enabled?: boolean;
             free_trial_available?: boolean;
+            onboardingCompleted?: boolean;
             tcs_accepted?: string;
             password_expired?: boolean;
             pendingEmailChange?: boolean;
