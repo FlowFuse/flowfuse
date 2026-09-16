@@ -41,6 +41,10 @@ export const useProductExpertStore = defineStore('product-expert', {
         composerCommand: null,
         // question-card answers keyed by answer uuid, so a sent card survives a refresh
         questionAnswers: {},
+        // Terminal outcome per approval id, keyed the same way as product-assistant's
+        // toolApprovalStatuses, so a resolved approval card survives a refresh instead of
+        // showing its Allow/Deny buttons again (#8527).
+        approvalOutcomes: {},
         _seenTransactionIds: new Map(),
         // Open human-in-the-loop approval batch (#421). When a turn defers a tool batch
         // for approval the agent ends the turn and returns the card(s); we hold the
@@ -613,6 +617,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 ? (always ? 'always-allowed' : 'approved')
                 : (always ? 'always-denied' : 'denied')
             permStore.setToolApprovalStatus(id, status)
+            this.approvalOutcomes = { ...this.approvalOutcomes, [id]: status }
             batch.decisions[id] = approved ? 'approved' : 'denied'
             batch.remaining--
             if (batch.remaining <= 0) {
@@ -654,7 +659,10 @@ export const useProductExpertStore = defineStore('product-expert', {
             if (!batch) return
             const permStore = useProductAssistantStore()
             for (const id of Object.keys(batch.toolKeys)) {
-                if (!(id in batch.decisions)) permStore.setToolApprovalStatus(id, status)
+                if (!(id in batch.decisions)) {
+                    permStore.setToolApprovalStatus(id, status)
+                    this.approvalOutcomes = { ...this.approvalOutcomes, [id]: status }
+                }
             }
             this._approvalBatch = null
         },
@@ -667,6 +675,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             agentStore.sessionId = uuidv4()
             agentStore.messages = []
             this.questionAnswers = {}
+            this.approvalOutcomes = {}
 
             // A new chat drops the per-session tool grants ("Always allow/deny for this chat")
             // and the resolved-approval outcomes tied to the messages we just cleared.
@@ -1373,7 +1382,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         }
     },
     persist: {
-        pick: ['shouldWakeUpAssistant', 'questionCadence', 'agentMode', 'questionAnswers'],
+        pick: ['shouldWakeUpAssistant', 'questionCadence', 'agentMode', 'questionAnswers', 'approvalOutcomes'],
         storage: sessionStorage
     }
 })

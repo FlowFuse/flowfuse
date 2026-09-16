@@ -124,6 +124,7 @@ describe('product-expert store — tool permissions (HITL, #421)', () => {
             store.resolveToolApproval({ id: 'u1', approved: true })
 
             expect(permState.statuses.u1).toBe('approved')
+            expect(store.approvalOutcomes.u1).toBe('approved')
             expect(resume).toHaveBeenCalledWith({ u1: 'approved' })
             // the batch is cleared once resumed
             expect(store._approvalBatch).toBeNull()
@@ -195,6 +196,8 @@ describe('product-expert store — tool permissions (HITL, #421)', () => {
 
             expect(permState.statuses.u1).toBe('denied')
             expect(permState.statuses.u2).toBe('denied')
+            expect(store.approvalOutcomes.u1).toBe('denied')
+            expect(store.approvalOutcomes.u2).toBe('denied')
             expect(store._approvalBatch).toBeNull()
             expect(resume).not.toHaveBeenCalled()
         })

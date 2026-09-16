@@ -175,7 +175,7 @@ export default {
     },
     computed: {
         ...mapState(useProductAssistantStore, ['supportedActions', 'toolApprovalStatuses']),
-        ...mapState(useProductExpertStore, ['agentMode', 'isWaitingForResponse', 'messages', 'questionAnswers']),
+        ...mapState(useProductExpertStore, ['agentMode', 'isWaitingForResponse', 'messages', 'questionAnswers', 'approvalOutcomes']),
         isLatestMessage () {
             const msgs = this.messages || []
             return msgs.length > 0 && msgs[msgs.length - 1]?._uuid === this.messageUuid
@@ -227,8 +227,10 @@ export default {
         // The answer here is a detached streaming copy, so its own `status` only ever holds
         // the initial 'pending'. The reactive per-id map in the store carries any later
         // outcome — including an external one (chat stop / Start Over) the card can't see.
+        // toolApprovalStatuses is not persisted, so a refresh falls back to approvalOutcomes,
+        // which keeps a resolved card resolved after reload (#8527).
         resolvedToolApprovalStatus () {
-            return this.toolApprovalStatuses[this.answer.id] || this.answer.status
+            return this.toolApprovalStatuses[this.answer.id] || this.approvalOutcomes[this.answer.id] || this.answer.status
         },
         isChatAnswer () {
             return !Object.hasOwnProperty.call(this.answer, 'kind') || this.answer.kind === 'chat'
