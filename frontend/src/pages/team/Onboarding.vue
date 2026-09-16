@@ -251,36 +251,6 @@ export default {
     font-weight: 600;
 }
 
-/* Options render as full-width bordered tiles */
-.onboarding-column :deep(.expert-questions .ff-radio-btn),
-.onboarding-column :deep(.expert-questions .ff-checkbox) {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    border: 1px solid var(--ff-color-border);
-    border-radius: 0.375rem;
-    padding: 0.875rem 1rem 0.875rem 2.75rem;
-    background: var(--ff-color-bg-surface);
-    cursor: pointer;
-
-    /* the control is absolutely positioned top-left by default;
-       center it against the tile */
-    .checkbox {
-        top: 50%;
-        left: 1rem;
-        transform: translateY(-50%);
-    }
-
-    &:hover {
-        border-color: var(--ff-color-text-subtle);
-    }
-
-    &:has(.checkbox[checked='true']) {
-        border-color: var(--ff-color-accent);
-        background: var(--ff-color-accent-surface);
-    }
-}
-
 /* The composer sits quietly at the bottom: no divider, no panel chrome */
 .onboarding-column :deep(.ff-expert-input) {
     border-top: none;
