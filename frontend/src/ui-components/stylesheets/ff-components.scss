@@ -674,11 +674,12 @@ li.ff-kebab-item {
   padding: 0.875rem 1rem 0.875rem 2.75rem;
   background-color: var(--ff-color-bg-surface);
 
-  // the glyph is absolutely positioned top-left by default; centre it against the tile
+  // the glyph is absolutely positioned top-left by default; align it with the centre of
+  // the label's first line (0.875rem padding + half of the 1.25rem/16px height gap),
+  // not the tile's, so it stays beside the label when a description adds a second line
   .checkbox {
-    top: 50%;
+    top: 1rem;
     left: 1rem;
-    transform: translateY(-50%);
   }
 
   &:hover:not([disabled=true]) {

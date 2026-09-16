@@ -28,25 +28,32 @@ describe('QuestionsList', () => {
         expect(wrapper.vm.compose()).toBe('Which feature do you use most? MQTT')
     })
 
-    test('single-select: a picked option and a typed answer are mutually exclusive', () => {
+    test('single-select: a non-empty typed answer rides along with a picked option', () => {
         const wrapper = mountList(singleQuestion)
         wrapper.vm.setSingle(0, 'MQTT')
         wrapper.vm.setFreeText(0, 'My own answer')
-        expect(wrapper.vm.selections[0]).toEqual([])
-        expect(wrapper.vm.compose()).toBe('Which feature do you use most? My own answer')
+        expect(wrapper.vm.selections[0]).toEqual(['MQTT'])
+        expect(wrapper.vm.compose()).toBe('Which feature do you use most? MQTT, My own answer')
 
-        wrapper.vm.setSingle(0, 'Dashboard')
-        expect(wrapper.vm.freeTextSelected[0]).toBe(false)
-        expect(wrapper.vm.compose()).toBe('Which feature do you use most? Dashboard')
+        wrapper.vm.setFreeText(0, '')
+        expect(wrapper.vm.compose()).toBe('Which feature do you use most? MQTT')
     })
 
-    test('multi-select: a typed answer joins the checked options, and can be dropped alone', () => {
+    test('single-select: a typed answer alone counts as answered', () => {
+        const wrapper = mountList(singleQuestion)
+        expect(wrapper.vm.allAnswered).toBe(false)
+        wrapper.vm.setFreeText(0, 'My own answer')
+        expect(wrapper.vm.allAnswered).toBe(true)
+        expect(wrapper.vm.compose()).toBe('Which feature do you use most? My own answer')
+    })
+
+    test('multi-select: a typed answer joins the checked options, and clearing it drops it', () => {
         const wrapper = mountList(multiQuestion)
         wrapper.vm.setMulti(0, 'MQTT', true)
         wrapper.vm.setFreeText(0, 'Modbus')
         expect(wrapper.vm.compose()).toBe('Which protocols? MQTT, Modbus')
 
-        wrapper.vm.toggleFreeText(0, false)
+        wrapper.vm.setFreeText(0, ' ')
         expect(wrapper.vm.compose()).toBe('Which protocols? MQTT')
     })
 
@@ -57,13 +64,13 @@ describe('QuestionsList', () => {
         wrapper.vm.submit()
         expect(wrapper.emitted('select')[0][0]).toEqual({
             query: 'Which protocols? MQTT, Modbus',
-            answer: { selections: [['MQTT']], freeTexts: ['Modbus'], freeTextSelected: [true] }
+            answer: { selections: [['MQTT']], freeTexts: ['Modbus'] }
         })
     })
 
     test('restores picks and typed text from a previously sent answer', () => {
         const wrapper = mountList(multiQuestion, {
-            initialAnswer: { selections: [['MQTT']], freeTexts: ['Modbus'], freeTextSelected: [true] }
+            initialAnswer: { selections: [['MQTT']], freeTexts: ['Modbus'] }
         })
         expect(wrapper.vm.compose()).toBe('Which protocols? MQTT, Modbus')
         expect(wrapper.vm.allAnswered).toBe(true)
