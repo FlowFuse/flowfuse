@@ -456,6 +456,9 @@ module.exports = async function (app) {
                 await agent.reload({ include: [{ model: app.db.models.Team }] })
                 await app.containers.startBrokerAgent(agent)
                 reply.status(200).send({})
+            } else {
+                // Agent already running: starting is a no-op
+                reply.status(200).send({})
             }
         } else {
             if (request.broker.state === 'running') {
@@ -485,9 +488,9 @@ module.exports = async function (app) {
                 await app.containers.sendBrokerAgentCommand(agent, 'stop')
                 reply.status(200).send({})
             } else {
-                // hmm shouldn't be able to get here
+                // Agent missing or not running: stopping is a no-op
+                reply.status(200).send({})
             }
-            // reply.status(403).send({})
         } else {
             await app.containers.sendBrokerAgentCommand(request.broker, 'stop')
             reply.status(200).send({})
