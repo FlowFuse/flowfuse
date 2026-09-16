@@ -77,6 +77,14 @@ export const useUxStore = defineStore('ux', {
             }
         },
         startOnboardingBuild () { this.onboardingStage = ONBOARDING_STAGES.BUILDING },
+        // Sends a user back from building to the intake conversation. The provisioned
+        // instance is left untouched - there is nothing to tear down here.
+        resumeOnboardingIntake () {
+            this.onboardingStage = ONBOARDING_STAGES.INTAKE
+            // Re-raises the entry flag so consumeOnboardingEntry() routes the user
+            // back to the onboarding page on arrival.
+            this.shouldEnterOnboarding = true
+        },
         endOnboarding () {
             this.onboardingStage = ONBOARDING_STAGES.DONE
             this.shouldEnterOnboarding = false
