@@ -1,5 +1,5 @@
 <template>
-    <label class="ff-radio-btn" :disabled="disabled" @click="select(value)">
+    <label class="ff-radio-btn" :class="{ 'ff-radio-btn--tile': tile }" :disabled="disabled" @click="select(value)">
         <input type="radio" :value="value">
         <span ref="input" class="checkbox" :checked="checked" tabindex="0" @keydown.space.prevent="select(value)" />
         <label>{{ label }}</label>
@@ -32,6 +32,11 @@ export default {
             type: Boolean
         },
         hideDescription: {
+            default: false,
+            type: Boolean
+        },
+        // Full-width tappable tile layout, with the label stacked above its description
+        tile: {
             default: false,
             type: Boolean
         }

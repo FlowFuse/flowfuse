@@ -1,4 +1,5 @@
 const fp = require('fastify-plugin')
+const { isFreeEmail } = require('free-email-domains-list')
 const { OAuth2Client } = require('google-auth-library')
 
 const USED_GOOGLE_JWT = 'platform-google-sso-tokens'
@@ -74,6 +75,13 @@ module.exports = fp(async function (app, opts) {
                     url: '/'
                 })
             } else if (app.settings.get('platform:sso:google:auto-create') === true) {
+                if (app.billing && isFreeEmail(googleUserInfo.email.toLowerCase())) {
+                    const invite = await app.db.models.Invitation.forExternalEmail(googleUserInfo.email)
+                    if (!invite || invite.length === 0) {
+                        reply.code(400).send({ code: 'invalid_email_domain', error: 'Please register using your company email address' })
+                        return
+                    }
+                }
                 // Create a new user for this email address
                 const userProperties = {
                     name: googleUserInfo.name || googleUserInfo.email.split('@')[0],
