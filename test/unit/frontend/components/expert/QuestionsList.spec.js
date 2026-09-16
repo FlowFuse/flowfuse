@@ -68,4 +68,26 @@ describe('QuestionsList', () => {
         expect(wrapper.vm.compose()).toBe('Which protocols? MQTT, Modbus')
         expect(wrapper.vm.allAnswered).toBe(true)
     })
+
+    test('requests the tile layout only on the onboarding surface', () => {
+        const drawer = mountList(singleQuestion)
+        expect(drawer.vm.tileLayout).toBe(false)
+
+        const onboarding = mount(QuestionsList, {
+            props: { questions: singleQuestion },
+            global: { stubs, provide: { 'expert-surface': 'onboarding' } }
+        })
+        expect(onboarding.vm.tileLayout).toBe(true)
+    })
+
+    test('applies the tile class to checkbox options only on the onboarding surface', () => {
+        const drawer = mountList(multiQuestion)
+        expect(drawer.find('.ff-checkbox--tile').exists()).toBe(false)
+
+        const onboarding = mount(QuestionsList, {
+            props: { questions: multiQuestion },
+            global: { stubs, provide: { 'expert-surface': 'onboarding' } }
+        })
+        expect(onboarding.find('.ff-checkbox--tile').exists()).toBe(true)
+    })
 })

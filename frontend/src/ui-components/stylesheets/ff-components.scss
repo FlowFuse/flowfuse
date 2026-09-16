@@ -656,6 +656,41 @@ li.ff-kebab-item {
   }
 }
 
+/**
+ *  FF Radio/Checkbox tile option: a full-width tappable card (e.g. onboarding
+ *  question cards), with the glyph kept at its normal size and the label
+ *  stacked above its description.
+ */
+
+.ff-radio-btn.ff-radio-btn--tile,
+.ff-checkbox.ff-checkbox--tile {
+  // block, not flex: the label and its description are flex siblings on the
+  // base rule, which would otherwise sit them side by side instead of stacked
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--ff-color-border);
+  border-radius: 0.375rem;
+  padding: 0.875rem 1rem 0.875rem 2.75rem;
+  background-color: var(--ff-color-bg-surface);
+
+  // the glyph is absolutely positioned top-left by default; centre it against the tile
+  .checkbox {
+    top: 50%;
+    left: 1rem;
+    transform: translateY(-50%);
+  }
+
+  &:hover:not([disabled=true]) {
+    border-color: var(--ff-color-text-subtle);
+  }
+
+  &:has(.checkbox[checked='true']) {
+    border-color: var(--ff-color-accent);
+    background-color: var(--ff-color-accent-surface);
+  }
+}
+
 .ff-tile-selection {
   display: flex;
   flex-wrap: wrap;

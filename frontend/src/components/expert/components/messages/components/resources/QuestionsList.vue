@@ -11,6 +11,7 @@
                 orientation="vertical"
                 :options="optionSets[qIndex]"
                 :model-value="selections[qIndex][0] ?? null"
+                :tile="tileLayout"
                 @update:model-value="value => setSingle(qIndex, value)"
             />
 
@@ -18,6 +19,7 @@
                 <ff-checkbox
                     v-for="(opt, oIndex) in q.options"
                     :key="oIndex"
+                    :class="{ 'ff-checkbox--tile': tileLayout }"
                     :model-value="isSelected(qIndex, opt.label)"
                     :disabled="disabled"
                     @update:model-value="checked => setMulti(qIndex, opt.label, checked)"
@@ -67,6 +69,12 @@
 <script>
 export default {
     name: 'QuestionsList',
+    inject: {
+        expertSurface: {
+            from: 'expert-surface',
+            default: 'drawer'
+        }
+    },
     props: {
         questions: {
             type: Array,
@@ -114,6 +122,10 @@ export default {
                 const hasFreeText = this.freeTextSelected[i] && (this.freeTexts[i] || '').trim().length > 0
                 return hasSelection || hasFreeText
             })
+        },
+        // Onboarding renders question cards as full-width tappable tiles; the drawer keeps the compact layout
+        tileLayout () {
+            return this.expertSurface === 'onboarding'
         }
     },
     watch: {
