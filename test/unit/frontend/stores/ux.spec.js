@@ -6,14 +6,14 @@ import { useUxStore } from '@/stores/ux.js'
 
 vi.mock('@/api/user.js', () => ({
     default: {
-        completeOnboarding: vi.fn().mockResolvedValue()
+        updateUserSettings: vi.fn().mockResolvedValue()
     }
 }))
 
 describe('ux store', () => {
     beforeEach(() => {
         setActivePinia(createPinia())
-        userApi.completeOnboarding.mockClear()
+        userApi.updateUserSettings.mockClear()
     })
 
     it('initializes with default state', () => {
@@ -112,7 +112,7 @@ describe('ux store', () => {
             const store = useUxStore()
             store.setNewlyCreatedUser()
             store.endOnboarding()
-            expect(userApi.completeOnboarding).toHaveBeenCalledTimes(1)
+            expect(userApi.updateUserSettings).toHaveBeenCalledWith({ onboardingCompleted: true })
         })
 
         // The server is authoritative: a session that never persisted the
@@ -120,7 +120,7 @@ describe('ux store', () => {
         // not be sent back into the funnel
         it('resolves straight to done when the server reports onboarding as completed', () => {
             const store = useUxStore()
-            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(3), onboardingCompleted: true })
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(3), settings: { onboardingCompleted: true } })
             expect(store.onboardingStage).toBe('done')
             expect(store.shouldEnterOnboarding).toBe(false)
         })
@@ -130,13 +130,13 @@ describe('ux store', () => {
         it('overrides a stale local intake stage when the server reports completion', () => {
             const store = useUxStore()
             store.setNewlyCreatedUser()
-            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(3), onboardingCompleted: true })
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(3), settings: { onboardingCompleted: true } })
             expect(store.onboardingStage).toBe('done')
         })
 
         it('leaves the local stage alone when the server has no completed flag', () => {
             const store = useUxStore()
-            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(3), onboardingCompleted: false })
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(3), settings: { onboardingCompleted: false } })
             expect(store.onboardingStage).toBe('intake')
         })
 

@@ -150,6 +150,14 @@ describe('User model', function () {
                 await user.updateSetting('onboardingCompleted', false)
                 should.equal(await user.getSetting('onboardingCompleted'), false)
             })
+
+            it('returns all settings as a single object', async function () {
+                const user = await app.db.models.User.byEmail('chris@example.com')
+                await user.updateSettings({ onboardingCompleted: true, another: 'value' })
+                const settings = await user.getAllSettings()
+                settings.should.have.property('onboardingCompleted', true)
+                settings.should.have.property('another', 'value')
+            })
         })
 
         describe('#teamCount', function () {

@@ -706,7 +706,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/user/onboarding": {
+    "/api/v1/user/settings": {
         parameters: {
             query?: never;
             header?: never;
@@ -714,7 +714,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Mark the current user's onboarding as complete */
+        /** Update the current user's settings */
         put: {
             parameters: {
                 query?: never;
@@ -722,7 +722,13 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            requestBody?: never;
+            requestBody: {
+                content: {
+                    "application/json": {
+                        onboardingCompleted?: boolean;
+                    };
+                };
+            };
             responses: {
                 /** @description Default Response */
                 200: {
@@ -730,7 +736,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["APIStatus"];
+                        "application/json": {
+                            [key: string]: unknown;
+                        };
                     };
                 };
                 /** @description Default Response */
@@ -10991,7 +10999,9 @@ export interface components {
             sso_enabled?: boolean;
             mfa_enabled?: boolean;
             free_trial_available?: boolean;
-            onboardingCompleted?: boolean;
+            settings?: {
+                [key: string]: unknown;
+            };
             tcs_accepted?: string;
             password_expired?: boolean;
             pendingEmailChange?: boolean;

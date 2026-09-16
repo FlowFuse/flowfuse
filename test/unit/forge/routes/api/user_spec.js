@@ -152,23 +152,26 @@ describe('User API', async function () {
             result.should.have.property('username', TestObjects.alice.username)
             result.should.have.property('email', TestObjects.alice.email)
             result.should.not.have.property('sso_enabled')
-            result.should.have.property('onboardingCompleted', false)
+            result.should.have.property('settings')
+            result.settings.should.not.have.property('onboardingCompleted')
         })
         it('persists onboarding completion so it survives a new session', async function () {
             await login('elvis', 'eePassword')
             const putResponse = await app.inject({
                 method: 'PUT',
-                url: '/api/v1/user/onboarding',
-                cookies: { sid: TestObjects.tokens.elvis }
+                url: '/api/v1/user/settings',
+                cookies: { sid: TestObjects.tokens.elvis },
+                payload: { onboardingCompleted: true }
             })
             putResponse.statusCode.should.equal(200)
+            putResponse.json().should.have.property('onboardingCompleted', true)
 
             const getResponse = await app.inject({
                 method: 'GET',
                 url: '/api/v1/user',
                 cookies: { sid: TestObjects.tokens.elvis }
             })
-            getResponse.json().should.have.property('onboardingCompleted', true)
+            getResponse.json().settings.should.have.property('onboardingCompleted', true)
 
             // A fresh login (e.g. a different browser) must still see it
             await login('elvis', 'eePassword')
@@ -177,7 +180,21 @@ describe('User API', async function () {
                 url: '/api/v1/user',
                 cookies: { sid: TestObjects.tokens.elvis }
             })
-            secondGetResponse.json().should.have.property('onboardingCompleted', true)
+            secondGetResponse.json().settings.should.have.property('onboardingCompleted', true)
+        })
+        it('strips settings keys that are not on the allow-list', async function () {
+            await login('elvis', 'eePassword')
+            const putResponse = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/settings',
+                cookies: { sid: TestObjects.tokens.elvis },
+                payload: { onboardingCompleted: true, admin: true, favouriteColour: 'green' }
+            })
+            putResponse.statusCode.should.equal(200)
+            const settings = putResponse.json()
+            settings.should.have.property('onboardingCompleted', true)
+            settings.should.not.have.property('admin')
+            settings.should.not.have.property('favouriteColour')
         })
         describe('sso', function () {
             before(async function () {

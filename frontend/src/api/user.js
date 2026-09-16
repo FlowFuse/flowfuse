@@ -63,8 +63,8 @@ const getUser = () => {
     })
 }
 
-const completeOnboarding = () => {
-    return client.put('/api/v1/user/onboarding').then((res) => {
+const updateUserSettings = (settings) => {
+    return client.put('/api/v1/user/settings', settings).then((res) => {
         return res.data
     })
 }
@@ -266,7 +266,7 @@ export default {
     login,
     verifyMFAToken,
     logout,
-    completeOnboarding,
+    updateUserSettings,
     changePassword,
     updateUser,
     deleteUser,

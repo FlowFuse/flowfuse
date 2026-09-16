@@ -399,6 +399,21 @@ module.exports = {
                 },
                 updateSetting: async function (key, value) {
                     return M.UserSettings.upsert({ UserId: this.id, key, value })
+                },
+                getAllSettings: async function () {
+                    const result = {}
+                    const settings = await this.getUserSettings()
+                    settings.forEach(setting => {
+                        result[setting.key] = setting.value
+                    })
+                    return result
+                },
+                updateSettings: async function (obj) {
+                    const updates = []
+                    for (const [key, value] of Object.entries(obj)) {
+                        updates.push(this.updateSetting(key, value))
+                    }
+                    return Promise.all(updates)
                 }
             }
         }

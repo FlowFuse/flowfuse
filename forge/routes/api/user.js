@@ -43,7 +43,7 @@ module.exports = async function (app) {
         if (app.license.active() && app.billing && app.db.controllers.Subscription.freeTrialCreditEnabled()) {
             response.free_trial_available = await app.db.controllers.Subscription.userEligibleForFreeTrialCredit(user)
         }
-        response.onboardingCompleted = !!(await user.getSetting(KEY_ONBOARDING_COMPLETED))
+        response.settings = await user.getAllSettings()
         const allowTeam = app.patTeamScopeFilter(request)
         if (allowTeam && response.defaultTeam && !allowTeam(response.defaultTeam)) {
             delete response.defaultTeam
@@ -53,18 +53,26 @@ module.exports = async function (app) {
     })
 
     /**
-     * Mark the current user's onboarding as complete, so they are not
-     * returned to it on a later login
-     * /api/v1/user/onboarding
+     * Update the current user's settings. The body schema is the allow-list
+     * of what a user may set about themselves; anything else is stripped.
+     * /api/v1/user/settings
      */
-    app.put('/onboarding', {
+    app.put('/settings', {
         preHandler: app.needsPermission('user:edit'),
         schema: {
-            summary: 'Mark the current user\'s onboarding as complete',
+            summary: 'Update the current user\'s settings',
             tags: ['User'],
+            body: {
+                type: 'object',
+                properties: {
+                    [KEY_ONBOARDING_COMPLETED]: { type: 'boolean' }
+                },
+                additionalProperties: false
+            },
             response: {
                 200: {
-                    $ref: 'APIStatus'
+                    type: 'object',
+                    additionalProperties: true
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -72,8 +80,8 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        await request.session.User.updateSetting(KEY_ONBOARDING_COMPLETED, true)
-        reply.send({ status: 'okay' })
+        await request.session.User.updateSettings(request.body)
+        reply.send(await request.session.User.getAllSettings())
     })
 
     /**

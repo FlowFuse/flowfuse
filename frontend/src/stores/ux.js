@@ -57,7 +57,7 @@ export const useUxStore = defineStore('ux', {
             // or skipped, so a session that never persisted the stage locally
             // (a new browser, or one that lost it on logout) is not sent back
             // into the funnel.
-            if (user.onboardingCompleted) {
+            if (user.settings?.onboardingCompleted) {
                 this.onboardingStage = ONBOARDING_STAGES.DONE
                 this.shouldEnterOnboarding = false
                 return
@@ -90,7 +90,7 @@ export const useUxStore = defineStore('ux', {
             this.shouldEnterOnboarding = false
             // Persisted so a later login, on any browser, does not re-enter
             // the funnel. Best-effort: the local stage is already updated.
-            userApi.completeOnboarding().catch(() => {})
+            userApi.updateUserSettings({ onboardingCompleted: true }).catch(() => {})
         },
         openOverlay () { this.overlay = true },
         closeOverlay () { this.overlay = false }
