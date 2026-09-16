@@ -1335,22 +1335,9 @@ export const useProductExpertStore = defineStore('product-expert', {
             this.addPredefinedAiMessage(payload.message, { isError: true, code: payload.code })
         },
         /**
-         * Relays a hosted instance's live status transitioning to running into the active
-         * chat as a silent system message: no user bubble is added, input for the assistant
-         * only. Used by the AI-led onboarding flow so the assistant learns a provisioned
-         * workspace has finished starting without polling anything - see live-status.subscriber.ts,
-         * which calls this once an instance's live status reports running.
-         *
-         * Published like a real chat request - a transaction id, MQTT v5 correlation data
-         * and an in-flight registration - so the agent's reply comes back through the same
-         * reply handling as a normal turn: it renders as an assistant message, the standard
-         * loading indicator shows while the agent composes it, and the entry is cleared on
-         * reply (or on Stop / Start Over) exactly like any other in-flight request.
-         *
-         * A no-op outside an active onboarding conversation, when the chat isn't using the
-         * Expert's own MQTT channel - there is nothing to relay into over HTTP - or when
-         * this instance was already announced this conversation (a restart or reconnect
-         * reporting running again should not repeat the announcement).
+         * Tells the assistant a provisioned instance has finished starting, without adding
+         * a user bubble. No-op outside onboarding, off the MQTT channel, or for an instance
+         * already announced this conversation.
          *
          * @param {{ id: string, name?: string }} instance - the instance that finished starting
          */
