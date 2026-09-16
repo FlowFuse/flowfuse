@@ -572,7 +572,7 @@ describe('Accounts API', async function () {
                 username: 'user',
                 password: '12345678',
                 name: 'user',
-                email: 'user@example.com'
+                email: 'user@example-company.com'
             })
             response.statusCode.should.equal(200)
 
@@ -625,6 +625,34 @@ describe('Accounts API', async function () {
                 resp.statusCode.should.equal(200)
             }
             // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
+        })
+
+        it('rejects registration with a free email provider when billing is enabled', async function () {
+            const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTA4ODAwLCJleHAiOjc5ODY5ODg3OTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjo1LCJ0ZWFtcyI6NTAsInByb2plY3RzIjo1MCwiZGV2aWNlcyI6NTAsImRldiI6dHJ1ZSwiaWF0IjoxNjYyNTQ4NjAyfQ.vvSw6pm-NP5e0NUL7yMOG-w0AgB8H3NRGGN7b5Dw_iW5DiIBbVQ4HVLEi3dyy9fk7WgKnloiCCkIFJvN79fK_g'
+            app = await setup({ license, billing: { stripe: {} } })
+            app.settings.set('user:signup', true)
+
+            const response = await registerUser({
+                username: 'freeuser',
+                password: '12345678',
+                name: 'freeuser',
+                email: 'freeuser@gmail.com'
+            })
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_email_domain')
+        })
+
+        it('allows registration with a free email provider when billing is not enabled (self-hosted)', async function () {
+            app = await setup({})
+            app.settings.set('user:signup', true)
+
+            const response = await registerUser({
+                username: 'freeuser',
+                password: '12345678',
+                name: 'freeuser',
+                email: 'freeuser@gmail.com'
+            })
+            response.statusCode.should.equal(200)
         })
     })
 

@@ -291,6 +291,8 @@ export default {
                         this.errors.username = err.response.data.error || 'Invalid request'
                     } else if (err.response.data.code === 'invalid_sso_email') {
                         this.errors.email = err.response.data.error
+                    } else if (err.response.data.code === 'invalid_email_domain') {
+                        this.errors.email = err.response.data.error
                     } else if (err.response.data.statusCode === 429) {
                         this.errors.general = 'Too many attempts. Try again later.'
                         this.tooManyRequests = true

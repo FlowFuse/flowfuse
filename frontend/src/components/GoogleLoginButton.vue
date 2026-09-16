@@ -53,18 +53,23 @@ const googleSSOEnabled = computed(() => {
 async function ggCallback (response: { access_token: string }) {
     busy.value = true
     error.value = ''
-    const result = await SSOApi.googleSSOCallback(response.access_token)
-    if (result.url) {
-        if (isPopupContext(route.query)) {
-            handoffFromPopup(result.url)
+    try {
+        const result = await SSOApi.googleSSOCallback(response.access_token)
+        if (result.url) {
+            if (isPopupContext(route.query)) {
+                handoffFromPopup(result.url)
+            } else {
+                window.location = result.url
+            }
+        } else if (result.error) {
+            error.value = result.error
+            busy.value = false
         } else {
-            window.location = result.url
+            console.error(result)
+            busy.value = false
         }
-    } else if (result.error) {
-        error.value = result.error
-        busy.value = false
-    } else {
-        console.error(result)
+    } catch (err) {
+        error.value = err.response?.data?.error || 'Something went wrong, please try again.'
         busy.value = false
     }
 }
