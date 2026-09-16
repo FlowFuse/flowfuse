@@ -193,6 +193,7 @@ module.exports = {
         this.hasMany(M.Session)
         this.hasMany(M.Invitation, { foreignKey: 'invitorId' })
         this.hasMany(M.Invitation, { foreignKey: 'inviteeId' })
+        this.hasMany(M.UserSettings)
         this.belongsTo(M.Team, { as: 'defaultTeam' })
     },
     finders: function (M, app) {
@@ -391,6 +392,13 @@ module.exports = {
                             UserId: this.id
                         }
                     })
+                },
+                getSetting: async function (key) {
+                    const result = await M.UserSettings.findOne({ where: { UserId: this.id, key } })
+                    return result ? result.value : undefined
+                },
+                updateSetting: async function (key, value) {
+                    return M.UserSettings.upsert({ UserId: this.id, key, value })
                 }
             }
         }

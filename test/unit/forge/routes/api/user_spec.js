@@ -120,6 +120,7 @@ describe('User API', async function () {
             TestObjects.elvis.email_verified = true
             TestObjects.elvis.password = 'eePassword'
             await TestObjects.elvis.save()
+            await app.db.models.UserSettings.destroy({ where: { UserId: TestObjects.elvis.id } })
         })
         // TODO: re-introduce the below once #1183 is complete
         // async function getAuditLog (limit = 1) {
@@ -151,6 +152,32 @@ describe('User API', async function () {
             result.should.have.property('username', TestObjects.alice.username)
             result.should.have.property('email', TestObjects.alice.email)
             result.should.not.have.property('sso_enabled')
+            result.should.have.property('onboardingCompleted', false)
+        })
+        it('persists onboarding completion so it survives a new session', async function () {
+            await login('elvis', 'eePassword')
+            const putResponse = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/onboarding',
+                cookies: { sid: TestObjects.tokens.elvis }
+            })
+            putResponse.statusCode.should.equal(200)
+
+            const getResponse = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.elvis }
+            })
+            getResponse.json().should.have.property('onboardingCompleted', true)
+
+            // A fresh login (e.g. a different browser) must still see it
+            await login('elvis', 'eePassword')
+            const secondGetResponse = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.elvis }
+            })
+            secondGetResponse.json().should.have.property('onboardingCompleted', true)
         })
         describe('sso', function () {
             before(async function () {

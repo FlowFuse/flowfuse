@@ -1,3 +1,5 @@
+const { KEY_ONBOARDING_COMPLETED } = require('../../db/models/UserSettings')
+
 const sharedUser = require('./shared/users')
 const UserInvitations = require('./userInvitations')
 const UserNotifications = require('./userNotifications')
@@ -41,12 +43,37 @@ module.exports = async function (app) {
         if (app.license.active() && app.billing && app.db.controllers.Subscription.freeTrialCreditEnabled()) {
             response.free_trial_available = await app.db.controllers.Subscription.userEligibleForFreeTrialCredit(user)
         }
+        response.onboardingCompleted = !!(await user.getSetting(KEY_ONBOARDING_COMPLETED))
         const allowTeam = app.patTeamScopeFilter(request)
         if (allowTeam && response.defaultTeam && !allowTeam(response.defaultTeam)) {
             delete response.defaultTeam
         }
 
         reply.send(response)
+    })
+
+    /**
+     * Mark the current user's onboarding as complete, so they are not
+     * returned to it on a later login
+     * /api/v1/user/onboarding
+     */
+    app.put('/onboarding', {
+        preHandler: app.needsPermission('user:edit'),
+        schema: {
+            summary: 'Mark the current user\'s onboarding as complete',
+            tags: ['User'],
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        await request.session.User.updateSetting(KEY_ONBOARDING_COMPLETED, true)
+        reply.send({ status: 'okay' })
     })
 
     /**

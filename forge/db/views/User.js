@@ -11,6 +11,7 @@ module.exports = function (app) {
             sso_enabled: { type: 'boolean' },
             mfa_enabled: { type: 'boolean' },
             free_trial_available: { type: 'boolean' },
+            onboardingCompleted: { type: 'boolean' },
             tcs_accepted: { type: 'string' },
             password_expired: { type: 'boolean' },
             pendingEmailChange: { type: 'boolean' },

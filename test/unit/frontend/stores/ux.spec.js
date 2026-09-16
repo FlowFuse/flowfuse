@@ -1,11 +1,19 @@
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import userApi from '@/api/user.js'
 import { useUxStore } from '@/stores/ux.js'
+
+vi.mock('@/api/user.js', () => ({
+    default: {
+        completeOnboarding: vi.fn().mockResolvedValue()
+    }
+}))
 
 describe('ux store', () => {
     beforeEach(() => {
         setActivePinia(createPinia())
+        userApi.completeOnboarding.mockClear()
     })
 
     it('initializes with default state', () => {
@@ -96,6 +104,40 @@ describe('ux store', () => {
             store.endOnboarding()
             expect(store.isOnboarding).toBe(false)
             expect(store.isOnboardingIntake).toBe(false)
+        })
+
+        // Persisted server-side so a later login, on any browser, does not
+        // re-enter the funnel
+        it('persists completion to the server when onboarding ends', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.endOnboarding()
+            expect(userApi.completeOnboarding).toHaveBeenCalledTimes(1)
+        })
+
+        // The server is authoritative: a session that never persisted the
+        // stage locally (a new browser, or one that lost it on logout) must
+        // not be sent back into the funnel
+        it('resolves straight to done when the server reports onboarding as completed', () => {
+            const store = useUxStore()
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(3), onboardingCompleted: true })
+            expect(store.onboardingStage).toBe('done')
+            expect(store.shouldEnterOnboarding).toBe(false)
+        })
+
+        // A stale localStorage stage (e.g. left over from before logout reset
+        // the store) must not override the server's completed flag
+        it('overrides a stale local intake stage when the server reports completion', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(3), onboardingCompleted: true })
+            expect(store.onboardingStage).toBe('done')
+        })
+
+        it('leaves the local stage alone when the server has no completed flag', () => {
+            const store = useUxStore()
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(3), onboardingCompleted: false })
+            expect(store.onboardingStage).toBe('intake')
         })
 
         // isNewlyCreatedUser is recomputed on every boot for a week, so a naive

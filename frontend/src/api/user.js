@@ -63,6 +63,12 @@ const getUser = () => {
     })
 }
 
+const completeOnboarding = () => {
+    return client.put('/api/v1/user/onboarding').then((res) => {
+        return res.data
+    })
+}
+
 const changePassword = (oldPassword, password) => {
     return client.put('/api/v1/user/change_password', {
         old_password: oldPassword,
@@ -260,6 +266,7 @@ export default {
     login,
     verifyMFAToken,
     logout,
+    completeOnboarding,
     changePassword,
     updateUser,
     deleteUser,

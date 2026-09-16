@@ -132,6 +132,26 @@ describe('User model', function () {
             })
         })
 
+        describe('#getSetting / #updateSetting', function () {
+            it('returns undefined for a setting that has not been set', async function () {
+                const user = await app.db.models.User.byEmail('chris@example.com')
+                should.equal(await user.getSetting('onboardingCompleted'), undefined)
+            })
+
+            it('persists and retrieves a setting value', async function () {
+                const user = await app.db.models.User.byEmail('chris@example.com')
+                await user.updateSetting('onboardingCompleted', true)
+                should.equal(await user.getSetting('onboardingCompleted'), true)
+            })
+
+            it('overwrites an existing value for the same key', async function () {
+                const user = await app.db.models.User.byEmail('chris@example.com')
+                await user.updateSetting('onboardingCompleted', true)
+                await user.updateSetting('onboardingCompleted', false)
+                should.equal(await user.getSetting('onboardingCompleted'), false)
+            })
+        })
+
         describe('#teamCount', function () {
             it('should return the number of teams the user is a member of', async function () {
                 const userAlice = await app.db.models.User.byEmail('alice@example.com')
