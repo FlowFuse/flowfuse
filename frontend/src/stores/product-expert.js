@@ -70,7 +70,6 @@ export const useProductExpertStore = defineStore('product-expert', {
         abortController () { return this._agentStore.abortController },
         messages () { return this._agentStore.messages },
         hasMessages () { return this._agentStore.messages.length > 0 },
-        isSessionExpired () { return this._agentStore.sessionExpiredShown },
         isWaitingForResponse () { return !!this._agentStore.abortController || this._inFlightRequests.size > 0 },
         isSupportAgent: (state) => state.agentMode === SUPPORT_AGENT,
         isInsightsAgent: (state) => state.agentMode === INSIGHTS_AGENT,
@@ -266,8 +265,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                 this.startSessionTimer()
             } else {
                 agentStore.sessionStartTime = Date.now()
-                agentStore.sessionWarningShown = false
-                agentStore.sessionExpiredShown = false
             }
 
             // A new message supersedes any pending approval cards; the agent cancels the
@@ -667,37 +664,53 @@ export const useProductExpertStore = defineStore('product-expert', {
             this._approvalBatch = null
         },
         async startOver () {
+            await this._resetConversation({ clearMessages: true })
+        },
+        // A conversation expires on the server after ~30 minutes of inactivity (#8534). Rather
+        // than dead-ending the chat, swap in a fresh conversation id under the messages already
+        // on screen: the next message the user sends simply starts that new conversation, and
+        // the old server-side history is left to expire.
+        async renewConversation () {
+            await this._resetConversation({ clearMessages: false })
+        },
+        // Shared by startOver and renewConversation: both abandon the current conversation id
+        // for a new one, the difference being whether the visible transcript and the state tied
+        // to it (tool grants, question/approval outcomes, selected resources) go with it.
+        async _resetConversation ({ clearMessages }) {
             const agentStore = this._agentStore
-            // Unblock any approval still awaiting a decision before we drop its message,
-            // so the agent's paused tool call resolves (as denied) instead of hanging.
+            // Unblock any approval still awaiting a decision on the id we are abandoning, so
+            // the agent's paused tool call resolves (as denied) instead of hanging.
             this.cancelPendingToolApprovals()
 
             agentStore.sessionId = uuidv4()
-            agentStore.messages = []
-            this.questionAnswers = {}
-            this.approvalOutcomes = {}
 
-            // A new chat drops the per-session tool grants ("Always allow/deny for this chat")
-            // and the resolved-approval outcomes tied to the messages we just cleared.
-            const permStore = useProductAssistantStore()
-            permStore.clearSessionToolOverrides()
-            permStore.clearToolApprovalStatuses()
+            if (clearMessages) {
+                agentStore.messages = []
+                this.questionAnswers = {}
+                this.approvalOutcomes = {}
 
-            if (this.shouldUseMqtt) {
-                const servicesOrchestrator = getAppOrchestrator()
-                const mqttService = servicesOrchestrator.$services.mqtt
+                // A new chat drops the per-session tool grants ("Always allow/deny for this chat")
+                // and the resolved-approval outcomes tied to the messages we just cleared.
+                const permStore = useProductAssistantStore()
+                permStore.clearSessionToolOverrides()
+                permStore.clearToolApprovalStatuses()
 
-                await mqttService.destroyClient(this.mqttConnectionKey)
+                if (this.shouldUseMqtt) {
+                    const servicesOrchestrator = getAppOrchestrator()
+                    const mqttService = servicesOrchestrator.$services.mqtt
+
+                    await mqttService.destroyClient(this.mqttConnectionKey)
+                }
+
+                // Clear resource selection
+                const insightsStore = useProductExpertInsightsAgentStore()
+                insightsStore.setSelectedCapabilities([])
+                await insightsStore.getCapabilities()
             }
 
             // Reset session timing
             this.resetSessionTimer()
             this.startSessionTimer()
-
-            // Clear resource selection
-            const insightsStore = useProductExpertInsightsAgentStore()
-            insightsStore.setSelectedCapabilities([])
-            await insightsStore.getCapabilities()
 
             // Add welcome message for current mode
             this.addWelcomeMessageIfNeeded()
@@ -744,23 +757,12 @@ export const useProductExpertStore = defineStore('product-expert', {
             const agentStore = this._agentStore
             const timer = setInterval(() => {
                 const elapsed = Date.now() - agentStore.sessionStartTime
-                const warningThreshold = 25 * 60 * 1000 // 25 minutes
                 const expirationThreshold = 28 * 60 * 1000 // 28 minutes
 
-                if (elapsed >= warningThreshold && !agentStore.sessionWarningShown) {
-                    agentStore.sessionWarningShown = true
-                    this.addSystemMessage({
-                        message: 'Your conversation history will expire soon. You can start a new conversation when this one expires.',
-                        type: 'warning'
-                    })
-                }
-
-                if (elapsed >= expirationThreshold && !agentStore.sessionExpiredShown) {
-                    agentStore.sessionExpiredShown = true
-                    this.addSystemMessage({
-                        message: 'Your conversation history has expired. Chat is now disabled. Click "Start Over" to begin a new conversation.',
-                        type: 'expired'
-                    })
+                // Renewal restarts this timer on a fresh sessionStartTime (see
+                // _resetConversation), so this fires at most once per expiry.
+                if (elapsed >= expirationThreshold) {
+                    this.renewConversation()
                 }
             }, 30000)
 
@@ -774,8 +776,6 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
 
             agentStore.sessionStartTime = Date.now()
-            agentStore.sessionWarningShown = false
-            agentStore.sessionExpiredShown = false
 
             this._startSessionCheckInterval()
         },
@@ -786,14 +786,12 @@ export const useProductExpertStore = defineStore('product-expert', {
                 agentStore.sessionCheckTimer = null
             }
             agentStore.sessionStartTime = null
-            agentStore.sessionWarningShown = false
-            agentStore.sessionExpiredShown = false
         },
         // Restart the session check interval without resetting sessionStartTime.
         // Used after page refresh to let the persisted timer continue its course.
         resumeSessionTimer () {
             const agentStore = this._agentStore
-            if (!agentStore.sessionStartTime || agentStore.sessionCheckTimer || agentStore.sessionExpiredShown) return
+            if (!agentStore.sessionStartTime || agentStore.sessionCheckTimer) return
             this._startSessionCheckInterval()
         },
         /**

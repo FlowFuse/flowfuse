@@ -14,8 +14,6 @@ export const useProductExpertInsightsAgentStore = defineStore('product-expert-in
         messages: [],
         abortController: null,
         sessionStartTime: null,
-        sessionWarningShown: false,
-        sessionExpiredShown: false,
         sessionCheckTimer: null,
         capabilityServers: [],
         selectedCapabilities: [],
@@ -48,7 +46,7 @@ export const useProductExpertInsightsAgentStore = defineStore('product-expert-in
         }
     },
     persist: {
-        pick: ['messages', 'sessionId', 'sessionStartTime', 'sessionWarningShown', 'sessionExpiredShown', 'selectedCapabilities'],
+        pick: ['messages', 'sessionId', 'sessionStartTime', 'selectedCapabilities'],
         storage: sessionStorage,
         afterHydrate ({ store }) {
             store.messages.forEach(msg => {

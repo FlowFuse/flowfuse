@@ -29,16 +29,6 @@ describe('useProductExpertSupportAgentStore', () => {
             expect(store.sessionStartTime).toBeNull()
         })
 
-        it('has sessionWarningShown false', () => {
-            const store = useProductExpertSupportAgentStore()
-            expect(store.sessionWarningShown).toBe(false)
-        })
-
-        it('has sessionExpiredShown false', () => {
-            const store = useProductExpertSupportAgentStore()
-            expect(store.sessionExpiredShown).toBe(false)
-        })
-
         it('has null abortController', () => {
             const store = useProductExpertSupportAgentStore()
             expect(store.abortController).toBeNull()
@@ -79,8 +69,6 @@ describe('useProductExpertSupportAgentStore', () => {
             store.messages = [{ role: 'user', content: 'hello' }]
             store.abortController = new AbortController()
             store.sessionStartTime = Date.now()
-            store.sessionWarningShown = true
-            store.sessionExpiredShown = true
 
             store.reset()
 
@@ -89,8 +77,6 @@ describe('useProductExpertSupportAgentStore', () => {
             expect(store.messages).toEqual([])
             expect(store.abortController).toBeNull()
             expect(store.sessionStartTime).toBeNull()
-            expect(store.sessionWarningShown).toBe(false)
-            expect(store.sessionExpiredShown).toBe(false)
             expect(store.sessionCheckTimer).toBeNull()
         })
 
@@ -140,18 +126,6 @@ describe('useProductExpertSupportAgentStore', () => {
             store.messages.push({ role: 'user', content: 'hello' })
             store.messages.push({ role: 'assistant', content: 'hi' })
             expect(store.messages).toHaveLength(2)
-        })
-
-        it('allows setting sessionWarningShown', () => {
-            const store = useProductExpertSupportAgentStore()
-            store.sessionWarningShown = true
-            expect(store.sessionWarningShown).toBe(true)
-        })
-
-        it('allows setting sessionExpiredShown', () => {
-            const store = useProductExpertSupportAgentStore()
-            store.sessionExpiredShown = true
-            expect(store.sessionExpiredShown).toBe(true)
         })
     })
 })

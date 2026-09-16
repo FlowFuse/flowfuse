@@ -380,6 +380,43 @@ describe('product-expert store', () => {
         })
     })
 
+    describe('renewConversation', () => {
+        it('keeps the visible transcript in place', async () => {
+            const store = useProductExpertStore()
+            const supportAgent = useProductExpertSupportAgentStore()
+            store.addUserMessage('hello')
+            store.addPredefinedAiMessage('hi there')
+
+            await store.renewConversation()
+
+            expect(supportAgent.messages).toHaveLength(2)
+        })
+
+        it('swaps in a fresh conversation id', async () => {
+            const store = useProductExpertStore()
+            const supportAgent = useProductExpertSupportAgentStore()
+            supportAgent.sessionId = 'old-session'
+
+            await store.renewConversation()
+
+            expect(supportAgent.sessionId).toBeTruthy()
+            expect(supportAgent.sessionId).not.toBe('old-session')
+        })
+
+        it('restarts the session timer', async () => {
+            const store = useProductExpertStore()
+            const supportAgent = useProductExpertSupportAgentStore()
+            supportAgent.sessionStartTime = 1000
+
+            await store.renewConversation()
+
+            expect(supportAgent.sessionStartTime).toBeGreaterThan(1000)
+            expect(supportAgent.sessionCheckTimer).not.toBeNull()
+
+            clearInterval(supportAgent.sessionCheckTimer)
+        })
+    })
+
     describe('reset', () => {
         it('calls reset on the active agent store and resets own state', () => {
             const store = useProductExpertStore()

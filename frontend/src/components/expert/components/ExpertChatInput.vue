@@ -9,7 +9,7 @@
             <button
                 type="button"
                 class="btn-start-over"
-                :disabled="isWaitingForResponse && !isSessionExpired"
+                :disabled="isWaitingForResponse"
                 @click="handleStartOver"
             >
                 Start over
@@ -63,7 +63,7 @@
 
                 <div class="right">
                     <button
-                        v-if="isWaitingForResponse && !isSessionExpired"
+                        v-if="isWaitingForResponse"
                         type="button"
                         class="btn-stop"
                         @click="handleStop"
@@ -71,7 +71,7 @@
                         Stop
                     </button>
                     <button
-                        v-else-if="!isSessionExpired"
+                        v-else
                         type="button"
                         class="btn-send"
                         :disabled="!canSend"
@@ -189,7 +189,6 @@ export default {
         ...mapState(useUxDrawersStore, ['rightDrawer']),
         ...mapState(useProductExpertStore, [
             'messages',
-            'isSessionExpired',
             'isInsightsAgent',
             'hasSelectedCapabilities',
             'hasMessages',
@@ -214,7 +213,6 @@ export default {
             }
         },
         isInputDisabled () {
-            if (this.isSessionExpired) return true
             if (this.isWaitingForResponse) return true
             return this.isInsightsAgent && !this.hasSelectedCapabilities
         },

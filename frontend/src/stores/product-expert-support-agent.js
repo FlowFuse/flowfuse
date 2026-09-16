@@ -12,8 +12,6 @@ export const useProductExpertSupportAgentStore = defineStore('product-expert-sup
         // Session timing
         abortController: null,
         sessionStartTime: null,
-        sessionWarningShown: false,
-        sessionExpiredShown: false,
         sessionCheckTimer: null,
         mqttConnectionKey: `expert/${SUPPORT_AGENT}`,
         inFlightRequests: new Map()
@@ -28,7 +26,7 @@ export const useProductExpertSupportAgentStore = defineStore('product-expert-sup
         }
     },
     persist: {
-        pick: ['context', 'messages', 'sessionId', 'sessionStartTime', 'sessionWarningShown', 'sessionExpiredShown'],
+        pick: ['context', 'messages', 'sessionId', 'sessionStartTime'],
         storage: sessionStorage,
         afterHydrate ({ store }) {
             store.messages.forEach(msg => {
