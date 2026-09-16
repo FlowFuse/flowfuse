@@ -14,6 +14,7 @@ import { INSIGHTS_AGENT, SUPPORT_AGENT } from './product-expert-agents.js'
 import { useProductExpertInsightsAgentStore } from './product-expert-insights-agent.js'
 import { useProductExpertSupportAgentStore } from './product-expert-support-agent.js'
 import { useUxDrawersStore } from './ux-drawers.js'
+import { useUxStore } from './ux.js'
 
 import { useMqttExpertTopicHelper } from '@/composables/services/MqttExpertTopicHelper'
 import getAppOrchestrator from '@/services/app.orchestrator'
@@ -42,6 +43,9 @@ export const useProductExpertStore = defineStore('product-expert', {
         // question-card answers keyed by answer uuid, so a sent card survives a refresh
         questionAnswers: {},
         _seenTransactionIds: new Map(),
+        // Ids of instances already announced as ready this conversation, so a restart or
+        // reconnect reporting running again doesn't repeat the announcement.
+        _relayedInstanceIds: new Set(),
         // Open human-in-the-loop approval batch (#421). When a turn defers a tool batch
         // for approval the agent ends the turn and returns the card(s); we hold the
         // decisions here until every card is answered, then send them back in one resume
@@ -670,6 +674,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             agentStore.sessionId = uuidv4()
             agentStore.messages = []
             this.questionAnswers = {}
+            this._relayedInstanceIds.clear()
 
             // A new chat drops the per-session tool grants ("Always allow/deny for this chat")
             // and the resolved-approval outcomes tied to the messages we just cleared.
@@ -1328,6 +1333,79 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             // 0x80 Unspecified, 0x83 Implementation specific, anything unknown:
             this.addPredefinedAiMessage(payload.message, { isError: true, code: payload.code })
+        },
+        /**
+         * Relays a hosted instance's live status transitioning to running into the active
+         * chat as a silent system message: no user bubble is added, input for the assistant
+         * only. Used by the AI-led onboarding flow so the assistant learns a provisioned
+         * workspace has finished starting without polling anything - see live-status.subscriber.ts,
+         * which calls this once an instance's live status reports running.
+         *
+         * Published like a real chat request - a transaction id, MQTT v5 correlation data
+         * and an in-flight registration - so the agent's reply comes back through the same
+         * reply handling as a normal turn: it renders as an assistant message, the standard
+         * loading indicator shows while the agent composes it, and the entry is cleared on
+         * reply (or on Stop / Start Over) exactly like any other in-flight request.
+         *
+         * A no-op outside an active onboarding conversation, when the chat isn't using the
+         * Expert's own MQTT channel - there is nothing to relay into over HTTP - or when
+         * this instance was already announced this conversation (a restart or reconnect
+         * reporting running again should not repeat the announcement).
+         *
+         * @param {{ id: string, name?: string }} instance - the instance that finished starting
+         */
+        async relayInstanceReady (instance) {
+            if (!instance?.id || !useUxStore().isOnboarding || !this.shouldUseMqtt) return
+            if (this._relayedInstanceIds.has(instance.id)) return
+            this._relayedInstanceIds.add(instance.id)
+
+            try {
+                const servicesOrchestrator = getAppOrchestrator()
+                const mqttService = servicesOrchestrator.$services.mqtt
+                const mqttTopicHelper = useMqttExpertTopicHelper()
+
+                const transactionId = uuidv4()
+                const mqttConnectionKey = this.mqttConnectionKey
+
+                if (!mqttService.hasClient(mqttConnectionKey)) await this.establishMqttComms()
+
+                // Register like a real request so _onMqttMessage's in-flight guard lets the
+                // reply through instead of silently dropping it.
+                this._inFlightRequests.set(transactionId, { query: '', transactionId })
+
+                const { entityId, entityType } = mqttTopicHelper.getEntityTopicPaths()
+
+                const topic = mqttTopicHelper.buildTopic({
+                    entityType,
+                    entityId,
+                    agentChannel: 'support',
+                    topicType: 'chat',
+                    topicAction: 'request'
+                })
+
+                await mqttService.publishMessage(mqttConnectionKey, {
+                    topic,
+                    qos: 2,
+                    payload: {
+                        system: {
+                            kind: 'instance-ready',
+                            instance: { id: instance.id, name: instance.name ?? null },
+                            state: 'running'
+                        },
+                        context: {
+                            ...useContextStore().expert,
+                            agent: this.agentMode
+                        }
+                    },
+                    correlationData: transactionId,
+                    userProperties: {
+                        sessionId: this.sessionId,
+                        origin: window.origin || window.location.origin
+                    }
+                })
+            } catch (e) {
+                this._onMqttError(e)
+            }
         },
         stopInflightChat () {
             // Deny any open approval prompts first so the agent's paused tool call unblocks.
