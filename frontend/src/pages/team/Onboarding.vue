@@ -14,6 +14,25 @@
                 >
                     Set it up myself
                 </ff-button>
+                <!-- Sign-out is the only navigation offered on this page -->
+                <ff-dropdown
+                    v-if="user"
+                    :show-chevron="false"
+                    class="ff-navigation ff-user-options"
+                    options-align="right"
+                    data-action="user-options"
+                >
+                    <template #placeholder>
+                        <div class="ff-user">
+                            <img :src="user.avatar" class="ff-avatar">
+                        </div>
+                    </template>
+                    <template #default>
+                        <ff-dropdown-option data-nav="sign-out" @click="signOut">
+                            <nav-item label="Sign Out" :icon="signOutIcon" />
+                        </ff-dropdown-option>
+                    </template>
+                </ff-dropdown>
             </Teleport>
             <div class="onboarding-column">
                 <ExpertPanel />
@@ -23,11 +42,15 @@
 </template>
 
 <script>
+import { ArrowLeftOnRectangleIcon } from '@heroicons/vue/20/solid'
 import { mapState } from 'pinia'
 
 import teamApi from '@/api/team.ts'
+import NavItem from '@/components/NavItem.vue'
 import ExpertPanel from '@/components/expert/Expert.vue'
+import navigationMixin from '@/mixins/Navigation.js'
 import Alerts from '@/services/alerts.js'
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
@@ -38,8 +61,10 @@ import { useUxStore } from '@/stores/ux.js'
 export default {
     name: 'TeamOnboarding',
     components: {
-        ExpertPanel
+        ExpertPanel,
+        NavItem
     },
+    mixins: [navigationMixin],
     provide () {
         return {
             'expert-surface': 'onboarding'
@@ -62,6 +87,10 @@ export default {
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
         ...mapState(useUxStore, ['isOnboardingIntake']),
         ...mapState(useProductExpertStore, ['messages']),
+        ...mapState(useAccountAuthStore, ['user']),
+        signOutIcon () {
+            return ArrowLeftOnRectangleIcon
+        },
         userTurns () {
             return this.messages.filter(message => message._type === 'human').length
         },
