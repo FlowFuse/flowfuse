@@ -12,7 +12,7 @@
                     :disabled="provisioning"
                     @click="skipOnboarding"
                 >
-                   Set it up myself
+                    Set it up myself
                 </ff-button>
             </Teleport>
             <div class="onboarding-column">
