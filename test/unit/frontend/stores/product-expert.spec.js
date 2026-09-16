@@ -14,7 +14,9 @@ vi.mock('@/stores/context.js', () => ({
 vi.mock('@/stores/product-assistant.js', () => ({
     useProductAssistantStore: vi.fn(() => ({
         isImmersiveInstance: null,
-        supportedActions: {}
+        supportedActions: {},
+        toolCatalogHash: undefined,
+        invokeActionAwaitResponse: invokeAction
     }))
 }))
 
@@ -33,15 +35,30 @@ vi.mock('@/stores/ux-drawers.js', () => ({
     }))
 }))
 
-const { publishMessage } = vi.hoisted(() => ({ publishMessage: vi.fn() }))
+const { publishMessage, dispatch, getToolDefinitions, invokeAction, topicRef } = vi.hoisted(() => ({
+    publishMessage: vi.fn(),
+    dispatch: vi.fn(() => ({ ok: true })),
+    getToolDefinitions: vi.fn(() => [{ name: 'tool-a' }]),
+    invokeAction: vi.fn(() => ({ done: true })),
+    topicRef: { value: {} }
+}))
 
 vi.mock('@/services/app.orchestrator', () => ({
-    default: () => ({ $services: { mqtt: { publishMessage } } })
+    default: () => ({
+        $services: {
+            mqtt: {
+                publishMessage,
+                hasClient: () => true,
+                getManagedClient: () => ({ status: 'connected' })
+            },
+            automations: { dispatch, getToolDefinitions }
+        }
+    })
 }))
 
 vi.mock('@/composables/services/MqttExpertTopicHelper', () => ({
     useMqttExpertTopicHelper: () => ({
-        parseTopic: () => ({ inflightType: 'expert:tasks', entityType: 'team', entityId: 't1', agentChannel: 'support' }),
+        parseTopic: () => topicRef.value,
         buildTopic: () => 'response/topic'
     })
 }))
@@ -414,34 +431,49 @@ describe('product-expert store', () => {
     })
 
     describe('stopInflightChat', () => {
-        it('marks the chat stopped and clears the task list', () => {
+        it('clears the task list and loading line and records no completion', () => {
             const store = useProductExpertStore()
-            useProductExpertSupportAgentStore().activeTaskList = {
+            const agent = useProductExpertSupportAgentStore()
+            agent.activeTaskList = {
                 planId: null, title: 'Tasks', items: [{ id: 't1', text: 'x', status: 'in_progress' }]
             }
+            agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+            store._addInFlightUpdate('Working...')
 
             store.stopInflightChat()
 
-            expect(store._chatStopped).toBe(true)
             expect(store.activeTaskList).toBeNull()
+            expect(store.inFlightUpdates).toHaveLength(0)
+            expect(agent.inFlightRequests.size).toBe(0)
+            expect(agent.recentlyCompletedTransactions.size).toBe(0)
         })
     })
 
-    describe('handleInFlightRequest task surface', () => {
-        const surface = (status) => ({
-            topic: 'in/topic',
-            payload: { items: [{ id: 't1', text: 'Do a thing', status }], title: 'Tasks', planId: 'p1' },
-            transactionId: 'tx1',
-            sessionId: 'chat-1',
-            chatTransactionId: 'ctx1'
+    describe('inflight correlation', () => {
+        const encoder = new TextEncoder()
+        const packet = (transactionId, chatTransactionId, sessionId = 'chat-1') => ({
+            properties: {
+                correlationData: encoder.encode(transactionId),
+                userProperties: { sessionId, transactionId: chatTransactionId }
+            }
+        })
+        const taskTopic = { isInflightRequest: true, inflightType: 'expert:tasks', entityType: 'team', entityId: 't1', agentChannel: 'support' }
+        const callToolTopic = { isInflightRequest: true, inflightType: 'automation-ui:mcp-call-tool', entityType: 'team', entityId: 't1', agentChannel: 'support' }
+        const tasksMessage = JSON.stringify({ items: [{ id: 't1', text: 'Do a thing', status: 'done' }], title: 'Tasks', planId: 'p1' })
+
+        let store
+        let agent
+        beforeEach(() => {
+            store = useProductExpertStore()
+            agent = useProductExpertSupportAgentStore()
+            agent.sessionId = 'chat-1'
         })
 
-        it('applies and acks a surface trailing the reply for the active session', async () => {
-            const store = useProductExpertStore()
-            useProductExpertSupportAgentStore().sessionId = 'chat-1'
-            store._chatStopped = false
+        it('applies and acks a task surface while its turn is live', async () => {
+            agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+            topicRef.value = taskTopic
 
-            await store.handleInFlightRequest(surface('done'))
+            await store._onMqttMessage('in/topic', tasksMessage, packet('srf-1', 'turn-1'))
 
             expect(store.activeTaskList).toEqual({
                 planId: 'p1', title: 'Tasks', items: [{ id: 't1', text: 'Do a thing', status: 'done' }]
@@ -450,16 +482,48 @@ describe('product-expert store', () => {
             expect(JSON.parse(publishMessage.mock.calls[0][1].payload)).toEqual({ ack: true })
         })
 
-        it('acks but does not apply a surface that arrives after a stop', async () => {
-            const store = useProductExpertStore()
-            useProductExpertSupportAgentStore().sessionId = 'chat-1'
-            store._chatStopped = true
+        it('applies a surface trailing the final reply, then drops one from a turn it never saw', async () => {
+            agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
 
-            await store.handleInFlightRequest(surface('in_progress'))
+            topicRef.value = { isReply: true }
+            await store._onMqttMessage('reply/topic', JSON.stringify({}), packet('turn-1', 'turn-1'))
+            expect(agent.inFlightRequests.size).toBe(0)
+            expect(agent.recentlyCompletedTransactions.has('turn-1')).toBe(true)
 
-            expect(store.activeTaskList).toBeNull()
+            topicRef.value = taskTopic
+            await store._onMqttMessage('in/topic', tasksMessage, packet('srf-1', 'turn-1'))
+            expect(store.activeTaskList).not.toBeNull()
             expect(publishMessage).toHaveBeenCalledTimes(1)
-            expect(JSON.parse(publishMessage.mock.calls[0][1].payload)).toEqual({ ack: true })
+
+            publishMessage.mockClear()
+            await store._onMqttMessage('in/topic', tasksMessage, packet('srf-2', 'turn-0'))
+            expect(publishMessage).not.toHaveBeenCalled()
+        })
+
+        it('drops a surface and an automation left on the wire after a stop', async () => {
+            agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+            store.stopInflightChat()
+
+            topicRef.value = taskTopic
+            await store._onMqttMessage('in/topic', tasksMessage, packet('srf-1', 'turn-1'))
+            expect(store.activeTaskList).toBeNull()
+            expect(publishMessage).not.toHaveBeenCalled()
+
+            topicRef.value = callToolTopic
+            await store._onMqttMessage('in/topic', JSON.stringify({ data: { name: 'open-node', input: {} } }), packet('srf-2', 'turn-1'))
+            expect(dispatch).not.toHaveBeenCalled()
+            expect(publishMessage).not.toHaveBeenCalled()
+        })
+
+        it('runs an automation and answers with its result while the turn is live', async () => {
+            agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+            topicRef.value = callToolTopic
+
+            await store._onMqttMessage('in/topic', JSON.stringify({ data: { name: 'open-node', input: { id: 'n1' } } }), packet('srf-1', 'turn-1'))
+
+            expect(dispatch).toHaveBeenCalledWith('open-node', { id: 'n1' })
+            expect(publishMessage).toHaveBeenCalledTimes(1)
+            expect(JSON.parse(publishMessage.mock.calls[0][1].payload)).toEqual({ ok: true })
         })
     })
 })

@@ -39,8 +39,6 @@ export const useProductExpertStore = defineStore('product-expert', {
         // 'request-plan-change' focuses an empty composer for the plan card's "Request
         // changes"; 'reset' clears a plan loaded via "Edit manually" but not sent.
         composerCommand: null,
-        // Set on stop/drop, cleared on the next send: a surface after a stop acks but does not apply.
-        _chatStopped: false,
         // question-card answers keyed by answer uuid, so a sent card survives a refresh
         questionAnswers: {},
         _seenTransactionIds: new Map(),
@@ -65,6 +63,11 @@ export const useProductExpertStore = defineStore('product-expert', {
             return this.agentMode === SUPPORT_AGENT
                 ? useProductExpertSupportAgentStore().inFlightRequests
                 : useProductExpertInsightsAgentStore().inFlightRequests
+        },
+        _recentlyCompleted () {
+            return this.agentMode === SUPPORT_AGENT
+                ? useProductExpertSupportAgentStore().recentlyCompletedTransactions
+                : useProductExpertInsightsAgentStore().recentlyCompletedTransactions
         },
         abortController () { return this._agentStore.abortController },
         messages () { return this._agentStore.messages },
@@ -345,7 +348,6 @@ export const useProductExpertStore = defineStore('product-expert', {
             if (!mqttService.hasClient(mqttConnectionKey)) await this.establishMqttComms()
 
             // add the query as an inFlight request
-            this._chatStopped = false
             this._inFlightRequests.set(transactionId, { query, transactionId })
 
             const { entityId, entityType } = mqttTopicHelper.getEntityTopicPaths()
@@ -420,15 +422,21 @@ export const useProductExpertStore = defineStore('product-expert', {
         async handleInFlightRequest ({ topic, message, payload: parsedPayload, transactionId, sessionId, chatTransactionId } = {}) {
             // A third-party MCP request is addressed to this tab's browser session rather
             // than a chat session, and has no originating chat request to correlate with,
-            // so it bypasses the check below. Everything else keeps today's behaviour.
+            // so it bypasses the correlation check below. Everything else keeps today's behaviour.
             const isBrowserSession = !!sessionId && sessionId === useAccountAuthStore().getSessionId()
 
             // dismiss messages from a different chat session
             if (!isBrowserSession && sessionId !== this.sessionId) return
 
-            // A chat surface can trail the reply that emptied the in-flight map; it is still
-            // acked and applied. One that trails a stop is acked but not applied.
-            const suppressChatState = !isBrowserSession && this._chatStopped
+            // Tie the message to its originating chat turn: live means the turn is still
+            // running, recently-completed covers a surface that trails the final reply. One
+            // we cannot tie to either — a request left on the wire after Stop, or a stale
+            // surface from an earlier turn — is dropped here: not applied, not run against
+            // the editor, and not acked, so a stopped agent is not nudged to keep producing.
+            const correlated = isBrowserSession ||
+                this._inFlightRequests.has(chatTransactionId) ||
+                this._recentlyCompleted.has(chatTransactionId)
+            if (!correlated) return
 
             const servicesOrchestrator = getAppOrchestrator()
             const assistantStore = useProductAssistantStore()
@@ -458,8 +466,9 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
 
             // expert:tasks has its own panel; its status rides expert:status-message.
-            // Every other inflight type feeds the loading line.
-            if (parsedTopic.inflightType !== 'expert:tasks' && !suppressChatState) {
+            // Every other inflight type feeds the loading line, but only while the turn is
+            // still live: a status trailing the final reply must not repaint the next turn.
+            if (parsedTopic.inflightType !== 'expert:tasks' && this._inFlightRequests.has(chatTransactionId)) {
                 this._addInFlightUpdate(payload.status || payload.toolname || 'Processing request...')
             }
 
@@ -473,43 +482,30 @@ export const useProductExpertStore = defineStore('product-expert', {
                 sessionId: sessionId || this.sessionId
             })
 
+            // Every branch answers on the same envelope; only the body differs.
+            const respond = (body) => mqttService.publishMessage(connectionKey, {
+                qos: 2,
+                topic: responseTopic,
+                payload: JSON.stringify(body),
+                correlationData: transactionId,
+                userProperties: {
+                    sessionId,
+                    transactionId: chatTransactionId,
+                    origin: window.origin || window.location.origin
+                }
+            })
+
             switch (true) {
             case parsedTopic.inflightType === 'expert:status-message':
-                await mqttService.publishMessage(connectionKey, {
-                    qos: 2,
-                    topic: responseTopic,
-                    payload: JSON.stringify({
-                        ack: true
-                    }),
-                    correlationData: transactionId,
-                    userProperties: {
-                        sessionId,
-                        transactionId: chatTransactionId,
-                        origin: window.origin || window.location.origin
-                    }
-                })
+                await respond({ ack: true })
                 break
             case parsedTopic.inflightType === 'expert:tasks': {
-                if (!suppressChatState) {
-                    const items = Array.isArray(payload.items) ? payload.items : []
-                    this._agentStore.activeTaskList = items.length
-                        ? { planId: payload.planId ?? null, title: payload.title || 'Tasks', items }
-                        : null
-                }
+                const items = Array.isArray(payload.items) ? payload.items : []
+                this._agentStore.activeTaskList = items.length
+                    ? { planId: payload.planId ?? null, title: payload.title || 'Tasks', items }
+                    : null
                 try {
-                    await mqttService.publishMessage(connectionKey, {
-                        qos: 2,
-                        topic: responseTopic,
-                        payload: JSON.stringify({
-                            ack: true
-                        }),
-                        correlationData: transactionId,
-                        userProperties: {
-                            sessionId,
-                            transactionId: chatTransactionId,
-                            origin: window.origin || window.location.origin
-                        }
-                    })
+                    await respond({ ack: true })
                 } catch (e) {
                     console.warn('expert:tasks ack failed:', e)
                 }
@@ -521,17 +517,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                     const automationsService = servicesOrchestrator.$services.automations
                     const tools = automationsService.getToolDefinitions()
 
-                    await mqttService.publishMessage(connectionKey, {
-                        qos: 2,
-                        topic: responseTopic,
-                        payload: JSON.stringify({ tools }),
-                        correlationData: transactionId,
-                        userProperties: {
-                            sessionId,
-                            transactionId: chatTransactionId,
-                            origin: window.origin || window.location.origin
-                        }
-                    })
+                    await respond({ tools })
                 } catch (e) {
                     reportError(e)
                 }
@@ -544,17 +530,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                     const { name, input } = payload?.data || {}
                     const result = await automationsService.dispatch(name, input)
 
-                    await mqttService.publishMessage(connectionKey, {
-                        qos: 2,
-                        topic: responseTopic,
-                        payload: JSON.stringify(result),
-                        correlationData: transactionId,
-                        userProperties: {
-                            sessionId,
-                            transactionId: chatTransactionId,
-                            origin: window.origin || window.location.origin
-                        }
-                    })
+                    await respond(result)
                 } catch (e) {
                     reportError(e)
                 }
@@ -571,17 +547,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                         transactionId
                     })
 
-                    await mqttService.publishMessage(connectionKey, {
-                        qos: 2,
-                        topic: responseTopic,
-                        payload: JSON.stringify(result),
-                        correlationData: transactionId,
-                        userProperties: {
-                            sessionId,
-                            transactionId: chatTransactionId,
-                            origin: window.origin || window.location.origin
-                        }
-                    })
+                    await respond(result)
                 } catch (e) {
                     reportError(e)
                 }
@@ -702,7 +668,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             agentStore.sessionId = uuidv4()
             agentStore.messages = []
             agentStore.activeTaskList = null
-            this._chatStopped = false
+            agentStore.recentlyCompletedTransactions.clear()
             this.questionAnswers = {}
 
             // A new chat drops the per-session tool grants ("Always allow/deny for this chat")
@@ -961,11 +927,16 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             switch (true) {
             case parsedTopic.isReply: // final chat response
-                // no pending request means the chat was stopped or already resolved; ignore
-                if (this._inFlightRequests.size === 0) return
-                // remove inFlight request because it is now resolved
+                // no matching in-flight request means the turn was stopped or already
+                // resolved; ignore it and record no completion for it
+                if (!this._inFlightRequests.has(transactionId)) return
                 this._inFlightRequests.delete(transactionId)
-                // handle the response
+                // remember the finished turn briefly so a surface that trails this reply is
+                // still applied, evicting the oldest id to keep the set bounded
+                this._recentlyCompleted.set(transactionId, true)
+                if (this._recentlyCompleted.size > 50) {
+                    this._recentlyCompleted.delete(this._recentlyCompleted.keys().next().value)
+                }
                 await this.handleMessageResponse(JSON.parse(message.toString()))
                 break
             case parsedTopic.isInflightRequest: // in-flight request from the agent (e.g., action invocation, status update)
@@ -1406,7 +1377,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
             }
             this._inFlightRequests.clear()
-            this._chatStopped = true
+            this._clearInFlightUpdates()
             this._agentStore.activeTaskList = null
         }
     },
