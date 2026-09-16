@@ -103,7 +103,8 @@ export const useContextStore = defineStore('context', {
                     scope: this.isImmersive ? 'immersive' : 'ff-app',
                     questionCadence: useProductExpertStore().questionCadence,
                     planMode: useProductExpertStore().planMode,
-                    onboarding: useUxStore().isOnboarding
+                    onboarding: useUxStore().isOnboarding,
+                    onboardingStage: useUxStore().onboardingStage
                 }
             }
 
@@ -148,6 +149,7 @@ export const useContextStore = defineStore('context', {
                 questionCadence: useProductExpertStore().questionCadence,
                 planMode: useProductExpertStore().planMode,
                 onboarding: useUxStore().isOnboarding,
+                onboardingStage: useUxStore().onboardingStage,
                 // Capability flags: signal that this version can render the question,
                 // plan, and approval cards. Older instances omit them and the agent drops
                 // the matching tool / runs in backward-compatible mode.
