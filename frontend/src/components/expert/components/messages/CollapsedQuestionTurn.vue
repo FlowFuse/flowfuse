@@ -24,6 +24,7 @@
                         class="answer-chip"
                         data-action="edit-answer"
                         title="Edit this answer"
+                        :disabled="isWaitingForResponse"
                         @click="editAnswer(entry)"
                     >
                         <span class="chip-label">{{ chip }}</span>
@@ -38,6 +39,7 @@
                 class="answer-chip folded-reply"
                 data-action="edit-answer"
                 title="Edit this answer"
+                :disabled="isWaitingForResponse"
                 @click="editReply"
             >
                 <span class="chip-label">{{ unmatchedReply }}</span>
@@ -66,7 +68,7 @@
 
 <script>
 import { PencilIcon } from '@heroicons/vue/20/solid'
-import { mapActions } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 
 import AiMessage from './AiMessage.vue'
 import HumanMessage from './HumanMessage.vue'
@@ -92,6 +94,7 @@ export default {
         }
     },
     computed: {
+        ...mapState(useProductExpertStore, ['isWaitingForResponse']),
         hasMatchedAnswers () {
             return this.turn.entries.some(entry => entry.answer !== null)
         },
@@ -176,6 +179,15 @@ export default {
 
     &:hover {
         border-color: var(--ff-color-accent);
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+
+        &:hover {
+            border-color: var(--ff-color-border);
+        }
     }
 }
 
