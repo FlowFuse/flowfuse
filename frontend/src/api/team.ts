@@ -573,6 +573,15 @@ const deleteGitToken = async (teamId: string, tokenId: string) => {
     return client.delete(`/api/v1/teams/${teamId}/git/tokens/${tokenId}`)
 }
 
+/**
+ * Provision the default workspace (application + instance) in an empty team.
+ * Used by AI-led onboarding's "set it up myself" escape hatch. 409s with
+ * code 'team_not_empty' if the team already has instances.
+ */
+const provisionDefaultWorkspace = async (teamId: string) => {
+    return client.post(`/api/v1/teams/${teamId}/default-workspace`).then(res => res.data)
+}
+
 const getTeamInstanceCounts = async (teamId: string, states: string[], type: string, applicationId: string | null = null) => {
     const params = new URLSearchParams()
     states.forEach(state => params.append('state', state))
@@ -627,5 +636,6 @@ export default {
     getTeamDeviceGroups,
     getGitTokens,
     createGitToken,
-    deleteGitToken
+    deleteGitToken,
+    provisionDefaultWorkspace
 }
