@@ -30,26 +30,12 @@
             </div>
 
             <div class="question-free-text" :class="{ 'question-free-text--disabled': disabled }">
-                <ff-radio-button
-                    v-if="!q.multiSelect"
-                    label=""
-                    value="__free-text__"
-                    :checked="freeTextSelected[qIndex]"
-                    :disabled="disabled"
-                    @select="() => selectFreeText(qIndex)"
-                />
-                <ff-checkbox
-                    v-else
-                    :model-value="freeTextSelected[qIndex]"
-                    :disabled="disabled"
-                    @update:model-value="checked => toggleFreeText(qIndex, checked)"
-                />
-                <ff-text-input
+                <textarea
                     class="question-free-text__input"
-                    :model-value="freeTexts[qIndex]"
+                    :value="freeTexts[qIndex]"
                     :disabled="disabled"
                     placeholder="Type your own answer..."
-                    @update:model-value="value => setFreeText(qIndex, value)"
+                    @input="event => setFreeText(qIndex, event.target.value)"
                 />
             </div>
         </div>
@@ -102,9 +88,8 @@ export default {
             selections: initial?.selections
                 ? initial.selections.map(picks => [...picks])
                 : this.questions.map(() => []),
+            // typed answers ride along with any picked options whenever they are non-empty
             freeTexts: initial?.freeTexts ? [...initial.freeTexts] : this.questions.map(() => ''),
-            // separate from freeTexts so a typed-but-unpicked answer stays in the field
-            freeTextSelected: initial?.freeTextSelected ? [...initial.freeTextSelected] : this.questions.map(() => false),
             // ff-radio-group expects an options array; the option label doubles as its value.
             // disabled is mirrored from the prop in the watcher below so a stale card greys out.
             optionSets: this.questions.map(q => (q.options || []).map(opt => ({
@@ -119,7 +104,7 @@ export default {
         allAnswered () {
             return this.questions.every((q, i) => {
                 const hasSelection = (this.selections[i] || []).length > 0
-                const hasFreeText = this.freeTextSelected[i] && (this.freeTexts[i] || '').trim().length > 0
+                const hasFreeText = (this.freeTexts[i] || '').trim().length > 0
                 return hasSelection || hasFreeText
             })
         },
@@ -144,10 +129,6 @@ export default {
         },
         setSingle (qIndex, label) {
             this.selections.splice(qIndex, 1, label === null || label === undefined ? [] : [label])
-            // picking an option deselects the typed answer, but leaves the text in the field
-            if (label !== null && label !== undefined) {
-                this.freeTextSelected.splice(qIndex, 1, false)
-            }
         },
         setMulti (qIndex, label, checked) {
             const current = this.selections[qIndex] || []
@@ -156,24 +137,8 @@ export default {
                 : current.filter(l => l !== label)
             this.selections.splice(qIndex, 1, next)
         },
-        selectFreeText (qIndex) {
-            // single-select: the typed answer and the options are mutually exclusive
-            this.freeTextSelected.splice(qIndex, 1, true)
-            this.selections.splice(qIndex, 1, [])
-        },
-        toggleFreeText (qIndex, checked) {
-            this.freeTextSelected.splice(qIndex, 1, checked)
-        },
         setFreeText (qIndex, value) {
             this.freeTexts.splice(qIndex, 1, value)
-            if (value.trim().length === 0) {
-                return
-            }
-            // typing chooses the typed answer; on single-select that clears any picked option
-            this.freeTextSelected.splice(qIndex, 1, true)
-            if (!this.questions[qIndex].multiSelect) {
-                this.selections.splice(qIndex, 1, [])
-            }
         },
         compose () {
             // one "question answer(s)" line per question, unchanged in shape from before
@@ -181,7 +146,7 @@ export default {
                 .map((q, i) => {
                     const answers = [...(this.selections[i] || [])]
                     const freeText = (this.freeTexts[i] || '').trim()
-                    if (this.freeTextSelected[i] && freeText) {
+                    if (freeText) {
                         answers.push(freeText)
                     }
                     return `${q.question} ${answers.join(', ')}`
@@ -194,8 +159,7 @@ export default {
                 query: this.compose(),
                 answer: {
                     selections: this.selections.map(picks => [...picks]),
-                    freeTexts: [...this.freeTexts],
-                    freeTextSelected: [...this.freeTextSelected]
+                    freeTexts: [...this.freeTexts]
                 }
             })
         }
@@ -241,45 +205,48 @@ export default {
     gap: 0.5rem;
 }
 
-.question-free-text {
-    display: flex;
-    align-items: center;
-    gap: 0;
-
-    // keep the control's label gutter so the field lines up under the option labels, and centre the control
-    :deep(.ff-radio-btn),
-    :deep(.ff-checkbox) {
-        min-height: 32px;
-        align-items: center;
-    }
-
-    :deep(.checkbox) {
-        top: 50%;
-        transform: translateY(-50%);
-    }
-}
-
+// a small version of the chat composer: a borderless-feel textarea that grows with its content
 .question-free-text__input {
-    flex: 1;
-    min-width: 0;
-}
+    field-sizing: content;
+    width: 100%;
+    box-sizing: border-box;
+    resize: none;
+    min-height: 2.5rem;
+    max-height: 10rem;
+    overflow-y: auto;
+    padding: 0.5rem 0.75rem;
+    font-family: inherit;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--ff-color-text-strong);
+    background: var(--ff-color-bg-app);
+    border: 1px solid var(--ff-color-border-strong);
+    border-radius: 0.375rem;
+    outline: none;
 
-// match the greyed-out treatment the options get on a disabled card
-.question-free-text--disabled {
-    cursor: not-allowed;
+    &:focus {
+        border-color: var(--ff-color-focus);
+    }
 
-    :deep(.ff-text-input) {
+    &::placeholder {
+        color: var(--ff-color-text-subtle);
+    }
+
+    // match the greyed-out treatment the options get on a disabled card
+    &:disabled {
+        cursor: not-allowed;
         background-color: transparent;
         border-color: var(--ff-color-border);
-    }
-
-    :deep(input) {
         color: var(--ff-color-text-subtle);
-    }
 
-    :deep(input::placeholder) {
-        color: var(--ff-color-text-subtle);
+        &::placeholder {
+            color: var(--ff-color-text-subtle);
+        }
     }
+}
+
+.question-free-text--disabled {
+    cursor: not-allowed;
 }
 
 // The checkbox slot renders both the label and (optionally) its description; stack them.
