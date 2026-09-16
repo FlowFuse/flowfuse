@@ -71,7 +71,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         isWaitingForResponse () { return !!this._agentStore.abortController || this._inFlightRequests.size > 0 },
         isSupportAgent: (state) => state.agentMode === SUPPORT_AGENT,
         isInsightsAgent: (state) => state.agentMode === INSIGHTS_AGENT,
-        activePlanId () { return this.activeTaskList?.planId ?? null },
+        activePlanId () { return this._agentStore.activePlanId },
         hasSelectedCapabilities () {
             return useProductExpertInsightsAgentStore().selectedCapabilities?.length > 0
         },
@@ -490,6 +490,10 @@ export const useProductExpertStore = defineStore('product-expert', {
                 break
             case parsedTopic.inflightType === 'expert:tasks': {
                 const items = Array.isArray(payload.items) ? payload.items : []
+                // The active plan is agent-owned and arrives on its own field: a plan is
+                // activated before it has any tasks, so hold the id regardless of the item
+                // count rather than losing it whenever the list is empty.
+                this._agentStore.activePlanId = payload.planId ?? null
                 this._agentStore.activeTaskList = items.length
                     ? { planId: payload.planId ?? null, title: payload.title || 'Tasks', items }
                     : null
@@ -697,6 +701,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             agentStore.sessionId = uuidv4()
             agentStore.messages = []
             agentStore.activeTaskList = null
+            agentStore.activePlanId = null
             this.questionAnswers = {}
 
             // A new chat drops the per-session tool grants ("Always allow/deny for this chat")

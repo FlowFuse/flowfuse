@@ -1,56 +1,25 @@
 <template>
-    <div v-if="!hasStructure" class="expert-plan">
-        <rich-content
-            :content="plan"
-            :message-uuid="messageUuid"
-            :answer-uuid="answerUuid"
-            :should-stream="false"
-            class="plan-body"
-        />
-        <div class="plan-actions">
-            <ff-button
-                kind="primary"
-                size="small"
-                :disabled="disabled"
-                @click="$emit('approve')"
-            >
-                Approve
-            </ff-button>
-            <ff-button
-                kind="secondary"
-                size="small"
-                :disabled="disabled"
-                title="Load the plan into the message box to edit it yourself"
-                @click="$emit('edit-manual')"
-            >
-                Edit
-            </ff-button>
-            <ff-button
-                kind="secondary"
-                size="small"
-                :disabled="disabled"
-                title="Tell the Expert what to change and get an updated plan"
-                @click="$emit('request-changes')"
-            >
-                Request changes
-            </ff-button>
-            <ff-button
-                kind="tertiary"
-                size="small"
-                :disabled="disabled"
-                @click="$emit('reject')"
-            >
-                Reject
-            </ff-button>
-        </div>
-    </div>
+    <div class="expert-plan" :class="{ 'expert-plan--structured': hasStructure }">
+        <collapsible-section v-if="hasStructure && !awaitingApproval" class="plan-collapsed">
+            <template #header>
+                <span class="plan-name">Plan: {{ name }}</span>
+                <span v-if="active" class="forge-badge plan-badge">Active</span>
+            </template>
+            <p v-if="description" class="plan-desc">{{ description }}</p>
+            <rich-content
+                :content="plan"
+                :message-uuid="messageUuid"
+                :answer-uuid="answerUuid"
+                :should-stream="false"
+                class="plan-body"
+            />
+        </collapsible-section>
 
-    <div v-else class="expert-plan expert-plan--structured">
-        <template v-if="awaitingApproval">
-            <div class="plan-head">
+        <template v-else>
+            <div v-if="hasStructure" class="plan-head">
                 <span class="plan-name">Plan: {{ name }}</span>
             </div>
-            <p v-if="description" class="plan-desc">{{ description }}</p>
+            <p v-if="hasStructure && description" class="plan-desc">{{ description }}</p>
             <rich-content
                 :content="plan"
                 :message-uuid="messageUuid"
@@ -95,20 +64,6 @@
                 </ff-button>
             </div>
         </template>
-        <collapsible-section v-else class="plan-collapsed">
-            <template #header>
-                <span class="plan-name">Plan: {{ name }}</span>
-                <span v-if="active" class="plan-badge">Active</span>
-            </template>
-            <p v-if="description" class="plan-desc">{{ description }}</p>
-            <rich-content
-                :content="plan"
-                :message-uuid="messageUuid"
-                :answer-uuid="answerUuid"
-                :should-stream="false"
-                class="plan-body"
-            />
-        </collapsible-section>
     </div>
 </template>
 
@@ -133,6 +88,10 @@ export default {
             type: String,
             required: true
         },
+        planId: {
+            type: String,
+            default: ''
+        },
         name: {
             type: String,
             default: ''
@@ -144,10 +103,6 @@ export default {
         active: {
             type: Boolean,
             default: false
-        },
-        awaitingApproval: {
-            type: Boolean,
-            default: true
         },
         disabled: {
             type: Boolean,
@@ -161,7 +116,10 @@ export default {
     emits: ['approve', 'edit-manual', 'request-changes', 'reject', 'streaming-complete'],
     computed: {
         hasStructure () {
-            return this.name.length > 0
+            return this.planId.length > 0
+        },
+        awaitingApproval () {
+            return !this.active
         }
     },
     mounted () {
@@ -192,10 +150,8 @@ export default {
 }
 
 .plan-badge {
-    font-size: 0.75rem;
-    padding: 0.0625rem 0.5rem;
-    border-radius: 999px;
     background: var(--ff-color-accent);
+    border-color: var(--ff-color-accent);
     color: var(--ff-color-text-on-brand);
 }
 

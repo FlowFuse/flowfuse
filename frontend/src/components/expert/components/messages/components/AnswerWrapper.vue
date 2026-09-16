@@ -83,10 +83,10 @@
             :plan="answer.content"
             :message-uuid="messageUuid"
             :answer-uuid="answer._uuid"
+            :plan-id="answer.planId || ''"
             :name="answer.name || ''"
             :description="answer.description || ''"
             :active="isActivePlan"
-            :awaiting-approval="isAwaitingPlanApproval"
             :disabled="interactionDisabled"
             :should-stream="shouldStream"
             class="mb-3"
@@ -192,8 +192,7 @@ export default {
         },
         hasGuideHeader () {
             // chat answers contain generic titles, they don't need to be displayed.
-            // questions answers carry no guide title either.
-            // plan answers carry their heading inside their Markdown content, not a title.
+            // questions and plan answers render their own heading, not a guide title.
             return !!(this.answer.title && !this.isChatAnswer && !this.isQuestionsAnswer && !this.isPlanAnswer)
         },
         hasGuideSteps () {
@@ -242,9 +241,6 @@ export default {
         },
         isPlanAnswer () {
             return this.answer.kind === 'plan'
-        },
-        isAwaitingPlanApproval () {
-            return !this.isActivePlan && !this.interactionDisabled
         },
         isActivePlan () {
             return !!this.answer.planId && this.answer.planId === this.activePlanId
