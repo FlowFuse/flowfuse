@@ -12,7 +12,7 @@
                     :disabled="provisioning"
                     @click="skipOnboarding"
                 >
-                   Set it up myself
+                    Set it up myself
                 </ff-button>
             </Teleport>
             <div class="onboarding-column">
@@ -153,8 +153,11 @@ export default {
                     return
                 }
             }
+            // Leave first: ending the stage while this page is still mounted
+            // flips notAvailable, whose watcher would beat this navigation
+            // with its own redirect to the 404 page
+            await this.$router.push({ name: 'team-home', params: { team_slug: this.team.slug } })
             useUxStore().endOnboarding()
-            this.$router.push({ name: 'team-home', params: { team_slug: this.team.slug } })
         }
     }
 }
