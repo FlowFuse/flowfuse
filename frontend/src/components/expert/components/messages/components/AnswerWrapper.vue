@@ -224,11 +224,6 @@ export default {
         hasToolApproval () {
             return this.answer.kind === 'tool-approval' && !!this.answer.id
         },
-        // The answer here is a detached streaming copy, so its own `status` only ever holds
-        // the initial 'pending'. The reactive per-id map in the store carries any later
-        // outcome — including an external one (chat stop / Start Over) the card can't see.
-        // toolApprovalStatuses is not persisted, so a refresh falls back to approvalOutcomes,
-        // which keeps a resolved card resolved after reload (#8527).
         resolvedToolApprovalStatus () {
             return this.toolApprovalStatuses[this.answer.id] || this.approvalOutcomes[this.answer.id] || this.answer.status
         },

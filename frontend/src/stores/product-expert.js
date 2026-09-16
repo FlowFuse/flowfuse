@@ -41,9 +41,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         composerCommand: null,
         // question-card answers keyed by answer uuid, so a sent card survives a refresh
         questionAnswers: {},
-        // Terminal outcome per approval id, keyed the same way as product-assistant's
-        // toolApprovalStatuses, so a resolved approval card survives a refresh instead of
-        // showing its Allow/Deny buttons again (#8527).
+        // Terminal outcome per approval id, so a resolved approval card survives a refresh (#8527).
         approvalOutcomes: {},
         _seenTransactionIds: new Map(),
         // Open human-in-the-loop approval batch (#421). When a turn defers a tool batch
