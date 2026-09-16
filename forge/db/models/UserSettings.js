@@ -9,10 +9,7 @@ const SettingTypes = {
     JSON: 1
 }
 
-const KEY_ONBOARDING_COMPLETED = 'onboardingCompleted'
-
 module.exports = {
-    KEY_ONBOARDING_COMPLETED,
     name: 'UserSettings',
     schema: {
         UserId: { type: DataTypes.INTEGER, unique: 'pk_settings' },

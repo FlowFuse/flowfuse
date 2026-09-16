@@ -1,8 +1,8 @@
-const { KEY_ONBOARDING_COMPLETED } = require('../../db/models/UserSettings')
-
 const sharedUser = require('./shared/users')
 const UserInvitations = require('./userInvitations')
 const UserNotifications = require('./userNotifications')
+
+const KEY_ONBOARDING_COMPLETED = 'onboardingCompleted'
 
 /**
  * User api routes
