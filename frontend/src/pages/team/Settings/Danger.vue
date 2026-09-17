@@ -202,7 +202,7 @@ export default {
         showConfirmAgentAutoDeployToggleDialog () {
             const enabling = this.agentAutoDeploy
             Dialog.show({
-                header: enabling ? 'Enable Agent Initiated Deploy' : 'Disable Agent Initiated Deploy',
+                header: enabling ? 'Enable AI Flow Deploy' : 'Disable AI Flow Deploy',
                 kind: enabling ? 'danger' : 'primary',
                 text: enabling
                     ? 'Are you sure you want to allow AI agents to deploy flow changes they make on this team\'s instances, without a person clicking Deploy?'
@@ -210,11 +210,11 @@ export default {
                 confirmLabel: enabling ? 'Enable' : 'Disable'
             }, () => {
                 teamApi.updateTeam(this.team.id, { features: { agentAutoDeploy: enabling } }).then(() => {
-                    alerts.emit(`Agent initiated deploy ${enabling ? 'enabled' : 'disabled'}`, 'confirmation')
+                    alerts.emit(`AI Flow Deploy ${enabling ? 'enabled' : 'disabled'}`, 'confirmation')
                     this.agentAutoDeployOverride = null
                     useContextStore().refreshTeam()
                 }).catch(err => {
-                    alerts.emit('Problem updating agent initiated deploy settings', 'warning')
+                    alerts.emit('Problem updating AI Flow Deploy settings', 'warning')
                     this.agentAutoDeployOverride = null
                     console.warn(err)
                 })
