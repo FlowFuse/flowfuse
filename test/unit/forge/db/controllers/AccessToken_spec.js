@@ -489,6 +489,9 @@ describe('AccessToken controller', function () {
                     live.push(result)
                 }
             }
+            // Only one token survives: the grace re-mint overwrites the single token column,
+            // so the loser can leave the winner's access token dead. Accepted limitation for
+            // single-client MCP (see refreshToken grace branch), hence aboveOrEqual not equal.
             live.length.should.be.aboveOrEqual(1)
         })
 

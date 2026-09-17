@@ -497,6 +497,11 @@ module.exports = {
         if (Date.now() - retired.rotatedAt.getTime() <= MCP_REFRESH_TOKEN_GRACE) {
             // Within grace: re-mint an access token but no refresh token, so the client
             // keeps its current one (RFC 6749 section 6).
+            // Known limitation (accepted, single-client MCP): this overwrites the row's
+            // single token column, so a refresh racing a still-current token can leave the
+            // winner with a dead access token, and a client that only ever holds the
+            // retired token is revoked as a replay on its next cycle. Rare at current
+            // scale; revisit with a cached rotation pair if it becomes a real problem.
             const grantExpiresAtMs = grant.grantExpiresAt ? grant.grantExpiresAt.getTime() : null
             const token = generateToken(32, prefix)
             const expiresAt = capToGrant(Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY, grantExpiresAtMs)

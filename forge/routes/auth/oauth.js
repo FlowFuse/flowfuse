@@ -612,23 +612,29 @@ module.exports = async function (app) {
             if (!refresh_token) {
                 return badRequest(reply, 'invalid_request', 'Invalid refresh_token')
             }
-            const rateCache = app.caches?.getCache?.('mcp-refresh-rate', { ttl: MCP_REFRESH_RATE_WINDOW, max: 100000 })
-            const now = Date.now()
-            const rateEntry = await rateCache?.get(request.ip)
-            // The cache renews an entry's TTL on each set, so the window is anchored on windowStart.
-            const inWindow = rateEntry && now - rateEntry.windowStart < MCP_REFRESH_RATE_WINDOW
-            const rateCount = inWindow ? rateEntry.count : 0
-            if (rateCount >= MCP_REFRESH_RATE_MAX) {
-                reply.code(429).send({ error: 'slow_down', description: 'Too many refresh attempts' })
-                return
-            }
-            await rateCache?.set(request.ip, { windowStart: inWindow ? rateEntry.windowStart : now, count: rateCount + 1 })
             let refreshAuthClient = null
             if (client_id !== 'ff-plugin') {
                 refreshAuthClient = await app.db.controllers.AuthClient.getAuthClient(client_id, client_secret)
                 if (!refreshAuthClient) {
                     return badRequest(reply, 'invalid_request', 'Invalid client_id')
                 }
+            }
+            if (refreshAuthClient?.ownerType === 'mcp') {
+                // Rate-limit only the MCP refresh grant: it owns the unindexed replay
+                // lookups this guards, and editor/device refreshes must not share its
+                // budget. Keyed per client and IP so one client can't starve another.
+                const rateKey = `${client_id}:${request.ip}`
+                const rateCache = app.caches?.getCache?.('mcp-refresh-rate', { ttl: MCP_REFRESH_RATE_WINDOW, max: 100000 })
+                const now = Date.now()
+                const rateEntry = await rateCache?.get(rateKey)
+                // The cache renews an entry's TTL on each set, so the window is anchored on windowStart.
+                const inWindow = rateEntry && now - rateEntry.windowStart < MCP_REFRESH_RATE_WINDOW
+                const rateCount = inWindow ? rateEntry.count : 0
+                if (rateCount >= MCP_REFRESH_RATE_MAX) {
+                    reply.code(429).send({ error: 'slow_down', description: 'Too many refresh attempts' })
+                    return
+                }
+                await rateCache?.set(rateKey, { windowStart: inWindow ? rateEntry.windowStart : now, count: rateCount + 1 })
             }
             if (refreshAuthClient && refreshAuthClient.ownerType !== 'mcp') {
                 // MCP tokens are resolved by refreshToken() below, which owns the grace
