@@ -8,6 +8,7 @@ export const useProductExpertSupportAgentStore = defineStore('product-expert-sup
         context: null,
         sessionId: null,
         messages: [],
+        activeTaskList: null,
 
         // Session timing
         abortController: null,
@@ -16,7 +17,10 @@ export const useProductExpertSupportAgentStore = defineStore('product-expert-sup
         sessionExpiredShown: false,
         sessionCheckTimer: null,
         mqttConnectionKey: `expert/${SUPPORT_AGENT}`,
-        inFlightRequests: new Map()
+        inFlightRequests: new Map(),
+        // Chat transaction ids whose reply already landed, kept briefly so a surface that
+        // trails the final reply is still applied. A stopped turn never enters this set.
+        recentlyCompletedTransactions: new Map()
     }),
     actions: {
         reset () {
@@ -28,7 +32,7 @@ export const useProductExpertSupportAgentStore = defineStore('product-expert-sup
         }
     },
     persist: {
-        pick: ['context', 'messages', 'sessionId', 'sessionStartTime', 'sessionWarningShown', 'sessionExpiredShown'],
+        pick: ['context', 'messages', 'activeTaskList', 'sessionId', 'sessionStartTime', 'sessionWarningShown', 'sessionExpiredShown'],
         storage: sessionStorage,
         afterHydrate ({ store }) {
             store.messages.forEach(msg => {
