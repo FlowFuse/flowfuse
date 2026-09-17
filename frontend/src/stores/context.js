@@ -49,6 +49,19 @@ export const useContextStore = defineStore('context', {
             }
             return getTeamProperty(this.team, 'trial.runtimesLimit') ?? null
         },
+        // Mirrors Team.getFeatureProperty on the backend (team override falling back to the
+        // TeamType/plan default), gated on both the platform `ai` feature and the team's own `ai`
+        // opt-out - matching what the live check `/api/v1/assistant/deploy-policy` actually gates
+        // on (`isAiEnabled = platform 'ai' && team.getFeatureProperty('ai', true)`).
+        agentAutoDeployEnabled () {
+            if (!this.team) {
+                return false
+            }
+            const platformAiEnabled = useAccountSettingsStore().featuresCheck?.isAiFeatureEnabledForPlatform
+            const teamAiEnabled = getTeamProperty(this.team, 'features.ai', true)
+            const agentAutoDeploy = getTeamProperty(this.team, 'features.agentAutoDeploy', false)
+            return !!(platformAiEnabled && teamAiEnabled && agentAutoDeploy)
+        },
         editorEntityType (state) {
             const name = state.route?.name
             if (name?.startsWith('instance-editor')) return 'instance'
@@ -98,6 +111,7 @@ export const useContextStore = defineStore('context', {
                     teamId: this.team?.id || null,
                     teamSlug: this.team?.slug || null,
                     telemetryEnabled: useAccountSettingsStore().featuresCheck?.isTelemetryEnabled ?? false,
+                    agentAutoDeployEnabled: this.agentAutoDeployEnabled,
                     instanceId: null,
                     deviceId: null,
                     applicationId: null,
@@ -142,6 +156,7 @@ export const useContextStore = defineStore('context', {
                 teamId: this.team?.id || null,
                 teamSlug: this.team?.slug || null,
                 telemetryEnabled: useAccountSettingsStore().featuresCheck?.isTelemetryEnabled ?? false,
+                agentAutoDeployEnabled: this.agentAutoDeployEnabled,
                 instanceId: state.instance ? state.instance.id : null,
                 deviceId: state.device ? state.device.id : null,
                 applicationId: this.application ? this.application.id : null,
