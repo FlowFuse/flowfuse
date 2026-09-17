@@ -7,23 +7,13 @@
  * has passed, the pair folds into one entry so the transcript stays quiet.
  */
 
-function hasQuestions (answer) {
-    return Array.isArray(answer.questions) && answer.questions.length > 0
-}
-
 function getQuestions (message) {
     if (message._type !== 'ai' || !Array.isArray(message.answer)) {
         return []
     }
-    return message.answer.filter(hasQuestions).flatMap(answer => answer.questions)
-}
-
-/**
- * The non-question parts of a questions message (its prose, guide steps, etc).
- * Folding must keep these visible; only the questions themselves collapse.
- */
-function getTextAnswer (message) {
-    return message.answer.filter(answer => !hasQuestions(answer))
+    return message.answer
+        .filter(answer => Array.isArray(answer.questions) && answer.questions.length > 0)
+        .flatMap(answer => answer.questions)
 }
 
 /**
@@ -49,11 +39,9 @@ function extractAnswers (questions, replyContent) {
  *
  * Returns entries of two kinds:
  *  - { kind: 'message', message }: render as-is
- *  - { kind: 'folded-turn', questionsMessage, textAnswer, replyMessage, entries }:
- *    a past questions turn folded to one line per question. textAnswer carries
- *    the questionsMessage's non-question answer parts, rendered in full above
- *    the fold. replyMessage is the absorbed human reply, or null if the user
- *    never answered.
+ *  - { kind: 'folded-turn', questionsMessage, replyMessage, entries }:
+ *    a past questions turn folded to one line per question. replyMessage is
+ *    the absorbed human reply, or null if the user never answered.
  */
 function buildCollapsedTranscript (messages) {
     const result = []
@@ -73,7 +61,6 @@ function buildCollapsedTranscript (messages) {
         result.push({
             kind: 'folded-turn',
             questionsMessage: message,
-            textAnswer: getTextAnswer(message),
             replyMessage,
             entries: extractAnswers(questions, replyMessage?.content)
         })
@@ -81,4 +68,4 @@ function buildCollapsedTranscript (messages) {
     return result
 }
 
-export { buildCollapsedTranscript, hasQuestions }
+export { buildCollapsedTranscript }

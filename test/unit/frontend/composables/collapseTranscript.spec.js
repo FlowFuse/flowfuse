@@ -95,28 +95,4 @@ describe('buildCollapsedTranscript', () => {
         const result = buildCollapsedTranscript(messages)
         expect(result.every(entry => entry.kind === 'message')).toBe(true)
     })
-
-    test('keeps a folded turn\'s prose alongside its questions', () => {
-        const prose = { kind: 'chat', content: 'Great, we can turn that data into a live screen.' }
-        const questions = [{ question: 'Q?', options: [] }]
-        const messages = [
-            aiMessage('a1', [prose, questionsAnswer(questions)]),
-            humanMessage('h1', 'Q? Sensors'),
-            aiMessage('a2', [{ kind: 'chat', content: 'great' }])
-        ]
-        const result = buildCollapsedTranscript(messages)
-        expect(result[0].kind).toBe('folded-turn')
-        expect(result[0].textAnswer).toEqual([prose])
-    })
-
-    test('folds a questions-only message with no text to carry', () => {
-        const messages = [
-            aiMessage('a1', [questionsAnswer([{ question: 'Q?', options: [] }])]),
-            humanMessage('h1', 'Q? Sensors'),
-            aiMessage('a2', [{ kind: 'chat', content: 'great' }])
-        ]
-        const result = buildCollapsedTranscript(messages)
-        expect(result[0].kind).toBe('folded-turn')
-        expect(result[0].textAnswer).toEqual([])
-    })
 })
