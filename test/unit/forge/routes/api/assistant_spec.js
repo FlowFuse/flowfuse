@@ -560,6 +560,81 @@ describe('Assistant API', async function () {
             })
         })
 
+        describe('deploy-policy endpoint', async function () {
+            // The default 'starter' TeamType is bootstrapped with enableAllFeatures: true
+            // (forge/db/controllers/TeamType.js), which makes TeamType.getFeatureProperty return
+            // true for *any* key regardless of its defaultValue (forge/db/models/TeamType.js).
+            // Pin it to false for this block so "no team override" actually means "off", matching
+            // real teams - explicit team-level overrides below are unaffected either way since
+            // they win before the TeamType is ever consulted.
+            let originalTeamProperties
+            let originalTeamTypeProperties
+            before(async function () {
+                const defaultTeamType = await app.db.models.TeamType.findOne({ where: { name: 'starter' } })
+                originalTeamTypeProperties = JSON.parse(JSON.stringify(defaultTeamType.properties))
+                await enableTeamTypeFeatureFlag(app, false, 'agentAutoDeploy')
+            })
+            after(async function () {
+                const defaultTeamType = await app.db.models.TeamType.findOne({ where: { name: 'starter' } })
+                defaultTeamType.properties = originalTeamTypeProperties
+                await defaultTeamType.save()
+            })
+            beforeEach(async function () {
+                originalTeamProperties = TestObjects.ATeam.properties
+            })
+            afterEach(async function () {
+                TestObjects.ATeam.properties = originalTeamProperties
+                await TestObjects.ATeam.save()
+            })
+            it('reports autoDeploy false by default', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/assistant/deploy-policy',
+                    headers: { authorization: 'Bearer ' + TestObjects.tokens.instance }
+                })
+                response.statusCode.should.equal(200)
+                response.json().should.have.property('autoDeploy', false)
+            })
+            it('reports autoDeploy true when the team has enabled it and ai is enabled', async function () {
+                TestObjects.ATeam.properties = { features: { agentAutoDeploy: true } }
+                await TestObjects.ATeam.save()
+                const response = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/assistant/deploy-policy',
+                    headers: { authorization: 'Bearer ' + TestObjects.tokens.instance }
+                })
+                response.statusCode.should.equal(200)
+                response.json().should.have.property('autoDeploy', true)
+            })
+            it('reports autoDeploy false when agentAutoDeploy is enabled but the team has opted out of ai', async function () {
+                TestObjects.ATeam.properties = { features: { agentAutoDeploy: true, ai: false } }
+                await TestObjects.ATeam.save()
+                const response = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/assistant/deploy-policy',
+                    headers: { authorization: 'Bearer ' + TestObjects.tokens.instance }
+                })
+                response.statusCode.should.equal(200)
+                response.json().should.have.property('autoDeploy', false)
+            })
+            it('reports autoDeploy false when the platform ai feature is disabled', async function () {
+                TestObjects.ATeam.properties = { features: { agentAutoDeploy: true } }
+                await TestObjects.ATeam.save()
+                app.config.features.register('ai', false, true)
+                try {
+                    const response = await app.inject({
+                        method: 'GET',
+                        url: '/api/v1/assistant/deploy-policy',
+                        headers: { authorization: 'Bearer ' + TestObjects.tokens.instance }
+                    })
+                    response.statusCode.should.equal(200)
+                    response.json().should.have.property('autoDeploy', false)
+                } finally {
+                    app.config.features.register('ai', true, true)
+                }
+            })
+        })
+
         describe('assets endpoint', async function () {
             const assetUrl1 = '/api/v1/assistant/assets/model.json'
             const assetUrl2 = '/api/v1/assistant/assets/model.bin'
