@@ -29,7 +29,7 @@ vi.mock('@/stores/ux.js', () => ({
 }))
 
 vi.mock('@/services/app.orchestrator', () => {
-    const orchestrator = () => ({ $services: { mqtt: mqttService } })
+    const orchestrator = () => ({ $services: { mqtt: mqttService, automations: { dispatch, getToolDefinitions } } })
     return { default: orchestrator, getAppOrchestrator: orchestrator }
 })
 
@@ -37,6 +37,8 @@ vi.mock('@/stores/product-assistant.js', () => ({
     useProductAssistantStore: vi.fn(() => ({
         isImmersiveInstance: null,
         supportedActions: {},
+        toolCatalogHash: undefined,
+        invokeActionAwaitResponse: invokeAction,
         clearSessionToolOverrides: vi.fn(),
         clearToolApprovalStatuses: vi.fn()
     }))
@@ -57,6 +59,17 @@ vi.mock('@/stores/ux-drawers.js', () => ({
     }))
 }))
 
+const { dispatch, getToolDefinitions, invokeAction } = vi.hoisted(() => ({
+    dispatch: vi.fn(() => ({ ok: true })),
+    getToolDefinitions: vi.fn(() => [{ name: 'tool-a' }]),
+    invokeAction: vi.fn(() => ({ done: true }))
+}))
+
+const accountAuthState = { user: null, getSessionId: () => 'browser-session-x' }
+vi.mock('@/stores/account-auth.js', () => ({
+    useAccountAuthStore: vi.fn(() => accountAuthState)
+}))
+
 // imported after mocks so vi.mock hoisting resolves correctly
 const { useProductExpertStore } = await import('@/stores/product-expert.js')
 const { useProductExpertSupportAgentStore } = await import('@/stores/product-expert-support-agent.js')
@@ -65,6 +78,7 @@ const { useAccountAuthStore } = await import('@/stores/account-auth.js')
 describe('product-expert store', () => {
     beforeEach(() => {
         setActivePinia(createPinia())
+        accountAuthState.user = null
         vi.clearAllMocks()
     })
 
@@ -98,6 +112,24 @@ describe('product-expert store', () => {
             store.agentMode = INSIGHTS_AGENT
             const insightsAgent = useProductExpertInsightsAgentStore()
             expect(store.messages).toBe(insightsAgent.messages)
+        })
+    })
+
+    describe('activePlanId getter', () => {
+        it('reflects the agent store field', () => {
+            const store = useProductExpertStore()
+            const supportAgent = useProductExpertSupportAgentStore()
+            expect(store.activePlanId).toBeNull()
+            supportAgent.activePlanId = 'clever-blue-otter'
+            expect(store.activePlanId).toBe('clever-blue-otter')
+        })
+
+        it('is independent of the task list, so an empty list does not clear it', () => {
+            const store = useProductExpertStore()
+            const supportAgent = useProductExpertSupportAgentStore()
+            supportAgent.activePlanId = 'clever-blue-otter'
+            supportAgent.activeTaskList = null
+            expect(store.activePlanId).toBe('clever-blue-otter')
         })
     })
 
@@ -416,6 +448,99 @@ describe('product-expert store', () => {
 
             expect(supportAgent.messages).toHaveLength(0)
             expect(store.loadingVariant).toBe(SUPPORT_AGENT)
+        })
+    })
+
+    describe('stopInflightChat', () => {
+        it('clears the task list and loading line and records no completion', () => {
+            const store = useProductExpertStore()
+            const agent = useProductExpertSupportAgentStore()
+            agent.activeTaskList = {
+                planId: null, title: 'Tasks', items: [{ id: 't1', text: 'x', status: 'in_progress' }]
+            }
+            agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+            store._addInFlightUpdate('Working...')
+
+            store.stopInflightChat()
+
+            expect(store.activeTaskList).toBeNull()
+            expect(store.inFlightUpdates).toHaveLength(0)
+            expect(agent.inFlightRequests.size).toBe(0)
+            expect(agent.recentlyCompletedTransactions.size).toBe(0)
+        })
+    })
+
+    describe('inflight correlation', () => {
+        const encoder = new TextEncoder()
+        const packet = (transactionId, chatTransactionId, sessionId = 'chat-1') => ({
+            properties: {
+                correlationData: encoder.encode(transactionId),
+                userProperties: { sessionId, transactionId: chatTransactionId }
+            }
+        })
+        const taskTopic = 'ff/v1/expert/u1/chat-1/team/t1/support/inflight/expert:tasks/request'
+        const callToolTopic = 'ff/v1/expert/u1/chat-1/team/t1/support/inflight/automation-ui:mcp-call-tool/request'
+        const replyTopic = 'ff/v1/expert/u1/chat-1/team/t1/support/chat/response'
+        const tasksMessage = JSON.stringify({ items: [{ id: 't1', text: 'Do a thing', status: 'done' }], title: 'Tasks', planId: 'p1' })
+
+        let store
+        let agent
+        beforeEach(() => {
+            accountAuthState.user = { id: 'u1' }
+            store = useProductExpertStore()
+            agent = useProductExpertSupportAgentStore()
+            agent.sessionId = 'chat-1'
+        })
+
+        it('applies and acks a task surface while its turn is live', async () => {
+            agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+
+            await store._onMqttMessage(taskTopic, tasksMessage, packet('srf-1', 'turn-1'))
+
+            expect(store.activeTaskList).toEqual({
+                planId: 'p1', title: 'Tasks', items: [{ id: 't1', text: 'Do a thing', status: 'done' }]
+            })
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+            expect(JSON.parse(mqttService.publishMessage.mock.calls[0][1].payload)).toEqual({ ack: true })
+        })
+
+        it('applies a surface trailing the final reply, then drops one from a turn it never saw', async () => {
+            agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+
+            await store._onMqttMessage(replyTopic, JSON.stringify({}), packet('turn-1', 'turn-1'))
+            expect(agent.inFlightRequests.size).toBe(0)
+            expect(agent.recentlyCompletedTransactions.has('turn-1')).toBe(true)
+
+            await store._onMqttMessage(taskTopic, tasksMessage, packet('srf-1', 'turn-1'))
+            expect(store.activeTaskList).not.toBeNull()
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+
+            mqttService.publishMessage.mockClear()
+            await store._onMqttMessage(taskTopic, tasksMessage, packet('srf-2', 'turn-0'))
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+        })
+
+        it('drops a surface and an automation left on the wire after a stop', async () => {
+            agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+            store.stopInflightChat()
+
+            await store._onMqttMessage(taskTopic, tasksMessage, packet('srf-1', 'turn-1'))
+            expect(store.activeTaskList).toBeNull()
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+
+            await store._onMqttMessage(callToolTopic, JSON.stringify({ data: { name: 'open-node', input: {} } }), packet('srf-2', 'turn-1'))
+            expect(dispatch).not.toHaveBeenCalled()
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+        })
+
+        it('runs an automation and answers with its result while the turn is live', async () => {
+            agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+
+            await store._onMqttMessage(callToolTopic, JSON.stringify({ data: { name: 'open-node', input: { id: 'n1' } } }), packet('srf-1', 'turn-1'))
+
+            expect(dispatch).toHaveBeenCalledWith('open-node', { id: 'n1' })
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+            expect(JSON.parse(mqttService.publishMessage.mock.calls[0][1].payload)).toEqual({ ok: true })
         })
     })
 
