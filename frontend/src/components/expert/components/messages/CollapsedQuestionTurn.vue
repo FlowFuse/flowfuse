@@ -1,5 +1,6 @@
 <template>
     <div class="collapsed-question-turn" :class="{ expanded }">
+        <AiMessage v-if="hasText" v-bind="{ ...turn.questionsMessage, answer: turn.textAnswer }" :instant="true" />
         <div v-if="!expanded" class="folded-turn">
             <div
                 v-for="(entry, index) in turn.entries"
@@ -58,7 +59,7 @@
                     >
                         Collapse this step
                     </button>
-                    <AiMessage v-bind="{ ...turn.questionsMessage }" :instant="true" />
+                    <AiMessage v-bind="{ ...turn.questionsMessage, answer: questionsOnlyAnswer }" :instant="true" />
                     <HumanMessage v-if="turn.replyMessage" v-bind="{ ...turn.replyMessage }" />
                 </div>
             </div>
@@ -73,6 +74,7 @@ import { mapActions, mapState } from 'pinia'
 import AiMessage from './AiMessage.vue'
 import HumanMessage from './HumanMessage.vue'
 
+import { hasQuestions } from '@/composables/Components/expert/collapseTranscript.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 
 export default {
@@ -95,6 +97,13 @@ export default {
     },
     computed: {
         ...mapState(useProductExpertStore, ['isWaitingForResponse']),
+        hasText () {
+            return Array.isArray(this.turn.textAnswer) && this.turn.textAnswer.length > 0
+        },
+        // The expanded card must not repeat the text already shown above the fold.
+        questionsOnlyAnswer () {
+            return this.turn.questionsMessage.answer.filter(hasQuestions)
+        },
         hasMatchedAnswers () {
             return this.turn.entries.some(entry => entry.answer !== null)
         },

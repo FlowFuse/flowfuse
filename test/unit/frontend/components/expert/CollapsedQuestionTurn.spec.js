@@ -13,7 +13,7 @@ vi.mock('@/stores/product-expert.js', () => ({
 // The real message components pull in the full expert tree; the fold only
 // needs placeholders it can expand into.
 vi.mock('@/components/expert/components/messages/AiMessage.vue', () => ({
-    default: { name: 'AiMessage', template: '<div data-stub="ai-message" />' }
+    default: { name: 'AiMessage', props: ['answer'], template: '<div data-stub="ai-message" :data-answer-length="answer.length" />' }
 }))
 vi.mock('@/components/expert/components/messages/HumanMessage.vue', () => ({
     default: { name: 'HumanMessage', template: '<div data-stub="human-message" />' }
@@ -105,6 +105,23 @@ describe('CollapsedQuestionTurn', () => {
 
         await chips[0].trigger('click')
         expect(mocks.expertStore.setPendingInput).toHaveBeenCalledWith('typed by hand')
+    })
+
+    test('keeps the turn\'s text visible above the folded questions', () => {
+        const turn = answeredTurn()
+        turn.textAnswer = [{ kind: 'chat', content: 'Great, we can turn that data into a live screen.' }]
+        const wrapper = mountTurn(turn)
+        const textMessage = wrapper.find('[data-stub="ai-message"]')
+        expect(textMessage.exists()).toBe(true)
+        expect(textMessage.attributes('data-answer-length')).toBe('1')
+        expect(wrapper.findAll('[data-el="folded-question"]').length).toBe(2)
+    })
+
+    test('renders no text placeholder for a questions-only turn', () => {
+        const turn = answeredTurn()
+        turn.textAnswer = []
+        const wrapper = mountTurn(turn)
+        expect(wrapper.find('[data-stub="ai-message"]').exists()).toBe(false)
     })
 
     test('expands to the original messages and folds back', async () => {
