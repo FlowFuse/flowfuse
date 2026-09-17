@@ -29,7 +29,7 @@ Actions an agent can take on the platform, by resource and access level.
 | Pipelines | Pipelines and stages | Create and update pipelines; add, update and deploy stages |
 | Device groups | Team and application device groups | Create and update groups, change membership and settings |
 | FlowFuse Tables | Databases, tables, schemas, row data | Table data is changed through flows, see [Flow Building](#flow-building) |
-| Team broker | Brokers, clients, topics, schema | Start, stop, suspend the broker agent; create and update topics |
+| Team broker | Brokers, clients, topics, schema | Start, stop, suspend the broker agent; create and update clients and topics |
 | Your account | Profile, notifications, invitations | Update profile, mark notifications read, respond to invitations |
 | Blueprints and templates | Blueprints, templates, instance and team types | Starting points for creating instances and teams |
 
