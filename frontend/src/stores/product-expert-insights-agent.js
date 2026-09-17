@@ -22,7 +22,10 @@ export const useProductExpertInsightsAgentStore = defineStore('product-expert-in
         capabilityServers: [],
         selectedCapabilities: [],
         mqttConnectionKey: `expert/${INSIGHTS_AGENT}`,
-        inFlightRequests: new Map()
+        inFlightRequests: new Map(),
+        // Chat transaction ids whose reply already landed, kept briefly so a surface that
+        // trails the final reply is still applied. A stopped turn never enters this set.
+        recentlyCompletedTransactions: new Map()
     }),
     getters: {
         capabilities: (state) => state.capabilityServers.map(c => ({

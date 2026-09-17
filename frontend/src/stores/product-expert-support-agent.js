@@ -18,7 +18,10 @@ export const useProductExpertSupportAgentStore = defineStore('product-expert-sup
         sessionExpiredShown: false,
         sessionCheckTimer: null,
         mqttConnectionKey: `expert/${SUPPORT_AGENT}`,
-        inFlightRequests: new Map()
+        inFlightRequests: new Map(),
+        // Chat transaction ids whose reply already landed, kept briefly so a surface that
+        // trails the final reply is still applied. A stopped turn never enters this set.
+        recentlyCompletedTransactions: new Map()
     }),
     actions: {
         reset () {

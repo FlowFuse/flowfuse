@@ -1,25 +1,51 @@
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { INSIGHTS_AGENT, SUPPORT_AGENT } from '@/stores/product-expert-agents.js'
 
+// Plain objects rather than inline literals so individual tests can flip a flag
+// (e.g. isExternalMqttBrokerFeatureEnabled, isOnboarding) without redefining the mock.
+const accountSettingsState = { featuresCheck: { isExpertAssistantFeatureEnabled: true } }
+const contextState = { team: null, expert: {} }
+const uxState = { isOnboarding: false }
+const mqttService = {
+    hasClient: vi.fn(() => false),
+    createClient: vi.fn(() => Promise.resolve()),
+    destroyClient: vi.fn(() => Promise.resolve()),
+    publishMessage: vi.fn(() => Promise.resolve()),
+    getManagedClient: vi.fn(() => ({ status: 'connected' }))
+}
+
 vi.mock('@/stores/account-settings.js', () => ({
-    useAccountSettingsStore: vi.fn(() => ({ featuresCheck: { isExpertAssistantFeatureEnabled: true } }))
+    useAccountSettingsStore: vi.fn(() => accountSettingsState)
 }))
 
 vi.mock('@/stores/context.js', () => ({
-    useContextStore: vi.fn(() => ({ team: null, expert: {} }))
+    useContextStore: vi.fn(() => contextState)
 }))
+
+vi.mock('@/stores/ux.js', () => ({
+    useUxStore: vi.fn(() => uxState)
+}))
+
+vi.mock('@/services/app.orchestrator', () => {
+    const orchestrator = () => ({ $services: { mqtt: mqttService, automations: { dispatch, getToolDefinitions } } })
+    return { default: orchestrator, getAppOrchestrator: orchestrator }
+})
 
 vi.mock('@/stores/product-assistant.js', () => ({
     useProductAssistantStore: vi.fn(() => ({
         isImmersiveInstance: null,
-        supportedActions: {}
+        supportedActions: {},
+        toolCatalogHash: undefined,
+        invokeActionAwaitResponse: invokeAction,
+        clearSessionToolOverrides: vi.fn(),
+        clearToolApprovalStatuses: vi.fn()
     }))
 }))
 
 vi.mock('@/api/expert.js', () => ({
-    default: { chat: vi.fn() }
+    default: { chat: vi.fn(), getCapabilities: vi.fn().mockResolvedValue({ servers: [] }) }
 }))
 
 vi.mock('@/components/drawers/expert/ExpertDrawer.vue', () => ({
@@ -33,13 +59,26 @@ vi.mock('@/stores/ux-drawers.js', () => ({
     }))
 }))
 
+const { dispatch, getToolDefinitions, invokeAction } = vi.hoisted(() => ({
+    dispatch: vi.fn(() => ({ ok: true })),
+    getToolDefinitions: vi.fn(() => [{ name: 'tool-a' }]),
+    invokeAction: vi.fn(() => ({ done: true }))
+}))
+
+const accountAuthState = { user: null, getSessionId: () => 'browser-session-x' }
+vi.mock('@/stores/account-auth.js', () => ({
+    useAccountAuthStore: vi.fn(() => accountAuthState)
+}))
+
 // imported after mocks so vi.mock hoisting resolves correctly
 const { useProductExpertStore } = await import('@/stores/product-expert.js')
 const { useProductExpertSupportAgentStore } = await import('@/stores/product-expert-support-agent.js')
 const { useProductExpertInsightsAgentStore } = await import('@/stores/product-expert-insights-agent.js')
+const { useAccountAuthStore } = await import('@/stores/account-auth.js')
 describe('product-expert store', () => {
     beforeEach(() => {
         setActivePinia(createPinia())
+        accountAuthState.user = null
         vi.clearAllMocks()
     })
 
@@ -409,6 +448,307 @@ describe('product-expert store', () => {
 
             expect(supportAgent.messages).toHaveLength(0)
             expect(store.loadingVariant).toBe(SUPPORT_AGENT)
+        })
+    })
+
+    describe('stopInflightChat', () => {
+        it('clears the task list and loading line and records no completion', () => {
+            const store = useProductExpertStore()
+            const agent = useProductExpertSupportAgentStore()
+            agent.activeTaskList = {
+                planId: null, title: 'Tasks', items: [{ id: 't1', text: 'x', status: 'in_progress' }]
+            }
+            agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+            store._addInFlightUpdate('Working...')
+
+            store.stopInflightChat()
+
+            expect(store.activeTaskList).toBeNull()
+            expect(store.inFlightUpdates).toHaveLength(0)
+            expect(agent.inFlightRequests.size).toBe(0)
+            expect(agent.recentlyCompletedTransactions.size).toBe(0)
+        })
+    })
+
+    describe('inflight correlation', () => {
+        const encoder = new TextEncoder()
+        const packet = (transactionId, chatTransactionId, sessionId = 'chat-1') => ({
+            properties: {
+                correlationData: encoder.encode(transactionId),
+                userProperties: { sessionId, transactionId: chatTransactionId }
+            }
+        })
+        const taskTopic = 'ff/v1/expert/u1/chat-1/team/t1/support/inflight/expert:tasks/request'
+        const callToolTopic = 'ff/v1/expert/u1/chat-1/team/t1/support/inflight/automation-ui:mcp-call-tool/request'
+        const replyTopic = 'ff/v1/expert/u1/chat-1/team/t1/support/chat/response'
+        const tasksMessage = JSON.stringify({ items: [{ id: 't1', text: 'Do a thing', status: 'done' }], title: 'Tasks', planId: 'p1' })
+
+        let store
+        let agent
+        beforeEach(() => {
+            accountAuthState.user = { id: 'u1' }
+            store = useProductExpertStore()
+            agent = useProductExpertSupportAgentStore()
+            agent.sessionId = 'chat-1'
+        })
+
+        it('applies and acks a task surface while its turn is live', async () => {
+            agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+
+            await store._onMqttMessage(taskTopic, tasksMessage, packet('srf-1', 'turn-1'))
+
+            expect(store.activeTaskList).toEqual({
+                planId: 'p1', title: 'Tasks', items: [{ id: 't1', text: 'Do a thing', status: 'done' }]
+            })
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+            expect(JSON.parse(mqttService.publishMessage.mock.calls[0][1].payload)).toEqual({ ack: true })
+        })
+
+        it('applies a surface trailing the final reply, then drops one from a turn it never saw', async () => {
+            agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+
+            await store._onMqttMessage(replyTopic, JSON.stringify({}), packet('turn-1', 'turn-1'))
+            expect(agent.inFlightRequests.size).toBe(0)
+            expect(agent.recentlyCompletedTransactions.has('turn-1')).toBe(true)
+
+            await store._onMqttMessage(taskTopic, tasksMessage, packet('srf-1', 'turn-1'))
+            expect(store.activeTaskList).not.toBeNull()
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+
+            mqttService.publishMessage.mockClear()
+            await store._onMqttMessage(taskTopic, tasksMessage, packet('srf-2', 'turn-0'))
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+        })
+
+        it('drops a surface and an automation left on the wire after a stop', async () => {
+            agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+            store.stopInflightChat()
+
+            await store._onMqttMessage(taskTopic, tasksMessage, packet('srf-1', 'turn-1'))
+            expect(store.activeTaskList).toBeNull()
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+
+            await store._onMqttMessage(callToolTopic, JSON.stringify({ data: { name: 'open-node', input: {} } }), packet('srf-2', 'turn-1'))
+            expect(dispatch).not.toHaveBeenCalled()
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+        })
+
+        it('runs an automation and answers with its result while the turn is live', async () => {
+            agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+
+            await store._onMqttMessage(callToolTopic, JSON.stringify({ data: { name: 'open-node', input: { id: 'n1' } } }), packet('srf-1', 'turn-1'))
+
+            expect(dispatch).toHaveBeenCalledWith('open-node', { id: 'n1' })
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+            expect(JSON.parse(mqttService.publishMessage.mock.calls[0][1].payload)).toEqual({ ok: true })
+        })
+    })
+
+    describe('relayInstanceReady', () => {
+        afterEach(() => {
+            contextState.team = null
+            uxState.isOnboarding = false
+            delete accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled
+            mqttService.hasClient.mockReturnValue(false)
+        })
+
+        it('does not publish when the instance has no id', async () => {
+            uxState.isOnboarding = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+
+            await useProductExpertStore().relayInstanceReady({ name: 'no-id' })
+
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+        })
+
+        it('does not publish outside an active onboarding conversation', async () => {
+            uxState.isOnboarding = false
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+
+            await useProductExpertStore().relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+        })
+
+        it('does not publish when the chat is not using the Expert MQTT channel', async () => {
+            uxState.isOnboarding = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = false
+
+            await useProductExpertStore().relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+        })
+
+        it('publishes a silent system message on the chat request topic', async () => {
+            uxState.isOnboarding = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+            useProductExpertSupportAgentStore().sessionId = 'session-xyz'
+
+            await useProductExpertStore().relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            expect(mqttService.createClient).not.toHaveBeenCalled()
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+            const [connectionKey, message] = mqttService.publishMessage.mock.calls[0]
+            expect(connectionKey).toBe('expert/support-agent')
+            expect(message.topic).toBe('ff/v1/expert/user-1/session-xyz/t/team-1/support/chat/request')
+            expect(message.qos).toBe(2)
+            expect(message.payload).toEqual({
+                system: {
+                    kind: 'instance-ready',
+                    instance: { id: 'inst-1', name: 'my-instance' },
+                    state: 'running'
+                },
+                context: { agent: SUPPORT_AGENT }
+            })
+            expect(message.userProperties.sessionId).toBe('session-xyz')
+        })
+
+        // Without this, the reply is a normal chat message the agent sends back on the
+        // response topic, but the store's in-flight guard drops anything it never
+        // registered - so it must be published like a real request, not a fire-and-forget one.
+        it('registers the request as in-flight, keyed by its correlation data', async () => {
+            uxState.isOnboarding = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+            const supportAgent = useProductExpertSupportAgentStore()
+            supportAgent.sessionId = 'session-xyz'
+
+            await useProductExpertStore().relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            const [, message] = mqttService.publishMessage.mock.calls[0]
+            expect(message.correlationData).toBeTruthy()
+            expect(supportAgent.inFlightRequests.size).toBe(1)
+            expect(supportAgent.inFlightRequests.get(message.correlationData)).toEqual({
+                query: '',
+                transactionId: message.correlationData
+            })
+        })
+
+        it('does not add a user message to the transcript', async () => {
+            uxState.isOnboarding = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+
+            const store = useProductExpertStore()
+            await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            expect(store.messages).toHaveLength(0)
+        })
+
+        it('shows the standard loading indicator while the reply is outstanding', async () => {
+            uxState.isOnboarding = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+
+            const store = useProductExpertStore()
+            await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            expect(store.isWaitingForResponse).toBe(true)
+        })
+
+        it('renders the agent reply and clears the in-flight entry when it arrives', async () => {
+            uxState.isOnboarding = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+            const supportAgent = useProductExpertSupportAgentStore()
+            supportAgent.sessionId = 'session-xyz'
+
+            const store = useProductExpertStore()
+            await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            const [, request] = mqttService.publishMessage.mock.calls[0]
+            const transactionId = request.correlationData
+
+            const responseTopic = 'ff/v1/expert/user-1/session-xyz/t/team-1/support/chat/response'
+            const responsePayload = { answer: [{ content: 'Your workspace is ready.' }] }
+            const packet = { properties: { correlationData: Buffer.from(transactionId) } }
+
+            await store._onMqttMessage(responseTopic, Buffer.from(JSON.stringify(responsePayload)), packet)
+
+            expect(store.messages).toHaveLength(1)
+            expect(store.messages[0].answer[0].content).toBe('Your workspace is ready.')
+            expect(supportAgent.inFlightRequests.size).toBe(0)
+            expect(store.isWaitingForResponse).toBe(false)
+        })
+
+        it('establishes the mqtt connection first when none exists yet', async () => {
+            uxState.isOnboarding = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(false)
+            useAccountAuthStore().user = { id: 'user-1' }
+
+            await useProductExpertStore().relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            expect(mqttService.createClient).toHaveBeenCalledTimes(1)
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+        })
+
+        it('defaults a missing instance name to null', async () => {
+            uxState.isOnboarding = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+
+            await useProductExpertStore().relayInstanceReady({ id: 'inst-1' })
+
+            const [, message] = mqttService.publishMessage.mock.calls[0]
+            expect(message.payload.system.instance).toEqual({ id: 'inst-1', name: null })
+        })
+
+        it('does not announce the same instance twice in one conversation', async () => {
+            uxState.isOnboarding = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+
+            const store = useProductExpertStore()
+            await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+            await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+        })
+
+        it('still announces a different instance after one has already been announced', async () => {
+            uxState.isOnboarding = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+
+            const store = useProductExpertStore()
+            await store.relayInstanceReady({ id: 'inst-1', name: 'first' })
+            await store.relayInstanceReady({ id: 'inst-2', name: 'second' })
+
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(2)
+        })
+
+        it('allows announcing the same instance again after Start Over', async () => {
+            uxState.isOnboarding = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+
+            const store = useProductExpertStore()
+            await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+            await store.startOver()
+            await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(2)
         })
     })
 })
