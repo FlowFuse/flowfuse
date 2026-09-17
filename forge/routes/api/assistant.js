@@ -131,6 +131,18 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.assistant
      */
     app.get('/deploy-policy', {
+        config: {
+            rateLimit: app.config.rate_limits
+                ? {
+                    hook: 'preHandler', // apply the rate as a preHandler so that session is available
+                    max: 60, // max requests per window
+                    timeWindow: 60000, // 1 minute window
+                    keyGenerator: (request) => {
+                        return request.ownerId || request.ip
+                    }
+                }
+                : false
+        },
         schema: {
             hide: true // dont show in swagger
         }
