@@ -83,6 +83,13 @@ export default {
             if (!this.mcpActive) {
                 return
             }
+            // Watched by reference, so any refresh of the active team lands here: refreshTeam()
+            // swaps in a fresh object off the API carrying the same id, which a rename or a
+            // `t/updated` from another member is enough to trigger. Same id is the same team,
+            // and closing the session over one would drop every MCP client holding this tab.
+            if (team?.id === previousTeam?.id) {
+                return
+            }
             // The first team resolving is not a switch.
             if (!previousTeam?.id) {
                 this.resumeMcp(team)
