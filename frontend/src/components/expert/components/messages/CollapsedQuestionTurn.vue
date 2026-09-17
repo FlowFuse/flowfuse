@@ -1,5 +1,6 @@
 <template>
     <div class="collapsed-question-turn" :class="{ expanded }">
+        <AiMessage v-if="!expanded && textAnswer.length" v-bind="{ ...turn.questionsMessage, answer: textAnswer }" :instant="true" />
         <div v-if="!expanded" class="folded-turn">
             <div
                 v-for="(entry, index) in turn.entries"
@@ -95,6 +96,12 @@ export default {
     },
     computed: {
         ...mapState(useProductExpertStore, ['isWaitingForResponse']),
+        // A questions part carries the turn's prose in content, so strip only the questions.
+        textAnswer () {
+            return this.turn.questionsMessage.answer
+                .filter(answer => answer.content)
+                .map(answer => ({ ...answer, questions: undefined }))
+        },
         hasMatchedAnswers () {
             return this.turn.entries.some(entry => entry.answer !== null)
         },
