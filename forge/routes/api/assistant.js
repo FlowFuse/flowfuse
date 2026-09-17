@@ -122,6 +122,24 @@ module.exports = async function (app) {
         }
     })
     /**
+     * Endpoint for nr-assistant to check, live, whether the team has opted in to
+     * agent-initiated deploys. Deliberately not cached/pushed via settings.js - it
+     * must be checked at the moment a deploy is being considered so that turning the
+     * team setting off takes effect immediately, without an instance restart.
+     * @name /api/v1/assistant/deploy-policy
+     * @static
+     * @memberof forge.routes.api.assistant
+     */
+    app.get('/deploy-policy', {
+        schema: {
+            hide: true // dont show in swagger
+        }
+    }, async (request, reply) => {
+        const isAiEnabled = !!(app.config.features.enabled('ai') && request.team?.getFeatureProperty('ai', true))
+        const autoDeploy = isAiEnabled && !!request.team?.getFeatureProperty('agentAutoDeploy', false)
+        reply.send({ autoDeploy })
+    })
+    /**
      * Endpoint for FIM (fill-in-the-middle) code completion requests
      * For now, this is simply a relay to an external assistant service
      * In the future, we may decide to bring that service inside the core or
