@@ -9,6 +9,7 @@ export const useProductExpertSupportAgentStore = defineStore('product-expert-sup
         sessionId: null,
         messages: [],
         activeTaskList: null,
+        activePlanId: null,
 
         // Session timing
         abortController: null,

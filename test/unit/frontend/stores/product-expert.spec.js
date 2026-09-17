@@ -115,6 +115,24 @@ describe('product-expert store', () => {
         })
     })
 
+    describe('activePlanId getter', () => {
+        it('reflects the agent store field', () => {
+            const store = useProductExpertStore()
+            const supportAgent = useProductExpertSupportAgentStore()
+            expect(store.activePlanId).toBeNull()
+            supportAgent.activePlanId = 'clever-blue-otter'
+            expect(store.activePlanId).toBe('clever-blue-otter')
+        })
+
+        it('is independent of the task list, so an empty list does not clear it', () => {
+            const store = useProductExpertStore()
+            const supportAgent = useProductExpertSupportAgentStore()
+            supportAgent.activePlanId = 'clever-blue-otter'
+            supportAgent.activeTaskList = null
+            expect(store.activePlanId).toBe('clever-blue-otter')
+        })
+    })
+
     describe('isWaitingForResponse getter', () => {
         it('is false when abortController is null', () => {
             const store = useProductExpertStore()
