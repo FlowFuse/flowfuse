@@ -3,6 +3,7 @@ import { nextTick } from 'vue'
 
 import { describeError } from './errors'
 
+import useTimerHelper from '@/composables/TimerHelper.js'
 import { MIN_NR_ASSISTANT_VERSION_FOR_AGENT_FLOW_BUILDING } from '@/mcp/constants'
 import { useContextStore } from '@/stores/context.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
@@ -20,22 +21,18 @@ function isEditorRoute (routeName: string): boolean {
 
 // Waits for a fresh 'assistant-ready' signal, not just for `version` to be set: editor-to-editor
 // navigation does not unmount the iframe wrapper, so a stale version would otherwise read as ready.
-function waitForFreshAssistantVersion (baselineGeneration: number, deadline: number): Promise<string | null> {
+async function waitForFreshAssistantVersion (baselineGeneration: number, deadline: number): Promise<string | null> {
     const assistantStore = useProductAssistantStore()
-    return new Promise((resolve) => {
-        const poll = () => {
-            if (assistantStore.readyGeneration > baselineGeneration && assistantStore.version) {
-                resolve(assistantStore.version)
-                return
-            }
-            if (Date.now() >= deadline) {
-                resolve(null)
-                return
-            }
-            setTimeout(poll, EDITOR_READY_POLL_INTERVAL_MS)
-        }
-        poll()
-    })
+    const { waitWhile } = useTimerHelper()
+    const isReady = () => assistantStore.readyGeneration > baselineGeneration && Boolean(assistantStore.version)
+    // waitWhile rejects a non-finite cutoffTries, so give it a backstop above what the deadline allows.
+    const cutoffTries = Math.ceil(EDITOR_READY_TIMEOUT_MS / EDITOR_READY_POLL_INTERVAL_MS) + 1
+    try {
+        await waitWhile(() => !isReady() && Date.now() < deadline, { intervalMs: EDITOR_READY_POLL_INTERVAL_MS, cutoffTries })
+    } catch {
+        // cutoffTries reached: treated the same as the deadline passing
+    }
+    return isReady() ? assistantStore.version : null
 }
 
 const tools: McpToolDefinition[] = [
