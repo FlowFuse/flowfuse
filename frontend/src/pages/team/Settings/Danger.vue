@@ -56,6 +56,16 @@
                     <ff-toggle-switch v-model="aiEnabled" data-el="team-ai-toggle" @change="showConfirmAiToggleDialog" />
                 </div>
             </div>
+            <FormHeading>AI Flow Deploy</FormHeading>
+            <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+                <div class="grow">
+                    <div class="max-w-sm pr-2">Allow AI agents to deploy flow changes they make on this team's instances, without waiting for a person to click Deploy.</div>
+                    <div v-if="!aiEnabled" class="max-w-sm pr-2 text-gray-400 italic">Enable AI Features above to use this.</div>
+                </div>
+                <div class="min-w-fit shrink-0">
+                    <ff-toggle-switch v-model="agentAutoDeploy" :disabled="!aiEnabled" data-el="team-agent-auto-deploy-toggle" @change="showConfirmAgentAutoDeployToggleDialog" />
+                </div>
+            </div>
         </template>
         <TeamAdminTools v-if="isAdmin" :team="team" />
     </div>
@@ -68,6 +78,7 @@ import teamApi from '../../../api/team.js'
 import teamTypesApi from '../../../api/teamTypes.js'
 
 import FormHeading from '../../../components/FormHeading.vue'
+import { getTeamProperty } from '../../../composables/TeamProperties.js'
 
 import alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
@@ -92,7 +103,8 @@ export default {
     data () {
         return {
             teamTypes: [],
-            aiEnabledOverride: null
+            aiEnabledOverride: null,
+            agentAutoDeployOverride: null
         }
     },
     computed: {
@@ -111,6 +123,17 @@ export default {
             },
             set (value) {
                 this.aiEnabledOverride = value
+            }
+        },
+        agentAutoDeploy: {
+            get () {
+                if (this.agentAutoDeployOverride !== null) {
+                    return this.agentAutoDeployOverride
+                }
+                return !!getTeamProperty(this.team, 'features.agentAutoDeploy', false)
+            },
+            set (value) {
+                this.agentAutoDeployOverride = value
             }
         }
     },
@@ -174,6 +197,29 @@ export default {
                 })
             }, () => {
                 this.aiEnabledOverride = null
+            })
+        },
+        showConfirmAgentAutoDeployToggleDialog () {
+            const enabling = this.agentAutoDeploy
+            Dialog.show({
+                header: enabling ? 'Enable Agent Initiated Deploy' : 'Disable Agent Initiated Deploy',
+                kind: enabling ? 'danger' : 'primary',
+                text: enabling
+                    ? 'Are you sure you want to allow AI agents to deploy flow changes they make on this team\'s instances, without a person clicking Deploy?'
+                    : 'Are you sure you want to prevent AI agents from deploying flow changes automatically? Changes they make will still need to be deployed manually.',
+                confirmLabel: enabling ? 'Enable' : 'Disable'
+            }, () => {
+                teamApi.updateTeam(this.team.id, { features: { agentAutoDeploy: enabling } }).then(() => {
+                    alerts.emit(`Agent initiated deploy ${enabling ? 'enabled' : 'disabled'}`, 'confirmation')
+                    this.agentAutoDeployOverride = null
+                    useContextStore().refreshTeam()
+                }).catch(err => {
+                    alerts.emit('Problem updating agent initiated deploy settings', 'warning')
+                    this.agentAutoDeployOverride = null
+                    console.warn(err)
+                })
+            }, () => {
+                this.agentAutoDeployOverride = null
             })
         }
     }
