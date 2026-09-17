@@ -148,7 +148,12 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const isAiEnabled = !!(app.config.features.enabled('ai') && request.team?.getFeatureProperty('ai', true))
-        const autoDeploy = isAiEnabled && !!request.team?.getFeatureProperty('agentAutoDeploy', false)
+        // agentAutoDeploy authorises unattended deploys, so it must be an explicit team-level
+        // opt-in - read the team's own override directly rather than through
+        // Team.getFeatureProperty, which falls back to TeamType.getFeatureProperty and would
+        // return true for every team on any TeamType bootstrapped with enableAllFeatures (the
+        // platform default), regardless of whether anyone actually opted in.
+        const autoDeploy = isAiEnabled && request.team?.properties?.features?.agentAutoDeploy === true
         reply.send({ autoDeploy })
     })
     /**

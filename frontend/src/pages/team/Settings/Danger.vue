@@ -119,7 +119,7 @@ export default {
                 if (this.aiEnabledOverride !== null) {
                     return this.aiEnabledOverride
                 }
-                return this.team?.type?.properties?.features?.ai !== false
+                return getTeamProperty(this.team, 'features.ai', true) !== false
             },
             set (value) {
                 this.aiEnabledOverride = value
