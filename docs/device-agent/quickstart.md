@@ -99,7 +99,7 @@ From there you can start building your applications.
 There are two approaches to deploying flows to your Remote Instances.
 
 - **Developer Mode**: This mode allows you to edit and deploy flows directly from the FlowFuse platform.
-- **DevOps Pipelines**: FlowFuse provides [DevOps Pipelines](/docs/user/devops-pipelines.md) as a way of pushing flows from one Hosted Instance/Remote Instance to another (or several in the case of [Device Groups](/docs/user/device-groups.md)). This is the recommended approach if you're pushing from development environments (e.g. remote test instances) out to remote production instances.
+- **DevOps Pipelines**: FlowFuse provides [DevOps Pipelines](/docs/user/devops-pipelines/) as a way of pushing flows from one Hosted Instance/Remote Instance to another (or several in the case of [Device Groups](/docs/user/device-groups/)). This is the recommended approach if you're pushing from development environments (e.g. remote test instances) out to remote production instances.
 
 ### Developer Mode
 
@@ -126,7 +126,7 @@ There are two approaches to deploying flows to your Remote Instances.
 ![Screenshot showing the user interface for creating and running DevOps Pipelines in FlowFuse](./images/ui-devops-pipelines.png){width=750}{data-zoomable}
 _Screenshot showing the user interface for creating and running DevOps Pipelines in FlowFuse_
 
-To work with Pipelines, you need at least one other Hosted Instance or Remote Device to push _from_/_to_. You can follow the instructions on setting up a Pipeline and deploying your flows between Hosted Instances/Remote Instances [DevOps Pipelines](/docs/user/devops-pipelines.md).
+To work with Pipelines, you need at least one other Hosted Instance or Remote Device to push _from_/_to_. You can follow the instructions on setting up a Pipeline and deploying your flows between Hosted Instances/Remote Instances [DevOps Pipelines](/docs/user/devops-pipelines/).
 
 ## Next Steps
 

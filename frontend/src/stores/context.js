@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 
 import { hasAMinimumTeamRoleOf } from '../composables/Permissions.js'
+import { getTeamProperty } from '../composables/TeamProperties.js'
 import product from '../services/product.js'
 import { Roles } from '../utils/roles.js'
 
@@ -10,6 +11,7 @@ import { useDataFarmApplicationsStore } from './data-farm-applications'
 import { useDataFarmTeamsStore } from './data-farm-teams'
 import { useProductAssistantStore } from './product-assistant.js'
 import { useProductExpertStore } from './product-expert.js'
+import { useUxStore } from './ux.js'
 
 import { useMqttExpertTopicHelper } from '@/composables/services/MqttExpertTopicHelper'
 
@@ -41,6 +43,12 @@ export const useContextStore = defineStore('context', {
         isTrialAccountExpired () {
             return this.isTrialAccount && this.team?.billing?.trialEnded
         },
+        trialRuntimesLimit () {
+            if (!this.isTrialAccount || !this.team) {
+                return null
+            }
+            return getTeamProperty(this.team, 'trial.runtimesLimit') ?? null
+        },
         editorEntityType (state) {
             const name = state.route?.name
             if (name?.startsWith('instance-editor')) return 'instance'
@@ -49,6 +57,28 @@ export const useContextStore = defineStore('context', {
         },
         isImmersiveEditor () {
             return this.editorEntityType !== null
+        },
+        // Whether the loaded entity matches the route, so presence never publishes a stale one.
+        isExpertContextReady (state) {
+            const route = state.route
+            if (!route) {
+                return false
+            }
+
+            const editorType = this.editorEntityType
+            if (editorType === 'instance') {
+                return state.instance?.id === route.params.id
+            }
+            if (editorType === 'device') {
+                return state.device?.id === route.params.id
+            }
+
+            const { entityType, entityId } = useMqttExpertTopicHelper().getEntityTopicPaths()
+            // The team is the steady state for team and global pages; any deeper entity must belong to this route.
+            if (entityType === 't') {
+                return !!this.team?.id
+            }
+            return Object.values(route.params).flat().includes(entityId)
         },
         expert (state) {
             const authStore = useAccountAuthStore()
@@ -73,13 +103,16 @@ export const useContextStore = defineStore('context', {
                     applicationId: null,
                     deviceOwnerType: null,
                     isTrialAccount: this.isTrialAccount,
+                    trialRuntimesLimit: this.trialRuntimesLimit,
                     nodeRedVersion: assistantStore.nodeRedVersion,
                     pageName: null,
                     rawRoute: {},
                     selectedNodes: null,
                     scope: this.isImmersive ? 'immersive' : 'ff-app',
                     questionCadence: useProductExpertStore().questionCadence,
-                    planMode: useProductExpertStore().planMode
+                    planMode: useProductExpertStore().planMode,
+                    onboarding: useUxStore().isOnboarding,
+                    onboardingStage: useUxStore().onboardingStage
                 }
             }
 
@@ -114,6 +147,7 @@ export const useContextStore = defineStore('context', {
                 applicationId: this.application ? this.application.id : null,
                 deviceOwnerType: state.device?.ownerType ?? null,
                 isTrialAccount: this.isTrialAccount,
+                trialRuntimesLimit: this.trialRuntimesLimit,
                 pageName: state.route.name,
                 nodeRedVersion: assistantStore.nodeRedVersion,
                 rawRoute,
@@ -123,6 +157,8 @@ export const useContextStore = defineStore('context', {
                 supportsPlatformUIAutomation: useAccountSettingsStore().featuresCheck?.isExpertPlatformAutomationFeatureEnabled ?? false,
                 questionCadence: useProductExpertStore().questionCadence,
                 planMode: useProductExpertStore().planMode,
+                onboarding: useUxStore().isOnboarding,
+                onboardingStage: useUxStore().onboardingStage,
                 // Capability flags: signal that this version can render the question,
                 // plan, and approval cards. Older instances omit them and the agent drops
                 // the matching tool / runs in backward-compatible mode.

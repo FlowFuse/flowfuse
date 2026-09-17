@@ -355,6 +355,73 @@ describe('context store', () => {
             })
         })
 
+        describe('isExpertContextReady', () => {
+            it('returns false when there is no route', () => {
+                const store = useContextStore()
+                expect(store.isExpertContextReady).toBe(false)
+            })
+
+            describe('immersive editors', () => {
+                it('is not ready while the instance the route addresses has not loaded', () => {
+                    const store = useContextStore()
+                    store.updateRoute({ name: 'instance-editor-overview', params: { id: 'inst-1' } })
+                    expect(store.isExpertContextReady).toBe(false)
+                })
+
+                it('is not ready while a stale instance from the previous page is still loaded', () => {
+                    const store = useContextStore()
+                    store.setInstance({ id: 'inst-0' })
+                    store.updateRoute({ name: 'instance-editor-overview', params: { id: 'inst-1' } })
+                    expect(store.isExpertContextReady).toBe(false)
+                })
+
+                it('is ready once the loaded instance matches the route', () => {
+                    const store = useContextStore()
+                    store.updateRoute({ name: 'instance-editor-overview', params: { id: 'inst-1' } })
+                    store.setInstance({ id: 'inst-1' })
+                    expect(store.isExpertContextReady).toBe(true)
+                })
+
+                it('is ready once the loaded device matches a device editor route', () => {
+                    const store = useContextStore()
+                    store.updateRoute({ name: 'device-editor-overview', params: { id: 'dev-1' } })
+                    store.setDevice({ id: 'dev-1' })
+                    expect(store.isExpertContextReady).toBe(true)
+                })
+            })
+
+            describe('non-editor routes', () => {
+                it('is not ready on a team page before the team loads', () => {
+                    const store = useContextStore()
+                    store.updateRoute({ name: 'team-brokers', params: { team_slug: 'alpha' } })
+                    expect(store.isExpertContextReady).toBe(false)
+                })
+
+                it('is ready on a team page once the team is present', () => {
+                    const store = useContextStore()
+                    store.setTeam({ id: 'team-1' })
+                    store.updateRoute({ name: 'team-brokers', params: { team_slug: 'alpha' } })
+                    expect(store.isExpertContextReady).toBe(true)
+                })
+
+                it('is not ready while a stale entity from the previous page is still loaded', () => {
+                    const store = useContextStore()
+                    store.setTeam({ id: 'team-1' })
+                    store.setInstance({ id: 'inst-0' })
+                    store.updateRoute({ name: 'instance-overview', params: { id: 'inst-1' } })
+                    expect(store.isExpertContextReady).toBe(false)
+                })
+
+                it('is ready once the loaded entity belongs to the route', () => {
+                    const store = useContextStore()
+                    store.setTeam({ id: 'team-1' })
+                    store.updateRoute({ name: 'instance-overview', params: { id: 'inst-1' } })
+                    store.setInstance({ id: 'inst-1' })
+                    expect(store.isExpertContextReady).toBe(true)
+                })
+            })
+        })
+
         describe('expert getter', () => {
             it('returns safe defaults if route is null', () => {
                 const store = useContextStore()
@@ -362,6 +429,28 @@ describe('context store', () => {
                 expect(expert).toHaveProperty('assistantVersion')
                 expect(expert).toHaveProperty('palette')
                 expect(expert.scope).toBe('ff-app')
+            })
+
+            // Both branches build the object separately, so a field added to one
+            // and not the other goes missing depending on load timing
+            it('carries the onboarding flag on both the early-return and main paths', async () => {
+                const { useUxStore } = await import('@/stores/ux.js')
+                const store = useContextStore()
+                const uxStore = useUxStore()
+
+                expect(store.route).toBe(null)
+                expect(store.expert.onboarding).toBe(false)
+
+                uxStore.setNewlyCreatedUser()
+                expect(store.expert.onboarding).toBe(true)
+
+                store.setTeamMembership({ role: 30 })
+                store.updateRoute({ name: 'team', fullPath: '/team/a', params: {} })
+                expect(store.route).not.toBe(null)
+                expect(store.expert.onboarding).toBe(true)
+
+                uxStore.endOnboarding()
+                expect(store.expert.onboarding).toBe(false)
             })
 
             it('includes teamId and teamSlug from context team', () => {

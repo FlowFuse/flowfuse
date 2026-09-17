@@ -610,7 +610,7 @@ module.exports = async function (app) {
             }
             const existingToken = await app.db.models.AccessToken.byRefreshToken(refresh_token)
             if (!existingToken) {
-                badRequest(reply, 'invalid_request', 'Invalid refresh_token')
+                badRequest(reply, 'invalid_grant', 'Invalid refresh_token')
                 return
             }
             // Only project/device clients re-check resource ownership on refresh;
@@ -654,7 +654,7 @@ module.exports = async function (app) {
             }
             const accessToken = await app.db.controllers.AccessToken.refreshToken(refresh_token)
             if (!accessToken) {
-                badRequest(reply, 'invalid_request', 'Invalid refresh_token')
+                badRequest(reply, 'invalid_grant', 'Invalid refresh_token')
                 return
             }
 

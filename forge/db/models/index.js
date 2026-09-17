@@ -55,6 +55,7 @@ const modelTypes = [
     'PlatformSettings',
     'Organization',
     'User',
+    'UserSettings',
     'TeamType',
     'Team',
     'TeamMember',
