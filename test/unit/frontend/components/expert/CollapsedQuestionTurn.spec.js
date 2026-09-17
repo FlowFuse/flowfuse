@@ -13,7 +13,7 @@ vi.mock('@/stores/product-expert.js', () => ({
 // The real message components pull in the full expert tree; the fold only
 // needs placeholders it can expand into.
 vi.mock('@/components/expert/components/messages/AiMessage.vue', () => ({
-    default: { name: 'AiMessage', template: '<div data-stub="ai-message" />' }
+    default: { name: 'AiMessage', props: ['answer'], template: '<div data-stub="ai-message" />' }
 }))
 vi.mock('@/components/expert/components/messages/HumanMessage.vue', () => ({
     default: { name: 'HumanMessage', template: '<div data-stub="human-message" />' }
@@ -105,6 +105,15 @@ describe('CollapsedQuestionTurn', () => {
 
         await chips[0].trigger('click')
         expect(mocks.expertStore.setPendingInput).toHaveBeenCalledWith('typed by hand')
+    })
+
+    test('keeps the turn prose visible while folded, questions stripped', () => {
+        const turn = answeredTurn()
+        turn.questionsMessage.answer = [{ kind: 'questions', content: 'Hello!', questions: [{ question: 'Q1?', options: [] }] }]
+        const wrapper = mountTurn(turn)
+        const prose = wrapper.findComponent({ name: 'AiMessage' })
+        expect(prose.exists()).toBe(true)
+        expect(prose.props('answer')).toEqual([{ kind: 'questions', content: 'Hello!', questions: undefined }])
     })
 
     test('expands to the original messages and folds back', async () => {

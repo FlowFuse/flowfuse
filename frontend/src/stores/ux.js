@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 
+import userApi from '@/api/user.js'
+
 // Where a user is in the AI-led onboarding process.
 //   null       undecided, nothing has resolved it yet
 //   'intake'   in the onboarding conversation, on the onboarding page
@@ -51,6 +53,15 @@ export const useUxStore = defineStore('ux', {
             const oneWeekAgo = new Date()
             oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
             this.isNewlyCreatedUser = userCreatedDate >= oneWeekAgo.getTime()
+            // The server is authoritative once onboarding has been completed
+            // or skipped, so a session that never persisted the stage locally
+            // (a new browser, or one that lost it on logout) is not sent back
+            // into the funnel.
+            if (user.settings?.onboardingCompleted) {
+                this.onboardingStage = ONBOARDING_STAGES.DONE
+                this.shouldEnterOnboarding = false
+                return
+            }
             // Only seeds while undecided. isNewlyCreatedUser is recomputed on
             // every boot for a week, so seeding unconditionally would restart
             // onboarding for anyone who had already finished or skipped it.
@@ -77,6 +88,9 @@ export const useUxStore = defineStore('ux', {
         endOnboarding () {
             this.onboardingStage = ONBOARDING_STAGES.DONE
             this.shouldEnterOnboarding = false
+            // Persisted so a later login, on any browser, does not re-enter
+            // the funnel. Best-effort: the local stage is already updated.
+            userApi.updateUserSettings({ onboardingCompleted: true }).catch(() => {})
         },
         openOverlay () { this.overlay = true },
         closeOverlay () { this.overlay = false }

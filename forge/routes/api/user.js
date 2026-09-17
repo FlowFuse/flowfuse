@@ -2,6 +2,8 @@ const sharedUser = require('./shared/users')
 const UserInvitations = require('./userInvitations')
 const UserNotifications = require('./userNotifications')
 
+const KEY_ONBOARDING_COMPLETED = 'onboardingCompleted'
+
 /**
  * User api routes
  *
@@ -41,12 +43,45 @@ module.exports = async function (app) {
         if (app.license.active() && app.billing && app.db.controllers.Subscription.freeTrialCreditEnabled()) {
             response.free_trial_available = await app.db.controllers.Subscription.userEligibleForFreeTrialCredit(user)
         }
+        response.settings = await user.getAllSettings()
         const allowTeam = app.patTeamScopeFilter(request)
         if (allowTeam && response.defaultTeam && !allowTeam(response.defaultTeam)) {
             delete response.defaultTeam
         }
 
         reply.send(response)
+    })
+
+    /**
+     * Update the current user's settings. The body schema is the allow-list
+     * of what a user may set about themselves; anything else is stripped.
+     * /api/v1/user/settings
+     */
+    app.put('/settings', {
+        preHandler: app.needsPermission('user:edit'),
+        schema: {
+            summary: 'Update the current user\'s settings',
+            tags: ['User'],
+            body: {
+                type: 'object',
+                properties: {
+                    [KEY_ONBOARDING_COMPLETED]: { type: 'boolean' }
+                },
+                additionalProperties: false
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    additionalProperties: true
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        await request.session.User.updateSettings(request.body)
+        reply.send(await request.session.User.getAllSettings())
     })
 
     /**

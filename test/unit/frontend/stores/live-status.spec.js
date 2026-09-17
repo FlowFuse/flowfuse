@@ -22,6 +22,29 @@ describe('live-status store', () => {
             expect(store.instanceMetadata['inst-1']).toEqual({ status: 'running', versions: undefined })
         })
 
+        it('reports the transition into running for a previously unknown instance', () => {
+            const store = useLiveStatusStore()
+            expect(store.setInstanceStatus('inst-1', 'running')).toBe(true)
+        })
+
+        it('reports no transition when the instance was already running', () => {
+            const store = useLiveStatusStore()
+            store.setInstanceStatus('inst-1', 'running')
+            expect(store.setInstanceStatus('inst-1', 'running')).toBe(false)
+        })
+
+        it('reports no transition for a non-running state', () => {
+            const store = useLiveStatusStore()
+            expect(store.setInstanceStatus('inst-1', 'starting')).toBe(false)
+        })
+
+        it('reports a transition again after the instance leaves and re-enters running', () => {
+            const store = useLiveStatusStore()
+            store.setInstanceStatus('inst-1', 'running')
+            store.setInstanceStatus('inst-1', 'restarting')
+            expect(store.setInstanceStatus('inst-1', 'running')).toBe(true)
+        })
+
         it('records versions alongside the status when provided', () => {
             const store = useLiveStatusStore()
             store.setInstanceStatus('inst-1', 'running', { 'node-red': '5.0.0', launcher: '2.31.3' })
