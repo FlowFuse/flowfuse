@@ -635,7 +635,7 @@ module.exports = async function (app) {
                 // window and replay detection; other clients re-check ownership here.
                 const existingToken = await app.db.models.AccessToken.byRefreshToken(refresh_token)
                 if (!existingToken) {
-                    badRequest(reply, 'invalid_request', 'Invalid refresh_token')
+                    badRequest(reply, 'invalid_grant', 'Invalid refresh_token')
                     return
                 }
                 // Check the owner of the existing session still has access to the project
@@ -676,7 +676,7 @@ module.exports = async function (app) {
                         grant: accessToken.grantId
                     })
                 }
-                badRequest(reply, 'invalid_request', 'Invalid refresh_token')
+                badRequest(reply, 'invalid_grant', 'Invalid refresh_token')
                 return
             }
 

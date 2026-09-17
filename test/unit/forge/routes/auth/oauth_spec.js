@@ -557,6 +557,17 @@ describe('OAuth', async function () {
             afterReset.should.not.equal(429)
         })
 
+        it('returns invalid_grant for an unknown refresh_token', async function () {
+            const reg = (await register()).json()
+            const response = await mcpApp.inject({
+                method: 'POST',
+                url: '/account/token',
+                payload: { grant_type: 'refresh_token', client_id: reg.client_id, refresh_token: 'ffp_not-a-real-token' }
+            })
+            response.should.have.property('statusCode', 400)
+            response.json().should.have.property('error', 'invalid_grant')
+        })
+
         describe('consent expiry validation', function () {
             // Start an authorize flow and return the consent request id
             async function startConsent () {
