@@ -174,6 +174,9 @@ function buildInitialEditorState () {
 export const useProductAssistantStore = defineStore('product-assistant', {
     state: () => ({
         version: null,
+        // Bumped on every handled 'assistant-ready', even when the version string is
+        // unchanged, so a caller can tell a fresh signal from a stale leftover version.
+        readyGeneration: 0,
         supportedActions: {},
         assistantFeatures: {},
         palette: {},
@@ -434,6 +437,7 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             switch (true) {
             case payload.data.type === 'assistant-ready':
                 this.version = payload.data.version
+                this.readyGeneration++
                 this.palette = payload.data.palette ?? {}
                 this.assistantFeatures = payload.data.features
                 this.nodeRedVersion = payload.data.nodeRedVersion
