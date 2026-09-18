@@ -1,5 +1,7 @@
 const { randomUUID } = require('node:crypto')
 
+const { toTopicSafeSessionId } = require('../../../comms/utils/mcpSessionId')
+
 // Maps mcpSessionId to the third-party caller's PAT, consumed by the comms layer.
 const MCP_SESSION_TOKEN_CACHE = 'mcp-session-token'
 const MCP_SESSION_TOKEN_CACHE_TTL = 1000 * 60 * 60 // 1 hour
@@ -86,7 +88,7 @@ module.exports = async function (app) {
         }
 
         const mcpSessionId = request.headers['mcp-session-id'] ||
-            mcpBody.params?._meta?.['openai/session'] ||
+            toTopicSafeSessionId(mcpBody.params?._meta?.['openai/session']) ||
             randomUUID()
         const authHeader = request.headers.authorization || ''
         const token = authHeader.startsWith('Bearer ') ? authHeader.slice('Bearer '.length) : null
