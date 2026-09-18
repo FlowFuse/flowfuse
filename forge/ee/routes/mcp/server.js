@@ -85,7 +85,16 @@ module.exports = async function (app) {
             }
         }
 
-        const mcpSessionId = request.headers['mcp-session-id'] || randomUUID()
+        // OpenAI's clients do not return the Mcp-Session-Id we hand them, so each request
+        // would otherwise present as a new session and anything keyed on it - a pinned
+        // browser tab - would be unreachable by the very next call. They do send a
+        // per-conversation id in _meta, which is the scope a pinned tab wants anyway.
+        // Trusting an unauthenticated value here is safe because every key built from it is
+        // already scoped by the PAT's user, so a forged one can only collide with that same
+        // caller's own state. Interim measure; see #8558 for the explicit-handle migration.
+        const mcpSessionId = request.headers['mcp-session-id'] ||
+            mcpBody.params?._meta?.['openai/session'] ||
+            randomUUID()
         const authHeader = request.headers.authorization || ''
         const token = authHeader.startsWith('Bearer ') ? authHeader.slice('Bearer '.length) : null
         if (token) {

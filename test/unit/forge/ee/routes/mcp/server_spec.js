@@ -134,6 +134,82 @@ describe('MCP Platform Tools Server', function () {
                 proxyRequest.firstCall.args[0].mcpSessionId.should.equal('session-abc')
             })
 
+            // OpenAI's clients do not return the Mcp-Session-Id we hand them, so every
+            // request would otherwise look like a new session. They do send a per-conversation
+            // id in _meta, which is the scope a pinned tab actually wants.
+            it('should fall back to the openai/session meta when no header is supplied', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    headers: {
+                        authorization: `Bearer ${TestObjects.alicePAT.token}`
+                    },
+                    payload: {
+                        jsonrpc: '2.0',
+                        method: 'tools/call',
+                        id: 1,
+                        params: { name: 'a-tool', _meta: { 'openai/session': 'conv-xyz' } }
+                    }
+                })
+                response.statusCode.should.equal(200)
+                response.headers['mcp-session-id'].should.equal('conv-xyz')
+                proxyRequest.firstCall.args[0].mcpSessionId.should.equal('conv-xyz')
+            })
+
+            it('should keep the same session id across calls in one openai conversation', async function () {
+                const call = async () => app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    headers: { authorization: `Bearer ${TestObjects.alicePAT.token}` },
+                    payload: {
+                        jsonrpc: '2.0',
+                        method: 'tools/call',
+                        id: 1,
+                        params: { name: 'a-tool', _meta: { 'openai/session': 'conv-stable' } }
+                    }
+                })
+                await call()
+                await call()
+                const first = proxyRequest.firstCall.args[0].mcpSessionId
+                const second = proxyRequest.secondCall.args[0].mcpSessionId
+                first.should.equal('conv-stable')
+                second.should.equal(first)
+            })
+
+            it('should prefer an explicit mcp-session-id over the openai/session meta', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    headers: {
+                        authorization: `Bearer ${TestObjects.alicePAT.token}`,
+                        'mcp-session-id': 'session-abc'
+                    },
+                    payload: {
+                        jsonrpc: '2.0',
+                        method: 'tools/call',
+                        id: 1,
+                        params: { name: 'a-tool', _meta: { 'openai/session': 'conv-xyz' } }
+                    }
+                })
+                response.statusCode.should.equal(200)
+                proxyRequest.firstCall.args[0].mcpSessionId.should.equal('session-abc')
+            })
+
+            it('should still mint a session id when neither is supplied', async function () {
+                const call = async () => app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    headers: { authorization: `Bearer ${TestObjects.alicePAT.token}` },
+                    payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+                })
+                await call()
+                await call()
+                const first = proxyRequest.firstCall.args[0].mcpSessionId
+                const second = proxyRequest.secondCall.args[0].mcpSessionId
+                first.should.be.a.String().and.not.be.empty()
+                second.should.not.equal(first)
+            })
+
             it('should pass the pinned browser session and its team as user properties', async function () {
                 await app.db.controllers.BrowserSession.recordPresence(app.user.hashid, 'tab-1', {
                     visibility: 'visible',
