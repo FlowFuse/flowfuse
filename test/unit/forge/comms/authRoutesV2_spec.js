@@ -1880,6 +1880,22 @@ describe('Broker Auth v2 API', async function () {
                     topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${TestObjects.alice.hashid}/short/request`
                 })
             })
+            it('denies an mcp request with a wildcard character in the session id', async function () {
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${TestObjects.alice.hashid}/sess+ion12345/request`
+                })
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${TestObjects.alice.hashid}/sess#ion12345/request`
+                })
+            })
+            it('allows an mcp request with a hashed session id', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${TestObjects.alice.hashid}/${'a1b2c3d4'.repeat(8)}/request`
+                })
+            })
             it('denies an mcp request for an unknown user', async function () {
                 await denyWrite({
                     username: 'forge_platform',

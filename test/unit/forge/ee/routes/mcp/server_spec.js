@@ -176,6 +176,44 @@ describe('MCP Platform Tools Server', function () {
                 second.should.equal(first)
             })
 
+            it('should make an openai/session carrying a separator safe for the topic', async function () {
+                const openaiSession = 'v1/3bjqKQlGRjpIMC9JfN8ZOLOI6XvwTstDuqZYmPAjNvBd9ZNRmU3NmyD4iT8CSJsVbFrSDHk0sSgz'
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    headers: { authorization: `Bearer ${TestObjects.alicePAT.token}` },
+                    payload: {
+                        jsonrpc: '2.0',
+                        method: 'tools/call',
+                        id: 1,
+                        params: { name: 'a-tool', _meta: { 'openai/session': openaiSession } }
+                    }
+                })
+                response.statusCode.should.equal(200)
+                const routed = proxyRequest.firstCall.args[0].mcpSessionId
+                routed.should.not.containEql('/')
+                routed.should.match(/^[A-Za-z0-9_-]{8,128}$/)
+                response.headers['mcp-session-id'].should.equal(routed)
+            })
+
+            it('should route the same openai/session to the same topic id every time', async function () {
+                const call = async () => app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    headers: { authorization: `Bearer ${TestObjects.alicePAT.token}` },
+                    payload: {
+                        jsonrpc: '2.0',
+                        method: 'tools/call',
+                        id: 1,
+                        params: { name: 'a-tool', _meta: { 'openai/session': 'v1/stable-token' } }
+                    }
+                })
+                await call()
+                await call()
+                proxyRequest.secondCall.args[0].mcpSessionId
+                    .should.equal(proxyRequest.firstCall.args[0].mcpSessionId)
+            })
+
             it('should prefer an explicit mcp-session-id over the openai/session meta', async function () {
                 const response = await app.inject({
                     method: 'POST',
