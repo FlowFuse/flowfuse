@@ -205,8 +205,8 @@ export default {
                 header: enabling ? 'Enable AI Flow Deploy' : 'Disable AI Flow Deploy',
                 kind: enabling ? 'danger' : 'primary',
                 text: enabling
-                    ? 'Are you sure you want to allow AI agents to deploy flow changes they make on this team\'s instances, without a person clicking Deploy?'
-                    : 'Are you sure you want to prevent AI agents from deploying flow changes automatically? Changes they make will still need to be deployed manually.',
+                    ? 'Are you sure you want to allow AI agents to deploy flows on this team\'s instances?'
+                    : 'Are you sure you want to disable AI agents deploying flow changes automatically?',
                 confirmLabel: enabling ? 'Enable' : 'Disable'
             }, () => {
                 teamApi.updateTeam(this.team.id, { features: { agentAutoDeploy: enabling } }).then(() => {
