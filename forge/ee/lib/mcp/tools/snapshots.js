@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { basePaginationKeys, limitParam, appendQuery, hostedInstanceId, snapshotId } = require('../schemas')
+const { basePaginationKeys, limitParam, appendQuery, hostedInstanceId, snapshotId, snapshotComponents, toolError } = require('../schemas')
 const { blankHiddenEnvValues } = require('../utils')
 
 module.exports = [
@@ -104,8 +104,7 @@ module.exports = [
         title: 'Update Snapshot',
         description: `FlowFuse platform automation tool:
             Updates a snapshot's name and/or description. Works for snapshots owned by a hosted instance or a remote instance (device); the owner is resolved automatically from the snapshot.
-            This is a partial update: only the fields you pass are changed, omitted fields keep their stored value.
-            name, when passed, must be a non-empty string - the route rejects an empty name. Pass an empty string as description to clear it.`,
+            This is a partial update: only the fields you pass are changed, omitted fields keep their stored value. Pass at least one of name or description.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             snapshotId,
@@ -113,12 +112,24 @@ module.exports = [
             description: z.string().optional().describe('New description for the snapshot. Pass an empty string to clear it; omit to keep the current description')
         },
         handler: async (args, { inject }) => {
+            // Tool input is not validated platform-side, so the schema's own
+            // constraints are advisory. The controller throws a sequelize
+            // ValidationError for a blank name and nothing maps that to a status,
+            // so an empty name would surface as a 500 rather than a usable error.
+            if (args.name !== undefined && args.name.trim() === '') {
+                return toolError(400, 'invalid_request', 'name must be a non-empty string; omit it to keep the current name')
+            }
             const payload = {}
             if (args.name !== undefined) {
                 payload.name = args.name
             }
             if (args.description !== undefined) {
                 payload.description = args.description
+            }
+            // The route replies 200 with the unchanged snapshot when there is
+            // nothing to update, which reads as a successful edit that never happened.
+            if (Object.keys(payload).length === 0) {
+                return toolError(400, 'invalid_request', 'Pass at least one of name or description to update')
             }
             const response = await inject({ method: 'PUT', url: `/api/v1/snapshots/${args.snapshotId}`, payload })
             return response
@@ -136,11 +147,7 @@ module.exports = [
         inputSchema: {
             snapshotId,
             credentialSecret: z.string().describe('Secret used to re-encrypt the exported credentials. Required on every export; the same secret is needed to import the result'),
-            components: z.object({
-                flows: z.boolean().optional().describe('Include flows in the export (default true). Excluding flows also excludes credentials'),
-                credentials: z.boolean().optional().describe('Include the encrypted flow credentials (default true)'),
-                envVars: z.union([z.enum(['all', 'keys']), z.literal(false)]).optional().describe('Environment variables to include: "all" keeps keys and values (default, exposes hidden values), "keys" keeps only the names, false removes them entirely')
-            }).optional().describe('Optional selection of which snapshot components to include in the export')
+            components: snapshotComponents
         },
         handler: async (args, { inject }) => {
             const payload = { credentialSecret: args.credentialSecret }
@@ -157,8 +164,9 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Imports a previously exported snapshot into a hosted instance or a remote instance (device), creating a new snapshot owned by that target. The response is the new snapshot's metadata; importing does not deploy it.
             ownerId must match ownerType: pass the hosted instance UUID with ownerType "instance", or the device hashid with ownerType "device".
-            credentialSecret is required when the snapshot contains encrypted material: flow credentials (a flows.credentials object with a "$" property, unless excluded via components) or hidden environment variable values (env entries carrying a "$" property, unless env vars are excluded entirely with envVars: false). It must be the same secret used at export. A wrong secret is only detected through flow credentials (400 "Invalid credential secret"); when no flow credentials are imported, a wrong secret cannot be detected and hidden env values import as corrupted data, so double-check the secret first. Credentials can only be imported in encrypted form.
-            Use components to import selectively, for example envVars: "keys" to import env var names without their values.`,
+            credentialSecret is required when the snapshot contains encrypted material: flow credentials (a flows.credentials object with a "$" property, unless excluded via components) or hidden environment variable values (env entries carrying a "$" property, unless env vars are dropped with envVars: false or reduced to their names with envVars: "keys"). It must be the same secret used at export. A wrong secret is only detected through flow credentials (400 "Invalid credential secret"); when no flow credentials are imported, a wrong secret cannot be detected and hidden env values import as corrupted data, so double-check the secret first. Credentials can only be imported in encrypted form.
+            Use components to import selectively, for example envVars: "keys" to import env var names without their values.
+            Copy only name, description, flows and settings out of an export; the other fields it carries (id, timestamps, ownerType, user, exportedBy) are not part of this tool's snapshot argument.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             ownerId: z.string().describe('Target owner id: hosted instance (project) UUID when ownerType is "instance", or device hashid when ownerType is "device"'),
@@ -177,11 +185,7 @@ module.exports = [
                 }).describe('Settings payload')
             }).describe('The snapshot content to import, typically the result of platform_export_snapshot'),
             credentialSecret: z.string().optional().describe('Secret to decrypt the snapshot: the secret used when the snapshot was exported. Required when the snapshot contains encrypted flow credentials or hidden env values'),
-            components: z.object({
-                flows: z.boolean().optional().describe('Import flows (default true). Excluding flows also excludes credentials'),
-                credentials: z.boolean().optional().describe('Import the flow credentials (default true)'),
-                envVars: z.union([z.enum(['all', 'keys']), z.literal(false)]).optional().describe('Environment variables to import: "all" keeps keys and values (default), "keys" keeps only the names, false skips them')
-            }).optional().describe('Optional selection of which snapshot components to import')
+            components: snapshotComponents
         },
         handler: async (args, { inject }) => {
             // The import route errors when settings.env is missing entirely, so
@@ -191,6 +195,14 @@ module.exports = [
             const snapshot = { ...args.snapshot, settings: { ...args.snapshot?.settings } }
             if (!snapshot.settings.env || args.components?.envVars === false) {
                 snapshot.settings.env = {}
+            } else if (args.components?.envVars === 'keys') {
+                // Same story for a keys-only import: the route keeps the names and
+                // discards every value, but decrypts the hidden ones first. Reducing
+                // to the names here produces the identical result without a secret.
+                snapshot.settings.env = Object.keys(snapshot.settings.env).reduce((acc, key) => {
+                    acc[key] = ''
+                    return acc
+                }, {})
             }
             // The route only guards flow credentials before decrypting; a missing
             // secret with encrypted hidden env values surfaces as a 500, so reject
@@ -198,7 +210,7 @@ module.exports = [
             const hasEncryptedEnv = Object.values(snapshot.settings.env).some(env => env && typeof env === 'object' && env.hidden && env.$)
             const hasEncryptedCredentials = args.components?.credentials !== false && !!snapshot.flows?.credentials?.$
             if ((hasEncryptedEnv || hasEncryptedCredentials) && !args.credentialSecret) {
-                return { statusCode: 400, json: () => ({ code: 'invalid_request', error: 'credentialSecret is required: the snapshot contains encrypted flow credentials or hidden environment variable values' }) }
+                return toolError(400, 'invalid_request', 'credentialSecret is required: the snapshot contains encrypted flow credentials or hidden environment variable values')
             }
             const payload = { ownerId: args.ownerId, ownerType: args.ownerType, snapshot }
             if (args.credentialSecret !== undefined) {
@@ -219,7 +231,9 @@ module.exports = [
             CAUTION: this takes effect immediately - every device assigned to the instance is told to deploy the target snapshot as soon as it is set. Confirm with the user before calling this.
             The snapshot must belong to the given hosted instance, otherwise the route rejects it with "invalid_snapshot". This tool can only set a target, not clear one.
             Use platform_get_hosted_instance_device_target_snapshot to see the current target, and platform_list_instance_snapshots to find a snapshot id.`,
-        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        // destructiveHint: this overwrites what every assigned device is running,
+        // rather than adding to it, so it belongs behind destructive tool access.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             hostedInstanceId,
             snapshotId: snapshotId.describe('The hashid of the snapshot to set as the device target. Must be a snapshot of this hosted instance')

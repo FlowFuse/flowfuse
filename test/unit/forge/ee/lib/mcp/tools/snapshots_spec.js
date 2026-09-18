@@ -211,6 +211,22 @@ describe('MCP Snapshots Tools', function () {
             inject.firstCall.args[0].payload.should.eql({ description: '' })
         })
 
+        it('rejects a blank name without calling the route, which would 500 on it', async function () {
+            const response = await tool.handler({ snapshotId: 'snapshot1', name: '   ' }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
+        it('rejects an update with nothing to change, which the route answers 200 to', async function () {
+            const response = await tool.handler({ snapshotId: 'snapshot1' }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
         it('passes through an error response', async function () {
             const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
             inject.resolves(errorResponse)
@@ -264,10 +280,10 @@ describe('MCP Snapshots Tools', function () {
             inject.withArgs({
                 method: 'POST',
                 url: '/api/v1/snapshots/import',
-                payload: { ownerId: hostedInstanceId, ownerType: 'instance', snapshot, credentialSecret: 's3cret', components: { envVars: 'keys' } }
+                payload: { ownerId: hostedInstanceId, ownerType: 'instance', snapshot, credentialSecret: 's3cret', components: { envVars: 'all' } }
             }).resolves(routeResponse)
 
-            const response = await tool.handler({ ownerId: hostedInstanceId, ownerType: 'instance', snapshot, credentialSecret: 's3cret', components: { envVars: 'keys' } }, { inject })
+            const response = await tool.handler({ ownerId: hostedInstanceId, ownerType: 'instance', snapshot, credentialSecret: 's3cret', components: { envVars: 'all' } }, { inject })
 
             inject.calledOnce.should.be.true()
             response.should.equal(routeResponse)
@@ -297,6 +313,16 @@ describe('MCP Snapshots Tools', function () {
 
             inject.calledOnce.should.be.true()
             inject.firstCall.args[0].payload.snapshot.settings.env.should.eql({})
+        })
+
+        it('reduces env vars to their names when only keys are wanted, so no secret is needed', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ id: 'snapshot2' }) })
+            const encryptedEnv = { name: 'imported', flows: { flows: [] }, settings: { env: { SECRET: { hidden: true, $: 'abc123' }, PLAIN: { value: 'keep' } } } }
+
+            await tool.handler({ ownerId: 'device1', ownerType: 'device', snapshot: encryptedEnv, components: { envVars: 'keys' } }, { inject })
+
+            inject.calledOnce.should.be.true()
+            inject.firstCall.args[0].payload.snapshot.settings.env.should.eql({ SECRET: '', PLAIN: '' })
         })
 
         it('rejects a missing credentialSecret when the snapshot has encrypted hidden env values, since the route 500s', async function () {
