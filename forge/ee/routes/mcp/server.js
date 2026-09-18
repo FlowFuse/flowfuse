@@ -85,7 +85,9 @@ module.exports = async function (app) {
             }
         }
 
-        const mcpSessionId = request.headers['mcp-session-id'] || randomUUID()
+        const mcpSessionId = request.headers['mcp-session-id'] ||
+            mcpBody.params?._meta?.['openai/session'] ||
+            randomUUID()
         const authHeader = request.headers.authorization || ''
         const token = authHeader.startsWith('Bearer ') ? authHeader.slice('Bearer '.length) : null
         if (token) {
