@@ -219,6 +219,18 @@ describe('MCP Snapshots Tools', function () {
             response.json().code.should.equal('invalid_request')
         })
 
+        it('rejects a name longer than the column, which the route 500s on', async function () {
+            const tooLong = 'x'.repeat(256)
+            tool.inputSchema.name.safeParse(tooLong).success.should.be.false()
+            tool.inputSchema.name.safeParse('x'.repeat(255)).success.should.be.true()
+
+            const response = await tool.handler({ snapshotId: 'snapshot1', name: tooLong }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
         it('rejects an update with nothing to change, which the route answers 200 to', async function () {
             const response = await tool.handler({ snapshotId: 'snapshot1' }, { inject })
 

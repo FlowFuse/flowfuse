@@ -3,6 +3,9 @@ const { z } = require('zod')
 const { basePaginationKeys, limitParam, appendQuery, hostedInstanceId, snapshotId, snapshotComponents, toolError } = require('../schemas')
 const { blankHiddenEnvValues } = require('../utils')
 
+// Width of ProjectSnapshot.name, a DataTypes.STRING column.
+const SNAPSHOT_NAME_MAX_LENGTH = 255
+
 // An env var in a snapshot is either a plain value or an object carrying the
 // hidden flag, with "$" holding the encrypted value once it has been exported.
 // Spelling the shape out keeps null and other scalars from reaching the import
@@ -121,7 +124,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             snapshotId,
-            name: z.string().min(1).optional().describe('New name for the snapshot. Must be non-empty when provided; omit to keep the current name'),
+            name: z.string().min(1).max(SNAPSHOT_NAME_MAX_LENGTH).optional().describe(`New name for the snapshot. Must be non-empty and at most ${SNAPSHOT_NAME_MAX_LENGTH} characters when provided; omit to keep the current name`),
             description: z.string().optional().describe('New description for the snapshot. Pass an empty string to clear it; omit to keep the current description')
         },
         handler: async (args, { inject }) => {
@@ -131,6 +134,12 @@ module.exports = [
             // so an empty name would surface as a 500 rather than a usable error.
             if (args.name !== undefined && args.name.trim() === '') {
                 return toolError(400, 'invalid_request', 'name must be a non-empty string; omit it to keep the current name')
+            }
+            // The name column is 255 wide, and an over-long value surfaces as a 500
+            // carrying the raw database error. Note this only bites on postgres:
+            // sqlite ignores the declared width, so it passes there.
+            if (args.name !== undefined && args.name.length > SNAPSHOT_NAME_MAX_LENGTH) {
+                return toolError(400, 'invalid_request', `name must be ${SNAPSHOT_NAME_MAX_LENGTH} characters or fewer`)
             }
             const payload = {}
             if (args.name !== undefined) {
