@@ -6,6 +6,8 @@
  *
  * Other components (ie EE-specific features) can register their own additional ACLs
  */
+const { TOPIC_SAFE_SESSION_ID } = require('./utils/mcpSessionId')
+
 module.exports = function (app) {
     const expertRbacToolCheck = async (teamMembership, toolName, application) => {
         const applicationCheck = typeof application !== 'undefined'
@@ -666,7 +668,7 @@ module.exports = function (app) {
                     if (!acl.allowWildcard?.session) {
                         throw ValidationError('invalid session wildcard')
                     }
-                } else if (mcpSessionId.length < 8) {
+                } else if (!TOPIC_SAFE_SESSION_ID.test(mcpSessionId)) {
                     throw ValidationError('invalid mcp session id')
                 }
 

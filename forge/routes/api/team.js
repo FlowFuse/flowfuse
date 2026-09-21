@@ -913,7 +913,7 @@ module.exports = async function (app) {
                 }
             } else if (Object.hasOwn(request.body, 'features')) {
                 // Team owners can update feature overrides (e.g. opt out of AI)
-                const allowedFeatures = ['ai']
+                const allowedFeatures = ['ai', 'agentAutoDeploy']
                 const requestedFeatures = request.body.features || {}
                 const currentProperties = typeof request.team.properties === 'string' ? JSON.parse(request.team.properties) : (request.team.properties || {})
                 currentProperties.features = currentProperties.features || {}

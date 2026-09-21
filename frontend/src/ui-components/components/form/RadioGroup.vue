@@ -8,6 +8,7 @@
                 :description="option.description"
                 :disabled="option.disabled"
                 :hide-description="orientation === 'horizontal'"
+                :tile="tile"
                 @select="select"
             />
         </div>
@@ -37,6 +38,11 @@ export default {
         options: {
             default: null,
             type: Array
+        },
+        // Full-width tappable tile layout, with each label stacked above its description
+        tile: {
+            default: false,
+            type: Boolean
         }
     },
     emits: ['update:modelValue'],

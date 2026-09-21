@@ -9,9 +9,13 @@ export const useLiveStatusStore = defineStore('live-status', () => {
     const deviceMetadata = ref<Record<string, DeviceMetadata>>({})
     const live = ref(false)
 
-    function setInstanceStatus (id: string, state: string, versions?: Record<string, string>): void {
+    // Returns whether this call is the transition into running, so callers can announce it
+    // once per transition rather than on every message a running instance still emits.
+    function setInstanceStatus (id: string, state: string, versions?: Record<string, string>): boolean {
         const existing = instanceMetadata.value[id]
+        const transitionedToRunning = state === 'running' && existing?.status !== 'running'
         instanceMetadata.value[id] = { status: state, versions: versions ?? existing?.versions }
+        return transitionedToRunning
     }
 
     function setDeviceStatus (id: string, state: string, onlineStatus?: string): void {
