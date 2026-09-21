@@ -363,6 +363,65 @@ describe('MCP Snapshots Tools', function () {
             inject.calledOnce.should.be.true()
         })
 
+        it('accepts an export verbatim and forwards only the fields the route reads', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ id: 'snapshot2' }) })
+            const exported = {
+                id: 'snapshot1',
+                name: 'imported',
+                description: 'from an export',
+                createdAt: '2026-01-01T00:00:00.000Z',
+                updatedAt: '2026-01-01T00:00:00.000Z',
+                ownerType: 'instance',
+                user: { id: 'user1' },
+                exportedBy: { id: 'user1' },
+                flows: { flows: [], credentials: { $: 'abc123' } },
+                settings: { env: {} }
+            }
+
+            tool.inputSchema.snapshot.safeParse(exported).success.should.be.true()
+
+            await tool.handler({ ownerId: 'device1', ownerType: 'device', snapshot: exported, credentialSecret: 's3cret' }, { inject })
+
+            inject.firstCall.args[0].payload.snapshot.should.eql({
+                name: 'imported',
+                description: 'from an export',
+                flows: { flows: [], credentials: { $: 'abc123' } },
+                settings: { env: {} }
+            })
+        })
+
+        it('lets encrypted credentials through without a secret when the flows are excluded', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ id: 'snapshot2' }) })
+            const encryptedCreds = { name: 'imported', flows: { flows: [], credentials: { $: 'abc123' } }, settings: { env: {} } }
+
+            await tool.handler({ ownerId: 'device1', ownerType: 'device', snapshot: encryptedCreds, components: { flows: false } }, { inject })
+
+            inject.calledOnce.should.be.true()
+            inject.firstCall.args[0].payload.snapshot.flows.credentials.should.eql({})
+        })
+
+        it('rejects unencrypted flow credentials, which the route would store in the clear', async function () {
+            const plainCreds = { name: 'imported', flows: { flows: [], credentials: { node1: { password: 'hunter2' } } }, settings: { env: {} } }
+
+            const response = await tool.handler({ ownerId: 'device1', ownerType: 'device', snapshot: plainCreds }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
+        it('rejects an env value that is neither a string nor an object, since the route 500s on it', async function () {
+            const badEnv = { name: 'imported', flows: { flows: [] }, settings: { env: { BROKEN: null } } }
+
+            tool.inputSchema.snapshot.safeParse(badEnv).success.should.be.false()
+
+            const response = await tool.handler({ ownerId: 'device1', ownerType: 'device', snapshot: badEnv }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
         it('passes through an error response', async function () {
             const errorResponse = { statusCode: 400, json: () => ({ code: 'bad_request' }) }
             inject.resolves(errorResponse)

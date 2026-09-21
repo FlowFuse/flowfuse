@@ -3,6 +3,19 @@ const { z } = require('zod')
 const { basePaginationKeys, limitParam, appendQuery, hostedInstanceId, snapshotId, snapshotComponents, toolError } = require('../schemas')
 const { blankHiddenEnvValues } = require('../utils')
 
+// An env var in a snapshot is either a plain value or an object carrying the
+// hidden flag, with "$" holding the encrypted value once it has been exported.
+// Spelling the shape out keeps null and other scalars from reaching the import
+// route, which reads every value's properties unguarded.
+const envVarValue = z.union([
+    z.string(),
+    z.object({
+        value: z.string().optional().describe('The value, for an env var that is not hidden or has been decrypted'),
+        hidden: z.boolean().optional().describe('Whether this is a secret env var'),
+        $: z.string().optional().describe('The encrypted value, as produced by platform_export_snapshot')
+    }).loose()
+])
+
 module.exports = [
     {
         name: 'platform_list_instance_snapshots',
@@ -142,6 +155,8 @@ module.exports = [
             Exports the full content of a snapshot (flows, credentials, settings, and environment variables) so it can be imported elsewhere with platform_import_snapshot. Works for snapshots owned by a hosted instance or a remote instance (device); the owner is resolved automatically from the snapshot.
             credentialSecret is always required, even when credentials are excluded via components - the route rejects the request with a 400 without it. The exported credentials are re-encrypted with this secret, and the SAME secret must be supplied when importing the result, so remember it.
             The export contains sensitive data: by default it includes the encrypted flow credentials and the values of ALL environment variables, including hidden (secret) ones. Use components to narrow what is included, for example envVars: "keys" to strip env values.
+            Environment variables whose names start with FF_ are reserved by the platform and are never included in an export.
+            The export always carries a credentials block, even for a snapshot with no flows and no credentials, so platform_import_snapshot will ask for this secret again whatever the snapshot holds.
             Unlike platform_get_snapshot_full, this is treated as a write operation because it extracts credentials and secret values.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
@@ -163,10 +178,13 @@ module.exports = [
         title: 'Import Snapshot',
         description: `FlowFuse platform automation tool:
             Imports a previously exported snapshot into a hosted instance or a remote instance (device), creating a new snapshot owned by that target. The response is the new snapshot's metadata; importing does not deploy it.
+            Pass the result of platform_export_snapshot straight through as snapshot; the extra fields an export carries (id, createdAt, updatedAt, ownerType, user, exportedBy) are accepted and ignored.
             ownerId must match ownerType: pass the hosted instance UUID with ownerType "instance", or the device hashid with ownerType "device".
-            credentialSecret is required when the snapshot contains encrypted material: flow credentials (a flows.credentials object with a "$" property, unless excluded via components) or hidden environment variable values (env entries carrying a "$" property, unless env vars are dropped with envVars: false or reduced to their names with envVars: "keys"). It must be the same secret used at export. A wrong secret is only detected through flow credentials (400 "Invalid credential secret"); when no flow credentials are imported, a wrong secret cannot be detected and hidden env values import as corrupted data, so double-check the secret first. Credentials can only be imported in encrypted form.
-            Use components to import selectively, for example envVars: "keys" to import env var names without their values.
-            Copy only name, description, flows and settings out of an export; the other fields it carries (id, timestamps, ownerType, user, exportedBy) are not part of this tool's snapshot argument.`,
+            credentialSecret must be the same secret used at export. Every snapshot produced by platform_export_snapshot carries an encrypted credentials block, even one with no flows and no credentials, so a secret is in practice always required for an export. It can only be left out for a hand-built snapshot with no encrypted material, or when credentials are excluded with components flows: false or credentials: false. Hidden environment variable values (env entries carrying a "$" property) need it too, unless env vars are dropped with envVars: false or reduced to their names with envVars: "keys".
+            A wrong secret is only detected through flow credentials (400 "Invalid credential secret"); when no flow credentials are imported, a wrong secret cannot be detected and hidden env values import as corrupted data, so double-check the secret first.
+            Flow credentials must be encrypted: pass the credentials object from an export, carrying a single "$" property. Unencrypted credentials are rejected, because the platform stores them exactly as given and they would sit in the clear.
+            Environment variables whose names start with FF_ are reserved by the platform and are dropped on import, so they will not appear in the created snapshot.
+            Use components to import selectively, for example envVars: "keys" to import env var names without their values.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             ownerId: z.string().describe('Target owner id: hosted instance (project) UUID when ownerType is "instance", or device hashid when ownerType is "device"'),
@@ -180,19 +198,37 @@ module.exports = [
                 }).describe('Flows payload'),
                 settings: z.object({
                     settings: z.record(z.string(), z.any()).optional().describe('Runtime settings'),
-                    env: z.record(z.string(), z.any()).optional().describe('Environment variables (defaults to none)'),
+                    env: z.record(z.string(), envVarValue).optional().describe('Environment variables, either "NAME": "value" or "NAME": { "value": "...", "hidden": true } for secrets (defaults to none)'),
                     modules: z.record(z.string(), z.any()).optional().describe('Installed module versions')
                 }).describe('Settings payload')
-            }).describe('The snapshot content to import, typically the result of platform_export_snapshot'),
+            // Loose so an export can be handed over untouched: it carries id,
+            // createdAt, updatedAt, ownerType, user and exportedBy on top of the
+            // four fields the route reads. The handler forwards only those four.
+            }).loose().describe('The snapshot content to import, typically the result of platform_export_snapshot'),
             credentialSecret: z.string().optional().describe('Secret to decrypt the snapshot: the secret used when the snapshot was exported. Required when the snapshot contains encrypted flow credentials or hidden env values'),
             components: snapshotComponents
         },
         handler: async (args, { inject }) => {
+            // Forward only the four fields the route reads, so the export metadata
+            // the schema now tolerates is not echoed back into the request body.
+            const { name, description, flows, settings } = args.snapshot || {}
+            const snapshot = { name, flows: { ...flows }, settings: { ...settings } }
+            if (description !== undefined) {
+                snapshot.description = description
+            }
+
+            // Excluding the flows drops the credentials along with them, but the
+            // route guards on the payload as given, so it asks for a secret it will
+            // never use. Strip them here the way excluded env vars are stripped below.
+            const credentialsExcluded = args.components?.flows === false || args.components?.credentials === false
+            if (credentialsExcluded) {
+                snapshot.flows.credentials = {}
+            }
+
             // The import route errors when settings.env is missing entirely, so
             // normalise an omitted env to the empty set the route expects. Excluded
             // env vars are stripped up front too: the route empties them anyway, but
             // only after decrypting hidden values, which fails without the secret.
-            const snapshot = { ...args.snapshot, settings: { ...args.snapshot?.settings } }
             if (!snapshot.settings.env || args.components?.envVars === false) {
                 snapshot.settings.env = {}
             } else if (args.components?.envVars === 'keys') {
@@ -204,11 +240,31 @@ module.exports = [
                     return acc
                 }, {})
             }
+
+            // The route reads every env value's properties without checking it is
+            // an object, so a null slips through to a 500. The schema rules those
+            // out at the gateway; this covers callers the schema does not reach.
+            const invalidEnv = Object.keys(snapshot.settings.env).find(key => {
+                const value = snapshot.settings.env[key]
+                return value === null || (typeof value !== 'string' && typeof value !== 'object')
+            })
+            if (invalidEnv) {
+                return toolError(400, 'invalid_request', `settings.env.${invalidEnv} must be a string or an object; the platform errors on any other value`)
+            }
+
+            // Credentials are only re-encrypted for the target when they arrive
+            // encrypted; anything else is written to the snapshot verbatim and ends
+            // up stored in the clear, so reject it rather than leak it into the database.
+            const credentials = snapshot.flows.credentials
+            if (credentials && !credentials.$ && Object.keys(credentials).length > 0) {
+                return toolError(400, 'invalid_request', 'flows.credentials must be the encrypted object produced by platform_export_snapshot, carrying a single "$" property; unencrypted credentials would be stored in the clear')
+            }
+
             // The route only guards flow credentials before decrypting; a missing
             // secret with encrypted hidden env values surfaces as a 500, so reject
             // both encrypted cases here with a clear error instead.
             const hasEncryptedEnv = Object.values(snapshot.settings.env).some(env => env && typeof env === 'object' && env.hidden && env.$)
-            const hasEncryptedCredentials = args.components?.credentials !== false && !!snapshot.flows?.credentials?.$
+            const hasEncryptedCredentials = !credentialsExcluded && !!credentials?.$
             if ((hasEncryptedEnv || hasEncryptedCredentials) && !args.credentialSecret) {
                 return toolError(400, 'invalid_request', 'credentialSecret is required: the snapshot contains encrypted flow credentials or hidden environment variable values')
             }
