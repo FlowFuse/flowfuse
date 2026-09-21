@@ -6,7 +6,7 @@
  *
  * Other components (ie EE-specific features) can register their own additional ACLs
  */
-const { TOPIC_SAFE_SESSION_ID } = require('./utils/mcpSessionId')
+const { TOPIC_SAFE_SESSION_ID, FLOW_BUILDING_CATALOG_USER_ID } = require('./utils/mcpSessionId')
 
 module.exports = function (app) {
     const expertRbacToolCheck = async (teamMembership, toolName, application) => {
@@ -609,6 +609,9 @@ module.exports = function (app) {
          * Direction is not checked here. It is already fixed by which list a rule sits in
          * (verify() picks sub[] or pub[] from the access level) and by the request/response
          * suffix in the rule's own regex.
+         *
+         * The flow-building catalog fetch reuses this channel with the catalog sentinel as
+         * userId, so no separate topic, bridge source or ACL rule is needed (see inline note).
          */
         checkMcpTopic: async function (topicParts, usernameParts, acl) {
             // topicParts = [ fullTopic , <platformId>, <userId>, <mcpSessionId> ]
@@ -633,10 +636,6 @@ module.exports = function (app) {
             }
 
             try {
-                if (!app.config.features.enabled('mcpThirdParty')) {
-                    throw ValidationError('third-party MCP access is not enabled on this platform')
-                }
-
                 const [, platformId, userId, mcpSessionId] = topicParts
                 const [clientType] = usernameParts
 
@@ -645,6 +644,14 @@ module.exports = function (app) {
                 }
                 if (!platformId || !userId || !mcpSessionId) {
                     throw ValidationError('invalid topic format')
+                }
+
+                // The catalog fetch is a first-party read of a global catalog, so the sentinel
+                // userId is exempt from the third-party gate and the user lookup. Every other
+                // check still applies, confining it to the designed request/response exchange.
+                const isCatalogFetch = userId === FLOW_BUILDING_CATALOG_USER_ID
+                if (!isCatalogFetch && !app.config.features.enabled('mcpThirdParty')) {
+                    throw ValidationError('third-party MCP access is not enabled on this platform')
                 }
 
                 // ensure the acl that matched belongs to the client presenting it
@@ -684,7 +691,7 @@ module.exports = function (app) {
                     if (!acl.allowWildcard?.user) {
                         throw ValidationError('invalid user wildcard')
                     }
-                } else {
+                } else if (!isCatalogFetch) {
                     const user = await app.db.models.User.byId(userId)
                     if (!user || user.suspended) {
                         throw ValidationError('invalid user')
@@ -700,40 +707,6 @@ module.exports = function (app) {
                 }
             }
             return false
-        },
-        /**
-         * First-party flow-building catalog channel - the platform fetching the global,
-         * session-less tool catalog from the central gateway.
-         *
-         *   ff/v1/mcp/catalog/<platformId>/request   platform -> gateway
-         *   ff/v1/mcp/catalog/<platformId>/response  gateway -> platform
-         *
-         * Distinct from checkMcpTopic: no user or session (the catalog is global) and no
-         * mcpThirdParty gate (this is a first-party read). Only the platform client uses it,
-         * and the platformId is concrete per replica, so only its UUID shape is validated.
-         */
-        checkMcpCatalogTopic: async function (topicParts, usernameParts, acl) {
-            // topicParts = [ fullTopic, <platformId> ]
-            const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-            const [, platformId] = topicParts
-            const [clientType] = usernameParts
-
-            if (topicParts.length !== 2 || !platformId) {
-                app.log.warn('ACL validation error for MCP catalog topic: invalid topic format')
-                return false
-            }
-            if (!acl.isPlatform || clientType !== 'forge_platform') {
-                app.log.warn('ACL validation error for MCP catalog topic: expected the platform client')
-                return false
-            }
-            if (platformId === '+') {
-                return !!acl.allowWildcard?.platformId
-            }
-            if (!UUID_RE.test(platformId)) {
-                app.log.warn('ACL validation error for MCP catalog topic: invalid platform id')
-                return false
-            }
-            return true
         }
     }
 
@@ -764,10 +737,8 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isPlatform: true, isSub: true, agent: 'platform' },
                 // platform can listen for third-party MCP responses from the central gateway
                 // - ff/v1/mcp/<platformId>/+/+/response
+                // (the flow-building catalog response reuses this rule via the catalog sentinel)
                 { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/response$/, verify: 'checkMcpTopic', allowWildcard: { user: true, session: true }, isPlatform: true, isSub: true },
-                // platform can listen for first-party flow-building catalog responses
-                // - ff/v1/mcp/catalog/<platformId>/response
-                { topic: /^ff\/v1\/mcp\/catalog\/([^/]+)\/response$/, verify: 'checkMcpCatalogTopic', isPlatform: true, isSub: true },
                 // - ff/v1/<team>/u/<user>/s/<session>/<event> (shared subscription)
                 //   [^/]+ on the event segment: the subscription wildcard (+) is matched
                 //   literally, and teamFrontend's pub rule already restricts the events
@@ -807,10 +778,8 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', isPlatform: true, isPub: true, agent: 'platform' },
                 // platform can publish third-party MCP requests to the central gateway
                 // - ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/request
+                // (the flow-building catalog request reuses this rule via the catalog sentinel)
                 { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/request$/, verify: 'checkMcpTopic', isPlatform: true, isPub: true },
-                // platform can publish first-party flow-building catalog requests to the central gateway
-                // - ff/v1/mcp/catalog/<platformId>/request
-                { topic: /^ff\/v1\/mcp\/catalog\/([^/]+)\/request$/, verify: 'checkMcpCatalogTopic', isPlatform: true, isPub: true },
                 // platform can tell one browser tab about its MCP state
                 // - ff/v1/<team>/u/<user>/s/<session>/mcp/clients
                 { topic: /^ff\/v1\/[^/]+\/u\/[^/]+\/s\/[^/]+\/mcp\/clients$/ }
