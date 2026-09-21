@@ -30,7 +30,7 @@ console.info('------------------------------')
             }, {
                 name: 'tiers',
                 type: 'checkbox',
-                choices: [{ name: 'Hub', value: 'hub' }, { name: 'Edge', value: 'edge' }, { name: 'Fleet', value: 'fleet' }],
+                choices: [{ name: 'Hub', value: 'hub' }, { name: 'Edge', value: 'edge' }, { name: 'Fleet', value: 'fleet' }, { name: 'Testing (used for tests only)', value: 'testing'}],
                 message: 'What license types should be included?',
                 validate (input) {
                     if (input.length > 0) {
@@ -67,7 +67,7 @@ console.info('------------------------------')
             hosted: 10,
             remote: 10
         }
-        if (!initialAnswers.tiers.includes('edge') && !initialAnswers.tiers.includes('fleet')) {
+        if (!initialAnswers.tiers.includes('edge') && !initialAnswers.tiers.includes('fleet') && !initialAnswers.tiers.includes('testing')) {
             tierDefaults.remote = 0
         }
         const moreAnswers = await inquirer.prompt([
