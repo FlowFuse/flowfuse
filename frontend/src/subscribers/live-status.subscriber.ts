@@ -49,8 +49,9 @@ class LiveStatusSubscriber extends TeamSubscriber implements TeamSubscriberI {
     protected _onInstanceStatus (payload: { id?: string, meta?: { state?: string, versions?: Record<string, string> } }): void {
         if (!payload?.id || !payload.meta?.state) return
         try {
-            const transitionedToRunning = useLiveStatusStore().setInstanceStatus(payload.id, payload.meta.state, payload.meta.versions)
-            if (transitionedToRunning) this._onInstanceRunning(payload.id)
+            const transition = useLiveStatusStore().setInstanceStatus(payload.id, payload.meta.state, payload.meta.versions)
+            if (transition.toRunning) this._onInstanceRunning(payload.id)
+            if (transition.toFailed) this._onInstanceStartFailed(payload.id, payload.meta.state)
         } catch {}
     }
 
@@ -61,6 +62,14 @@ class LiveStatusSubscriber extends TeamSubscriber implements TeamSubscriberI {
             const instance = useContextStore().instance
             const name = instance?.id === id ? instance.name : null
             useProductExpertStore().relayInstanceReady({ id, name }).catch(() => undefined)
+        } catch {}
+    }
+
+    protected _onInstanceStartFailed (id: string, state: string): void {
+        try {
+            const instance = useContextStore().instance
+            const name = instance?.id === id ? instance.name : null
+            useProductExpertStore().relayInstanceStartFailed({ id, name, state }).catch(() => undefined)
         } catch {}
     }
 
