@@ -113,8 +113,7 @@ module.exports = {
             const credentials = options.credentials ? options.credentials : result.flows.credentials
 
             if (!credentials || Object.keys(credentials).length === 0) {
-                // nothing to encrypt (e.g. the snapshot's flows never had any credentials)
-                // leave the block empty rather than encrypting an empty object
+                // nothing to encrypt, so leave the block empty rather than wrapping an empty object
                 result.flows.credentials = {}
             } else {
                 // if provided credentials already encrypted: "exportCredentials" will just return the same credentials
