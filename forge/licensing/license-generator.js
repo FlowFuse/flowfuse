@@ -30,7 +30,7 @@ console.info('------------------------------')
             }, {
                 name: 'tiers',
                 type: 'checkbox',
-                choices: [{ name: 'Hub', value: 'hub' }, { name: 'Edge', value: 'edge' }, { name: 'Fleet', value: 'fleet' }, { name: 'Testing (used for tests only)', value: 'testing'}],
+                choices: [{ name: 'Hub', value: 'hub' }, { name: 'Edge', value: 'edge' }, { name: 'Fleet', value: 'fleet' }, { name: 'Testing (used for tests only)', value: 'testing' }],
                 message: 'What license types should be included?',
                 validate (input) {
                     if (input.length > 0) {
