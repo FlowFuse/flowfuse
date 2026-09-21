@@ -215,6 +215,10 @@ describe('MCP Pipelines Tools', function () {
     describe('platform_deploy_pipeline_stage', function () {
         const tool = getTool('platform_deploy_pipeline_stage')
 
+        it('is marked destructive, since it overwrites what the target is running', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
+
         it('puts to the deploy route with an empty payload by default', async function () {
             const routeResponse = { statusCode: 200, json: () => ({ status: 'importing' }) }
             inject.withArgs({ method: 'PUT', url: '/api/v1/pipelines/pipe1/stages/stage1/deploy', payload: {} }).resolves(routeResponse)

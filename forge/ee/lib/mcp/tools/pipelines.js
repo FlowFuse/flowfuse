@@ -87,7 +87,7 @@ module.exports = [
         title: 'Add Pipeline Stage',
         description: `FlowFuse platform automation tool:
             Adds a stage to a pipeline. Every stage points at exactly one deploy target: pass exactly one of instanceId (hosted instance), deviceId (remote instance), deviceGroupId, or gitTokenId (git repository, together with url and the other git fields). The target must belong to the pipeline's application (git tokens to its team).
-            Stage ordering is a linked list: pass source as the id of the stage this new stage comes after. Omit source only for the pipeline's first stage - a stage added without source is not linked into the chain.
+            Stage ordering is a linked list: pass source as the id of the stage this new stage comes after. Omit source ONLY for a pipeline's very first stage. Adding a source-less stage to a pipeline that already has stages does not append it: it becomes a second unlinked head, and the pipeline then lists only the new stage while the existing ones stop appearing, even though they still exist and can still be fetched by id.
             Ordering rules enforced by the API: a device group cannot be the first stage, and an instance or device cannot be added after a device group.
             action controls how the stage obtains the snapshot it deploys onwards and defaults to create_snapshot; it is not meaningful for git-repo stages.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
@@ -106,7 +106,7 @@ module.exports = [
             credentialSecret: z.string().optional().describe('Secret used to encrypt flow credentials pushed to the git repository'),
             deployToDevices: z.boolean().optional().describe('For a hosted-instance stage: also push to the devices assigned to that instance when this stage is deployed to'),
             action: z.enum(['create_snapshot', 'use_active_snapshot', 'use_latest_snapshot', 'prompt', 'none']).optional().describe('How the stage obtains the snapshot it passes on when deployed FROM: create_snapshot makes a new one (default), use_active_snapshot / use_latest_snapshot reuse existing ones, prompt requires a sourceSnapshotId at deploy time, none makes deploys from this stage a no-op'),
-            source: z.string().optional().describe('Hashid of the existing stage this new stage comes after. Required for every stage except the first')
+            source: z.string().optional().describe('Hashid of the existing stage this new stage comes after. Required for every stage except a pipeline\'s first; omitting it on a pipeline that already has stages hides those stages from the pipeline listing')
         },
         handler: async (args, { inject }) => {
             const payload = {}
@@ -170,8 +170,11 @@ module.exports = [
             Deploying to an instance, device or device group replies 200 { status: "importing" } as soon as the deploy has STARTED - it completes in the background, so check the target's status afterwards (for example platform_get_hosted_instance_status) to confirm it finished. A stage whose action is none (and that has no git repository) replies { status: "okay" } and does nothing.
             Only a team Owner can deploy to a protected instance; other roles get a 403 protected_instance.
             sourceSnapshotId is only used when the source stage's action is prompt, where it names the snapshot to deploy; other actions select the snapshot themselves.
-            This changes what is running on the target. Confirm with the user before deploying.`,
-        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+            This overwrites what is running on the target. Confirm with the user before deploying.`,
+        // destructiveHint: this replaces the flows running on the next stage's target
+        // rather than adding to them, the same reasoning as
+        // platform_set_instance_device_target, so it belongs behind destructive access.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             pipelineId: z.string().describe('The hashid of the pipeline'),
             stageId: z.string().describe('The hashid of the SOURCE stage to deploy from; the deploy lands on the stage after it'),
