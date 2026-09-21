@@ -280,6 +280,34 @@ describe('product-expert store', () => {
         })
     })
 
+    describe('addEventMessage', () => {
+        it('pushes an event message carrying the envelope as-is', () => {
+            const store = useProductExpertStore()
+            store.addEventMessage({
+                kind: 'instance-ready',
+                instance: { id: 'inst-1', name: 'my-instance' },
+                state: 'running'
+            })
+            const messages = useProductExpertSupportAgentStore().messages
+            expect(messages).toHaveLength(1)
+            expect(messages[0]._type).toBe('event')
+            expect(messages[0].kind).toBe('instance-ready')
+            expect(messages[0].payload).toEqual({
+                kind: 'instance-ready',
+                instance: { id: 'inst-1', name: 'my-instance' },
+                state: 'running'
+            })
+            expect(messages[0]._uuid).toBeDefined()
+            expect(messages[0]._timestamp).toBeDefined()
+        })
+
+        it('does not push when the envelope has no kind', () => {
+            const store = useProductExpertStore()
+            store.addEventMessage({ instance: { id: 'inst-1' } })
+            expect(useProductExpertSupportAgentStore().messages).toHaveLength(0)
+        })
+    })
+
     describe('updateMessageStreamedState', () => {
         it('marks a message as streamed by uuid', () => {
             const store = useProductExpertStore()
@@ -629,7 +657,7 @@ describe('product-expert store', () => {
             })
         })
 
-        it('does not add a user message to the transcript', async () => {
+        it('adds an event card to the transcript instead of a user message', async () => {
             uxState.isOnboarding = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
@@ -639,7 +667,14 @@ describe('product-expert store', () => {
             const store = useProductExpertStore()
             await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
 
-            expect(store.messages).toHaveLength(0)
+            expect(store.messages).toHaveLength(1)
+            expect(store.messages[0]._type).toBe('event')
+            expect(store.messages[0].kind).toBe('instance-ready')
+            expect(store.messages[0].payload).toEqual({
+                kind: 'instance-ready',
+                instance: { id: 'inst-1', name: 'my-instance' },
+                state: 'running'
+            })
         })
 
         it('shows the standard loading indicator while the reply is outstanding', async () => {
@@ -676,8 +711,9 @@ describe('product-expert store', () => {
 
             await store._onMqttMessage(responseTopic, Buffer.from(JSON.stringify(responsePayload)), packet)
 
-            expect(store.messages).toHaveLength(1)
-            expect(store.messages[0].answer[0].content).toBe('Your workspace is ready.')
+            expect(store.messages).toHaveLength(2)
+            expect(store.messages[0]._type).toBe('event')
+            expect(store.messages[1].answer[0].content).toBe('Your workspace is ready.')
             expect(supportAgent.inFlightRequests.size).toBe(0)
             expect(store.isWaitingForResponse).toBe(false)
         })
