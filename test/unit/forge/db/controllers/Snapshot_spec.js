@@ -47,6 +47,16 @@ describe('Snapshot controller', function () {
         return project
     }
 
+    // a project with no StorageFlow/StorageCredentials rows, i.e. it has never had flows deployed
+    async function createProjectWithoutFlows () {
+        const options = { name: 'project-' + (projectInstanceCount++), type: '', url: '' }
+        let project = await app.db.models.Project.create(options)
+        await project.updateSetting('credentialSecret', 'c13f09839cb9072bdc61a3c1530629dad3da26b131d9434c7322bc2f7921f1cd')
+        // Reload to ensure all models are attached
+        project = await app.db.models.Project.byId(project.id)
+        return project
+    }
+
     before(async function () {
         app = await setup({
             limits: {
@@ -179,6 +189,26 @@ describe('Snapshot controller', function () {
             // ensure exported env var are present and correct
             snapshotExported.settings.should.have.properties('env')
             snapshotExported.settings.env.should.deepEqual({ env1: 'a', env2: 'b' })
+        })
+
+        it('should export a snapshot with no flows and no credentials as an empty credentials object', async function () {
+            const emptyInstance = await createProjectWithoutFlows()
+            const user = await app.TestObjects.userAlice
+            const emptySnapshot = await factory.createSnapshot({
+                name: 'snapshot-without-flows',
+                description: 'a snapshot with no flows or credentials'
+            }, emptyInstance, user)
+
+            const options = {
+                credentialSecret: 'abc'
+                // components: // excluded to use defaults
+            }
+            const snapshotExported = await snapshotController.exportSnapshot(emptySnapshot, options)
+            should.exist(snapshotExported)
+            snapshotExported.flows.should.have.only.keys('flows', 'credentials')
+            snapshotExported.flows.flows.should.deepEqual([])
+            // there is nothing to encrypt, so no `$` block should be generated
+            snapshotExported.flows.credentials.should.deepEqual({})
         })
 
         it('should export a snapshot without env (envVars: false)', async function () {
