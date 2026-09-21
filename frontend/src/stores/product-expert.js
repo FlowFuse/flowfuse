@@ -25,6 +25,7 @@ import {
     THROTTLED_ERROR_CODES,
     TRANSIENT_ERROR_CODES
 } from '@/services/mqtt.service'
+import Product from '@/services/product.js'
 import { connectionKey as teamConnectionKey } from '@/subscribers/team-subscriber.contract'
 
 export const useProductExpertStore = defineStore('product-expert', {
@@ -1349,7 +1350,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             // 0x80 Unspecified, 0x83 Implementation specific, anything unknown:
             this.addPredefinedAiMessage(payload.message, { isError: true, code: payload.code })
         },
-        async _relayInstanceEvent (instance, { seen, buildSystem }) {
+        async _relayInstanceEvent (instance, { seen, buildSystem, onPublished }) {
             if (!instance?.id || !useUxStore().isOnboarding || !this.shouldUseMqtt) return
             if (seen.has(instance.id)) return
             seen.add(instance.id)
@@ -1393,6 +1394,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                         origin: window.origin || window.location.origin
                     }
                 })
+                onPublished?.(instance)
             } catch (e) {
                 this._onMqttError(e)
             }
@@ -1400,7 +1402,11 @@ export const useProductExpertStore = defineStore('product-expert', {
         async relayInstanceReady (instance) {
             return this._relayInstanceEvent(instance, {
                 seen: this._relayedInstanceIds,
-                buildSystem: i => ({ kind: 'instance-ready', instance: { id: i.id, name: i.name ?? null }, state: 'running' })
+                buildSystem: i => ({ kind: 'instance-ready', instance: { id: i.id, name: i.name ?? null }, state: 'running' }),
+                onPublished: i => Product.capture('ff-onboarding-workspace-ready', {}, {
+                    team: useContextStore().team?.id,
+                    instance: i.id
+                })
             })
         },
         async relayInstanceStartFailed (instance) {
