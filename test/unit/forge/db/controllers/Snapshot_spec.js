@@ -70,8 +70,30 @@ describe('Snapshot controller', function () {
         // TODO: Implement test
     })
 
-    describe.skip('updateSnapshot', function () {
-        // TODO: Implement test
+    describe('updateSnapshot', function () {
+        let instance
+        let user
+        let snapshot
+
+        before(async function () {
+            instance = await createProject()
+            user = await app.TestObjects.userAlice
+        })
+
+        beforeEach(async function () {
+            snapshot = await factory.createSnapshot({ name: 'original-name', description: 'original-description' }, instance, user)
+        })
+
+        it('should reject a name over 255 characters', async function () {
+            const longName = 'a'.repeat(256)
+            await snapshotController.updateSnapshot(snapshot, { name: longName }).should.be.rejectedWith('Snapshot name must be 255 characters or fewer')
+        })
+
+        it('should accept a name of exactly 255 characters', async function () {
+            const maxName = 'a'.repeat(255)
+            const updated = await snapshotController.updateSnapshot(snapshot, { name: maxName })
+            updated.name.should.equal(maxName)
+        })
     })
 
     describe('exportSnapshot', function () {
