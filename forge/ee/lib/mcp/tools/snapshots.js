@@ -299,8 +299,9 @@ module.exports = [
         title: 'Set Hosted Instance Device Target Snapshot',
         description: `FlowFuse platform automation tool:
             Sets the target snapshot for the remote instances (devices) assigned to a hosted instance.
-            CAUTION: this takes effect immediately - every device assigned to the instance is told to deploy the target snapshot as soon as it is set. Confirm with the user before calling this.
-            The snapshot must belong to the given hosted instance, otherwise the route rejects it with "invalid_snapshot". This tool can only set a target, not clear one.
+            CAUTION: this takes effect immediately - every device assigned to the instance is told to deploy the target snapshot as soon as it is set. Confirm with the user before calling this, and call platform_list_remote_instances with this hostedInstanceId first so you can tell them which devices it will hit.
+            The snapshot must belong to the given hosted instance, otherwise the route rejects it with "invalid_snapshot".
+            There is no way to clear a target snapshot through the API, not with this tool and not on the underlying route, which ignores a null target and answers 200 without changing anything. Once set, a target can only be replaced by another one, or removed by deleting the snapshot it points at, which clears it from the instance and from every assigned device.
             Use platform_get_hosted_instance_device_target_snapshot to see the current target, and platform_list_instance_snapshots to find a snapshot id.`,
         // destructiveHint: this overwrites what every assigned device is running,
         // rather than adding to it, so it belongs behind destructive tool access.
