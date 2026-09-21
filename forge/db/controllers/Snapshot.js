@@ -4,8 +4,7 @@ const { encryptValue, decryptValue } = require('../utils')
 
 const hasProperty = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key)
 
-// Matches the ProjectSnapshot.name column width (VARCHAR(255)). SQLite ignores this width,
-// so the check has to be enforced here rather than relying on the database to reject it.
+// enforced here because SQLite ignores the VARCHAR(255) width the column declares
 const SNAPSHOT_NAME_MAX_LENGTH = 255
 
 module.exports = {
