@@ -57,7 +57,6 @@ class CommsClient extends EventEmitter {
                  */
                 if (topicParts[2] === 'mcp') {
                     // ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/response
-                    // (the catalog fetch reuses this channel and resolves here by correlation too)
                     if (topicParts[6] === 'response') {
                         let payload
                         try {
@@ -295,8 +294,7 @@ class CommsClient extends EventEmitter {
                 '$share/expert/ff/v1/expert/+/+/platform/+/request',
                 // Browser session events - shared subscription
                 '$share/browser/ff/v1/+/u/+/s/+/+',
-                // MCP gateway responses - per-replica (not shared), same as device responses.
-                // Also carries the flow-building catalog response (reuses this channel).
+                // MCP gateway responses - per-replica (not shared), same as device responses
                 `ff/v1/mcp/${this.platformId}/+/+/response`
             ])
         }

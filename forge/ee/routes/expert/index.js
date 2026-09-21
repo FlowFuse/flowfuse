@@ -10,6 +10,7 @@ const { default: axios } = require('axios')
 const semver = require('semver')
 const { v4: uuidv4 } = require('uuid')
 
+const { parseMcpToolResult } = require('../../../comms/utils/mcpToolResult.js')
 const { filterAccessibleMCPServerFeatures } = require('../../../services/expert.js')
 /** @type {typeof import('../../../comms/devices.js').DeviceCommsHandler} */
 const getDeviceComms = (app) => { return app.comms?.devices }
@@ -51,20 +52,6 @@ const curatePlatformTool = (def) => {
         destructive,
         group: 'platform'
     }
-}
-
-// Unwraps a CallToolResult: the payload is JSON in content[0].text.
-const parseFlowCatalogResult = (mcpResponse) => {
-    const result = mcpResponse?.result
-    const text = result?.content?.[0]?.text
-    if (typeof text === 'string') {
-        try {
-            return JSON.parse(text)
-        } catch (e) {
-            return null
-        }
-    }
-    return result?.structuredContent ?? null
 }
 
 // Maps a flow-building tool descriptor to the permissions-UI entry shape.
@@ -745,7 +732,7 @@ module.exports = async function (app) {
                     },
                     app.expert.requestTimeout
                 )
-                const parsed = parseFlowCatalogResult(mcpResponse)
+                const parsed = parseMcpToolResult(mcpResponse)
                 const tools = Array.isArray(parsed?.tools) ? parsed.tools : []
                 catalog = tools.map(toUiCatalogEntry)
                 hash = parsed?.hash || null
