@@ -42,6 +42,9 @@ module.exports = {
             },
             async changeEmailConfirmed (actionedBy, error, user) {
                 await log('account.change-email-confirmed', actionedBy, generateBody({ error, user }))
+            },
+            async mcpRefreshTokenReplay (actionedBy, error, info) {
+                await log('account.mcp-refresh-token-replay', actionedBy, generateBody({ error, info }))
             }
         }
 
