@@ -22,7 +22,7 @@ describe('FlowFuse - Library', () => {
             cy.get('[data-el="page-name"]').contains('Library')
             cy.get('[data-el="ff-tab"]').contains('Blueprints').click()
 
-            cy.contains('This is a FlowFuse Enterprise feature. Please upgrade your instance of FlowFuse in order to use it.')
+            cy.contains('This feature is not available with your current license. Please upgrade your instance of FlowFuse in order to use it.')
         })
     })
 
@@ -31,7 +31,7 @@ describe('FlowFuse - Library', () => {
             cy.visit('team/ateam/library')
 
             cy.contains('Create your own Team Library')
-            cy.contains('This is a FlowFuse Enterprise feature. Please upgrade your instance of FlowFuse in order to use it.')
+            cy.contains('This feature is not available with your current license. Please upgrade your instance of FlowFuse in order to use it.')
         })
     })
 

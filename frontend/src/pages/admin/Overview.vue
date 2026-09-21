@@ -53,7 +53,8 @@
                         </tr>
                         <template v-if="license">
                             <tr><td class="w-40 font-medium">Organisation</td><td>{{ license.organisation }}</td></tr>
-                            <tr><td class="w-40 font-medium">Tier</td><td>{{ license.tier }}</td></tr>
+                            <tr v-if="license.tier"><td class="w-40 font-medium">Tier</td><td>{{ license.tier }}</td></tr>
+                            <tr v-if="license.tiers"><td class="w-40 font-medium">Tier Entitlements</td><td>{{ license.tiers }}</td></tr>
                             <tr><td>{{ expired ? 'Expired' : 'Expires' }}</td><td>{{ license.expires }}<br><span class="text-xs">{{ license.expiresAt }}</span></td></tr>
                         </template>
                         <tr>
@@ -64,7 +65,7 @@
                             <td class="w-40">Teams</td>
                             <td>{{ stats.teamCount }} / {{ stats.maxTeams }}</td>
                         </tr>
-                        <template v-if="stats.maxDevices">
+                        <template v-if="!isNaN(stats.maxDevices)">
                             <tr>
                                 <td class="w-40">Instances</td>
                                 <td>{{ stats.instanceCount }} / {{ stats.maxInstances }}</td>

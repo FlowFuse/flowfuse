@@ -46,6 +46,8 @@ module.exports = {
             }
         },
         refreshTokenExpiresAt: { type: DataTypes.DATE },
+        // Consent-chosen end of an MCP OAuth grant; refresh cannot extend past it
+        grantExpiresAt: { type: DataTypes.DATE },
         name: { type: DataTypes.STRING },
         readOnly: { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: false },
         adminOptIn: { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: false }
@@ -56,6 +58,7 @@ module.exports = {
         this.belongsTo(M.Device, { foreignKey: 'ownerId', constraints: false })
         this.belongsTo(M.User, { foreignKey: 'ownerId', constraints: false })
         this.hasMany(M.AccessTokenTeamScope)
+        this.hasMany(M.AccessTokenRefreshRotation, { onDelete: 'CASCADE' })
     },
     finders: function (M) {
         return {
@@ -78,6 +81,10 @@ module.exports = {
                 byRefreshToken: async (refreshToken) => {
                     const hashedToken = sha256(refreshToken)
                     return await this.findOne({ where: { refreshToken: hashedToken } })
+                },
+                byRotatedRefreshToken: async (refreshToken) => {
+                    const hashedToken = sha256(refreshToken)
+                    return await M.AccessTokenRefreshRotation.findOne({ where: { tokenHash: hashedToken } })
                 },
                 getProvisioningTokens: async (pagination = {}, team) => {
                     // pagination not implemented at this time
@@ -116,7 +123,7 @@ module.exports = {
                             name: { [Op.ne]: null }
                         },
                         order: [['id', 'ASC']],
-                        attributes: ['id', 'name', 'scope', 'expiresAt', 'readOnly', 'adminOptIn'],
+                        attributes: ['id', 'name', 'scope', 'expiresAt', 'readOnly', 'adminOptIn', 'refreshTokenExpiresAt', 'grantExpiresAt'],
                         include: [{
                             model: M.AccessTokenTeamScope,
                             include: [{

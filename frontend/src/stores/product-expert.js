@@ -14,6 +14,7 @@ import { INSIGHTS_AGENT, SUPPORT_AGENT } from './product-expert-agents.js'
 import { useProductExpertInsightsAgentStore } from './product-expert-insights-agent.js'
 import { useProductExpertSupportAgentStore } from './product-expert-support-agent.js'
 import { useUxDrawersStore } from './ux-drawers.js'
+import { useUxStore } from './ux.js'
 
 import { useMqttExpertTopicHelper } from '@/composables/services/MqttExpertTopicHelper'
 import getAppOrchestrator from '@/services/app.orchestrator'
@@ -39,11 +40,17 @@ export const useProductExpertStore = defineStore('product-expert', {
         // 'request-plan-change' focuses an empty composer for the plan card's "Request
         // changes"; 'reset' clears a plan loaded via "Edit manually" but not sent.
         composerCommand: null,
+        // question-card answers keyed by answer uuid, so a sent card survives a refresh
+        questionAnswers: {},
         _seenTransactionIds: new Map(),
+        // Ids of instances already announced as ready this conversation, so a restart or
+        // reconnect reporting running again doesn't repeat the announcement.
+        _relayedInstanceIds: new Set(),
         // Open human-in-the-loop approval batch (#421). When a turn defers a tool batch
         // for approval the agent ends the turn and returns the card(s); we hold the
         // decisions here until every card is answered, then send them back in one resume
-        // message. { decisions: { [toolUseId]: 'approved'|'denied' }, toolKeys: { [id]: key }, remaining: number }
+        // message. Persisted so a refresh mid-batch leaves the pending cards answerable (#8527).
+        // { decisions: { [toolUseId]: 'approved'|'denied' }, toolKeys: { [id]: key }, remaining: number }
         _approvalBatch: null
     }),
     getters: {
@@ -61,13 +68,20 @@ export const useProductExpertStore = defineStore('product-expert', {
                 ? useProductExpertSupportAgentStore().inFlightRequests
                 : useProductExpertInsightsAgentStore().inFlightRequests
         },
+        _recentlyCompleted () {
+            return this.agentMode === SUPPORT_AGENT
+                ? useProductExpertSupportAgentStore().recentlyCompletedTransactions
+                : useProductExpertInsightsAgentStore().recentlyCompletedTransactions
+        },
         abortController () { return this._agentStore.abortController },
         messages () { return this._agentStore.messages },
+        activeTaskList () { return this._agentStore.activeTaskList },
         hasMessages () { return this._agentStore.messages.length > 0 },
         isSessionExpired () { return this._agentStore.sessionExpiredShown },
         isWaitingForResponse () { return !!this._agentStore.abortController || this._inFlightRequests.size > 0 },
         isSupportAgent: (state) => state.agentMode === SUPPORT_AGENT,
         isInsightsAgent: (state) => state.agentMode === INSIGHTS_AGENT,
+        activePlanId () { return this._agentStore.activePlanId },
         hasSelectedCapabilities () {
             return useProductExpertInsightsAgentStore().selectedCapabilities?.length > 0
         },
@@ -208,8 +222,43 @@ export const useProductExpertStore = defineStore('product-expert', {
         setPendingInput (text) {
             this.pendingInput = text
         },
+        saveQuestionAnswer (answerUuid, answer) {
+            if (!answerUuid) {
+                return
+            }
+            this.questionAnswers = { ...this.questionAnswers, [answerUuid]: answer }
+        },
         setComposerCommand (command) {
             this.composerCommand = command
+        },
+        async openConversation () {
+            const agentStore = this._agentStore
+
+            if (agentStore.sessionId && this.isWaitingForResponse) {
+                return undefined
+            }
+            if (!agentStore.sessionId) {
+                agentStore.sessionId = uuidv4()
+            }
+
+            agentStore.abortController = markRaw(new AbortController())
+            try {
+                const result = await this.sendQuery({ query: '' })
+                if (result) {
+                    await this.handleMessageResponse(result)
+                }
+                return result
+            } catch (error) {
+                if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                    return undefined
+                }
+                if (!this.shouldUseMqtt) {
+                    console.error('Expert API error:', error)
+                }
+                this.addPredefinedAiMessage('Sorry, I could not get started. Please refresh to try again.', { isError: true })
+            } finally {
+                agentStore.abortController = null
+            }
         },
         async handleQuery ({ query }) {
             const agentStore = this._agentStore
@@ -376,19 +425,23 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
         },
         async handleInFlightRequest ({ topic, message, payload: parsedPayload, transactionId, sessionId, chatTransactionId } = {}) {
-            // Match the originating chat request explicitly (not just the first entry) so a
-            // concurrent in-flight request — e.g. an open tool approval — can't shadow it and
-            // cause us to drop a valid in-flight request.
-            const inFlightRequest = Array.from(this._inFlightRequests.values())
-                .find(r => r.transactionId === chatTransactionId)
-
             // A third-party MCP request is addressed to this tab's browser session rather
             // than a chat session, and has no originating chat request to correlate with,
-            // so it bypasses both checks below. Everything else keeps today's behaviour.
+            // so it bypasses the correlation check below. Everything else keeps today's behaviour.
             const isBrowserSession = !!sessionId && sessionId === useAccountAuthStore().getSessionId()
 
-            // dismiss inFlight requests that don't match the existing sessionId or the inFlight message transactionId
-            if (!isBrowserSession && (sessionId !== this.sessionId || !inFlightRequest)) return
+            // dismiss messages from a different chat session
+            if (!isBrowserSession && sessionId !== this.sessionId) return
+
+            // Tie the message to its originating chat turn: live means the turn is still
+            // running, recently-completed covers a surface that trails the final reply. One
+            // we cannot tie to either — a request left on the wire after Stop, or a stale
+            // surface from an earlier turn — is dropped here: not applied, not run against
+            // the editor, and not acked, so a stopped agent is not nudged to keep producing.
+            const correlated = isBrowserSession ||
+                this._inFlightRequests.has(chatTransactionId) ||
+                this._recentlyCompleted.has(chatTransactionId)
+            if (!correlated) return
 
             const servicesOrchestrator = getAppOrchestrator()
             const assistantStore = useProductAssistantStore()
@@ -417,7 +470,12 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
             }
 
-            this._addInFlightUpdate(payload.status || payload.toolname || 'Processing request...')
+            // expert:tasks has its own panel; its status rides expert:status-message.
+            // Every other inflight type feeds the loading line, but only while the turn is
+            // still live: a status trailing the final reply must not repaint the next turn.
+            if (parsedTopic.inflightType !== 'expert:tasks' && this._inFlightRequests.has(chatTransactionId)) {
+                this._addInFlightUpdate(payload.status || payload.toolname || 'Processing request...')
+            }
 
             const responseTopic = topicHelper.buildTopic({
                 entityType: parsedTopic.entityType,
@@ -429,39 +487,46 @@ export const useProductExpertStore = defineStore('product-expert', {
                 sessionId: sessionId || this.sessionId
             })
 
+            // Every branch answers on the same envelope; only the body differs.
+            const respond = (body) => mqttService.publishMessage(connectionKey, {
+                qos: 2,
+                topic: responseTopic,
+                payload: JSON.stringify(body),
+                correlationData: transactionId,
+                userProperties: {
+                    sessionId,
+                    transactionId: chatTransactionId,
+                    origin: window.origin || window.location.origin
+                }
+            })
+
             switch (true) {
             case parsedTopic.inflightType === 'expert:status-message':
-                await mqttService.publishMessage(connectionKey, {
-                    qos: 2,
-                    topic: responseTopic,
-                    payload: JSON.stringify({
-                        ack: true
-                    }),
-                    correlationData: transactionId,
-                    userProperties: {
-                        sessionId,
-                        transactionId: chatTransactionId,
-                        origin: window.origin || window.location.origin
-                    }
-                })
+                await respond({ ack: true })
                 break
+            case parsedTopic.inflightType === 'expert:tasks': {
+                const items = Array.isArray(payload.items) ? payload.items : []
+                // The active plan is agent-owned and arrives on its own field: a plan is
+                // activated before it has any tasks, so hold the id regardless of the item
+                // count rather than losing it whenever the list is empty.
+                this._agentStore.activePlanId = payload.planId ?? null
+                this._agentStore.activeTaskList = items.length
+                    ? { planId: payload.planId ?? null, title: payload.title || 'Tasks', items }
+                    : null
+                try {
+                    await respond({ ack: true })
+                } catch (e) {
+                    console.warn('expert:tasks ack failed:', e)
+                }
+                break
+            }
             case parsedTopic.inflightType === 'automation-ui:mcp-get-features': {
                 // handle UI MCP features request
                 try {
                     const automationsService = servicesOrchestrator.$services.automations
                     const tools = automationsService.getToolDefinitions()
 
-                    await mqttService.publishMessage(connectionKey, {
-                        qos: 2,
-                        topic: responseTopic,
-                        payload: JSON.stringify({ tools }),
-                        correlationData: transactionId,
-                        userProperties: {
-                            sessionId,
-                            transactionId: chatTransactionId,
-                            origin: window.origin || window.location.origin
-                        }
-                    })
+                    await respond({ tools })
                 } catch (e) {
                     reportError(e)
                 }
@@ -474,17 +539,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                     const { name, input } = payload?.data || {}
                     const result = await automationsService.dispatch(name, input)
 
-                    await mqttService.publishMessage(connectionKey, {
-                        qos: 2,
-                        topic: responseTopic,
-                        payload: JSON.stringify(result),
-                        correlationData: transactionId,
-                        userProperties: {
-                            sessionId,
-                            transactionId: chatTransactionId,
-                            origin: window.origin || window.location.origin
-                        }
-                    })
+                    await respond(result)
                 } catch (e) {
                     reportError(e)
                 }
@@ -501,17 +556,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                         transactionId
                     })
 
-                    await mqttService.publishMessage(connectionKey, {
-                        qos: 2,
-                        topic: responseTopic,
-                        payload: JSON.stringify(result),
-                        correlationData: transactionId,
-                        userProperties: {
-                            sessionId,
-                            transactionId: chatTransactionId,
-                            origin: window.origin || window.location.origin
-                        }
-                    })
+                    await respond(result)
                 } catch (e) {
                     reportError(e)
                 }
@@ -617,7 +662,9 @@ export const useProductExpertStore = defineStore('product-expert', {
             if (!batch) return
             const permStore = useProductAssistantStore()
             for (const id of Object.keys(batch.toolKeys)) {
-                if (!(id in batch.decisions)) permStore.setToolApprovalStatus(id, status)
+                if (!(id in batch.decisions)) {
+                    permStore.setToolApprovalStatus(id, status)
+                }
             }
             this._approvalBatch = null
         },
@@ -629,6 +676,11 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             agentStore.sessionId = uuidv4()
             agentStore.messages = []
+            agentStore.activeTaskList = null
+            agentStore.activePlanId = null
+            agentStore.recentlyCompletedTransactions.clear()
+            this.questionAnswers = {}
+            this._relayedInstanceIds.clear()
 
             // A new chat drops the per-session tool grants ("Always allow/deny for this chat")
             // and the resolved-approval outcomes tied to the messages we just cleared.
@@ -849,8 +901,11 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         hydrateMessages (messages) {
             if (!messages) return
-            const isAiMessage = (message) => message.answer && Array.isArray(message.answer)
-            const isUserMessage = (message) => Object.prototype.hasOwnProperty.call(message, 'query') && message.query
+            // both predicates must return real booleans: the switch(true)
+            // below matches with strict equality, so a truthy string (e.g.
+            // the query text) would silently never match
+            const isAiMessage = (message) => Boolean(message.answer && Array.isArray(message.answer))
+            const isUserMessage = (message) => Boolean(Object.prototype.hasOwnProperty.call(message, 'query') && message.query)
 
             messages.forEach((message) => {
                 switch (true) {
@@ -866,9 +921,6 @@ export const useProductExpertStore = defineStore('product-expert', {
             })
         },
         async _onMqttMessage  (topic, message, packet) {
-            // ignore any messages if inFlightRequests has been cleared (it means that the chat was stopped mid-flight)
-            if (this._inFlightRequests.size === 0) return
-
             const topicHelper = useMqttExpertTopicHelper()
             const parsedTopic = topicHelper.parseTopic(topic)
             const transactionId = packet.properties?.correlationData ? new TextDecoder().decode(packet.properties.correlationData) : null
@@ -889,9 +941,16 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             switch (true) {
             case parsedTopic.isReply: // final chat response
-                // remove inFlight request because it is now resolved
+                // no matching in-flight request means the turn was stopped or already
+                // resolved; ignore it and record no completion for it
+                if (!this._inFlightRequests.has(transactionId)) return
                 this._inFlightRequests.delete(transactionId)
-                // handle the response
+                // remember the finished turn briefly so a surface that trails this reply is
+                // still applied, evicting the oldest id to keep the set bounded
+                this._recentlyCompleted.set(transactionId, true)
+                if (this._recentlyCompleted.size > 50) {
+                    this._recentlyCompleted.delete(this._recentlyCompleted.keys().next().value)
+                }
                 await this.handleMessageResponse(JSON.parse(message.toString()))
                 break
             case parsedTopic.isInflightRequest: // in-flight request from the agent (e.g., action invocation, status update)
@@ -1288,6 +1347,66 @@ export const useProductExpertStore = defineStore('product-expert', {
             // 0x80 Unspecified, 0x83 Implementation specific, anything unknown:
             this.addPredefinedAiMessage(payload.message, { isError: true, code: payload.code })
         },
+        /**
+         * Tells the assistant a provisioned instance has finished starting, without adding
+         * a user bubble. No-op outside onboarding, off the MQTT channel, or for an instance
+         * already announced this conversation.
+         *
+         * @param {{ id: string, name?: string }} instance - the instance that finished starting
+         */
+        async relayInstanceReady (instance) {
+            if (!instance?.id || !useUxStore().isOnboarding || !this.shouldUseMqtt) return
+            if (this._relayedInstanceIds.has(instance.id)) return
+            this._relayedInstanceIds.add(instance.id)
+
+            try {
+                const servicesOrchestrator = getAppOrchestrator()
+                const mqttService = servicesOrchestrator.$services.mqtt
+                const mqttTopicHelper = useMqttExpertTopicHelper()
+
+                const transactionId = uuidv4()
+                const mqttConnectionKey = this.mqttConnectionKey
+
+                if (!mqttService.hasClient(mqttConnectionKey)) await this.establishMqttComms()
+
+                // Register like a real request so _onMqttMessage's in-flight guard lets the
+                // reply through instead of silently dropping it.
+                this._inFlightRequests.set(transactionId, { query: '', transactionId })
+
+                const { entityId, entityType } = mqttTopicHelper.getEntityTopicPaths()
+
+                const topic = mqttTopicHelper.buildTopic({
+                    entityType,
+                    entityId,
+                    agentChannel: 'support',
+                    topicType: 'chat',
+                    topicAction: 'request'
+                })
+
+                await mqttService.publishMessage(mqttConnectionKey, {
+                    topic,
+                    qos: 2,
+                    payload: {
+                        system: {
+                            kind: 'instance-ready',
+                            instance: { id: instance.id, name: instance.name ?? null },
+                            state: 'running'
+                        },
+                        context: {
+                            ...useContextStore().expert,
+                            agent: this.agentMode
+                        }
+                    },
+                    correlationData: transactionId,
+                    userProperties: {
+                        sessionId: this.sessionId,
+                        origin: window.origin || window.location.origin
+                    }
+                })
+            } catch (e) {
+                this._onMqttError(e)
+            }
+        },
         stopInflightChat () {
             // Deny any open approval prompts first so the agent's paused tool call unblocks.
             this.cancelPendingToolApprovals()
@@ -1332,10 +1451,12 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
             }
             this._inFlightRequests.clear()
+            this._clearInFlightUpdates()
+            this._agentStore.activeTaskList = null
         }
     },
     persist: {
-        pick: ['shouldWakeUpAssistant', 'questionCadence', 'agentMode'],
+        pick: ['shouldWakeUpAssistant', 'questionCadence', 'agentMode', 'questionAnswers', '_approvalBatch'],
         storage: sessionStorage
     }
 })

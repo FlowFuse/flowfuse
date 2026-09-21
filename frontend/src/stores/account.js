@@ -9,11 +9,19 @@ import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
 import { useDataFarmHostedInstancesStore } from '@/stores/data-farm-hosted-instances'
 import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 import { useProductTablesStore } from '@/stores/product-tables.js'
+import SUBSCRIBER_REGISTRY from '@/subscribers/subscriber.registry'
+
+function isOptInSubscriber (key) {
+    return SUBSCRIBER_REGISTRY.some(subscriber => subscriber.key === key && subscriber.autoConnect === false)
+}
 
 function ensureTeamChannelConnected (team) {
     if (!team?.id) return
     const subscribers = getAppOrchestrator().$subscribers
-    Object.values(subscribers).forEach(subscriber => subscriber?.connect(team).catch(() => {}))
+    Object.entries(subscribers).forEach(([key, subscriber]) => {
+        if (isOptInSubscriber(key)) return
+        subscriber?.connect(team).catch(() => {})
+    })
 }
 
 function disconnectTeamSubscribers () {

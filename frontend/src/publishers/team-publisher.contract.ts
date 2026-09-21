@@ -102,10 +102,10 @@ export abstract class TeamPublisher<TTransport extends Transport = Transport> {
                 getCredentials: () => teamApi.getTeamCommsCreds(teamId, sessionId),
                 onMessage: () => {},
                 onConnect: () => this._onConnect(teamId, userId),
-                onClose: () => {},
-                onOffline: () => {},
-                onDisconnect: () => {},
-                onError: () => {}
+                onClose: () => this._onLinkDown(),
+                onOffline: () => this._onLinkDown(),
+                onDisconnect: () => this._onLinkDown(),
+                onError: () => this._onLinkDown()
             })
         } catch (err) {
             console.warn(`[${this.$name}] failed to attach to the team connection:`, err)
@@ -141,6 +141,13 @@ export abstract class TeamPublisher<TTransport extends Transport = Transport> {
     protected _onConnect (teamId: string, userId: string): void {
         this._onStarted(teamId, userId)
     }
+
+    /**
+     * The link to the broker went away - close, offline, disconnect or error alike, since
+     * from here they all mean the same thing. A no-op by default: the transport reconnects
+     * on its own and _onConnect says the link is back.
+     */
+    protected _onLinkDown (): void {}
 
     protected async _publish (topic: string, payload: MqttPayload, options?: Partial<TransportPublishOptions>): Promise<void> {
         const transport = this.$transport

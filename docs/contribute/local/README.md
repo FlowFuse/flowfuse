@@ -24,7 +24,7 @@ The install script has been tested against the following operating systems:
 
  - Raspbian/Raspberry Pi OS versions Buster/Bullseye [^1]
  - Debian Buster/Bullseye
- - Fedora 35
+ - Fedora 40
  - Ubuntu 20.04
  - CentOS 8/RHEL 8/Amazon Linux 2
  - MacOS Big Sur & Monterey on Intel & Apple M processors
@@ -34,7 +34,7 @@ The install script has been tested against the following operating systems:
 
 ### Node.js
 
-FlowFuse requires ***Node.js v20***.
+FlowFuse requires ***Node.js v24***.
 
 #### Linux
 
@@ -137,7 +137,7 @@ If you want to allow access from other devices on the network, you must edit the
 change the `host` setting to `0.0.0.0` and change `base_url` to contain the IP address of the server.
 
 NOTE: We do not support changing the `host` and `base_url` values once you have created an instance.
-For more information on all of the options available, see the [configuration guide](/docs/install/configuration.md).
+For more information on all of the options available, see the [configuration guide](/docs/install/configuration/).
 
 
 ## Running FlowFuse
@@ -165,7 +165,7 @@ Or to run as a service:
 
 Once FlowFuse is started, you will be ready to perform the first run setup.
 
-Follow [this guide](/docs/install/first-run.md) to continue.
+Follow [this guide](/docs/install/first-run/) to continue.
 
 ## Setting up Mosquitto (optional)
 

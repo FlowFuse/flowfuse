@@ -27,7 +27,7 @@ describe('FlowFuse - Devices', () => {
         cy.get('[data-el="empty-state"]').contains('Snapshots are available when a Remote Instance is assigned to an Application')
 
         cy.get('[data-el="page-banner-feature-unavailable"]').should('exist')
-        cy.get('[data-el="page-banner-feature-unavailable"]').contains('This is a FlowFuse Enterprise feature. Please upgrade your instance of FlowFuse in order to use it.')
+        cy.get('[data-el="page-banner-feature-unavailable"]').contains('This feature is not available with your current license. Please upgrade your instance of FlowFuse in order to use it.')
     })
 
     it('exposes the "Version History" tab if assigned to an Instance but the Snapshots tab has an empty state message', () => {
@@ -42,6 +42,6 @@ describe('FlowFuse - Devices', () => {
         cy.get('[data-el="empty-state"]').contains('Snapshots are available when a Remote Instance is assigned to an Application')
 
         cy.get('[data-el="page-banner-feature-unavailable"]').should('exist')
-        cy.get('[data-el="page-banner-feature-unavailable"]').contains('This is a FlowFuse Enterprise feature. Please upgrade your instance of FlowFuse in order to use it.')
+        cy.get('[data-el="page-banner-feature-unavailable"]').contains('This feature is not available with your current license. Please upgrade your instance of FlowFuse in order to use it.')
     })
 })

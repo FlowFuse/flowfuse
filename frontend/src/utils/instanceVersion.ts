@@ -18,3 +18,14 @@ export function isInstanceOnNR5Plus (target: Maybe<IInstanceVersionProps> | unde
     }
     return SemVer.satisfies(SemVer.coerce(nrVersion), '>=5.0.0')
 }
+
+export const MIN_DASHBOARD_LAUNCHER_VERSION = '2.33.0'
+
+export function meetsMinLauncherVersion (target: Maybe<IInstanceVersionProps> | undefined, min: string): boolean {
+    const launcher = target?.meta?.versions?.launcher
+    const coerced = launcher ? SemVer.coerce(launcher) : null
+    if (!coerced) {
+        return true
+    }
+    return SemVer.gte(coerced, min)
+}

@@ -100,16 +100,14 @@ module.exports = {
     hooks: function (M, app) {
         return {
             beforeCreate: async (device, options) => {
-                // if the product is licensed, we permit overage
-                const isLicensed = app.license.active()
-                if (isLicensed !== true) {
-                    const { devices } = await app.license.usage('devices')
-                    if (devices.count >= devices.limit) {
+                if (app.license.active() && app.license.status().expired) {
+                    throw new Error('license expired')
+                }
+                const { devices } = await app.license.usage('devices')
+                if (devices.count >= devices.limit) {
+                    // Potential overage - check if overage is permitted by the license
+                    if (!app.license.allowOverage('devices')) {
                         throw new Error('license limit reached')
-                    }
-                } else {
-                    if (app.license.status().expired) {
-                        throw new Error('license expired')
                     }
                 }
             },

@@ -172,7 +172,15 @@ describe('AppOrchestrator', () => {
             mqtt: null,
             automations: null
         })
-        expect(orchestrator.$subscribers).toEqual({ teamChannel: null, liveStatus: null, applications: null, hostedInstances: null })
+        expect(orchestrator.$subscribers).toEqual({
+            teamChannel: null,
+            liveStatus: null,
+            applications: null,
+            hostedInstances: null,
+            mcpInflight: null,
+            mcpSession: null
+        })
+        expect(orchestrator.$publishers).toEqual({ tabPresence: null })
         expect(orchestrator.$app).toBeNull()
         expect(orchestrator.$router).toBeNull()
         expect(orchestrator.$cleanupRegistered).toBe(false)

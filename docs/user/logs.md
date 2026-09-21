@@ -53,11 +53,11 @@ This log contains all events since the team was created. Tou can view older data
 
 ### AI Agents and API Activity
 
-For actions performed through FlowFuse Expert or the FlowFuse platform API, both this log and the instance/application-level [Audit Log](#audit-log) show an icon indicating how the action was performed:
+For actions performed by an AI agent or through the FlowFuse platform API, both this log and the instance/application-level [Audit Log](#audit-log) show an icon indicating how the action was performed:
 
-- A sparkle icon means the action was performed by FlowFuse Expert on the user's behalf. Hovering over the icon shows the name of the tool that was called.
+- A sparkle icon means an AI agent performed the action on the user's behalf. Hovering over the icon says which agent and names the tool that was called: "via Expert" for FlowFuse Expert, and "via MCP" for [your own connected agent](/docs/user/expert/third-party-agents/).
 - A terminal icon means the action was performed through the FlowFuse API using a [Personal Access Token](./user-settings.md#personal-access-tokens).
 
 Actions performed directly through the FlowFuse UI do not show an icon.
 
-These logs provide visibility into supported FlowFuse Expert and API actions only.
+These logs provide visibility into supported AI agent and API actions only.

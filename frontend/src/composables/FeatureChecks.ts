@@ -128,6 +128,13 @@ export const FEATURE_CONFIGS: FeatureConfig[] = [
     { output: 'isExpertAssistantFeatureEnabled', platformKey: 'expertAssistant', teamKey: 'expertAssistant', optOut: true, dependsOnPlatform: 'ai', dependsOnTeam: 'ai', dependsOnTeamOptOut: true },
     { output: 'isExpertInsightsFeatureEnabled', platformKey: 'expertInsights', teamKey: 'expertInsights', optOut: true, dependsOnPlatform: 'ai', dependsOnTeam: 'ai', dependsOnTeamOptOut: true },
     {
+        output: 'isAiOnboardingFeatureEnabled',
+        platformKey: 'aiOnboarding',
+        dependsOn: 'isExpertAssistantFeatureEnabled',
+        dependsOnPlatform: 'externalBroker',
+        dependsOnTeam: 'teamBroker'
+    },
+    {
         output: 'isGeneratedSnapshotDescriptionFeatureEnabled',
         platformKey: 'generatedSnapshotDescription',
         teamKey: 'generatedSnapshotDescription',
@@ -161,7 +168,8 @@ export const FEATURE_CONFIGS: FeatureConfig[] = [
 
     // Platform-only, read from the settings response rather than the feature flags object
     { output: 'isTelemetryEnabled', platformKey: 'telemetry:enabled', platformSource: 'settingsRoot' },
-    { output: 'isTelemetryAnonymized', platformKey: 'telemetry:anonymize', platformSource: 'settingsRoot', platformDefault: true }
+    { output: 'isTelemetryAnonymized', platformKey: 'telemetry:anonymize', platformSource: 'settingsRoot', platformDefault: true },
+    { output: 'isRemoteInstanceFeatureEnabled', platformKey: 'remoteInstances', platformDefault: true }
 ]
 
 function isPostHogAvailable (): boolean {

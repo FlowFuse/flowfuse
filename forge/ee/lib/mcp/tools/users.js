@@ -8,9 +8,14 @@ module.exports = [
             token.readOnly - when true, write and delete tools are rejected, so only read tools can be used.
             token.allTeams - when true, the token is not restricted to a subset of teams and every team the user belongs to is in reach.
             token.teams - when allTeams is false, the IDs of the only teams the token may act on. Calls against any other team will fail.
+            The admin flag reports what this session can do, not what the account is. A platform admin using a token that
+            did not opt in to admin access is reported as admin: false here, and is treated as a non-admin for every
+            permission check made through this session. So this value can disagree with the same user's admin flag in
+            platform_list_team_members, which reports the account itself. Trust this one when deciding what the session
+            may attempt.
             Use this to resolve the current user's ID before calling tools that need a userId, such as listing browser sessions,
             and to check up front whether an action the user asked for is within the session's access.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {},
         handler: async (args, { inject, scope }) => {
             const response = await inject({ method: 'GET', url: '/api/v1/user' })

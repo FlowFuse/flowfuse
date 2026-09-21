@@ -16,7 +16,7 @@ meta:
 When a Node-RED instance is unresponsive, for example due to an infinite loop,
 it can be put into Safe Mode.
 
-1. Edit the instance's [Environment Variables](/docs/user/envvar.md)
+1. Edit the instance's [Environment Variables](/docs/user/envvar/)
 2. Add a variable called `NODE_RED_ENABLE_SAFE_MODE` to `true`.
 3. Save the changes then suspend/restart the instance.
 

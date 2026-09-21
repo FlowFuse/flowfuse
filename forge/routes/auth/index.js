@@ -1,4 +1,6 @@
 const Sentry = require('@sentry/node')
+const fp = require('fastify-plugin')
+const { isFreeEmail } = require('free-email-domains-list')
 
 /**
  * Routes related to session handling, login/out etc
@@ -17,7 +19,6 @@ const Sentry = require('@sentry/node')
  * @namespace session
  * @memberof forge.routes
  */
-const fp = require('fastify-plugin')
 
 const { completeUserSignup } = require('../../lib/userTeam')
 
@@ -274,7 +275,7 @@ async function init (app, opts) {
      */
     app.decorate('blockPAT', async (request, reply) => {
         if (request.session?.isPAT) {
-            reply.code(403).send({ code: 'pat_cannot_create_pat', error: 'PATs cannot create other PATs' })
+            reply.code(403).send({ code: 'pat_cannot_create_pat', error: 'PATs cannot create/edit/delete other PATs' })
         }
     })
 
@@ -525,6 +526,15 @@ async function init (app, opts) {
             await app.auditLog.User.account.register(userInfo, resp, userInfo)
             reply.code(400).send(resp)
             return
+        }
+        if (app.billing && isFreeEmail(request.body.email.toLowerCase())) {
+            const invite = await app.db.models.Invitation.forExternalEmail(request.body.email)
+            if (!invite || invite.length === 0) {
+                const resp = { code: 'invalid_email_domain', error: 'Please register using your company email address' }
+                await app.auditLog.User.account.register(userInfo, resp, userInfo)
+                reply.code(400).send(resp)
+                return
+            }
         }
         if (app.settings.get('user:tcs-required') && !request.body.tcs_accepted) {
             const resp = { code: 'tcs_missing', error: 'terms and conditions not accepted' }
