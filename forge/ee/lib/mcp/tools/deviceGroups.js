@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { appendQuery, applicationId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, teamId } = require('../schemas')
+const { appendQuery, applicationId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, teamId, toolError } = require('../schemas')
 
 module.exports = [
     {
@@ -72,18 +72,20 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Creates a new, empty device group in an application. Device groups organize remote instances (devices) for fleet-style deployments, so members share a target snapshot and environment variables.
             Add devices with platform_update_device_group_membership afterwards.
+            Group names are not unique: creating a second group with an existing name succeeds.
             Requires the deviceGroups feature to be enabled for the owning team; if it is not (or the application does not exist) this returns a not-found error.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             applicationId: applicationId.describe('The hashid of the application to create the device group in'),
             name: z.string().min(1).describe('Name for the new device group'),
-            description: z.string().optional().describe('Optional description for the group')
+            description: z.string().optional().describe('Description for the group. Defaults to an empty string rather than being left unset, because a group stored without one breaks the device group listings')
         },
         handler: async (args, { inject }) => {
-            const payload = { name: args.name }
-            if (args.description !== undefined) {
-                payload.description = args.description
-            }
+            // A group created without a description is stored with a null one, which
+            // fails the route's own response schema: the create answers 500 having
+            // created the group anyway, and every later listing of the application's
+            // and the team's groups then 500s on that row too. Default it instead.
+            const payload = { name: args.name, description: args.description ?? '' }
             const response = await inject({ method: 'POST', url: `/api/v1/applications/${args.applicationId}/device-groups`, payload })
             return response
         }
@@ -95,8 +97,11 @@ module.exports = [
             Updates a device group's name, description, and/or pinned target snapshot. Only the fields you pass are changed; omitted fields keep their values. A successful update returns an empty object.
             CAUTION: targetSnapshotId takes effect immediately - pinning a snapshot applies it to every device in the group and tells them to deploy it, and passing null clears the pin (also clearing it from the member devices). Confirm with the user before changing it.
             The snapshot must belong to the same application as the group; anything else is rejected with a 400.
+            Pass at least one of name, description or targetSnapshotId.
             Requires the deviceGroups feature to be enabled for the owning team; if it is not, this returns a not-found error.`,
-        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        // destructiveHint: pinning a target snapshot deploys it to every member device,
+        // the same reasoning as platform_set_instance_device_target.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             applicationId: applicationId.describe('The hashid of the application the group belongs to'),
             groupId: z.string().describe('The hashid of the device group to update'),
@@ -111,6 +116,11 @@ module.exports = [
                     payload[key] = args[key]
                 }
             }
+            // The route replies 200 with the group untouched when there is nothing to
+            // change, which reads as a successful edit that never happened.
+            if (Object.keys(payload).length === 0) {
+                return toolError(400, 'invalid_request', 'Pass at least one of name, description or targetSnapshotId to update')
+            }
             const response = await inject({ method: 'PUT', url: `/api/v1/applications/${args.applicationId}/device-groups/${args.groupId}`, payload })
             return response
         }
@@ -119,11 +129,14 @@ module.exports = [
         name: 'platform_update_device_group_membership',
         title: 'Update Device Group Membership',
         description: `FlowFuse platform automation tool:
-            Changes which remote instances (devices) belong to a device group. Use add and/or remove for incremental changes, or set to replace the entire membership atomically (set overrides add/remove; a device in both add and remove ends up removed). A successful update returns an empty object.
+            Changes which remote instances (devices) belong to a device group. Use add and/or remove for incremental changes, or set to replace the entire membership atomically (set overrides add/remove). A successful update returns an empty object. Pass at least one of add, remove or set.
+            Listing a device in both add and remove does not reliably remove it: the result depends on where the device started, so a current member ends up removed but a non-member ends up added. Do not use that to force a device out; pass it in remove only, or use set.
             Devices must belong to the same application as the group, otherwise the whole call is rejected with a 400 and nothing changes.
             Membership changes take effect immediately: when the group has a pinned target snapshot, devices added to the group are told to deploy it, and devices removed from the group have it cleared. Confirm with the user before changing membership of a group with a target snapshot.
             Requires the deviceGroups feature to be enabled for the owning team; if it is not, this returns a not-found error.`,
-        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        // destructiveHint: set replaces the whole membership, and removing a device
+        // clears the group's target snapshot from it, so this removes rather than adds.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             applicationId: applicationId.describe('The hashid of the application the group belongs to'),
             groupId: z.string().describe('The hashid of the device group whose membership to change'),
@@ -138,6 +151,10 @@ module.exports = [
                     payload[key] = args[key]
                 }
             }
+            // As with the update route, an empty body is answered 200 with nothing changed.
+            if (Object.keys(payload).length === 0) {
+                return toolError(400, 'invalid_request', 'Pass at least one of add, remove or set to change membership')
+            }
             const response = await inject({ method: 'PATCH', url: `/api/v1/applications/${args.applicationId}/device-groups/${args.groupId}`, payload })
             return response
         }
@@ -151,7 +168,8 @@ module.exports = [
             To keep an existing hidden (secret) variable's stored value without knowing it, resend it with hidden true and an empty value.
             Changes take effect immediately: member devices are told to pick up the new environment. Confirm with the user before updating.
             Requires the deviceGroups feature to be enabled for the owning team; if it is not, this returns a not-found error.`,
-        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        // destructiveHint: env is a full replacement, so anything left out is deleted.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             applicationId: applicationId.describe('The hashid of the application the group belongs to'),
             groupId: z.string().describe('The hashid of the device group whose settings to update'),

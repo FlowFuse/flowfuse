@@ -113,12 +113,12 @@ describe('MCP Device Groups Tools', function () {
             response.should.equal(routeResponse)
         })
 
-        it('omits description from the payload when not provided', async function () {
+        it('defaults description to an empty string, since a null one breaks the listings', async function () {
             inject.resolves({ statusCode: 201, json: () => ({ id: 'group1' }) })
 
             await tool.handler({ applicationId: 'app1', name: 'Factory floor' }, { inject })
 
-            inject.firstCall.args[0].payload.should.eql({ name: 'Factory floor' })
+            inject.firstCall.args[0].payload.should.eql({ name: 'Factory floor', description: '' })
         })
 
         it('passes through an error response', async function () {
@@ -132,6 +132,18 @@ describe('MCP Device Groups Tools', function () {
 
     describe('platform_update_device_group', function () {
         const tool = getTool('platform_update_device_group')
+
+        it('rejects an update with nothing to change, which the route answers 200 to', async function () {
+            const response = await tool.handler({ applicationId: 'app1', groupId: 'group1' }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
+        it('is marked destructive, since pinning a snapshot deploys it to every member', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
 
         it('puts only the provided fields onto the group route', async function () {
             const routeResponse = { statusCode: 200, json: () => ({}) }
@@ -171,6 +183,18 @@ describe('MCP Device Groups Tools', function () {
     describe('platform_update_device_group_membership', function () {
         const tool = getTool('platform_update_device_group_membership')
 
+        it('rejects a membership change with nothing to change', async function () {
+            const response = await tool.handler({ applicationId: 'app1', groupId: 'group1' }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
+        it('is marked destructive, since set replaces the whole membership', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
+
         it('patches add and remove lists onto the group route', async function () {
             const routeResponse = { statusCode: 200, json: () => ({}) }
             inject.withArgs({ method: 'PATCH', url: '/api/v1/applications/app1/device-groups/group1', payload: { add: ['device1'], remove: ['device2'] } }).resolves(routeResponse)
@@ -200,6 +224,10 @@ describe('MCP Device Groups Tools', function () {
 
     describe('platform_update_device_group_settings', function () {
         const tool = getTool('platform_update_device_group_settings')
+
+        it('is marked destructive, since env is a full replacement', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
 
         it('puts the env list onto the group settings route', async function () {
             const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
