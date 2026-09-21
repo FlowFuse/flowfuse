@@ -750,6 +750,33 @@ describe('Snapshots API', function () {
                 response.json().should.have.property('code', 'bad_request')
             })
 
+            it('Returns 400 for plaintext (unencrypted) credentials and does not store the snapshot', async function () {
+                const ss = dummySnapshot('dummy-plaintext', [], {}, {}, {}, { testCreds: 'abc' })
+                const response = await importSnapshot(getOwnerId(), kind, ss, 'test-secret', TestObjects.tokens.alice)
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'bad_request')
+
+                const stored = await app.db.models.ProjectSnapshot.findOne({ where: { name: 'dummy-plaintext' } })
+                should.not.exist(stored)
+            })
+
+            it('Allows import when plaintext credentials are excluded via components.credentials', async function () {
+                const ss = dummySnapshot('dummy-excluded-creds', [], {}, {}, {}, { testCreds: 'abc' })
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/snapshots/import',
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: {
+                        ownerId: getOwnerId(),
+                        ownerType: kind,
+                        snapshot: ss,
+                        components: { credentials: false }
+                    }
+                })
+                response.statusCode.should.equal(200)
+                response.json().should.have.property('name', 'dummy-excluded-creds')
+            })
+
             it(`TeamB member cannot import snapshot for ${kind} belonging to TeamA - 404`, async function () {
                 const ss = dummySnapshot('dummy', [], {}, {}, {}, null)
                 // chris (TeamB member, non admin) will attempt to import a snapshot into a project/device belonging to TeamA

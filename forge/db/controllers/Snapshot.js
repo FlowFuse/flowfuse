@@ -265,6 +265,10 @@ module.exports = {
             }
             // Need to re-encrypt the credentials for the target
             importSnapshot.flows.credentials = app.db.controllers.Project.exportCredentials(importSnapshot.flows.credentials, credentialSecret, targetCredentialSecret)
+        } else if (Object.keys(importSnapshot.flows.credentials || {}).length > 0) {
+            // credentials were provided but are not in the encrypted "$" shape an export produces,
+            // so storing them as-is would leave plaintext secrets in the database
+            throw new ValidationError('Flow credentials must be encrypted; import a snapshot exported by FlowFuse or exclude credentials')
         }
 
         const ProjectId = ownerType === 'instance' ? owner.id : null

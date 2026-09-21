@@ -478,6 +478,48 @@ describe('Snapshot controller', function () {
             importedSnapshot.settings.env.should.deepEqual({})
         })
 
+        it('should reject a snapshot with plaintext (unencrypted) credentials', async function () {
+            const fullSnapshot = generateSnapshot(null, null, null, { '90f317c74dab03c1': { user: 'auth', password: 'test' } })
+            const options = {
+                // components: {} // excluded to use defaults
+            }
+            let caughtError
+            try {
+                await snapshotController.uploadSnapshot(instance, fullSnapshot, 'the secret', alice, options)
+            } catch (err) {
+                caughtError = err
+            }
+            should.exist(caughtError)
+            caughtError.name.should.equal('SequelizeValidationError')
+
+            const stored = await app.db.models.ProjectSnapshot.findOne({ where: { name: fullSnapshot.name } })
+            should.not.exist(stored)
+        })
+
+        it('should not reject plaintext credentials when credentials are excluded (components.credentials: false)', async function () {
+            const fullSnapshot = generateSnapshot(null, null, null, { '90f317c74dab03c1': { user: 'auth', password: 'test' } })
+            const options = {
+                components: {
+                    credentials: false
+                }
+            }
+            const importedSnapshot = await snapshotController.uploadSnapshot(instance, fullSnapshot, 'the secret', alice, options)
+            should.exist(importedSnapshot)
+            importedSnapshot.flows.credentials.should.deepEqual({})
+        })
+
+        it('should not reject plaintext credentials when flows are excluded (components.flows: false)', async function () {
+            const fullSnapshot = generateSnapshot(null, null, null, { '90f317c74dab03c1': { user: 'auth', password: 'test' } })
+            const options = {
+                components: {
+                    flows: false
+                }
+            }
+            const importedSnapshot = await snapshotController.uploadSnapshot(instance, fullSnapshot, 'the secret', alice, options)
+            should.exist(importedSnapshot)
+            importedSnapshot.flows.credentials.should.deepEqual({})
+        })
+
         it('should upload a snapshot without env values (envVars: "keys")', async function () {
             const fullSnapshot = generateSnapshot()
             const options = {
