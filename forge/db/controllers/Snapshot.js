@@ -245,14 +245,11 @@ module.exports = {
             importSnapshot.settings = Object.assign({}, snapshot.settings, { env: keysOnly })
         }
 
-        // Decrypt any incoming hidden env vars that are encrypted.
-        // Read from importSnapshot.settings.env (not the original snapshot) so entries
-        // already stripped/redacted by the component filtering above are not touched.
+        // decrypt hidden env vars from the filtered copy, so entries already stripped above are left untouched
         const importedEnv = importSnapshot.settings?.env || {}
         Object.keys(importedEnv).forEach((key) => {
             const env = importedEnv[key]
             if (!env || typeof env !== 'object') {
-                // not a valid env entry (e.g. null) - nothing to decrypt
                 return
             }
             if (env.hidden && env.$) {
