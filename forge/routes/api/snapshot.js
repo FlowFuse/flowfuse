@@ -7,6 +7,8 @@
  * @memberof forge.routes.api
  */
 
+const { ValidationError } = require('sequelize')
+
 const { UpdatesCollection } = require('../../auditLog/formatters.js')
 
 module.exports = async function (app) {
@@ -377,6 +379,9 @@ module.exports = async function (app) {
             // if err message is a JSON.parse failure in decryptCreds, it's a bad secret
             if (/JSON\.parse.*decryptCreds/si.test(err.stack)) {
                 return reply.code(400).send({ code: 'bad_request', error: 'Invalid credential secret' })
+            }
+            if (err instanceof ValidationError) {
+                return reply.code(400).send({ code: 'bad_request', error: err.message })
             }
             throw err // handled by global error handler
         }
