@@ -249,6 +249,16 @@ describe('MCP Snapshots Tools', function () {
             response.should.equal(routeResponse)
         })
 
+        it('rejects a blank credentialSecret without calling the route, which treats it as absent', async function () {
+            tool.inputSchema.credentialSecret.safeParse('').success.should.be.false()
+
+            const response = await tool.handler({ snapshotId: 'snapshot1', credentialSecret: '' }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
         it('forwards the components selection when provided', async function () {
             inject.resolves({ statusCode: 200, json: () => ({ id: 'snapshot1' }) })
 

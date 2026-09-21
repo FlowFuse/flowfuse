@@ -14,7 +14,7 @@ const snapshotId = z.string().describe('The hashid of the snapshot')
 const snapshotComponents = z.object({
     flows: z.boolean().optional().describe('Include the flows (default true). Excluding flows also excludes credentials'),
     credentials: z.boolean().optional().describe('Include the encrypted flow credentials (default true)'),
-    envVars: z.union([z.enum(['all', 'keys']), z.literal(false)]).optional().describe('Environment variables: "all" keeps keys and values (default), "keys" keeps only the names, false removes them entirely')
+    envVars: z.union([z.enum(['all', 'keys']), z.literal(false)]).optional().describe('Environment variables: "all" keeps keys and values (default), "keys" keeps only the names, false removes them entirely. Note "keys" also drops the hidden flag, so a secret variable comes back as an ordinary empty one')
 }).optional().describe('Optional selection of which snapshot components to include')
 
 // Query fragments composed per tool by spreading only the ones the backing

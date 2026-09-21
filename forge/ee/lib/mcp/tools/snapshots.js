@@ -156,15 +156,21 @@ module.exports = [
             credentialSecret is always required, even when credentials are excluded via components - the route rejects the request with a 400 without it. The exported credentials are re-encrypted with this secret, and the SAME secret must be supplied when importing the result, so remember it.
             The export contains sensitive data: by default it includes the encrypted flow credentials and the values of ALL environment variables, including hidden (secret) ones. Use components to narrow what is included, for example envVars: "keys" to strip env values.
             Environment variables whose names start with FF_ are reserved by the platform and are never included in an export.
-            The export always carries a credentials block, even for a snapshot with no flows and no credentials, so platform_import_snapshot will ask for this secret again whatever the snapshot holds.
+            Unless credentials are excluded (components credentials: false or flows: false), the export carries an encrypted credentials block even when the snapshot has no flows and no credentials at all, so platform_import_snapshot will need this same secret to take the result back in.
+            This payload can be large, and is always a superset of platform_get_snapshot_full, so only call it when the exported content is actually needed.
             Unlike platform_get_snapshot_full, this is treated as a write operation because it extracts credentials and secret values.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             snapshotId,
-            credentialSecret: z.string().describe('Secret used to re-encrypt the exported credentials. Required on every export; the same secret is needed to import the result'),
+            credentialSecret: z.string().min(1).describe('Secret used to re-encrypt the exported credentials. Required on every export; the same secret is needed to import the result'),
             components: snapshotComponents
         },
         handler: async (args, { inject }) => {
+            // The route treats a blank secret as an absent one and answers 400.
+            // Schema constraints are advisory platform-side, so check it here too.
+            if (!args.credentialSecret) {
+                return toolError(400, 'invalid_request', 'credentialSecret is required and must not be empty')
+            }
             const payload = { credentialSecret: args.credentialSecret }
             if (args.components !== undefined) {
                 payload.components = args.components
