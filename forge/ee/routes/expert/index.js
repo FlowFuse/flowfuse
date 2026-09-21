@@ -37,12 +37,8 @@ async function mapWithConcurrency (items, limit, fn, isStopped) {
     await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker))
 }
 
-/**
- * Maps a platform automation tool's wire definition into a catalog entry for the
- * Expert permissions UI. The read/write/delete class comes from the MCP annotations
- * (readOnlyHint / destructiveHint), and `group: 'platform'` routes it to the platform
- * section. The label is the tool's own `title`, falling back to a name-derived label.
- */
+// Maps a platform automation tool into a permissions-UI entry: class from the MCP
+// annotations, group: 'platform' for the platform section.
 const curatePlatformTool = (def) => {
     const annotations = def.annotations || {}
     const readOnly = annotations.readOnlyHint === true

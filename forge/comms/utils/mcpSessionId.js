@@ -12,9 +12,8 @@ const crypto = require('node:crypto')
  */
 const TOPIC_SAFE_SESSION_ID = /^[A-Za-z0-9_-]{8,128}$/
 
-// Sentinel used in the <userId> level of an MCP request topic to mark the session-less,
-// first-party flow-building catalog fetch. The ACL treats this value alone as exempt from
-// the third-party gate and the user lookup (see checkMcpTopic).
+// Sentinel <userId> marking the session-less flow-building catalog fetch; the ACL treats
+// this value alone as exempt from the third-party gate and the user lookup (see checkMcpTopic).
 const FLOW_BUILDING_CATALOG_USER_ID = 'flow-building-tool-catalog'
 
 /**

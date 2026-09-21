@@ -610,8 +610,7 @@ module.exports = function (app) {
          * (verify() picks sub[] or pub[] from the access level) and by the request/response
          * suffix in the rule's own regex.
          *
-         * The flow-building catalog fetch reuses this channel with the catalog sentinel as
-         * userId, so no separate topic, bridge source or ACL rule is needed (see inline note).
+         * The flow-building catalog fetch reuses this channel with the catalog sentinel as userId.
          */
         checkMcpTopic: async function (topicParts, usernameParts, acl) {
             // topicParts = [ fullTopic , <platformId>, <userId>, <mcpSessionId> ]
@@ -646,9 +645,8 @@ module.exports = function (app) {
                     throw ValidationError('invalid topic format')
                 }
 
-                // The catalog fetch is a first-party read of a global catalog, so the sentinel
-                // userId is exempt from the third-party gate and the user lookup. Every other
-                // check still applies, confining it to the designed request/response exchange.
+                // The catalog is a first-party global read, so the sentinel userId is exempt from
+                // the third-party gate and the user lookup; every other check below still applies.
                 const isCatalogFetch = userId === FLOW_BUILDING_CATALOG_USER_ID
                 if (!isCatalogFetch && !app.config.features.enabled('mcpThirdParty')) {
                     throw ValidationError('third-party MCP access is not enabled on this platform')

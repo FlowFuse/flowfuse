@@ -62,8 +62,8 @@ class McpGatewayHandler {
     }
 
     /**
-     * Fetch the global flow-building tool catalog from the gateway over MQTT. Reuses the MCP
-     * request channel with the catalog sentinel as userId and a throwaway session id.
+     * Fetch the global flow-building tool catalog. Reuses the MCP request channel with the
+     * catalog sentinel as userId and a throwaway session id.
      *
      * @param {object} payload Request payload (mcp body, toolGroups)
      * @param {number} [timeoutMs] Override default timeout
