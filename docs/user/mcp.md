@@ -52,7 +52,11 @@ Flow work runs in a live editor session, not as a file to import. Point the agen
 | Canvas | Read the full flow, list config nodes, read debug output, search and select nodes | Navigate to a tab or subflow, align and distribute nodes |
 | FlowFuse Tables | Query table data | Build a [Query Node](/docs/user/ff-tables/#query-nodes) flow that reads and writes tables |
 
-Nothing goes live until you deploy from Node-RED.
+By default nothing goes live until you deploy from Node-RED. A team owner can let agents deploy their own changes, see [Agent deploy](#agent-deploy).
+
+## Agent deploy
+
+A team owner turns this on from **Team Settings > Danger > AI Flow Deploy**. It is off by default and needs AI Features enabled for the team.
 
 ## Access and permissions
 
