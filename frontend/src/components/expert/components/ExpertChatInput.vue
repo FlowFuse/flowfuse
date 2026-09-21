@@ -43,6 +43,11 @@
                 </button>
             </div>
         </div>
+        <!-- Rendered into the conversation, under the opening message, but driven from
+             here: the composer owns the text and the send path the suggestions need. -->
+        <Teleport v-if="showSuggestions" defer to="#expert-suggestions-slot">
+            <prompt-suggestions :suggestions="suggestions" @select="useSuggestion" />
+        </Teleport>
         <div class="input-wrapper" :class="{ 'focused': isTextareaFocused }">
             <!-- Textarea -->
             <textarea
@@ -119,7 +124,10 @@ import { mapActions, mapState } from 'pinia'
 import FormHeading from '../../FormHeading.vue'
 import ResizeBar from '../../ResizeBar.vue'
 
+import { pickSuggestions } from '../prompt-suggestions.js'
+
 import CapabilitiesSelector from './CapabilitiesSelector.vue'
+import PromptSuggestions from './PromptSuggestions.vue'
 import ToolPermissionsSettings from './ToolPermissionsSettings.vue'
 import DefaultChip from './chips/DefaultChip.vue'
 import ContextSelector from './context-selection/index.vue'
@@ -138,6 +146,7 @@ export default {
         ContextSelector,
         DefaultChip,
         FormHeading,
+        PromptSuggestions,
         ResizeBar,
         ToolPermissionsSettings
     },
@@ -178,7 +187,11 @@ export default {
             requestingPlanChange: false,
             // The composer auto-sizes to its content via CSS (see .chat-input field-sizing).
             // Only once the user drag-resizes do we pin it to an explicit height.
-            userResized: false
+            userResized: false,
+            // Conversation starters, drawn at random when the composer mounts and
+            // re-drawn on "Start over"
+            suggestions: [],
+            suggestionUsed: false
         }
     },
     computed: {
@@ -223,6 +236,17 @@ export default {
         },
         canSend () {
             return this.inputText.trim().length > 0 && !this.isInputDisabled
+        },
+        hasUserTurns () {
+            // hasMessages is true from the off, the store seeds a welcome message,
+            // so the transcript counts as started only once the user has said something
+            return this.messages.some(message => message._type === 'human')
+        },
+        showSuggestions () {
+            if (this.expertSurface === 'onboarding') return false
+            if (this.suggestionUsed || this.suggestions.length === 0) return false
+            if (this.inputText.length > 0 || this.hasUserTurns) return false
+            return !this.isInputDisabled
         },
         placeholderText () {
             if (this.isInsightsAgent && !this.hasSelectedCapabilities) {
@@ -280,6 +304,7 @@ export default {
         }
     },
     mounted () {
+        this.suggestions = pickSuggestions()
         this.bindResizer({
             component: this.$refs.resizeTarget,
             maxHeightRatio: 0.9,
@@ -317,6 +342,22 @@ export default {
             this.inputText = ''
             this.requestingPlanChange = false
         },
+        useSuggestion (suggestion) {
+            this.suggestionUsed = true
+            this.inputText = suggestion.prompt
+            if (suggestion.needsInput) {
+                // The prompt is a half-finished sentence: hand it to the user with the
+                // caret at the end rather than sending it as-is
+                this.$nextTick(() => {
+                    const textarea = this.$refs.textarea
+                    if (!textarea) return
+                    textarea.focus()
+                    textarea.setSelectionRange(textarea.value.length, textarea.value.length)
+                })
+                return
+            }
+            this.handleSend()
+        },
         onStartResize (event) {
             // Seed the drag from the composer's current rendered height (it may have auto-grown to
             // fit its content) so the resize continues smoothly from where it is, then hand off to
@@ -333,6 +374,8 @@ export default {
             if (!this.hasMessages) return
 
             this.inputText = ''
+            this.suggestionUsed = false
+            this.suggestions = pickSuggestions()
             // When in support mode, reset/restore assistant context selection (opt-out by default)
             if (!this.isInsightsAgent) {
                 this.resetContextSelection()
