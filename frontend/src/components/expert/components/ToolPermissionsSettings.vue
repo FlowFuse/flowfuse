@@ -181,7 +181,7 @@ export default {
                 key: TOOL_GROUPS.FLOW_BUILDING,
                 title: 'Flow Building Tools',
                 tools: this.groupTools(TOOL_GROUPS.FLOW_BUILDING),
-                empty: 'No flow-building tools available yet.'
+                empty: 'Flow Building tools permissions cannot be changed. Default will apply: read-only tools are always allowed, write and delete tools will ask for permissions.'
             }
             const platform = {
                 key: TOOL_GROUPS.PLATFORM,
