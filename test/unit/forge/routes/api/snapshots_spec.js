@@ -223,7 +223,7 @@ describe('Snapshots API', function () {
         })
     }
 
-    async function importSnapshot (ownerId, ownerType, snapshot, credentialSecret, token) {
+    async function importSnapshot (ownerId, ownerType, snapshot, credentialSecret, token, components) {
         const payload = {
             ownerId,
             ownerType,
@@ -231,6 +231,9 @@ describe('Snapshots API', function () {
         }
         if (credentialSecret) {
             payload.credentialSecret = credentialSecret
+        }
+        if (components) {
+            payload.components = components
         }
         return await app.inject({
             method: 'POST',
@@ -704,6 +707,20 @@ describe('Snapshots API', function () {
                 result.should.have.property('user').and.be.an.Object() // should contain the user - for updating the snapshot table client-side without refreshing/reloading from the server
                 result.should.have.property('id').and.be.a.String()
                 result.should.have.property('name', 'dummy-no-creds')
+            })
+
+            it('Owner can import snapshot with credentials when flows are excluded and no credentialSecret is given', async function () {
+                const ownerId = getOwnerId()
+                const ss = dummySnapshot('dummy-flows-excluded', [{ id: '123' }], { testSetting: 123 }, {}, {}, encryptCredentials('test-secret', { testCreds: 'abc' }))
+                const response = await importSnapshot(ownerId, kind, ss, null, TestObjects.tokens.alice, { flows: false })
+
+                response.statusCode.should.equal(200)
+
+                const result = response.json()
+                result.should.have.property(modelType).and.be.an.Object()
+                result[modelType].should.have.property('id', ownerId)
+                result.should.have.property('id').and.be.a.String()
+                result.should.have.property('name', 'dummy-flows-excluded')
             })
 
             it('Returns 400 for missing snapshot', async function () {
