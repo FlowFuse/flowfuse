@@ -232,6 +232,14 @@ describe('MCP Teams Tools', function () {
             Object.keys(tool.inputSchema).should.eql(['teamId', 'name', 'slug'])
         })
 
+        it('rejects an update with nothing to change, which the route answers 200 to', async function () {
+            const response = await tool.handler({ teamId: 'team1' }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
         it('passes through an error response', async function () {
             const errorResponse = { statusCode: 400, json: () => ({ code: 'invalid_slug' }) }
             inject.resolves(errorResponse)
