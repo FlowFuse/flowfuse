@@ -244,6 +244,7 @@ export default {
         },
         showSuggestions () {
             if (this.expertSurface === 'onboarding') return false
+            if (this.isInsightsAgent) return false
             if (this.suggestionUsed || this.suggestions.length === 0) return false
             if (this.inputText.length > 0 || this.hasUserTurns) return false
             return !this.isInputDisabled
