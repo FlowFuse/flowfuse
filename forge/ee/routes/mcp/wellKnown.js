@@ -31,4 +31,18 @@ module.exports = async function (app) {
     app.get('/oauth-protected-resource', { config: { allowAnonymous: true }, schema }, async (request, reply) => {
         reply.send(protectedResourceMetadata())
     })
+
+    // Domain-verification token for connector directory submissions (e.g. OpenAI).
+    app.get('/openai-apps-challenge', { config: { allowAnonymous: true } }, async (request, reply) => {
+        const token = app.config.mcp?.domainVerificationToken
+        if (!token) {
+            return reply.code(404).send()
+        }
+        reply.type('text/plain').send(token)
+    })
+
+    // Unknown /.well-known paths must 404, not fall through to the SPA shell.
+    app.get('/*', { config: { allowAnonymous: true } }, async (request, reply) => {
+        reply.code(404).send()
+    })
 }
