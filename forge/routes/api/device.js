@@ -447,7 +447,8 @@ module.exports = async function (app) {
         schema: {
             summary: 'Start an asynchronous registration for a device',
             body: {
-                type: 'object',
+                // The body is optional - if provided, it may contain the agent type
+                type: ['object', 'null'],
                 properties: {
                     type: { type: 'string' }
                 }
@@ -469,7 +470,7 @@ module.exports = async function (app) {
         // Create a new AsyncLoginSession with a unique sessionToken and doneToken
         const session = await app.db.models.AsyncLoginSession.createToken()
         let registerUrl = `/register/remote-instance/${session.sessionToken}`
-        if (request.body.type === 'lite') {
+        if (request.body?.type === 'lite') {
             registerUrl = registerUrl + '?type=lite'
         }
         const doneUrl = `/api/v1/devices/_/register/done/${session.doneToken}`
