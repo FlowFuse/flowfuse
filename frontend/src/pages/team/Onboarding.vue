@@ -12,8 +12,27 @@
                     :disabled="provisioning"
                     @click="skipOnboarding"
                 >
-                   Set it up myself
+                    Set it up myself
                 </ff-button>
+                <!-- Sign-out is the only navigation offered on this page -->
+                <ff-dropdown
+                    v-if="user"
+                    :show-chevron="false"
+                    class="ff-navigation ff-user-options"
+                    options-align="right"
+                    data-action="user-options"
+                >
+                    <template #placeholder>
+                        <div class="ff-user">
+                            <img :src="user.avatar" class="ff-avatar">
+                        </div>
+                    </template>
+                    <template #default>
+                        <ff-dropdown-option data-nav="sign-out" @click="signOut">
+                            <nav-item label="Sign Out" :icon="signOutIcon" />
+                        </ff-dropdown-option>
+                    </template>
+                </ff-dropdown>
             </Teleport>
             <div class="onboarding-column">
                 <ExpertPanel />
@@ -23,11 +42,15 @@
 </template>
 
 <script>
+import { ArrowLeftOnRectangleIcon } from '@heroicons/vue/20/solid'
 import { mapState } from 'pinia'
 
 import teamApi from '@/api/team.ts'
+import NavItem from '@/components/NavItem.vue'
 import ExpertPanel from '@/components/expert/Expert.vue'
+import navigationMixin from '@/mixins/Navigation.js'
 import Alerts from '@/services/alerts.js'
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
@@ -38,8 +61,10 @@ import { useUxStore } from '@/stores/ux.js'
 export default {
     name: 'TeamOnboarding',
     components: {
-        ExpertPanel
+        ExpertPanel,
+        NavItem
     },
+    mixins: [navigationMixin],
     provide () {
         return {
             'expert-surface': 'onboarding'
@@ -62,6 +87,10 @@ export default {
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
         ...mapState(useUxStore, ['isOnboardingIntake']),
         ...mapState(useProductExpertStore, ['messages']),
+        ...mapState(useAccountAuthStore, ['user']),
+        signOutIcon () {
+            return ArrowLeftOnRectangleIcon
+        },
         userTurns () {
             return this.messages.filter(message => message._type === 'human').length
         },
@@ -153,8 +182,11 @@ export default {
                     return
                 }
             }
+            // Leave first: ending the stage while this page is still mounted
+            // flips notAvailable, whose watcher would beat this navigation
+            // with its own redirect to the 404 page
+            await this.$router.push({ name: 'team-home', params: { team_slug: this.team.slug } })
             useUxStore().endOnboarding()
-            this.$router.push({ name: 'team-home', params: { team_slug: this.team.slug } })
         }
     }
 }
@@ -246,36 +278,6 @@ export default {
 .onboarding-column :deep(.expert-questions .question-title) {
     font-size: 1.25rem;
     font-weight: 600;
-}
-
-/* Options render as full-width bordered tiles */
-.onboarding-column :deep(.expert-questions .ff-radio-btn),
-.onboarding-column :deep(.expert-questions .ff-checkbox) {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    border: 1px solid var(--ff-color-border);
-    border-radius: 0.375rem;
-    padding: 0.875rem 1rem 0.875rem 2.75rem;
-    background: var(--ff-color-bg-surface);
-    cursor: pointer;
-
-    /* the control is absolutely positioned top-left by default;
-       center it against the tile */
-    .checkbox {
-        top: 50%;
-        left: 1rem;
-        transform: translateY(-50%);
-    }
-
-    &:hover {
-        border-color: var(--ff-color-text-subtle);
-    }
-
-    &:has(.checkbox[checked='true']) {
-        border-color: var(--ff-color-accent);
-        background: var(--ff-color-accent-surface);
-    }
 }
 
 /* The composer sits quietly at the bottom: no divider, no panel chrome */

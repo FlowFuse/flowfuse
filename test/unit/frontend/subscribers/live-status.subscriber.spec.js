@@ -8,12 +8,18 @@ const setDeviceStatus = vi.fn()
 const setLive = vi.fn()
 const clear = vi.fn()
 const useLiveStatusStore = vi.fn(() => ({ setInstanceStatus, setDeviceStatus, setLive, clear }))
+const relayInstanceReady = vi.fn().mockResolvedValue(undefined)
+const useProductExpertStore = vi.fn(() => ({ relayInstanceReady }))
+const contextState = { instance: null }
+const useContextStore = vi.fn(() => contextState)
 
 vi.mock('@/api/team.js', () => ({
     default: { getTeamCommsCreds: (...args) => getTeamCommsCreds(...args) }
 }))
 vi.mock('@/stores/account-auth.js', () => ({ useAccountAuthStore }))
 vi.mock('@/stores/live-status', () => ({ useLiveStatusStore }))
+vi.mock('@/stores/product-expert.js', () => ({ useProductExpertStore }))
+vi.mock('@/stores/context.js', () => ({ useContextStore }))
 
 function makeTransport () {
     return {
@@ -37,10 +43,13 @@ describe('LiveStatusSubscriber', async () => {
     beforeEach(async () => {
         getTeamCommsCreds.mockReset()
         useAccountAuthStore.mockClear().mockReturnValue({ user: { id: 'user-hashid-1' }, getSessionId: () => 'session-test-id' })
-        setInstanceStatus.mockClear()
+        setInstanceStatus.mockClear().mockReturnValue(false)
         setDeviceStatus.mockClear()
         setLive.mockClear()
         clear.mockClear()
+        relayInstanceReady.mockClear()
+        useProductExpertStore.mockClear()
+        contextState.instance = null
         await destroyLiveStatusSubscriber()
     })
 
@@ -178,6 +187,74 @@ describe('LiveStatusSubscriber', async () => {
             const { onMessage } = await connectAndCaptureOnMessage()
             expect(() => onMessage('ff/v1/team-1/p/inst-1/state', Buffer.from('not json'))).not.toThrow()
             expect(setInstanceStatus).not.toHaveBeenCalled()
+        })
+    })
+
+    describe('instance-ready relay (onboarding trigger)', () => {
+        async function connectAndCaptureOnMessage () {
+            const { subscriber, transport } = createSubscriber()
+            let onMessage
+            transport.attach.mockImplementation(async (key, opts) => {
+                onMessage = opts.onMessage
+                return { key, id: 1 }
+            })
+            await subscriber.connect({ id: 'team-1' })
+            return { subscriber, onMessage }
+        }
+
+        test('relays instance-ready once the store reports a transition into running', async () => {
+            setInstanceStatus.mockReturnValue(true)
+            const { onMessage } = await connectAndCaptureOnMessage()
+
+            onMessage('ff/v1/team-1/p/inst-1/state', Buffer.from(JSON.stringify({ id: 'inst-1', meta: { state: 'running' } })))
+
+            expect(relayInstanceReady).toHaveBeenCalledWith({ id: 'inst-1', name: null })
+        })
+
+        test('does not relay when the store reports no transition', async () => {
+            setInstanceStatus.mockReturnValue(false)
+            const { onMessage } = await connectAndCaptureOnMessage()
+
+            onMessage('ff/v1/team-1/p/inst-1/state', Buffer.from(JSON.stringify({ id: 'inst-1', meta: { state: 'running' } })))
+
+            expect(relayInstanceReady).not.toHaveBeenCalled()
+        })
+
+        test('does not relay for a non-running state, regardless of what the store reports', async () => {
+            setInstanceStatus.mockReturnValue(false)
+            const { onMessage } = await connectAndCaptureOnMessage()
+
+            onMessage('ff/v1/team-1/p/inst-1/state', Buffer.from(JSON.stringify({ id: 'inst-1', meta: { state: 'starting' } })))
+
+            expect(relayInstanceReady).not.toHaveBeenCalled()
+        })
+
+        test('resolves the name from the currently loaded instance context when it matches', async () => {
+            setInstanceStatus.mockReturnValue(true)
+            contextState.instance = { id: 'inst-1', name: 'my-instance' }
+            const { onMessage } = await connectAndCaptureOnMessage()
+
+            onMessage('ff/v1/team-1/p/inst-1/state', Buffer.from(JSON.stringify({ id: 'inst-1', meta: { state: 'running' } })))
+
+            expect(relayInstanceReady).toHaveBeenCalledWith({ id: 'inst-1', name: 'my-instance' })
+        })
+
+        test('does not borrow the name from a differently loaded instance context', async () => {
+            setInstanceStatus.mockReturnValue(true)
+            contextState.instance = { id: 'inst-2', name: 'other-instance' }
+            const { onMessage } = await connectAndCaptureOnMessage()
+
+            onMessage('ff/v1/team-1/p/inst-1/state', Buffer.from(JSON.stringify({ id: 'inst-1', meta: { state: 'running' } })))
+
+            expect(relayInstanceReady).toHaveBeenCalledWith({ id: 'inst-1', name: null })
+        })
+
+        test('does not throw when relayInstanceReady rejects', async () => {
+            setInstanceStatus.mockReturnValue(true)
+            relayInstanceReady.mockRejectedValueOnce(new Error('mqtt unavailable'))
+            const { onMessage } = await connectAndCaptureOnMessage()
+
+            expect(() => onMessage('ff/v1/team-1/p/inst-1/state', Buffer.from(JSON.stringify({ id: 'inst-1', meta: { state: 'running' } })))).not.toThrow()
         })
     })
 

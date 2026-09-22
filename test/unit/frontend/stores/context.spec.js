@@ -277,6 +277,53 @@ describe('context store', () => {
             })
         })
 
+        describe('agentAutoDeployEnabled', () => {
+            it('returns false when there is no team', () => {
+                const store = useContextStore()
+                expect(store.agentAutoDeployEnabled).toBe(false)
+            })
+
+            it('returns false when the platform ai feature is disabled', () => {
+                const store = useContextStore()
+                const settingsStore = useAccountSettingsStore()
+                settingsStore.features = { ai: false }
+                store.setTeam({ properties: { features: { agentAutoDeploy: true } }, type: { properties: { features: {} } } })
+                expect(store.agentAutoDeployEnabled).toBe(false)
+            })
+
+            it('returns false when the team has opted out of ai', () => {
+                const store = useContextStore()
+                const settingsStore = useAccountSettingsStore()
+                settingsStore.features = { ai: true }
+                store.setTeam({ properties: { features: { agentAutoDeploy: true, ai: false } }, type: { properties: { features: {} } } })
+                expect(store.agentAutoDeployEnabled).toBe(false)
+            })
+
+            it('returns false when the team has not enabled agentAutoDeploy', () => {
+                const store = useContextStore()
+                const settingsStore = useAccountSettingsStore()
+                settingsStore.features = { ai: true }
+                store.setTeam({ properties: {}, type: { properties: { features: {} } } })
+                expect(store.agentAutoDeployEnabled).toBe(false)
+            })
+
+            it('returns true when the team override enables it and ai is enabled', () => {
+                const store = useContextStore()
+                const settingsStore = useAccountSettingsStore()
+                settingsStore.features = { ai: true }
+                store.setTeam({ properties: { features: { agentAutoDeploy: true } }, type: { properties: { features: {} } } })
+                expect(store.agentAutoDeployEnabled).toBe(true)
+            })
+
+            it('falls back to the TeamType default when the team has no override', () => {
+                const store = useContextStore()
+                const settingsStore = useAccountSettingsStore()
+                settingsStore.features = { ai: true }
+                store.setTeam({ properties: {}, type: { properties: { features: { agentAutoDeploy: true } } } })
+                expect(store.agentAutoDeployEnabled).toBe(true)
+            })
+        })
+
         describe('isTrialAccount', () => {
             it('returns false when team has no billing', () => {
                 const store = useContextStore()
@@ -459,6 +506,23 @@ describe('context store', () => {
                 const expert = store.expert
                 expect(expert.teamId).toBe('team-42')
                 expect(expert.teamSlug).toBe('my-team')
+            })
+
+            // Both branches build the object separately, so a field added to one
+            // and not the other goes missing depending on load timing
+            it('carries agentAutoDeployEnabled on both the early-return and main paths', () => {
+                const store = useContextStore()
+                const settingsStore = useAccountSettingsStore()
+                settingsStore.features = { ai: true }
+                store.setTeam({ properties: { features: { agentAutoDeploy: true } }, type: { properties: { features: {} } } })
+
+                expect(store.route).toBe(null)
+                expect(store.expert.agentAutoDeployEnabled).toBe(true)
+
+                store.setTeamMembership({ role: 30 })
+                store.updateRoute({ name: 'team', fullPath: '/team/a', params: {} })
+                expect(store.route).not.toBe(null)
+                expect(store.expert.agentAutoDeployEnabled).toBe(true)
             })
 
             it('sets telemetryEnabled from the platform setting', () => {

@@ -1630,6 +1630,62 @@ describe('Team API', function () {
             team.should.have.property('TeamTypeId', newTeamType.id)
         })
 
+        describe('Feature overrides (features branch)', async function () {
+            // PUT /api/v1/teams/:teamId { features: {...} }
+            it('owner can toggle agentAutoDeploy', async function () {
+                const team = await app.db.models.Team.create({ name: 'update-team-feat-1', slug: 'team-feat-1', TeamTypeId: app.defaultTeamType.id })
+                await team.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${team.hashid}`,
+                    payload: {
+                        features: { agentAutoDeploy: true }
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+
+                await team.reload()
+                team.properties.features.should.have.property('agentAutoDeploy', true)
+            })
+            it('member cannot toggle agentAutoDeploy', async function () {
+                const team = await app.db.models.Team.create({ name: 'update-team-feat-2', slug: 'team-feat-2', TeamTypeId: app.defaultTeamType.id })
+                await team.addUser(TestObjects.bob, { through: { role: Roles.Member } })
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${team.hashid}`,
+                    payload: {
+                        features: { agentAutoDeploy: true }
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(403)
+
+                await team.reload()
+                should.not.exist(team.properties?.features?.agentAutoDeploy)
+            })
+            it('ignores feature keys outside the allowlist', async function () {
+                const team = await app.db.models.Team.create({ name: 'update-team-feat-3', slug: 'team-feat-3', TeamTypeId: app.defaultTeamType.id })
+                await team.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${team.hashid}`,
+                    payload: {
+                        features: { agentAutoDeploy: true, notAllowed: true }
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+
+                await team.reload()
+                team.properties.features.should.have.property('agentAutoDeploy', true)
+                should.not.exist(team.properties.features.notAllowed)
+            })
+        })
+
         describe('Suspending team', async function () {
             it('non-owner cannot suspend team', async function () {
                 const teamName = generateName('suspend-team')
