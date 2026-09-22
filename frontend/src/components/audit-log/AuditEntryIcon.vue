@@ -103,7 +103,8 @@ const iconMap = {
         'account.verify.verify-token',
         'user.updated-password',
         'account.forgot-password',
-        'account.reset-password'
+        'account.reset-password',
+        'account.mcp-refresh-token-replay'
     ],
     key: [
         'platform.license.applied',

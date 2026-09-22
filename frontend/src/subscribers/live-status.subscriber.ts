@@ -1,7 +1,9 @@
 import { defineSubscriberSingleton } from './subscriber.factory'
 import { SubscriberRoute, TeamSubscriber } from './team-subscriber.contract'
 
+import { useContextStore } from '@/stores/context.js'
 import { useLiveStatusStore } from '@/stores/live-status'
+import { useProductExpertStore } from '@/stores/product-expert.js'
 import type { CreateSubscriberOptions, TeamSubscriberI } from '@/types/subscribers/subscriber.types'
 
 const DEVICE_STATE_TOPIC_REGEX = /^ff\/v1\/[^/]+\/d\/[^/]+\/state$/
@@ -47,7 +49,18 @@ class LiveStatusSubscriber extends TeamSubscriber implements TeamSubscriberI {
     protected _onInstanceStatus (payload: { id?: string, meta?: { state?: string, versions?: Record<string, string> } }): void {
         if (!payload?.id || !payload.meta?.state) return
         try {
-            useLiveStatusStore().setInstanceStatus(payload.id, payload.meta.state, payload.meta.versions)
+            const transitionedToRunning = useLiveStatusStore().setInstanceStatus(payload.id, payload.meta.state, payload.meta.versions)
+            if (transitionedToRunning) this._onInstanceRunning(payload.id)
+        } catch {}
+    }
+
+    // The state payload carries no instance name; fall back to whatever the currently
+    // loaded instance context already knows rather than making a fresh API call for it.
+    protected _onInstanceRunning (id: string): void {
+        try {
+            const instance = useContextStore().instance
+            const name = instance?.id === id ? instance.name : null
+            useProductExpertStore().relayInstanceReady({ id, name }).catch(() => undefined)
         } catch {}
     }
 

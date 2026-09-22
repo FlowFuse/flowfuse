@@ -1,5 +1,6 @@
 <template>
     <div class="collapsed-question-turn" :class="{ expanded }">
+        <AiMessage v-if="!expanded && textAnswer.length" v-bind="{ ...turn.questionsMessage, answer: textAnswer }" :instant="true" />
         <div v-if="!expanded" class="folded-turn">
             <div
                 v-for="(entry, index) in turn.entries"
@@ -24,6 +25,7 @@
                         class="answer-chip"
                         data-action="edit-answer"
                         title="Edit this answer"
+                        :disabled="isWaitingForResponse"
                         @click="editAnswer(entry)"
                     >
                         <span class="chip-label">{{ chip }}</span>
@@ -38,6 +40,7 @@
                 class="answer-chip folded-reply"
                 data-action="edit-answer"
                 title="Edit this answer"
+                :disabled="isWaitingForResponse"
                 @click="editReply"
             >
                 <span class="chip-label">{{ unmatchedReply }}</span>
@@ -66,7 +69,7 @@
 
 <script>
 import { PencilIcon } from '@heroicons/vue/20/solid'
-import { mapActions } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 
 import AiMessage from './AiMessage.vue'
 import HumanMessage from './HumanMessage.vue'
@@ -92,6 +95,13 @@ export default {
         }
     },
     computed: {
+        ...mapState(useProductExpertStore, ['isWaitingForResponse']),
+        // A questions part carries the turn's prose in content, so strip only the questions.
+        textAnswer () {
+            return this.turn.questionsMessage.answer
+                .filter(answer => answer.content)
+                .map(answer => ({ ...answer, questions: undefined }))
+        },
         hasMatchedAnswers () {
             return this.turn.entries.some(entry => entry.answer !== null)
         },
@@ -176,6 +186,15 @@ export default {
 
     &:hover {
         border-color: var(--ff-color-accent);
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+
+        &:hover {
+            border-color: var(--ff-color-border);
+        }
     }
 }
 

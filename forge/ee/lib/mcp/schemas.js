@@ -7,6 +7,16 @@ const hostedInstanceId = z.string().uuid().describe('The id (UUID) of the hosted
 const remoteInstanceId = z.string().describe('The hashid of the remote instance')
 const snapshotId = z.string().describe('The hashid of the snapshot')
 
+// Shared by the snapshot export and import tools: both routes take the same
+// component selection, and the controller applies the same defaults to each.
+// Direction-specific cautions (an export exposing hidden values, for instance)
+// belong in the owning tool's description, not here.
+const snapshotComponents = z.object({
+    flows: z.boolean().optional().describe('Include the flows (default true). Excluding flows also excludes credentials'),
+    credentials: z.boolean().optional().describe('Include the encrypted flow credentials (default true)'),
+    envVars: z.union([z.enum(['all', 'keys']), z.literal(false)]).optional().describe('Environment variables: "all" keeps keys and values (default), "keys" keeps only the names, false removes them entirely. Note "keys" also drops the hidden flag, so a secret variable comes back as an ordinary empty one')
+}).optional().describe('Optional selection of which snapshot components to include')
+
 // Query fragments composed per tool by spreading only the ones the backing
 // route's finder actually honors. Not the same as the route's declared query
 // schema: most list routes reuse a generic PaginationParams that advertises
@@ -85,6 +95,7 @@ module.exports = {
     hostedInstanceId,
     remoteInstanceId,
     snapshotId,
+    snapshotComponents,
     cursorParam,
     limitParam,
     basePagination,
