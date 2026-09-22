@@ -72,6 +72,11 @@ describe('MCP User/Notifications Tools', function () {
     describe('platform_set_notification_read_state', function () {
         const tool = getTool('platform_set_notification_read_state')
 
+        it('rejects an empty ids array, which the route answers 200 to', function () {
+            tool.inputSchema.ids.safeParse([]).success.should.be.false()
+            tool.inputSchema.ids.safeParse(['n1']).success.should.be.true()
+        })
+
         it('puts the read state to the single-notification route when notificationId is given', async function () {
             const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
             inject.withArgs({ method: 'PUT', url: '/api/v1/user/notifications/notification1', payload: { read: true } }).resolves(routeResponse)
@@ -120,6 +125,10 @@ describe('MCP User/Notifications Tools', function () {
     describe('platform_respond_to_team_invitation', function () {
         const tool = getTool('platform_respond_to_team_invitation')
 
+        it('is marked destructive, since rejecting deletes the invitation', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
+
         it('accepts via PATCH on the invitation route', async function () {
             const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
             inject.withArgs({ method: 'PATCH', url: '/api/v1/user/invitations/invite1' }).resolves(routeResponse)
@@ -151,6 +160,14 @@ describe('MCP User/Notifications Tools', function () {
 
     describe('platform_update_profile', function () {
         const tool = getTool('platform_update_profile')
+
+        it('rejects an update with nothing to change, which the route answers 200 to', async function () {
+            const response = await tool.handler({}, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
 
         it('puts only the provided fields onto the user route', async function () {
             const routeResponse = { statusCode: 200, json: () => ({ id: 'user1' }) }

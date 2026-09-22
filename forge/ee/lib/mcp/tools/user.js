@@ -41,7 +41,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             notificationId: z.string().optional().describe('The hashid of a single notification to change. Provide exactly one of notificationId or ids'),
-            ids: z.array(z.string()).optional().describe('Hashids of the notifications to change in bulk. Provide exactly one of notificationId or ids'),
+            ids: z.array(z.string()).min(1).optional().describe('Hashids of the notifications to change in bulk, at least one. Provide exactly one of notificationId or ids'),
             read: z.boolean().describe('Read state to set: true marks read, false marks unread')
         },
         handler: async (args, { inject }) => {
@@ -65,7 +65,9 @@ module.exports = [
             Accepts or rejects a team invitation the current user has received. Accepting joins the team with the invited role; rejecting declines and removes the invitation.
             Only invitations addressed to the current user can be answered - anything else returns a 404. Find pending invitations with platform_list_own_invitations.
             This is the counterpart to platform_invite_team_member (which sends invitations) and cannot revoke invitations sent to other people.`,
-        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        // destructiveHint: rejecting deletes the invitation outright, and only the
+        // original sender can issue another, so this removes rather than adds.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             invitationId: z.string().describe('The hashid of an invitation the current user received, as returned by platform_list_own_invitations'),
             action: z.enum(['accept', 'reject']).describe('Whether to accept the invitation (join the team) or reject it (decline)')
@@ -81,7 +83,7 @@ module.exports = [
         title: 'Update Own Profile',
         description: `FlowFuse platform automation tool:
             Updates the current user's own profile. Only the display name and default team are editable through this tool; username, email, password and other account settings are deliberately not exposed.
-            Only the fields you pass are changed. Passing an empty name resets the display name to the username. defaultTeam must be a team the user is a member of, otherwise the call fails with "invalid_team".
+            Only the fields you pass are changed; pass at least one of name or defaultTeam. Passing an empty name resets the display name to the username. defaultTeam must be a team the user is a member of, otherwise the call fails with "invalid_team".
             The default team is the one the platform UI opens on login.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
@@ -95,6 +97,11 @@ module.exports = [
             }
             if (args.defaultTeam !== undefined) {
                 payload.defaultTeam = args.defaultTeam
+            }
+            // The route replies 200 with the profile unchanged when there is nothing
+            // to update, which reads as a successful edit that never happened.
+            if (Object.keys(payload).length === 0) {
+                return toolError(400, 'invalid_request', 'Pass at least one of name or defaultTeam to update')
             }
             const response = await inject({ method: 'PUT', url: '/api/v1/user', payload })
             return response
