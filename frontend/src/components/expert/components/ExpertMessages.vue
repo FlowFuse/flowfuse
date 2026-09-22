@@ -23,6 +23,7 @@ import ExpertLoadingIndicator from './ExpertLoadingIndicator.vue'
 
 import AiMessage from './messages/AiMessage.vue'
 import CollapsedQuestionTurn from './messages/CollapsedQuestionTurn.vue'
+import FlowFuseEventCard from './messages/FlowFuseEventCard.vue'
 import HumanMessage from './messages/HumanMessage.vue'
 import SystemMessage from './messages/SystemMessage.vue'
 
@@ -51,7 +52,8 @@ export default {
             return {
                 ai: markRaw(AiMessage),
                 human: markRaw(HumanMessage),
-                system: markRaw(SystemMessage)
+                system: markRaw(SystemMessage),
+                event: markRaw(FlowFuseEventCard)
             }
         },
         renderList () {

@@ -24,25 +24,48 @@ describe('live-status store', () => {
 
         it('reports the transition into running for a previously unknown instance', () => {
             const store = useLiveStatusStore()
-            expect(store.setInstanceStatus('inst-1', 'running')).toBe(true)
+            expect(store.setInstanceStatus('inst-1', 'running')).toEqual({ toRunning: true, toFailed: false })
         })
 
         it('reports no transition when the instance was already running', () => {
             const store = useLiveStatusStore()
             store.setInstanceStatus('inst-1', 'running')
-            expect(store.setInstanceStatus('inst-1', 'running')).toBe(false)
+            expect(store.setInstanceStatus('inst-1', 'running')).toEqual({ toRunning: false, toFailed: false })
         })
 
-        it('reports no transition for a non-running state', () => {
+        it('reports no transition for a non-running, non-failed state', () => {
             const store = useLiveStatusStore()
-            expect(store.setInstanceStatus('inst-1', 'starting')).toBe(false)
+            expect(store.setInstanceStatus('inst-1', 'starting')).toEqual({ toRunning: false, toFailed: false })
         })
 
         it('reports a transition again after the instance leaves and re-enters running', () => {
             const store = useLiveStatusStore()
             store.setInstanceStatus('inst-1', 'running')
             store.setInstanceStatus('inst-1', 'restarting')
-            expect(store.setInstanceStatus('inst-1', 'running')).toBe(true)
+            expect(store.setInstanceStatus('inst-1', 'running')).toEqual({ toRunning: true, toFailed: false })
+        })
+
+        it('reports the transition into failed for a previously unknown instance', () => {
+            const store = useLiveStatusStore()
+            expect(store.setInstanceStatus('inst-1', 'error')).toEqual({ toRunning: false, toFailed: true })
+        })
+
+        it('reports the transition into failed for the crashed state too', () => {
+            const store = useLiveStatusStore()
+            expect(store.setInstanceStatus('inst-1', 'crashed')).toEqual({ toRunning: false, toFailed: true })
+        })
+
+        it('reports no failed transition when the instance was already in a failed state', () => {
+            const store = useLiveStatusStore()
+            store.setInstanceStatus('inst-1', 'error')
+            expect(store.setInstanceStatus('inst-1', 'crashed')).toEqual({ toRunning: false, toFailed: false })
+        })
+
+        it('reports a failed transition again after the instance leaves and re-enters a failed state', () => {
+            const store = useLiveStatusStore()
+            store.setInstanceStatus('inst-1', 'error')
+            store.setInstanceStatus('inst-1', 'starting')
+            expect(store.setInstanceStatus('inst-1', 'crashed')).toEqual({ toRunning: false, toFailed: true })
         })
 
         it('records versions alongside the status when provided', () => {

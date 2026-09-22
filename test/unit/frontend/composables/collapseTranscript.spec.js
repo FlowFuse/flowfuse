@@ -10,6 +10,10 @@ function humanMessage (uuid, content) {
     return { _uuid: uuid, _type: 'human', content }
 }
 
+function eventMessage (uuid, kind) {
+    return { _uuid: uuid, _type: 'event', kind, payload: { kind } }
+}
+
 function questionsAnswer (questions) {
     return { kind: 'questions', questions }
 }
@@ -94,5 +98,19 @@ describe('buildCollapsedTranscript', () => {
         ]
         const result = buildCollapsedTranscript(messages)
         expect(result.every(entry => entry.kind === 'message')).toBe(true)
+    })
+
+    test('passes an event message through untouched, even right after a questions turn', () => {
+        const messages = [
+            aiMessage('a1', [questionsAnswer([{ question: 'Q?', options: [] }])]),
+            eventMessage('e1', 'instance-ready'),
+            aiMessage('a2', [{ kind: 'chat', content: 'moving on' }])
+        ]
+        const result = buildCollapsedTranscript(messages)
+        expect(result.length).toBe(3)
+        expect(result[0].kind).toBe('folded-turn')
+        expect(result[0].replyMessage).toBe(null)
+        expect(result[1]).toEqual({ kind: 'message', message: messages[1] })
+        expect(result[2]).toEqual({ kind: 'message', message: messages[2] })
     })
 })
