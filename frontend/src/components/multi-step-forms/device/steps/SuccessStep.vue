@@ -2,33 +2,50 @@
     <section class="ff-instance-step text-center flex flex-col gap-4 pt-6 max-w-md m-auto h-full">
         <h1>Registration Complete</h1>
         <template v-if="!deviceConnected">
-            <p>
-                Return to the Device Agent to complete the setup.
-            </p>
-            <p>
-                Keep this window open to view your Remote Instance once it has connected.
-            </p>
-            <p class="flex flex-col gap-2">
-                <ff-loading scale="small" message=" " />
-            </p>
-            <p>
-                If prompted, enter the following One-Time Code (OTC) in the Device Agent to complete the registration
-            </p>
-            <!-- make this text larger and bold-->
-            <p class="font-bold border border-gray-300 rounded-full p-1 bg-gray-100">
-                <TextCopier :text="device.credentials.otc" />
-            </p>
+            <template v-if="agentType !== 'lite'">
+                <p>
+                    Return to the Device Agent to complete the setup.
+                </p>
+                <p>
+                    Keep this window open to view your Remote Instance once it has connected.
+                </p>
+                <p class="flex flex-col gap-2">
+                    <ff-loading scale="small" message=" " />
+                </p>
+                <p>
+                    If prompted, enter the following One-Time Code (OTC) in the Device Agent to complete the registration
+                </p>
+                <!-- make this text larger and bold-->
+                <p class="font-bold border border-gray-300 rounded-full p-1 bg-gray-100">
+                    <TextCopier :text="device.credentials.otc" />
+                </p>
+            </template>
+            <template v-else>
+                <p>
+                    Waiting for Node-RED to connect.
+                </p>
+                <p class="flex flex-col gap-2">
+                    <ff-loading scale="small" message=" " />
+                </p>
+            </template>
         </template>
         <template v-else>
-            <p>
-                Remote Instance Connected
-            </p>
-            <p>
-                Starting Node-RED...
-            </p>
-            <p class="flex flex-col gap-2">
-                <ff-loading scale="small" message=" " />
-            </p>
+            <template v-if="agentType !== 'lite'">
+                <p>
+                    Remote Instance Connected
+                </p>
+                <p>
+                    Starting Node-RED...
+                </p>
+                <p class="flex flex-col gap-2">
+                    <ff-loading scale="small" message=" " />
+                </p>
+            </template>
+            <template v-else>
+                <p>
+                    Node-RED Connected
+                </p>
+            </template>
         </template>
     </section>
 </template>
@@ -59,7 +76,7 @@ export default {
     data () {
         return {
             pollTimer: null,
-            polledDevice: null
+            polledDevice: null,
         }
     },
     computed: {
@@ -69,6 +86,9 @@ export default {
         },
         deviceNRRunning () {
             return this.deviceConnected && this.polledDevice?.status === 'running'
+        },
+        agentType () {
+            return this.polledDevice?.agentType || (this.$route.query.type === 'lite' ? 'lite' : null)
         }
     },
     mounted () {
@@ -91,12 +111,23 @@ export default {
                 if (device.status === 'running') {
                     // Stop polling once NR is running
                     this.stopPolling()
-                    await deviceApi.setMode(this.device.id, 'developer')
-                    await deviceApi.enableEditorTunnel(this.device.id)
-                    this.$router.push({
-                        name: 'device-editor',
-                        params: { id: this.device.id }
-                    })
+                    if (device.agentType === 'lite') {
+                        // If this is a Lite Agent:
+                        // - put into developer mode as we don't support fleet mode yet
+                        // - redirect to the device editor page
+                        await deviceApi.setMode(this.device.id, 'developer')
+                        this.$router.push({
+                            name: 'device-overview',
+                            params: { id: this.device.id }
+                        })
+                    } else {
+                        await deviceApi.setMode(this.device.id, 'developer')
+                        await deviceApi.enableEditorTunnel(this.device.id)
+                        this.$router.push({
+                            name: 'device-editor',
+                            params: { id: this.device.id }
+                        })
+                    }
                 }
             } catch (err) {
                 console.error('Error polling device status', err)
