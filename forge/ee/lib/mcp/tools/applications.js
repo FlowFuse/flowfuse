@@ -100,6 +100,7 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Renames an application and/or updates its description.
             When changing only one field, read the current values with platform_get_application first and pass both.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             applicationId: applicationId.describe('The hashid of the application to update'),
             name: z.string().min(1).describe('Name for the application. It is always overwritten, so to change only the description pass the current name here to keep it unchanged'),
