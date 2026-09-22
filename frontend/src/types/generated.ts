@@ -5712,6 +5712,8 @@ export interface paths {
                         setup?: true;
                         agentHost?: string;
                         registrationSession?: string;
+                        /** @enum {string} */
+                        agentType?: "lite";
                     } & ((unknown & unknown & unknown) | (unknown & unknown & unknown & unknown));
                 };
             };
@@ -10577,6 +10579,7 @@ export interface components {
             onlineStatus: "online" | "offline" | "not-seen";
             isDeploying: boolean;
             agentVersion?: string | null;
+            agentType?: string | null;
             mode: string;
             links?: components["schemas"]["LinksMeta"];
             team?: components["schemas"]["TeamSummary"];
