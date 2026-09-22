@@ -418,6 +418,9 @@ module.exports = [
                     payload[key] = args[key]
                 }
             }
+            if (Object.keys(payload).length === 0) {
+                return toolError(400, 'invalid_request', 'Pass at least one of name, settings, launcherSettings, projectType, stack or sourceProject to update')
+            }
             const response = await inject({ method: 'PUT', url: `/api/v1/projects/${args.instanceId}`, payload })
             return response
         }
