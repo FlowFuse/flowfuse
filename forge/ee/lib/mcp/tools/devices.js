@@ -257,6 +257,9 @@ module.exports = [
                     payload[key] = args[key]
                 }
             }
+            if (Object.keys(payload).length === 0) {
+                return toolError(400, 'invalid_request', 'Pass at least one of env, autoSnapshot, palette, editor or security to update')
+            }
             const response = await inject({ method: 'PUT', url: `/api/v1/devices/${args.remoteInstanceId}/settings`, payload })
             return response
         }
@@ -271,7 +274,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             remoteInstanceId,
-            mode: z.enum(['autonomous', 'developer']).describe('Operating mode: "autonomous" for normal fleet operation, "developer" for live editing detached from fleet updates. Required deliberately: the route treats an omitted mode as autonomous for validation but then writes the raw value, so omitting it leaves the stored mode untouched while still notifying the device and writing an audit entry')
+            mode: z.enum(['autonomous', 'developer']).describe('Operating mode: "autonomous" for normal fleet operation, "developer" for live editing detached from fleet updates')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'PUT', url: `/api/v1/devices/${args.remoteInstanceId}/mode`, payload: { mode: args.mode } })

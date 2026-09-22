@@ -447,6 +447,9 @@ module.exports = [
                     payload[key] = args[key]
                 }
             }
+            if (Object.keys(payload).length === 0) {
+                return toolError(400, 'invalid_request', 'Pass at least one of flows or credentials to import')
+            }
             const response = await inject({ method: 'POST', url: `/api/v1/projects/${args.instanceId}/import`, payload })
             return response
         }
