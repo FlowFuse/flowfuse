@@ -841,6 +841,16 @@ export const useProductExpertStore = defineStore('product-expert', {
                 _uuid: uuidv4()
             })
         },
+        addEventMessage (system) {
+            if (!system?.kind) return
+            this._agentStore.messages.push({
+                _type: 'event',
+                kind: system.kind,
+                payload: system,
+                _timestamp: Date.now(),
+                _uuid: uuidv4()
+            })
+        },
         addPredefinedAiMessage (message, { isError = false, code = null } = {}) {
             const lastThree = this._agentStore.messages.slice(-3)
             const recentErrorCodes = lastThree.map(msg => msg.errorCode).filter(Boolean)
@@ -1350,7 +1360,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             // 0x80 Unspecified, 0x83 Implementation specific, anything unknown:
             this.addPredefinedAiMessage(payload.message, { isError: true, code: payload.code })
         },
-        async _relayInstanceEvent (instance, { seen, buildSystem, onPublished }) {
+        async _relayInstanceEvent (instance, { seen, buildSystem, showCard = false, onPublished }) {
             if (!instance?.id || !useUxStore().isOnboarding || !this.shouldUseMqtt) return
             if (seen.has(instance.id)) return
             seen.add(instance.id)
@@ -1378,11 +1388,15 @@ export const useProductExpertStore = defineStore('product-expert', {
                     topicAction: 'request'
                 })
 
+                const system = buildSystem(instance)
+
+                if (showCard) this.addEventMessage(system)
+
                 await mqttService.publishMessage(mqttConnectionKey, {
                     topic,
                     qos: 2,
                     payload: {
-                        system: buildSystem(instance),
+                        system,
                         context: {
                             ...useContextStore().expert,
                             agent: this.agentMode
@@ -1403,6 +1417,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             return this._relayInstanceEvent(instance, {
                 seen: this._relayedInstanceIds,
                 buildSystem: i => ({ kind: 'instance-ready', instance: { id: i.id, name: i.name ?? null }, state: 'running' }),
+                showCard: true,
                 onPublished: i => Product.capture('ff-onboarding-workspace-ready', {}, {
                     team: useContextStore().team?.id,
                     instance: i.id
