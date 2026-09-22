@@ -1,3 +1,5 @@
+import Product from '@/services/product.js'
+import { useContextStore } from '@/stores/context.js'
 import { useUxStore } from '@/stores/ux.js'
 
 import type { McpToolDefinition } from '@/types'
@@ -29,6 +31,7 @@ const tools: McpToolDefinition[] = [
                 store.startOnboardingBuild()
                 break
             case 'done':
+                Product.capture('ff-onboarding-build-complete', {}, { team: useContextStore().team?.id })
                 store.endOnboarding()
                 break
             case 'intake':
