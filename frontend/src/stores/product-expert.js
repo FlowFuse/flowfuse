@@ -504,7 +504,11 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             switch (true) {
             case parsedTopic.inflightType === 'expert:status-message':
-                await respond({ ack: true })
+                try {
+                    await respond({ ack: true })
+                } catch (e) {
+                    console.warn('expert:status-message ack failed:', e)
+                }
                 break
             case parsedTopic.inflightType === 'expert:tasks': {
                 const items = Array.isArray(payload.items) ? payload.items : []
@@ -1470,6 +1474,10 @@ export const useProductExpertStore = defineStore('product-expert', {
                             sessionId: this.sessionId,
                             origin: window.origin || window.location.origin
                         }
+                    }).catch(e => {
+                        // Nothing awaits this abort, and the connection dropping is the
+                        // most common reason we get here in the first place.
+                        console.warn('expert abort publish failed:', e)
                     })
                 }
             }
