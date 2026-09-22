@@ -95,6 +95,27 @@ module.exports = [
         }
     },
     {
+        name: 'platform_update_application',
+        title: 'Update Application',
+        description: `FlowFuse platform automation tool:
+            Renames an application and/or updates its description.
+            When changing only one field, read the current values with platform_get_application first and pass both.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            applicationId: applicationId.describe('The hashid of the application to update'),
+            name: z.string().min(1).describe('Name for the application. It is always overwritten, so to change only the description pass the current name here to keep it unchanged'),
+            description: z.string().optional().describe('New description. Omit to keep the stored value (the response then reports it as null); pass an empty string to clear it')
+        },
+        handler: async (args, { inject }) => {
+            const payload = { name: args.name }
+            if (args.description !== undefined) {
+                payload.description = args.description
+            }
+            const response = await inject({ method: 'PUT', url: `/api/v1/applications/${args.applicationId}`, payload })
+            return response
+        }
+    },
+    {
         name: 'platform_list_application_snapshots',
         title: 'List Application Snapshots',
         description: `FlowFuse platform automation tool:
