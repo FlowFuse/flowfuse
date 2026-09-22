@@ -126,9 +126,12 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Starts, stops, or suspends a broker's topic-collection agent: the platform process that connects to the broker to observe topics and build the topic schema. It does NOT start or stop the MQTT broker service itself, so message traffic is unaffected.
             start launches the agent (creating it first for "team-broker" if needed); stop pauses collection but keeps the agent; suspend tears the agent down - for "team-broker" that removes the agent entirely, and platform_get_broker will then report just { state: "suspended" }.
-            Check the broker's current state with platform_get_broker before calling: for "team-broker", starting an agent that is already running, or stopping one that is not running, gets no response from the API.
+            Whether collection is actually running is NOT observable for "team-broker": platform_get_broker reports a fixed status of connected with no error, and a stop is never recorded, so it reads as running either way. Only the presence of the agent can be checked there - { state: "suspended" } means no agent, a full record means one exists. Treat the result of start and stop as unverified, and do not rely on platform_get_broker to decide whether either is needed.
+            Starting an agent that is already running, or stopping one that is not, answers 200 with an empty body having done nothing, which is indistinguishable from a successful call.
             This tool requires the enterprise license tier and the team broker feature enabled for the team; if the team does not have it enabled, the request returns a not found response.`,
-        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        // destructiveHint: suspend tears the agent down, removing the record entirely
+        // for "team-broker", so this removes rather than adds.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             teamId,
             brokerId: z.string().describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid"),

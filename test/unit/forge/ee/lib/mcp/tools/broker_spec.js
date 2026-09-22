@@ -165,6 +165,10 @@ describe('MCP Broker Tools', function () {
     describe('platform_broker_lifecycle_action', function () {
         const tool = getTool('platform_broker_lifecycle_action')
 
+        it('is marked destructive, since suspend tears the agent down', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
+
         const actions = ['start', 'stop', 'suspend']
         actions.forEach(action => {
             it(`posts to the ${action} route`, async function () {
