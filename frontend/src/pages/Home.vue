@@ -92,12 +92,9 @@ export default {
             // Only bounce to team view if there's no redirectUrlAfterLogin set
             // these should be route guards
             if (this.user.email_verified) {
-                // isAiOnboardingFeatureEnabled resolves from the full team's
-                // feature properties, which load after the teams list. Deciding
-                // on the teams-list-only tick would consume the one-shot while
-                // the feature still reads false and strand the user on the team
-                // page, so wait for the team before deciding while onboarding is
-                // pending.
+                // isAiOnboardingFeatureEnabled needs the full team, which loads
+                // after the teams list; deciding earlier would burn the one-shot
+                // while it still reads false.
                 if (this.shouldEnterOnboarding && !this.team) {
                     return
                 }
