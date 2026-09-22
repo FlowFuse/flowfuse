@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 
 import { hasAMinimumTeamRoleOf } from '../composables/Permissions.js'
+import { getTeamProperty } from '../composables/TeamProperties.js'
 import product from '../services/product.js'
 import { Roles } from '../utils/roles.js'
 
@@ -41,6 +42,25 @@ export const useContextStore = defineStore('context', {
         },
         isTrialAccountExpired () {
             return this.isTrialAccount && this.team?.billing?.trialEnded
+        },
+        trialRuntimesLimit () {
+            if (!this.isTrialAccount || !this.team) {
+                return null
+            }
+            return getTeamProperty(this.team, 'trial.runtimesLimit') ?? null
+        },
+        // Mirrors Team.getFeatureProperty on the backend (team override falling back to the
+        // TeamType/plan default), gated on both the platform `ai` feature and the team's own `ai`
+        // opt-out - matching what the live check `/api/v1/assistant/deploy-policy` actually gates
+        // on (`isAiEnabled = platform 'ai' && team.getFeatureProperty('ai', true)`).
+        agentAutoDeployEnabled () {
+            if (!this.team) {
+                return false
+            }
+            const platformAiEnabled = useAccountSettingsStore().featuresCheck?.isAiFeatureEnabledForPlatform
+            const teamAiEnabled = getTeamProperty(this.team, 'features.ai', true)
+            const agentAutoDeploy = getTeamProperty(this.team, 'features.agentAutoDeploy', false)
+            return !!(platformAiEnabled && teamAiEnabled && agentAutoDeploy)
         },
         editorEntityType (state) {
             const name = state.route?.name
@@ -91,11 +111,13 @@ export const useContextStore = defineStore('context', {
                     teamId: this.team?.id || null,
                     teamSlug: this.team?.slug || null,
                     telemetryEnabled: useAccountSettingsStore().featuresCheck?.isTelemetryEnabled ?? false,
+                    agentAutoDeployEnabled: this.agentAutoDeployEnabled,
                     instanceId: null,
                     deviceId: null,
                     applicationId: null,
                     deviceOwnerType: null,
                     isTrialAccount: this.isTrialAccount,
+                    trialRuntimesLimit: this.trialRuntimesLimit,
                     nodeRedVersion: assistantStore.nodeRedVersion,
                     pageName: null,
                     rawRoute: {},
@@ -103,7 +125,8 @@ export const useContextStore = defineStore('context', {
                     scope: this.isImmersive ? 'immersive' : 'ff-app',
                     questionCadence: useProductExpertStore().questionCadence,
                     planMode: useProductExpertStore().planMode,
-                    onboarding: useUxStore().isOnboarding
+                    onboarding: useUxStore().isOnboarding,
+                    onboardingStage: useUxStore().onboardingStage
                 }
             }
 
@@ -133,11 +156,13 @@ export const useContextStore = defineStore('context', {
                 teamId: this.team?.id || null,
                 teamSlug: this.team?.slug || null,
                 telemetryEnabled: useAccountSettingsStore().featuresCheck?.isTelemetryEnabled ?? false,
+                agentAutoDeployEnabled: this.agentAutoDeployEnabled,
                 instanceId: state.instance ? state.instance.id : null,
                 deviceId: state.device ? state.device.id : null,
                 applicationId: this.application ? this.application.id : null,
                 deviceOwnerType: state.device?.ownerType ?? null,
                 isTrialAccount: this.isTrialAccount,
+                trialRuntimesLimit: this.trialRuntimesLimit,
                 pageName: state.route.name,
                 nodeRedVersion: assistantStore.nodeRedVersion,
                 rawRoute,
@@ -148,15 +173,14 @@ export const useContextStore = defineStore('context', {
                 questionCadence: useProductExpertStore().questionCadence,
                 planMode: useProductExpertStore().planMode,
                 onboarding: useUxStore().isOnboarding,
+                onboardingStage: useUxStore().onboardingStage,
                 // Capability flags: signal that this version can render the question,
                 // plan, and approval cards. Older instances omit them and the agent drops
                 // the matching tool / runs in backward-compatible mode.
                 supportsQuestions: true,
                 supportsPlanMode: true,
                 supportsHITL: true,
-                // Human-in-the-loop tool permissions (#421). The agent gates each
-                // flow-building tool call against this map; canUseWriteTools drives
-                // role inheritance (fail-closed) for write/delete tools.
+                supportsPlansAndTasks: true,
                 toolPermissions: assistantStore.resolvedToolPermissions,
                 canUseWriteTools: hasAMinimumTeamRoleOf(Roles.Member, this.teamMembership)
             }
