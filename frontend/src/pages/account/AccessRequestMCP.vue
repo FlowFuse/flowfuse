@@ -84,7 +84,13 @@ import client from '@/api/client.ts'
 import teamApi from '@/api/team.ts'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 
-const ONE_YEAR = 1000 * 60 * 60 * 24 * 365
+const ONE_DAY = 1000 * 60 * 60 * 24
+const ONE_YEAR = ONE_DAY * 365
+
+function defaultExpiresAt () {
+    const date = new Date(Date.now() + ONE_YEAR - ONE_DAY)
+    return date.toISOString().split('T')[0]
+}
 
 export default {
     name: 'AccessRequestMCP',
@@ -97,10 +103,10 @@ export default {
     },
     data () {
         return {
-            // No defaults: the user must make an explicit choice before Allow enables
+            // No defaults for access level/team scope: the user must make an explicit choice before Allow enables
             accessLevel: null,
             teamScope: null,
-            expiresAt: null,
+            expiresAt: defaultExpiresAt(),
             selectedTeamIds: [],
             teams: [],
             submitting: false,

@@ -56,7 +56,7 @@ describe('AccessRequestMCP', () => {
         await wrapper.find('[data-form="expiry-date"] input').setValue(value)
     }
 
-    test('disables Allow until access level, team scope and expiry are all chosen', async () => {
+    test('disables Allow until access level and team scope are chosen, expiry is pre-filled', async () => {
         const wrapper = await mountPage()
 
         expect(allowButton(wrapper).attributes('disabled')).toBeDefined()
@@ -65,9 +65,6 @@ describe('AccessRequestMCP', () => {
         expect(allowButton(wrapper).attributes('disabled')).toBeDefined()
 
         await findRadio(wrapper, 'All teams').trigger('click')
-        expect(allowButton(wrapper).attributes('disabled')).toBeDefined()
-
-        await setExpiry(wrapper, futureDate(30))
         expect(allowButton(wrapper).attributes('disabled')).toBeUndefined()
     })
 

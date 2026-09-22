@@ -83,6 +83,10 @@
             :plan="answer.content"
             :message-uuid="messageUuid"
             :answer-uuid="answer._uuid"
+            :plan-id="answer.planId || ''"
+            :name="answer.name || ''"
+            :description="answer.description || ''"
+            :active="isActivePlan"
             :disabled="interactionDisabled"
             :should-stream="shouldStream"
             class="mb-3"
@@ -175,7 +179,7 @@ export default {
     },
     computed: {
         ...mapState(useProductAssistantStore, ['supportedActions', 'toolApprovalStatuses']),
-        ...mapState(useProductExpertStore, ['agentMode', 'isWaitingForResponse', 'messages', 'questionAnswers']),
+        ...mapState(useProductExpertStore, ['agentMode', 'isWaitingForResponse', 'messages', 'activePlanId', 'questionAnswers']),
         isLatestMessage () {
             const msgs = this.messages || []
             return msgs.length > 0 && msgs[msgs.length - 1]?._uuid === this.messageUuid
@@ -188,8 +192,7 @@ export default {
         },
         hasGuideHeader () {
             // chat answers contain generic titles, they don't need to be displayed.
-            // questions answers carry no guide title either.
-            // plan answers carry their heading inside their Markdown content, not a title.
+            // questions and plan answers render their own heading, not a guide title.
             return !!(this.answer.title && !this.isChatAnswer && !this.isQuestionsAnswer && !this.isPlanAnswer)
         },
         hasGuideSteps () {
@@ -238,6 +241,9 @@ export default {
         },
         isPlanAnswer () {
             return this.answer.kind === 'plan'
+        },
+        isActivePlan () {
+            return !!this.answer.planId && this.answer.planId === this.activePlanId
         },
         isEditorContext () {
             // In editor context, the route name includes 'editor'
