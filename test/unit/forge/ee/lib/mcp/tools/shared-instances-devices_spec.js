@@ -103,6 +103,10 @@ describe('MCP Shared Instance/Device Tools', function () {
     describe('platform_instance_action', function () {
         const tool = getTool('platform_instance_action')
 
+        it('is marked destructive, since it overwrites or removes existing state', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
+
         const hostedActions = ['start', 'stop', 'restart', 'suspend', 'restartStack']
         hostedActions.forEach(action => {
             it(`posts ${action} to the hosted instance actions route`, async function () {
@@ -176,6 +180,10 @@ describe('MCP Shared Instance/Device Tools', function () {
 
     describe('platform_update_instance_http_token', function () {
         const tool = getTool('platform_update_instance_http_token')
+
+        it('is marked destructive, since it overwrites or removes existing state', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
 
         it('puts the new expiry onto the hosted instance token route', async function () {
             const routeResponse = { statusCode: 200, json: () => ({ id: 'token1' }) }

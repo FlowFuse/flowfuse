@@ -236,7 +236,8 @@ module.exports = [
             Access is role-restricted per field: team Members may change only env and autoSnapshot; palette, editor and security require the Owner role and are SILENTLY IGNORED for non-Owners - the call still replies { status: "okay" }, so verify with platform_get_remote_instance when in doubt.
             env is a FULL replacement list: variables missing from it are removed. To keep an existing hidden (secret) variable's stored value without knowing it, resend it with hidden true and an empty value.
             In security, passwords follow the same convention: for httpNodeAuth type "basic" or localAuth enabled, omitting or emptying the password keeps the stored one; a provided password is stored hashed.`,
-        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        // destructiveHint: env is a full replacement, so anything omitted is deleted.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             remoteInstanceId,
             env: z.array(z.object({
@@ -270,7 +271,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             remoteInstanceId,
-            mode: z.enum(['autonomous', 'developer']).describe('Operating mode: "autonomous" for normal fleet operation, "developer" for live editing detached from fleet updates')
+            mode: z.enum(['autonomous', 'developer']).describe('Operating mode: "autonomous" for normal fleet operation, "developer" for live editing detached from fleet updates. Required deliberately: the route treats an omitted mode as autonomous for validation but then writes the raw value, so omitting it leaves the stored mode untouched while still notifying the device and writing an audit entry')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'PUT', url: `/api/v1/devices/${args.remoteInstanceId}/mode`, payload: { mode: args.mode } })

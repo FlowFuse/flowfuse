@@ -83,8 +83,9 @@ module.exports = [
             Applies a lifecycle action to an instance, changing whether and how it runs. Confirm with the user before stopping, suspending, or restarting anything.
             Hosted instances accept: start (resume a suspended instance, or start the flows of a stopped one), stop (stop the flows, container keeps running), restart (restart the flows), suspend (shut the container down entirely), and restartStack (suspend then relaunch the container, picking up stack changes). stop, restart, and suspend are rejected with a 400 "project_suspended" while the instance is suspended - use start to bring it back first.
             Remote instances (devices) accept only restart, which asks the device to restart Node-RED; the device must be online and reachable (400 "no_response" on timeout, "device_suspended" while suspended).
-            Several hosted actions reply { status: "okay" } once the transition has STARTED and finish in the background - check platform_get_hosted_instance_status to confirm the final state.`,
-        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+            stop, restart and suspend wait for the container operation before replying { status: "okay" }. Two do not: starting a SUSPENDED instance replies { status: "okay" } once the container launch has begun, and restartStack replies with an empty body the moment the relaunch starts. For those two, check platform_get_hosted_instance_status to confirm the final state.`,
+        // destructiveHint: stop and suspend take the instance down, and restart interrupts whatever it is running.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
             instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),
@@ -133,7 +134,8 @@ module.exports = [
             NOTE: omitting expiresAt does not leave the expiry unchanged - it CLEARS it, making the token never expire. Always pass expiresAt when the token should keep or gain an expiry.
             Find token ids with platform_list_instance_http_tokens. Tokens managed by the FlowFuse Expert cannot be modified.
             HTTP bearer tokens are a plan-gated feature; a team without it enabled gets a 404 error.`,
-        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        // destructiveHint: omitting expiresAt clears the expiry, removing a security control from an existing token.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
             instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),

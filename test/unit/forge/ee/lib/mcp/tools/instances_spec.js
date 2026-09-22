@@ -590,6 +590,10 @@ describe('MCP Instances Tools', function () {
         const tool = getTool('platform_update_hosted_instance_env')
         const instanceId = '11111111-1111-1111-1111-111111111111'
 
+        it('is marked destructive, since it overwrites or removes existing state', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
+
         it('puts a body of exactly { settings: { env } } so the narrower edit-env permission applies', async function () {
             const routeResponse = { statusCode: 200, json: () => ({ id: instanceId }) }
             const env = [{ name: 'FOO', value: 'bar' }, { name: 'SECRET', value: '', hidden: true }]
@@ -613,6 +617,10 @@ describe('MCP Instances Tools', function () {
     describe('platform_update_hosted_instance_settings', function () {
         const tool = getTool('platform_update_hosted_instance_settings')
         const instanceId = '11111111-1111-1111-1111-111111111111'
+
+        it('is marked destructive, since it overwrites or removes existing state', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
 
         it('puts only the provided fields onto the instance route', async function () {
             const routeResponse = { statusCode: 200, json: () => ({ id: instanceId }) }
@@ -659,6 +667,10 @@ describe('MCP Instances Tools', function () {
         const tool = getTool('platform_import_hosted_instance_flows')
         const instanceId = '11111111-1111-1111-1111-111111111111'
 
+        it('is marked destructive, since it overwrites or removes existing state', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
+
         it('posts flows, credentials and the secret to the import route', async function () {
             const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
             inject.withArgs({
@@ -693,6 +705,10 @@ describe('MCP Instances Tools', function () {
     describe('platform_set_instance_config', function () {
         const tool = getTool('platform_set_instance_config')
         const instanceId = '11111111-1111-1111-1111-111111111111'
+
+        it('is marked destructive, since it overwrites or removes existing state', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
 
         it('enables ha with a replica count', async function () {
             const routeResponse = { statusCode: 200, json: () => ({ replicas: 2 }) }
@@ -806,6 +822,10 @@ describe('MCP Instances Tools', function () {
         const tool = getTool('platform_update_instance_file')
         const instanceId = '11111111-1111-1111-1111-111111111111'
 
+        it('is marked destructive, since it overwrites or removes existing state', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
+
         it('puts a rename as body.path with the current path URL-encoded into the route', async function () {
             const routeResponse = { statusCode: 200, json: () => ({}) }
             inject.withArgs({ method: 'PUT', url: `/api/v1/projects/${instanceId}/files/_/${encodeURIComponent('logs/old.txt')}`, payload: { path: 'logs/new.txt' } }).resolves(routeResponse)
@@ -852,6 +872,10 @@ describe('MCP Instances Tools', function () {
     describe('platform_upload_instance_file', function () {
         const tool = getTool('platform_upload_instance_file')
         const instanceId = '11111111-1111-1111-1111-111111111111'
+
+        it('is marked destructive, since it overwrites or removes existing state', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
 
         it('creates a directory with a JSON body', async function () {
             const routeResponse = { statusCode: 200, json: () => ({}) }

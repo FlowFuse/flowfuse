@@ -1,3 +1,5 @@
+const { randomUUID } = require('crypto')
+
 const { z } = require('zod')
 
 const { teamId, applicationId, hostedInstanceId, searchQuery, sortParams, limitParam, pageParam, toolError } = require('../schemas')
@@ -364,10 +366,11 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Replaces the full set of environment variables on a hosted instance. Variables missing from the list are removed, so read the current set first (platform_get_hosted_instance_config) and resend everything that should stay.
             To keep an existing hidden (secret) variable's stored value without knowing it, resend it with hidden true and an empty value. A hidden entry with an empty value that does not already exist on the instance is dropped.
-            Values inherited from the instance's template may be locked and are validated against it; violations fail with "settings_validation".
+            Settings the instance's template locks are silently dropped rather than rejected, so a locked value can come back unchanged with no error. "settings_validation" is raised for malformed input instead, such as a bad or duplicated env var name.
             The new values take effect when the instance's flows next restart (use platform_instance_action with restart to apply them immediately).
             This is the only instance-level write a team Member can make; the wider platform_update_hosted_instance_settings tool needs Owner permissions.`,
-        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        // destructiveHint: env is a full replacement, so anything omitted is deleted.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             instanceId: hostedInstanceId.describe('The id (UUID) of the hosted instance whose environment variables to replace'),
             env: z.array(z.object({
@@ -389,9 +392,10 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Updates a hosted instance: rename it, change its settings or launcher settings, switch its instance type or stack, or copy configuration and flows from another instance. Only the fields you pass are changed.
             CAUTION: changing name, projectType, or stack replies as soon as the change is accepted and then RESTARTS the instance in the background - confirm with the user first, and check platform_get_hosted_instance_status to see it come back. Changing projectType additionally requires passing a matching stack. Names must be unique across the platform (409 "invalid_project_name" otherwise).
-            settings are merged field-by-field into the existing settings and validated against the instance's template ("settings_validation" on violation). To change ONLY environment variables prefer platform_update_hosted_instance_env, which works with Member permissions.
+            settings are merged field-by-field into the existing settings. Values the template locks are silently dropped rather than rejected; "settings_validation" is raised for malformed input instead. To change ONLY environment variables prefer platform_update_hosted_instance_env, which works with Member permissions.
             sourceProject copies flows/configuration from another instance in the same team onto this one, overwriting its current content - treat it as destructive and confirm with the user. The response returns while the copy runs in the background.`,
-        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        // destructiveHint: sourceProject overwrites the target instance flows, and name/stack/type changes restart it.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             instanceId: hostedInstanceId.describe('The id (UUID) of the hosted instance to update'),
             name: z.string().optional().describe('New name for the instance. Must be unique across the platform; changing it restarts the instance'),
@@ -425,7 +429,8 @@ module.exports = [
             Imports flows (and optionally their credentials) into a hosted instance, REPLACING the flows it currently has. If the instance is running, the new flows are deployed immediately. Confirm with the user before importing.
             flows is the Node-RED flows array serialized as a JSON string. credentials must be the encrypted credentials object (as exported from another instance) serialized as a JSON string, with credsSecret set to the secret that encrypted them - a wrong secret fails with 403 "invalid_credentials_secret".
             To build whole flows interactively prefer the flow-building editor tools; this tool is for transplanting existing flow JSON.`,
-        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        // destructiveHint: this replaces the instance flows and deploys them.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             instanceId: hostedInstanceId.describe('The id (UUID) of the hosted instance to import flows into'),
             flows: z.string().optional().describe('Node-RED flows array serialized as a JSON string. Replaces the instance flows'),
@@ -453,7 +458,8 @@ module.exports = [
             protection uses enable/disable. A protected instance only accepts deploys and pipeline pushes from team Owners. No restart involved.
             autoUpdateStack uses set/clear. Setting requires schedule and REPLACES the whole weekly schedule of allowed automatic stack-update windows. No restart involved.
             ha, customHostname and protection are plan-gated features: a team whose plan does not include them gets a 404, indistinguishable from a missing instance. autoUpdateStack has no plan gate.`,
-        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        // destructiveHint: the disable and clear actions remove existing configuration.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             instanceId: hostedInstanceId.describe('The id (UUID) of the hosted instance'),
             surface: z.enum(['ha', 'customHostname', 'protection', 'autoUpdateStack']).describe('Configuration surface to change'),
@@ -512,7 +518,8 @@ module.exports = [
             Updates the properties of an existing file or directory in a hosted instance's file store: either rename/move it with newPath, or set a directory's static sharing config with share. Exactly one of the two per call - it does not upload content (use platform_upload_instance_file for that).
             share applies to directories only: { root: "/some/path" } serves the directory's contents publicly at that URL path on the instance, {} stops sharing it. Sharing a path that is a file (not a directory) fails with a 404.
             Static file storage is a plan-gated feature: a team without it enabled gets a 404 error.`,
-        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        // destructiveHint: renaming or moving removes the file from its old path.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             instanceId: hostedInstanceId.describe('The id (UUID) of the hosted instance'),
             path: z.string().describe('Path of the existing file or directory, relative to the file-store root, with "/" separators (as listed by platform_list_hosted_instance_files)'),
@@ -538,7 +545,8 @@ module.exports = [
             With content, path is the FULL destination path of the file (including its name) and the content is stored there, replacing any existing file. Only text content is supported through this tool.
             With directoryName, path is the EXISTING parent directory ("" for the root) and a directory of that name is created inside it.
             Static file storage is a plan-gated feature: a team without it enabled gets a 404 error.`,
-        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        // destructiveHint: uploading replaces any file already at that path.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             instanceId: hostedInstanceId.describe('The id (UUID) of the hosted instance'),
             path: z.string().describe('With content: the full destination file path including the file name. With directoryName: the existing parent directory path (empty string for the root). Use "/" separators'),
@@ -559,7 +567,9 @@ module.exports = [
             // The route only accepts file content as multipart/form-data, so build a
             // single-part body by hand; the target name comes from the URL path, not
             // the part's filename.
-            const boundary = 'FlowFuseMcpFileUploadBoundary29b18a7f'
+            // A fixed boundary would corrupt any upload whose text happened to contain
+            // it, and arbitrary text is the supported case, so generate one per call.
+            const boundary = `FlowFuseMcpFileUpload${randomUUID().replace(/-/g, '')}`
             const filename = args.path.split('/').pop()
             const payload = [
                 `--${boundary}`,

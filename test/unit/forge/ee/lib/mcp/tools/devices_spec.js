@@ -253,6 +253,10 @@ describe('MCP Devices Tools', function () {
     describe('platform_update_remote_instance_settings', function () {
         const tool = getTool('platform_update_remote_instance_settings')
 
+        it('is marked destructive, since it overwrites or removes existing state', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
+
         it('puts only the provided settings onto the device settings route', async function () {
             const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
             inject.withArgs({
