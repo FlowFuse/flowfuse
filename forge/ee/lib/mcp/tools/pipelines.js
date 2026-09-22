@@ -1,6 +1,12 @@
 const { z } = require('zod')
 
-const { teamId, applicationId, toolError } = require('../schemas')
+const { teamId, applicationId, toolError, gitStageFields, gitStageFieldKeys } = require('../schemas')
+
+const stageAction = z.enum(['create_snapshot', 'use_active_snapshot', 'use_latest_snapshot', 'prompt', 'none']).optional()
+    .describe('How the stage obtains the snapshot it passes on when deployed FROM: create_snapshot makes a new one (the default), use_active_snapshot and use_latest_snapshot reuse existing ones, prompt requires a sourceSnapshotId at deploy time, none makes deploys from this stage a no-op. Not meaningful for git-repo stages')
+const deployToDevices = z.boolean().optional()
+    .describe('For a hosted-instance stage: also push to the devices assigned to that instance when this stage is deployed to')
+const stagePayloadKeys = ['name', 'instanceId', 'deviceId', 'deviceGroupId', ...gitStageFieldKeys, 'deployToDevices', 'action']
 
 module.exports = [
     {
@@ -86,10 +92,8 @@ module.exports = [
         name: 'platform_add_pipeline_stage',
         title: 'Add Pipeline Stage',
         description: `FlowFuse platform automation tool:
-            Adds a stage to a pipeline. Every stage points at exactly one deploy target: pass exactly one of instanceId (hosted instance), deviceId (remote instance), deviceGroupId, or gitTokenId (git repository, together with url and the other git fields). The target must belong to the pipeline's application (git tokens to its team).
-            Stage ordering is a linked list: pass source as the id of the stage this new stage comes after. Omit source ONLY for a pipeline's very first stage. Adding a source-less stage to a pipeline that already has stages does not append it: it becomes a second unlinked head, and the pipeline then lists only the new stage while the existing ones stop appearing, even though they still exist and can still be fetched by id.
-            Ordering rules enforced by the API: a device group cannot be the first stage, and an instance or device cannot be added after a device group.
-            action controls how the stage obtains the snapshot it deploys onwards and defaults to create_snapshot; it is not meaningful for git-repo stages.`,
+            Adds a stage to a pipeline. Stages form an ordered chain that flows are promoted through with platform_deploy_pipeline_stage, and each one points at a single deploy target that must belong to the pipeline's application (git tokens to its team).
+            Ordering rules enforced by the API: a device group cannot be the first stage, and an instance or device cannot be added after a device group.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             pipelineId: z.string().describe('The hashid of the pipeline to add the stage to'),
@@ -97,20 +101,14 @@ module.exports = [
             instanceId: z.string().uuid().optional().describe('UUID of the hosted instance this stage deploys to. Pass exactly one target'),
             deviceId: z.string().optional().describe('Hashid of the remote instance (device) this stage deploys to. Pass exactly one target'),
             deviceGroupId: z.string().optional().describe('Hashid of the device group this stage deploys to. Cannot be the first stage. Pass exactly one target'),
-            gitTokenId: z.string().optional().describe('Hashid of a team git token, making this a git-repository stage. Pass exactly one target, and include url'),
-            url: z.string().optional().describe('Git repository URL for a git-repo stage'),
-            branch: z.string().optional().describe('Git branch to push to (git-repo stage)'),
-            pullBranch: z.string().optional().describe('Git branch to pull from (git-repo stage)'),
-            pushPath: z.string().optional().describe('Repository path to push to (git-repo stage)'),
-            pullPath: z.string().optional().describe('Repository path to pull from (git-repo stage)'),
-            credentialSecret: z.string().optional().describe('Secret used to encrypt flow credentials pushed to the git repository'),
-            deployToDevices: z.boolean().optional().describe('For a hosted-instance stage: also push to the devices assigned to that instance when this stage is deployed to'),
-            action: z.enum(['create_snapshot', 'use_active_snapshot', 'use_latest_snapshot', 'prompt', 'none']).optional().describe('How the stage obtains the snapshot it passes on when deployed FROM: create_snapshot makes a new one (default), use_active_snapshot / use_latest_snapshot reuse existing ones, prompt requires a sourceSnapshotId at deploy time, none makes deploys from this stage a no-op'),
-            source: z.string().optional().describe('Hashid of the existing stage this new stage comes after. Required for every stage except a pipeline\'s first; omitting it on a pipeline that already has stages hides those stages from the pipeline listing')
+            ...gitStageFields(),
+            deployToDevices,
+            action: stageAction,
+            source: z.string().optional().describe('Stage ordering is a linked list: this is the hashid of the existing stage the new stage comes after. Required for every stage except a pipeline\'s very first. Omitting it on a pipeline that already has stages does not append the stage, it becomes a second unlinked head and the pipeline then lists only the new stage while the existing ones stop appearing, even though they still exist and can still be fetched by id')
         },
         handler: async (args, { inject }) => {
             const payload = {}
-            for (const key of ['name', 'instanceId', 'deviceId', 'deviceGroupId', 'gitTokenId', 'url', 'branch', 'pullBranch', 'pushPath', 'pullPath', 'credentialSecret', 'deployToDevices', 'action', 'source']) {
+            for (const key of [...stagePayloadKeys, 'source']) {
                 if (args[key] !== undefined) {
                     payload[key] = args[key]
                 }
@@ -123,9 +121,8 @@ module.exports = [
         name: 'platform_update_pipeline_stage',
         title: 'Update Pipeline Stage',
         description: `FlowFuse platform automation tool:
-            Updates a pipeline stage. name, action and deployToDevices are partial updates: omitted fields keep their values.
-            To change what the stage deploys to, pass exactly one of instanceId, deviceId, deviceGroupId or gitTokenId; the previous target binding is replaced. The same ordering rules as adding apply (no device group first, no instance/device after a device group).
-            For git-repo stages, the git settings are only applied together with gitTokenId, and they are applied as a set: always resend gitTokenId, url, branch, pullBranch, pushPath and pullPath on every git update, because omitted git fields are reset to empty. credentialSecret is the exception - it keeps its stored value when omitted.`,
+            Updates a pipeline stage: its name, what it deploys to, how it obtains the snapshot it passes on, and its git settings. Fields you omit keep their stored value, except the git settings, which are applied as a set.
+            Rebinding the target replaces the previous binding, and the same ordering rules as adding apply: a device group cannot be the first stage, and an instance or device cannot come after a device group.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             pipelineId: z.string().describe('The hashid of the pipeline the stage belongs to'),
@@ -134,19 +131,13 @@ module.exports = [
             instanceId: z.string().uuid().optional().describe('UUID of the hosted instance to rebind this stage to. Pass at most one target'),
             deviceId: z.string().optional().describe('Hashid of the remote instance (device) to rebind this stage to. Pass at most one target'),
             deviceGroupId: z.string().optional().describe('Hashid of the device group to rebind this stage to. Pass at most one target'),
-            gitTokenId: z.string().optional().describe('Hashid of a team git token. Required on EVERY update of a git-repo stage, together with the full git settings'),
-            url: z.string().optional().describe('Git repository URL. Resent on every git update; reset to empty when omitted'),
-            branch: z.string().optional().describe('Git branch to push to. Resent on every git update; reset to empty when omitted'),
-            pullBranch: z.string().optional().describe('Git branch to pull from. Resent on every git update; reset to empty when omitted'),
-            pushPath: z.string().optional().describe('Repository path to push to. Resent on every git update; reset to empty when omitted'),
-            pullPath: z.string().optional().describe('Repository path to pull from. Resent on every git update; reset to empty when omitted'),
-            credentialSecret: z.string().optional().describe('Secret used to encrypt flow credentials pushed to the repository. Keeps its stored value when omitted'),
-            deployToDevices: z.boolean().optional().describe('For a hosted-instance stage: also push to the devices assigned to that instance when this stage is deployed to'),
-            action: z.enum(['create_snapshot', 'use_active_snapshot', 'use_latest_snapshot', 'prompt', 'none']).optional().describe('How the stage obtains the snapshot it passes on when deployed FROM')
+            ...gitStageFields({ forUpdate: true }),
+            deployToDevices,
+            action: stageAction
         },
         handler: async (args, { inject }) => {
             const payload = {}
-            for (const key of ['name', 'instanceId', 'deviceId', 'deviceGroupId', 'gitTokenId', 'url', 'branch', 'pullBranch', 'pushPath', 'pullPath', 'credentialSecret', 'deployToDevices', 'action']) {
+            for (const key of stagePayloadKeys) {
                 if (args[key] !== undefined) {
                     payload[key] = args[key]
                 }
