@@ -57,14 +57,11 @@ module.exports = [
         inputSchema: {
             instanceType: z.enum(['hosted', 'remote']).describe('Which kind of instance instanceId refers to: "hosted" for a hosted instance, "remote" for a remote instance (device)'),
             instanceId: z.string().describe('The ID of the instance to snapshot (UUID for a hosted instance, hashid for a remote instance)'),
-            name: z.string().min(1).max(SNAPSHOT_NAME_MAX_LENGTH).describe('Name for the snapshot'),
+            name: z.string().trim().min(1).max(SNAPSHOT_NAME_MAX_LENGTH).describe('Name for the snapshot'),
             description: z.string().optional().describe('Description of the snapshot')
         },
         handler: async (args, { inject }) => {
-            const payload = {}
-            if (args.name) {
-                payload.name = args.name
-            }
+            const payload = { name: args.name }
             if (args.description) {
                 payload.description = args.description
             }
