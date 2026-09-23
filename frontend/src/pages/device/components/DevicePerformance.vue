@@ -8,6 +8,11 @@
                 message="Update your device agent to the latest version to enable this feature"
                 :only-custom-message="true"
             />
+            <FeatureUnavailable
+                v-if="isLiteAgent"
+                message="The Lite Remote Agent does not currently support this feature"
+                :only-custom-message="true"
+            />
         </div>
         <template v-if="!featureAvailable">
             <empty-state>
@@ -124,10 +129,13 @@ export default {
         agentSatisfiesVersion () {
             return this.device && this.device.agentVersion && SemVer.satisfies(this.device.agentVersion, '>=3.5.1', { includePrerelease: true })
         },
+        isLiteAgent () {
+            return this.device?.agentType === 'lite'
+        },
         featureAvailable () {
             return this.featuresCheck.isInstanceResourcesFeatureEnabledForPlatform &&
                 this.featuresCheck.isInstanceResourcesFeatureEnabledForTeam &&
-                this.agentSatisfiesVersion && this.deviceOnline
+                this.agentSatisfiesVersion && this.deviceOnline && !this.isLiteAgent
         },
         mqttConnectionKey () {
             return `device-resources-${this.device.id}`

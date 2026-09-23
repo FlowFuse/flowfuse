@@ -17,6 +17,11 @@
                         :lastSeenAt="device.lastSeenAt"
                     />
                     <DeviceModeBadge v-if="isDevModeAvailable " :mode="device.mode" />
+                    <div v-if="isLiteDevice" class="forge-badge">
+                        <span class="inline-flex space-x-2 items-center">
+                            <span v-if="!isIcon" class="ml-1"> Lite Agent</span>
+                        </span>
+                    </div>
                 </div>
             </template>
             <template #context>
@@ -242,6 +247,9 @@ export default {
         isDevModeAvailable: function () {
             return !!this.features.deviceEditor
         },
+        isLiteDevice: function () {
+            return this.device?.agentType === 'lite'
+        },
         developerMode: function () {
             return this.device && this.agentSupportsDeviceAccess && this.device.mode === 'developer'
         },
@@ -252,7 +260,8 @@ export default {
             return !this.isDevModeAvailable ||
                 !this.device ||
                 !this.agentSupportsDeviceAccess ||
-                !this.hasPermission('device:editor', this.permissionContext)
+                !this.hasPermission('device:editor', this.permissionContext) ||
+                this.isLiteDevice
         },
         disableModeToggleReason: function () {
             if (!this.device) {
@@ -260,6 +269,9 @@ export default {
             }
             if (!this.agentSupportsDeviceAccess) {
                 return 'Device Agent V0.8 or greater is required'
+            }
+            if (this.isLiteDevice) {
+                return 'Device is a Lite Agent, which does not support Fleet Mode'
             }
             if (!this.hasPermission('device:editor', this.permissionContext)) {
                 return 'Only an Owner or Member can change the Device Mode'
@@ -271,7 +283,8 @@ export default {
                 this.device &&
                 this.agentSupportsDeviceAccess &&
                 this.developerMode &&
-                this.device.status === 'running'
+                this.device.status === 'running' &&
+                !this.isLiteDevice
         },
         deviceEditorURL: function () {
             return this.device.editor?.url || ''
@@ -345,7 +358,7 @@ export default {
                 // { name: 'Suspend', class: ['text-red-700'], action: this.showConfirmSuspendDialog, disabled: deviceStateChanging || flowActionsDisabled }
             ]
 
-            if (!this.neverConnected) {
+            if (!this.neverConnected && !this.isLiteDevice) {
                 // if we've never connected, we know we can't restart
                 result.push({ name: 'Restart', action: this.restartDevice, disabled: deviceStateChanging || flowActionsDisabled })
             }

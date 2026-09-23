@@ -7,6 +7,7 @@
         <div class="flex flex-col">
             <span class="text-lg">{{ name }}</span>
             <span class="text-xs text-gray-500">id: {{ id }}</span>
+            <span v-if="agentType === 'lite'" class="text-xs text-gray-500">type: lite</span>
         </div>
     </router-link>
 </template>
@@ -30,8 +31,12 @@ export default {
         mode: {
             type: String,
             required: true
+        },
+        agentType: {
+            type: String,
+            required: false,
+            default: 'full'
         }
-
     }
 }
 </script>

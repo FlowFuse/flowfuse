@@ -1,5 +1,10 @@
 <template>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <FeatureUnavailable
+        v-if="device?.agentType === 'lite'"
+        message="The Lite Remote Agent does not currently support this feature"
+        :only-custom-message="true"
+    />
+    <div v-if="device?.agentType !== 'lite'" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <InfoCard v-if="isDevModeAvailable" header="Developer Mode Options:">
             <template #icon>
                 <BeakerIcon />
@@ -111,6 +116,8 @@ import deviceApi from '../../../api/devices.js'
 // components
 import InfoCard from '../../../components/InfoCard.vue'
 import InfoCardRow from '../../../components/InfoCardRow.vue'
+import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
+
 import alerts from '../../../services/alerts.js'
 import SnapshotCreateDialog from '../dialogs/SnapshotCreateDialog.vue'
 
@@ -123,7 +130,8 @@ export default {
         BeakerIcon,
         InfoCard,
         InfoCardRow,
-        SnapshotCreateDialog
+        SnapshotCreateDialog,
+        FeatureUnavailable
     },
     props: {
         device: {

@@ -1,5 +1,10 @@
 <template>
-    <form class="space-y-6" data-el="device-security">
+    <FeatureUnavailable
+        v-if="device?.agentType === 'lite'"
+        message="The Lite Remote Agent does not currently support this feature"
+        :only-custom-message="true"
+    />
+    <form v-if="device?.agentType !== 'lite'" class="space-y-6" data-el="device-security">
         <div
             v-if="!securityOptionsSupported"
             class="ff-page-banner my-4"
@@ -69,6 +74,7 @@ import { markRaw } from 'vue'
 
 import deviceApi from '../../../api/devices.js'
 import FormHeading from '../../../components/FormHeading.vue'
+import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
 import Alerts from '../../../services/alerts.js'
@@ -90,7 +96,8 @@ export default {
         PlusSmallIcon,
         TemplateSettingsSecurity,
         TokenDialog,
-        TokenCreated
+        TokenCreated,
+        FeatureUnavailable
     },
     props: {
         device: { type: Object, default: null }

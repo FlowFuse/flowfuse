@@ -1,5 +1,10 @@
 <template>
-    <form class="space-y-6" data-el="instance-editor" @submit.prevent>
+    <FeatureUnavailable
+        v-if="device?.agentType === 'lite'"
+        message="The Lite Remote Agent does not currently support this feature"
+        :only-custom-message="true"
+    />
+    <form v-if="device?.agentType !== 'lite'" class="space-y-6" data-el="instance-editor" @submit.prevent>
         <FormHeading>Limits</FormHeading>
         <div v-if="limitAvailable">
             <div v-if="limitsLauncherEnabled" class="flex flex-col sm:flex-row">
@@ -36,6 +41,7 @@ import semver from 'semver'
 import deviceApi from '../../../api/devices.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
+import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 import NoticeBanner from '../../../components/notices/NoticeBanner.vue'
 import usePermissions from '../../../composables/Permissions.js'
@@ -51,6 +57,7 @@ export default {
     name: 'DeviceSettingsEditor',
     components: {
         NoticeBanner,
+        FeatureUnavailable,
         FeatureUnavailableToTeam,
         FormRow,
         FormHeading,
