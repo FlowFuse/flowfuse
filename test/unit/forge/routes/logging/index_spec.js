@@ -569,8 +569,10 @@ describe('Logging API', function () {
                 })
                 response.should.have.property('statusCode', 200)
 
+                // AuditLog.entityId is a STRING column (shared with project's UUID entityId) -
+                // Postgres, unlike SQLite, won't compare it against a bare number.
                 const entry = await app.db.models.AuditLog.findOne({
-                    where: { event: 'flows.set', entityId: TestObjects.device1.id },
+                    where: { event: 'flows.set', entityId: String(TestObjects.device1.id) },
                     order: [['createdAt', 'DESC']]
                 })
                 should.exist(entry)
@@ -589,7 +591,7 @@ describe('Logging API', function () {
                 response.should.have.property('statusCode', 200)
 
                 const entry = await app.db.models.AuditLog.findOne({
-                    where: { event: 'flows.set', entityId: TestObjects.device1.id },
+                    where: { event: 'flows.set', entityId: String(TestObjects.device1.id) },
                     order: [['createdAt', 'DESC']]
                 })
                 should.exist(entry)
