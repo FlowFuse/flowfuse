@@ -195,7 +195,7 @@ module.exports = async function (app) {
         try {
             const dbName = request.database.name
             await app.tables.destroyDatabase(request.team, request.params.databaseId)
-            await app.auditLog.Team.tables.database.created(request.session?.User || 'system', null, request.team, dbName)
+            await app.auditLog.Team.tables.database.deleted(request.session?.User || 'system', null, request.team, dbName)
             reply.send({})
         } catch (err) {
             // console.log(err)
