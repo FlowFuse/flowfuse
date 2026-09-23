@@ -7336,7 +7336,9 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        name?: string;
+                        pipeline: {
+                            name?: string;
+                        };
                     };
                 };
             };
