@@ -1004,6 +1004,25 @@ describe('Snapshots API', function () {
                 response.statusCode.should.equal(400)
                 response.json().should.have.property('code', 'bad_request')
             })
+
+            it('Propagates a non-validation error from the controller', async function () {
+                const snapshotResponse = await createSnapshot()
+                const result = snapshotResponse.json()
+
+                sinon.stub(app.db.controllers.Snapshot, 'updateSnapshot').rejects(new Error('boom'))
+                try {
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/snapshots/${result.id}`,
+                        payload: { name: 'a new name' },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    response.statusCode.should.equal(500)
+                } finally {
+                    app.db.controllers.Snapshot.updateSnapshot.restore()
+                }
+            })
         }
         describe('instance', function () {
             tests('instance')
