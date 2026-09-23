@@ -43,7 +43,7 @@ describe('PlatformAutomationHandler', function () {
         })
     }
 
-    function invokeSetAgentActionPending ({ userId, action, entityType, entityId, toolName, mcpSessionId }) {
+    function invokeAgentActionPending ({ userId, op, action, entityType, entityId, module, toolName, mcpSessionId }) {
         return new Promise((resolve) => {
             const onSuccess = (result) => resolve({ ok: true, result })
             const onError = (message, code, err) => resolve({ ok: false, message, code, err })
@@ -51,8 +51,8 @@ describe('PlatformAutomationHandler', function () {
                 {
                     userId,
                     mcpSessionId,
-                    command: 'set-agent-action-pending',
-                    data: { action, entityType, entityId, toolName }
+                    command: 'agent-action-pending',
+                    data: { op, action, entityType, entityId, module, toolName }
                 },
                 onSuccess,
                 onError
@@ -367,12 +367,17 @@ describe('PlatformAutomationHandler', function () {
         })
     })
 
-    describe('set-agent-action-pending', function () {
-        const CACHE_NAME = 'agent-action-pending-cache'
+    describe('agent-action-pending', function () {
+        const CACHE_NAME = 'agent-action-pending'
         const usedKeys = []
 
         function cache () {
             return app.caches.getCache(CACHE_NAME)
+        }
+
+        function keyFor ({ entityType = 'p', entityId = app.project.id, action, module }) {
+            const base = `${app.adminUser.hashid}:${entityType}:${entityId}:${action}`
+            return module ? `${base}:${module}` : base
         }
 
         afterEach(async function () {
@@ -380,11 +385,12 @@ describe('PlatformAutomationHandler', function () {
         })
 
         it('stores the pending action keyed by user, entity and action', async function () {
-            const key = `${app.adminUser.hashid}:p:${app.project.id}:deploy`
+            const key = keyFor({ action: 'deploy' })
             usedKeys.push(key)
 
-            const res = await invokeSetAgentActionPending({
+            const res = await invokeAgentActionPending({
                 userId: app.adminUser.hashid,
+                op: 'set',
                 action: 'deploy',
                 entityType: 'p',
                 entityId: app.project.id,
@@ -403,32 +409,76 @@ describe('PlatformAutomationHandler', function () {
         it('stores source mcp when the session has a recorded third-party token', async function () {
             const { token: callerToken } = await app.expert.mcp.getOrCreatePlatformToken(app.adminUser)
             const sessionCache = app.caches.getCache('mcp-session-token')
-            await sessionCache.set('set-agent-action-pending-session', callerToken)
+            await sessionCache.set('agent-action-pending-session', callerToken)
 
-            const key = `${app.adminUser.hashid}:p:${app.project.id}:install`
+            const key = keyFor({ action: 'install', module: '@flowfuse/newmodule' })
             usedKeys.push(key)
 
             try {
-                const res = await invokeSetAgentActionPending({
+                const res = await invokeAgentActionPending({
                     userId: app.adminUser.hashid,
+                    op: 'set',
                     action: 'install',
                     entityType: 'p',
                     entityId: app.project.id,
+                    module: '@flowfuse/newmodule',
                     toolName: 'install_package',
-                    mcpSessionId: 'set-agent-action-pending-session'
+                    mcpSessionId: 'agent-action-pending-session'
                 })
 
                 res.ok.should.be.true()
                 const stored = await cache().get(key)
                 stored.should.have.property('source', 'mcp')
+
+                // a different module for the same user/entity/action must not collide
+                const otherKey = keyFor({ action: 'install', module: '@flowfuse/othermodule' })
+                should.not.exist(await cache().get(otherKey))
             } finally {
-                await sessionCache.del('set-agent-action-pending-session')
+                await sessionCache.del('agent-action-pending-session')
             }
         })
 
-        it('errors instead of silently storing an incomplete entry when a required field is missing', async function () {
-            const res = await invokeSetAgentActionPending({
+        it('removes a pending entry on op clear', async function () {
+            const key = keyFor({ action: 'deploy' })
+
+            await invokeAgentActionPending({
                 userId: app.adminUser.hashid,
+                op: 'set',
+                action: 'deploy',
+                entityType: 'p',
+                entityId: app.project.id,
+                toolName: 'deploy_flows'
+            })
+            should.exist(await cache().get(key))
+
+            const res = await invokeAgentActionPending({
+                userId: app.adminUser.hashid,
+                op: 'clear',
+                action: 'deploy',
+                entityType: 'p',
+                entityId: app.project.id
+            })
+
+            res.ok.should.be.true()
+            should.not.exist(await cache().get(key))
+        })
+
+        it('clearing a pending entry that was never set is a no-op, not an error', async function () {
+            const res = await invokeAgentActionPending({
+                userId: app.adminUser.hashid,
+                op: 'clear',
+                action: 'deploy',
+                entityType: 'p',
+                entityId: app.project.id
+            })
+
+            res.ok.should.be.true()
+        })
+
+        it('errors instead of silently storing an incomplete entry when a required field is missing', async function () {
+            const res = await invokeAgentActionPending({
+                userId: app.adminUser.hashid,
+                op: 'set',
                 action: 'deploy',
                 entityType: 'p'
                 // entityId omitted
@@ -439,7 +489,21 @@ describe('PlatformAutomationHandler', function () {
         })
 
         it('rejects a call with no userId', async function () {
-            const res = await invokeSetAgentActionPending({
+            const res = await invokeAgentActionPending({
+                op: 'set',
+                action: 'deploy',
+                entityType: 'p',
+                entityId: app.project.id
+            })
+
+            res.ok.should.be.false()
+            res.code.should.equal('MCP_PLATFORM_AGENT_ACTION_PENDING_INVALID')
+        })
+
+        it('rejects a call with an invalid op', async function () {
+            const res = await invokeAgentActionPending({
+                userId: app.adminUser.hashid,
+                op: 'delete',
                 action: 'deploy',
                 entityType: 'p',
                 entityId: app.project.id

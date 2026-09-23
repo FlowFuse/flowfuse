@@ -454,7 +454,7 @@ describe('Logging API', function () {
     })
 
     describe('agent action attribution', function () {
-        const CACHE_NAME = 'agent-action-pending-cache'
+        const CACHE_NAME = 'agent-action-pending'
         const usedKeys = []
 
         function cache () {
@@ -496,9 +496,13 @@ describe('Logging API', function () {
                 should.not.exist(await cache().get(key))
             })
 
-            it('attributes a nodes.install event to a matching pending action', async function () {
-                const key = `${TestObjects.alice.hashid}:p:${TestObjects.project1.id}:install`
+            it('attributes a nodes.install event to a matching pending action, keyed by module', async function () {
+                // install signals are keyed by module too, so two different installs for the
+                // same user/instance never share a cache entry
+                const key = `${TestObjects.alice.hashid}:p:${TestObjects.project1.id}:install:@flowfuse/newmodule`
                 await primePending(key, { source: 'mcp', toolName: 'install_package' })
+                const otherModuleKey = `${TestObjects.alice.hashid}:p:${TestObjects.project1.id}:install:@flowfuse/othermodule`
+                await primePending(otherModuleKey, { source: 'mcp:expert', toolName: 'install_package' })
 
                 const response = await app.inject({
                     method: 'POST',
@@ -514,6 +518,9 @@ describe('Logging API', function () {
                 })
                 should.exist(entry)
                 entry.source.should.equal('mcp')
+
+                // the differently-scoped module's pending signal is untouched
+                should.exist(await cache().get(otherModuleKey))
             })
 
             it('leaves a flows.set event unattributed when there is no matching pending action', async function () {

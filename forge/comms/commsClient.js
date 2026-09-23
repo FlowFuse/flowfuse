@@ -123,7 +123,7 @@ class CommsClient extends EventEmitter {
                     const supportedPlatformAutomationCommands = {
                         'automation:mcp-get-features': 'mcp-get-features',
                         'automation:mcp-call-tool': 'mcp-call-tool',
-                        'automation:set-agent-action-pending': 'set-agent-action-pending'
+                        'automation:agent-action-pending': 'agent-action-pending'
                     }
 
                     if (supportedInsightsCommands[channelCommand] && direction === 'request') {

@@ -24,11 +24,11 @@ const alertsAndNotifications = {
 }
 
 // Maps a Node-RED core audit event name to the generic action key an agent's
-// set-agent-action-pending signal (platformAutomation.js) would have stored under, so the
-// resulting audit row can be attributed to the agent action that triggered it. Extend this,
-// not the lookup logic below, when a new agent-triggerable action should also get the
-// "via Expert/MCP" audit sparkle - the corresponding action string on the sender side
-// (MCP Gateway's/Chatbot's platformAutomationSetAgentActionPending caller) must match.
+// agent-action-pending signal (platformAutomation.js / AgentAction controller) would have
+// stored under, so the resulting audit row can be attributed to the agent action that
+// triggered it. Extend this, not the lookup logic below, when a new agent-triggerable action
+// should also get the "via Expert/MCP" audit sparkle - the corresponding action string on the
+// sender side (MCP Gateway's/Chatbot's agent-action-pending caller) must match.
 const agentAttributableEvents = {
     'flows.set': 'deploy',
     'nodes.install': 'install'
@@ -98,14 +98,17 @@ module.exports = async function (app) {
         // An agent-triggered action (deploy, module install, ...) performed via RED.actions.invoke
         // / the admin API in the browser looks identical to a manual one to Node-RED core - the
         // agent-vs-human distinction is signalled separately, ahead of time, by the MCP Gateway /
-        // Chatbot (see platformAutomation.js's set-agent-action-pending).
+        // Chatbot (see platformAutomation.js's agent-action-pending command).
         const pendingAction = agentAttributableEvents[event]
         if (user?.hashid && pendingAction) {
-            const agentActionPendingCache = app.caches.getCache('agent-action-pending-cache')
-            const cacheKey = `${user.hashid}:p:${projectId}:${pendingAction}`
-            const pending = await agentActionPendingCache.get(cacheKey)
+            const pending = await app.db.controllers.AgentAction.consumePending({
+                userHashid: user.hashid,
+                entityType: 'p',
+                entityId: projectId,
+                action: pendingAction,
+                module: auditEvent.module
+            })
             if (pending) {
-                await agentActionPendingCache.del(cacheKey)
                 request.requestContext.set('sourceContext', pending)
             }
         }
@@ -233,11 +236,14 @@ module.exports = async function (app) {
         // auditEvent.user is already the hashid (userId above is only its decoded numeric form).
         const devicePendingAction = agentAttributableEvents[event]
         if (auditEvent.user && devicePendingAction) {
-            const agentActionPendingCache = app.caches.getCache('agent-action-pending-cache')
-            const cacheKey = `${auditEvent.user}:d:${deviceId}:${devicePendingAction}`
-            const pending = await agentActionPendingCache.get(cacheKey)
+            const pending = await app.db.controllers.AgentAction.consumePending({
+                userHashid: auditEvent.user,
+                entityType: 'd',
+                entityId: deviceId,
+                action: devicePendingAction,
+                module: auditEvent.module
+            })
             if (pending) {
-                await agentActionPendingCache.del(cacheKey)
                 request.requestContext.set('sourceContext', pending)
             }
         }
