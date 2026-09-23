@@ -132,6 +132,8 @@ import RichContent from './resources/RichContent.vue'
 import SuggestionsList from './resources/SuggestionsList.vue'
 import ToolApprovalCard from './resources/ToolApprovalCard.vue'
 
+import Product from '@/services/product.js'
+import { useContextStore } from '@/stores/context.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 
@@ -151,6 +153,12 @@ export default {
         GuideHeader,
         IssuesList,
         ToolApprovalCard
+    },
+    inject: {
+        expertSurface: {
+            from: 'expert-surface',
+            default: 'drawer'
+        }
     },
     props: {
         answer: {
@@ -328,6 +336,9 @@ export default {
         },
         shouldStream () {
             return !this.instant && !this.answer._streamed
+        },
+        isOnboardingSurface () {
+            return this.expertSurface === 'onboarding'
         }
     },
     watch: {
@@ -359,6 +370,9 @@ export default {
         if (this.isEditorContext) {
             this.$refs.messageBubble.$el.addEventListener('click', this.handleClick)
         }
+        if (this.isOnboardingSurface && this.hasPlan) {
+            Product.capture('ff-onboarding-plan-presented', {}, { team: useContextStore().team?.id })
+        }
     },
     methods: {
         ...mapActions(useProductExpertStore, ['updateAnswerStreamedState', 'handleQuery', 'setPendingInput', 'setComposerCommand', 'setPlanMode', 'resolveToolApproval', 'saveQuestionAnswer']),
@@ -384,10 +398,16 @@ export default {
             this.streamedComponents.push(key)
         },
         onQuestionsSubmit ({ query, answer }) {
+            if (this.isOnboardingSurface && Object.keys(this.questionAnswers).length === 0) {
+                Product.capture('ff-onboarding-first-question-answered', {}, { team: useContextStore().team?.id })
+            }
             this.saveQuestionAnswer(this.answer._uuid, answer)
             this.handleQuery({ query })
         },
         onPlanApprove () {
+            if (this.isOnboardingSurface) {
+                Product.capture('ff-onboarding-plan-approved', {}, { team: useContextStore().team?.id })
+            }
             // Approving exits read-only plan mode so the build runs as a normal acting turn,
             // and clears any plan text loaded into the composer via "Edit manually".
             this.setPlanMode(false)

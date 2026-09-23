@@ -750,6 +750,41 @@ describe('Snapshots API', function () {
                 response.json().should.have.property('code', 'bad_request')
             })
 
+            it('Returns 200 for a snapshot with no settings.env', async function () {
+                const ss = dummySnapshot('dummy-no-env', [], {}, null, {}, null)
+                const response = await importSnapshot(getOwnerId(), kind, ss, null, TestObjects.tokens.alice)
+                response.statusCode.should.equal(200)
+            })
+
+            it('Returns 200 for a snapshot with a null env value', async function () {
+                const ss = dummySnapshot('dummy-null-env', [], {}, { ONE: null }, {}, null)
+                const response = await importSnapshot(getOwnerId(), kind, ss, null, TestObjects.tokens.alice)
+                response.statusCode.should.equal(200)
+            })
+
+            it('Returns 400 for an encrypted hidden env var without a credentialSecret', async function () {
+                const ss = dummySnapshot('dummy-hidden-env', [], {}, { SECRET: { hidden: true, $: 'deadbeef00112233445566778899aabbccddeeff11223344' } }, {}, null)
+                const response = await importSnapshot(getOwnerId(), kind, ss, null, TestObjects.tokens.alice)
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'bad_request')
+            })
+
+            it('Does not require a credentialSecret for an encrypted hidden env var when the envVars component is excluded', async function () {
+                const ss = dummySnapshot('dummy-hidden-env-excluded', [], {}, { SECRET: { hidden: true, $: 'deadbeef00112233445566778899aabbccddeeff11223344' } }, {}, null)
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/snapshots/import',
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: {
+                        ownerId: getOwnerId(),
+                        ownerType: kind,
+                        snapshot: ss,
+                        components: { envVars: false }
+                    }
+                })
+                response.statusCode.should.equal(200)
+            })
+
             it(`TeamB member cannot import snapshot for ${kind} belonging to TeamA - 404`, async function () {
                 const ss = dummySnapshot('dummy', [], {}, {}, {}, null)
                 // chris (TeamB member, non admin) will attempt to import a snapshot into a project/device belonging to TeamA
