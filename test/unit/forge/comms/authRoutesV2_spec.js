@@ -1939,14 +1939,8 @@ describe('Broker Auth v2 API', async function () {
                     topic: `ff/v1/mcp/${app.comms.id}/${CATALOG_USER}/${SESSION}/request`
                 })
             })
-            it('allows forge_platform to publish a catalog request for another replica\'s platformId', async function () {
-                await allowWrite({
-                    username: 'forge_platform',
-                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${CATALOG_USER}/${SESSION}/request`
-                })
-            })
-            it('allows a catalog request without a real user (sentinel skips the user lookup)', async function () {
-                // the sentinel is not a real user hashid, yet the request is allowed
+            it('allows a catalog request for another replica\'s platformId (sentinel skips the user lookup)', async function () {
+                // OTHER_PLATFORM_ID is a different replica and the sentinel is not a real user hashid, yet allowed
                 await allowWrite({
                     username: 'forge_platform',
                     topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${CATALOG_USER}/${SESSION}/request`

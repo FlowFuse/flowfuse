@@ -712,9 +712,10 @@ module.exports = async function (app) {
             return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
         }
 
-        // Flow-building catalog, over MQTT:
-        // - no service token, no team/scope (catalog is global)
-        // - failure degrades to platform tools alone
+        // Flow-building catalog, over MQTT: global, failure degrades to platform tools alone.
+        // Its own short budget: an MQTT publish to an absent bridge never fails fast, so reusing
+        // the 60s HTTP timeout would block this route for a full minute when no bridge is listening.
+        const CATALOG_REQUEST_TIMEOUT = app.config.expert?.catalog?.requestTimeout ?? 10_000
         let catalog = []
         let hash = null
         const mcpGateway = app.comms?.mcpGateway
@@ -730,9 +731,17 @@ module.exports = async function (app) {
                         },
                         toolGroups: ['flow_building']
                     },
-                    app.expert.requestTimeout
+                    CATALOG_REQUEST_TIMEOUT
                 )
+                if (mcpResponse?.error) {
+                    app.log.warn(`[expert/mcp/tools] gateway returned an error for flow-catalog: ${JSON.stringify(mcpResponse.error)}`)
+                } else if (mcpResponse?.result?.isError) {
+                    app.log.warn(`[expert/mcp/tools] flow-catalog tool reported an error result: ${JSON.stringify(mcpResponse.result.content)}`)
+                }
                 const parsed = parseMcpToolResult(mcpResponse)
+                if (parsed === null) {
+                    app.log.warn('[expert/mcp/tools] could not parse a flow catalog from the gateway response; serving platform tools only')
+                }
                 const tools = Array.isArray(parsed?.tools) ? parsed.tools : []
                 catalog = tools.map(toUiCatalogEntry)
                 hash = parsed?.hash || null
