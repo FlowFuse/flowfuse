@@ -210,6 +210,28 @@ class PlatformAutomationHandler {
                 result = formatResponse(response)
                 break
             }
+            case 'agent-action-pending': {
+                // Signal from the Gateway or Expert that it is about to carry out `action` on
+                // `entityType`/`entityId` on this user's behalf (op 'set'), or that the dispatched
+                // action turned out to be a no-op or failed before running (op 'clear') - no
+                // user/tool lookup here, keep this path cheap since it sits in front of every
+                // agent-initiated deploy/install.
+                const { op, action, entityType, entityId, module } = data || {}
+                if (!userId || !action || !entityType || !entityId || !['set', 'clear'].includes(op)) {
+                    return onError(
+                        'userId, op, action, entityType and entityId are required',
+                        'MCP_PLATFORM_AGENT_ACTION_PENDING_INVALID'
+                    )
+                }
+                const target = { userHashid: userId, entityType, entityId, action, module }
+                if (op === 'clear') {
+                    await this.app.db.controllers.AgentAction.clearPending(target)
+                } else {
+                    await this.app.db.controllers.AgentAction.setPending(target, { source, toolName: data?.toolName })
+                }
+                result = { ok: true }
+                break
+            }
             default:
                 // unrecognized command
             }
