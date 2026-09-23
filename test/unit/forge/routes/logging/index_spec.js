@@ -452,4 +452,149 @@ describe('Logging API', function () {
             }
         }
     })
+
+    describe('agent action attribution', function () {
+        const CACHE_NAME = 'agent-action-pending-cache'
+        const usedKeys = []
+
+        function cache () {
+            return app.caches.getCache(CACHE_NAME)
+        }
+
+        function primePending (key, value) {
+            usedKeys.push(key)
+            return cache().set(key, value)
+        }
+
+        afterEach(async function () {
+            await Promise.all(usedKeys.splice(0).map((key) => cache().del(key)))
+        })
+
+        describe('instance', function () {
+            it('attributes a flows.set event to a matching pending action and consumes it', async function () {
+                const key = `${TestObjects.alice.hashid}:p:${TestObjects.project1.id}:deploy`
+                await primePending(key, { source: 'mcp:expert', toolName: 'deploy_flows' })
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/logging/${TestObjects.project1.id}/audit`,
+                    headers: { authorization: `Bearer ${TestObjects.tokens.project1}` },
+                    payload: { event: 'flows.set', type: 'full', user: TestObjects.alice.hashid }
+                })
+                response.should.have.property('statusCode', 200)
+
+                const entry = await app.db.models.AuditLog.findOne({
+                    where: { event: 'flows.set', entityId: TestObjects.project1.id },
+                    order: [['createdAt', 'DESC']]
+                })
+                should.exist(entry)
+                entry.source.should.equal('mcp:expert')
+                const body = JSON.parse(entry.body)
+                body.sourceContext.should.have.property('toolName', 'deploy_flows')
+
+                // single-use: gone after the first match
+                should.not.exist(await cache().get(key))
+            })
+
+            it('attributes a nodes.install event to a matching pending action', async function () {
+                const key = `${TestObjects.alice.hashid}:p:${TestObjects.project1.id}:install`
+                await primePending(key, { source: 'mcp', toolName: 'install_package' })
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/logging/${TestObjects.project1.id}/audit`,
+                    headers: { authorization: `Bearer ${TestObjects.tokens.project1}` },
+                    payload: { event: 'nodes.install', module: '@flowfuse/newmodule', version: '0.4.0', path: '/nodes', user: TestObjects.alice.hashid }
+                })
+                response.should.have.property('statusCode', 200)
+
+                const entry = await app.db.models.AuditLog.findOne({
+                    where: { event: 'nodes.install', entityId: TestObjects.project1.id },
+                    order: [['createdAt', 'DESC']]
+                })
+                should.exist(entry)
+                entry.source.should.equal('mcp')
+            })
+
+            it('leaves a flows.set event unattributed when there is no matching pending action', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/logging/${TestObjects.project1.id}/audit`,
+                    headers: { authorization: `Bearer ${TestObjects.tokens.project1}` },
+                    payload: { event: 'flows.set', type: 'full', user: TestObjects.alice.hashid }
+                })
+                response.should.have.property('statusCode', 200)
+
+                const entry = await app.db.models.AuditLog.findOne({
+                    where: { event: 'flows.set', entityId: TestObjects.project1.id },
+                    order: [['createdAt', 'DESC']]
+                })
+                should.exist(entry)
+                should.not.exist(entry.source)
+            })
+
+            it('ignores a pending action scoped to a different project', async function () {
+                const otherProjectKey = `${TestObjects.alice.hashid}:p:${TestObjects.project2.id}:deploy`
+                await primePending(otherProjectKey, { source: 'mcp:expert', toolName: 'deploy_flows' })
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/logging/${TestObjects.project1.id}/audit`,
+                    headers: { authorization: `Bearer ${TestObjects.tokens.project1}` },
+                    payload: { event: 'flows.set', type: 'full', user: TestObjects.alice.hashid }
+                })
+                response.should.have.property('statusCode', 200)
+
+                const entry = await app.db.models.AuditLog.findOne({
+                    where: { event: 'flows.set', entityId: TestObjects.project1.id },
+                    order: [['createdAt', 'DESC']]
+                })
+                should.exist(entry)
+                should.not.exist(entry.source)
+                // the other project's entry must be untouched by this unrelated event
+                should.exist(await cache().get(otherProjectKey))
+            })
+        })
+
+        describe('device', function () {
+            it('attributes a flows.set event to a matching pending action and consumes it', async function () {
+                const key = `${TestObjects.alice.hashid}:d:${TestObjects.device1.hashid}:deploy`
+                await primePending(key, { source: 'mcp:expert', toolName: 'deploy_flows' })
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/logging/device/${TestObjects.device1.hashid}/audit`,
+                    headers: { authorization: `Bearer ${TestObjects.tokens.device1}` },
+                    payload: { event: 'flows.set', type: 'full', user: TestObjects.alice.hashid }
+                })
+                response.should.have.property('statusCode', 200)
+
+                const entry = await app.db.models.AuditLog.findOne({
+                    where: { event: 'flows.set', entityId: TestObjects.device1.id },
+                    order: [['createdAt', 'DESC']]
+                })
+                should.exist(entry)
+                entry.source.should.equal('mcp:expert')
+
+                should.not.exist(await cache().get(key))
+            })
+
+            it('leaves a flows.set event unattributed when there is no matching pending action', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/logging/device/${TestObjects.device1.hashid}/audit`,
+                    headers: { authorization: `Bearer ${TestObjects.tokens.device1}` },
+                    payload: { event: 'flows.set', type: 'full', user: TestObjects.alice.hashid }
+                })
+                response.should.have.property('statusCode', 200)
+
+                const entry = await app.db.models.AuditLog.findOne({
+                    where: { event: 'flows.set', entityId: TestObjects.device1.id },
+                    order: [['createdAt', 'DESC']]
+                })
+                should.exist(entry)
+                should.not.exist(entry.source)
+            })
+        })
+    })
 })

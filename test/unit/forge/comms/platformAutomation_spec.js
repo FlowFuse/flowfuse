@@ -43,6 +43,23 @@ describe('PlatformAutomationHandler', function () {
         })
     }
 
+    function invokeSetAgentActionPending ({ userId, action, entityType, entityId, toolName, mcpSessionId }) {
+        return new Promise((resolve) => {
+            const onSuccess = (result) => resolve({ ok: true, result })
+            const onError = (message, code, err) => resolve({ ok: false, message, code, err })
+            handler.eventHandler(
+                {
+                    userId,
+                    mcpSessionId,
+                    command: 'set-agent-action-pending',
+                    data: { action, entityType, entityId, toolName }
+                },
+                onSuccess,
+                onError
+            )
+        })
+    }
+
     function invokeGetFeatures ({ hashOnly } = {}) {
         return new Promise((resolve) => {
             const onSuccess = (result) => resolve({ ok: true, result })
@@ -347,6 +364,89 @@ describe('PlatformAutomationHandler', function () {
             const res = await invokeGetFeatures()
 
             handler.getCatalogHash().should.equal(res.result.catalogHash)
+        })
+    })
+
+    describe('set-agent-action-pending', function () {
+        const CACHE_NAME = 'agent-action-pending-cache'
+        const usedKeys = []
+
+        function cache () {
+            return app.caches.getCache(CACHE_NAME)
+        }
+
+        afterEach(async function () {
+            await Promise.all(usedKeys.splice(0).map((key) => cache().del(key)))
+        })
+
+        it('stores the pending action keyed by user, entity and action', async function () {
+            const key = `${app.adminUser.hashid}:p:${app.project.id}:deploy`
+            usedKeys.push(key)
+
+            const res = await invokeSetAgentActionPending({
+                userId: app.adminUser.hashid,
+                action: 'deploy',
+                entityType: 'p',
+                entityId: app.project.id,
+                toolName: 'deploy_flows'
+            })
+
+            res.ok.should.be.true()
+            res.result.should.eql({ ok: true })
+
+            const stored = await cache().get(key)
+            should.exist(stored)
+            stored.should.have.property('source', 'mcp:expert')
+            stored.should.have.property('toolName', 'deploy_flows')
+        })
+
+        it('stores source mcp when the session has a recorded third-party token', async function () {
+            const { token: callerToken } = await app.expert.mcp.getOrCreatePlatformToken(app.adminUser)
+            const sessionCache = app.caches.getCache('mcp-session-token')
+            await sessionCache.set('set-agent-action-pending-session', callerToken)
+
+            const key = `${app.adminUser.hashid}:p:${app.project.id}:install`
+            usedKeys.push(key)
+
+            try {
+                const res = await invokeSetAgentActionPending({
+                    userId: app.adminUser.hashid,
+                    action: 'install',
+                    entityType: 'p',
+                    entityId: app.project.id,
+                    toolName: 'install_package',
+                    mcpSessionId: 'set-agent-action-pending-session'
+                })
+
+                res.ok.should.be.true()
+                const stored = await cache().get(key)
+                stored.should.have.property('source', 'mcp')
+            } finally {
+                await sessionCache.del('set-agent-action-pending-session')
+            }
+        })
+
+        it('errors instead of silently storing an incomplete entry when a required field is missing', async function () {
+            const res = await invokeSetAgentActionPending({
+                userId: app.adminUser.hashid,
+                action: 'deploy',
+                entityType: 'p'
+                // entityId omitted
+            })
+
+            res.ok.should.be.false()
+            res.code.should.equal('MCP_PLATFORM_AGENT_ACTION_PENDING_INVALID')
+        })
+
+        it('rejects a call with no userId', async function () {
+            const res = await invokeSetAgentActionPending({
+                action: 'deploy',
+                entityType: 'p',
+                entityId: app.project.id
+            })
+
+            res.ok.should.be.false()
+            res.code.should.equal('MCP_PLATFORM_AGENT_ACTION_PENDING_INVALID')
         })
     })
 
