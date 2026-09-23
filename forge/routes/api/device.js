@@ -249,7 +249,7 @@ module.exports = async function (app) {
                     setup: { type: 'boolean', enum: [true] }, // enum only permits a value of true for setup
                     agentHost: { type: 'string' }, // future, for audit log
                     registrationSession: { type: 'string' }, // optional, for async device registration flow,
-                    agentType: { type: 'string', enum: ['lite'] }
+                    agentType: { type: 'string', enum: ['lite', 'full'] }
                 }
             },
             response: {
@@ -439,7 +439,7 @@ module.exports = async function (app) {
     app.post('/_/register', {
         config: {
             allowAnonymous: true,
-            // Rate limit to 5 requests per 30 seconds per IP address. Given
+            // Rate limit to 5 requests per 0 seconds per IP address. Given
             // this is a manual registration flow, we don't support high volume requests
             // from single sources.
             rateLimit: app.config.rate_limits ? { max: 5, timeWindow: 30000 } : false
@@ -450,7 +450,8 @@ module.exports = async function (app) {
                 // The body is optional - if provided, it may contain the agent type
                 type: ['object', 'null'],
                 properties: {
-                    type: { type: 'string' }
+                    // Only include lite in the enum - if not set, the default is full
+                    type: { type: 'string', enum: ['lite'] }
                 }
             },
             response: {
