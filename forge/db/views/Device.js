@@ -116,6 +116,7 @@ module.exports = function (app) {
             isDeploying: { type: 'boolean' },
             links: { $ref: 'LinksMeta' },
             application: { $ref: 'ApplicationSummary' },
+            agentType: { type: 'string' },
             mostRecentAuditLogCreatedAt: { type: 'string' },
             mostRecentAuditLogEvent: { type: 'string' }
         },
@@ -140,6 +141,7 @@ module.exports = function (app) {
                 lastSeenAt: result.lastSeenAt,
                 lastSeenMs: result.lastSeenAt ? (Date.now() - new Date(result.lastSeenAt).valueOf()) : null,
                 status: result.state || 'offline',
+                agentType: result.agentType,
                 onlineStatus: device.status,
                 mode: result.mode || 'autonomous',
                 isDeploying: app.db.controllers.Device.isDeploying(device),
