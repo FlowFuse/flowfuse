@@ -50,6 +50,7 @@ import NavItem from '@/components/NavItem.vue'
 import ExpertPanel from '@/components/expert/Expert.vue'
 import navigationMixin from '@/mixins/Navigation.js'
 import Alerts from '@/services/alerts.js'
+import Product from '@/services/product.js'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
@@ -164,6 +165,7 @@ export default {
                 useProductExpertSupportAgentStore().reset()
             }
             this.conversationRequested = true
+            Product.capture('ff-onboarding-opened', {}, { team: this.team.id })
             expertStore.openConversation()
         },
         async skipOnboarding () {
@@ -182,6 +184,7 @@ export default {
                     return
                 }
             }
+            Product.capture('ff-onboarding-skipped', {}, { team: this.team.id })
             // Leave first: ending the stage while this page is still mounted
             // flips notAvailable, whose watcher would beat this navigation
             // with its own redirect to the 404 page

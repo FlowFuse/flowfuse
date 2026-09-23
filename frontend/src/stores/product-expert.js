@@ -25,6 +25,7 @@ import {
     THROTTLED_ERROR_CODES,
     TRANSIENT_ERROR_CODES
 } from '@/services/mqtt.service'
+import Product from '@/services/product.js'
 import { connectionKey as teamConnectionKey } from '@/subscribers/team-subscriber.contract'
 
 export const useProductExpertStore = defineStore('product-expert', {
@@ -46,6 +47,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         // Ids of instances already announced as ready this conversation, so a restart or
         // reconnect reporting running again doesn't repeat the announcement.
         _relayedInstanceIds: new Set(),
+        _relayedFailedInstanceIds: new Set(),
         // Open human-in-the-loop approval batch (#421). When a turn defers a tool batch
         // for approval the agent ends the turn and returns the card(s); we hold the
         // decisions here until every card is answered, then send them back in one resume
@@ -681,6 +683,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             agentStore.recentlyCompletedTransactions.clear()
             this.questionAnswers = {}
             this._relayedInstanceIds.clear()
+            this._relayedFailedInstanceIds.clear()
 
             // A new chat drops the per-session tool grants ("Always allow/deny for this chat")
             // and the resolved-approval outcomes tied to the messages we just cleared.
@@ -834,6 +837,16 @@ export const useProductExpertStore = defineStore('product-expert', {
                 _type: 'system',
                 _variant: type,
                 message,
+                _timestamp: Date.now(),
+                _uuid: uuidv4()
+            })
+        },
+        addEventMessage (system) {
+            if (!system?.kind) return
+            this._agentStore.messages.push({
+                _type: 'event',
+                kind: system.kind,
+                payload: system,
                 _timestamp: Date.now(),
                 _uuid: uuidv4()
             })
@@ -1347,21 +1360,13 @@ export const useProductExpertStore = defineStore('product-expert', {
             // 0x80 Unspecified, 0x83 Implementation specific, anything unknown:
             this.addPredefinedAiMessage(payload.message, { isError: true, code: payload.code })
         },
-        /**
-         * Tells the assistant a provisioned instance has finished starting, without adding
-         * a user bubble. No-op outside onboarding, off the MQTT channel, or for an instance
-         * already announced this conversation.
-         *
-         * @param {{ id: string, name?: string }} instance - the instance that finished starting
-         */
-        async relayInstanceReady (instance) {
+        async _relayInstanceEvent (instance, { seen, buildSystem, showCard = false, onPublished }) {
             if (!instance?.id || !useUxStore().isOnboarding || !this.shouldUseMqtt) return
-            if (this._relayedInstanceIds.has(instance.id)) return
-            this._relayedInstanceIds.add(instance.id)
+            if (seen.has(instance.id)) return
+            seen.add(instance.id)
 
             try {
-                const servicesOrchestrator = getAppOrchestrator()
-                const mqttService = servicesOrchestrator.$services.mqtt
+                const mqttService = getAppOrchestrator().$services.mqtt
                 const mqttTopicHelper = useMqttExpertTopicHelper()
 
                 const transactionId = uuidv4()
@@ -1383,15 +1388,15 @@ export const useProductExpertStore = defineStore('product-expert', {
                     topicAction: 'request'
                 })
 
+                const system = buildSystem(instance)
+
+                if (showCard) this.addEventMessage(system)
+
                 await mqttService.publishMessage(mqttConnectionKey, {
                     topic,
                     qos: 2,
                     payload: {
-                        system: {
-                            kind: 'instance-ready',
-                            instance: { id: instance.id, name: instance.name ?? null },
-                            state: 'running'
-                        },
+                        system,
                         context: {
                             ...useContextStore().expert,
                             agent: this.agentMode
@@ -1403,9 +1408,27 @@ export const useProductExpertStore = defineStore('product-expert', {
                         origin: window.origin || window.location.origin
                     }
                 })
+                onPublished?.(instance)
             } catch (e) {
                 this._onMqttError(e)
             }
+        },
+        async relayInstanceReady (instance) {
+            return this._relayInstanceEvent(instance, {
+                seen: this._relayedInstanceIds,
+                buildSystem: i => ({ kind: 'instance-ready', instance: { id: i.id, name: i.name ?? null }, state: 'running' }),
+                showCard: true,
+                onPublished: i => Product.capture('ff-onboarding-workspace-ready', {}, {
+                    team: useContextStore().team?.id,
+                    instance: i.id
+                })
+            })
+        },
+        async relayInstanceStartFailed (instance) {
+            return this._relayInstanceEvent(instance, {
+                seen: this._relayedFailedInstanceIds,
+                buildSystem: i => ({ kind: 'instance-start-failed', instance: { id: i.id, name: i.name ?? null }, state: i.state })
+            })
         },
         stopInflightChat () {
             // Deny any open approval prompts first so the agent's paused tool call unblocks.
