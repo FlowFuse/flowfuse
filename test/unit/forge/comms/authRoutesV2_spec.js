@@ -1914,5 +1914,61 @@ describe('Broker Auth v2 API', async function () {
                 }
             })
         })
+
+        describe('MCP flow-building catalog (forge_platform, sentinel userId)', async function () {
+            // The catalog fetch reuses the MCP gateway channel with the catalog sentinel as
+            // userId (see checkMcpTopic): no dedicated topic, and exempt from the feature gate
+            // and user lookup while every other check still applies.
+            const CATALOG_USER = 'flow-building-tool-catalog'
+            const SESSION = '7d292be0-d561-41c7-afc9-280a3c914284'
+            const OTHER_PLATFORM_ID = '3d7e858c-259f-4d17-b9c0-0d046509cc42'
+
+            before(async function () {
+                await setupEE()
+                app.config.features.register('ai', true, true)
+                app.config.features.register('mcpThirdParty', true, true)
+            })
+
+            after(async function () {
+                await app.close()
+            })
+
+            it('allows forge_platform to publish a catalog request for its own platformId', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${app.comms.id}/${CATALOG_USER}/${SESSION}/request`
+                })
+            })
+            it('allows a catalog request for another replica\'s platformId (sentinel skips the user lookup)', async function () {
+                // OTHER_PLATFORM_ID is a different replica and the sentinel is not a real user hashid, yet allowed
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${CATALOG_USER}/${SESSION}/request`
+                })
+            })
+            it('allows a catalog request when mcpThirdParty is disabled (first-party, not gated)', async function () {
+                app.config.features.register('mcpThirdParty', false, true)
+                try {
+                    await allowWrite({
+                        username: 'forge_platform',
+                        topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${CATALOG_USER}/${SESSION}/request`
+                    })
+                } finally {
+                    app.config.features.register('mcpThirdParty', true, true)
+                }
+            })
+            it('denies a catalog request with a non-uuid platformId', async function () {
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/not-a-uuid/${CATALOG_USER}/${SESSION}/request`
+                })
+            })
+            it('denies a catalog request with a short session id (topic-safe check still applies)', async function () {
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${CATALOG_USER}/short/request`
+                })
+            })
+        })
     })
 })

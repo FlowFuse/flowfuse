@@ -56,7 +56,7 @@ class CommsClient extends EventEmitter {
                  * 3rd Party Mcp events
                  */
                 if (topicParts[2] === 'mcp') {
-                    // ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/response/
+                    // ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/response
                     if (topicParts[6] === 'response') {
                         let payload
                         try {

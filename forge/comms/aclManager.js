@@ -6,7 +6,7 @@
  *
  * Other components (ie EE-specific features) can register their own additional ACLs
  */
-const { TOPIC_SAFE_SESSION_ID } = require('./utils/mcpSessionId')
+const { TOPIC_SAFE_SESSION_ID, FLOW_BUILDING_CATALOG_USER_ID } = require('./utils/mcpSessionId')
 
 module.exports = function (app) {
     const expertRbacToolCheck = async (teamMembership, toolName, application) => {
@@ -609,6 +609,8 @@ module.exports = function (app) {
          * Direction is not checked here. It is already fixed by which list a rule sits in
          * (verify() picks sub[] or pub[] from the access level) and by the request/response
          * suffix in the rule's own regex.
+         *
+         * The flow-building catalog fetch reuses this channel with the catalog sentinel as userId.
          */
         checkMcpTopic: async function (topicParts, usernameParts, acl) {
             // topicParts = [ fullTopic , <platformId>, <userId>, <mcpSessionId> ]
@@ -633,10 +635,6 @@ module.exports = function (app) {
             }
 
             try {
-                if (!app.config.features.enabled('mcpThirdParty')) {
-                    throw ValidationError('third-party MCP access is not enabled on this platform')
-                }
-
                 const [, platformId, userId, mcpSessionId] = topicParts
                 const [clientType] = usernameParts
 
@@ -645,6 +643,13 @@ module.exports = function (app) {
                 }
                 if (!platformId || !userId || !mcpSessionId) {
                     throw ValidationError('invalid topic format')
+                }
+
+                // The catalog is a first-party global read, so the sentinel userId is exempt from
+                // the third-party gate and the user lookup; every other check below still applies.
+                const isCatalogFetch = userId === FLOW_BUILDING_CATALOG_USER_ID
+                if (!isCatalogFetch && !app.config.features.enabled('mcpThirdParty')) {
+                    throw ValidationError('third-party MCP access is not enabled on this platform')
                 }
 
                 // ensure the acl that matched belongs to the client presenting it
@@ -684,7 +689,7 @@ module.exports = function (app) {
                     if (!acl.allowWildcard?.user) {
                         throw ValidationError('invalid user wildcard')
                     }
-                } else {
+                } else if (!isCatalogFetch) {
                     const user = await app.db.models.User.byId(userId)
                     if (!user || user.suspended) {
                         throw ValidationError('invalid user')
@@ -730,6 +735,7 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isPlatform: true, isSub: true, agent: 'platform' },
                 // platform can listen for third-party MCP responses from the central gateway
                 // - ff/v1/mcp/<platformId>/+/+/response
+                // (the flow-building catalog response reuses this rule via the catalog sentinel)
                 { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/response$/, verify: 'checkMcpTopic', allowWildcard: { user: true, session: true }, isPlatform: true, isSub: true },
                 // - ff/v1/<team>/u/<user>/s/<session>/<event> (shared subscription)
                 //   [^/]+ on the event segment: the subscription wildcard (+) is matched
@@ -770,6 +776,7 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', isPlatform: true, isPub: true, agent: 'platform' },
                 // platform can publish third-party MCP requests to the central gateway
                 // - ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/request
+                // (the flow-building catalog request reuses this rule via the catalog sentinel)
                 { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/request$/, verify: 'checkMcpTopic', isPlatform: true, isPub: true },
                 // platform can tell one browser tab about its MCP state
                 // - ff/v1/<team>/u/<user>/s/<session>/mcp/clients
