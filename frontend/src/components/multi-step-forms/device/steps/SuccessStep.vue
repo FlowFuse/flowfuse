@@ -88,7 +88,7 @@ export default {
             return this.deviceConnected && this.polledDevice?.status === 'running'
         },
         agentType () {
-            return this.polledDevice?.agentType || (this.$route.query.type === 'lite' ? 'lite' : null)
+            return this.device?.agentType || (this.$route.query.type === 'lite' ? 'lite' : null)
         }
     },
     mounted () {
@@ -114,13 +114,16 @@ export default {
                     if (device.agentType === 'lite') {
                         // If this is a Lite Agent:
                         // - put into developer mode as we don't support fleet mode yet
-                        // - redirect to the device editor page
+                        // - redirect to the device overview page
                         await deviceApi.setMode(this.device.id, 'developer')
                         this.$router.push({
                             name: 'device-overview',
                             params: { id: this.device.id }
                         })
                     } else {
+                        // If this is a Full Device Agent:
+                        // - put into developer mode
+                        // - redirect to the device editor page
                         await deviceApi.setMode(this.device.id, 'developer')
                         await deviceApi.enableEditorTunnel(this.device.id)
                         this.$router.push({
