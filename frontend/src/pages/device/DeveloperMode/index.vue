@@ -4,7 +4,7 @@
         message="The Lite Remote Agent does not currently support this feature"
         :only-custom-message="true"
     />
-    <div v-if="device?.agentType !== 'lite'" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <InfoCard v-if="isDevModeAvailable" header="Developer Mode Options:">
             <template #icon>
                 <BeakerIcon />

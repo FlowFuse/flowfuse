@@ -4,7 +4,7 @@
         message="The Lite Remote Agent does not currently support this feature"
         :only-custom-message="true"
     />
-    <form v-if="device?.agentType !== 'lite'" class="space-y-6 overflow-auto flex flex-col flex-1">
+    <form v-else class="space-y-6 overflow-auto flex flex-col flex-1">
         <TemplateSettingsEnvironment
             :readOnly="!hasPermission('device:edit-env', applicationContext)"
             v-model="editable"

@@ -4,7 +4,7 @@
         message="The Lite Remote Agent does not currently support this feature"
         :only-custom-message="true"
     />
-    <form v-if="device?.agentType !== 'lite'" class="space-y-6" data-el="instance-editor" @submit.prevent>
+    <form v-else class="space-y-6" data-el="instance-editor" @submit.prevent>
         <FormHeading>Limits</FormHeading>
         <div v-if="limitAvailable">
             <div v-if="limitsLauncherEnabled" class="flex flex-col sm:flex-row">

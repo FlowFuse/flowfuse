@@ -4,7 +4,7 @@
         message="The Lite Remote Agent does not currently support this feature"
         :only-custom-message="true"
     />
-    <form v-if="device?.agentType !== 'lite'" class="space-y-6" data-el="device-security">
+    <form v-else class="space-y-6" data-el="device-security">
         <div
             v-if="!securityOptionsSupported"
             class="ff-page-banner my-4"

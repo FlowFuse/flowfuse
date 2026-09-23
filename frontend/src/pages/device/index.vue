@@ -19,7 +19,7 @@
                     <DeviceModeBadge v-if="isDevModeAvailable " :mode="device.mode" />
                     <div v-if="isLiteDevice" class="forge-badge">
                         <span class="inline-flex space-x-2 items-center">
-                            <span v-if="!isIcon" class="ml-1"> Lite Agent</span>
+                            <span class="ml-1"> Lite Agent</span>
                         </span>
                     </div>
                 </div>
