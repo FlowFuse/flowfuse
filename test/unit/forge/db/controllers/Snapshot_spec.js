@@ -507,6 +507,45 @@ describe('Snapshot controller', function () {
             importedSnapshot.settings.should.have.properties('env')
             importedSnapshot.settings.env.should.deepEqual({ ev1: '', ev2: '', ev3: '', ev4: '' })
         })
+
+        it('should upload a snapshot with no env settings', async function () {
+            const fullSnapshot = generateSnapshot()
+            delete fullSnapshot.settings.env
+            const importedSnapshot = await snapshotController.uploadSnapshot(instance, fullSnapshot, 'the secret', alice, {})
+            should.exist(importedSnapshot)
+            importedSnapshot.settings.should.have.properties('env')
+            importedSnapshot.settings.env.should.deepEqual({})
+        })
+
+        it('should upload a snapshot with a null env value without erroring', async function () {
+            const fullSnapshot = generateSnapshot(null, null, null, null, { ev1: null, ev2: 'ev2' })
+            const importedSnapshot = await snapshotController.uploadSnapshot(instance, fullSnapshot, 'the secret', alice, {})
+            should.exist(importedSnapshot)
+            importedSnapshot.settings.env.should.have.property('ev1', null)
+            importedSnapshot.settings.env.should.have.property('ev2', 'ev2')
+        })
+
+        it('should reject an encrypted hidden env var when no credentialSecret is provided', async function () {
+            const fullSnapshot = generateSnapshot(null, null, null, null, {
+                ev1: { hidden: true, $: 'some-encrypted-value' }
+            })
+            await snapshotController.uploadSnapshot(instance, fullSnapshot, undefined, alice, {})
+                .should.be.rejectedWith('A credentialSecret is required to import a snapshot with encrypted environment variables')
+        })
+
+        it('should not require a credentialSecret for encrypted hidden env vars when envVars component is excluded', async function () {
+            const fullSnapshot = generateSnapshot(null, null, null, {}, {
+                ev1: { hidden: true, $: 'some-encrypted-value' }
+            })
+            const options = {
+                components: {
+                    envVars: false
+                }
+            }
+            const importedSnapshot = await snapshotController.uploadSnapshot(instance, fullSnapshot, undefined, alice, options)
+            should.exist(importedSnapshot)
+            importedSnapshot.settings.env.should.deepEqual({})
+        })
     })
 
     describe.skip('deleteSnapshot', function () {

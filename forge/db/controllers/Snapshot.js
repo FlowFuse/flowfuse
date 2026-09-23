@@ -245,11 +245,17 @@ module.exports = {
             importSnapshot.settings = Object.assign({}, snapshot.settings, { env: keysOnly })
         }
 
-        // Decrypt any incoming hidden env vars that are encrypted
-        const keys = Object.keys(snapshot.settings.env)
-        keys.forEach((key) => {
-            const env = snapshot.settings.env[key]
+        // decrypt hidden env vars from the filtered copy, so entries already stripped above are left untouched
+        const importedEnv = importSnapshot.settings?.env || {}
+        Object.keys(importedEnv).forEach((key) => {
+            const env = importedEnv[key]
+            if (!env || typeof env !== 'object') {
+                return
+            }
             if (env.hidden && env.$) {
+                if (!credentialSecret) {
+                    throw new ValidationError('A credentialSecret is required to import a snapshot with encrypted environment variables')
+                }
                 // Decrypt the value if it is encrypted
                 env.value = decryptValue(credentialSecret, env.$)
                 delete env.$
