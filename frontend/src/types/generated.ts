@@ -5713,7 +5713,7 @@ export interface paths {
                         agentHost?: string;
                         registrationSession?: string;
                         /** @enum {string} */
-                        agentType?: "lite";
+                        agentType?: "lite" | "full";
                     } & ((unknown & unknown & unknown) | (unknown & unknown & unknown & unknown));
                 };
             };
@@ -10607,6 +10607,7 @@ export interface components {
             isDeploying: boolean;
             links: components["schemas"]["LinksMeta"];
             application?: components["schemas"]["ApplicationSummary"];
+            agentType?: string;
             mostRecentAuditLogCreatedAt?: string;
             mostRecentAuditLogEvent?: string;
         };
