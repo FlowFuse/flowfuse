@@ -262,7 +262,7 @@ module.exports = function (app) {
                     const [commandAgent, commandName] = commandParts
                     switch (commandAgent) {
                     case 'automation':
-                        if (['mcp-get-features', 'mcp-call-tool'].indexOf(commandName) === -1) {
+                        if (['mcp-get-features', 'mcp-call-tool', 'set-agent-action-pending'].indexOf(commandName) === -1) {
                             throw ValidationError('invalid platform command for platform api')
                         }
                         break

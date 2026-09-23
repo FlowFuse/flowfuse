@@ -8,6 +8,15 @@ const { default: z } = require('zod')
 // value is that caller's PAT. A miss is the first-party Expert path.
 const MCP_SESSION_TOKEN_CACHE = 'mcp-session-token'
 
+// Written here when the Gateway is about to carry out an agent-triggered action (e.g. a
+// deploy) on behalf of a real user session, consumed by the /logging audit routes to
+// attribute the resulting native Node-RED audit event (flows.set) to the agent instead of
+// leaving it looking like a manual click. Replica-aware (app.caches, not nonceStore) because
+// the write (here) and the read (a later, independent POST /logging/.../audit call, possibly
+// hitting a different forge replica) are two unrelated network calls.
+const AGENT_ACTION_PENDING_CACHE = 'agent-action-pending-cache'
+const AGENT_ACTION_PENDING_TTL = 30 * 1000 // single-use, so this is just a safety net against a POST that never arrives
+
 /**
  * Cheap, non-cryptographic fingerprint of the platform tool catalog, over each tool's
  * name/title/description/inputSchema/outputSchema/annotations/_meta. Sorted for stability
@@ -77,6 +86,11 @@ class PlatformAutomationHandler {
         this._fullToolDefinitions = null
         /** Deterministic fingerprint of the wire tool definitions - for cheap catalog change detection */
         this._catalogHash = null
+
+        this.agentActionPendingCache = app.caches.createCache(AGENT_ACTION_PENDING_CACHE, {
+            max: 1000,
+            ttl: AGENT_ACTION_PENDING_TTL
+        })
 
         this.setupEventHandler()
     }
@@ -208,6 +222,22 @@ class PlatformAutomationHandler {
                 const args = applyInputDefaults(tool, data?.input || {})
                 const response = await tool.handler(args, { inject, app: this.app, user, mcpSessionId, scope: callerScope })
                 result = formatResponse(response)
+                break
+            }
+            case 'set-agent-action-pending': {
+                // Process signal from the Gateway that it is about to carry out `action` on
+                // `entityType`/`entityId` (e.g. a project or a device) on this user's behalf. No
+                // user/tool lookup here (keep this path cheap) since it sits in front of every
+                // agent-initiated deploy.
+                const { action, entityType, entityId } = data || {}
+                if (!userId || !action || !entityType || !entityId) {
+                    return onError(
+                        'userId, action, entityType and entityId are required',
+                        'MCP_PLATFORM_AGENT_ACTION_PENDING_INVALID'
+                    )
+                }
+                await this.agentActionPendingCache.set(`${userId}:${entityType}:${entityId}:${action}`, { source, toolName: data?.toolName })
+                result = { ok: true }
                 break
             }
             default:
