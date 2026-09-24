@@ -1,5 +1,10 @@
 <template>
-    <div v-if="device.ownerType == 'application'" data-el="device-palette">
+    <FeatureUnavailable
+        v-if="device?.agentType === 'lite'"
+        message="The Lite Remote Agent does not currently support this feature"
+        :only-custom-message="true"
+    />
+    <div v-else-if="device.ownerType == 'application'" data-el="device-palette">
         <form class="space-y-6 max-w-2xl" @submit.prevent>
             <FormHeading>
                 <template #default>
@@ -63,6 +68,7 @@ import { PlusSmallIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import deviceApi from '../../../api/devices.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
+import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
 import UndoIcon from '../../../components/icons/Undo.js'
 import usePermissions from '../../../composables/Permissions.js'
 import alerts from '../../../services/alerts.js'
@@ -74,7 +80,8 @@ export default {
         FormRow,
         PlusSmallIcon,
         UndoIcon,
-        XMarkIcon
+        XMarkIcon,
+        FeatureUnavailable
     },
     props: {
         device: {

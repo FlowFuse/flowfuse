@@ -1,5 +1,10 @@
 <template>
-    <form class="space-y-6 overflow-auto flex flex-col flex-1">
+    <FeatureUnavailable
+        v-if="device?.agentType === 'lite'"
+        message="The Lite Remote Agent does not currently support this feature"
+        :only-custom-message="true"
+    />
+    <form v-else class="space-y-6 overflow-auto flex flex-col flex-1">
         <TemplateSettingsEnvironment
             :readOnly="!hasPermission('device:edit-env', applicationContext)"
             v-model="editable"
@@ -20,6 +25,7 @@
 
 <script>
 import deviceApi from '../../../api/devices.js'
+import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
 import usePermissions from '../../../composables/Permissions.js'
 import alerts from '../../../services/alerts.js'
 import dialog from '../../../services/dialog.js'
@@ -80,7 +86,8 @@ export default {
         }
     },
     components: {
-        TemplateSettingsEnvironment
+        TemplateSettingsEnvironment,
+        FeatureUnavailable
     },
     setup () {
         const { hasPermission } = usePermissions()
