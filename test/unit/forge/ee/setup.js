@@ -8,7 +8,8 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 async function setup (config = {}) {
     config = {
         housekeeper: false,
-        license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNDIyNDAwLCJleHAiOjc5ODY5MDIzOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwiZGV2Ijp0cnVlLCJpYXQiOjE2NjI0ODI5ODd9.e8Jeppq4aURwWYz-rEpnXs9RY2Y7HF7LJ6rMtMZWdw2Xls6-iyaiKV1TyzQw5sUBAhdUSZxgtiFH5e_cNJgrUg',
+        // license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNDIyNDAwLCJleHAiOjc5ODY5MDIzOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwiZGV2Ijp0cnVlLCJpYXQiOjE2NjI0ODI5ODd9.e8Jeppq4aURwWYz-rEpnXs9RY2Y7HF7LJ6rMtMZWdw2Xls6-iyaiKV1TyzQw5sUBAhdUSZxgtiFH5e_cNJgrUg',
+        license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijg1NGZmZmRiLTBhNWYtNDE2NS05NDU3LWZiMGY0YmViZThkOSIsInZlciI6IjIwMjYtMDgtMjAiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNzg4MjIwODAwLCJleHAiOjMyNTAzNjgwMDAwLCJ1c2VycyI6MTUwLCJ0ZWFtcyI6NTAsInByb2plY3RzIjoxMDAsImRldmljZXMiOjEwMCwibXF0dENsaWVudHMiOjIwLCJ0aWVycyI6WyJ0ZXN0aW5nIl0sImRldiI6dHJ1ZSwiaWF0IjoxNzkwMDA4MTc2fQ.dixkJgjh1O304loXZO8fR1XCX63jhfO1CP_UpvWu_iowoxo-B07_PswtBrN7e1nJDpP-r_YeYu4eJUWn-ZlKJw',
         billing: {
             stripe: {
                 key: 1234,
