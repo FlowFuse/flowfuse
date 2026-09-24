@@ -450,8 +450,8 @@ module.exports = async function (app) {
                 // The body is optional - if provided, it may contain the agent type
                 type: ['object', 'null'],
                 properties: {
-                    // Only include lite in the enum - if not set, the default is full
-                    type: { type: 'string', enum: ['lite'] }
+                    // Accept both types; anything other than lite gets the default (full) registration URL
+                    type: { type: 'string', enum: ['lite', 'full'] }
                 }
             },
             response: {
