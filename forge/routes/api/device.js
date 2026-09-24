@@ -439,7 +439,7 @@ module.exports = async function (app) {
     app.post('/_/register', {
         config: {
             allowAnonymous: true,
-            // Rate limit to 5 requests per 0 seconds per IP address. Given
+            // Rate limit to 5 requests per 30 seconds per IP address. Given
             // this is a manual registration flow, we don't support high volume requests
             // from single sources.
             rateLimit: app.config.rate_limits ? { max: 5, timeWindow: 30000 } : false
