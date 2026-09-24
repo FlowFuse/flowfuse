@@ -62,7 +62,7 @@ Available from FlowFuse 3.1 with `@flowfuse/nr-assistant` 0.20.0 or later.
 
 ## Node installs
 
-An agent installs FlowFuse-scoped plugins and certified nodes directly, without confirmation, because FlowFuse vets these packages. Any other package opens the palette manager for you to confirm.
+An agent installs FlowFuse-scoped plugins and certified nodes directly, without confirmation, because FlowFuse vets these packages. Which certified nodes are available depends on your license. Any other package opens the palette manager for you to confirm.
 
 Available from FlowFuse 3.1 with `@flowfuse/nr-assistant` 0.20.0 or later.
 
