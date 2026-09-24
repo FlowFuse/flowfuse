@@ -58,13 +58,13 @@ By default nothing goes live until you deploy from Node-RED. A team owner can le
 
 A team owner turns this on from **Team Settings > Danger > AI Flow Deploy**. It is off by default and needs AI Features enabled for the team.
 
-Available from FlowFuse 3.1 with `@flowfuse/nr-assistant` 0.20.0 or later. FlowFuse Cloud is updated automatically; self-hosted instances need both.
+Available from FlowFuse 3.1 with `@flowfuse/nr-assistant` 0.20.0 or later.
 
 ## Node installs
 
 An agent installs FlowFuse-scoped plugins and certified nodes directly, without confirmation, because FlowFuse vets these packages. Any other package opens the palette manager for you to confirm.
 
-Available from FlowFuse 3.1 with `@flowfuse/nr-assistant` 0.20.0 or later. FlowFuse Cloud is updated automatically; self-hosted instances need both.
+Available from FlowFuse 3.1 with `@flowfuse/nr-assistant` 0.20.0 or later.
 
 ## Access and permissions
 
