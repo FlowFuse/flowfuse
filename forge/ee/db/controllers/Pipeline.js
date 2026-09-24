@@ -82,8 +82,9 @@ module.exports = {
             stage.action = options.action
         }
 
-        // Null will remove devices and instances, undefined skips
-        if (options.instanceId !== undefined || options.deviceId !== undefined || options.deviceGroupId !== undefined) {
+        // Null will remove devices and instances, undefined skips.
+        // gitTokenId is included here too so a git-only update (no rebind keys) still applies the git settings.
+        if (options.instanceId !== undefined || options.deviceId !== undefined || options.deviceGroupId !== undefined || options.gitTokenId) {
             // Check that only one of instanceId, deviceId or deviceGroupId is set
             const idCount = [options.instanceId, options.deviceId, options.deviceGroupId, options.gitTokenId].filter(id => !!id).length
             if (idCount > 1) {

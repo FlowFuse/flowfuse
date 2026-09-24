@@ -1383,6 +1383,102 @@ describe('Pipelines API', function () {
                 body.should.have.property('error').match(/stage cannot be a device group/i)
             })
         })
+
+        describe('With git settings', function () {
+            async function createGitToken () {
+                return app.db.models.GitToken.create({
+                    name: 'git-token',
+                    token: 'git-token-secret',
+                    type: 'github',
+                    TeamId: TestObjects.team.id
+                })
+            }
+
+            it('Should apply git settings on a git-only update with no rebind keys present', async function () {
+                const gitToken = await createGitToken()
+                const pipelineId = TestObjects.pipeline.hashid
+                const stageId = TestObjects.stageOne.hashid
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                    payload: {
+                        gitTokenId: gitToken.hashid,
+                        url: 'https://example.com/repo.git',
+                        branch: 'main',
+                        pullBranch: 'main',
+                        pushPath: 'push',
+                        pullPath: 'pull'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(200)
+
+                // Read the stage back rather than trusting the PUT response alone
+                const getResponse = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                const body = await getResponse.json()
+                body.should.have.property('gitRepo')
+                body.gitRepo.should.have.property('gitTokenId', gitToken.hashid)
+                body.gitRepo.should.have.property('url', 'https://example.com/repo.git')
+                body.gitRepo.should.have.property('branch', 'main')
+                body.gitRepo.should.have.property('pullBranch', 'main')
+                body.gitRepo.should.have.property('pushPath', 'push')
+                body.gitRepo.should.have.property('pullPath', 'pull')
+            })
+
+            it('Should apply git settings without rebinding when deviceGroupId is blank', async function () {
+                // Mirrors the frontend, which always sends deviceGroupId, blank when unused
+                const gitToken = await createGitToken()
+                const pipelineId = TestObjects.pipeline.hashid
+                const stageId = TestObjects.stageOne.hashid
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                    payload: {
+                        deviceGroupId: '',
+                        gitTokenId: gitToken.hashid,
+                        url: 'https://example.com/repo-two.git',
+                        branch: 'develop'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(200)
+
+                const body = await response.json()
+                body.should.have.property('gitRepo')
+                body.gitRepo.should.have.property('url', 'https://example.com/repo-two.git')
+                body.gitRepo.should.have.property('branch', 'develop')
+                body.should.not.have.property('deviceGroups')
+            })
+
+            it('Should still rebind to a device group as before when git settings are absent', async function () {
+                const pipelineId = TestObjects.pipelineDeviceGroups.hashid
+                const stageId = TestObjects.pipelineDeviceGroupsStageTwo.hashid
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                    payload: {
+                        deviceGroupId: TestObjects.deviceGroupTwo.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(200)
+
+                const body = await response.json()
+                body.should.have.property('deviceGroups').and.be.an.Array().and.have.length(1)
+                body.deviceGroups[0].should.have.property('name', 'device-group-b')
+                body.should.not.have.property('gitRepo')
+            })
+        })
     })
 
     describe('Delete Pipeline Stage', function () {
