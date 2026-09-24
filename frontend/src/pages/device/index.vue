@@ -45,7 +45,7 @@
                 -->
                 <div class="flex gap-2 align-center" style="height: 34px;">
                     <template v-if="isDevModeAvailable">
-                        <template v-if="neverConnected">
+                        <template v-if="neverConnected && !isLiteDevice">
                             <FinishSetupButton
                                 v-if="hasPermission('device:create', {application: device.application})"
                                 :is-primary="neverConnected"

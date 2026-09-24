@@ -347,9 +347,12 @@ export default {
         },
         // enable/disable snapshot actions
         canDeploy (_row) {
-            return (!this.developerMode || this.supportsDevModeSnapshotRestore()) && this.hasPermission('device:edit', { application: this.device.application })
+            return !this.isLiteAgent && (!this.developerMode || this.supportsDevModeSnapshotRestore()) && this.hasPermission('device:edit', { application: this.device.application })
         },
         canDeployReason (snapshot) {
+            if (this.isLiteAgent) {
+                return 'The Lite Remote Agent does not currently support this feature'
+            }
             if (!this.hasPermission('device:edit', { application: this.device.application })) {
                 return 'You do not have permission to deploy snapshots to this Remote Instance'
             }
