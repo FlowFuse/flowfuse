@@ -60,7 +60,7 @@ module.exports = async function (app) {
         await commonFeatures(app)
         enableSSO = true
 
-        if (tiers.includes('hub')) {
+        if (tiers.includes('hub') || tiers.includes('testing')) {
             await app.register(require('./gitops'), { prefix: '/api/v1/teams/:teamId/git', logLevel: app.config.logging.http })
             await app.register(require('./ha'), { prefix: '/api/v1/projects/:projectId/ha', logLevel: app.config.logging.http })
             await app.register(require('./protectedInstance'), { prefix: '/api/v1/projects/:projectId/protectInstance', logLevel: app.config.logging.http })
@@ -68,7 +68,7 @@ module.exports = async function (app) {
             await app.register(require('./bom/team.js'), { prefix: '/api/v1/teams', logLevel: app.config.logging.http })
             await app.register(require('./customHostnames'), { prefix: '/api/v1/projects/:projectId/customHostname', logLevel: app.config.logging.http })
         }
-        if (tiers.includes('edge') || tiers.includes('fleet')) {
+        if (tiers.includes('edge') || tiers.includes('fleet') || tiers.includes('testing')) {
             await app.register(require('./teamBroker'), { prefix: '/api/v1/teams/:teamId/broker', logLevel: app.config.logging.http })
             await app.register(require('./teamBroker/3rdPartyBroker'), { prefix: '/api/v1/teams/:teamId/brokers', logLevel: app.config.logging.http })
             await app.register(require('./applicationDeviceGroups'), { prefix: '/api/v1/applications/:applicationId/device-groups', logLevel: app.config.logging.http })
