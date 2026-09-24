@@ -1,6 +1,6 @@
 <template>
     <ff-loading v-if="loading.deleting" message="Deleting Device..." />
-    <template v-if="!loading.deleting && device?.lastSeenAt">
+    <template v-if="!loading.deleting && device?.lastSeenAt && device?.agentType !== 'lite'">
         <FormHeading class="text-red-700">Regenerate Configuration</FormHeading>
         <div class="flex flex-col lg:flex-row max-w-2xl space-y-4 mb-8" data-el="device-regenerate-config">
             <div class="grow">

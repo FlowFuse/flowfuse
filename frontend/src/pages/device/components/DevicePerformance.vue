@@ -4,13 +4,13 @@
             <FeatureUnavailable v-if="!featuresCheck.isInstanceResourcesFeatureEnabledForPlatform" />
             <FeatureUnavailableToTeam v-else-if="!featuresCheck.isInstanceResourcesFeatureEnabledForTeam" />
             <FeatureUnavailable
-                v-if="!agentSatisfiesVersion"
-                message="Update your device agent to the latest version to enable this feature"
+                v-if="isLiteAgent"
+                message="The Lite Remote Agent does not currently support this feature"
                 :only-custom-message="true"
             />
             <FeatureUnavailable
-                v-if="isLiteAgent"
-                message="The Lite Remote Agent does not currently support this feature"
+                v-else-if="!agentSatisfiesVersion"
+                message="Update your device agent to the latest version to enable this feature"
                 :only-custom-message="true"
             />
         </div>
