@@ -767,6 +767,27 @@ describe('Snapshots API', function () {
                 response.json().should.have.property('code', 'bad_request')
             })
 
+            it('Encrypts unencrypted credentials on import rather than storing them verbatim', async function () {
+                const ss = dummySnapshot('dummy-plaintext', [], {}, {}, {}, { testCreds: 'abc' })
+                const response = await importSnapshot(getOwnerId(), kind, ss, null, TestObjects.tokens.alice)
+                response.statusCode.should.equal(200)
+
+                // Stored credentials must be encrypted with the snapshot credentialSecret, not the plaintext object
+                const importedSnapshot = await app.db.models.ProjectSnapshot.byId(response.json().id)
+                importedSnapshot.flows.credentials.should.have.property('$').and.be.a.String()
+                importedSnapshot.flows.credentials.should.not.have.property('testCreds')
+
+                const keyHash = crypto.createHash('sha256').update(importedSnapshot.credentialSecret).digest()
+                const decryptedCreds = decryptCredentials(keyHash, importedSnapshot.flows.credentials)
+                decryptedCreds.should.have.property('testCreds', 'abc')
+            })
+
+            it('Returns 400 for non-object credentials', async function () {
+                const ss = dummySnapshot('dummy-malformed-creds', [], {}, {}, {}, ['not', 'a', 'credentials', 'object'])
+                const response = await importSnapshot(getOwnerId(), kind, ss, null, TestObjects.tokens.alice)
+                response.statusCode.should.equal(400)
+            })
+
             it('Returns 200 for a snapshot with no settings.env', async function () {
                 const ss = dummySnapshot('dummy-no-env', [], {}, null, {}, null)
                 const response = await importSnapshot(getOwnerId(), kind, ss, null, TestObjects.tokens.alice)
