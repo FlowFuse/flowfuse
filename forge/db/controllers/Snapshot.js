@@ -112,11 +112,16 @@ module.exports = {
             // use the secret stored in the snapshot, if available...
             const credentials = options.credentials ? options.credentials : result.flows.credentials
 
-            // if provided credentials already encrypted: "exportCredentials" will just return the same credentials
-            // if provided credentials are raw: "exportCredentials" will encrypt them with the secret provided
-            // if credentials are not provided: project's flows credentials will be used, they will be encrypted with the provided secret
-            const keyToDecrypt = (options.credentials && options.credentials.$) ? options.credentialSecret : currentSecret
-            result.flows.credentials = app.db.controllers.Project.exportCredentials(credentials || {}, keyToDecrypt, options.credentialSecret)
+            if (!credentials || Object.keys(credentials).length === 0) {
+                // nothing to encrypt, so leave the block empty rather than wrapping an empty object
+                result.flows.credentials = {}
+            } else {
+                // if provided credentials already encrypted: "exportCredentials" will just return the same credentials
+                // if provided credentials are raw: "exportCredentials" will encrypt them with the secret provided
+                // if credentials are not provided: project's flows credentials will be used, they will be encrypted with the provided secret
+                const keyToDecrypt = (options.credentials && options.credentials.$) ? options.credentialSecret : currentSecret
+                result.flows.credentials = app.db.controllers.Project.exportCredentials(credentials, keyToDecrypt, options.credentialSecret)
+            }
         }
 
         return result
