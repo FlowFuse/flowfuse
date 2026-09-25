@@ -70,6 +70,7 @@ export default {
         ...mapState(useAccountSettingsStore, ['settings', 'featuresCheck']),
         ...mapState(useAccountAuthStore, ['user', 'redirectUrlAfterLogin']),
         ...mapState(useUxLoadingStore, ['appLoader']),
+        ...mapState(useUxStore, ['shouldEnterOnboarding']),
         canCreateTeam () {
             if (this.user.admin) return true
             return Object.prototype.hasOwnProperty.call(this.settings, 'team:create') && this.settings['team:create'] === true
@@ -91,11 +92,14 @@ export default {
             // Only bounce to team view if there's no redirectUrlAfterLogin set
             // these should be route guards
             if (this.user.email_verified) {
+                // isAiOnboardingFeatureEnabled needs the full team, which loads
+                // after the teams list; deciding earlier would burn the one-shot
+                // while it still reads false.
+                if (this.shouldEnterOnboarding && !this.team) {
+                    return
+                }
                 const teamSlug = this.team?.slug || this.defaultUserTeam?.slug
                 if (teamSlug) {
-                    // A newly registered user is taken to AI-led onboarding
-                    // once. Consume the one-shot regardless so it cannot linger
-                    // and fire on a later visit if the feature is toggled on.
                     const enterOnboarding = useUxStore().consumeOnboardingEntry()
                     if (enterOnboarding && this.featuresCheck?.isAiOnboardingFeatureEnabled) {
                         return this.$router.push({

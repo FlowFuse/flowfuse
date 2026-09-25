@@ -23,6 +23,17 @@ const alertsAndNotifications = {
     }
 }
 
+// Maps a Node-RED core audit event name to the generic action key an agent's
+// agent-action-pending signal (platformAutomation.js / AgentAction controller) would have
+// stored under, so the resulting audit row can be attributed to the agent action that
+// triggered it. Extend this, not the lookup logic below, when a new agent-triggerable action
+// should also get the "via Expert/MCP" audit sparkle - the corresponding action string on the
+// sender side (MCP Gateway's/Chatbot's agent-action-pending caller) must match.
+const agentAttributableEvents = {
+    'flows.set': 'deploy',
+    'nodes.install': 'install'
+}
+
 /** Node-RED Audit Logging backend
  *
  * - /audit
@@ -83,6 +94,24 @@ module.exports = async function (app) {
             user = await app.db.models.User.byId(auditEvent.user) || null
         }
         const userId = user?.id || null
+
+        // An agent-triggered action (deploy, module install, ...) performed via RED.actions.invoke
+        // / the admin API in the browser looks identical to a manual one to Node-RED core - the
+        // agent-vs-human distinction is signalled separately, ahead of time, by the MCP Gateway /
+        // Chatbot (see platformAutomation.js's agent-action-pending command).
+        const pendingAction = agentAttributableEvents[event]
+        if (user?.hashid && pendingAction) {
+            const pending = await app.db.controllers.AgentAction.consumePending({
+                userHashid: user.hashid,
+                entityType: 'p',
+                entityId: projectId,
+                action: pendingAction,
+                module: auditEvent.module
+            })
+            if (pending) {
+                request.requestContext.set('sourceContext', pending)
+            }
+        }
 
         // first check to see if the event is a known structured event
         if (event === 'start-failed') {
@@ -202,6 +231,22 @@ module.exports = async function (app) {
         const event = auditEvent.event
         const error = auditEvent.error
         const userId = auditEvent.user ? app.db.models.User.decodeHashid(auditEvent.user) : undefined
+
+        // Same treatment as the project route above, keyed by deviceId instead of projectId.
+        // auditEvent.user is already the hashid (userId above is only its decoded numeric form).
+        const devicePendingAction = agentAttributableEvents[event]
+        if (auditEvent.user && devicePendingAction) {
+            const pending = await app.db.controllers.AgentAction.consumePending({
+                userHashid: auditEvent.user,
+                entityType: 'd',
+                entityId: deviceId,
+                action: devicePendingAction,
+                module: auditEvent.module
+            })
+            if (pending) {
+                request.requestContext.set('sourceContext', pending)
+            }
+        }
 
         // first check to see if the event is a known structured event
         if (event === 'start-failed') {

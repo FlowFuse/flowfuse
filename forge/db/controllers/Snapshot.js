@@ -4,6 +4,9 @@ const { encryptValue, decryptValue } = require('../utils')
 
 const hasProperty = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key)
 
+// enforced here because SQLite ignores the VARCHAR(255) width the column declares
+const SNAPSHOT_NAME_MAX_LENGTH = 255
+
 module.exports = {
     /**
      * Get a snapshot by ID
@@ -112,11 +115,16 @@ module.exports = {
             // use the secret stored in the snapshot, if available...
             const credentials = options.credentials ? options.credentials : result.flows.credentials
 
-            // if provided credentials already encrypted: "exportCredentials" will just return the same credentials
-            // if provided credentials are raw: "exportCredentials" will encrypt them with the secret provided
-            // if credentials are not provided: project's flows credentials will be used, they will be encrypted with the provided secret
-            const keyToDecrypt = (options.credentials && options.credentials.$) ? options.credentialSecret : currentSecret
-            result.flows.credentials = app.db.controllers.Project.exportCredentials(credentials || {}, keyToDecrypt, options.credentialSecret)
+            if (!credentials || Object.keys(credentials).length === 0) {
+                // nothing to encrypt, so leave the block empty rather than wrapping an empty object
+                result.flows.credentials = {}
+            } else {
+                // if provided credentials already encrypted: "exportCredentials" will just return the same credentials
+                // if provided credentials are raw: "exportCredentials" will encrypt them with the secret provided
+                // if credentials are not provided: project's flows credentials will be used, they will be encrypted with the provided secret
+                const keyToDecrypt = (options.credentials && options.credentials.$) ? options.credentialSecret : currentSecret
+                result.flows.credentials = app.db.controllers.Project.exportCredentials(credentials, keyToDecrypt, options.credentialSecret)
+            }
         }
 
         return result
@@ -171,6 +179,9 @@ module.exports = {
         const updates = {}
         if (hasProperty(options, 'name') && (typeof options.name !== 'string' || options.name.trim() === '')) {
             throw new ValidationError('Snapshot name is required')
+        }
+        if (hasProperty(options, 'name') && options.name.length > SNAPSHOT_NAME_MAX_LENGTH) {
+            throw new ValidationError(`Snapshot name must be ${SNAPSHOT_NAME_MAX_LENGTH} characters or fewer`)
         }
         if (options.name) {
             updates.name = options.name
@@ -245,11 +256,17 @@ module.exports = {
             importSnapshot.settings = Object.assign({}, snapshot.settings, { env: keysOnly })
         }
 
-        // Decrypt any incoming hidden env vars that are encrypted
-        const keys = Object.keys(snapshot.settings.env)
-        keys.forEach((key) => {
-            const env = snapshot.settings.env[key]
+        // decrypt hidden env vars from the filtered copy, so entries already stripped above are left untouched
+        const importedEnv = importSnapshot.settings?.env || {}
+        Object.keys(importedEnv).forEach((key) => {
+            const env = importedEnv[key]
+            if (!env || typeof env !== 'object') {
+                return
+            }
             if (env.hidden && env.$) {
+                if (!credentialSecret) {
+                    throw new ValidationError('A credentialSecret is required to import a snapshot with encrypted environment variables')
+                }
                 // Decrypt the value if it is encrypted
                 env.value = decryptValue(credentialSecret, env.$)
                 delete env.$

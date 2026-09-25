@@ -175,5 +175,127 @@ module.exports = [
             const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/git/tokens` })
             return response
         }
+    },
+    {
+        name: 'platform_create_team',
+        title: 'Create Team',
+        description: `FlowFuse platform automation tool:
+            Creates a new team. The calling user becomes the team's owner.
+            type is the hashid of a team type (tier/plan); call platform_list_team_types to find one. An unknown or inactive type is rejected with "invalid_team_type".
+            slug is optional: when omitted, one is generated from the name. Slugs may only contain letters, digits, hyphen and underscore, must be unique across the platform, and "create" is reserved.
+            Non-admin users can only create teams when the platform allows self-service team creation; otherwise the call fails as unauthorized.
+            On platforms with billing, the response may include a billingURL - a checkout link the user must visit to activate the team's subscription. Surface that link to the user. trial requests trial-mode setup and is only honoured for brand-new users (no other teams, account under a week old) on team types with trials enabled; otherwise it is rejected.
+            When the calling credential is a team-scoped token, the new team falls outside that scope: the call still succeeds, but follow-up calls against the team (reading it, updating it, inviting to it) return an access error and it will not appear in platform_list_teams.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        inputSchema: {
+            name: z.string().describe('Display name for the new team'),
+            type: z.string().describe('The hashid of the team type (tier/plan) for the team, as returned by platform_list_team_types'),
+            slug: z.string().regex(/^[a-z0-9-_]+$/i).optional().describe('URL identifier for the team: letters, digits, hyphen and underscore, unique across the platform ("create" is reserved). Generated from the name when omitted'),
+            trial: z.boolean().optional().describe('Request trial-mode setup. Only honoured when billing is active, the team type has trials enabled, and the user is brand new; rejected otherwise'),
+            billingInterval: z.enum(['month', 'year']).optional().describe('Billing cycle for the subscription checkout session, on platforms with billing')
+        },
+        handler: async (args, { inject }) => {
+            const payload = { name: args.name, type: args.type }
+            for (const key of ['slug', 'trial', 'billingInterval']) {
+                if (args[key] !== undefined) {
+                    payload[key] = args[key]
+                }
+            }
+            const response = await inject({ method: 'POST', url: '/api/v1/teams', payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_update_team',
+        title: 'Update Team',
+        description: `FlowFuse platform automation tool:
+            Renames a team and/or changes its slug. Only the fields you pass are changed; omitted (or empty) fields keep their stored value. Pass at least one of name or slug.
+            Changing the slug changes the team's URLs. Slugs may only contain letters, digits, hyphen and underscore, must be unique, and "create" is reserved - conflicts are rejected with a 400.
+            Team type, suspension, feature toggles and properties are deliberately not editable through this tool.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            name: z.string().min(1).optional().describe('New display name for the team'),
+            slug: z.string().regex(/^[a-z0-9-_]+$/i).optional().describe('New URL identifier for the team: letters, digits, hyphen and underscore, unique across the platform ("create" is reserved). Changing it changes the team URLs')
+        },
+        handler: async (args, { inject }) => {
+            const payload = {}
+            if (args.name !== undefined) {
+                payload.name = args.name
+            }
+            if (args.slug !== undefined) {
+                payload.slug = args.slug
+            }
+            // The route replies 200 with the unchanged team when there is nothing
+            // to update, which reads as a successful edit that never happened.
+            if (Object.keys(payload).length === 0) {
+                return toolError(400, 'invalid_request', 'Pass at least one of name or slug to update')
+            }
+            const response = await inject({ method: 'PUT', url: `/api/v1/teams/${args.teamId}`, payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_change_member_role',
+        title: 'Change Team Member Role',
+        description: `FlowFuse platform automation tool:
+            Changes an existing team member's role. Roles are numeric: 5=Dashboard, 10=Viewer, 30=Member, 50=Owner.
+            CAUTION: demoting a team's only owner is blocked when the new role is Member, but NOT when it is Viewer or Dashboard. Those succeed and leave the team with no owner at all, after which nobody but a platform admin can restore one, delete the team, or invite anyone to it. Check platform_list_team_members for how many owners a team has before demoting one, and confirm with the user first.
+            Members whose team membership is managed through SSO cannot be changed here; that fails with "Cannot modify team membership for an SSO managed user".
+            Other disallowed changes come back as a generic 403 "invalid_request" without detail - the usual causes are the user not being a member of the team, or demoting the only owner to Member. Check membership with platform_list_team_members first when unsure.
+            Setting the role the member already has succeeds as a no-op.`,
+        // destructiveHint: a single call can permanently orphan a team (see the
+        // CAUTION above), which is less recoverable than anything else here, so it
+        // belongs behind destructive tool access rather than plain write.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            userId: z.string().describe('The hashid of the team member whose role is changing'),
+            role: z.union([z.literal(5), z.literal(10), z.literal(30), z.literal(50)]).describe('New team role: 5=Dashboard, 10=Viewer, 30=Member, 50=Owner')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'PUT', url: `/api/v1/teams/${args.teamId}/members/${args.userId}`, payload: { role: args.role } })
+            return response
+        }
+    },
+    {
+        name: 'platform_invite_team_member',
+        title: 'Invite Team Member',
+        description: `FlowFuse platform automation tool:
+            Invites people to join a team, by username (existing platform users) or email address. The role is granted when the invitation is accepted; it defaults to 30=Member.
+            Up to 5 people can be invited per call (after de-duplication); more returns a 429 "too_many_invites".
+            Read both the status and the body. A fully successful call returns { status: "okay" }. Per-person failures (unknown user, already a member, already invited, email restrictions) come back as HTTP 200 with code "invitation_failed" and error as an object mapping each failed entry to its reason - treat those entries as NOT invited. A call rejected outright, for example because the team's user limit is reached, comes back as HTTP 400, also with code "invitation_failed", but error is a plain string and nobody was invited.
+            The route is also rate limited to 5 calls per 30 seconds, which is a second, different 429: "too_many_invites" means more than 5 invitees in one call and retrying unchanged will never work, while a rate-limit 429 clears on its own after a few seconds.
+            Email invitations to people without an account depend on the platform allowing external invitations and having email configured.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            user: z.string().describe('Comma-separated list of usernames and/or email addresses to invite (maximum 5 per call after de-duplication)'),
+            role: z.union([z.literal(5), z.literal(10), z.literal(30), z.literal(50)]).optional().describe('Team role granted on acceptance: 5=Dashboard, 10=Viewer, 30=Member, 50=Owner. Defaults to 30=Member')
+        },
+        handler: async (args, { inject }) => {
+            const payload = { user: args.user }
+            if (args.role !== undefined) {
+                payload.role = args.role
+            }
+            const response = await inject({ method: 'POST', url: `/api/v1/teams/${args.teamId}/invitations`, payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_resend_team_invitation',
+        title: 'Resend Team Invitation',
+        description: `FlowFuse platform automation tool:
+            Resends a pending team invitation email and extends the invitation's expiry date. Use platform_list_team_invitations to find the invitation id.
+            Returns 404 when the invitation does not exist or belongs to a different team. Resends are rate-limited on platforms with rate limits enabled.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            invitationId: z.string().describe('The hashid of the invitation to resend, as returned by platform_list_team_invitations')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'POST', url: `/api/v1/teams/${args.teamId}/invitations/${args.invitationId}` })
+            return response
+        }
     }
 ]

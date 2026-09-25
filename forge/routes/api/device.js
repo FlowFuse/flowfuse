@@ -248,7 +248,8 @@ module.exports = async function (app) {
                     application: { type: 'string' },
                     setup: { type: 'boolean', enum: [true] }, // enum only permits a value of true for setup
                     agentHost: { type: 'string' }, // future, for audit log
-                    registrationSession: { type: 'string' } // optional, for async device registration flow
+                    registrationSession: { type: 'string' }, // optional, for async device registration flow,
+                    agentType: { type: 'string', enum: ['lite', 'full'] }
                 }
             },
             response: {
@@ -360,7 +361,8 @@ module.exports = async function (app) {
             const device = await app.db.models.Device.create({
                 name: request.body.name,
                 type: request.body.type,
-                credentialSecret: ''
+                credentialSecret: '',
+                agentType: request.body.agentType || null
             }, { transaction })
             await transaction.commit()
 
@@ -444,6 +446,14 @@ module.exports = async function (app) {
         },
         schema: {
             summary: 'Start an asynchronous registration for a device',
+            body: {
+                // The body is optional - if provided, it may contain the agent type
+                type: ['object', 'null'],
+                properties: {
+                    // Accept both types; anything other than lite gets the default (full) registration URL
+                    type: { type: 'string', enum: ['lite', 'full'] }
+                }
+            },
             response: {
                 200: {
                     type: 'object',
@@ -460,7 +470,10 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         // Create a new AsyncLoginSession with a unique sessionToken and doneToken
         const session = await app.db.models.AsyncLoginSession.createToken()
-        const registerUrl = `/register/remote-instance/${session.sessionToken}`
+        let registerUrl = `/register/remote-instance/${session.sessionToken}`
+        if (request.body?.type === 'lite') {
+            registerUrl = registerUrl + '?type=lite'
+        }
         const doneUrl = `/api/v1/devices/_/register/done/${session.doneToken}`
         reply.send({ registerUrl, doneUrl })
     })

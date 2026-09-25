@@ -223,7 +223,7 @@ describe('Snapshots API', function () {
         })
     }
 
-    async function importSnapshot (ownerId, ownerType, snapshot, credentialSecret, token) {
+    async function importSnapshot (ownerId, ownerType, snapshot, credentialSecret, token, components) {
         const payload = {
             ownerId,
             ownerType,
@@ -231,6 +231,9 @@ describe('Snapshots API', function () {
         }
         if (credentialSecret) {
             payload.credentialSecret = credentialSecret
+        }
+        if (components) {
+            payload.components = components
         }
         return await app.inject({
             method: 'POST',
@@ -706,6 +709,20 @@ describe('Snapshots API', function () {
                 result.should.have.property('name', 'dummy-no-creds')
             })
 
+            it('Owner can import snapshot with credentials when flows are excluded and no credentialSecret is given', async function () {
+                const ownerId = getOwnerId()
+                const ss = dummySnapshot('dummy-flows-excluded', [{ id: '123' }], { testSetting: 123 }, {}, {}, encryptCredentials('test-secret', { testCreds: 'abc' }))
+                const response = await importSnapshot(ownerId, kind, ss, null, TestObjects.tokens.alice, { flows: false })
+
+                response.statusCode.should.equal(200)
+
+                const result = response.json()
+                result.should.have.property(modelType).and.be.an.Object()
+                result[modelType].should.have.property('id', ownerId)
+                result.should.have.property('id').and.be.a.String()
+                result.should.have.property('name', 'dummy-flows-excluded')
+            })
+
             it('Returns 400 for missing snapshot', async function () {
                 const response = await importSnapshot(getOwnerId(), kind, null, 'test-secret', TestObjects.tokens.alice)
                 response.statusCode.should.equal(400)
@@ -775,6 +792,41 @@ describe('Snapshots API', function () {
                 })
                 response.statusCode.should.equal(200)
                 response.json().should.have.property('name', 'dummy-excluded-creds')
+            })
+
+            it('Returns 200 for a snapshot with no settings.env', async function () {
+                const ss = dummySnapshot('dummy-no-env', [], {}, null, {}, null)
+                const response = await importSnapshot(getOwnerId(), kind, ss, null, TestObjects.tokens.alice)
+                response.statusCode.should.equal(200)
+            })
+
+            it('Returns 200 for a snapshot with a null env value', async function () {
+                const ss = dummySnapshot('dummy-null-env', [], {}, { ONE: null }, {}, null)
+                const response = await importSnapshot(getOwnerId(), kind, ss, null, TestObjects.tokens.alice)
+                response.statusCode.should.equal(200)
+            })
+
+            it('Returns 400 for an encrypted hidden env var without a credentialSecret', async function () {
+                const ss = dummySnapshot('dummy-hidden-env', [], {}, { SECRET: { hidden: true, $: 'deadbeef00112233445566778899aabbccddeeff11223344' } }, {}, null)
+                const response = await importSnapshot(getOwnerId(), kind, ss, null, TestObjects.tokens.alice)
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'bad_request')
+            })
+
+            it('Does not require a credentialSecret for an encrypted hidden env var when the envVars component is excluded', async function () {
+                const ss = dummySnapshot('dummy-hidden-env-excluded', [], {}, { SECRET: { hidden: true, $: 'deadbeef00112233445566778899aabbccddeeff11223344' } }, {}, null)
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/snapshots/import',
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: {
+                        ownerId: getOwnerId(),
+                        ownerType: kind,
+                        snapshot: ss,
+                        components: { envVars: false }
+                    }
+                })
+                response.statusCode.should.equal(200)
             })
 
             it(`TeamB member cannot import snapshot for ${kind} belonging to TeamA - 404`, async function () {
@@ -1000,6 +1052,55 @@ describe('Snapshots API', function () {
 
                 response.statusCode.should.equal(403)
                 response.json().should.have.property('code', 'unauthorized')
+            })
+
+            it('Returns 400 for a name over 255 characters', async function () {
+                const snapshotResponse = await createSnapshot()
+                const result = snapshotResponse.json()
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/snapshots/${result.id}`,
+                    payload: { name: 'a'.repeat(256) },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'bad_request')
+            })
+
+            it('Returns 400 for a blank name', async function () {
+                const snapshotResponse = await createSnapshot()
+                const result = snapshotResponse.json()
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/snapshots/${result.id}`,
+                    payload: { name: '' },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'bad_request')
+            })
+
+            it('Propagates a non-validation error from the controller', async function () {
+                const snapshotResponse = await createSnapshot()
+                const result = snapshotResponse.json()
+
+                sinon.stub(app.db.controllers.Snapshot, 'updateSnapshot').rejects(new Error('boom'))
+                try {
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/snapshots/${result.id}`,
+                        payload: { name: 'a new name' },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    response.statusCode.should.equal(500)
+                } finally {
+                    app.db.controllers.Snapshot.updateSnapshot.restore()
+                }
             })
         }
         describe('instance', function () {

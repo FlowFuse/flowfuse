@@ -47,6 +47,16 @@ describe('Snapshot controller', function () {
         return project
     }
 
+    // a project with no StorageFlow/StorageCredentials rows, i.e. it has never had flows deployed
+    async function createProjectWithoutFlows () {
+        const options = { name: 'project-' + (projectInstanceCount++), type: '', url: '' }
+        let project = await app.db.models.Project.create(options)
+        await project.updateSetting('credentialSecret', 'c13f09839cb9072bdc61a3c1530629dad3da26b131d9434c7322bc2f7921f1cd')
+        // Reload to ensure all models are attached
+        project = await app.db.models.Project.byId(project.id)
+        return project
+    }
+
     before(async function () {
         app = await setup({
             limits: {
@@ -70,8 +80,30 @@ describe('Snapshot controller', function () {
         // TODO: Implement test
     })
 
-    describe.skip('updateSnapshot', function () {
-        // TODO: Implement test
+    describe('updateSnapshot', function () {
+        let instance
+        let user
+        let snapshot
+
+        before(async function () {
+            instance = await createProject()
+            user = await app.TestObjects.userAlice
+        })
+
+        beforeEach(async function () {
+            snapshot = await factory.createSnapshot({ name: 'original-name', description: 'original-description' }, instance, user)
+        })
+
+        it('should reject a name over 255 characters', async function () {
+            const longName = 'a'.repeat(256)
+            await snapshotController.updateSnapshot(snapshot, { name: longName }).should.be.rejectedWith('Snapshot name must be 255 characters or fewer')
+        })
+
+        it('should accept a name of exactly 255 characters', async function () {
+            const maxName = 'a'.repeat(255)
+            const updated = await snapshotController.updateSnapshot(snapshot, { name: maxName })
+            updated.name.should.equal(maxName)
+        })
     })
 
     describe('exportSnapshot', function () {
@@ -179,6 +211,26 @@ describe('Snapshot controller', function () {
             // ensure exported env var are present and correct
             snapshotExported.settings.should.have.properties('env')
             snapshotExported.settings.env.should.deepEqual({ env1: 'a', env2: 'b' })
+        })
+
+        it('should export a snapshot with no flows and no credentials as an empty credentials object', async function () {
+            const emptyInstance = await createProjectWithoutFlows()
+            const user = await app.TestObjects.userAlice
+            const emptySnapshot = await factory.createSnapshot({
+                name: 'snapshot-without-flows',
+                description: 'a snapshot with no flows or credentials'
+            }, emptyInstance, user)
+
+            const options = {
+                credentialSecret: 'abc'
+                // components: // excluded to use defaults
+            }
+            const snapshotExported = await snapshotController.exportSnapshot(emptySnapshot, options)
+            should.exist(snapshotExported)
+            snapshotExported.flows.should.have.only.keys('flows', 'credentials')
+            snapshotExported.flows.flows.should.deepEqual([])
+            // there is nothing to encrypt, so no `$` block should be generated
+            snapshotExported.flows.credentials.should.deepEqual({})
         })
 
         it('should export a snapshot without env (envVars: false)', async function () {
@@ -548,6 +600,45 @@ describe('Snapshot controller', function () {
             // ensure env vars are imported with keys only
             importedSnapshot.settings.should.have.properties('env')
             importedSnapshot.settings.env.should.deepEqual({ ev1: '', ev2: '', ev3: '', ev4: '' })
+        })
+
+        it('should upload a snapshot with no env settings', async function () {
+            const fullSnapshot = generateSnapshot()
+            delete fullSnapshot.settings.env
+            const importedSnapshot = await snapshotController.uploadSnapshot(instance, fullSnapshot, 'the secret', alice, {})
+            should.exist(importedSnapshot)
+            importedSnapshot.settings.should.have.properties('env')
+            importedSnapshot.settings.env.should.deepEqual({})
+        })
+
+        it('should upload a snapshot with a null env value without erroring', async function () {
+            const fullSnapshot = generateSnapshot(null, null, null, null, { ev1: null, ev2: 'ev2' })
+            const importedSnapshot = await snapshotController.uploadSnapshot(instance, fullSnapshot, 'the secret', alice, {})
+            should.exist(importedSnapshot)
+            importedSnapshot.settings.env.should.have.property('ev1', null)
+            importedSnapshot.settings.env.should.have.property('ev2', 'ev2')
+        })
+
+        it('should reject an encrypted hidden env var when no credentialSecret is provided', async function () {
+            const fullSnapshot = generateSnapshot(null, null, null, null, {
+                ev1: { hidden: true, $: 'some-encrypted-value' }
+            })
+            await snapshotController.uploadSnapshot(instance, fullSnapshot, undefined, alice, {})
+                .should.be.rejectedWith('A credentialSecret is required to import a snapshot with encrypted environment variables')
+        })
+
+        it('should not require a credentialSecret for encrypted hidden env vars when envVars component is excluded', async function () {
+            const fullSnapshot = generateSnapshot(null, null, null, {}, {
+                ev1: { hidden: true, $: 'some-encrypted-value' }
+            })
+            const options = {
+                components: {
+                    envVars: false
+                }
+            }
+            const importedSnapshot = await snapshotController.uploadSnapshot(instance, fullSnapshot, undefined, alice, options)
+            should.exist(importedSnapshot)
+            importedSnapshot.settings.env.should.deepEqual({})
         })
     })
 

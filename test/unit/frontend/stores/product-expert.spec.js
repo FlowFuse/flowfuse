@@ -280,6 +280,34 @@ describe('product-expert store', () => {
         })
     })
 
+    describe('addEventMessage', () => {
+        it('pushes an event message carrying the envelope as-is', () => {
+            const store = useProductExpertStore()
+            store.addEventMessage({
+                kind: 'instance-ready',
+                instance: { id: 'inst-1', name: 'my-instance' },
+                state: 'running'
+            })
+            const messages = useProductExpertSupportAgentStore().messages
+            expect(messages).toHaveLength(1)
+            expect(messages[0]._type).toBe('event')
+            expect(messages[0].kind).toBe('instance-ready')
+            expect(messages[0].payload).toEqual({
+                kind: 'instance-ready',
+                instance: { id: 'inst-1', name: 'my-instance' },
+                state: 'running'
+            })
+            expect(messages[0]._uuid).toBeDefined()
+            expect(messages[0]._timestamp).toBeDefined()
+        })
+
+        it('does not push when the envelope has no kind', () => {
+            const store = useProductExpertStore()
+            store.addEventMessage({ instance: { id: 'inst-1' } })
+            expect(useProductExpertSupportAgentStore().messages).toHaveLength(0)
+        })
+    })
+
     describe('updateMessageStreamedState', () => {
         it('marks a message as streamed by uuid', () => {
             const store = useProductExpertStore()
@@ -629,7 +657,7 @@ describe('product-expert store', () => {
             })
         })
 
-        it('does not add a user message to the transcript', async () => {
+        it('adds an event card to the transcript instead of a user message', async () => {
             uxState.isOnboarding = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
@@ -639,7 +667,14 @@ describe('product-expert store', () => {
             const store = useProductExpertStore()
             await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
 
-            expect(store.messages).toHaveLength(0)
+            expect(store.messages).toHaveLength(1)
+            expect(store.messages[0]._type).toBe('event')
+            expect(store.messages[0].kind).toBe('instance-ready')
+            expect(store.messages[0].payload).toEqual({
+                kind: 'instance-ready',
+                instance: { id: 'inst-1', name: 'my-instance' },
+                state: 'running'
+            })
         })
 
         it('shows the standard loading indicator while the reply is outstanding', async () => {
@@ -676,8 +711,9 @@ describe('product-expert store', () => {
 
             await store._onMqttMessage(responseTopic, Buffer.from(JSON.stringify(responsePayload)), packet)
 
-            expect(store.messages).toHaveLength(1)
-            expect(store.messages[0].answer[0].content).toBe('Your workspace is ready.')
+            expect(store.messages).toHaveLength(2)
+            expect(store.messages[0]._type).toBe('event')
+            expect(store.messages[1].answer[0].content).toBe('Your workspace is ready.')
             expect(supportAgent.inFlightRequests.size).toBe(0)
             expect(store.isWaitingForResponse).toBe(false)
         })
@@ -746,6 +782,125 @@ describe('product-expert store', () => {
             const store = useProductExpertStore()
             await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
             await store.startOver()
+            await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(2)
+        })
+    })
+
+    describe('relayInstanceStartFailed', () => {
+        afterEach(() => {
+            contextState.team = null
+            uxState.isOnboarding = false
+            delete accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled
+            mqttService.hasClient.mockReturnValue(false)
+        })
+
+        it('does not publish when the instance has no id', async () => {
+            uxState.isOnboarding = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+
+            await useProductExpertStore().relayInstanceStartFailed({ name: 'no-id', state: 'crashed' })
+
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+        })
+
+        it('does not publish outside an active onboarding conversation', async () => {
+            uxState.isOnboarding = false
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+
+            await useProductExpertStore().relayInstanceStartFailed({ id: 'inst-1', name: 'my-instance', state: 'crashed' })
+
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+        })
+
+        it('does not publish when the chat is not using the Expert MQTT channel', async () => {
+            uxState.isOnboarding = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = false
+
+            await useProductExpertStore().relayInstanceStartFailed({ id: 'inst-1', name: 'my-instance', state: 'crashed' })
+
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+        })
+
+        it('publishes a silent system message carrying the failed state', async () => {
+            uxState.isOnboarding = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+            useProductExpertSupportAgentStore().sessionId = 'session-xyz'
+
+            await useProductExpertStore().relayInstanceStartFailed({ id: 'inst-1', name: 'my-instance', state: 'crashed' })
+
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+            const [connectionKey, message] = mqttService.publishMessage.mock.calls[0]
+            expect(connectionKey).toBe('expert/support-agent')
+            expect(message.topic).toBe('ff/v1/expert/user-1/session-xyz/t/team-1/support/chat/request')
+            expect(message.qos).toBe(2)
+            expect(message.payload).toEqual({
+                system: {
+                    kind: 'instance-start-failed',
+                    instance: { id: 'inst-1', name: 'my-instance' },
+                    state: 'crashed'
+                },
+                context: { agent: SUPPORT_AGENT }
+            })
+            expect(message.userProperties.sessionId).toBe('session-xyz')
+        })
+
+        it('defaults a missing instance name to null', async () => {
+            uxState.isOnboarding = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+
+            await useProductExpertStore().relayInstanceStartFailed({ id: 'inst-1', state: 'error' })
+
+            const [, message] = mqttService.publishMessage.mock.calls[0]
+            expect(message.payload.system.instance).toEqual({ id: 'inst-1', name: null })
+        })
+
+        it('does not announce the same instance start-failure twice in one conversation', async () => {
+            uxState.isOnboarding = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+
+            const store = useProductExpertStore()
+            await store.relayInstanceStartFailed({ id: 'inst-1', name: 'my-instance', state: 'crashed' })
+            await store.relayInstanceStartFailed({ id: 'inst-1', name: 'my-instance', state: 'error' })
+
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+        })
+
+        it('allows announcing the same instance again after Start Over', async () => {
+            uxState.isOnboarding = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+
+            const store = useProductExpertStore()
+            await store.relayInstanceStartFailed({ id: 'inst-1', name: 'my-instance', state: 'crashed' })
+            await store.startOver()
+            await store.relayInstanceStartFailed({ id: 'inst-1', name: 'my-instance', state: 'crashed' })
+
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(2)
+        })
+
+        it('keeps the start-failed de-dupe separate from the ready de-dupe', async () => {
+            uxState.isOnboarding = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+
+            const store = useProductExpertStore()
+            await store.relayInstanceStartFailed({ id: 'inst-1', name: 'my-instance', state: 'crashed' })
+            store._inFlightRequests.clear()
             await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
 
             expect(mqttService.publishMessage).toHaveBeenCalledTimes(2)

@@ -1921,7 +1921,7 @@ describe('Pipelines API', function () {
                     method: 'PUT',
                     url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}`,
                     payload: {
-                        name: 'haxor'
+                        pipeline: { name: 'haxor' }
                     },
                     cookies: { sid: TestObjects.tokens.pez }
                 })
@@ -1929,6 +1929,25 @@ describe('Pipelines API', function () {
                 const body = await response.json()
                 body.should.have.property('code', 'not_found')
                 response.statusCode.should.equal(404)
+            })
+        })
+
+        describe('With a flat body', function () {
+            it('Should fail schema validation instead of throwing', async function () {
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}`,
+                    payload: {
+                        name: 'flat-name'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(400)
+
+                await TestObjects.pipeline.reload()
+
+                TestObjects.pipeline.name.should.not.equal('flat-name')
             })
         })
     })

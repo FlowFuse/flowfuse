@@ -5712,6 +5712,8 @@ export interface paths {
                         setup?: true;
                         agentHost?: string;
                         registrationSession?: string;
+                        /** @enum {string} */
+                        agentType?: "lite" | "full";
                     } & ((unknown & unknown & unknown) | (unknown & unknown & unknown & unknown));
                 };
             };
@@ -7336,7 +7338,9 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        name?: string;
+                        pipeline: {
+                            name?: string;
+                        };
                     };
                 };
             };
@@ -10575,6 +10579,7 @@ export interface components {
             onlineStatus: "online" | "offline" | "not-seen";
             isDeploying: boolean;
             agentVersion?: string | null;
+            agentType?: string | null;
             mode: string;
             links?: components["schemas"]["LinksMeta"];
             team?: components["schemas"]["TeamSummary"];
@@ -10602,6 +10607,7 @@ export interface components {
             isDeploying: boolean;
             links: components["schemas"]["LinksMeta"];
             application?: components["schemas"]["ApplicationSummary"];
+            agentType?: string;
             mostRecentAuditLogCreatedAt?: string;
             mostRecentAuditLogEvent?: string;
         };
