@@ -51,6 +51,7 @@
         "cover": "npm-run-all --sequential cover:unit cover:system cover:report",
         "cover:unit": "npm-run-all --sequential cover:unit:forge cover:unit:frontend",
         "cover:unit:forge": "nyc --silent npm run test:unit:forge && nyc report --reporter=json --report-dir ./coverage/reports/forge/ && mv ./coverage/reports/forge/coverage-final.json ./coverage/reports/forge-coverage.json",
+        "cover:unit:forge:ci": "nyc --silent npm run test:unit:forge:ci && nyc report --reporter=json --report-dir ./coverage/reports/forge/ && mv ./coverage/reports/forge/coverage-final.json ./coverage/reports/forge-coverage.json",
         "cover:unit:frontend": "vitest --config ./config/vitest.config.ts run --coverage && mv ./coverage/reports/frontend/coverage-final.json ./coverage/reports/frontend-coverage.json",
         "cover:system": "nyc --silent npm run test:system && nyc report --reporter=json --report-dir ./coverage/reports/system/  && mv ./coverage/reports/system/coverage-final.json ./coverage/reports/system-coverage.json",
         "cover:report": "nyc report --reporter=html --reporter=json -t \"./coverage/reports\"",
