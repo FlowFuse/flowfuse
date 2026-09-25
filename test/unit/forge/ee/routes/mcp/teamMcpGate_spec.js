@@ -52,8 +52,7 @@ describe('MCP third-party per-team MCP access gate', function () {
         const response = await listTeamDevices('mcp')
         response.statusCode.should.equal(403)
         response.json().should.have.property('code', 'unauthorized')
-        response.json().should.have.property('error', 'MCP access is disabled for this team')
-        response.json().should.have.property('hint', 'A team owner can re-enable MCP access from Team Settings > Danger Zone.')
+        response.json().should.have.property('error', 'MCP access is disabled for this team. A team owner can re-enable MCP access from Team Settings > Danger Zone.')
     })
 
     it('allows a third-party MCP call to a team with MCP access enabled', async function () {

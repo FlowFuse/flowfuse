@@ -302,7 +302,7 @@ describe('MCP Platform Tools Server', function () {
                 })
                 response.statusCode.should.equal(403)
                 response.json().should.have.property('code', 'unauthorized')
-                response.json().should.have.property('hint', 'A team owner can re-enable AI Features from Team Settings > Danger Zone.')
+                response.json().should.have.property('error', 'AI features are disabled for this team. A team owner can re-enable AI Features from Team Settings > Danger Zone.')
                 proxyRequest.called.should.be.false()
 
                 await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-3')
@@ -335,7 +335,7 @@ describe('MCP Platform Tools Server', function () {
                 })
                 response.statusCode.should.equal(403)
                 response.json().should.have.property('code', 'unauthorized')
-                response.json().should.have.property('hint', 'A team owner can re-enable MCP access from Team Settings > Danger Zone.')
+                response.json().should.have.property('error', 'MCP access is disabled for this team. A team owner can re-enable MCP access from Team Settings > Danger Zone.')
                 proxyRequest.called.should.be.false()
 
                 await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-2')

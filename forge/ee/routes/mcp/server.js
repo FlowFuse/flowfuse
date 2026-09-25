@@ -156,16 +156,14 @@ module.exports = async function (app) {
                     if (pinnedTeam && !pinnedTeam.getFeatureProperty('ai', true)) {
                         reply.code(403).send({
                             code: 'unauthorized',
-                            error: 'AI features are disabled for this team',
-                            hint: 'A team owner can re-enable AI Features from Team Settings > Danger Zone.'
+                            error: 'AI features are disabled for this team. A team owner can re-enable AI Features from Team Settings > Danger Zone.'
                         })
                         return
                     }
                     if (pinnedTeam && !pinnedTeam.getFeatureProperty('mcpThirdParty', true)) {
                         reply.code(403).send({
                             code: 'unauthorized',
-                            error: 'MCP access is disabled for this team',
-                            hint: 'A team owner can re-enable MCP access from Team Settings > Danger Zone.'
+                            error: 'MCP access is disabled for this team. A team owner can re-enable MCP access from Team Settings > Danger Zone.'
                         })
                         return
                     }

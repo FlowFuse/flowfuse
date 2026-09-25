@@ -61,7 +61,7 @@ describe('MCP third-party per-team AI gate', function () {
         const response = await listTeamDevices('mcp')
         response.statusCode.should.equal(403)
         response.json().should.have.property('code', 'unauthorized')
-        response.json().should.have.property('error', 'AI features are disabled for this team')
+        response.json().should.have.property('error', 'AI features are disabled for this team. A team owner can re-enable AI Features from Team Settings > Danger Zone.')
     })
 
     it('allows a third-party MCP call to a team with AI enabled', async function () {
