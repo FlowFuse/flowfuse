@@ -278,6 +278,72 @@ describe('MCP Platform Tools Server', function () {
                 await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-1')
             })
 
+            it('should refuse a call when the pinned tab belongs to a team with AI disabled', async function () {
+                const properties = { ...(app.team.properties || {}) }
+                properties.features = { ...(properties.features || {}), ai: false }
+                app.team.properties = properties
+                await app.team.save()
+
+                await app.db.controllers.BrowserSession.recordPresence(app.user.hashid, 'tab-3', {
+                    visibility: 'visible',
+                    focused: true,
+                    context: { teamId: app.team.hashid, topicParts: { entityType: 'instance', entityId: 'instance-1' } }
+                })
+                await app.db.controllers.BrowserSession.setActiveBrowserSession(app.user.hashid, 'session-ghi', 'tab-3')
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    headers: {
+                        authorization: `Bearer ${TestObjects.alicePAT.token}`,
+                        'mcp-session-id': 'session-ghi'
+                    },
+                    payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+                })
+                response.statusCode.should.equal(403)
+                response.json().should.have.property('code', 'unauthorized')
+                response.json().should.have.property('hint', 'A team owner can re-enable AI Features from Team Settings > Danger Zone.')
+                proxyRequest.called.should.be.false()
+
+                await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-3')
+                properties.features.ai = true
+                app.team.properties = properties
+                await app.team.save()
+            })
+
+            it('should refuse a call when the pinned tab belongs to a team with MCP access disabled', async function () {
+                const properties = { ...(app.team.properties || {}) }
+                properties.features = { ...(properties.features || {}), mcpThirdParty: false }
+                app.team.properties = properties
+                await app.team.save()
+
+                await app.db.controllers.BrowserSession.recordPresence(app.user.hashid, 'tab-2', {
+                    visibility: 'visible',
+                    focused: true,
+                    context: { teamId: app.team.hashid, topicParts: { entityType: 'instance', entityId: 'instance-1' } }
+                })
+                await app.db.controllers.BrowserSession.setActiveBrowserSession(app.user.hashid, 'session-def', 'tab-2')
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    headers: {
+                        authorization: `Bearer ${TestObjects.alicePAT.token}`,
+                        'mcp-session-id': 'session-def'
+                    },
+                    payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+                })
+                response.statusCode.should.equal(403)
+                response.json().should.have.property('code', 'unauthorized')
+                response.json().should.have.property('hint', 'A team owner can re-enable MCP access from Team Settings > Danger Zone.')
+                proxyRequest.called.should.be.false()
+
+                await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-2')
+                properties.features.mcpThirdParty = true
+                app.team.properties = properties
+                await app.team.save()
+            })
+
             it('should fall back to a single-team PAT scope for the team when no tab is pinned', async function () {
                 const singleTeamPAT = await app.db.controllers.AccessToken.createPersonalAccessToken(
                     app.user, '', null, 'alice-single-team', { teamIds: [app.team.hashid] }

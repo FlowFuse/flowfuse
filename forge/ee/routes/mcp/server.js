@@ -47,10 +47,12 @@ module.exports = async function (app) {
         const teams = Array.isArray(pat?.teamScopes)
             ? pat.teamScopes.map(entry => Object.keys(entry)[0])
             : []
-        // Gate the third-party MCP surface on the platform having AI enabled. An empty
-        // allow-list is an all-teams PAT, so no single team is pinned here; per-team
-        // access is enforced downstream by the scope-capped token at invoke.
-        if (!app.config.features.enabled('ai')) {
+        // Gate the third-party MCP surface on the platform having AI and third-party MCP
+        // enabled. An empty allow-list is an all-teams PAT, so no single team is pinned
+        // here; per-team enablement (Team Settings -> Danger -> MCP Access) is enforced
+        // downstream, on the resolved team, by the same needsPermission gate that already
+        // enforces per-team 'ai' disablement (forge/routes/auth/permissions.js).
+        if (!app.config.features.enabled('ai') || !app.config.features.enabled('mcpThirdParty')) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             return null
         }
@@ -140,6 +142,33 @@ module.exports = async function (app) {
                 }
                 if (context?.teamId) {
                     userProperties.teamId = context.teamId
+                    // platform_ui and flow_building tool calls are dispatched against this
+                    // pinned tab, not through the REST API - the needsPermission gate that
+                    // enforces per-team 'ai'/'mcpThirdParty' disablement for the 'platform'
+                    // group (see forge/routes/auth/permissions.js) never runs for them. This
+                    // is the one point where the pinned tab's team is known before the call
+                    // reaches the gateway, so both are checked here instead, same as that
+                    // gate. A request while a *different* team's tab happens to be pinned is
+                    // refused too, even for a plain 'platform' call unrelated to that team -
+                    // conservative, but the common case is one tab pinned per team a caller
+                    // actually works with.
+                    const pinnedTeam = await app.db.models.Team.byId(context.teamId)
+                    if (pinnedTeam && !pinnedTeam.getFeatureProperty('ai', true)) {
+                        reply.code(403).send({
+                            code: 'unauthorized',
+                            error: 'AI features are disabled for this team',
+                            hint: 'A team owner can re-enable AI Features from Team Settings > Danger Zone.'
+                        })
+                        return
+                    }
+                    if (pinnedTeam && !pinnedTeam.getFeatureProperty('mcpThirdParty', true)) {
+                        reply.code(403).send({
+                            code: 'unauthorized',
+                            error: 'MCP access is disabled for this team',
+                            hint: 'A team owner can re-enable MCP access from Team Settings > Danger Zone.'
+                        })
+                        return
+                    }
                 }
             }
         }
