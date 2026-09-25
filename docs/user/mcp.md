@@ -1,5 +1,7 @@
 ---
 navTitle: FlowFuse MCP
+meta:
+   description: See what an AI agent can do through the FlowFuse MCP server, from platform actions to building flows, and how read-only or full access limits it.
 ---
 
 # FlowFuse MCP Server

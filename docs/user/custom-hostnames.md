@@ -1,5 +1,7 @@
 ---
 navTitle: Custom Hostnames
+meta:
+   description: Point a custom subdomain such as dashboard.example.com at a FlowFuse instance by setting the hostname and adding a CNAME record.
 ---
 
 # Custom Hostnames

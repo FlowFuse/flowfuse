@@ -1,5 +1,7 @@
 ---
 navTitle: Connect Your Own Agent
+meta:
+   description: Connect your own MCP-capable AI agent, such as Copilot, ChatGPT or Claude, to FlowFuse to manage the platform and build Node-RED flows.
 ---
 
 # Connect Your Own Agent
