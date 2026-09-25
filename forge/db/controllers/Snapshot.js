@@ -4,6 +4,9 @@ const { encryptValue, decryptValue } = require('../utils')
 
 const hasProperty = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key)
 
+// enforced here because SQLite ignores the VARCHAR(255) width the column declares
+const SNAPSHOT_NAME_MAX_LENGTH = 255
+
 module.exports = {
     /**
      * Get a snapshot by ID
@@ -176,6 +179,9 @@ module.exports = {
         const updates = {}
         if (hasProperty(options, 'name') && (typeof options.name !== 'string' || options.name.trim() === '')) {
             throw new ValidationError('Snapshot name is required')
+        }
+        if (hasProperty(options, 'name') && options.name.length > SNAPSHOT_NAME_MAX_LENGTH) {
+            throw new ValidationError(`Snapshot name must be ${SNAPSHOT_NAME_MAX_LENGTH} characters or fewer`)
         }
         if (options.name) {
             updates.name = options.name

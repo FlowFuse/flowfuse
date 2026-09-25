@@ -198,7 +198,15 @@ module.exports = async function (app) {
         // capture the original name/description for the audit log
         const snapshotBefore = { name: request.snapshot.name, description: request.snapshot.description }
         // perform the update
-        const snapshot = await snapshotController.updateSnapshot(request.snapshot, request.body)
+        let snapshot
+        try {
+            snapshot = await snapshotController.updateSnapshot(request.snapshot, request.body)
+        } catch (err) {
+            if (err instanceof ValidationError) {
+                return reply.code(400).send({ code: 'bad_request', error: err.message })
+            }
+            throw err
+        }
         // log the update
         const snapshotAfter = { name: snapshot.name, description: snapshot.description }
         const updates = new UpdatesCollection()
