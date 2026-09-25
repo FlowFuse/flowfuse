@@ -360,7 +360,7 @@ module.exports = async function (app) {
             reply.code(400).send({ code: 'bad_request', error: 'owner and snapshot are mandatory in the body' })
             return
         }
-        if (request.body.components?.credentials !== false) {
+        if (request.body.components?.flows !== false && request.body.components?.credentials !== false) {
             if (snapshot.flows.credentials?.$ && !request.body.credentialSecret) {
                 reply.code(400).send({ code: 'bad_request', error: 'Credential secret is required when importing a snapshot with credentials' })
                 return
