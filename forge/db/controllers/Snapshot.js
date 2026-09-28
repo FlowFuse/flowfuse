@@ -273,7 +273,7 @@ module.exports = {
             }
         })
 
-        const targetCredentialSecret = owner.credentialSecret || (owner.getCredentialSecret && await owner.getCredentialSecret()) || credentialSecret
+        let targetCredentialSecret = owner.credentialSecret || (owner.getCredentialSecret && await owner.getCredentialSecret()) || credentialSecret
         // 1. If the snapshot includes credentials but no credentialSecret, we should reject it
         // 2. if the snapshot includes credentials and a credentialSecret, we should reencrypt for the owner
         if (importSnapshot.flows.credentials?.$) {
@@ -282,6 +282,18 @@ module.exports = {
             }
             // Need to re-encrypt the credentials for the target
             importSnapshot.flows.credentials = app.db.controllers.Project.exportCredentials(importSnapshot.flows.credentials, credentialSecret, targetCredentialSecret)
+        } else if (Object.keys(importSnapshot.flows.credentials || {}).length > 0) {
+            // Credentials arrived unencrypted (no `$`). A plain object is encrypted
+            // for the target here rather than stored verbatim; anything that is not a
+            // plain object is malformed and rejected.
+            if (typeof importSnapshot.flows.credentials !== 'object' || Array.isArray(importSnapshot.flows.credentials)) {
+                throw new ValidationError('Malformed flow credentials')
+            }
+            // The target may not have a credentialSecret yet (e.g. an unregistered device); generate one so the credentials are never stored in the clear
+            if (!targetCredentialSecret) {
+                targetCredentialSecret = app.db.models.Project.generateCredentialSecret()
+            }
+            importSnapshot.flows.credentials = app.db.controllers.Project.exportCredentials(importSnapshot.flows.credentials, null, targetCredentialSecret)
         }
 
         const ProjectId = ownerType === 'instance' ? owner.id : null

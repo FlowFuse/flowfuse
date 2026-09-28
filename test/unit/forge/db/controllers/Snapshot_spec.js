@@ -598,6 +598,21 @@ describe('Snapshot controller', function () {
             should.exist(importedSnapshot)
             importedSnapshot.settings.env.should.deepEqual({})
         })
+
+        it('should encrypt unencrypted credentials rather than storing them verbatim', async function () {
+            const fullSnapshot = generateSnapshot(null, null, null, { node1: { password: 'hunter2' } })
+            const importedSnapshot = await snapshotController.uploadSnapshot(instance, fullSnapshot, undefined, alice, {})
+            should.exist(importedSnapshot)
+            // credentials are encrypted on the way in, so only the encrypted blob is stored
+            importedSnapshot.flows.credentials.should.have.only.keys('$')
+            importedSnapshot.flows.credentials.should.not.have.property('node1')
+        })
+
+        it('should reject malformed (non-object) credentials', async function () {
+            const fullSnapshot = generateSnapshot(null, null, null, ['not', 'an', 'object'])
+            await snapshotController.uploadSnapshot(instance, fullSnapshot, undefined, alice, {})
+                .should.be.rejectedWith('Malformed flow credentials')
+        })
     })
 
     describe.skip('deleteSnapshot', function () {
