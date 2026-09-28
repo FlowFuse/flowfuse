@@ -4,9 +4,8 @@ const setup = require('../../setup')
 
 const LICENSE = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZkNDFmNmRjLTBmM2QtNGFmNy1hNzk0LWIyNWFhNGJmYTliZCIsInZlciI6IjIwMjQtMDMtMDQiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGdXNlIERldmVsb3BtZW50IiwibmJmIjoxNzMwNjc4NDAwLCJleHAiOjIwNzc3NDcyMDAsIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxMCwidGVhbXMiOjEwLCJpbnN0YW5jZXMiOjEwLCJtcXR0Q2xpZW50cyI6NiwidGllciI6ImVudGVycHJpc2UiLCJkZXYiOnRydWUsImlhdCI6MTczMDcyMTEyNH0.02KMRf5kogkpH3HXHVSGprUm0QQFLn21-3QIORhxFgRE9N5DIE8YnTH_f8W_21T6TlYbDUmf4PtWyj120HTM2w'
 
-// Same gate as teamAiGate_spec.js, but for the team's own MCP toggle (Team Settings ->
-// Danger -> MCP Access / features.mcpThirdParty) rather than the AI toggle. Both checks
-// live side by side in needsPermission (forge/routes/auth/permissions.js).
+// Like teamAiGate_spec.js but for the team's mcpThirdParty toggle rather than ai.
+// Both checks live side by side in needsPermission (forge/routes/auth/permissions.js).
 describe('MCP third-party per-team MCP access gate', function () {
     let app
     const TestObjects = {}
@@ -17,8 +16,7 @@ describe('MCP third-party per-team MCP access gate', function () {
             ai: { enabled: true },
             expert: { enabled: true }
         })
-        // An all-teams PAT: no team scopes, so Forge grants every team the user
-        // belongs to. This is the case the door could not itself narrow.
+        // All-teams PAT: no team scopes, so Forge grants every team the user belongs to.
         TestObjects.pat = await app.db.controllers.AccessToken.createPersonalAccessToken(app.user, '', null, 'mcp-gate-pat')
     })
 
@@ -52,7 +50,7 @@ describe('MCP third-party per-team MCP access gate', function () {
         const response = await listTeamDevices('mcp')
         response.statusCode.should.equal(403)
         response.json().should.have.property('code', 'unauthorized')
-        response.json().should.have.property('error', 'MCP access is disabled for this team. A team owner can re-enable MCP access from Team Settings > Danger Zone.')
+        response.json().should.have.property('error', 'MCP access is disabled for this team. A team owner can re-enable MCP access from Team Settings > Danger.')
     })
 
     it('allows a third-party MCP call to a team with MCP access enabled', async function () {
