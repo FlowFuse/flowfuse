@@ -14,6 +14,17 @@ function getProperty (properties, key) {
     return value
 }
 
+// The user's browser tabs on teams the caller's token can reach, as filtered by /user/teams.
+async function getReachableBrowserSessions (app, user, inject) {
+    const sessions = await app.db.controllers.BrowserSession.getSessionsByUser(user.hashid)
+    const response = await inject({ method: 'GET', url: '/api/v1/user/teams' })
+    if (response.statusCode !== 200) {
+        return []
+    }
+    const teamIds = new Set(response.json().teams.map(team => team.id))
+    return sessions.filter(session => teamIds.has(session.context?.teamId))
+}
+
 function getTeamProperty (team, key, defaultValue) {
     const teamValue = getProperty(team.properties, key)
     if (teamValue !== undefined) {
@@ -184,7 +195,7 @@ module.exports = [
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         _meta: { audience: 'mcp' },
         inputSchema: { }, // future - consider adding userId so that admin users can ask "what sessions does user X have?"
-        handler: async (args, { app, user }) => {
+        handler: async (args, { app, user, inject }) => {
             if (!app.db.controllers.BrowserSession) {
                 return {
                     sessions: [],
@@ -192,8 +203,7 @@ module.exports = [
                 }
             }
 
-            const userId = user.hashid
-            const sessions = await app.db.controllers.BrowserSession.getSessionsByUser(userId)
+            const sessions = await getReachableBrowserSessions(app, user, inject)
 
             if (sessions.length === 0) {
                 const baseUrl = app.config.base_url || ''
@@ -233,14 +243,14 @@ module.exports = [
         inputSchema: {
             session_id: z.string().describe('The sessionId of the browser tab to target, from platform_list_browser_sessions')
         },
-        handler: async (args, { app, user, mcpSessionId }) => {
+        handler: async (args, { app, user, mcpSessionId, inject }) => {
             if (!app.db.controllers.BrowserSession) {
                 return {
                     success: false,
                     message: 'Browser sessions are not available on this platform. 3rd party automations like flow building will not be possible.'
                 }
             }
-            const sessions = await app.db.controllers.BrowserSession.getSessionsByUser(user.hashid)
+            const sessions = await getReachableBrowserSessions(app, user, inject)
             const match = sessions.find(session => session.sessionId === args.session_id)
             if (!match) {
                 return {
