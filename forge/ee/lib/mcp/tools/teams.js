@@ -297,5 +297,57 @@ module.exports = [
             const response = await inject({ method: 'POST', url: `/api/v1/teams/${args.teamId}/invitations/${args.invitationId}` })
             return response
         }
+    },
+    {
+        name: 'platform_remove_team_member',
+        title: 'Remove Team Member',
+        description: `FlowFuse platform automation tool:
+            Removes a member from a team, taking away all of their access to it. This cannot be undone; they would have to be invited again.
+            Team owners can remove anyone. Any member can remove themselves (leave the team), but not other people.
+            Removing the team's only owner is rejected with a 400 "cannot remove only owner". Members whose membership is managed through SSO cannot be removed here; that fails with "Cannot modify team membership for an SSO managed user".
+            Removing someone also deletes any of their personal access tokens that were scoped only to this team. If you are removing the current user, that can include the token this session is using, so later calls may start failing.
+            Before calling this, confirm with the user. Use platform_list_team_members to find the user id and check how many owners the team has.
+            Replies { status: "okay" } on success. A user who is not a member of the team returns a 404.`,
+        // destructiveHint: the member loses all access to the team and has to be re-invited.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            userId: z.string().describe('The hashid of the member to remove, as returned by platform_list_team_members')
+        },
+        handler: async (args, { inject }) => {
+            // The route answers 200 { status: "okay" } for a user who is not a member,
+            // which reads as a removal that never happened. Check membership first
+            // when the caller can list members, and leave any other case to the route.
+            const membersResponse = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/members` })
+            if (membersResponse.statusCode === 200) {
+                const members = membersResponse.json().members || []
+                if (!members.some(member => member.id === args.userId)) {
+                    return toolError(404, 'not_found', 'That user is not a member of this team. Check platform_list_team_members for the member ids')
+                }
+            }
+            const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/members/${args.userId}` })
+            return response
+        }
+    },
+    {
+        name: 'platform_revoke_team_invitation',
+        title: 'Revoke Team Invitation',
+        description: `FlowFuse platform automation tool:
+            Revokes a pending team invitation, so it can no longer be accepted. This cannot be undone; to let the person join later, invite them again with platform_invite_team_member.
+            The invitee's in-app notification about the invitation is removed too. No email is sent to tell them it was revoked.
+            Only team owners can revoke invitations. Use platform_list_team_invitations to find the invitation id.
+            Replies { status: "okay" } on success. An invitation that does not exist, or belongs to a different team, returns a 404.`,
+        // destructiveHint: the invitation is gone for good and has to be sent again.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            invitationId: z.string().describe('The hashid of the invitation to revoke, as returned by platform_list_team_invitations')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/invitations/${args.invitationId}` })
+            return response
+        }
     }
 ]
