@@ -15,7 +15,7 @@ Two clients use it:
 
 Both use the same capabilities. What an agent can do depends only on the access you grant.
 
-> **Note:** This is not the same as [MCP server nodes](https://flowfuse.com/node-red/flowfuse/mcp/), which build MCP servers inside your flows. This page is about operating FlowFuse itself, where FlowFuse is the server and your agent is the client.
+> **Note:** This is not the same as [MCP server nodes](https://flowfuse.com/docs/flowfuse-nodes/mcp/), which build MCP servers inside your flows. This page is about operating FlowFuse itself, where FlowFuse is the server and your agent is the client.
 
 ## Platform Automations
 
