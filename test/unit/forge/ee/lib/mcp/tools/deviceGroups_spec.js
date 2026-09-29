@@ -259,4 +259,31 @@ describe('MCP Device Groups Tools', function () {
             response.should.equal(errorResponse)
         })
     })
+
+    describe('platform_delete_device_group', function () {
+        const tool = getTool('platform_delete_device_group')
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('deletes through the application device group route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({}) }
+            inject.withArgs({ method: 'DELETE', url: '/api/v1/applications/app1/device-groups/group1' }).resolves(routeResponse)
+
+            const response = await tool.handler({ applicationId: 'app1', groupId: 'group1' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('passes through the 404 when device groups are not enabled for the team', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ applicationId: 'app1', groupId: 'group1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
 })

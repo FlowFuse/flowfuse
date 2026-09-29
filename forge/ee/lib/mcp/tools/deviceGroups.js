@@ -183,5 +183,27 @@ module.exports = [
             const response = await inject({ method: 'PUT', url: `/api/v1/applications/${args.applicationId}/device-groups/${args.groupId}/settings`, payload: { env: args.env } })
             return response
         }
+    },
+    {
+        name: 'platform_delete_device_group',
+        title: 'Delete Device Group',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes a device group from an application. This cannot be undone.
+            Its member remote instances (devices) are not deleted: they stay in the application, drop out of the group and keep their current target snapshot, but the group's environment variables and target no longer apply to them.
+            A pipeline stage that deploys to this group is not deleted either. It is left with no deploy target, so edit or remove it afterwards (find it with platform_list_pipelines).
+            Before calling this, confirm with the user and tell them which devices and pipeline stages are affected (use platform_get_application_device_group and platform_list_pipelines).
+            Only team owners can delete device groups. Requires the deviceGroups feature to be enabled for the owning team; if it is not, this returns a not-found error, as does a group that does not belong to the given application.
+            Replies with an empty object on success.`,
+        // destructiveHint: the group and its settings are gone for good.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            applicationId: applicationId.describe('The hashid of the application the group belongs to'),
+            groupId: z.string().describe('The hashid of the device group to delete')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'DELETE', url: `/api/v1/applications/${args.applicationId}/device-groups/${args.groupId}` })
+            return response
+        }
     }
 ]
