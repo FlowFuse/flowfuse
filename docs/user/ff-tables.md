@@ -1,5 +1,7 @@
 ---
 navTitle: FlowFuse Tables
+meta:
+   description: Create a FlowFuse Tables database for an Enterprise team, build tables with the wizard, and query it from Node-RED or any Postgres client.
 ---
 
 # FlowFuse Tables

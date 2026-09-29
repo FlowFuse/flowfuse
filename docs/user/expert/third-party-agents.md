@@ -1,5 +1,7 @@
 ---
 navTitle: Connect Your Own Agent
+meta:
+   description: Connect your own MCP-capable AI agent, such as Copilot, ChatGPT or Claude, to FlowFuse to manage the platform and build Node-RED flows.
 ---
 
 # Connect Your Own Agent
@@ -39,7 +41,7 @@ The same three steps, written out:
 
 Your agent is now connected. If your client does not support OAuth, use a token instead, see [clients without a sign-in flow](#clients-without-a-sign-in-flow).
 
-> **Note:** This is separate from [MCP server nodes](https://flowfuse.com/node-red/flowfuse/mcp/), which build MCP servers inside your flows. This page is about operating FlowFuse itself, where FlowFuse is the server and your agent is the client.
+> **Note:** This is separate from [MCP server nodes](https://flowfuse.com/docs/flowfuse-nodes/mcp/), which build MCP servers inside your flows. This page is about operating FlowFuse itself, where FlowFuse is the server and your agent is the client.
 
 ## What your agent can do
 
