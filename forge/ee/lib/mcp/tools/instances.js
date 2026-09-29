@@ -594,6 +594,28 @@ module.exports = [
             })
             return response
         }
+    },
+    {
+        name: 'platform_rollback_hosted_instance',
+        title: 'Roll Back Hosted Instance',
+        description: `FlowFuse platform automation tool:
+            Rolls a hosted instance back to one of its own snapshots. This OVERWRITES the instance's current flows, credentials, settings, environment variables and installed node modules with the ones in the snapshot. Environment variables are replaced, not merged, so any added since the snapshot are lost.
+            The current state is not saved automatically. If it might be needed again, take a snapshot first with platform_create_instance_snapshot.
+            If the instance is running, its flows are restarted with the rolled back version before this replies. If it is stopped or suspended, the rolled back version is stored and used the next time it starts.
+            The snapshot must belong to this hosted instance: a snapshot from another instance or a device, or one that does not exist, is rejected with a 400 "invalid_snapshot". Find snapshot ids with platform_list_instance_snapshots.
+            Confirm with the user before calling this.
+            Team members and owners can roll back. Replies { status: "okay" } on success.`,
+        // destructiveHint: this replaces what the instance is running rather than adding to it.
+        // idempotentHint: rolling back to the same snapshot again restarts the flows each time.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
+        inputSchema: {
+            instanceId: hostedInstanceId.describe('The id (UUID) of the hosted instance to roll back'),
+            snapshotId: z.string().describe('The hashid of the snapshot to roll back to. Must be a snapshot of this hosted instance')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'POST', url: `/api/v1/projects/${args.instanceId}/actions/rollback`, payload: { snapshot: args.snapshotId } })
+            return response
+        }
     }
 ]
 

@@ -924,4 +924,32 @@ describe('MCP Instances Tools', function () {
             response.should.equal(errorResponse)
         })
     })
+
+    describe('platform_rollback_hosted_instance', function () {
+        const tool = getTool('platform_rollback_hosted_instance')
+        const instanceId = '11111111-1111-1111-1111-111111111111'
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('posts the snapshot to the instance rollback action', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
+            inject.withArgs({ method: 'POST', url: `/api/v1/projects/${instanceId}/actions/rollback`, payload: { snapshot: 'snapshot1' } }).resolves(routeResponse)
+
+            const response = await tool.handler({ instanceId, snapshotId: 'snapshot1' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('passes through the 400 for a snapshot from another instance', async function () {
+            const errorResponse = { statusCode: 400, json: () => ({ code: 'invalid_snapshot' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ instanceId, snapshotId: 'snapshot1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
 })

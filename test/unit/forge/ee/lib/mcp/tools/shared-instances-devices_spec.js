@@ -212,4 +212,45 @@ describe('MCP Shared Instance/Device Tools', function () {
             response.should.equal(errorResponse)
         })
     })
+
+    describe('platform_delete_instance', function () {
+        const tool = getTool('platform_delete_instance')
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('deletes a hosted instance through the projects route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
+            inject.withArgs({ method: 'DELETE', url: '/api/v1/projects/instance1' }).resolves(routeResponse)
+
+            const response = await tool.handler({ instanceId: 'instance1', instanceType: 'hosted' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('deletes a remote instance through the devices route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
+            inject.withArgs({ method: 'DELETE', url: '/api/v1/devices/device1' }).resolves(routeResponse)
+
+            const response = await tool.handler({ instanceId: 'device1', instanceType: 'remote' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('rejects an unknown instanceType', function () {
+            tool.inputSchema.instanceType.safeParse('other').success.should.be.false()
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 403, json: () => ({ code: 'unauthorized' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ instanceId: 'instance1', instanceType: 'hosted' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
 })

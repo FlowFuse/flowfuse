@@ -151,5 +151,28 @@ module.exports = [
             const response = await inject({ method: 'PUT', url: `/api/v1/${base}/${args.instanceId}/httpTokens/${args.tokenId}`, payload })
             return response
         }
+    },
+    {
+        name: 'platform_delete_instance',
+        title: 'Delete Instance',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes an instance, either a hosted instance or a remote instance (device). This cannot be undone, and there is no way to get the instance back.
+            Deleting a hosted instance removes its container, flows, credentials, settings and files, and ALL of its snapshots. Remote instances (devices) assigned to it are not deleted, but they are unassigned from it, lose their target snapshot and stop running Node-RED (unless in developer mode) until they are given a new one.
+            Deleting a remote instance (device) revokes its credentials, so the physical device can no longer connect to the platform or receive updates. Its snapshots stay behind but can no longer be opened.
+            In both cases, a pipeline stage that deployed to the instance is not deleted, it is left with no deploy target, so edit or remove it afterwards (find it with platform_list_pipelines).
+            Before calling this, confirm with the user and tell them what goes with it. For a hosted instance, use platform_list_instance_snapshots and platform_list_remote_instances to list the snapshots and assigned devices. If the snapshots might be wanted later, export them first with platform_export_snapshot.
+            Only team owners can delete instances. Replies { status: "okay" } on success; an instance that does not exist, or that the caller cannot see, returns 404.`,
+        // destructiveHint: the instance and everything stored with it are gone for good.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            instanceId: z.string().describe('The ID of the instance to delete (hosted instance UUID, or remote instance/device hashid)'),
+            instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")')
+        },
+        handler: async (args, { inject }) => {
+            const base = args.instanceType === 'remote' ? 'devices' : 'projects'
+            const response = await inject({ method: 'DELETE', url: `/api/v1/${base}/${args.instanceId}` })
+            return response
+        }
     }
 ]
