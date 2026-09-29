@@ -2,6 +2,8 @@ const { Op } = require('sequelize')
 const should = require('should')
 const sinon = require('sinon')
 
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+
 const setup = require('../../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
@@ -1310,14 +1312,23 @@ describe('Team Broker API', function () {
                 const result2 = response2.json()
                 result2.should.have.property('result', 'allow')
 
-                const topicsResponse = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/topics`,
-                    cookies: { sid: TestObjects.tokens.bob }
-                })
-
-                topicsResponse.statusCode.should.equal(200)
-                const topics = topicsResponse.json()
+                // addUsedTopic (triggered by the publish acl check above) writes the topic
+                // asynchronously and is not awaited by the route, so poll until it lands
+                // rather than assuming it's already visible
+                let topics
+                for (let attempt = 0; attempt < 10; attempt++) {
+                    const topicsResponse = await app.inject({
+                        method: 'GET',
+                        url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/topics`,
+                        cookies: { sid: TestObjects.tokens.bob }
+                    })
+                    topicsResponse.statusCode.should.equal(200)
+                    topics = topicsResponse.json()
+                    if (topics.topics.some(t => t.topic === 'foo/bar')) {
+                        break
+                    }
+                    await sleep(100)
+                }
                 // topics.topics[] should have 'foo/bar'
                 topics.topics.some(t => t.topic === 'foo/bar').should.be.true()
                 // topics.topics[] should not have 'foo/sub'
