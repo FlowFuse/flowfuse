@@ -1,6 +1,7 @@
 const { z } = require('zod')
 
 const { basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError } = require('../schemas')
+const { emptySuccessAsOkay } = require('../utils')
 
 // Tools that work against both hosted instances and remote instances (devices),
 // selected with an instanceType discriminator.
@@ -150,6 +151,30 @@ module.exports = [
             }
             const response = await inject({ method: 'PUT', url: `/api/v1/${base}/${args.instanceId}/httpTokens/${args.tokenId}`, payload })
             return response
+        }
+    },
+    {
+        name: 'platform_delete_instance_http_token',
+        title: 'Delete Instance HTTP Token',
+        description: `FlowFuse platform automation tool:
+            Deletes an HTTP bearer token from an instance (hosted instance or remote instance/device). This cannot be undone.
+            External callers presenting the token to the instance's Node-RED HTTP endpoints are then refused, but not necessarily straight away: an instance caches tokens it has recently accepted, so a caller already using it can keep getting through for up to about 5 minutes. A replacement has to be created with platform_create_instance_http_token, which issues a new value.
+            Before calling this, confirm with the user and check what still uses the token. Find token ids with platform_list_instance_http_tokens.
+            Replies { status: "okay" } on success. A token that does not exist on that instance returns a 404.
+            HTTP bearer tokens are a plan-gated feature; a team without it enabled gets a 404 error.`,
+        // destructiveHint: the token is revoked for good, cutting off whoever used it.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
+            instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),
+            tokenId: z.string().describe('The hashid of the token to delete, as returned by platform_list_instance_http_tokens')
+        },
+        handler: async (args, { inject }) => {
+            const base = args.instanceType === 'remote' ? 'devices' : 'projects'
+            const response = await inject({ method: 'DELETE', url: `/api/v1/${base}/${args.instanceId}/httpTokens/${args.tokenId}` })
+            // The route answers a successful delete with an empty 201.
+            return emptySuccessAsOkay(response)
         }
     }
 ]

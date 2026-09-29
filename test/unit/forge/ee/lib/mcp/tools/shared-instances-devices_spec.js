@@ -212,4 +212,39 @@ describe('MCP Shared Instance/Device Tools', function () {
             response.should.equal(errorResponse)
         })
     })
+
+    describe('platform_delete_instance_http_token', function () {
+        const tool = getTool('platform_delete_instance_http_token')
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('deletes a hosted instance token through the projects route', async function () {
+            inject.withArgs({ method: 'DELETE', url: '/api/v1/projects/instance1/httpTokens/token1' }).resolves({ statusCode: 201, body: '' })
+
+            const response = await tool.handler({ instanceId: 'instance1', instanceType: 'hosted', tokenId: 'token1' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.json().should.eql({ status: 'okay' })
+        })
+
+        it('deletes a remote instance token through the devices route', async function () {
+            inject.withArgs({ method: 'DELETE', url: '/api/v1/devices/device1/httpTokens/token1' }).resolves({ statusCode: 201, body: '' })
+
+            const response = await tool.handler({ instanceId: 'device1', instanceType: 'remote', tokenId: 'token1' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.json().should.eql({ status: 'okay' })
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 404, body: '{}', json: () => ({ code: 'not_found' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ instanceId: 'instance1', instanceType: 'hosted', tokenId: 'token1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
 })
