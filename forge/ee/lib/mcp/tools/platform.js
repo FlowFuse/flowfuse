@@ -23,6 +23,18 @@ function getTeamProperty (team, key, defaultValue) {
     return teamTypeValue !== undefined ? teamTypeValue : defaultValue
 }
 
+function sessionTeamAllowed (app, scope, session) {
+    if (!scope?.teams?.length) {
+        return true
+    }
+    const teamId = session.context?.teamId
+    if (!teamId) {
+        return false
+    }
+    const teamHashid = /^\d+$/.test(String(teamId)) ? app.db.models.Team.encodeHashid(parseInt(teamId, 10)) : teamId
+    return scope.teams.includes(teamHashid)
+}
+
 module.exports = [
     {
         name: 'platform_list_hosted_instance_types',
@@ -184,7 +196,7 @@ module.exports = [
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         _meta: { audience: 'mcp' },
         inputSchema: { }, // future - consider adding userId so that admin users can ask "what sessions does user X have?"
-        handler: async (args, { app, user }) => {
+        handler: async (args, { app, user, scope }) => {
             if (!app.db.controllers.BrowserSession) {
                 return {
                     sessions: [],
@@ -193,7 +205,8 @@ module.exports = [
             }
 
             const userId = user.hashid
-            const sessions = await app.db.controllers.BrowserSession.getSessionsByUser(userId)
+            const sessions = (await app.db.controllers.BrowserSession.getSessionsByUser(userId))
+                .filter(session => sessionTeamAllowed(app, scope, session))
 
             if (sessions.length === 0) {
                 const baseUrl = app.config.base_url || ''
@@ -233,7 +246,7 @@ module.exports = [
         inputSchema: {
             session_id: z.string().describe('The sessionId of the browser tab to target, from platform_list_browser_sessions')
         },
-        handler: async (args, { app, user, mcpSessionId }) => {
+        handler: async (args, { app, user, mcpSessionId, scope }) => {
             if (!app.db.controllers.BrowserSession) {
                 return {
                     success: false,
@@ -241,7 +254,7 @@ module.exports = [
                 }
             }
             const sessions = await app.db.controllers.BrowserSession.getSessionsByUser(user.hashid)
-            const match = sessions.find(session => session.sessionId === args.session_id)
+            const match = sessions.find(session => session.sessionId === args.session_id && sessionTeamAllowed(app, scope, session))
             if (!match) {
                 return {
                     success: false,
