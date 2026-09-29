@@ -245,4 +245,58 @@ describe('MCP Pipelines Tools', function () {
             response.should.equal(errorResponse)
         })
     })
+
+    describe('platform_delete_pipeline', function () {
+        const tool = getTool('platform_delete_pipeline')
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('deletes through the pipeline route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
+            inject.withArgs({ method: 'DELETE', url: '/api/v1/pipelines/pipeline1' }).resolves(routeResponse)
+
+            const response = await tool.handler({ pipelineId: 'pipeline1' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ pipelineId: 'pipeline1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_delete_pipeline_stage', function () {
+        const tool = getTool('platform_delete_pipeline_stage')
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('deletes through the pipeline stage route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
+            inject.withArgs({ method: 'DELETE', url: '/api/v1/pipelines/pipeline1/stages/stage1' }).resolves(routeResponse)
+
+            const response = await tool.handler({ pipelineId: 'pipeline1', stageId: 'stage1' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('passes through the 400 when the remaining stages would be out of order', async function () {
+            const errorResponse = { statusCode: 400, json: () => ({ code: 'invalid_input', error: 'A Device Group Pipeline stage cannot be the first stage' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ pipelineId: 'pipeline1', stageId: 'stage1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
 })

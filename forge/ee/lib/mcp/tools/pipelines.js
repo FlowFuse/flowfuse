@@ -179,5 +179,47 @@ module.exports = [
             const response = await inject({ method: 'PUT', url: `/api/v1/pipelines/${args.pipelineId}/stages/${args.stageId}/deploy`, payload })
             return response
         }
+    },
+    {
+        name: 'platform_delete_pipeline',
+        title: 'Delete Pipeline',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes a pipeline together with all of its stages. This cannot be undone.
+            Only the pipeline definition goes: the hosted instances, remote instances, device groups and snapshots its stages pointed at are left untouched, as are the flows already deployed to them.
+            To remove a single stage and keep the rest of the pipeline, use platform_delete_pipeline_stage instead.
+            Confirm with the user before calling this.
+            Only team owners can delete pipelines. Replies { status: "okay" } on success; a pipeline that does not exist, or that the caller cannot see, returns 404.`,
+        // destructiveHint: the pipeline and every stage in it are gone for good.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            pipelineId: z.string().describe('The hashid of the pipeline to delete')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'DELETE', url: `/api/v1/pipelines/${args.pipelineId}` })
+            return response
+        }
+    },
+    {
+        name: 'platform_delete_pipeline_stage',
+        title: 'Delete Pipeline Stage',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes one stage from a pipeline, leaving the rest of the pipeline intact. This cannot be undone.
+            The stages either side are joined up, so deleting B from A -> B -> C leaves A -> C. What the stage deployed to is left untouched.
+            The remaining stages must still be in a valid order, otherwise the call is rejected with a 400 "invalid_input" and nothing is deleted. The usual ordering rules apply: a device group stage cannot be the first stage, and a hosted or remote instance stage cannot come after a device group stage. So, for example, the first stage cannot be deleted while a device group stage follows it.
+            A stage that does not belong to the given pipeline returns a 404. Unlike most deletes, no audit log entry is recorded for this.
+            Confirm with the user before calling this.
+            Only team owners can delete pipeline stages. Replies { status: "okay" } on success.`,
+        // destructiveHint: the stage is gone for good.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            pipelineId: z.string().describe('The hashid of the pipeline the stage belongs to'),
+            stageId: z.string().describe('The hashid of the stage to delete')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'DELETE', url: `/api/v1/pipelines/${args.pipelineId}/stages/${args.stageId}` })
+            return response
+        }
     }
 ]
