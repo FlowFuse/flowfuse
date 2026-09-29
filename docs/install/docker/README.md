@@ -174,9 +174,9 @@ Proceed to the [next paragraph](#start-flowfuse-platform) to start the platform 
 
 If you have own TLS certificate, you can use it in FlowFuse platform installation as well. As mentioned before, the certificate must be a wildcard one for the domain you are using.
 
-{% note %}
+::note
 If your TLS certificate is issued by a private Certificate Authority, additional configuration is required so that Hosted Instances trust the CA. See [What additional configuration is required when the TLS certificate is issued by a private Certificate Authority?](#what-additional-configuration-is-required-when-the-tls-certificate-is-issued-by-a-private-certificate-authority%3F) for the step-by-step instructions.
-{% endnote %}
+::
 
 To configure FlowFuse platform with your certificate, you need to have:
 * certificate key file

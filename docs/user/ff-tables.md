@@ -4,9 +4,9 @@ navTitle: FlowFuse Tables
 
 # FlowFuse Tables
 
-{% warning %}
+::warning
 This feature is currently in [the beta state](https://flowfuse.com/handbook/engineering/releases/#beta-release).
-{% endwarning %}
+::
 
 From FlowFuse v2.20.0 Teams (Enterprise teams only) can create a relational database to use to store data.
 
