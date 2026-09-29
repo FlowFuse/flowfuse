@@ -182,5 +182,48 @@ module.exports = [
             const response = await inject({ method: 'PUT', url: `/api/v1/teams/${args.teamId}/brokers/${args.brokerId}/topics/${args.topicId}`, payload: { metadata: args.metadata } })
             return response
         }
+    },
+    {
+        name: 'platform_delete_broker_topic',
+        title: 'Delete Broker Topic',
+        description: `FlowFuse platform automation tool:
+            Deletes a recorded topic from a broker's topic list, along with its metadata and inferred payload schema. The metadata cannot be recovered.
+            This only removes the platform's record of the topic. It does not touch the MQTT broker or any messages, and a topic that is still being published to will be recorded again the next time it is seen, without its old metadata.
+            Confirm with the user before calling this. Find topic ids with platform_list_broker_topics.
+            Only team owners can delete topics. Replies with an empty 201 on success, or a 404 when the topic does not exist on that broker.
+            This tool requires the enterprise license tier and the team broker feature enabled for the team; if the team does not have it enabled, the request returns a not found response.`,
+        // destructiveHint: the topic metadata is gone for good.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            brokerId: z.string().describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid"),
+            topicId: z.string().describe('The hashid of the topic to delete, as returned by platform_list_broker_topics')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/brokers/${args.brokerId}/topics/${args.topicId}` })
+            return response
+        }
+    },
+    {
+        name: 'platform_delete_broker_client',
+        title: 'Delete Broker Client',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes an MQTT client from the team broker, so its credentials stop working. This cannot be undone; a replacement client has to be created with new credentials.
+            Anything using this client loses access: it can no longer connect, and a client that is already connected is not dropped, but its publish and subscribe permission checks start failing (possibly after a short delay while the broker's permission cache expires). If the client belongs to a hosted instance or remote instance (see platform_get_broker_client), that instance's MQTT connection to the team broker breaks.
+            Before calling this, confirm with the user and tell them what uses the client. Find usernames with platform_list_broker_clients.
+            Only team owners can delete broker clients. Replies { status: "okay" } on success. A username that does not exist returns a 404 with an empty body.
+            This tool requires the enterprise license tier and the team broker feature enabled for the team; if the team does not have it enabled, the request returns a not found response.`,
+        // destructiveHint: the client and its credentials are gone for good, cutting off whatever used them.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            username: z.string().describe('Username of the broker client to delete, as returned by platform_list_broker_clients')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/broker/client/${args.username}` })
+            return response
+        }
     }
 ]
