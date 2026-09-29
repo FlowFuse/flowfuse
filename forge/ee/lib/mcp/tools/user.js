@@ -59,6 +59,24 @@ module.exports = [
         }
     },
     {
+        name: 'platform_delete_notification',
+        title: 'Delete Notification',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes one of the current user's own notifications. This cannot be undone; to just dismiss it, use platform_set_notification_read_state instead.
+            Only one notification can be deleted per call: there is no bulk or "delete all" option, so list them first with platform_list_notifications and call this once per id.
+            Replies { status: "okay" } on success. A notificationId that does not exist, or belongs to someone else, returns a 404.`,
+        // destructiveHint: the notification is gone for good.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            notificationId: z.string().describe('The hashid of the notification to delete, as returned by platform_list_notifications')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'DELETE', url: `/api/v1/user/notifications/${args.notificationId}` })
+            return response
+        }
+    },
+    {
         name: 'platform_respond_to_team_invitation',
         title: 'Respond to Team Invitation',
         description: `FlowFuse platform automation tool:

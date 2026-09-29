@@ -122,6 +122,37 @@ describe('MCP User/Notifications Tools', function () {
         })
     })
 
+    describe('platform_delete_notification', function () {
+        const tool = getTool('platform_delete_notification')
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('deletes through the single-notification route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
+            inject.withArgs({ method: 'DELETE', url: '/api/v1/user/notifications/notification1' }).resolves(routeResponse)
+
+            const response = await tool.handler({ notificationId: 'notification1' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('requires a notificationId, since there is no bulk delete', function () {
+            tool.inputSchema.notificationId.safeParse(undefined).success.should.be.false()
+        })
+
+        it('passes through the 404 for a notification the caller does not own', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ notificationId: 'notification1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
     describe('platform_respond_to_team_invitation', function () {
         const tool = getTool('platform_respond_to_team_invitation')
 
