@@ -86,6 +86,14 @@ module.exports = function (app) {
                         name: { type: 'string', nullable: true }
                     }
                 }
+            },
+            toolPermissions: {
+                type: 'object',
+                nullable: true,
+                properties: {
+                    default: { type: 'object', additionalProperties: true },
+                    teams: { type: 'object', additionalProperties: true }
+                }
             }
         },
         required: ['id', 'name', 'expiresAt']
@@ -110,7 +118,16 @@ module.exports = function (app) {
             teams: (token.AccessTokenTeamScopes ?? []).map(s => ({
                 id: app.db.models.Team.encodeHashid(s.TeamId),
                 name: s.Team?.name ?? null
-            }))
+            })),
+            toolPermissions: token.toolPermissions
+                ? {
+                    default: token.toolPermissions,
+                    teams: (token.AccessTokenToolPermissions ?? []).reduce((teams, override) => {
+                        teams[app.db.models.Team.encodeHashid(override.TeamId)] = override.permissions
+                        return teams
+                    }, {})
+                }
+                : null
         }
         // Tokens with a refresh token (MCP OAuth grants) renew their access
         // token automatically: report the renewal cycle and the grant's end

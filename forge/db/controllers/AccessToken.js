@@ -1,5 +1,6 @@
 const { Op } = require('sequelize')
 
+const mcpToolPermissions = require('../../lib/mcpToolPermissions')
 const { generateToken, generateNumericToken, sha256, randomPhrase, DEFAULT_TOKEN_SESSION_EXPIRY, DEFAULT_REFRESH_TOKEN_EXPIRY } = require('../utils')
 
 // A rotated-out refresh token is honoured within this window, treated as a replay after it.
@@ -271,11 +272,23 @@ module.exports = {
         await app.settings.set('platform:stats:token', false)
     },
 
-    createMCPOAuthToken: async function (app, userId, { readOnly = false, teamIds = [], grantExpiresAt = null } = {}) {
+    createMCPOAuthToken: async function (app, userId, { readOnly = false, teamIds = [], grantExpiresAt = null, toolPermissions = null } = {}) {
         const token = generateToken(32, 'ffpat')
         const refreshToken = generateToken(32, 'ffpat')
         const expiresAt = capToGrant(Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY, grantExpiresAt)
         const refreshTokenExpiresAt = capToGrant(Date.now() + DEFAULT_REFRESH_TOKEN_EXPIRY, grantExpiresAt)
+
+        let storedDefault = null
+        let normalisedTeams = null
+        let derivedReadOnly = readOnly
+        if (toolPermissions) {
+            storedDefault = mcpToolPermissions.normalise(toolPermissions.default)
+            normalisedTeams = {}
+            for (const [teamHashid, teamPermissions] of Object.entries(toolPermissions.teams || {})) {
+                normalisedTeams[teamHashid] = mcpToolPermissions.normalise(teamPermissions)
+            }
+            derivedReadOnly = mcpToolPermissions.deriveReadOnly({ default: storedDefault, teams: normalisedTeams })
+        }
 
         await app.db.sequelize.transaction(async (t) => {
             const tok = await app.db.models.AccessToken.create({
@@ -286,8 +299,9 @@ module.exports = {
                 expiresAt,
                 refreshTokenExpiresAt,
                 grantExpiresAt,
-                readOnly,
+                readOnly: derivedReadOnly,
                 adminOptIn: false,
+                toolPermissions: storedDefault,
                 ownerId: '' + userId,
                 ownerType: 'user'
             }, { transaction: t })
@@ -299,6 +313,18 @@ module.exports = {
                     UserId: userId
                 }))
                 await app.db.models.AccessTokenTeamScope.bulkCreate(scopes, { transaction: t })
+            }
+
+            if (normalisedTeams) {
+                const overrides = Object.entries(normalisedTeams).map(([teamHashid, teamPermissions]) => ({
+                    AccessTokenId: tok.id,
+                    TeamId: app.db.models.Team.decodeHashid(teamHashid),
+                    ApplicationId: null,
+                    permissions: teamPermissions
+                }))
+                if (overrides.length > 0) {
+                    await app.db.models.AccessTokenToolPermission.bulkCreate(overrides, { transaction: t })
+                }
             }
         })
 
@@ -530,6 +556,8 @@ module.exports = {
             include: [{
                 model: app.db.models.AccessTokenTeamScope,
                 include: [{ model: app.db.models.Team, attributes: ['id', 'name'] }]
+            }, {
+                model: app.db.models.AccessTokenToolPermission
             }]
         })
         if (accessToken) {

@@ -322,6 +322,7 @@ describe('OAuth', async function () {
 
     describe('MCP agent auth (DCR + PKCE)', async function () {
         let mcpApp
+        let mcpUser
         let sid
         const redirectURI = 'http://localhost:9876/oauth/callback'
 
@@ -329,6 +330,11 @@ describe('OAuth', async function () {
             const verifier = base64URLEncode(crypto.randomBytes(32))
             const challenge = base64URLEncode(crypto.createHash('sha256').update(verifier).digest())
             return { verifier, challenge }
+        }
+
+        function toolPermissionsPayload (readOnly = false, teams = {}) {
+            const categories = { read: true, write: !readOnly, destructive: false }
+            return { default: { platform: { ...categories }, flow_building: { ...categories } }, teams }
         }
 
         async function register (redirectURIs = [redirectURI]) {
@@ -355,13 +361,13 @@ describe('OAuth', async function () {
             mcpApp = await setup({
                 license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNDIyNDAwLCJleHAiOjc5ODY5MDIzOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwiZGV2Ijp0cnVlLCJpYXQiOjE2NjI0ODI5ODd9.e8Jeppq4aURwWYz-rEpnXs9RY2Y7HF7LJ6rMtMZWdw2Xls6-iyaiKV1TyzQw5sUBAhdUSZxgtiFH5e_cNJgrUg'
             })
-            const user = await mcpApp.factory.createUser({
+            mcpUser = await mcpApp.factory.createUser({
                 username: 'mcpuser',
                 name: 'MCP User',
                 email: 'mcp@example.com',
                 password: 'mmPassword'
             })
-            await mcpApp.team.addUser(user, { through: { role: mcpApp.factory.Roles.Roles.Owner } })
+            await mcpApp.team.addUser(mcpUser, { through: { role: mcpApp.factory.Roles.Roles.Owner } })
             const loginResponse = await mcpApp.inject({
                 method: 'POST',
                 url: '/account/login',
@@ -415,7 +421,7 @@ describe('OAuth', async function () {
             const consentResponse = await mcpApp.inject({
                 method: 'PUT',
                 url: `/account/authorize/${requestId}/consent`,
-                payload: { readOnly: true, teamIds: [mcpApp.team.hashid], expiresAt: grantExpiresAt },
+                payload: { teamIds: [mcpApp.team.hashid], expiresAt: grantExpiresAt, toolPermissions: toolPermissionsPayload(true) },
                 cookies: { sid }
             })
             consentResponse.should.have.property('statusCode', 200)
@@ -451,6 +457,10 @@ describe('OAuth', async function () {
             const issued = await mcpApp.db.models.AccessToken.byRefreshToken(token.refresh_token)
             issued.should.have.property('readOnly', true)
             issued.grantExpiresAt.getTime().should.equal(grantExpiresAt)
+            issued.toolPermissions.should.eql({
+                platform: { read: true, write: false, destructive: false },
+                flow_building: { read: true, write: false, destructive: false }
+            })
 
             // refresh - a public MCP client refreshes without a client secret
             const refreshResponse = await mcpApp.inject({
@@ -471,7 +481,7 @@ describe('OAuth', async function () {
             const authResponse = await mcpApp.inject({ method: 'GET', url: authorizeURL(clientID, redirectURI, challenge), cookies: { sid } })
             const requestId = /\/account\/request\/([^/]+)\/mcp$/.exec(authResponse.headers.location)[1]
             const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000
-            await mcpApp.inject({ method: 'PUT', url: `/account/authorize/${requestId}/consent`, payload: { readOnly: false, teamIds: [], expiresAt }, cookies: { sid } })
+            await mcpApp.inject({ method: 'PUT', url: `/account/authorize/${requestId}/consent`, payload: { teamIds: [], expiresAt, toolPermissions: toolPermissionsPayload(false) }, cookies: { sid } })
             const completeResponse = await mcpApp.inject({ method: 'GET', url: `/account/complete/${requestId}`, cookies: { sid } })
             const authCode = new URL(completeResponse.headers.location).searchParams.get('code')
             const first = (await mcpApp.inject({
@@ -589,23 +599,129 @@ describe('OAuth', async function () {
 
             it('rejects consent without an expiry date', async function () {
                 const requestId = await startConsent()
-                const response = await consent(requestId, { readOnly: true, teamIds: [] })
+                const response = await consent(requestId, { teamIds: [], toolPermissions: toolPermissionsPayload(true) })
                 response.should.have.property('statusCode', 400)
                 response.json().should.have.property('error', 'invalid_request')
             })
 
             it('rejects consent with an expiry in the past', async function () {
                 const requestId = await startConsent()
-                const response = await consent(requestId, { readOnly: true, teamIds: [], expiresAt: Date.now() - 1000 })
+                const response = await consent(requestId, { teamIds: [], expiresAt: Date.now() - 1000, toolPermissions: toolPermissionsPayload(true) })
                 response.should.have.property('statusCode', 400)
                 response.json().should.have.property('error', 'invalid_request')
             })
 
             it('rejects consent with an expiry more than a year away', async function () {
                 const requestId = await startConsent()
-                const response = await consent(requestId, { readOnly: true, teamIds: [], expiresAt: Date.now() + 370 * 24 * 60 * 60 * 1000 })
+                const response = await consent(requestId, { teamIds: [], expiresAt: Date.now() + 370 * 24 * 60 * 60 * 1000, toolPermissions: toolPermissionsPayload(true) })
                 response.should.have.property('statusCode', 400)
                 response.json().should.have.property('error', 'invalid_request')
+            })
+
+            it('rejects consent without toolPermissions', async function () {
+                const requestId = await startConsent()
+                const response = await consent(requestId, { teamIds: [], expiresAt: Date.now() + 1000 * 60 * 60 })
+                response.should.have.property('statusCode', 400)
+            })
+
+            it('rejects a team override for a team the user is not a member of', async function () {
+                const requestId = await startConsent()
+                const response = await consent(requestId, {
+                    teamIds: [],
+                    expiresAt: Date.now() + 1000 * 60 * 60,
+                    toolPermissions: toolPermissionsPayload(false, { 'not-a-real-team': { platform: { write: true } } })
+                })
+                response.should.have.property('statusCode', 400)
+                response.json().should.have.property('error', 'invalid_request')
+            })
+
+            it('rejects a team override for a team outside a non-empty teamIds', async function () {
+                const requestId = await startConsent()
+                const otherTeam = await mcpApp.factory.createTeam({ name: 'Other Team' })
+                await otherTeam.addUser(mcpUser, { through: { role: mcpApp.factory.Roles.Roles.Owner } })
+                const response = await consent(requestId, {
+                    teamIds: [mcpApp.team.hashid],
+                    expiresAt: Date.now() + 1000 * 60 * 60,
+                    toolPermissions: toolPermissionsPayload(false, { [otherTeam.hashid]: { platform: { write: true } } })
+                })
+                response.should.have.property('statusCode', 400)
+                response.json().should.have.property('error', 'invalid_request')
+            })
+        })
+
+        describe('tool permissions', function () {
+            async function fullConsentFlow (payload) {
+                const reg = (await register()).json()
+                const { verifier, challenge } = pkce()
+                const authResponse = await mcpApp.inject({ method: 'GET', url: authorizeURL(reg.client_id, redirectURI, challenge), cookies: { sid } })
+                const requestId = /\/account\/request\/([^/]+)\/mcp$/.exec(authResponse.headers.location)[1]
+                const consentResponse = await mcpApp.inject({
+                    method: 'PUT',
+                    url: `/account/authorize/${requestId}/consent`,
+                    payload,
+                    cookies: { sid }
+                })
+                if (consentResponse.statusCode !== 200) {
+                    return { consentResponse }
+                }
+                const completeResponse = await mcpApp.inject({ method: 'GET', url: `/account/complete/${requestId}`, cookies: { sid } })
+                const authCode = new URL(completeResponse.headers.location).searchParams.get('code')
+                const tokenResponse = await mcpApp.inject({
+                    method: 'POST',
+                    url: '/account/token',
+                    payload: { grant_type: 'authorization_code', code: authCode, redirect_uri: redirectURI, client_id: reg.client_id, code_verifier: verifier }
+                })
+                const minted = await mcpApp.db.models.AccessToken.byRefreshToken(tokenResponse.json().refresh_token)
+                const issued = await mcpApp.db.models.AccessToken.findOne({
+                    where: { id: minted.id },
+                    include: [{ model: mcpApp.db.models.AccessTokenToolPermission }]
+                })
+                return { consentResponse, tokenResponse, issued }
+            }
+
+            it('persists the default and per-team overrides, and derives readOnly false when any group allows write', async function () {
+                const { issued } = await fullConsentFlow({
+                    teamIds: [mcpApp.team.hashid],
+                    expiresAt: Date.now() + 1000 * 60 * 60,
+                    toolPermissions: toolPermissionsPayload(true, { [mcpApp.team.hashid]: { platform: { write: true } } })
+                })
+                issued.readOnly.should.be.false()
+                issued.toolPermissions.should.eql({
+                    platform: { read: true, write: false, destructive: false },
+                    flow_building: { read: true, write: false, destructive: false }
+                })
+                issued.AccessTokenToolPermissions.should.have.length(1)
+                issued.AccessTokenToolPermissions[0].permissions.should.eql({
+                    platform: { read: true, write: true, destructive: false },
+                    flow_building: { read: false, write: false, destructive: false }
+                })
+            })
+
+            it('stacks destructive into write into read when persisting', async function () {
+                const { issued } = await fullConsentFlow({
+                    teamIds: [],
+                    expiresAt: Date.now() + 1000 * 60 * 60,
+                    toolPermissions: toolPermissionsPayload(false, { [mcpApp.team.hashid]: { platform: { destructive: true } } })
+                })
+                issued.AccessTokenToolPermissions[0].permissions.platform.should.eql({ read: true, write: true, destructive: true })
+            })
+
+            it('drops a team override that matches the default rather than storing it', async function () {
+                const { issued } = await fullConsentFlow({
+                    teamIds: [],
+                    expiresAt: Date.now() + 1000 * 60 * 60,
+                    toolPermissions: toolPermissionsPayload(true, { [mcpApp.team.hashid]: { platform: { read: true }, flow_building: { read: true } } })
+                })
+                issued.AccessTokenToolPermissions.should.have.length(0)
+            })
+
+            it('derives readOnly true when nothing allows write in any group', async function () {
+                const { issued } = await fullConsentFlow({
+                    teamIds: [],
+                    expiresAt: Date.now() + 1000 * 60 * 60,
+                    toolPermissions: toolPermissionsPayload(true)
+                })
+                issued.readOnly.should.be.true()
             })
         })
 

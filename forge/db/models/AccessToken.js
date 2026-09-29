@@ -50,7 +50,18 @@ module.exports = {
         grantExpiresAt: { type: DataTypes.DATE },
         name: { type: DataTypes.STRING },
         readOnly: { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: false },
-        adminOptIn: { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: false }
+        adminOptIn: { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: false },
+        toolPermissions: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+            get () {
+                const rawValue = this.getDataValue('toolPermissions')
+                return rawValue ? JSON.parse(rawValue) : null
+            },
+            set (value) {
+                this.setDataValue('toolPermissions', value === null || value === undefined ? null : JSON.stringify(value))
+            }
+        }
     },
     associations: function (M) {
         this.belongsTo(M.Team, { foreignKey: 'ownerId', constraints: false })
@@ -58,6 +69,7 @@ module.exports = {
         this.belongsTo(M.Device, { foreignKey: 'ownerId', constraints: false })
         this.belongsTo(M.User, { foreignKey: 'ownerId', constraints: false })
         this.hasMany(M.AccessTokenTeamScope)
+        this.hasMany(M.AccessTokenToolPermission, { onDelete: 'CASCADE' })
         this.hasMany(M.AccessTokenRefreshRotation, { onDelete: 'CASCADE' })
     },
     finders: function (M) {
@@ -123,13 +135,15 @@ module.exports = {
                             name: { [Op.ne]: null }
                         },
                         order: [['id', 'ASC']],
-                        attributes: ['id', 'name', 'scope', 'expiresAt', 'readOnly', 'adminOptIn', 'refreshTokenExpiresAt', 'grantExpiresAt'],
+                        attributes: ['id', 'name', 'scope', 'expiresAt', 'readOnly', 'adminOptIn', 'refreshTokenExpiresAt', 'grantExpiresAt', 'toolPermissions'],
                         include: [{
                             model: M.AccessTokenTeamScope,
                             include: [{
                                 model: M.Team,
                                 attributes: ['id', 'name']
                             }]
+                        }, {
+                            model: M.AccessTokenToolPermission
                         }]
                     })
                     return tokens

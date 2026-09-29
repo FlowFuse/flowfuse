@@ -2,6 +2,8 @@ const Sentry = require('@sentry/node')
 const fp = require('fastify-plugin')
 const { isFreeEmail } = require('free-email-domains-list')
 
+const mcpToolPermissions = require('../../lib/mcpToolPermissions')
+
 /**
  * Routes related to session handling, login/out etc
  *
@@ -157,11 +159,26 @@ async function init (app, opts) {
                                 }))
                             }
 
+                            let toolPermissions
+                            if (accessToken.toolPermissions) {
+                                const overrides = accessToken.AccessTokenToolPermissions ?? []
+                                toolPermissions = {
+                                    default: accessToken.toolPermissions,
+                                    teams: overrides.reduce((teams, override) => {
+                                        teams[app.db.models.Team.encodeHashid(override.TeamId)] = override.permissions
+                                        return teams
+                                    }, {})
+                                }
+                            } else {
+                                toolPermissions = { default: mcpToolPermissions.legacyDefault(accessToken.readOnly), teams: {} }
+                            }
+
                             const patMetadata = {
                                 id: accessToken.id,
                                 readOnly: accessToken.readOnly,
                                 adminOptIn: accessToken.adminOptIn,
-                                teamScopes
+                                teamScopes,
+                                toolPermissions
                             }
 
                             request.session.isPAT = true

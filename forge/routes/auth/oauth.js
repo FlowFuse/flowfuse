@@ -5,6 +5,23 @@ const { URL } = require('url')
 const { KEY_PROTECTED } = require('../../db/models/ProjectSettings')
 
 const { base64URLEncode, sha256, URLEncode } = require('../../db/utils')
+const mcpToolPermissions = require('../../lib/mcpToolPermissions')
+
+const TOOL_PERMISSIONS_GROUP_SCHEMA = {
+    type: 'object',
+    properties: {
+        read: { type: 'boolean' },
+        write: { type: 'boolean' },
+        destructive: { type: 'boolean' }
+    }
+}
+const TOOL_PERMISSIONS_SCHEMA = {
+    type: 'object',
+    properties: {
+        platform: TOOL_PERMISSIONS_GROUP_SCHEMA,
+        flow_building: TOOL_PERMISSIONS_GROUP_SCHEMA
+    }
+}
 
 function badRequest (reply, error, description) {
     // This format is defined by the OAuth standard - do not change
@@ -386,15 +403,26 @@ module.exports = async function (app) {
             body: {
                 type: 'object',
                 properties: {
-                    readOnly: { type: 'boolean' },
                     teamIds: { type: 'array', items: { type: 'string' } },
-                    expiresAt: { type: 'number' }
-                }
+                    expiresAt: { type: 'number' },
+                    toolPermissions: {
+                        type: 'object',
+                        properties: {
+                            default: TOOL_PERMISSIONS_SCHEMA,
+                            teams: {
+                                type: 'object',
+                                additionalProperties: TOOL_PERMISSIONS_SCHEMA
+                            }
+                        },
+                        required: ['default']
+                    }
+                },
+                required: ['toolPermissions']
             }
         }
     }, async function (request, reply) {
         const requestId = request.params.id
-        const { readOnly = false, teamIds = [], expiresAt } = request.body
+        const { teamIds = [], expiresAt, toolPermissions } = request.body
 
         const session = await app.db.models.OAuthSession.findOne({ where: { id: requestId } })
         if (!session) {
@@ -414,7 +442,28 @@ module.exports = async function (app) {
             return badRequest(reply, 'invalid_request', 'Invalid expiresAt')
         }
 
-        session.value = { ...requestObject, readOnly, teamIds, expiresAt }
+        const overrideTeamIds = Object.keys(toolPermissions.teams || {})
+        for (const teamId of overrideTeamIds) {
+            const decodedId = app.db.models.Team.decodeHashid(teamId)
+            const membership = decodedId ? await app.db.models.TeamMember.findOne({ where: { UserId: request.session.User.id, TeamId: decodedId } }) : null
+            if (!membership) {
+                return badRequest(reply, 'invalid_request', `Not a member of team: ${teamId}`)
+            }
+            if (teamIds.length > 0 && !teamIds.includes(teamId)) {
+                return badRequest(reply, 'invalid_request', `Team override is not in teamIds: ${teamId}`)
+            }
+        }
+
+        const normalisedDefault = mcpToolPermissions.normalise(toolPermissions.default)
+        const normalisedTeams = {}
+        for (const teamId of overrideTeamIds) {
+            const normalisedOverride = mcpToolPermissions.normalise(toolPermissions.teams[teamId])
+            if (!mcpToolPermissions.equals(normalisedOverride, normalisedDefault)) {
+                normalisedTeams[teamId] = normalisedOverride
+            }
+        }
+
+        session.value = { ...requestObject, teamIds, expiresAt, toolPermissions: { default: normalisedDefault, teams: normalisedTeams } }
         await session.save()
 
         reply.send({ status: 'ok' })
@@ -532,9 +581,9 @@ module.exports = async function (app) {
                 const accessToken = await app.db.controllers.AccessToken.createMCPOAuthToken(
                     requestObject.userId,
                     {
-                        readOnly: requestObject.readOnly || false,
                         teamIds: requestObject.teamIds || [],
-                        grantExpiresAt: requestObject.expiresAt || null
+                        grantExpiresAt: requestObject.expiresAt || null,
+                        toolPermissions: requestObject.toolPermissions || null
                     }
                 )
                 const response = {

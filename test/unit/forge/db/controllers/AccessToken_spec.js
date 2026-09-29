@@ -374,6 +374,64 @@ describe('AccessToken controller', function () {
             row.refreshTokenExpiresAt.getTime().should.be.greaterThan(row.expiresAt.getTime())
         })
 
+        describe('toolPermissions', function () {
+            it('leaves toolPermissions null when none is given (legacy-shaped token)', async function () {
+                const result = await createToken({ readOnly: true })
+                const row = await app.db.models.AccessToken.byRefreshToken(result.refreshToken)
+                should.not.exist(row.toolPermissions)
+                row.should.have.property('readOnly', true)
+            })
+
+            it('stores the normalised default and derives readOnly from it, ignoring a passed readOnly', async function () {
+                const result = await createToken({
+                    readOnly: true, // ignored: toolPermissions is given
+                    toolPermissions: { default: { platform: { write: true } } }
+                })
+                const row = await app.db.models.AccessToken.byRefreshToken(result.refreshToken)
+                row.toolPermissions.should.eql({
+                    platform: { read: true, write: true, destructive: false },
+                    flow_building: { read: false, write: false, destructive: false }
+                })
+                row.should.have.property('readOnly', false)
+            })
+
+            it('derives readOnly true when nothing in the default or any override allows write', async function () {
+                const result = await createToken({
+                    toolPermissions: {
+                        default: { platform: { read: true } },
+                        teams: { [TestObjects.team.hashid]: { flow_building: { read: true } } }
+                    }
+                })
+                const row = await app.db.models.AccessToken.byRefreshToken(result.refreshToken)
+                row.should.have.property('readOnly', true)
+            })
+
+            it('derives readOnly false when only a team override allows write', async function () {
+                const result = await createToken({
+                    toolPermissions: {
+                        default: { platform: { read: true } },
+                        teams: { [TestObjects.team.hashid]: { flow_building: { write: true } } }
+                    }
+                })
+                const row = await app.db.models.AccessToken.byRefreshToken(result.refreshToken)
+                row.should.have.property('readOnly', false)
+            })
+
+            it('persists a team override row, normalised', async function () {
+                const result = await createToken({
+                    toolPermissions: {
+                        default: { platform: { read: true } },
+                        teams: { [TestObjects.team.hashid]: { platform: { destructive: true } } }
+                    }
+                })
+                const row = await app.db.models.AccessToken.byRefreshToken(result.refreshToken)
+                const overrides = await app.db.models.AccessTokenToolPermission.findAll({ where: { AccessTokenId: row.id } })
+                overrides.should.have.length(1)
+                overrides[0].should.have.property('TeamId', TestObjects.team.id)
+                overrides[0].permissions.platform.should.eql({ read: true, write: true, destructive: true })
+            })
+        })
+
         it('rejects an expired access token but keeps the row so it can still be refreshed', async function () {
             const original = await createToken()
             await setRowExpiry(original.refreshToken, { accessMs: -5000 })
