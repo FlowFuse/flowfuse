@@ -1,5 +1,7 @@
 ---
 navTitle: Chat Interface
+meta:
+   description: Use the FlowFuse Expert chat in Support mode to build and debug flows on your canvas, or in Insights mode to query live operational data.
 ---
 
 # Chat Interface
