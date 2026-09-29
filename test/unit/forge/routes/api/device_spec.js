@@ -1284,7 +1284,7 @@ describe('Device API', async function () {
         describe('assign to project', function () {
             async function setupProjectWithSnapshot (setActive) {
                 TestObjects.deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
-                TestObjects.deviceProject.setTeam(TestObjects.ATeam)
+                await TestObjects.deviceProject.setTeam(TestObjects.ATeam)
                 // Create a snapshot
                 TestObjects.deviceProjectSnapshot = (await createSnapshot(TestObjects.deviceProject.id, 'test-snapshot', TestObjects.tokens.alice)).json()
                 if (setActive) {
@@ -1373,7 +1373,7 @@ describe('Device API', async function () {
             it('non-owner cannot assign to a project', async function () {
                 // Chris (member) cannot assign to project
                 TestObjects.deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
-                TestObjects.deviceProject.setTeam(TestObjects.ATeam)
+                await TestObjects.deviceProject.setTeam(TestObjects.ATeam)
 
                 const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
                 const response = await app.inject({
@@ -1389,7 +1389,7 @@ describe('Device API', async function () {
             it('cannot assign to a project in a different team', async function () {
                 // Device (ATeam) cannot be assign to Project (BTeam)
                 TestObjects.deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
-                TestObjects.deviceProject.setTeam(TestObjects.BTeam)
+                await TestObjects.deviceProject.setTeam(TestObjects.BTeam)
 
                 const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
                 const response = await app.inject({
@@ -1624,7 +1624,7 @@ describe('Device API', async function () {
             it('cannot set targetSnapshot for snapshot outside of the team', async function () {
                 // Create a project and snapshot in another team
                 const otherProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
-                otherProject.setTeam(TestObjects.BTeam)
+                await otherProject.setTeam(TestObjects.BTeam)
                 const otherSnapshot = (await createSnapshot(otherProject.id, 'other-snapshot', TestObjects.tokens.bob)).json()
 
                 const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
@@ -1895,7 +1895,7 @@ describe('Device API', async function () {
 
         it('creates a snapshot', async function () {
             const deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
-            deviceProject.setTeam(TestObjects.ATeam)
+            await deviceProject.setTeam(TestObjects.ATeam)
 
             const device = await createDevice({ name: 'device-1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, instance: deviceProject.id })
             const response = await app.inject({
@@ -2388,7 +2388,7 @@ describe('Device API', async function () {
     describe('Device Checkin', async function () {
         async function setupProjectWithSnapshot (setActive) {
             TestObjects.deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
-            TestObjects.deviceProject.setTeam(TestObjects.ATeam)
+            await TestObjects.deviceProject.setTeam(TestObjects.ATeam)
             // Create a snapshot
             TestObjects.deviceProjectSnapshot = (await createSnapshot(TestObjects.deviceProject.id, 'test-snapshot', TestObjects.tokens.alice)).json()
             if (setActive) {
@@ -2763,7 +2763,7 @@ describe('Device API', async function () {
     describe('Device state', function () {
         async function setupProjectWithSnapshot (setActive) {
             TestObjects.deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
-            TestObjects.deviceProject.setTeam(TestObjects.ATeam)
+            await TestObjects.deviceProject.setTeam(TestObjects.ATeam)
             // Create a snapshot
             TestObjects.deviceProjectSnapshot = (await createSnapshot(TestObjects.deviceProject.id, 'test-snapshot', TestObjects.tokens.alice)).json()
             if (setActive) {
