@@ -37,7 +37,7 @@ The same three steps, written out:
 
 2. **Sign in.** FlowFuse uses OAuth, so your agent sends you to a FlowFuse login page. If your client asks for an OAuth client ID or secret, leave them blank; FlowFuse registers your client for you.
 
-3. **Choose what the agent may do.** Signing in takes you to a FlowFuse authorization page. There you pick read-only or full access, scope it to all your teams or specific teams, and set an expiration date for the grant.
+3. **Select teams and permissions.** Signing in takes you to a FlowFuse authorization page. There you choose which teams the agent can reach and the permissions it has in each, and set an expiration date for the grant.
 
 Your agent is now connected. If your client does not support OAuth, use a token instead, see [clients without a sign-in flow](#clients-without-a-sign-in-flow).
 
@@ -72,13 +72,17 @@ Custom connectors live behind developer mode. Turn it on under **Settings**, the
 
 ### Claude
 
-Where custom connectors are available on your plan, add one and enter the FlowFuse MCP address.
+[Connect FlowFuse to Claude](https://claude.ai/directory/flowfuse) from the FlowFuse connector in Claude's directory, choose **Connect to Claude** and sign in.
+
+For a self-hosted platform, where custom connectors are available on your plan, add one and enter your platform's MCP address.
 
 On Team and Enterprise plans an owner adds the connector for the organisation first, then each person connects and signs in individually.
 
 ### Coding agents
 
-A coding agent can add the connector to itself. Ask it, rather than editing its configuration by hand:
+In Claude Code signed in with a Claude account, FlowFuse Cloud is already available as a connector. Run `/mcp`, open **Show unused connectors**, select FlowFuse and choose **Authenticate**.
+
+With an API key, on self-hosted, or in another coding agent, ask the agent to add the connector to itself, rather than editing its configuration by hand:
 
 ```
 Add the FlowFuse MCP tool at https://app.flowfuse.com/mcp. Then ask me to complete the sign-in in the browser that opens.
@@ -112,13 +116,13 @@ The config format is the client's, not FlowFuse's. Two JSON shapes are common, o
 
 Each FlowFuse tool carries its recommended usage and permissions, so a connected agent knows what it is for before calling it. Most MCP clients then ask you to confirm before running a tool. That prompt is the client's, not FlowFuse's, so its look and whether you can turn it off vary. FlowFuse Expert's own approval cards do not apply here.
 
-What FlowFuse enforces on every call is your grant: the teams, and read-only or full access. Each tool carries the access it needs, and FlowFuse rejects a call whose tool reaches past your grant, whether the grant came from signing in or from a token's scope.
+What FlowFuse enforces on every call is your grant: the teams and permissions you selected. Each tool carries the access it needs, and FlowFuse rejects a call whose tool reaches past your grant, whether the grant came from signing in or from a token's scope.
 
 Actions an agent takes appear in the [audit log](/docs/user/logs/#ai-agents-and-api-activity), attributed to your account and marked as having come from a connected agent.
 
 ## If something is not working
 
-**A change was refused.** The agent has read-only access. Re-connect it and grant full access.
+**A change was refused.** The agent was not granted that permission. Re-connect it and select the permission it needs.
 
 **The agent cannot reach a team.** That team was not included when you signed in. Re-connect and include it.
 
