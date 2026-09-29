@@ -248,6 +248,33 @@ describe('MCP Snapshots Tools', function () {
         })
     })
 
+    describe('platform_delete_snapshot', function () {
+        const tool = getTool('platform_delete_snapshot')
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('deletes through the owner-agnostic snapshot route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
+            inject.withArgs({ method: 'DELETE', url: '/api/v1/snapshots/snapshot1' }).resolves(routeResponse)
+
+            const response = await tool.handler({ snapshotId: 'snapshot1' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 403, json: () => ({ code: 'unauthorized' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ snapshotId: 'snapshot1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
     describe('platform_export_snapshot', function () {
         const tool = getTool('platform_export_snapshot')
 

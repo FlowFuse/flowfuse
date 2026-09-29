@@ -155,6 +155,25 @@ module.exports = [
         }
     },
     {
+        name: 'platform_delete_snapshot',
+        title: 'Delete Snapshot',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes a snapshot. This cannot be undone. Works for snapshots owned by a hosted instance or a remote instance (device); the owner is resolved automatically from the snapshot.
+            CAUTION: if the snapshot is deployed anywhere, deleting it also removes it as a target. It is cleared as the device target of its hosted instance, as the target of any device group, and as the target and active snapshot of every device pointing at it. A device that loses its target snapshot stops running Node-RED (unless it is in developer mode) until a new target is set.
+            Before calling this, confirm with the user. Check where the snapshot is deployed first with platform_get_hosted_instance_device_target_snapshot, platform_list_application_device_groups and platform_list_remote_instances, and tell the user which devices will be affected.
+            Only team owners can delete snapshots. Replies { status: "okay" } on success; a snapshot that does not exist, or that the caller cannot see, returns 404.`,
+        // destructiveHint: the snapshot is gone for good, and any device targeting it stops running.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            snapshotId: snapshotId.describe('The hashid of the snapshot to delete')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'DELETE', url: `/api/v1/snapshots/${args.snapshotId}` })
+            return response
+        }
+    },
+    {
         name: 'platform_export_snapshot',
         title: 'Export Snapshot',
         description: `FlowFuse platform automation tool:
