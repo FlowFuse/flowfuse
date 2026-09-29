@@ -78,8 +78,7 @@
 
                 <div class="ff-agent-step">
                     <p class="ff-agent-step__num">03</p>
-                    <p class="ff-agent-step__title">Sign in and choose what it reaches</p>
-                    <p class="ff-agent-step__body">Pick which teams it acts on, and whether it can edit or only read.</p>
+                    <p class="ff-agent-step__title">Select teams and permissions</p>
                 </div>
             </div>
         </div>
@@ -131,11 +130,11 @@ const CLIENTS = [
         step2Url: 'https://claude.ai/',
         cloud: {
             step1Title: 'Open the FlowFuse connector',
-            step1Body: 'FlowFuse is listed in the Claude connector directory.',
+            step1Body: 'The official FlowFuse MCP connector is available in Claude.',
             step1Label: 'Connect to Claude',
             step1Url: 'https://claude.ai/directory/flowfuse',
             step2Title: 'Choose Connect to Claude',
-            step2Body: 'Claude takes you to FlowFuse to sign in.',
+            step2Body: 'Claude opens FlowFuse.',
             step2Url: null
         }
     },
