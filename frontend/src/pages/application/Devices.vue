@@ -6,7 +6,7 @@
             </template>
             <template #helptext>
                 <p>FlowFuse can be used to manage instances of Node-RED running on remote hardware.</p>
-                <p>Each Remote Instance is managed with the <a href="https://flowfuse.com/docs/user/devices/" target="_blank">FlowFuse Device Agent</a>, which connects back to the platform to receive updates.</p>
+                <p>Each Remote Instance is managed with the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">FlowFuse Device Agent</a>, which connects back to the platform to receive updates.</p>
                 <p>Remote Instances are registered to a Team, and assigned to an Application.</p>
             </template>
         </SectionTopMenu>

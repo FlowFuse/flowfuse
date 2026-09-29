@@ -706,6 +706,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/user/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update the current user's settings */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        onboardingCompleted?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/user/change_password": {
         parameters: {
             query?: never;
@@ -2024,6 +2077,56 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{teamId}/default-workspace": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Provision the default application and instance in an empty team */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    teamId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            application?: components["schemas"]["ApplicationSummary"];
+                            instance?: components["schemas"]["Instance"];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -5609,6 +5712,8 @@ export interface paths {
                         setup?: true;
                         agentHost?: string;
                         registrationSession?: string;
+                        /** @enum {string} */
+                        agentType?: "lite" | "full";
                     } & ((unknown & unknown & unknown) | (unknown & unknown & unknown & unknown));
                 };
             };
@@ -7233,7 +7338,9 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        name?: string;
+                        pipeline: {
+                            name?: string;
+                        };
                     };
                 };
             };
@@ -10312,6 +10419,11 @@ export interface components {
             expiresAt: string | null;
             readOnly?: boolean;
             adminOptIn?: boolean;
+            autoRenews?: {
+                every?: number;
+                until?: string | null;
+                chosen?: boolean;
+            } | null;
             teams?: {
                 id?: string;
                 name?: string | null;
@@ -10467,6 +10579,7 @@ export interface components {
             onlineStatus: "online" | "offline" | "not-seen";
             isDeploying: boolean;
             agentVersion?: string | null;
+            agentType?: string | null;
             mode: string;
             links?: components["schemas"]["LinksMeta"];
             team?: components["schemas"]["TeamSummary"];
@@ -10494,6 +10607,7 @@ export interface components {
             isDeploying: boolean;
             links: components["schemas"]["LinksMeta"];
             application?: components["schemas"]["ApplicationSummary"];
+            agentType?: string;
             mostRecentAuditLogCreatedAt?: string;
             mostRecentAuditLogEvent?: string;
         };
@@ -10891,6 +11005,9 @@ export interface components {
             sso_enabled?: boolean;
             mfa_enabled?: boolean;
             free_trial_available?: boolean;
+            settings?: {
+                [key: string]: unknown;
+            };
             tcs_accepted?: string;
             password_expired?: boolean;
             pendingEmailChange?: boolean;

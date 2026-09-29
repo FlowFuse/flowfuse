@@ -7,6 +7,37 @@ const hostedInstanceId = z.string().uuid().describe('The id (UUID) of the hosted
 const remoteInstanceId = z.string().describe('The hashid of the remote instance')
 const snapshotId = z.string().describe('The hashid of the snapshot')
 
+// Shared by the pipeline stage add and update tools: both routes take the same
+// git-repo fields. forUpdate carries the one real difference between them, that
+// the update route applies the git settings as a set and empties anything omitted,
+// with credentialSecret as the documented exception.
+const gitStageFields = ({ forUpdate = false } = {}) => {
+    const resendNote = forUpdate ? '. Resent on every git update; reset to empty when omitted' : ''
+    return {
+        gitTokenId: z.string().optional().describe(forUpdate
+            ? 'Hashid of a team git token. Required on every update of a git-repo stage, together with the full git settings, since the git settings are only applied when it is present and are applied as a set'
+            : 'Hashid of a team git token, making this a git-repository stage. Pass exactly one target, and include url'),
+        url: z.string().optional().describe(`Git repository URL for a git-repo stage${resendNote}`),
+        branch: z.string().optional().describe(`Git branch to push to (git-repo stage)${resendNote}`),
+        pullBranch: z.string().optional().describe(`Git branch to pull from (git-repo stage)${resendNote}`),
+        pushPath: z.string().optional().describe(`Repository path to push to (git-repo stage)${resendNote}`),
+        pullPath: z.string().optional().describe(`Repository path to pull from (git-repo stage)${resendNote}`),
+        credentialSecret: z.string().optional().describe(forUpdate
+            ? 'Secret used to encrypt flow credentials pushed to the repository. Unlike the other git fields it keeps its stored value when omitted'
+            : 'Secret used to encrypt flow credentials pushed to the git repository')
+    }
+}
+const gitStageFieldKeys = Object.keys(gitStageFields())
+// Shared by the snapshot export and import tools: both routes take the same
+// component selection, and the controller applies the same defaults to each.
+// Direction-specific cautions (an export exposing hidden values, for instance)
+// belong in the owning tool's description, not here.
+const snapshotComponents = z.object({
+    flows: z.boolean().optional().describe('Include the flows (default true). Excluding flows also excludes credentials'),
+    credentials: z.boolean().optional().describe('Include the encrypted flow credentials (default true)'),
+    envVars: z.union([z.enum(['all', 'keys']), z.literal(false)]).optional().describe('Environment variables: "all" keeps keys and values (default), "keys" keeps only the names, false removes them entirely. Note "keys" also drops the hidden flag, so a secret variable comes back as an ordinary empty one')
+}).optional().describe('Optional selection of which snapshot components to include')
+
 // Query fragments composed per tool by spreading only the ones the backing
 // route's finder actually honors. Not the same as the route's declared query
 // schema: most list routes reuse a generic PaginationParams that advertises
@@ -85,6 +116,9 @@ module.exports = {
     hostedInstanceId,
     remoteInstanceId,
     snapshotId,
+    gitStageFields,
+    gitStageFieldKeys,
+    snapshotComponents,
     cursorParam,
     limitParam,
     basePagination,

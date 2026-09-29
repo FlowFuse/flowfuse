@@ -21,7 +21,7 @@
                 <template v-if="hasPermission('device:snapshot:create', { application: device.application })" #actions>
                     <ff-button
                         v-if="hasPermission('snapshot:import', { application: device.application })"
-                        kind="secondary" :disabled="busy || !features.deviceEditor || device.ownerType !== 'application'"
+                        kind="secondary" :disabled="!canUploadSnapshot || busy || !features.deviceEditor || device.ownerType !== 'application'"
                         data-action="import-snapshot"
                         @click="$emit('show-import-snapshot-dialog')"
                     >
@@ -82,7 +82,7 @@
                     <template v-if="hasPermission('device:snapshot:create', { application: device.application })" #actions>
                         <ff-button
                             v-if="hasPermission('snapshot:import', { application: device.application })"
-                            kind="secondary" :disabled="busy || !features.deviceEditor || device.ownerType !== 'application'"
+                            kind="secondary" :disabled="!canUploadSnapshot || busy || !features.deviceEditor || device.ownerType !== 'application'"
                             data-action="import-snapshot"
                             @click="$emit('show-import-snapshot-dialog')"
                         >
@@ -207,10 +207,16 @@ export default {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
         canCreateSnapshot () {
-            if (!this.developerMode || this.busy) {
+            if (!this.developerMode || this.busy || this.isLiteAgent) {
                 return false
             }
             return this.isOwnedByAnInstance || this.isOwnedByAnApplication
+        },
+        canUploadSnapshot () {
+            return !this.isLiteAgent
+        },
+        isLiteAgent () {
+            return this.device?.agentType === 'lite'
         },
         columns () {
             const cols = [
@@ -341,9 +347,12 @@ export default {
         },
         // enable/disable snapshot actions
         canDeploy (_row) {
-            return (!this.developerMode || this.supportsDevModeSnapshotRestore()) && this.hasPermission('device:edit', { application: this.device.application })
+            return !this.isLiteAgent && (!this.developerMode || this.supportsDevModeSnapshotRestore()) && this.hasPermission('device:edit', { application: this.device.application })
         },
         canDeployReason (snapshot) {
+            if (this.isLiteAgent) {
+                return 'The Lite Remote Agent does not currently support this feature'
+            }
             if (!this.hasPermission('device:edit', { application: this.device.application })) {
                 return 'You do not have permission to deploy snapshots to this Remote Instance'
             }

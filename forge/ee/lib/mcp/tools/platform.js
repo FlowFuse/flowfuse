@@ -182,6 +182,7 @@ module.exports = [
             Pick a session_id from the results and pass it as the target for subsequent tool invocations.
             If no sessions are returned, ask the user to open the FlowFuse platform in their browser and enable the MCP toggle (the plug icon next to the Expert button in the header).`,
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        _meta: { audience: 'mcp' },
         inputSchema: { }, // future - consider adding userId so that admin users can ask "what sessions does user X have?"
         handler: async (args, { app, user }) => {
             if (!app.db.controllers.BrowserSession) {
@@ -228,6 +229,7 @@ module.exports = [
             Call platform_list_browser_sessions first to get a valid session_id.
             The pin is remembered for this MCP connection until changed, the tab closes, or it expires.`,
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        _meta: { audience: 'mcp' },
         inputSchema: {
             session_id: z.string().describe('The sessionId of the browser tab to target, from platform_list_browser_sessions')
         },
@@ -300,6 +302,7 @@ module.exports = [
             If none is set, or the pinned tab is no longer live, call platform_list_browser_sessions and
             platform_set_active_browser_session to pick one.`,
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        _meta: { audience: 'mcp' },
         inputSchema: {},
         handler: async (args, { app, user, mcpSessionId }) => {
             if (!app.db.controllers.BrowserSession) {

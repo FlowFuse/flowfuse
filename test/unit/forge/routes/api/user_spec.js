@@ -120,6 +120,7 @@ describe('User API', async function () {
             TestObjects.elvis.email_verified = true
             TestObjects.elvis.password = 'eePassword'
             await TestObjects.elvis.save()
+            await app.db.models.UserSettings.destroy({ where: { UserId: TestObjects.elvis.id } })
         })
         // TODO: re-introduce the below once #1183 is complete
         // async function getAuditLog (limit = 1) {
@@ -151,6 +152,49 @@ describe('User API', async function () {
             result.should.have.property('username', TestObjects.alice.username)
             result.should.have.property('email', TestObjects.alice.email)
             result.should.not.have.property('sso_enabled')
+            result.should.have.property('settings')
+            result.settings.should.not.have.property('onboardingCompleted')
+        })
+        it('persists onboarding completion so it survives a new session', async function () {
+            await login('elvis', 'eePassword')
+            const putResponse = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/settings',
+                cookies: { sid: TestObjects.tokens.elvis },
+                payload: { onboardingCompleted: true }
+            })
+            putResponse.statusCode.should.equal(200)
+            putResponse.json().should.have.property('onboardingCompleted', true)
+
+            const getResponse = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.elvis }
+            })
+            getResponse.json().settings.should.have.property('onboardingCompleted', true)
+
+            // A fresh login (e.g. a different browser) must still see it
+            await login('elvis', 'eePassword')
+            const secondGetResponse = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.elvis }
+            })
+            secondGetResponse.json().settings.should.have.property('onboardingCompleted', true)
+        })
+        it('strips settings keys that are not on the allow-list', async function () {
+            await login('elvis', 'eePassword')
+            const putResponse = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/settings',
+                cookies: { sid: TestObjects.tokens.elvis },
+                payload: { onboardingCompleted: true, admin: true, favouriteColour: 'green' }
+            })
+            putResponse.statusCode.should.equal(200)
+            const settings = putResponse.json()
+            settings.should.have.property('onboardingCompleted', true)
+            settings.should.not.have.property('admin')
+            settings.should.not.have.property('favouriteColour')
         })
         describe('sso', function () {
             before(async function () {
@@ -1017,6 +1061,57 @@ describe('User API', async function () {
                 cookies: { sid: TestObjects.tokens.bob }
             })
             deleteResponse.statusCode.should.equal(404)
+        })
+        it('PAT can not delete PAT', async function () {
+            // Alice create token
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    name: 'Test Token',
+                    scope: ''
+                }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+            const token = json.token
+
+            // Verify PAT cannot delete it's self
+            const deleteResponse = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user/tokens/' + token.id,
+                headers: {
+                    authorization: `Bearer ${token}`
+                }
+            })
+            deleteResponse.statusCode.should.equal(403)
+        })
+        it('Lists an MCP OAuth token as auto-renewing', async function () {
+            const grantExpiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000
+            await app.db.controllers.AccessToken.createMCPOAuthToken(TestObjects.alice.id, { grantExpiresAt })
+            await app.db.controllers.AccessToken.createPersonalAccessToken(TestObjects.alice, '', null, 'Plain Token')
+
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+
+            const mcpToken = json.tokens.find(t => t.name === 'MCP Agent')
+            should.exist(mcpToken)
+            mcpToken.should.have.property('autoRenews')
+            // the renewal cycle comes from the backend, matching the real rotation
+            mcpToken.autoRenews.should.have.property('every', 1000 * 60 * 30)
+            mcpToken.autoRenews.should.have.property('chosen', true)
+            new Date(mcpToken.autoRenews.until).getTime().should.equal(grantExpiresAt)
+
+            // plain PATs do not carry it
+            const plainToken = json.tokens.find(t => t.name === 'Plain Token')
+            should.exist(plainToken)
+            plainToken.should.not.have.property('autoRenews')
         })
         it('Deleting a user removes any PATs from the db', async function () {
             const userToDelete = await app.db.models.User.create({ username: 'wayne', name: 'Wayne Vane', email: 'wayne@example.com', email_verified: true, password: 'wwPassword' })

@@ -1,4 +1,12 @@
+const crypto = require('crypto')
+
 const { Roles, RoleNames } = require('../../lib/roles')
+
+function provisioningError (message, code) {
+    const err = new Error(message)
+    err.code = code
+    return err
+}
 
 module.exports = {
 
@@ -21,6 +29,65 @@ module.exports = {
         })
 
         return team
+    },
+
+    /**
+     * Create the default application for a team, named after the user.
+     */
+    createDefaultApplication: async function (app, team, user) {
+        const applicationName = `${user.name}'s Application`
+        const application = await app.db.models.Application.create({
+            name: applicationName.charAt(0).toUpperCase() + applicationName.slice(1),
+            TeamId: team.id
+        })
+        await app.auditLog.Team.application.created(user, null, team, application)
+        await app.auditLog.Application.application.created(user, null, application)
+        return application
+    },
+
+    /**
+     * Provision the default workspace in a team: the application and hosted
+     * instance a classic signup would create. The instance type comes from the
+     * `user:team:auto-create:instanceType` platform setting.
+     *
+     * Throws errors with a `code` property (`team_not_empty`,
+     * `invalid_instance_type`, `invalid_stack`, `invalid_template`) so callers
+     * can decide how to surface them.
+     */
+    provisionDefaultWorkspace: async function (app, team, user) {
+        const existingInstances = await app.db.models.Project.byTeam(team.hashid)
+        if (existingInstances.length > 0) {
+            throw provisioningError('Team already has instances', 'team_not_empty')
+        }
+
+        const instanceTypeId = app.settings.get('user:team:auto-create:instanceType')
+        const instanceType = instanceTypeId && await app.db.models.ProjectType.byId(instanceTypeId)
+        if (!instanceType) {
+            throw provisioningError(`Instance type with id ${instanceTypeId} from 'user:team:auto-create:instanceType' not found`, 'invalid_instance_type')
+        }
+        const instanceStack = await instanceType.getDefaultStack() || (await instanceType.getProjectStacks())?.[0]
+        if (!instanceStack) {
+            throw provisioningError(`Unable to find a stack for use with instance type ${instanceTypeId}`, 'invalid_stack')
+        }
+        const instanceTemplate = await app.db.models.ProjectTemplate.findOne({ where: { active: true } })
+        if (!instanceTemplate) {
+            throw provisioningError('Unable to find the default instance template', 'invalid_template')
+        }
+
+        const applications = await app.db.models.Application.byTeam(team.id)
+        let application = applications[0]
+        const applicationCreated = !application
+        if (applicationCreated) {
+            application = await app.db.controllers.Team.createDefaultApplication(team, user)
+        }
+
+        const safeTeamName = team.name.toLowerCase().replace(/[\W_]/g, '-')
+        const safeUserName = user.username.toLowerCase().replace(/[\W_]/g, '-')
+        const instance = await app.db.controllers.Project.create(team, application, user, instanceType, instanceStack, instanceTemplate, {
+            name: `${safeTeamName}-${safeUserName}-${crypto.randomBytes(4).toString('hex')}`
+        })
+
+        return { application, instance, applicationCreated }
     },
 
     changeUserRole: async function (app, teamHashId, userHashId, role) {

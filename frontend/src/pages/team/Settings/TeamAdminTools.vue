@@ -134,11 +134,11 @@
                         <th>Remote Instance:</th>
                         <td v-if="!editingLimits">
                             <span v-if="!getTeamProperty('devices_free')">
-                                <div>{{ getTeamProperty('instances_' + getTeamProperty('devices_combinedFreeType') + '_free') || 0 }} - {{ getTeamProperty(`devices_limit`) || 'unlimited' }}</div>
+                                <div>{{ getTeamProperty('instances_' + getTeamProperty('devices_combinedFreeType') + '_free') || 0 }} - {{ getTeamProperty(`devices_limit`) > -1 ? getTeamProperty(`devices_limit`) : 'unlimited' }}</div>
                                 <div class="text-xs">Shared with {{ getInstanceTypeName(getTeamProperty('devices_combinedFreeType')) }} </div>
                             </span>
                             <span v-else>
-                                {{ getTeamProperty(`devices_free`) || 0 }} - {{ getTeamProperty(`devices_limit`) || 'unlimited' }}
+                                {{ getTeamProperty(`devices_free`) || 0 }} - {{ getTeamProperty(`devices_limit`) > -1 ? getTeamProperty(`devices_limit`) : 'unlimited' }}
                             </span>
                         </td>
                         <td v-else>

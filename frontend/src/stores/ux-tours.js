@@ -14,10 +14,19 @@ export const useUxToursStore = defineStore('ux-tours', {
         },
         completed: {},
         activeTour: null,
-        shouldPresentTour: false
+        shouldPresentTour: false,
+        aiConnectorLastShownAt: null
     }),
     getters: {
         shouldShowEducationModal: (state) => state.modals.education,
+        // Auto-show once, then hold off for ten days after it was last shown.
+        shouldAutoShowAiConnectorModal: (state) => {
+            if (!state.aiConnectorLastShownAt) {
+                return true
+            }
+            const tenDays = 10 * 24 * 60 * 60 * 1000
+            return Date.now() - state.aiConnectorLastShownAt > tenDays
+        },
         hasTourBeenCompleted: (state) => (tour) =>
             Object.prototype.hasOwnProperty.call(state.completed, tour)
     },
@@ -53,6 +62,9 @@ export const useUxToursStore = defineStore('ux-tours', {
         closeModal (modal) {
             this.modals[modal] = false
         },
+        markAiConnectorShown () {
+            this.aiConnectorLastShownAt = Date.now()
+        },
         setWelcomeTour (callback = () => {}) {
             this.setActiveTour(Tours.create(WelcomeTourId, TourWelcome, callback))
             this.startTour()
@@ -66,7 +78,7 @@ export const useUxToursStore = defineStore('ux-tours', {
         }
     },
     persist: {
-        pick: ['tours', 'completed', 'shouldPresentTour'],
+        pick: ['tours', 'completed', 'shouldPresentTour', 'aiConnectorLastShownAt'],
         storage: localStorage
     }
 })

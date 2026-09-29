@@ -257,7 +257,7 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         canChangeNodeRedVersion () {
-            return this.deviceOwnerType === 'application' && this.hasPermission('device:edit', { application: this.device.application })
+            return this.device?.agentType !== 'lite' && this.deviceOwnerType === 'application' && this.hasPermission('device:edit', { application: this.device.application })
         },
         deviceOwnerType () {
             return this.device?.ownerType || ''

@@ -23,7 +23,7 @@
                 </ff-layout-platform>
             </template>
             <template v-else-if="pageLayout === 'modal'">
-                <ff-layout-box>
+                <ff-layout-box :class="{ 'ff--center-box': $route.meta?.centerBox }">
                     <router-view />
                 </ff-layout-box>
             </template>

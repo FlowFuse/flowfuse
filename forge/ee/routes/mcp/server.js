@@ -1,5 +1,7 @@
 const { randomUUID } = require('node:crypto')
 
+const { toTopicSafeSessionId } = require('../../../comms/utils/mcpSessionId')
+
 // Maps mcpSessionId to the third-party caller's PAT, consumed by the comms layer.
 const MCP_SESSION_TOKEN_CACHE = 'mcp-session-token'
 const MCP_SESSION_TOKEN_CACHE_TTL = 1000 * 60 * 60 // 1 hour
@@ -45,10 +47,10 @@ module.exports = async function (app) {
         const teams = Array.isArray(pat?.teamScopes)
             ? pat.teamScopes.map(entry => Object.keys(entry)[0])
             : []
-        // Gate the third-party MCP surface on the platform having AI enabled. An empty
-        // allow-list is an all-teams PAT, so no single team is pinned here; per-team
-        // access is enforced downstream by the scope-capped token at invoke.
-        if (!app.config.features.enabled('ai')) {
+        // Platform-level gate only. Per-team enablement is enforced downstream by
+        // needsPermission (forge/routes/auth/permissions.js), since an all-teams PAT
+        // pins no single team here.
+        if (!app.config.features.enabled('ai') || !app.config.features.enabled('mcpThirdParty')) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             return null
         }
@@ -85,7 +87,9 @@ module.exports = async function (app) {
             }
         }
 
-        const mcpSessionId = request.headers['mcp-session-id'] || randomUUID()
+        const mcpSessionId = request.headers['mcp-session-id'] ||
+            toTopicSafeSessionId(mcpBody.params?._meta?.['openai/session']) ||
+            randomUUID()
         const authHeader = request.headers.authorization || ''
         const token = authHeader.startsWith('Bearer ') ? authHeader.slice('Bearer '.length) : null
         if (token) {
@@ -136,6 +140,27 @@ module.exports = async function (app) {
                 }
                 if (context?.teamId) {
                     userProperties.teamId = context.teamId
+                    // platform_ui/flow_building calls dispatch against the pinned tab, so the
+                    // needsPermission gate (forge/routes/auth/permissions.js) never runs. This
+                    // is the only place the pinned team is known before the gateway, so the
+                    // same per-team ai/mcpThirdParty check runs here. A plain 'platform' call
+                    // is refused too when a different team's tab is pinned - the common case
+                    // is one tab per team a caller works with.
+                    const pinnedTeam = await app.db.models.Team.byId(context.teamId)
+                    if (pinnedTeam && !pinnedTeam.getFeatureProperty('ai', true)) {
+                        reply.code(403).send({
+                            code: 'unauthorized',
+                            error: 'AI features are disabled for this team. A team owner can re-enable AI Features from Team Settings > Danger.'
+                        })
+                        return
+                    }
+                    if (pinnedTeam && !pinnedTeam.getFeatureProperty('mcpThirdParty', true)) {
+                        reply.code(403).send({
+                            code: 'unauthorized',
+                            error: 'MCP access is disabled for this team. A team owner can re-enable MCP access from Team Settings > Danger.'
+                        })
+                        return
+                    }
                 }
             }
         }

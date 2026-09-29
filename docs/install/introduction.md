@@ -22,18 +22,22 @@ FlowFuse can be installed to run in Docker or Kubernetes based environments.
 
  - **Docker:**
     - [Quick Start Guide](/docs/quick-start)
-    - [Full Install](/docs/install/docker/README.md)
+    - [Full Install](/docs/install/docker/)
  - **Kubernetes:**
-    - [Install Guide](/docs/install/kubernetes/README.md)
+    - [Install Guide](/docs/install/kubernetes/)
 
 We also provide one-click installs of the Docker version:
 
- - [Digital Ocean Docker Install Guide](/docs/install/docker/digital-ocean.md)
- - [AWS Docker Install Guide](/docs/install/docker/aws-marketplace.md)
+ - [Digital Ocean Docker Install Guide](/docs/install/docker/digital-ocean/)
+ - [AWS Docker Install Guide](/docs/install/docker/aws-marketplace/)
+
+Whichever installation you choose, the platform needs outbound network access to a set of
+hostnames. If it runs behind a firewall or proxy, see
+[Networking requirements](/docs/install/networking-requirements/).
 
 ## Upgrading FlowFuse
 
-If you are upgrading FlowFuse, please refer to the [Upgrade Guide](/docs/upgrade/README.md)
+If you are upgrading FlowFuse, please refer to the [Upgrade Guide](/docs/upgrade/)
 for any specific actions required.
 
 ## Do You Need Help? Installation Service

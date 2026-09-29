@@ -381,7 +381,11 @@ module.exports.init = async function (app) {
      * @param {object} providerOpts The SSO Provider configuration object
      */
     async function applyApplicationOverrides (user, desiredTeamApplicationroles, providerOpts) {
-        app.log.debug(`Desired Application Roles for ${user.username} ${JSON.stringify(desiredTeamApplicationroles)}`)
+        if (providerOpts.debugEnabled) {
+            app.log.info(`Desired Application Roles for ${user.username} ${JSON.stringify(desiredTeamApplicationroles)}`)
+        } else {
+            app.log.debug(`Desired Application Roles for ${user.username} ${JSON.stringify(desiredTeamApplicationroles)}`)
+        }
         // Work out which teams currently have SSO-managed overrides so we can clear
         // any that are no longer desired. Only teams in scope of this provider are
         // considered.
@@ -400,7 +404,11 @@ module.exports.init = async function (app) {
                 })
                 .map(teamMembership => teamMembership.Team.hashid)
         )
-        app.log.debug(`Existing Application Roles for ${user.username} ${JSON.stringify([...existingOverrideTeamIds])}`)
+        if (providerOpts.debugEnabled) {
+            app.log.info(`Existing Application Roles for ${user.username} ${JSON.stringify([...existingOverrideTeamIds])}`)
+        } else {
+            app.log.debug(`Existing Application Roles for ${user.username} ${JSON.stringify([...existingOverrideTeamIds])}`)
+        }
 
         // First pass - apply the desired overrides. Done sequentially so that the
         // apply and clear passes cannot race on the same membership.
@@ -412,7 +420,11 @@ module.exports.init = async function (app) {
                 // This team has been dealt with - don't clear it in the second pass
                 existingOverrideTeamIds.delete(teamId)
             } else {
-                app.log.debug(`User ${user.name} not a member of Team ${teamId} so not overriding Application access`)
+                if (providerOpts.debugEnabled) {
+                    app.log.info(`User ${user.name} not a member of Team ${teamId} so not overriding Application access`)
+                } else {
+                    app.log.debug(`User ${user.name} not a member of Team ${teamId} so not overriding Application access`)
+                }
             }
         }
 
@@ -448,15 +460,31 @@ module.exports.init = async function (app) {
             let adminGroup = false
             const desiredTeamMemberships = {}
             const desiredTeamApplicationroles = {}
-            app.log.debug(`SAML Group Assertions for ${user.username} ${JSON.stringify(groupAssertions)}`)
-            for (const ga of groupAssertions) {
+            if (providerOpts.debugEnabled) {
+                app.log.info(`SAML Group Assertions for ${user.username} ${JSON.stringify(groupAssertions)}`)
+            } else {
+                app.log.debug(`SAML Group Assertions for ${user.username} ${JSON.stringify(groupAssertions)}`)
+            }
+            for (let ga of groupAssertions) {
+                if (providerOpts.groupIdMap && providerOpts.groupIdMap[ga]) {
+                    if (providerOpts.debugEnabled) {
+                        app.log.info(`Mapping Group ID ${ga} to Group Name ${providerOpts.groupIdMap[ga]}`)
+                    } else {
+                        app.log.debug(`Mapping Group ID ${ga} to Group Name ${providerOpts.groupIdMap[ga]}`)
+                    }
+                    ga = providerOpts.groupIdMap[ga]
+                }
                 // Trim prefix/postfix from group name
                 let shortGA = ga
                 if (providerOpts.groupPrefixLength || providerOpts.groupSuffixLength) {
                     const start = providerOpts.groupPrefixLength || 0
                     const end = providerOpts.groupSuffixLength || 0
                     shortGA = ga.slice(start, ga.length - end)
-                    app.log.debug(`Converting Group name ${ga} to ${shortGA}`)
+                    if (providerOpts.debugEnabled) {
+                        app.log.info(`Converting Group name ${ga} to ${shortGA}`)
+                    } else {
+                        app.log.debug(`Converting Group name ${ga} to ${shortGA}`)
+                    }
                 }
                 // Parse the group name - format: 'ff-SLUG-ROLE'
                 // Generate a slug->role object (desiredTeamMemberships)
@@ -501,7 +529,11 @@ module.exports.init = async function (app) {
                     await user.save()
                 }
             }
-            app.log.debug(`Desired Teams for ${user.username} ${JSON.stringify(desiredTeamMemberships)}`)
+            if (providerOpts.debugEnabled) {
+                app.log.info(`Desired Teams for ${user.username} ${JSON.stringify(desiredTeamMemberships)}`)
+            } else {
+                app.log.debug(`Desired Teams for ${user.username} ${JSON.stringify(desiredTeamMemberships)}`)
+            }
 
             // Get the existing memberships and generate a slug->membership object (existingMemberships)
             const existingMemberships = {}
@@ -519,7 +551,11 @@ module.exports.init = async function (app) {
                     existingMemberships[membership.Team.slug] = membership
                 }
             })
-            app.log.debug(`Existing Teams for ${user.username} ${JSON.stringify(existingMemberships)}`)
+            if (providerOpts.debugEnabled) {
+                app.log.info(`Existing Teams for ${user.username} ${JSON.stringify(existingMemberships)}`)
+            } else {
+                app.log.debug(`Existing Teams for ${user.username} ${JSON.stringify(existingMemberships)}`)
+            }
 
             // We now have the list of desiredTeamMemberships and existingMemberships
             // that are in scope of being modified
@@ -591,7 +627,11 @@ module.exports.init = async function (app) {
             filter,
             attributes: ['cn']
         })
-        app.log.debug(`LDAP Groups for ${user.username} ${JSON.stringify(searchEntries)}`)
+        if (providerOpts.debugEnabled) {
+            app.log.info(`LDAP Groups for ${user.username} ${JSON.stringify(searchEntries)}`)
+        } else {
+            app.log.debug(`LDAP Groups for ${user.username} ${JSON.stringify(searchEntries)}`)
+        }
         const promises = []
         let adminGroup = false
         const desiredTeamMemberships = {}
@@ -609,7 +649,11 @@ module.exports.init = async function (app) {
             if (match) {
                 // check for Application override groups of the form `ff-<team>[<application>]-<role>`
                 if (!await recordApplicationOverride(desiredTeamApplicationroles, match, providerOpts)) {
-                    app.log.debug(`Found group ${searchEntries[i].cn} for user ${user.username}`)
+                    if (providerOpts.debugEnabled) {
+                        app.log.info(`Found group ${searchEntries[i].cn} for user ${user.username}`)
+                    } else {
+                        app.log.debug(`Found group ${searchEntries[i].cn} for user ${user.username}`)
+                    }
                     const teamSlug = match[1]
                     const teamRoleName = match[2]
                     const teamRole = Roles[teamRoleName]
@@ -630,7 +674,11 @@ module.exports.init = async function (app) {
                 adminGroup = true
             }
         }
-        app.log.debug(`Desired Teams for ${user.username} ${JSON.stringify(desiredTeamMemberships)}`)
+        if (providerOpts.debugEnabled) {
+            app.log.info(`Desired Teams for ${user.username} ${JSON.stringify(desiredTeamMemberships)}`)
+        } else {
+            app.log.debug(`Desired Teams for ${user.username} ${JSON.stringify(desiredTeamMemberships)}`)
+        }
         if (providerOpts.groupAdmin) {
             if (user.admin && !adminGroup) {
                 app.auditLog.User.user.updatedUser(0, null, [{ key: 'admin', old: true, new: false }], user)
@@ -664,7 +712,11 @@ module.exports.init = async function (app) {
                 existingMemberships[membership.Team.slug] = membership
             }
         })
-        app.log.debug(`Existing Teams for ${user.username} ${JSON.stringify(existingMemberships)}`)
+        if (providerOpts.debugEnabled) {
+            app.log.info(`Existing Teams for ${user.username} ${JSON.stringify(existingMemberships)}`)
+        } else {
+            app.log.debug(`Existing Teams for ${user.username} ${JSON.stringify(existingMemberships)}`)
+        }
         // We now have the list of desiredTeamMemberships and existingMemberships
         // that are in scope of being modified
 

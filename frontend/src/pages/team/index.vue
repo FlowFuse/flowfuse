@@ -22,6 +22,7 @@ import { mapActions, mapState } from 'pinia'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamSuspendedBanner from '../../components/banners/TeamSuspended.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
+import { useAiConnectorModal } from '../../composables/AiConnectorModal.js'
 import { Roles } from '../../utils/roles.js'
 
 import TeamDashboards from './Dashboards/index.vue'
@@ -54,9 +55,9 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team', 'teamMembership']),
-        ...mapState(useAccountSettingsStore, ['requiresBilling']),
+        ...mapState(useAccountSettingsStore, ['requiresBilling', 'featuresCheck']),
         ...mapState(useAccountAuthStore, ['user', 'isAdminUser']),
-        ...mapState(useUxToursStore, ['shouldPresentTour']),
+        ...mapState(useUxToursStore, ['shouldPresentTour', 'shouldAutoShowAiConnectorModal']),
         ...mapState(useProductExpertStore, ['shouldWakeUpAssistant']),
         isVisitingAdmin: function () {
             return (this.teamMembership.role === Roles.Admin)
@@ -70,6 +71,12 @@ export default {
         },
         canAccessTeam: function () {
             return this.isAdminUser || this.teamMembership?.role >= Roles.Viewer
+        },
+        canAutoShowAiConnector: function () {
+            return !!this.team &&
+                this.featuresCheck.isAiFeatureEnabled &&
+                this.featuresCheck.isMcpThirdPartyFeatureEnabled &&
+                this.shouldAutoShowAiConnectorModal
         }
     },
     watch: {
@@ -90,6 +97,11 @@ export default {
             if (val) {
                 this.wakeUpAssistant({ shouldHydrateMessages: true })
             }
+        },
+        canAutoShowAiConnector (ready) {
+            if (ready) {
+                this.autoShowAiConnector()
+            }
         }
     },
     mounted () {
@@ -100,6 +112,10 @@ export default {
             this.dispatchTour()
         } else if (this.shouldWakeUpAssistant) {
             this.$nextTick(() => this.wakeUpAssistant({ shouldHydrateMessages: true }))
+        }
+
+        if (this.canAutoShowAiConnector) {
+            this.autoShowAiConnector()
         }
     },
     async beforeMount () {
@@ -132,6 +148,10 @@ export default {
                     path: `/team/${this.team.slug}/billing`
                 })
             }
+        },
+        autoShowAiConnector () {
+            // Deferred so PlatformDialog in the layout has bound the dialog service
+            this.$nextTick(() => useAiConnectorModal().open())
         },
         dispatchTour () {
             return this.setWelcomeTour(() => {

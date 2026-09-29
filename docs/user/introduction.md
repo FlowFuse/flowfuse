@@ -5,7 +5,7 @@ navOrder: 1
 
 # Getting Started with FlowFuse
 
-This guide will help you learn how to use the FlowFuse platform to quickly create new Node-RED applications after a successful [installation](/docs/install/introduction.md) or [sign-up](https://app.flowforge.com/account/create) for FlowFuse Cloud.
+This guide will help you learn how to use the FlowFuse platform to quickly create new Node-RED applications after a successful [installation](/docs/install/introduction/) or [sign-up](https://app.flowforge.com/account/create) for FlowFuse Cloud.
 
 ## Creating a Node-RED Instance
 
@@ -72,7 +72,7 @@ FlowFuse will show you a device configuration window with installation options:
 
 Follow the steps in the window to connect your device—it takes less than a minute.
 
-[Learn more about Device Agent](/docs/device-agent/introduction.md)
+[Learn more about Device Agent](/docs/device-agent/introduction/)
 
 **Accessing Your Remote Instance:**
 
@@ -124,45 +124,45 @@ DevOps Pipelines enable you to link multiple Node-RED instances together in a de
 
 FlowFuse supports managing Node-RED on your own hardware.
 
- - [Getting started with Devices](/docs/device-agent/introduction.md)
+ - [Getting started with Devices](/docs/device-agent/introduction/)
 
 ## Working with Teams
 
- - [Team management](/docs/user/team/README.md) - How to add and remove users from a team.
- - [Role based access control](/docs/user/team/README.md#role-based-access-control) - Which privileges are granted to different roles.
+ - [Team management](/docs/user/team/) - How to add and remove users from a team.
+ - [Role based access control](/docs/user/team/#role-based-access-control) - Which privileges are granted to different roles.
 
 ## Working with Files and Context
 
 FlowFuse supports reading and writing persistent files and persistent context.
 
- - [Working with Files](/docs/user/filenodes.md)
- - [Working with the Static Asset Service](/docs/user/static-asset-service.md)
- - [Working with Context](/docs/user/persistent-context.md)
+ - [Working with Files](/docs/user/filenodes/)
+ - [Working with the Static Asset Service](/docs/user/static-asset-service/)
+ - [Working with Context](/docs/user/persistent-context/)
 
  ## Working with Instances
 
- - [Dashboards](/docs/user/dashboards.md) - View and switch between your Node-RED Dashboards from one place.
- - [Instance States](/docs/user/instance-states.md) - List of states an instance can be in.
- - [Snapshots](/docs/user/snapshots.md) - Create point-in-time backups of your Node-RED instances.
- - [Environment Variables](/docs/user/envvar.md) - How to manage Environment Variables in your Node-RED instances.
- - [Change Project Stack](/docs/user/changestack.md) - How to change an instance stack, for example to upgrade Node-RED.
- - [Logs](/docs/user/logs.md) - The Logs available in the FlowFuse application.
- - [Project Link Nodes](/docs/user/projectnodes.md) - Custom nodes for sending messages between Node-RED instances and devices.
- - [MQTT Nodes](/docs/user/mqtt-nodes.md) - Custom nodes for zero config MQTT integration with the team broker.
- - [Instance Settings](/docs/user/instance-settings.md) - Settings available for Node-RED instances.
- - [Shared Team Library](/docs/user/shared-library.md) - Share flows easily between different Node-RED instances in your team.
- - [Node-RED Tools Plugin](/docs/migration/node-red-tools.md) - A plugin for Node-RED that lets you work with your flows outside of FlowFuse.
- - [High Availability mode](/docs/user/high-availability.md) - Run multiple copies of your instance for scaling and availability.
+ - [Dashboards](/docs/user/dashboards/) - View and switch between your Node-RED Dashboards from one place.
+ - [Instance States](/docs/user/instance-states/) - List of states an instance can be in.
+ - [Snapshots](/docs/user/snapshots/) - Create point-in-time backups of your Node-RED instances.
+ - [Environment Variables](/docs/user/envvar/) - How to manage Environment Variables in your Node-RED instances.
+ - [Change Project Stack](/docs/user/changestack/) - How to change an instance stack, for example to upgrade Node-RED.
+ - [Logs](/docs/user/logs/) - The Logs available in the FlowFuse application.
+ - [Project Link Nodes](/docs/user/projectnodes/) - Custom nodes for sending messages between Node-RED instances and devices.
+ - [MQTT Nodes](/docs/user/mqtt-nodes/) - Custom nodes for zero config MQTT integration with the team broker.
+ - [Instance Settings](/docs/user/instance-settings/) - Settings available for Node-RED instances.
+ - [Shared Team Library](/docs/user/shared-library/) - Share flows easily between different Node-RED instances in your team.
+ - [Node-RED Tools Plugin](/docs/migration/node-red-tools/) - A plugin for Node-RED that lets you work with your flows outside of FlowFuse.
+ - [High Availability mode](/docs/user/high-availability/) - Run multiple copies of your instance for scaling and availability.
  - [FlowFuse Expert](/docs/user/expert/) - A Node-RED plugin powered by AI, trained on FlowFuse content, that helps you code faster, build flows, and debug with context-aware guidance.
  
  ## Working with MQTT
 
- - [Team Broker](/docs/user/teambroker.md) - Working with the FlowFuse bundled MQTT Broker
+ - [Team Broker](/docs/user/teambroker/) - Working with the FlowFuse bundled MQTT Broker
 
 ## Working with Custom Nodes
 
- - [Custom Nodes](/docs/user/custom-npm-packages.md) - Publishing Custom Node-RED Nodes
+ - [Custom Nodes](/docs/user/custom-npm-packages/) - Publishing Custom Node-RED Nodes
 
  ## Working with FF Tables
 
-  - [FF Tables](/docs/user/ff-tables.md) - Databases
+  - [FF Tables](/docs/user/ff-tables/) - Databases

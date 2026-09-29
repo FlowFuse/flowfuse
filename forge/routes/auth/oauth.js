@@ -14,6 +14,10 @@ function badRequest (reply, error, description) {
     })
 }
 
+// Per-caller cap on the refresh grant, throttling probes with guessed tokens.
+const MCP_REFRESH_RATE_WINDOW = 1000 * 60 // 60 seconds
+const MCP_REFRESH_RATE_MAX = 30
+
 // A loopback redirect_uri may vary its port between registration and use
 // (RFC 8252 Section 7.3); localhost and 127.0.0.1 are interchangeable.
 function isLoopbackHost (hostname) {
@@ -383,13 +387,14 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                     readOnly: { type: 'boolean' },
-                    teamIds: { type: 'array', items: { type: 'string' } }
+                    teamIds: { type: 'array', items: { type: 'string' } },
+                    expiresAt: { type: 'number' }
                 }
             }
         }
     }, async function (request, reply) {
         const requestId = request.params.id
-        const { readOnly = false, teamIds = [] } = request.body
+        const { readOnly = false, teamIds = [], expiresAt } = request.body
 
         const session = await app.db.models.OAuthSession.findOne({ where: { id: requestId } })
         if (!session) {
@@ -403,8 +408,13 @@ module.exports = async function (app) {
         if (!requestObject.mcp) {
             return badRequest(reply, 'invalid_request', 'Invalid request')
         }
+        // The grant must expire: in the future, at most one year out
+        const ONE_YEAR = 1000 * 60 * 60 * 24 * 365
+        if (!expiresAt || expiresAt <= Date.now() || expiresAt > Date.now() + ONE_YEAR) {
+            return badRequest(reply, 'invalid_request', 'Invalid expiresAt')
+        }
 
-        session.value = { ...requestObject, readOnly, teamIds }
+        session.value = { ...requestObject, readOnly, teamIds, expiresAt }
         await session.save()
 
         reply.send({ status: 'ok' })
@@ -523,7 +533,8 @@ module.exports = async function (app) {
                     requestObject.userId,
                     {
                         readOnly: requestObject.readOnly || false,
-                        teamIds: requestObject.teamIds || []
+                        teamIds: requestObject.teamIds || [],
+                        grantExpiresAt: requestObject.expiresAt || null
                     }
                 )
                 const response = {
@@ -598,13 +609,9 @@ module.exports = async function (app) {
                 reply.send(response)
             }
         } else if (grant_type === 'refresh_token') {
-            const existingToken = await app.db.models.AccessToken.byRefreshToken(refresh_token)
-            if (!existingToken) {
-                badRequest(reply, 'invalid_request', 'Invalid refresh_token')
-                return
+            if (!refresh_token) {
+                return badRequest(reply, 'invalid_request', 'Invalid refresh_token')
             }
-            // Only project/device clients re-check resource ownership on refresh;
-            // ff-plugin and MCP clients are user-scoped.
             let refreshAuthClient = null
             if (client_id !== 'ff-plugin') {
                 refreshAuthClient = await app.db.controllers.AuthClient.getAuthClient(client_id, client_secret)
@@ -612,7 +619,31 @@ module.exports = async function (app) {
                     return badRequest(reply, 'invalid_request', 'Invalid client_id')
                 }
             }
+            if (refreshAuthClient?.ownerType === 'mcp') {
+                // Rate-limit only the MCP refresh grant: it owns the unindexed replay
+                // lookups this guards, and editor/device refreshes must not share its
+                // budget. Keyed per client and IP so one client can't starve another.
+                const rateKey = `${client_id}:${request.ip}`
+                const rateCache = app.caches?.getCache?.('mcp-refresh-rate', { ttl: MCP_REFRESH_RATE_WINDOW, max: 100000 })
+                const now = Date.now()
+                const rateEntry = await rateCache?.get(rateKey)
+                // The cache renews an entry's TTL on each set, so the window is anchored on windowStart.
+                const inWindow = rateEntry && now - rateEntry.windowStart < MCP_REFRESH_RATE_WINDOW
+                const rateCount = inWindow ? rateEntry.count : 0
+                if (rateCount >= MCP_REFRESH_RATE_MAX) {
+                    reply.code(429).send({ error: 'slow_down', description: 'Too many refresh attempts' })
+                    return
+                }
+                await rateCache?.set(rateKey, { windowStart: inWindow ? rateEntry.windowStart : now, count: rateCount + 1 })
+            }
             if (refreshAuthClient && refreshAuthClient.ownerType !== 'mcp') {
+                // MCP tokens are resolved by refreshToken() below, which owns the grace
+                // window and replay detection; other clients re-check ownership here.
+                const existingToken = await app.db.models.AccessToken.byRefreshToken(refresh_token)
+                if (!existingToken) {
+                    badRequest(reply, 'invalid_grant', 'Invalid refresh_token')
+                    return
+                }
                 // Check the owner of the existing session still has access to the project
                 // this client is owned by
                 let owner = null
@@ -643,16 +674,26 @@ module.exports = async function (app) {
                 }
             }
             const accessToken = await app.db.controllers.AccessToken.refreshToken(refresh_token)
-            if (!accessToken) {
-                badRequest(reply, 'invalid_request', 'Invalid refresh_token')
+            if (!accessToken || accessToken.replay) {
+                if (accessToken?.replay) {
+                    await app.auditLog.User.account.mcpRefreshTokenReplay(accessToken.userId, null, {
+                        info: 'MCP refresh token replay detected; grant revoked',
+                        client: client_id,
+                        grant: accessToken.grantId
+                    })
+                }
+                badRequest(reply, 'invalid_grant', 'Invalid refresh_token')
                 return
             }
 
             const response = {
                 access_token: accessToken.token,
                 token_type: 'bearer',
-                expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000),
-                refresh_token: accessToken.refreshToken
+                expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000)
+            }
+            // A within-grace refresh omits refresh_token so the client keeps its current one.
+            if (accessToken.refreshToken) {
+                response.refresh_token = accessToken.refreshToken
             }
             reply.send(response)
         } else {

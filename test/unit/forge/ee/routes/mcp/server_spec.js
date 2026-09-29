@@ -134,6 +134,120 @@ describe('MCP Platform Tools Server', function () {
                 proxyRequest.firstCall.args[0].mcpSessionId.should.equal('session-abc')
             })
 
+            // OpenAI's clients do not return the Mcp-Session-Id we hand them, so every
+            // request would otherwise look like a new session. They do send a per-conversation
+            // id in _meta, which is the scope a pinned tab actually wants.
+            it('should fall back to the openai/session meta when no header is supplied', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    headers: {
+                        authorization: `Bearer ${TestObjects.alicePAT.token}`
+                    },
+                    payload: {
+                        jsonrpc: '2.0',
+                        method: 'tools/call',
+                        id: 1,
+                        params: { name: 'a-tool', _meta: { 'openai/session': 'conv-xyz' } }
+                    }
+                })
+                response.statusCode.should.equal(200)
+                response.headers['mcp-session-id'].should.equal('conv-xyz')
+                proxyRequest.firstCall.args[0].mcpSessionId.should.equal('conv-xyz')
+            })
+
+            it('should keep the same session id across calls in one openai conversation', async function () {
+                const call = async () => app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    headers: { authorization: `Bearer ${TestObjects.alicePAT.token}` },
+                    payload: {
+                        jsonrpc: '2.0',
+                        method: 'tools/call',
+                        id: 1,
+                        params: { name: 'a-tool', _meta: { 'openai/session': 'conv-stable' } }
+                    }
+                })
+                await call()
+                await call()
+                const first = proxyRequest.firstCall.args[0].mcpSessionId
+                const second = proxyRequest.secondCall.args[0].mcpSessionId
+                first.should.equal('conv-stable')
+                second.should.equal(first)
+            })
+
+            it('should make an openai/session carrying a separator safe for the topic', async function () {
+                const openaiSession = 'v1/3bjqKQlGRjpIMC9JfN8ZOLOI6XvwTstDuqZYmPAjNvBd9ZNRmU3NmyD4iT8CSJsVbFrSDHk0sSgz'
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    headers: { authorization: `Bearer ${TestObjects.alicePAT.token}` },
+                    payload: {
+                        jsonrpc: '2.0',
+                        method: 'tools/call',
+                        id: 1,
+                        params: { name: 'a-tool', _meta: { 'openai/session': openaiSession } }
+                    }
+                })
+                response.statusCode.should.equal(200)
+                const routed = proxyRequest.firstCall.args[0].mcpSessionId
+                routed.should.not.containEql('/')
+                routed.should.match(/^[A-Za-z0-9_-]{8,128}$/)
+                response.headers['mcp-session-id'].should.equal(routed)
+            })
+
+            it('should route the same openai/session to the same topic id every time', async function () {
+                const call = async () => app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    headers: { authorization: `Bearer ${TestObjects.alicePAT.token}` },
+                    payload: {
+                        jsonrpc: '2.0',
+                        method: 'tools/call',
+                        id: 1,
+                        params: { name: 'a-tool', _meta: { 'openai/session': 'v1/stable-token' } }
+                    }
+                })
+                await call()
+                await call()
+                proxyRequest.secondCall.args[0].mcpSessionId
+                    .should.equal(proxyRequest.firstCall.args[0].mcpSessionId)
+            })
+
+            it('should prefer an explicit mcp-session-id over the openai/session meta', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    headers: {
+                        authorization: `Bearer ${TestObjects.alicePAT.token}`,
+                        'mcp-session-id': 'session-abc'
+                    },
+                    payload: {
+                        jsonrpc: '2.0',
+                        method: 'tools/call',
+                        id: 1,
+                        params: { name: 'a-tool', _meta: { 'openai/session': 'conv-xyz' } }
+                    }
+                })
+                response.statusCode.should.equal(200)
+                proxyRequest.firstCall.args[0].mcpSessionId.should.equal('session-abc')
+            })
+
+            it('should still mint a session id when neither is supplied', async function () {
+                const call = async () => app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    headers: { authorization: `Bearer ${TestObjects.alicePAT.token}` },
+                    payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+                })
+                await call()
+                await call()
+                const first = proxyRequest.firstCall.args[0].mcpSessionId
+                const second = proxyRequest.secondCall.args[0].mcpSessionId
+                first.should.be.a.String().and.not.be.empty()
+                second.should.not.equal(first)
+            })
+
             it('should pass the pinned browser session and its team as user properties', async function () {
                 await app.db.controllers.BrowserSession.recordPresence(app.user.hashid, 'tab-1', {
                     visibility: 'visible',
@@ -162,6 +276,72 @@ describe('MCP Platform Tools Server', function () {
                 userProperties.should.have.property('telemetryEnabled', expectedTelemetry)
 
                 await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-1')
+            })
+
+            it('should refuse a call when the pinned tab belongs to a team with AI disabled', async function () {
+                const properties = { ...(app.team.properties || {}) }
+                properties.features = { ...(properties.features || {}), ai: false }
+                app.team.properties = properties
+                await app.team.save()
+
+                await app.db.controllers.BrowserSession.recordPresence(app.user.hashid, 'tab-3', {
+                    visibility: 'visible',
+                    focused: true,
+                    context: { teamId: app.team.hashid, topicParts: { entityType: 'instance', entityId: 'instance-1' } }
+                })
+                await app.db.controllers.BrowserSession.setActiveBrowserSession(app.user.hashid, 'session-ghi', 'tab-3')
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    headers: {
+                        authorization: `Bearer ${TestObjects.alicePAT.token}`,
+                        'mcp-session-id': 'session-ghi'
+                    },
+                    payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+                })
+                response.statusCode.should.equal(403)
+                response.json().should.have.property('code', 'unauthorized')
+                response.json().should.have.property('error', 'AI features are disabled for this team. A team owner can re-enable AI Features from Team Settings > Danger.')
+                proxyRequest.called.should.be.false()
+
+                await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-3')
+                properties.features.ai = true
+                app.team.properties = properties
+                await app.team.save()
+            })
+
+            it('should refuse a call when the pinned tab belongs to a team with MCP access disabled', async function () {
+                const properties = { ...(app.team.properties || {}) }
+                properties.features = { ...(properties.features || {}), mcpThirdParty: false }
+                app.team.properties = properties
+                await app.team.save()
+
+                await app.db.controllers.BrowserSession.recordPresence(app.user.hashid, 'tab-2', {
+                    visibility: 'visible',
+                    focused: true,
+                    context: { teamId: app.team.hashid, topicParts: { entityType: 'instance', entityId: 'instance-1' } }
+                })
+                await app.db.controllers.BrowserSession.setActiveBrowserSession(app.user.hashid, 'session-def', 'tab-2')
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    headers: {
+                        authorization: `Bearer ${TestObjects.alicePAT.token}`,
+                        'mcp-session-id': 'session-def'
+                    },
+                    payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+                })
+                response.statusCode.should.equal(403)
+                response.json().should.have.property('code', 'unauthorized')
+                response.json().should.have.property('error', 'MCP access is disabled for this team. A team owner can re-enable MCP access from Team Settings > Danger.')
+                proxyRequest.called.should.be.false()
+
+                await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-2')
+                properties.features.mcpThirdParty = true
+                app.team.properties = properties
+                await app.team.save()
             })
 
             it('should fall back to a single-team PAT scope for the team when no tab is pinned', async function () {

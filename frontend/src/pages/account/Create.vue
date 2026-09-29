@@ -1,13 +1,13 @@
 <!-- eslint-disable vue/no-v-html -->
 
 <template>
-    <ff-layout-box class="ff-signup ff--center-box">
+    <ff-layout-box class="ff-signup ff--center-box" :class="{ 'ff-signup--popup': isPopup }">
         <template v-if="splash && !isPopup" #splash-content>
             <div data-el="splash" v-html="splash" />
         </template>
         <form v-if="!ssoCreated" id="ff-sign-up" class="max-w-md m-auto" @submit.prevent="registerUser()">
             <p
-                v-if="settings['branding:account:signUpTopBanner']"
+                v-if="showTopBanner"
                 data-el="banner-text"
                 class="text-center -mt-6 pb-4 text-gray-400"
                 v-html="settings['branding:account:signUpTopBanner']"
@@ -51,7 +51,7 @@
                         <SpinnerIcon v-if="busy || tooManyRequests" class="ff-icon ml-3 w-3.5!" />
                     </span>
                 </ff-button>
-                <GoogleLoginButton label="Sign up with Google" :disabled="busy" />
+                <GoogleLoginButton v-if="googleSignUpEnabled" label="Sign up with Google" :disabled="busy" />
                 <p class="flex text-gray-400 font-light mt-6 gap-2 w-full justify-center">
                     Already registered? <a href="/" data-action="login">Log in here</a>
                 </p>
@@ -132,6 +132,15 @@ export default {
         splash () {
             return this.settings['branding:account:signUpLeftBanner']
         },
+        showTopBanner () {
+            // Only show the top banner if:
+            // - content has been configured for it and,
+            //   - either, in a popup
+            //   - or, no left banner configured
+            return !!this.settings['branding:account:signUpTopBanner'] && (
+                this.isPopup || !this.splash
+            )
+        },
         isPopup () {
             return isPopupContext(this.$route.query)
         },
@@ -146,6 +155,9 @@ export default {
         },
         askJoinReason () {
             return !!window.posthog
+        },
+        googleSignUpEnabled () {
+            return this.settings['platform:sso:google:auto-create']
         }
     },
     watch: {
@@ -278,6 +290,8 @@ export default {
                     if (err.response.data.code === 'invalid_request') {
                         this.errors.username = err.response.data.error || 'Invalid request'
                     } else if (err.response.data.code === 'invalid_sso_email') {
+                        this.errors.email = err.response.data.error
+                    } else if (err.response.data.code === 'invalid_email_domain') {
                         this.errors.email = err.response.data.error
                     } else if (err.response.data.statusCode === 429) {
                         this.errors.general = 'Too many attempts. Try again later.'

@@ -55,4 +55,4 @@ user you created and start using the platform. You can setup your Team and
 create your first Node-RED instance.
 
 More information about using the FlowFuse platform is available in the
-main [user guide](/docs/user/introduction.md).
+main [user guide](/docs/user/introduction/).

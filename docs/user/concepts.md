@@ -121,7 +121,7 @@ Snapshots are point-in-time backups that work differently depending on the insta
 
 #### Hosted Instance Snapshot
 
-A snapshot is a point-in-time backup of a hosted Node-RED instance. It captures the flows, credentials, and runtime settings. Snapshots can be created and deleted on the FlowFuse Platform, or using the [FlowFuse Node-RED Tools plugin](/docs/migration/node-red-tools.md). The platform also allows you to roll an instance back to a previous snapshot.
+A snapshot is a point-in-time backup of a hosted Node-RED instance. It captures the flows, credentials, and runtime settings. Snapshots can be created and deleted on the FlowFuse Platform, or using the [FlowFuse Node-RED Tools plugin](/docs/migration/node-red-tools/). The platform also allows you to roll an instance back to a previous snapshot.
 
 A user can create an hosted instance snapshot and then mark it as the *target* snapshot for remote instance. The platform will then deploy that snapshot to all of the devices assigned to the instance. Snapshots can be set as targets for DevOps pipeline stages. Auto snapshots are available for automatic backup scheduling. If an auto snapshot is set as a target or assigned to a pipeline stage, it will not be automatically cleaned up, so you may have more than 10 auto snapshots in that case.
 
@@ -133,7 +133,7 @@ Similar to instance snapshots, a device snapshot is a point-in-time backup of a 
 
 **Note:** This is a legacy feature that predates DevOps Pipelines. For new deployments, consider using [DevOps Pipelines](#devops-pipeline) instead, which provide more flexible and powerful deployment workflows.
 
-Instance assignment establishes a parent-child deployment relationship between a hosted instance and remote instances. When assigned, the hosted instance becomes the source of truth and automatically pushes snapshots to the remote instance. You can only push nodes and flows that are supported by both Hosted and Remote Instances. For more information on how this works, see [How Instance Assignment Works](/docs/user/concepts.md#how-it-works).
+Instance assignment establishes a parent-child deployment relationship between a hosted instance and remote instances. When assigned, the hosted instance becomes the source of truth and automatically pushes snapshots to the remote instance. You can only push nodes and flows that are supported by both Hosted and Remote Instances. For more information on how this works, see [How Instance Assignment Works](/docs/user/concepts/#how-it-works).
 
 #### How It Works
 

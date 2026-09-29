@@ -1,3 +1,5 @@
+import { watch } from 'vue'
+
 import { definePublisherSingleton } from './publisher.factory'
 import { TeamPublisher } from './team-publisher.contract'
 
@@ -11,7 +13,7 @@ const HEARTBEAT_INTERVAL = 45_000
 
 class TabPresencePublisher extends TeamPublisher {
     private $heartbeatTimer: ReturnType<typeof setInterval> | null = null
-    private $removeRouterGuard: (() => void) | null = null
+    private $stopContextWatch: (() => void) | null = null
     private $onVisibilityChange: (() => void) | null = null
     private $userId: string | null = null
     private $sessionId: string | null = null
@@ -56,12 +58,21 @@ class TabPresencePublisher extends TeamPublisher {
 
         this.$heartbeatTimer = setInterval(() => this._publishPresence(), HEARTBEAT_INTERVAL)
 
-        if (this.$router) {
-            // TODO this should reside in it's dedicated route guard
-            this.$removeRouterGuard = this.$router.afterEach(() => {
-                this._publishPresence()
-            })
-        }
+        // A route change flips the context to not-ready, then its loader lands and settles it.
+        // Republish whenever the ready snapshot changes; while not ready _publishPresence holds
+        // off, so a navigation defers until its entity is loaded rather than sending a stale one.
+        this.$stopContextWatch = watch(
+            () => {
+                const store = useContextStore()
+                if (!store.isExpertContextReady) {
+                    return 'pending'
+                }
+                const context = store.expert
+                const { entityType, entityId } = context.topicParts ?? {}
+                return `${context.pageName ?? ''}:${entityType ?? ''}:${entityId ?? ''}:${this._capabilities(context).join(',')}`
+            },
+            () => this._publishPresence()
+        )
 
         this.$onVisibilityChange = () => this._publishPresence()
         document.addEventListener('visibilitychange', this.$onVisibilityChange)
@@ -73,9 +84,9 @@ class TabPresencePublisher extends TeamPublisher {
             this.$heartbeatTimer = null
         }
 
-        if (this.$removeRouterGuard) {
-            this.$removeRouterGuard()
-            this.$removeRouterGuard = null
+        if (this.$stopContextWatch) {
+            this.$stopContextWatch()
+            this.$stopContextWatch = null
         }
 
         if (this.$onVisibilityChange) {
@@ -118,6 +129,10 @@ class TabPresencePublisher extends TeamPublisher {
         const topic = this._sessionTopic('heartbeat')
         if (!topic) return
         const contextStore = useContextStore()
+        // Hold off mid-navigation so we never publish a stale entity's context.
+        if (!contextStore.isExpertContextReady) {
+            return
+        }
         const context = contextStore.expert
         this._publish(topic, {
             visibility: document.visibilityState,

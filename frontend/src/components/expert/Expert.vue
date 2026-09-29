@@ -8,15 +8,20 @@
             :class="{ 'has-mode-switcher': isInsightsModeEnabled && isEditorContext }"
             @scroll="handleScroll"
         >
-            <info-banner />
+            <info-banner v-if="!isOnboardingSurface" />
 
             <expert-messages @resizing="scrollToBottom" />
+
+            <!-- Teleport target for the prompt suggestions rendered by the chat input -->
+            <div id="expert-suggestions-slot" />
 
             <div ref="scrollAnchor" class="scroll-anchor" />
         </div>
 
         <!-- Updates Available Banner -->
         <update-banner v-if="isEditorContext && isInstanceRunning" />
+
+        <task-list v-if="activeTaskList" :items="activeTaskList.items" :title="activeTaskList.title" />
 
         <expert-chat-input ref="chatInput" @stop="handleStopGeneration" />
     </div>
@@ -30,6 +35,7 @@ import ExpertMessages from './components/ExpertMessages.vue'
 import ExpertModeSwitcher from './components/ExpertModeSwitcher.vue'
 import InfoBanner from './components/InfoBanner.vue'
 import UpdateBanner from './components/UpdateBanner.vue'
+import TaskList from './components/messages/components/TaskList.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
@@ -44,12 +50,17 @@ export default {
         InfoBanner,
         ExpertMessages,
         ExpertChatInput,
-        UpdateBanner
+        UpdateBanner,
+        TaskList
     },
     inject: {
         togglePinWithWidth: {
             from: 'togglePinWithWidth',
             default: () => () => {} // No-op function when not provided
+        },
+        expertSurface: {
+            from: 'expert-surface',
+            default: 'drawer'
         }
     },
     props: {
@@ -75,7 +86,8 @@ export default {
             'abortController',
             'agentMode',
             'messages',
-            'isInsightsAgent'
+            'isInsightsAgent',
+            'activeTaskList'
         ]),
         ...mapState(useUxDrawersStore, {
             isPinned: state => state.rightDrawer.fixed
@@ -84,6 +96,11 @@ export default {
         isEditorContext () {
             // In editor context, the route name includes 'editor'
             return this.$route?.name?.includes('editor') || false
+        },
+        isOnboardingSurface () {
+            // In onboarding, the Expert opens the conversation itself, so the
+            // canned welcome message and the support banner stay out of it.
+            return this.expertSurface === 'onboarding'
         },
         isInsightsModeEnabled () {
             return !!this.featuresCheck?.isExpertInsightsFeatureEnabled
@@ -109,7 +126,9 @@ export default {
                 if (this.isInsightsAgent) {
                     await this.getCapabilities()
                 }
-                this.addWelcomeMessageIfNeeded()
+                if (!this.isOnboardingSurface) {
+                    this.addWelcomeMessageIfNeeded()
+                }
             }
         },
         'instance.meta.state': {

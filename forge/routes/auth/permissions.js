@@ -129,10 +129,9 @@ module.exports = fp(async function (app, opts) {
             throw new Error(`Unrecognised scope requested: '${scope}'`)
         }
         return async (request, reply) => {
-            // Third-party MCP callers may only act on teams with the AI feature
-            // enabled. The team comes from whatever the route already resolved
-            // (directly, or via an application, instance, or device), never from
-            // the tool arguments; a request with no team context is not gated.
+            // Gate third-party MCP callers on the resolved team's ai/mcpThirdParty features.
+            // The team comes from the route (team/application/instance/device), never from
+            // tool arguments; with no team context the request is not gated.
             if (requestContext.get('sourceContext')?.source === 'mcp') {
                 const loadedTeam = request.team || request.application?.Team || request.project?.Team || request.device?.Team
                 const teamId = loadedTeam?.id ?? request.teamMembership?.TeamId
@@ -141,7 +140,17 @@ module.exports = fp(async function (app, opts) {
                     // type is loaded, re-fetching only when it isn't already.
                     const team = loadedTeam?.TeamType ? loadedTeam : await app.db.models.Team.byId(teamId)
                     if (team && !team.getFeatureProperty('ai', true)) {
-                        reply.code(403).send({ code: 'unauthorized', error: 'AI features are disabled for this team' })
+                        reply.code(403).send({
+                            code: 'unauthorized',
+                            error: 'AI features are disabled for this team. A team owner can re-enable AI Features from Team Settings > Danger.'
+                        })
+                        throw new Error()
+                    }
+                    if (team && !team.getFeatureProperty('mcpThirdParty', true)) {
+                        reply.code(403).send({
+                            code: 'unauthorized',
+                            error: 'MCP access is disabled for this team. A team owner can re-enable MCP access from Team Settings > Danger.'
+                        })
                         throw new Error()
                     }
                 }

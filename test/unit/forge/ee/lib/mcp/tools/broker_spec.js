@@ -161,4 +161,89 @@ describe('MCP Broker Tools', function () {
             response.should.equal(errorResponse)
         })
     })
+
+    describe('platform_broker_lifecycle_action', function () {
+        const tool = getTool('platform_broker_lifecycle_action')
+
+        it('is marked destructive, since suspend tears the agent down', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
+
+        const actions = ['start', 'stop', 'suspend']
+        actions.forEach(action => {
+            it(`posts to the ${action} route`, async function () {
+                const routeResponse = { statusCode: 200, json: () => ({}) }
+                inject.withArgs({ method: 'POST', url: `/api/v1/teams/team1/brokers/broker1/${action}` }).resolves(routeResponse)
+
+                const response = await tool.handler({ teamId: 'team1', brokerId: 'broker1', action }, { inject })
+
+                inject.calledOnce.should.be.true()
+                response.should.equal(routeResponse)
+            })
+        })
+
+        it('rejects an unknown action', function () {
+            tool.inputSchema.action.safeParse('restart').success.should.be.false()
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ teamId: 'team1', brokerId: 'team-broker', action: 'suspend' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_create_broker_topic', function () {
+        const tool = getTool('platform_create_broker_topic')
+
+        it('posts the topics array to the topics route', async function () {
+            const routeResponse = { statusCode: 201, json: () => ({}) }
+            inject.withArgs({
+                method: 'POST',
+                url: '/api/v1/teams/team1/brokers/team-broker/topics',
+                payload: [{ topic: 'factory/line1/temp', metadata: { description: 'Line 1 temperature' } }]
+            }).resolves(routeResponse)
+
+            const response = await tool.handler({ teamId: 'team1', brokerId: 'team-broker', topics: [{ topic: 'factory/line1/temp', metadata: { description: 'Line 1 temperature' } }] }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ teamId: 'team1', brokerId: 'broker1', topics: [{ topic: 'a/b' }] }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_update_broker_topic', function () {
+        const tool = getTool('platform_update_broker_topic')
+
+        it('puts the metadata onto the topic route', async function () {
+            const routeResponse = { statusCode: 201, json: () => ({ id: 'topic1' }) }
+            inject.withArgs({
+                method: 'PUT',
+                url: '/api/v1/teams/team1/brokers/broker1/topics/topic1',
+                payload: { metadata: { description: 'updated' } }
+            }).resolves(routeResponse)
+
+            const response = await tool.handler({ teamId: 'team1', brokerId: 'broker1', topicId: 'topic1', metadata: { description: 'updated' } }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ teamId: 'team1', brokerId: 'broker1', topicId: 'topic1', metadata: {} }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
 })

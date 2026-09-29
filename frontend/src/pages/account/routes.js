@@ -36,7 +36,8 @@ export default [
         path: '/account/request/:id/mcp',
         component: AccessRequestMCP,
         meta: {
-            layout: 'modal'
+            layout: 'modal',
+            centerBox: true
         }
     },
     {

@@ -11,6 +11,7 @@
                 orientation="vertical"
                 :options="optionSets[qIndex]"
                 :model-value="selections[qIndex][0] ?? null"
+                :tile="tileLayout"
                 @update:model-value="value => setSingle(qIndex, value)"
             />
 
@@ -18,6 +19,7 @@
                 <ff-checkbox
                     v-for="(opt, oIndex) in q.options"
                     :key="oIndex"
+                    :class="{ 'ff-checkbox--tile': tileLayout }"
                     :model-value="isSelected(qIndex, opt.label)"
                     :disabled="disabled"
                     @update:model-value="checked => setMulti(qIndex, opt.label, checked)"
@@ -26,24 +28,25 @@
                     <span v-if="opt.description" class="option-description">{{ opt.description }}</span>
                 </ff-checkbox>
             </div>
+
+            <div class="question-free-text" :class="{ 'question-free-text--disabled': disabled }">
+                <textarea
+                    class="question-free-text__input"
+                    :value="freeTexts[qIndex]"
+                    :disabled="disabled"
+                    placeholder="Type your own answer..."
+                    @input="event => setFreeText(qIndex, event.target.value)"
+                />
+            </div>
         </div>
         <div class="questions-actions">
             <ff-button
                 kind="primary"
                 size="small"
                 :disabled="disabled || !allAnswered"
-                @click="$emit('select', compose())"
+                @click="submit"
             >
                 Send
-            </ff-button>
-            <ff-button
-                kind="secondary"
-                size="small"
-                :disabled="disabled || !allAnswered"
-                title="Edit before sending"
-                @click="$emit('edit', compose())"
-            >
-                Edit
             </ff-button>
         </div>
     </div>
@@ -52,6 +55,12 @@
 <script>
 export default {
     name: 'QuestionsList',
+    inject: {
+        expertSurface: {
+            from: 'expert-surface',
+            default: 'drawer'
+        }
+    },
     props: {
         questions: {
             type: Array,
@@ -64,13 +73,23 @@ export default {
         shouldStream: {
             type: Boolean,
             default: false
+        },
+        // a previously sent answer (picks and typed text) to restore after a page refresh
+        initialAnswer: {
+            type: Object,
+            default: null
         }
     },
-    emits: ['select', 'edit', 'streaming-complete'],
+    emits: ['select', 'streaming-complete'],
     data () {
+        const initial = this.initialAnswer
         return {
             // one array of selected option labels per question
-            selections: this.questions.map(() => []),
+            selections: initial?.selections
+                ? initial.selections.map(picks => [...picks])
+                : this.questions.map(() => []),
+            // typed answers ride along with any picked options whenever they are non-empty
+            freeTexts: initial?.freeTexts ? [...initial.freeTexts] : this.questions.map(() => ''),
             // ff-radio-group expects an options array; the option label doubles as its value.
             // disabled is mirrored from the prop in the watcher below so a stale card greys out.
             optionSets: this.questions.map(q => (q.options || []).map(opt => ({
@@ -83,7 +102,15 @@ export default {
     },
     computed: {
         allAnswered () {
-            return this.questions.every((q, i) => (this.selections[i] || []).length > 0)
+            return this.questions.every((q, i) => {
+                const hasSelection = (this.selections[i] || []).length > 0
+                const hasFreeText = (this.freeTexts[i] || '').trim().length > 0
+                return hasSelection || hasFreeText
+            })
+        },
+        // Onboarding renders question cards as full-width tappable tiles; the drawer keeps the compact layout
+        tileLayout () {
+            return this.expertSurface === 'onboarding'
         }
     },
     watch: {
@@ -110,12 +137,31 @@ export default {
                 : current.filter(l => l !== label)
             this.selections.splice(qIndex, 1, next)
         },
+        setFreeText (qIndex, value) {
+            this.freeTexts.splice(qIndex, 1, value)
+        },
         compose () {
-            // always send one "question: answer(s)" line per question, even for a single
-            // question, so the agent always sees both the question and the chosen answer
+            // one "question answer(s)" line per question, unchanged in shape from before
             return this.questions
-                .map((q, i) => `${q.question} ${(this.selections[i] || []).join(', ')}`)
+                .map((q, i) => {
+                    const answers = [...(this.selections[i] || [])]
+                    const freeText = (this.freeTexts[i] || '').trim()
+                    if (freeText) {
+                        answers.push(freeText)
+                    }
+                    return `${q.question} ${answers.join(', ')}`
+                })
                 .join('\n')
+        },
+        submit () {
+            // emit the composed text plus the raw answer state the parent persists for refresh
+            this.$emit('select', {
+                query: this.compose(),
+                answer: {
+                    selections: this.selections.map(picks => [...picks]),
+                    freeTexts: [...this.freeTexts]
+                }
+            })
         }
     }
 }
@@ -157,6 +203,50 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+}
+
+// a small version of the chat composer: a borderless-feel textarea that grows with its content
+.question-free-text__input {
+    field-sizing: content;
+    width: 100%;
+    box-sizing: border-box;
+    resize: none;
+    min-height: 2.5rem;
+    max-height: 10rem;
+    overflow-y: auto;
+    padding: 0.5rem 0.75rem;
+    font-family: inherit;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--ff-color-text-strong);
+    background: var(--ff-color-bg-app);
+    border: 1px solid var(--ff-color-border-strong);
+    border-radius: 0.375rem;
+    outline: none;
+
+    &:focus {
+        border-color: var(--ff-color-focus);
+    }
+
+    &::placeholder {
+        color: var(--ff-color-text-subtle);
+    }
+
+    // match the greyed-out treatment the options get on a disabled card
+    &:disabled {
+        cursor: not-allowed;
+        background-color: transparent;
+        border-color: var(--ff-color-border);
+        color: var(--ff-color-text-subtle);
+
+        &::placeholder {
+            color: var(--ff-color-text-subtle);
+        }
+    }
+}
+
+.question-free-text--disabled {
+    cursor: not-allowed;
 }
 
 // The checkbox slot renders both the label and (optionally) its description; stack them.

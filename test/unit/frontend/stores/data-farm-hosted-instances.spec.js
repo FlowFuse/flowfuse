@@ -9,6 +9,7 @@ import { useLiveStatusStore } from '@/stores/live-status'
 vi.mock('@/composables/InstanceStates.js', () => ({
     useInstanceStates: () => ({
         isRunningState: state => state === 'running',
+        isErrorState: state => ['error', 'crashed'].includes(state),
         isTransitionState: state => ['starting', 'restarting', 'suspending', 'stopping'].includes(state),
         statesMap: {}
     })

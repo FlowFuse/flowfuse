@@ -1,5 +1,6 @@
 const { Op } = require('sequelize')
 
+const { DEFAULT_REFRESH_TOKEN_EXPIRY } = require('../../db/utils')
 const { randomInt } = require('../utils')
 
 module.exports = {
@@ -10,7 +11,22 @@ module.exports = {
     schedule: `${randomInt(0, 59)} ${randomInt(0, 23)} * * *`,
     run: async function (app) {
         await app.db.models.Session.destroy({ where: { expiresAt: { [Op.lt]: Date.now() } } })
-        await app.db.models.AccessToken.destroy({ where: { expiresAt: { [Op.lt]: Date.now() } } })
+        // A token row can outlive its access token expiry: MCP OAuth grants keep a
+        // longer-lived refresh token on the same row (see getOrExpire, RFC 6749 §1.5).
+        // Only remove rows once the refresh token is also expired or absent.
+        await app.db.models.AccessToken.destroy({
+            where: {
+                expiresAt: { [Op.lt]: Date.now() },
+                [Op.or]: [
+                    { refreshTokenExpiresAt: null },
+                    { refreshTokenExpiresAt: { [Op.lt]: Date.now() } }
+                ]
+            }
+        })
+        // Past the refresh lifetime a rotation row can no longer be presented, so prune it.
+        await app.db.models.AccessTokenRefreshRotation.destroy({
+            where: { rotatedAt: { [Op.lt]: Date.now() - DEFAULT_REFRESH_TOKEN_EXPIRY } }
+        })
         // Remove any OAuthSession objects that were created more than 5 minutes ago
         await app.db.models.OAuthSession.destroy({ where: { createdAt: { [Op.lt]: Date.now() - 1000 * 60 * 5 } } })
         // Remove any AsyncLoginSession objects that were created more than 30 minutes ago

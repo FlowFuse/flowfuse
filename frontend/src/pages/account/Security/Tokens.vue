@@ -15,7 +15,9 @@
             </ff-button>
         </template>
         <template #context-menu="{row}">
-            <ff-kebab-item data-action="edit-token" label="Edit" @click="editToken(row)" />
+            <!-- Auto-renewing (MCP OAuth) tokens are managed by revoke and re-consent only:
+                 the edit dialog writes expiresAt but not the grant's real lifetime -->
+            <ff-kebab-item v-if="!row.autoRenews" data-action="edit-token" label="Edit" @click="editToken(row)" />
             <ff-kebab-item data-action="delete-token" label="Delete" @click="deleteToken(row)" />
         </template>
         <template v-if="tokens.length === 0" #table>

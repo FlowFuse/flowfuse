@@ -1,4 +1,4 @@
-const should = require('should') // eslint-disable-line no-unused-vars
+const should = require('should')
 const sinon = require('sinon')
 
 const tools = require('../../../../../../../forge/ee/lib/mcp/tools/devices')
@@ -247,6 +247,74 @@ describe('MCP Devices Tools', function () {
 
             response.statusCode.should.equal(503)
             response.json().code.should.equal('unexpected_error')
+        })
+    })
+
+    describe('platform_update_remote_instance_settings', function () {
+        const tool = getTool('platform_update_remote_instance_settings')
+
+        it('is marked destructive, since it overwrites or removes existing state', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
+
+        it('puts only the provided settings onto the device settings route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
+            inject.withArgs({
+                method: 'PUT',
+                url: '/api/v1/devices/device1/settings',
+                payload: { env: [{ name: 'FOO', value: 'bar' }], autoSnapshot: false }
+            }).resolves(routeResponse)
+
+            const response = await tool.handler({ remoteInstanceId: 'device1', env: [{ name: 'FOO', value: 'bar' }], autoSnapshot: false }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('forwards owner-level settings when provided', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ status: 'okay' }) })
+
+            await tool.handler({ remoteInstanceId: 'device1', palette: { allowInstall: false }, editor: { nodeRedVersion: '4.0.0' }, security: { localAuth: { enabled: true, user: 'admin', pass: 'pw' } } }, { inject })
+
+            inject.firstCall.args[0].payload.should.eql({
+                palette: { allowInstall: false },
+                editor: { nodeRedVersion: '4.0.0' },
+                security: { localAuth: { enabled: true, user: 'admin', pass: 'pw' } }
+            })
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 403, json: () => ({ code: 'unauthorized' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ remoteInstanceId: 'device1', env: [] }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_set_remote_instance_mode', function () {
+        const tool = getTool('platform_set_remote_instance_mode')
+
+        it('puts the mode onto the device mode route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ mode: 'developer' }) }
+            inject.withArgs({ method: 'PUT', url: '/api/v1/devices/device1/mode', payload: { mode: 'developer' } }).resolves(routeResponse)
+
+            const response = await tool.handler({ remoteInstanceId: 'device1', mode: 'developer' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('rejects a mode outside the enum', function () {
+            tool.inputSchema.mode.safeParse('paused').success.should.be.false()
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 400, json: () => ({ code: 'not_licensed' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ remoteInstanceId: 'device1', mode: 'autonomous' }, { inject })
+            response.should.equal(errorResponse)
         })
     })
 })
