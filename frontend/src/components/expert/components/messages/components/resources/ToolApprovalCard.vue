@@ -7,7 +7,7 @@
             </span>
         </div>
         <p v-if="toolClass === 'destructive'" class="tool-approval-destructive-note">
-            Deletes or overwrites data, or changes what's running, as soon as it runs.
+            Deletes or overwrites data, or changes what's running as soon as the tool executes.
         </p>
         <json-viewer
             v-if="hasParams"
