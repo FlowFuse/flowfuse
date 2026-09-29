@@ -70,7 +70,9 @@ Custom connectors live behind developer mode. Turn it on under **Settings**, the
 
 ### Claude
 
-Where custom connectors are available on your plan, add one and enter the FlowFuse MCP address.
+[Connect FlowFuse to Claude](https://claude.ai/directory/flowfuse) from the FlowFuse connector in Claude's directory, choose **Connect to Claude** and sign in.
+
+For a self-hosted platform, where custom connectors are available on your plan, add one and enter your platform's MCP address.
 
 On Team and Enterprise plans an owner adds the connector for the organisation first, then each person connects and signs in individually.
 
