@@ -28,7 +28,7 @@ module.exports = async function (app) {
         if (name === 'invoke_write_tool') {
             return 'write'
         }
-        if (name === 'invoke_delete_tool') {
+        if (name === 'invoke_destructive_tool') {
             return 'delete'
         }
         return 'read'

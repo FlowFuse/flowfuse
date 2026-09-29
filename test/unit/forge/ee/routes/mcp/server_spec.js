@@ -423,7 +423,7 @@ describe('MCP Platform Tools Server', function () {
                     proxyRequest.called.should.be.false()
                 })
 
-                it('should reject invoke_delete_tool with 403', async function () {
+                it('should reject invoke_destructive_tool with 403', async function () {
                     const response = await app.inject({
                         method: 'POST',
                         url: '/mcp',
@@ -434,7 +434,7 @@ describe('MCP Platform Tools Server', function () {
                             jsonrpc: '2.0',
                             method: 'tools/call',
                             id: 1,
-                            params: { name: 'invoke_delete_tool' }
+                            params: { name: 'invoke_destructive_tool' }
                         }
                     })
                     response.statusCode.should.equal(403)
