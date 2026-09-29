@@ -10428,6 +10428,14 @@ export interface components {
                 id?: string;
                 name?: string | null;
             }[];
+            toolPermissions?: {
+                default?: {
+                    [key: string]: unknown;
+                };
+                teams?: {
+                    [key: string]: unknown;
+                };
+            } | null;
         };
         /** PersonalAccessToken */
         PersonalAccessToken: {
