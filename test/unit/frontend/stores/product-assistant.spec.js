@@ -467,13 +467,13 @@ describe('product-assistant store', () => {
                 expect(classOf(null)).toBe('write')
             })
 
-            it('maps toolClass read/delete through', () => {
+            it('maps toolClass read/destructive through', () => {
                 expect(classOf({ toolClass: 'read' })).toBe('read')
-                expect(classOf({ toolClass: 'delete' })).toBe('delete')
+                expect(classOf({ toolClass: 'destructive' })).toBe('destructive')
             })
 
-            it('treats a destructive tool as delete', () => {
-                expect(classOf({ destructive: true })).toBe('delete')
+            it('treats a destructive tool as destructive', () => {
+                expect(classOf({ destructive: true })).toBe('destructive')
             })
 
             it('falls back to write for anything else', () => {
@@ -510,7 +510,7 @@ describe('product-assistant store', () => {
         describe('teamGroupDefaults / defaultForToolClass', () => {
             it('returns the fail-safe defaults when the team has none saved', () => {
                 const store = useProductAssistantStore()
-                expect(store.teamGroupDefaults(TOOL_GROUPS.FLOW_BUILDING)).toEqual({ read: 'allow', write: 'ask', delete: 'ask' })
+                expect(store.teamGroupDefaults(TOOL_GROUPS.FLOW_BUILDING)).toEqual({ read: 'allow', write: 'ask', destructive: 'ask' })
             })
 
             it('defaultForToolClass reflects a saved class default', () => {
@@ -523,7 +523,20 @@ describe('product-assistant store', () => {
                 const store = useProductAssistantStore()
                 expect(store.defaultForToolClass('read')).toBe('allow')
                 expect(store.defaultForToolClass('write')).toBe('ask')
-                expect(store.defaultForToolClass('delete')).toBe('ask')
+                expect(store.defaultForToolClass('destructive')).toBe('ask')
+            })
+
+            it('migrates a pre-rename "delete" default saved before the destructive rename', () => {
+                const store = useProductAssistantStore()
+                store.toolDefaultsByTeam = { [TEAM]: { [TOOL_GROUPS.FLOW_BUILDING]: { delete: 'allow' } } }
+                expect(store.teamGroupDefaults(TOOL_GROUPS.FLOW_BUILDING)).toEqual({ read: 'allow', write: 'ask', destructive: 'allow' })
+                expect(store.defaultForToolClass('destructive')).toBe('allow')
+            })
+
+            it('prefers an already-migrated "destructive" default over a stale "delete" one', () => {
+                const store = useProductAssistantStore()
+                store.toolDefaultsByTeam = { [TEAM]: { [TOOL_GROUPS.FLOW_BUILDING]: { delete: 'allow', destructive: 'deny' } } }
+                expect(store.defaultForToolClass('destructive')).toBe('deny')
             })
         })
 
@@ -557,15 +570,15 @@ describe('product-assistant store', () => {
                 store.setToolCatalog([
                     { key: 'read-flow', toolClass: 'read' },
                     { key: 'write-flow', toolClass: 'write' },
-                    { key: 'delete-flow', toolClass: 'delete' }
+                    { key: 'destructive-flow', toolClass: 'destructive' }
                 ])
                 store.setSessionToolOverride('write-flow', 'allow')
                 const resolved = store.resolvedToolPermissions
-                expect(resolved.defaults).toEqual({ read: 'allow', write: 'ask', delete: 'ask' })
+                expect(resolved.defaults).toEqual({ read: 'allow', write: 'ask', destructive: 'ask' })
                 expect(resolved.tools).toEqual({
                     'read-flow': 'allow',
                     'write-flow': 'allow', // session grant folded in
-                    'delete-flow': 'ask'
+                    'destructive-flow': 'ask'
                 })
             })
         })
@@ -638,8 +651,8 @@ describe('product-assistant store', () => {
 
             it('scopes the default under the current team and group', () => {
                 const store = useProductAssistantStore()
-                store.setToolClassDefault(TOOL_GROUPS.FLOW_BUILDING, 'delete', 'deny')
-                expect(store.toolDefaultsByTeam[TEAM][TOOL_GROUPS.FLOW_BUILDING].delete).toBe('deny')
+                store.setToolClassDefault(TOOL_GROUPS.FLOW_BUILDING, 'destructive', 'deny')
+                expect(store.toolDefaultsByTeam[TEAM][TOOL_GROUPS.FLOW_BUILDING].destructive).toBe('deny')
             })
         })
 
