@@ -2,6 +2,8 @@ const { z } = require('zod')
 
 const { teamId, applicationId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError } = require('../schemas')
 
+const isHashid = (id) => /^[A-Za-z0-9]+$/.test(id)
+
 // Audit-log routes accept cursor+limit pagination, free-text query, event
 // (single name or array) and username. scope narrows which entity levels are
 // returned; includeChildren pulls in descendant entries within the chosen scope.
@@ -316,6 +318,12 @@ module.exports = [
             userId: z.string().describe('The hashid of the member to remove, as returned by platform_list_team_members')
         },
         handler: async (args, { inject }) => {
+            // Both ids go into the URL path and inject resolves dot segments, so anything but
+            // a plain hashid could send this DELETE to another route (e.g. teamId "../applications"
+            // with userId "../<id>" deletes an application, and the member check 404s past it).
+            if (!isHashid(args.teamId) || !isHashid(args.userId)) {
+                return toolError(400, 'invalid_request', 'teamId and userId must be hashids')
+            }
             // The route answers 200 { status: "okay" } for a user who is not a member,
             // which reads as a removal that never happened. Check membership first
             // when the caller can list members, and leave any other case to the route.
@@ -346,6 +354,10 @@ module.exports = [
             invitationId: z.string().describe('The hashid of the invitation to revoke, as returned by platform_list_team_invitations')
         },
         handler: async (args, { inject }) => {
+            // Same as above: a crafted invitationId like "../../../applications/<id>" reaches another route.
+            if (!isHashid(args.teamId) || !isHashid(args.invitationId)) {
+                return toolError(400, 'invalid_request', 'teamId and invitationId must be hashids')
+            }
             const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/invitations/${args.invitationId}` })
             return response
         }

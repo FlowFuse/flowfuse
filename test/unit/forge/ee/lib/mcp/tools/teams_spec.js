@@ -369,6 +369,17 @@ describe('MCP Teams Tools', function () {
             response.should.equal(routeResponse)
         })
 
+        it('refuses ids that would reach another route, even when the member check cannot run', async function () {
+            // "../applications" + "../app1" resolves the DELETE to /api/v1/applications/app1,
+            // while the members GET resolves to a 404 that would skip the member check
+            for (const [teamId, userId] of [['../applications', '../app1'], ['team1', '../../../applications/app1'], ['team1', 'user1?x=1']]) {
+                const response = await tool.handler({ teamId, userId }, { inject })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            }
+            inject.called.should.be.false()
+        })
+
         it('passes through the 400 for the only owner', async function () {
             const errorResponse = { statusCode: 400, json: () => ({ code: 'invalid_request', error: 'cannot remove only owner' }) }
             inject.withArgs({ method: 'GET', url: membersUrl }).resolves(membersResponse)
@@ -403,6 +414,15 @@ describe('MCP Teams Tools', function () {
 
             const response = await tool.handler({ teamId: 'team1', invitationId: 'invite1' }, { inject })
             response.should.equal(errorResponse)
+        })
+
+        it('refuses ids that would reach another route', async function () {
+            for (const [teamId, invitationId] of [['team1', '../../../applications/app1'], ['../applications', 'app1'], ['team1', 'invite1?x=1']]) {
+                const response = await tool.handler({ teamId, invitationId }, { inject })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            }
+            inject.called.should.be.false()
         })
     })
 })
