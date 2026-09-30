@@ -383,11 +383,17 @@ describe('MCP Platform Tools Server', function () {
                         focused: true,
                         context: { teamId: 'other-team', topicParts: { entityType: 'p', entityId: 'instance-other' } }
                     })
+                    await app.db.controllers.BrowserSession.recordPresence(app.user.hashid, 'tab-account', {
+                        visibility: 'visible',
+                        focused: true,
+                        context: { teamId: null }
+                    })
                 })
 
                 afterEach(async function () {
                     await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-own')
                     await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-other')
+                    await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-account')
                 })
 
                 function post (token, mcpSessionId, payload) {
@@ -456,6 +462,24 @@ describe('MCP Platform Tools Server', function () {
                     response.statusCode.should.equal(200)
                     const userProperties = proxyRequest.firstCall.args[3]
                     userProperties.should.have.property('activeBrowserSessionId', 'tab-other')
+                })
+
+                it('forwards a pinned tab on no team for an all-teams token', async function () {
+                    await app.db.controllers.BrowserSession.setActiveBrowserSession(app.user.hashid, 'scope-6', 'tab-account')
+
+                    const response = await post(TestObjects.alicePAT.token, 'scope-6', { jsonrpc: '2.0', method: 'tools/list', id: 1 })
+                    response.statusCode.should.equal(200)
+                    const userProperties = proxyRequest.firstCall.args[3]
+                    userProperties.should.have.property('activeBrowserSessionId', 'tab-account')
+                })
+
+                it('does not forward a pinned tab on no team for a team-scoped token', async function () {
+                    await app.db.controllers.BrowserSession.setActiveBrowserSession(app.user.hashid, 'scope-7', 'tab-account')
+
+                    const response = await post(teamScopedPAT.token, 'scope-7', { jsonrpc: '2.0', method: 'tools/list', id: 1 })
+                    response.statusCode.should.equal(200)
+                    const userProperties = proxyRequest.firstCall.args[3]
+                    userProperties.should.not.have.property('activeBrowserSessionId')
                 })
             })
 

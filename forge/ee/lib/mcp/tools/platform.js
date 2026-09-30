@@ -15,14 +15,23 @@ function getProperty (properties, key) {
 }
 
 // The user's browser tabs on teams the caller's token can reach, as filtered by /user/teams.
-async function getReachableBrowserSessions (app, user, inject) {
+// A tab on no team (like /account) is only reachable when the token is not team-scoped,
+// matching how the MCP route forwards a pinned tab.
+async function getReachableBrowserSessions (app, user, inject, scope) {
     const sessions = await app.db.controllers.BrowserSession.getSessionsByUser(user.hashid)
     const response = await inject({ method: 'GET', url: '/api/v1/user/teams' })
     if (response.statusCode !== 200) {
         return []
     }
     const teamIds = new Set(response.json().teams.map(team => team.id))
-    return sessions.filter(session => teamIds.has(session.context?.teamId))
+    const allTeams = !Array.isArray(scope?.teams) || scope.teams.length === 0
+    return sessions.filter(session => {
+        const teamId = session.context?.teamId
+        if (!teamId) {
+            return allTeams
+        }
+        return teamIds.has(teamId)
+    })
 }
 
 function getTeamProperty (team, key, defaultValue) {
@@ -195,7 +204,7 @@ module.exports = [
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         _meta: { audience: 'mcp' },
         inputSchema: { }, // future - consider adding userId so that admin users can ask "what sessions does user X have?"
-        handler: async (args, { app, user, inject }) => {
+        handler: async (args, { app, user, inject, scope }) => {
             if (!app.db.controllers.BrowserSession) {
                 return {
                     sessions: [],
@@ -203,7 +212,7 @@ module.exports = [
                 }
             }
 
-            const sessions = await getReachableBrowserSessions(app, user, inject)
+            const sessions = await getReachableBrowserSessions(app, user, inject, scope)
 
             if (sessions.length === 0) {
                 const baseUrl = app.config.base_url || ''
@@ -243,14 +252,14 @@ module.exports = [
         inputSchema: {
             session_id: z.string().describe('The sessionId of the browser tab to target, from platform_list_browser_sessions')
         },
-        handler: async (args, { app, user, mcpSessionId, inject }) => {
+        handler: async (args, { app, user, mcpSessionId, inject, scope }) => {
             if (!app.db.controllers.BrowserSession) {
                 return {
                     success: false,
                     message: 'Browser sessions are not available on this platform. 3rd party automations like flow building will not be possible.'
                 }
             }
-            const sessions = await getReachableBrowserSessions(app, user, inject)
+            const sessions = await getReachableBrowserSessions(app, user, inject, scope)
             const match = sessions.find(session => session.sessionId === args.session_id)
             if (!match) {
                 return {
