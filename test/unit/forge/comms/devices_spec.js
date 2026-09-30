@@ -231,7 +231,7 @@ describe('DeviceCommsHandler', function () {
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
                 await sleep(100)
                 notifySpy.calledOnce.should.be.true()
-                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'running', onlineStatus: 'online', affinity: true }])
+                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'running', onlineStatus: 'online', affinity: false }])
 
                 // same state again -> no further notification
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
@@ -259,7 +259,7 @@ describe('DeviceCommsHandler', function () {
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
                 await sleep(100)
                 notifySpy.calledOnce.should.be.true()
-                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'running', onlineStatus: 'online', affinity: true }])
+                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'running', onlineStatus: 'online', affinity: false }])
             } finally {
                 notifySpy.restore()
                 await device.destroy()
@@ -284,7 +284,7 @@ describe('DeviceCommsHandler', function () {
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
                 await sleep(100)
                 notifySpy.calledOnce.should.be.true()
-                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'running', onlineStatus: 'online' }])
+                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'running', onlineStatus: 'online', affinity: false }])
                 await device.reload()
                 device.state.should.equal('running')
 
@@ -293,7 +293,7 @@ describe('DeviceCommsHandler', function () {
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'crashed' }) })
                 await sleep(100)
                 notifySpy.calledOnce.should.be.true()
-                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'crashed', onlineStatus: 'online' }])
+                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'crashed', onlineStatus: 'online', affinity: false }])
                 await device.reload()
                 device.state.should.equal('crashed')
 
@@ -302,7 +302,7 @@ describe('DeviceCommsHandler', function () {
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'warning' }) })
                 await sleep(100)
                 notifySpy.calledOnce.should.be.true()
-                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'warning', onlineStatus: 'online' }])
+                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'warning', onlineStatus: 'online', affinity: false }])
                 await device.reload()
                 device.state.should.equal('warning')
             } finally {
