@@ -387,7 +387,6 @@ module.exports = async function (app) {
             body: {
                 type: 'object',
                 properties: {
-                    readOnly: { type: 'boolean' },
                     teamIds: { type: 'array', items: { type: 'string' } },
                     expiresAt: { type: 'number' },
                     toolPermissions: {
@@ -401,13 +400,13 @@ module.exports = async function (app) {
                         },
                         required: ['default']
                     }
-                }
+                },
+                required: ['toolPermissions']
             }
         }
     }, async function (request, reply) {
         const requestId = request.params.id
-        const { readOnly = false, teamIds = [], expiresAt } = request.body
-        const toolPermissions = request.body.toolPermissions ?? mcpToolPermissions.fromReadOnly(readOnly)
+        const { teamIds = [], expiresAt, toolPermissions } = request.body
 
         const session = await app.db.models.OAuthSession.findOne({ where: { id: requestId } })
         if (!session) {

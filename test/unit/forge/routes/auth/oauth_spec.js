@@ -710,22 +710,6 @@ describe('OAuth', async function () {
                 issued.MCPGrant.MCPGrantTeamPermissions.should.have.length(0)
             })
 
-            it('derives a read-only grant from readOnly when the consent has no toolPermissions', async function () {
-                const { issued } = await fullConsentFlow({ readOnly: true, teamIds: [], expiresAt: Date.now() + 1000 * 60 * 60 })
-                issued.readOnly.should.be.true()
-                issued.MCPGrant.permissions.should.eql({
-                    platform: { read: true, write: false, destructive: false },
-                    flow_building: { read: true, write: false, destructive: false }
-                })
-                issued.MCPGrant.MCPGrantTeamPermissions.should.have.length(0)
-            })
-
-            it('derives a read and write grant when the consent has neither toolPermissions nor readOnly', async function () {
-                const { issued } = await fullConsentFlow({ teamIds: [], expiresAt: Date.now() + 1000 * 60 * 60 })
-                issued.readOnly.should.be.false()
-                issued.MCPGrant.permissions.platform.should.eql({ read: true, write: true, destructive: false })
-            })
-
             it('builds a read-only grant at exchange from a session saved with only readOnly', async function () {
                 const reg = (await register()).json()
                 const { verifier, challenge } = pkce()
