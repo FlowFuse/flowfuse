@@ -34,6 +34,15 @@ module.exports = async function (app) {
         return 'read'
     }
 
+    async function resolveTargetBrowserSession (userId, mcpSessionId, mcpBody) {
+        const sessionId = mcpBody.method === 'tools/call' ? mcpBody.params?.arguments?.arguments?.session_id : undefined
+        if (sessionId) {
+            const sessions = await app.db.controllers.BrowserSession.getSessionsByUser(userId)
+            return sessions.find(session => session.sessionId === sessionId) || null
+        }
+        return app.db.controllers.BrowserSession.getActiveBrowserSession(userId, mcpSessionId)
+    }
+
     // Resolves the caller's identity and scope, or sends an error reply and returns null.
     async function resolveCaller (request, reply) {
         if (!request.session?.User) {
@@ -123,12 +132,16 @@ module.exports = async function (app) {
             userProperties.patId = app.db.models.AccessToken.encodeHashid(patId)
         }
 
-        // Let the gateway know which browser tab (if any) this MCP connection has pinned as its
-        // target, so platform_ui/flow_building tool calls don't need an explicit session id.
+        // Let the gateway know which browser tab this call targets: the one named by the invoked
+        // tool's session_id, else the one this MCP connection has pinned. platform_ui/flow_building
+        // calls run in that tab without reaching the platform's API, so a tab on a team outside the
+        // token's scope is treated as not pinned. The team comes from the tab's latest snapshot, which
+        // stays current: a team switch closes MCP in the tab, and navigation republishes the snapshot.
         if (app.db.controllers.BrowserSession) {
-            const activeBrowserSession = await app.db.controllers.BrowserSession.getActiveBrowserSession(caller.userId, mcpSessionId)
+            const activeBrowserSession = await resolveTargetBrowserSession(caller.userId, mcpSessionId, mcpBody)
             request.log.info(`MCP ingress: userId=${caller.userId} mcpSessionId=${mcpSessionId} -> activeBrowserSession=${activeBrowserSession ? activeBrowserSession.sessionId : 'null'}`)
-            if (activeBrowserSession) {
+            const allowTeam = app.patTeamScopeFilter(request)
+            if (activeBrowserSession && (!allowTeam || allowTeam(activeBrowserSession.context?.teamId))) {
                 userProperties.activeBrowserSessionId = activeBrowserSession.sessionId
                 const context = activeBrowserSession.context
                 const topicParts = context?.topicParts
