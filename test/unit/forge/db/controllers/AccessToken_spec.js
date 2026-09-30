@@ -478,6 +478,31 @@ describe('AccessToken controller', function () {
                     grant.MCPGrantTeamPermissions.map(r => r.TeamId).should.eql([TestObjects.team.id])
                 })
 
+                it('re-derives readOnly when the only override allowing write is removed', async function () {
+                    const writePlatform = { platform: { read: true, write: true, destructive: false }, flow_building: { read: false, write: false, destructive: false } }
+                    const result = await createToken({
+                        teamIds: [TestObjects.team.hashid, otherTeam.hashid],
+                        toolPermissions: { default: readPlatform, teams: { [otherTeam.hashid]: writePlatform } }
+                    })
+                    const row = await app.db.models.AccessToken.byRefreshToken(result.refreshToken)
+                    row.readOnly.should.be.false()
+                    const updated = await AccessTokenController.updatePersonalAccessToken(TestObjects.alice, row.id, 'ff', null, { teamIds: [TestObjects.team.hashid] })
+                    updated.readOnly.should.be.true()
+                })
+
+                it('ignores a readOnly value for a token with a grant', async function () {
+                    const row = await tokenWithBothTeams()
+                    const updated = await AccessTokenController.updatePersonalAccessToken(TestObjects.alice, row.id, 'ff', null, { readOnly: false })
+                    updated.readOnly.should.be.true()
+                })
+
+                it('returns the grant with the updated token', async function () {
+                    const row = await tokenWithBothTeams()
+                    const updated = await AccessTokenController.updatePersonalAccessToken(TestObjects.alice, row.id, 'ff', null, { teamIds: [TestObjects.team.hashid] })
+                    const summary = app.db.views.AccessToken.personalAccessTokenSummary(updated)
+                    summary.toolPermissions.should.eql({ default: readPlatform, teams: { [TestObjects.team.hashid]: readPlatform } })
+                })
+
                 it('keeps team rows when the scopes become unrestricted', async function () {
                     const row = await tokenWithBothTeams()
                     await AccessTokenController.updatePersonalAccessToken(TestObjects.alice, row.id, 'ff', null, { teamIds: [] })
