@@ -1,5 +1,7 @@
 ---
 navTitle: FlowFuse Expert
+meta:
+   description: See what FlowFuse Expert does in its Chat Interface and in the Node-RED editor, how to turn AI features on or off, and how data is handled.
 ---
 
 # FlowFuse Expert
