@@ -8,7 +8,7 @@ const setup = require('../routes/setup')
 const FF_UTIL = require('flowforge-test-utils')
 const { DeviceCommsHandler } = FF_UTIL.require('forge/comms/devices')
 
-describe.only('DeviceCommsHandler', function () {
+describe('DeviceCommsHandler', function () {
     let app
     const TestObjects = {}
 
