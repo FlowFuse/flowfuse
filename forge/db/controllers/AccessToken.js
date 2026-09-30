@@ -362,19 +362,20 @@ module.exports = {
         const userId = typeof user === 'number' ? user : user.id
         const token = await app.db.models.AccessToken.byId(tokenId, 'user', userId)
         if (token) {
+            const grant = await app.db.models.MCPGrant.findOne({ where: { AccessTokenId: token.id } })
             token.scope = scope
             if (expiresAt === undefined) {
                 token.expiresAt = null
             } else {
                 token.expiresAt = expiresAt
             }
-            if (readOnly !== undefined) {
+            // An MCP token's readOnly follows its grant, set below
+            if (readOnly !== undefined && !grant) {
                 token.readOnly = readOnly
             }
             if (adminOptIn !== undefined) {
                 token.adminOptIn = adminOptIn
             }
-            await token.save()
             if (teamIds !== undefined) {
                 await app.db.sequelize.transaction(async (t) => {
                     await app.db.models.AccessTokenTeamScope.destroy({
@@ -388,7 +389,6 @@ module.exports = {
                             UserId: userId
                         }))
                         await app.db.models.AccessTokenTeamScope.bulkCreate(scopes, { transaction: t })
-                        const grant = await app.db.models.MCPGrant.findOne({ where: { AccessTokenId: token.id }, transaction: t })
                         if (grant) {
                             await app.db.models.MCPGrantTeamPermission.destroy({
                                 where: {
@@ -401,11 +401,20 @@ module.exports = {
                     }
                 })
             }
+            if (grant) {
+                // Removing a team can drop the only override that allowed Write
+                const teamRows = await app.db.models.MCPGrantTeamPermission.findAll({ where: { MCPGrantId: grant.id } })
+                token.readOnly = mcpToolPermissions.deriveReadOnly(mcpToolPermissions.fromGrant(grant, teamRows, app.db.models.Team.encodeHashid))
+            }
+            await token.save()
             const reloaded = await app.db.models.AccessToken.findOne({
                 where: { id: token.id },
                 include: [{
                     model: app.db.models.AccessTokenTeamScope,
                     include: [{ model: app.db.models.Team, attributes: ['id', 'name'] }]
+                }, {
+                    model: app.db.models.MCPGrant,
+                    include: [{ model: app.db.models.MCPGrantTeamPermission }]
                 }]
             })
             return reloaded

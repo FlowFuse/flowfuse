@@ -439,7 +439,12 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const updates = new app.auditLog.formatters.UpdatesCollection()
         try {
-            const oldToken = await app.db.models.AccessToken.byId(request.params.id, 'user', request.session.User.id)
+            const oldToken = await app.db.models.AccessToken.byId(request.params.id, 'user', request.session.User.id, {
+                include: [{
+                    model: app.db.models.MCPGrant,
+                    include: [{ model: app.db.models.MCPGrantTeamPermission }]
+                }]
+            })
             if (oldToken) {
                 const oldSummary = app.db.views.AccessToken.personalAccessTokenSummary(oldToken)
                 const body = request.body
