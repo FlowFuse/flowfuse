@@ -28,8 +28,8 @@ module.exports = async function (app) {
         if (name === 'invoke_write_tool') {
             return 'write'
         }
-        if (name === 'invoke_delete_tool') {
-            return 'delete'
+        if (name === 'invoke_destructive_tool') {
+            return 'destructive'
         }
         return 'read'
     }
@@ -81,7 +81,7 @@ module.exports = async function (app) {
 
         if (caller.scope.readOnly) {
             const variant = invokeVariant(mcpBody)
-            if (variant === 'write' || variant === 'delete') {
+            if (variant === 'write' || variant === 'destructive') {
                 reply.code(403).send({ code: 'unauthorized', error: 'Personal Access Token is read-only' })
                 return
             }
