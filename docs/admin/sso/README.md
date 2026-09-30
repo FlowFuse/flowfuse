@@ -1,5 +1,7 @@
 ---
 navTitle: Configuring Single Sign-On (SSO)
+meta:
+   description: See how SAML and LDAP single sign-on work on self-hosted Enterprise FlowFuse, and how the email domain picks the provider for each user.
 ---
 
 # Configuring Single Sign-On

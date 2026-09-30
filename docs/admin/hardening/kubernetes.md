@@ -16,9 +16,9 @@ meta:
 This guide walks you through the best ways to secure a Kubernetes cluster running FlowFuse. Locking down your cluster shrinks your attack surface and keeps things contained if a single component gets compromised. 
 These tips work best when implemented together, so roll out as many of them as your environment allows.
 
-{% note %}
+::note
 These are general hardening recommendations. Adapt them to your organisation's security policies and your cluster's specific configuration.
-{% endnote %}
+::
 
 ## Network Policies
 
@@ -26,17 +26,17 @@ By default, Kubernetes allows unrestricted network traffic between all pods, acr
 
 Network Policies let you enforce the principle of least privilege at the network layer: a pod should only be able to talk to the workloads it genuinely needs. Restricting traffic contains lateral movement, so a breach in one component cannot trivially spread to others.
 
-{% warning %}
+::warning
 **Do not treat the policies below as a copy-and-paste solution.** They are illustrative examples, tied to the assumptions of the environment they were written for - namespace names, the ingress controller, the CNI, service ports, which components are deployed, and where operators live. Applied blindly they will either break platform traffic or leave gaps you believe are closed. Network Policies are one of the easiest things in Kubernetes to get subtly wrong: a rule that *looks* correct can silently drop traffic (wrong port direction, Service vs pod port, a missing return path) or silently allow it (an unenforced CNI, an overly broad selector). Implement them deliberately, with a working understanding of how traffic actually flows in your cluster - pod-to-pod, cross-namespace, ingress, egress, and DNS. Roll out one policy at a time, start in a non-production environment, verify each addition against real traffic (and check the affected pods' logs and Service endpoints), and confirm your CNI actually enforces policies before relying on them for security.
-{% endwarning %}
+::
 
 ### FlowFuse and Network Policies
 
 FlowFuse runs the platform (namespace of your choice, selected during Helm chart installation) and the hosted Node-RED instances (configured with the `forge.projectNamespace` Helm chart value) in separate namespaces. If you enforce Network Policies, you must explicitly allow the traffic FlowFuse needs - otherwise the instances cannot reach the platform. See [I use Kubernetes Network Policies, how can I configure them?](../../install/kubernetes/#i-use-kubernetes-network-policies%2C-how-can-i-configure-them%3F) for the required policy.
 
-{% note %}
+::note
 The following examples assume the default namespaces `flowfuse`, as a core application namespace, and `projects` for Hosted Instances namespace. If you have configured different namespaces, replace them accordingly.
-{% endnote %}
+::
 
 The two namespaces have very different trust levels, so they are hardened differently:
 
@@ -116,9 +116,9 @@ spec:
               kubernetes.io/metadata.name: flowfuse
 ```
 
-{% note %}
+::note
 The Helm chart also ships a `flowforge-database-policy` that permits the core app → database connection when using the embedded database. The `allow-intra-namespace` rule above is a superset of it; keep both if you prefer defence in depth.
-{% endnote %}
+::
 
 **5. Allow inbound from the EMQX operator** - The MQTT broker cluster is managed by the EMQX operator, which usually runs in its own namespace (`emqx-operator` by default) and polls the broker's management API (port `18083`) to set a pod *readiness gate*. If this is blocked, the check times out, the readiness gate never turns true, the broker pods are marked `NotReady`, their Service endpoints go empty, and every broker client fails to connect with a `503` error response. This rule is required for the operator to manage the broker cluster correctly:
 
@@ -144,9 +144,9 @@ spec:
           port: 18083
 ```
 
-{% note %}
+::note
 The same pattern applies to any other operator, admission webhook, or metrics controller that must reach pods in this namespace: allow ingress from its namespace, or its readiness/reconcile checks will silently break your Services. If a Service unexpectedly loses its endpoints after applying policies, check the managing controller's logs for connection timeouts.
-{% endnote %}
+::
 
 ### Hosted Instances namespace (`projects`)
 
@@ -337,9 +337,9 @@ Regular backups protect against data loss from accidental deletion, corruption, 
 - **External / managed database:** use your database provider's backup and point-in-time-recovery features
 - **Embedded database:** if you use the Helm chart's internal PostgreSQL (`forge.localPostgresql: true`), you can schedule backups with a Kubernetes CronJob running `pg_dump`. A ready-to-use `CronJob` + `PersistentVolumeClaim` example is provided in the installation guide: [How to backup embedded database?](https://flowfuse.com/docs/install/kubernetes/#how-to-backup-embedded-database%3F)
 
-{% warning %}
+::warning
 **Test your restores.** A backup is only useful if it can be restored. Periodically verify that you can restore from a backup into a clean database.
-{% endwarning %}
+::
 
 ## RBAC (Role-Based Access Control)
 
