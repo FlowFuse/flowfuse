@@ -1,5 +1,7 @@
 ---
 navTitle: FlowFuse File Nodes
+meta:
+   description: See how Node-RED file nodes store files in FlowFuse, from the older FlowFuse File Nodes to Persistent Storage in FlowFuse 2.7.0 and later.
 ---
 
 # FlowFuse File Nodes

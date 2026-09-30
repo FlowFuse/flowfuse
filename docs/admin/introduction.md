@@ -2,7 +2,7 @@
 navTitle: Administering FlowFuse
 navOrder: 1
 meta:
-  descriptions: Learn how to administer FlowFuse with this comprehensive guide. Explore user management, team setup, instance and stack management, and more.
+  description: Reach the Admin Settings and manage registration options, users, teams, team types, instance types, stacks and templates on a FlowFuse platform.
   tags:  
      - flowfuse
      - nodered 
