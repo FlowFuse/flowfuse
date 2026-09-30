@@ -614,7 +614,13 @@ module.exports = [
             path: z.string().min(1).describe('Path of the file or directory to delete, relative to the file-store root. Use "/" separators, as returned by platform_list_hosted_instance_files')
         },
         handler: async (args, { inject }) => {
-            const response = await inject({ method: 'DELETE', url: `/api/v1/projects/${args.instanceId}/files/_/${encodeURIComponent(args.path)}` })
+            // The launcher's root guard misses a trailing slash, so "//" would delete the whole
+            // file store. Only pass on a path that names something below the root.
+            const segments = args.path.split('/').filter(Boolean)
+            if (segments.length === 0 || segments.some(s => s === '.' || s === '..')) {
+                return toolError(400, 'invalid_request', 'path must name a file or directory below the file-store root, without "." or ".." segments')
+            }
+            const response = await inject({ method: 'DELETE', url: `/api/v1/projects/${args.instanceId}/files/_/${encodeURIComponent(segments.join('/'))}` })
             return emptySuccessAsOkay(response)
         }
     }

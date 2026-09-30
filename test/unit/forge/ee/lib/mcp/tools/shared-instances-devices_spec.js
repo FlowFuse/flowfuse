@@ -215,6 +215,7 @@ describe('MCP Shared Instance/Device Tools', function () {
 
     describe('platform_delete_instance_http_token', function () {
         const tool = getTool('platform_delete_instance_http_token')
+        const hostedId = '6c1f3e2a-8b4d-4f10-9a2e-3d5c7b9e1f00'
 
         it('is annotated as destructive so it is served as a delete tool', function () {
             tool.annotations.should.have.property('readOnlyHint', false)
@@ -222,9 +223,9 @@ describe('MCP Shared Instance/Device Tools', function () {
         })
 
         it('deletes a hosted instance token through the projects route', async function () {
-            inject.withArgs({ method: 'DELETE', url: '/api/v1/projects/instance1/httpTokens/token1' }).resolves({ statusCode: 201, body: '' })
+            inject.withArgs({ method: 'DELETE', url: `/api/v1/projects/${hostedId}/httpTokens/token1` }).resolves({ statusCode: 201, body: '' })
 
-            const response = await tool.handler({ instanceId: 'instance1', instanceType: 'hosted', tokenId: 'token1' }, { inject })
+            const response = await tool.handler({ instanceId: hostedId, instanceType: 'hosted', tokenId: 'token1' }, { inject })
 
             inject.calledOnce.should.be.true()
             response.json().should.eql({ status: 'okay' })
@@ -243,8 +244,24 @@ describe('MCP Shared Instance/Device Tools', function () {
             const errorResponse = { statusCode: 404, body: '{}', json: () => ({ code: 'not_found' }) }
             inject.resolves(errorResponse)
 
-            const response = await tool.handler({ instanceId: 'instance1', instanceType: 'hosted', tokenId: 'token1' }, { inject })
+            const response = await tool.handler({ instanceId: hostedId, instanceType: 'hosted', tokenId: 'token1' }, { inject })
             response.should.equal(errorResponse)
+        })
+
+        it('refuses ids that would reach another route', async function () {
+            for (const [instanceId, instanceType, tokenId] of [
+                [hostedId, 'hosted', '../../../applications/app1'],
+                [hostedId, 'hosted', 'token1?x=1'],
+                ['../teams/team1', 'remote', 'token1'],
+                // right kind of id, wrong instanceType
+                ['device1', 'hosted', 'token1'],
+                [hostedId, 'remote', 'token1']
+            ]) {
+                const response = await tool.handler({ instanceId, instanceType, tokenId }, { inject })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            }
+            inject.called.should.be.false()
         })
     })
 })

@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError } = require('../schemas')
+const { basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError, hostedInstanceId } = require('../schemas')
 const { emptySuccessAsOkay } = require('../utils')
 
 // Tools that work against both hosted instances and remote instances (devices),
@@ -171,6 +171,14 @@ module.exports = [
             tokenId: z.string().describe('The hashid of the token to delete, as returned by platform_list_instance_http_tokens')
         },
         handler: async (args, { inject }) => {
+            // Both ids go into the URL path and inject resolves dot segments, so anything but
+            // a plain id could send this DELETE to another route (e.g. "../../../applications/<id>").
+            const validInstanceId = args.instanceType === 'remote'
+                ? /^[A-Za-z0-9]+$/.test(args.instanceId)
+                : hostedInstanceId.safeParse(args.instanceId).success
+            if (!validInstanceId || !/^[A-Za-z0-9]+$/.test(args.tokenId)) {
+                return toolError(400, 'invalid_request', 'instanceId must be a hosted instance UUID or a remote instance (device) hashid matching instanceType, and tokenId a token hashid')
+            }
             const base = args.instanceType === 'remote' ? 'devices' : 'projects'
             const response = await inject({ method: 'DELETE', url: `/api/v1/${base}/${args.instanceId}/httpTokens/${args.tokenId}` })
             // The route answers a successful delete with an empty 201.
