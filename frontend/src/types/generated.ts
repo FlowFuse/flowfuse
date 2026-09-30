@@ -10430,10 +10430,30 @@ export interface components {
             }[];
             toolPermissions?: {
                 default?: {
-                    [key: string]: unknown;
+                    platform?: {
+                        read?: boolean;
+                        write?: boolean;
+                        destructive?: boolean;
+                    };
+                    flow_building?: {
+                        read?: boolean;
+                        write?: boolean;
+                        destructive?: boolean;
+                    };
                 };
                 teams?: {
-                    [key: string]: unknown;
+                    [key: string]: {
+                        platform?: {
+                            read?: boolean;
+                            write?: boolean;
+                            destructive?: boolean;
+                        };
+                        flow_building?: {
+                            read?: boolean;
+                            write?: boolean;
+                            destructive?: boolean;
+                        };
+                    };
                 };
             } | null;
         };

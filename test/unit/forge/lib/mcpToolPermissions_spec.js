@@ -3,7 +3,8 @@ const should = require('should') // eslint-disable-line
 const {
     normalise,
     equals,
-    legacyDefault,
+    fromReadOnly,
+    fromGrant,
     deriveReadOnly,
     classOf,
     resolve,
@@ -54,19 +55,40 @@ describe('mcpToolPermissions', function () {
         })
     })
 
-    describe('legacyDefault', function () {
-        it('grants read and write on both groups when not read-only', function () {
-            legacyDefault(false).should.eql({
-                platform: { read: true, write: true, destructive: false },
-                flow_building: { read: true, write: true, destructive: false }
+    describe('fromReadOnly', function () {
+        it('grants read and write on both groups with no team overrides when not read-only', function () {
+            fromReadOnly(false).should.eql({
+                default: {
+                    platform: { read: true, write: true, destructive: false },
+                    flow_building: { read: true, write: true, destructive: false }
+                },
+                teams: {}
             })
         })
 
-        it('grants read-only on both groups when read-only', function () {
-            legacyDefault(true).should.eql({
-                platform: { read: true, write: false, destructive: false },
-                flow_building: { read: true, write: false, destructive: false }
+        it('grants read-only on both groups with no team overrides when read-only', function () {
+            fromReadOnly(true).should.eql({
+                default: {
+                    platform: { read: true, write: false, destructive: false },
+                    flow_building: { read: true, write: false, destructive: false }
+                },
+                teams: {}
             })
+        })
+    })
+
+    describe('fromGrant', function () {
+        it('keys team rows by their encoded team id', function () {
+            const grant = { permissions: { platform: { read: true } } }
+            const rows = [{ TeamId: 3, permissions: { platform: { write: true } } }]
+            fromGrant(grant, rows, id => `team-${id}`).should.eql({
+                default: { platform: { read: true } },
+                teams: { 'team-3': { platform: { write: true } } }
+            })
+        })
+
+        it('returns no teams when there are no rows', function () {
+            fromGrant({ permissions: {} }, undefined, id => id).teams.should.eql({})
         })
     })
 

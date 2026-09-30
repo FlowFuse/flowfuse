@@ -3,6 +3,7 @@ const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
+const mcpToolPermissions = FF_UTIL.require('forge/lib/mcpToolPermissions')
 
 describe('User API', async function () {
     let app
@@ -1089,7 +1090,7 @@ describe('User API', async function () {
         })
         it('Lists an MCP OAuth token as auto-renewing', async function () {
             const grantExpiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000
-            await app.db.controllers.AccessToken.createMCPOAuthToken(TestObjects.alice.id, { grantExpiresAt })
+            await app.db.controllers.AccessToken.createMCPOAuthToken(TestObjects.alice.id, { grantExpiresAt, toolPermissions: mcpToolPermissions.fromReadOnly(true) })
             await app.db.controllers.AccessToken.createPersonalAccessToken(TestObjects.alice, '', null, 'Plain Token')
 
             const response = await app.inject({
@@ -1106,12 +1107,14 @@ describe('User API', async function () {
             // the renewal cycle comes from the backend, matching the real rotation
             mcpToken.autoRenews.should.have.property('every', 1000 * 60 * 30)
             mcpToken.autoRenews.should.have.property('chosen', true)
+            mcpToken.toolPermissions.should.eql(mcpToolPermissions.fromReadOnly(true))
             new Date(mcpToken.autoRenews.until).getTime().should.equal(grantExpiresAt)
 
             // plain PATs do not carry it
             const plainToken = json.tokens.find(t => t.name === 'Plain Token')
             should.exist(plainToken)
             plainToken.should.not.have.property('autoRenews')
+            should.not.exist(plainToken.toolPermissions)
         })
         it('Deleting a user removes any PATs from the db', async function () {
             const userToDelete = await app.db.models.User.create({ username: 'wayne', name: 'Wayne Vane', email: 'wayne@example.com', email_verified: true, password: 'wwPassword' })

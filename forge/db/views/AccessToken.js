@@ -1,3 +1,4 @@
+const mcpToolPermissions = require('../../lib/mcpToolPermissions')
 const { DEFAULT_TOKEN_SESSION_EXPIRY } = require('../utils')
 
 module.exports = function (app) {
@@ -91,8 +92,8 @@ module.exports = function (app) {
                 type: 'object',
                 nullable: true,
                 properties: {
-                    default: { type: 'object', additionalProperties: true },
-                    teams: { type: 'object', additionalProperties: true }
+                    default: mcpToolPermissions.TOOL_PERMISSIONS_SCHEMA,
+                    teams: { type: 'object', additionalProperties: mcpToolPermissions.TOOL_PERMISSIONS_SCHEMA }
                 }
             }
         },
@@ -119,14 +120,8 @@ module.exports = function (app) {
                 id: app.db.models.Team.encodeHashid(s.TeamId),
                 name: s.Team?.name ?? null
             })),
-            toolPermissions: token.toolPermissions
-                ? {
-                    default: token.toolPermissions,
-                    teams: (token.AccessTokenToolPermissions ?? []).reduce((teams, override) => {
-                        teams[app.db.models.Team.encodeHashid(override.TeamId)] = override.permissions
-                        return teams
-                    }, {})
-                }
+            toolPermissions: token.MCPGrant
+                ? mcpToolPermissions.fromGrant(token.MCPGrant, token.MCPGrant.MCPGrantTeamPermissions, app.db.models.Team.encodeHashid)
                 : null
         }
         // Tokens with a refresh token (MCP OAuth grants) renew their access

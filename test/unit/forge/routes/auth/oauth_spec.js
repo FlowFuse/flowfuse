@@ -457,7 +457,8 @@ describe('OAuth', async function () {
             const issued = await mcpApp.db.models.AccessToken.byRefreshToken(token.refresh_token)
             issued.should.have.property('readOnly', true)
             issued.grantExpiresAt.getTime().should.equal(grantExpiresAt)
-            issued.toolPermissions.should.eql({
+            const issuedGrant = await mcpApp.db.models.MCPGrant.findOne({ where: { AccessTokenId: issued.id } })
+            issuedGrant.permissions.should.eql({
                 platform: { read: true, write: false, destructive: false },
                 flow_building: { read: true, write: false, destructive: false }
             })
@@ -618,12 +619,6 @@ describe('OAuth', async function () {
                 response.json().should.have.property('error', 'invalid_request')
             })
 
-            it('rejects consent without toolPermissions', async function () {
-                const requestId = await startConsent()
-                const response = await consent(requestId, { teamIds: [], expiresAt: Date.now() + 1000 * 60 * 60 })
-                response.should.have.property('statusCode', 400)
-            })
-
             it('rejects a team override for a team the user is not a member of', async function () {
                 const requestId = await startConsent()
                 const response = await consent(requestId, {
@@ -674,9 +669,9 @@ describe('OAuth', async function () {
                 const minted = await mcpApp.db.models.AccessToken.byRefreshToken(tokenResponse.json().refresh_token)
                 const issued = await mcpApp.db.models.AccessToken.findOne({
                     where: { id: minted.id },
-                    include: [{ model: mcpApp.db.models.AccessTokenToolPermission }]
+                    include: [{ model: mcpApp.db.models.MCPGrant, include: [{ model: mcpApp.db.models.MCPGrantTeamPermission }] }]
                 })
-                return { consentResponse, tokenResponse, issued }
+                return { consentResponse, tokenResponse, issued, requestId }
             }
 
             it('persists the default and per-team overrides, and derives readOnly false when any group allows write', async function () {
@@ -686,12 +681,12 @@ describe('OAuth', async function () {
                     toolPermissions: toolPermissionsPayload(true, { [mcpApp.team.hashid]: { platform: { write: true } } })
                 })
                 issued.readOnly.should.be.false()
-                issued.toolPermissions.should.eql({
+                issued.MCPGrant.permissions.should.eql({
                     platform: { read: true, write: false, destructive: false },
                     flow_building: { read: true, write: false, destructive: false }
                 })
-                issued.AccessTokenToolPermissions.should.have.length(1)
-                issued.AccessTokenToolPermissions[0].permissions.should.eql({
+                issued.MCPGrant.MCPGrantTeamPermissions.should.have.length(1)
+                issued.MCPGrant.MCPGrantTeamPermissions[0].permissions.should.eql({
                     platform: { read: true, write: true, destructive: false },
                     flow_building: { read: false, write: false, destructive: false }
                 })
@@ -703,7 +698,7 @@ describe('OAuth', async function () {
                     expiresAt: Date.now() + 1000 * 60 * 60,
                     toolPermissions: toolPermissionsPayload(false, { [mcpApp.team.hashid]: { platform: { destructive: true } } })
                 })
-                issued.AccessTokenToolPermissions[0].permissions.platform.should.eql({ read: true, write: true, destructive: true })
+                issued.MCPGrant.MCPGrantTeamPermissions[0].permissions.platform.should.eql({ read: true, write: true, destructive: true })
             })
 
             it('drops a team override that matches the default rather than storing it', async function () {
@@ -712,7 +707,78 @@ describe('OAuth', async function () {
                     expiresAt: Date.now() + 1000 * 60 * 60,
                     toolPermissions: toolPermissionsPayload(true, { [mcpApp.team.hashid]: { platform: { read: true }, flow_building: { read: true } } })
                 })
-                issued.AccessTokenToolPermissions.should.have.length(0)
+                issued.MCPGrant.MCPGrantTeamPermissions.should.have.length(0)
+            })
+
+            it('derives a read-only grant from readOnly when the consent has no toolPermissions', async function () {
+                const { issued } = await fullConsentFlow({ readOnly: true, teamIds: [], expiresAt: Date.now() + 1000 * 60 * 60 })
+                issued.readOnly.should.be.true()
+                issued.MCPGrant.permissions.should.eql({
+                    platform: { read: true, write: false, destructive: false },
+                    flow_building: { read: true, write: false, destructive: false }
+                })
+                issued.MCPGrant.MCPGrantTeamPermissions.should.have.length(0)
+            })
+
+            it('derives a read and write grant when the consent has neither toolPermissions nor readOnly', async function () {
+                const { issued } = await fullConsentFlow({ teamIds: [], expiresAt: Date.now() + 1000 * 60 * 60 })
+                issued.readOnly.should.be.false()
+                issued.MCPGrant.permissions.platform.should.eql({ read: true, write: true, destructive: false })
+            })
+
+            it('builds a read-only grant at exchange from a session saved with only readOnly', async function () {
+                const reg = (await register()).json()
+                const { verifier, challenge } = pkce()
+                const authResponse = await mcpApp.inject({ method: 'GET', url: authorizeURL(reg.client_id, redirectURI, challenge), cookies: { sid } })
+                const requestId = /\/account\/request\/([^/]+)\/mcp$/.exec(authResponse.headers.location)[1]
+                await mcpApp.inject({
+                    method: 'PUT',
+                    url: `/account/authorize/${requestId}/consent`,
+                    payload: { teamIds: [], expiresAt: Date.now() + 1000 * 60 * 60, toolPermissions: toolPermissionsPayload(false) },
+                    cookies: { sid }
+                })
+                const oauthSession = await mcpApp.db.models.OAuthSession.findOne({ where: { id: requestId } })
+                const { toolPermissions, ...legacyValue } = oauthSession.value
+                oauthSession.value = { ...legacyValue, readOnly: true }
+                await oauthSession.save()
+                const completeResponse = await mcpApp.inject({ method: 'GET', url: `/account/complete/${requestId}`, cookies: { sid } })
+                const authCode = new URL(completeResponse.headers.location).searchParams.get('code')
+                const tokenResponse = await mcpApp.inject({
+                    method: 'POST',
+                    url: '/account/token',
+                    payload: { grant_type: 'authorization_code', code: authCode, redirect_uri: redirectURI, client_id: reg.client_id, code_verifier: verifier }
+                })
+                const issued = await mcpApp.db.models.AccessToken.byRefreshToken(tokenResponse.json().refresh_token)
+                issued.readOnly.should.be.true()
+                const grant = await mcpApp.db.models.MCPGrant.findOne({ where: { AccessTokenId: issued.id } })
+                grant.permissions.should.eql({
+                    platform: { read: true, write: false, destructive: false },
+                    flow_building: { read: true, write: false, destructive: false }
+                })
+            })
+
+            async function sessionFor (token) {
+                const request = { headers: { authorization: `Bearer ${token}` }, requestContext: { set () {} } }
+                await mcpApp.verifySession(request, { code () { return this }, send () {} })
+                return request.session
+            }
+
+            it('sets session.mcpGrant for an MCP token and not for a plain PAT', async function () {
+                const { tokenResponse } = await fullConsentFlow({
+                    teamIds: [],
+                    expiresAt: Date.now() + 1000 * 60 * 60,
+                    toolPermissions: toolPermissionsPayload(true, { [mcpApp.team.hashid]: { platform: { write: true } } })
+                })
+                const mcpToken = tokenResponse.json().access_token
+                const mcpSession = await sessionFor(mcpToken)
+                mcpSession.mcpGrant.default.platform.should.eql({ read: true, write: false, destructive: false })
+                mcpSession.mcpGrant.teams[mcpApp.team.hashid].platform.write.should.be.true()
+                mcpSession.pat.should.not.have.property('toolPermissions')
+
+                const plain = await mcpApp.db.controllers.AccessToken.createPersonalAccessToken(mcpUser, 'ff', null, 'plain')
+                const plainSession = await sessionFor(plain.token)
+                plainSession.should.have.property('isPAT', true)
+                plainSession.should.not.have.property('mcpGrant')
             })
 
             it('derives readOnly true when nothing allows write in any group', async function () {

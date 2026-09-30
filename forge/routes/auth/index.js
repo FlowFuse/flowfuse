@@ -159,30 +159,22 @@ async function init (app, opts) {
                                 }))
                             }
 
-                            let toolPermissions
-                            if (accessToken.toolPermissions) {
-                                const overrides = accessToken.AccessTokenToolPermissions ?? []
-                                toolPermissions = {
-                                    default: accessToken.toolPermissions,
-                                    teams: overrides.reduce((teams, override) => {
-                                        teams[app.db.models.Team.encodeHashid(override.TeamId)] = override.permissions
-                                        return teams
-                                    }, {})
-                                }
-                            } else {
-                                toolPermissions = { default: mcpToolPermissions.legacyDefault(accessToken.readOnly), teams: {} }
-                            }
-
                             const patMetadata = {
                                 id: accessToken.id,
                                 readOnly: accessToken.readOnly,
                                 adminOptIn: accessToken.adminOptIn,
-                                teamScopes,
-                                toolPermissions
+                                teamScopes
                             }
 
                             request.session.isPAT = true
                             request.session.pat = patMetadata
+                            const grant = await app.db.models.MCPGrant.findOne({
+                                where: { AccessTokenId: accessToken.id },
+                                include: [{ model: app.db.models.MCPGrantTeamPermission }]
+                            })
+                            if (grant) {
+                                request.session.mcpGrant = mcpToolPermissions.fromGrant(grant, grant.MCPGrantTeamPermissions, app.db.models.Team.encodeHashid)
+                            }
                             request.requestContext.set('isPAT', true)
                             request.requestContext.set('pat', patMetadata)
 

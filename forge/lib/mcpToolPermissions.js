@@ -1,8 +1,24 @@
 // Permissions shape: { platform: { read, write, destructive }, flow_building: { ... } },
-// stored as a token default plus per-team overrides: { default, teams: { [teamHashid]: ... } }.
+// held by an MCP grant as a default plus per-team overrides: { default, teams: { [teamHashid]: ... } }.
 
 const GROUPS = ['platform', 'flow_building']
 const CATEGORIES = ['read', 'write', 'destructive']
+
+const TOOL_PERMISSIONS_GROUP_SCHEMA = {
+    type: 'object',
+    properties: {
+        read: { type: 'boolean' },
+        write: { type: 'boolean' },
+        destructive: { type: 'boolean' }
+    }
+}
+const TOOL_PERMISSIONS_SCHEMA = {
+    type: 'object',
+    properties: {
+        platform: TOOL_PERMISSIONS_GROUP_SCHEMA,
+        flow_building: TOOL_PERMISSIONS_GROUP_SCHEMA
+    }
+}
 
 function normaliseCategories (categories) {
     const source = categories || {}
@@ -28,9 +44,21 @@ function equals (a, b) {
     return GROUPS.every(group => CATEGORIES.every(category => !!a[group]?.[category] === !!b[group]?.[category]))
 }
 
-function legacyDefault (readOnly) {
+function fromReadOnly (readOnly) {
     const categories = { read: true, write: !readOnly, destructive: false }
-    return { platform: { ...categories }, flow_building: { ...categories } }
+    return {
+        default: { platform: { ...categories }, flow_building: { ...categories } },
+        teams: {}
+    }
+}
+
+// Builds { default, teams: { [teamHashid]: permissions } } from a stored grant and its team rows
+function fromGrant (grant, teamPermissionRows, encodeTeamId) {
+    const teams = {}
+    for (const row of teamPermissionRows || []) {
+        teams[encodeTeamId(row.TeamId)] = row.permissions
+    }
+    return { default: grant.permissions, teams }
 }
 
 function deriveReadOnly (tokenPermissions) {
@@ -70,9 +98,12 @@ function anyTeamAllows (tokenPermissions, group, category) {
 module.exports = {
     GROUPS,
     CATEGORIES,
+    TOOL_PERMISSIONS_GROUP_SCHEMA,
+    TOOL_PERMISSIONS_SCHEMA,
     normalise,
     equals,
-    legacyDefault,
+    fromReadOnly,
+    fromGrant,
     deriveReadOnly,
     classOf,
     resolve,

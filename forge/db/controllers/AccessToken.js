@@ -272,23 +272,13 @@ module.exports = {
         await app.settings.set('platform:stats:token', false)
     },
 
-    createMCPOAuthToken: async function (app, userId, { readOnly = false, teamIds = [], grantExpiresAt = null, toolPermissions = null } = {}) {
+    createMCPOAuthToken: async function (app, userId, { teamIds = [], grantExpiresAt = null, toolPermissions } = {}) {
         const token = generateToken(32, 'ffpat')
         const refreshToken = generateToken(32, 'ffpat')
         const expiresAt = capToGrant(Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY, grantExpiresAt)
         const refreshTokenExpiresAt = capToGrant(Date.now() + DEFAULT_REFRESH_TOKEN_EXPIRY, grantExpiresAt)
 
-        let storedDefault = null
-        let normalisedTeams = null
-        let derivedReadOnly = readOnly
-        if (toolPermissions) {
-            storedDefault = mcpToolPermissions.normalise(toolPermissions.default)
-            normalisedTeams = {}
-            for (const [teamHashid, teamPermissions] of Object.entries(toolPermissions.teams || {})) {
-                normalisedTeams[teamHashid] = mcpToolPermissions.normalise(teamPermissions)
-            }
-            derivedReadOnly = mcpToolPermissions.deriveReadOnly({ default: storedDefault, teams: normalisedTeams })
-        }
+        const derivedReadOnly = mcpToolPermissions.deriveReadOnly(toolPermissions)
 
         await app.db.sequelize.transaction(async (t) => {
             const tok = await app.db.models.AccessToken.create({
@@ -301,7 +291,6 @@ module.exports = {
                 grantExpiresAt,
                 readOnly: derivedReadOnly,
                 adminOptIn: false,
-                toolPermissions: storedDefault,
                 ownerId: '' + userId,
                 ownerType: 'user'
             }, { transaction: t })
@@ -315,16 +304,18 @@ module.exports = {
                 await app.db.models.AccessTokenTeamScope.bulkCreate(scopes, { transaction: t })
             }
 
-            if (normalisedTeams) {
-                const overrides = Object.entries(normalisedTeams).map(([teamHashid, teamPermissions]) => ({
-                    AccessTokenId: tok.id,
-                    TeamId: app.db.models.Team.decodeHashid(teamHashid),
-                    ApplicationId: null,
-                    permissions: teamPermissions
-                }))
-                if (overrides.length > 0) {
-                    await app.db.models.AccessTokenToolPermission.bulkCreate(overrides, { transaction: t })
-                }
+            const grant = await app.db.models.MCPGrant.create({
+                AccessTokenId: tok.id,
+                permissions: toolPermissions.default
+            }, { transaction: t })
+
+            const teamPermissions = Object.entries(toolPermissions.teams || {}).map(([teamHashid, permissions]) => ({
+                MCPGrantId: grant.id,
+                TeamId: app.db.models.Team.decodeHashid(teamHashid),
+                permissions
+            }))
+            if (teamPermissions.length > 0) {
+                await app.db.models.MCPGrantTeamPermission.bulkCreate(teamPermissions, { transaction: t })
             }
         })
 
@@ -397,6 +388,16 @@ module.exports = {
                             UserId: userId
                         }))
                         await app.db.models.AccessTokenTeamScope.bulkCreate(scopes, { transaction: t })
+                        const grant = await app.db.models.MCPGrant.findOne({ where: { AccessTokenId: token.id }, transaction: t })
+                        if (grant) {
+                            await app.db.models.MCPGrantTeamPermission.destroy({
+                                where: {
+                                    MCPGrantId: grant.id,
+                                    TeamId: { [Op.notIn]: scopes.map(scope => scope.TeamId) }
+                                },
+                                transaction: t
+                            })
+                        }
                     }
                 })
             }
@@ -556,8 +557,6 @@ module.exports = {
             include: [{
                 model: app.db.models.AccessTokenTeamScope,
                 include: [{ model: app.db.models.Team, attributes: ['id', 'name'] }]
-            }, {
-                model: app.db.models.AccessTokenToolPermission
             }]
         })
         if (accessToken) {
