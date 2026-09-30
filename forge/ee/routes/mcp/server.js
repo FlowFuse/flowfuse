@@ -135,7 +135,8 @@ module.exports = async function (app) {
         // Let the gateway know which browser tab this call targets: the one named by the invoked
         // tool's session_id, else the one this MCP connection has pinned. platform_ui/flow_building
         // calls run in that tab without reaching the platform's API, so a tab on a team outside the
-        // token's scope is treated as not pinned.
+        // token's scope is treated as not pinned. The team comes from the tab's last heartbeat, so a
+        // tab that just moved to an out-of-scope team can run one call before its record catches up.
         if (app.db.controllers.BrowserSession) {
             const activeBrowserSession = await resolveTargetBrowserSession(caller.userId, mcpSessionId, mcpBody)
             request.log.info(`MCP ingress: userId=${caller.userId} mcpSessionId=${mcpSessionId} -> activeBrowserSession=${activeBrowserSession ? activeBrowserSession.sessionId : 'null'}`)
