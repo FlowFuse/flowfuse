@@ -168,10 +168,7 @@ async function init (app, opts) {
 
                             request.session.isPAT = true
                             request.session.pat = patMetadata
-                            const grant = await app.db.models.MCPGrant.findOne({
-                                where: { AccessTokenId: accessToken.id },
-                                include: [{ model: app.db.models.MCPGrantTeamPermission }]
-                            })
+                            const grant = accessToken.MCPGrant
                             if (grant) {
                                 request.session.mcpGrant = mcpToolPermissions.fromGrant(grant, grant.MCPGrantTeamPermissions, app.db.models.Team.encodeHashid)
                             }

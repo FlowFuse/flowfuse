@@ -557,6 +557,9 @@ module.exports = {
             include: [{
                 model: app.db.models.AccessTokenTeamScope,
                 include: [{ model: app.db.models.Team, attributes: ['id', 'name'] }]
+            }, {
+                model: app.db.models.MCPGrant,
+                include: [{ model: app.db.models.MCPGrantTeamPermission }]
             }]
         })
         if (accessToken) {
