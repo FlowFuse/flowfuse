@@ -1,5 +1,7 @@
 ---
 navTitle: Snapshots
+meta:
+   description: Create, restore, compare and download snapshots, the point-in-time backups of a Node-RED instance's flows, credentials, settings and packages.
 ---
 
 # Snapshots
