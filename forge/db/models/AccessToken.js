@@ -64,7 +64,7 @@ module.exports = {
     finders: function (M) {
         return {
             static: {
-                byId: async (id, ownerType, ownerId) => {
+                byId: async (id, ownerType, ownerId, { include } = {}) => {
                     if (typeof id === 'string') {
                         id = M.AccessToken.decodeHashid(id)
                     }
@@ -76,7 +76,8 @@ module.exports = {
                         where.ownerId = '' + ownerId
                     }
                     return this.findOne({
-                        where
+                        where,
+                        include
                     })
                 },
                 byRefreshToken: async (refreshToken) => {
