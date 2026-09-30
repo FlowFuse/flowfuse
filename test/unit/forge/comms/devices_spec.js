@@ -231,7 +231,7 @@ describe('DeviceCommsHandler', function () {
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
                 await sleep(100)
                 notifySpy.calledOnce.should.be.true()
-                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'running', onlineStatus: 'online' }])
+                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'running', onlineStatus: 'online', affinity: true }])
 
                 // same state again -> no further notification
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
