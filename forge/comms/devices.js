@@ -278,6 +278,7 @@ class DeviceCommsHandler {
             try {
                 const previousState = device.state
                 const previousOnlineStatus = device.status
+                const previousEditorToken = device.editorAffinity
                 const payload = JSON.parse(status.status)
                 await this.app.db.controllers.Device.updateState(device, payload)
 
@@ -290,12 +291,13 @@ class DeviceCommsHandler {
                 const maskTransientStop = previousState === 'restarting' && payload.state === 'stopped'
                 const stateChanged = !maskTransientStop && payload.state !== previousState
                 const cameOnline = previousOnlineStatus !== 'online'
-                if (stateChanged || cameOnline) {
+                const editorTokenChanged = previousEditorToken !== (payload.affinity || null)
+                if (stateChanged || cameOnline || editorTokenChanged) {
                     this.app.db.controllers.Device.updateLiveCachedState(
                         device.hashid,
                         payload.state
                     )
-                    this.app.comms.team.notifyDeviceState(teamId, status.id, { state: payload.state, onlineStatus: 'online' })
+                    this.app.comms.team.notifyDeviceState(teamId, status.id, { state: payload.state, onlineStatus: 'online', affinity: editorTokenChanged })
                 }
 
                 // If the status state===unknown, the device is waiting for confirmation
