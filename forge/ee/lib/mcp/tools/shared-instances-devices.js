@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError } = require('../schemas')
+const { basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError, hostedInstanceId } = require('../schemas')
 
 // Tools that work against both hosted instances and remote instances (devices),
 // selected with an instanceType discriminator.
@@ -157,7 +157,7 @@ module.exports = [
         title: 'Delete Instance',
         description: `FlowFuse platform automation tool:
             Permanently deletes an instance, either a hosted instance or a remote instance (device). This cannot be undone, and there is no way to get the instance back.
-            Deleting a hosted instance removes its container, flows, credentials, settings and files, and ALL of its snapshots. Remote instances (devices) assigned to it are not deleted, but they are unassigned from it, lose their target snapshot and stop running Node-RED (unless in developer mode) until they are given a new one.
+            Deleting a hosted instance removes its container, flows, credentials, settings and files, and ALL of its snapshots. Remote instances (devices) assigned to it are not deleted, but they are left unassigned (not moved to the application), lose their target snapshot and stop running Node-RED (unless in developer mode) until they are given a new one.
             Deleting a remote instance (device) revokes its credentials, so the physical device can no longer connect to the platform or receive updates. Its snapshots stay behind but can no longer be opened.
             In both cases, a pipeline stage that deployed to the instance is not deleted, it is left with no deploy target, so edit or remove it afterwards (find it with platform_list_pipelines).
             Before calling this, confirm with the user and tell them what goes with it. For a hosted instance, use platform_list_instance_snapshots and platform_list_remote_instances to list the snapshots and assigned devices. If the snapshots might be wanted later, export them first with platform_export_snapshot.
@@ -170,6 +170,14 @@ module.exports = [
             instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")')
         },
         handler: async (args, { inject }) => {
+            // instanceId goes into the URL path and inject resolves dot segments, so anything
+            // but a plain id could send this DELETE to another route (e.g. "../applications/<id>").
+            const validId = args.instanceType === 'remote'
+                ? /^[A-Za-z0-9]+$/.test(args.instanceId)
+                : hostedInstanceId.safeParse(args.instanceId).success
+            if (!validId) {
+                return toolError(400, 'invalid_request', 'instanceId must be a hosted instance UUID or a remote instance (device) hashid, matching instanceType')
+            }
             const base = args.instanceType === 'remote' ? 'devices' : 'projects'
             const response = await inject({ method: 'DELETE', url: `/api/v1/${base}/${args.instanceId}` })
             return response
