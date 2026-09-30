@@ -6,6 +6,9 @@
                 {{ classLabel }}
             </span>
         </div>
+        <p v-if="toolClass === 'destructive'" class="tool-approval-destructive-note">
+            Deletes or overwrites data, or changes what's running as soon as the tool executes.
+        </p>
         <json-viewer
             v-if="hasParams"
             :value="params"
@@ -87,7 +90,7 @@ export default {
     },
     computed: {
         classLabel () {
-            return { read: 'Read', write: 'Write', delete: 'Delete' }[this.toolClass] || 'Write'
+            return { read: 'Read', write: 'Write', destructive: 'Destructive' }[this.toolClass] || 'Write'
         },
         // The decision to show: this card's own press wins; otherwise the prop's value.
         effectiveStatus () {
@@ -162,7 +165,13 @@ export default {
     border-radius: 4px;
     &.tag-read { background: var(--ff-color-bg-emphasis); color: var(--ff-color-text-subtle); }
     &.tag-write { background: var(--ff-color-status-info-bg); color: var(--ff-color-status-info-text); }
-    &.tag-delete { background: var(--ff-color-status-error-bg); color: var(--ff-color-status-error-text); }
+    &.tag-destructive { background: var(--ff-color-status-error-bg); color: var(--ff-color-status-error-text); }
+}
+
+.tool-approval-destructive-note {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--ff-color-text-subtle);
 }
 
 .tool-approval-actions {

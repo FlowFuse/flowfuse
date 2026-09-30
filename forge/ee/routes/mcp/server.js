@@ -29,14 +29,10 @@ module.exports = async function (app) {
         if (name === 'invoke_write_tool') {
             return 'write'
         }
-        if (name === 'invoke_delete_tool') {
-            return 'delete'
+        if (name === 'invoke_destructive_tool') {
+            return 'destructive'
         }
         return 'read'
-    }
-
-    function isInvokeCall (mcpBody) {
-        return mcpBody?.method === 'tools/call' && typeof mcpBody.params?.name === 'string' && mcpBody.params.name.startsWith('invoke_')
     }
 
     function anyGroupAllows (permissions, category) {
@@ -48,6 +44,15 @@ module.exports = async function (app) {
             return app.db.models.Team.encodeHashid(parseInt(teamId, 10))
         }
         return teamId
+    }
+
+    async function resolveTargetBrowserSession (userId, mcpSessionId, mcpBody) {
+        const sessionId = mcpBody.method === 'tools/call' ? mcpBody.params?.arguments?.arguments?.session_id : undefined
+        if (sessionId) {
+            const sessions = await app.db.controllers.BrowserSession.getSessionsByUser(userId)
+            return sessions.find(session => session.sessionId === sessionId) || null
+        }
+        return app.db.controllers.BrowserSession.getActiveBrowserSession(userId, mcpSessionId)
     }
 
     // Resolves the caller's identity and scope, or sends an error reply and returns null.
@@ -100,7 +105,7 @@ module.exports = async function (app) {
             reply.code(403).send({ code: 'unauthorized', error: "The token's permissions don't allow write access to any tool group" })
             return
         }
-        if (variant === 'delete' && !anyGroupAllows(caller.scope.permissions, 'destructive')) {
+        if (variant === 'destructive' && !anyGroupAllows(caller.scope.permissions, 'destructive')) {
             reply.code(403).send({ code: 'unauthorized', error: "The token's permissions don't allow destructive access to any tool group" })
             return
         }
@@ -141,18 +146,18 @@ module.exports = async function (app) {
             userProperties.patId = app.db.models.AccessToken.encodeHashid(patId)
         }
 
-        // An unknown session_id must not fall back to the pinned tab.
+        // Let the gateway know which browser tab this call targets: the one named by the invoked
+        // tool's session_id, else the one this MCP connection has pinned. platform_ui/flow_building
+        // calls run in that tab without reaching the platform's API, so a tab on a team outside the
+        // token's scope is treated as not pinned. The team comes from the tab's latest snapshot, which
+        // stays current: a team switch closes MCP in the tab, and navigation republishes the snapshot.
         if (app.db.controllers.BrowserSession) {
-            const overrideSessionId = isInvokeCall(mcpBody) && mcpBody.params?.arguments?.arguments?.session_id
-            const targetSession = overrideSessionId
-                ? (await app.db.controllers.BrowserSession.getSessionsByUser(caller.userId))
-                    .find(session => session.sessionId === overrideSessionId) || null
-                : await app.db.controllers.BrowserSession.getActiveBrowserSession(caller.userId, mcpSessionId)
-
-            request.log.info(`MCP ingress: userId=${caller.userId} mcpSessionId=${mcpSessionId} -> activeBrowserSession=${targetSession ? targetSession.sessionId : 'null'}`)
-            if (targetSession) {
-                userProperties.activeBrowserSessionId = targetSession.sessionId
-                const context = targetSession.context
+            const activeBrowserSession = await resolveTargetBrowserSession(caller.userId, mcpSessionId, mcpBody)
+            request.log.info(`MCP ingress: userId=${caller.userId} mcpSessionId=${mcpSessionId} -> activeBrowserSession=${activeBrowserSession ? activeBrowserSession.sessionId : 'null'}`)
+            const allowTeam = app.patTeamScopeFilter(request)
+            if (activeBrowserSession && (!allowTeam || allowTeam(activeBrowserSession.context?.teamId))) {
+                userProperties.activeBrowserSessionId = activeBrowserSession.sessionId
+                const context = activeBrowserSession.context
                 const topicParts = context?.topicParts
                 if (topicParts?.entityType) {
                     userProperties.entityType = topicParts.entityType
