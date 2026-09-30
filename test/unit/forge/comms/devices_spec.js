@@ -8,7 +8,7 @@ const setup = require('../routes/setup')
 const FF_UTIL = require('flowforge-test-utils')
 const { DeviceCommsHandler } = FF_UTIL.require('forge/comms/devices')
 
-describe('DeviceCommsHandler', function () {
+describe.only('DeviceCommsHandler', function () {
     let app
     const TestObjects = {}
 
@@ -242,7 +242,7 @@ describe('DeviceCommsHandler', function () {
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'stopped' }) })
                 await sleep(100)
                 notifySpy.calledTwice.should.be.true()
-                notifySpy.secondCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'stopped', onlineStatus: 'online' }])
+                notifySpy.secondCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'stopped', onlineStatus: 'online', affinity: false }])
             } finally {
                 notifySpy.restore()
             }
@@ -259,7 +259,7 @@ describe('DeviceCommsHandler', function () {
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
                 await sleep(100)
                 notifySpy.calledOnce.should.be.true()
-                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'running', onlineStatus: 'online' }])
+                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'running', onlineStatus: 'online', affinity: true }])
             } finally {
                 notifySpy.restore()
                 await device.destroy()
