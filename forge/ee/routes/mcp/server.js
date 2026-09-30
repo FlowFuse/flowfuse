@@ -72,7 +72,7 @@ module.exports = async function (app) {
         }
         return {
             userId: request.session.User.hashid,
-            scope: { readOnly, teams, permissions: pat?.toolPermissions }
+            scope: { readOnly, teams, permissions: mcpToolPermissions.forSession(request.session) }
         }
     }
 

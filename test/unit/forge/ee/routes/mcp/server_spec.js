@@ -583,8 +583,16 @@ describe('MCP Platform Tools Server', function () {
                     const scoped = await app.db.controllers.AccessToken.createMCPOAuthToken(app.user.id, {
                         teamIds: [],
                         toolPermissions: {
-                            default: { platform: { read: true } },
-                            teams: { [app.team.hashid]: { flow_building: { write: true } } }
+                            default: {
+                                platform: { read: true, write: false, destructive: false },
+                                flow_building: { read: false, write: false, destructive: false }
+                            },
+                            teams: {
+                                [app.team.hashid]: {
+                                    platform: { read: false, write: false, destructive: false },
+                                    flow_building: { read: true, write: true, destructive: false }
+                                }
+                            }
                         }
                     })
                     const response = await app.inject({

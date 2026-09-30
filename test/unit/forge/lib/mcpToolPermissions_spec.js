@@ -5,6 +5,7 @@ const {
     equals,
     fromReadOnly,
     fromGrant,
+    forSession,
     deriveReadOnly,
     classOf,
     resolve,
@@ -89,6 +90,21 @@ describe('mcpToolPermissions', function () {
 
         it('returns no teams when there are no rows', function () {
             fromGrant({ permissions: {} }, undefined, id => id).teams.should.eql({})
+        })
+    })
+
+    describe('forSession', function () {
+        it('returns the grant of an MCP token session', function () {
+            const mcpGrant = { default: { platform: { read: true } }, teams: {} }
+            forSession({ pat: { readOnly: false }, mcpGrant }).should.equal(mcpGrant)
+        })
+
+        it('derives permissions from readOnly for a plain PAT session', function () {
+            forSession({ pat: { readOnly: true } }).should.eql(fromReadOnly(true))
+        })
+
+        it('returns null for a session without a token', function () {
+            should(forSession({})).be.null()
         })
     })
 

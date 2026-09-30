@@ -161,9 +161,10 @@ module.exports = fp(async function (app, opts) {
                 if (tool) {
                     const category = mcpToolPermissions.classOf(tool.annotations)
                     const teamHashid = resolveRequestTeamHashid(app, request)
+                    const permissions = mcpToolPermissions.forSession(request.session)
                     const allowed = teamHashid
-                        ? mcpToolPermissions.resolve(request.session.pat?.toolPermissions, teamHashid, 'platform', category)
-                        : mcpToolPermissions.anyTeamAllows(request.session.pat?.toolPermissions, 'platform', category)
+                        ? mcpToolPermissions.resolve(permissions, teamHashid, 'platform', category)
+                        : mcpToolPermissions.anyTeamAllows(permissions, 'platform', category)
                     if (!allowed) {
                         reply.code(403).send({ code: 'unauthorized', error: `The token's permissions don't allow ${category} access to platform tools` })
                         throw new Error()
