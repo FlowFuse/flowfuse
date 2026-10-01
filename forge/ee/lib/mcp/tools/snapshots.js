@@ -169,6 +169,11 @@ module.exports = [
             snapshotId: snapshotId.describe('The hashid of the snapshot to delete')
         },
         handler: async (args, { inject }) => {
+            // snapshotId goes into the URL path and inject resolves dot segments, so anything but
+            // a plain hashid could send this DELETE to another route (e.g. "../applications/<id>").
+            if (!/^[A-Za-z0-9]+$/.test(args.snapshotId)) {
+                return toolError(400, 'invalid_request', 'snapshotId must be a hashid')
+            }
             const response = await inject({ method: 'DELETE', url: `/api/v1/snapshots/${args.snapshotId}` })
             return response
         }

@@ -273,6 +273,15 @@ describe('MCP Snapshots Tools', function () {
             const response = await tool.handler({ snapshotId: 'snapshot1' }, { inject })
             response.should.equal(errorResponse)
         })
+
+        it('refuses a snapshotId that would reach another route', async function () {
+            for (const snapshotId of ['../applications/app1', 'snapshot1?x=1', '..']) {
+                const response = await tool.handler({ snapshotId }, { inject })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            }
+            inject.called.should.be.false()
+        })
     })
 
     describe('platform_export_snapshot', function () {
