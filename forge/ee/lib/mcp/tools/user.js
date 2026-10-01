@@ -72,6 +72,11 @@ module.exports = [
             notificationId: z.string().describe('The hashid of the notification to delete, as returned by platform_list_notifications')
         },
         handler: async (args, { inject }) => {
+            // notificationId goes into the URL path and inject resolves dot segments, so anything but
+            // a plain hashid could send this DELETE to another route (e.g. "../../applications/<id>").
+            if (!/^[A-Za-z0-9]+$/.test(args.notificationId)) {
+                return toolError(400, 'invalid_request', 'notificationId must be a hashid')
+            }
             const response = await inject({ method: 'DELETE', url: `/api/v1/user/notifications/${args.notificationId}` })
             return response
         }

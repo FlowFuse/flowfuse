@@ -151,6 +151,15 @@ describe('MCP User/Notifications Tools', function () {
             const response = await tool.handler({ notificationId: 'notification1' }, { inject })
             response.should.equal(errorResponse)
         })
+
+        it('refuses a notificationId that would reach another route', async function () {
+            for (const notificationId of ['../../applications/app1', 'notification1?x=1', '..']) {
+                const response = await tool.handler({ notificationId }, { inject })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            }
+            inject.called.should.be.false()
+        })
     })
 
     describe('platform_respond_to_team_invitation', function () {
