@@ -271,6 +271,15 @@ describe('MCP Pipelines Tools', function () {
             const response = await tool.handler({ pipelineId: 'pipeline1' }, { inject })
             response.should.equal(errorResponse)
         })
+
+        it('refuses a pipelineId that would reach another route', async function () {
+            for (const pipelineId of ['../applications/app1', 'pipeline1?x=1', '..']) {
+                const response = await tool.handler({ pipelineId }, { inject })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            }
+            inject.called.should.be.false()
+        })
     })
 
     describe('platform_delete_pipeline_stage', function () {
@@ -297,6 +306,15 @@ describe('MCP Pipelines Tools', function () {
 
             const response = await tool.handler({ pipelineId: 'pipeline1', stageId: 'stage1' }, { inject })
             response.should.equal(errorResponse)
+        })
+
+        it('refuses ids that would reach another route', async function () {
+            for (const [pipelineId, stageId] of [['pipeline1', '../../../applications/app1'], ['../applications/app1', 'stage1'], ['pipeline1', 'stage1?x=1']]) {
+                const response = await tool.handler({ pipelineId, stageId }, { inject })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            }
+            inject.called.should.be.false()
         })
     })
 })
