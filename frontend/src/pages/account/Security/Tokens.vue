@@ -45,6 +45,21 @@ import TokenDialog from './dialogs/TokenDialog.vue'
 import { pluralize } from '@/composables/strings/String.js'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 
+const GROUPS = [
+    { key: 'platform', label: 'Platform' },
+    { key: 'flow_building', label: 'Flow Building' }
+]
+
+function levelOf (categories) {
+    if (categories?.destructive) {
+        return 'read + write + destructive'
+    }
+    if (categories?.write) {
+        return 'read + write'
+    }
+    return categories?.read ? 'read only' : 'none'
+}
+
 export default {
     name: 'PersonalAccessTokens',
     components: {
@@ -99,27 +114,33 @@ export default {
                     component: {
                         is: markRaw({
                             name: 'ReadOnlyCell',
-                            props: ['readOnly', 'toolPermissions', 'teams'],
+                            props: ['readOnly', 'toolPermissions'],
                             template: `
-                                <span v-if="toolPermissions" class="ff-badge ff-badge--info" :title="tooltip" style="cursor:help">Custom permissions</span>
+                                <span v-if="toolPermissions" class="ff-badge ff-badge--info" v-ff-tooltip="tooltip" style="cursor:help">{{ summary }}</span>
                                 <span v-else-if="readOnly" class="ff-badge ff-badge--info">Read Only</span>
                                 <span v-else></span>
                             `,
                             computed: {
-                                tooltip () {
-                                    const describe = (permissions) => ['platform', 'flow_building'].map(group => {
-                                        const categories = permissions[group]
-                                        const level = categories.destructive
-                                            ? 'read+write+destructive'
-                                            : categories.write ? 'read+write' : categories.read ? 'read only' : 'none'
-                                        return `${group}: ${level}`
-                                    }).join(', ')
-                                    const teamName = (teamId) => (this.teams || []).find(t => t.id === teamId)?.name ?? teamId
-                                    const lines = [`Default - ${describe(this.toolPermissions.default)}`]
-                                    for (const [teamId, permissions] of Object.entries(this.toolPermissions.teams || {})) {
-                                        lines.push(`${teamName(teamId)} - ${describe(permissions)}`)
+                                permissionSets () {
+                                    return [this.toolPermissions.default, ...Object.values(this.toolPermissions.teams || {})]
+                                },
+                                summary () {
+                                    const levels = new Set(this.permissionSets.flatMap(set => GROUPS.map(({ key }) => levelOf(set[key]))))
+                                    if (levels.size === 1 && levels.has('read only')) {
+                                        return 'Read only'
                                     }
-                                    return lines.join('\n')
+                                    if (levels.size === 1 && levels.has('read + write')) {
+                                        return 'Read + write'
+                                    }
+                                    return 'Custom'
+                                },
+                                tooltip () {
+                                    const defaults = GROUPS.map(({ key, label }) => `${label}: ${levelOf(this.toolPermissions.default[key])}`).join(', ')
+                                    const overrides = Object.keys(this.toolPermissions.teams || {}).length
+                                    if (overrides === 0) {
+                                        return defaults
+                                    }
+                                    return `${defaults}. ${overrides} ${pluralize('team', overrides)} with custom permissions`
                                 }
                             }
                         })

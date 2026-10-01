@@ -56,24 +56,24 @@
                             <span v-else class="text-sm font-medium">{{ team.name }}</span>
                             <div v-if="isInScope(team.id)" class="flex items-center gap-3 text-sm">
                                 <span class="text-gray-500" data-el="team-permissions-state">{{ isCustom(team.id) ? 'Custom' : 'Default' }}</span>
-                                <button
+                                <ff-button
                                     v-if="isCustom(team.id)"
-                                    type="button"
-                                    class="text-blue-600 hover:underline"
+                                    kind="tertiary"
+                                    size="small"
                                     data-action="reset-team-default"
                                     @click="resetToDefault(team.id)"
                                 >
                                     Reset
-                                </button>
-                                <button
-                                    type="button"
-                                    class="text-blue-600 hover:underline"
+                                </ff-button>
+                                <ff-button
+                                    kind="tertiary"
+                                    size="small"
                                     data-action="customise-team"
                                     :aria-expanded="isOpen(team.id)"
                                     @click="toggleCustomise(team.id)"
                                 >
                                     {{ isOpen(team.id) ? 'Close' : 'Edit' }}
-                                </button>
+                                </ff-button>
                             </div>
                         </div>
                         <div v-if="isInScope(team.id) && isOpen(team.id)" class="ml-6 mt-2 mb-1">
