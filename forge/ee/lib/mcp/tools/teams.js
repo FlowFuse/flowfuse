@@ -267,7 +267,7 @@ module.exports = [
             Read both the status and the body. A fully successful call returns { status: "okay" }. Per-person failures (unknown user, already a member, already invited, email restrictions) come back as HTTP 200 with code "invitation_failed" and error as an object mapping each failed entry to its reason - treat those entries as NOT invited. A call rejected outright, for example because the team's user limit is reached, comes back as HTTP 400, also with code "invitation_failed", but error is a plain string and nobody was invited.
             The route is also rate limited to 5 calls per 30 seconds, which is a second, different 429: "too_many_invites" means more than 5 invitees in one call and retrying unchanged will never work, while a rate-limit 429 clears on its own after a few seconds.
             Email invitations to people without an account depend on the platform allowing external invitations and having email configured.`,
-        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
         inputSchema: {
             teamId,
             user: z.string().describe('Comma-separated list of usernames and/or email addresses to invite (maximum 5 per call after de-duplication)'),

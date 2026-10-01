@@ -52,13 +52,13 @@ powershell -Command "Start-Process 'powershell' -Verb RunAs"
 Set-Location $env:USERPROFILE; powershell -c "irm https://flowfuse.github.io/device-agent/get.ps1 | iex"; .\flowfuse-device-agent-installer.exe
 ```
 
-{% note %}
+::note
 The installer checks to see if port 1880 is available to use. If it isn't, it will let you know before exiting. This is typically because you already have Node-RED running locally. You can tell the installer to configure its Node-RED to use a different port using the `--port <port>` argument. Pick a different port, for example `1881` and re-run the above command with `--port 1881` added to the end.
-{% endnote %}
+::
 
-{% note %}
+::note
 By default, the installer will use `/opt/flowfuse-device` (Linux/MacOS) or `c:\opt\flowfuse-device` (Windows) as the install location. To use a different location, use the `--dir` option with the install command. For example, `--dir /path/to/custom/location`.
-{% endnote %}
+::
 
 ## Step 2: Follow the installer prompts
 
