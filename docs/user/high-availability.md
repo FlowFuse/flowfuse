@@ -1,5 +1,7 @@
 ---
 navTitle: High Availability mode
+meta:
+   description: Run multiple copies of a Node-RED instance in High Availability mode, and build flows that handle shared state and load-balanced work.
 ---
 
 # High Availability mode

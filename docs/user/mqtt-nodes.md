@@ -1,5 +1,7 @@
 ---
 navTitle: FlowFuse MQTT Nodes
+meta:
+   description: Use the FlowFuse MQTT In and MQTT Out nodes to publish and subscribe through the Team Broker without configuring any broker settings.
 ---
 
 # FlowFuse MQTT Nodes
