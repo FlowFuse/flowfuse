@@ -1,5 +1,7 @@
 ---
 navTitle: FlowFuse MCP
+meta:
+   description: See what an AI agent can do through the FlowFuse MCP server, from platform actions to building flows, and how read-only or full access limits it.
 ---
 
 # FlowFuse MCP Server
@@ -13,7 +15,7 @@ Two clients use it:
 
 Both use the same capabilities. What an agent can do depends only on the access you grant.
 
-> **Note:** This is not the same as [MCP server nodes](https://flowfuse.com/node-red/flowfuse/mcp/), which build MCP servers inside your flows. This page is about operating FlowFuse itself, where FlowFuse is the server and your agent is the client.
+> **Note:** This is not the same as [MCP server nodes](https://flowfuse.com/docs/flowfuse-nodes/mcp/), which build MCP servers inside your flows. This page is about operating FlowFuse itself, where FlowFuse is the server and your agent is the client.
 
 ## Platform Automations
 
@@ -75,4 +77,4 @@ Access comes at one of two levels:
 
 With **FlowFuse Expert**, an agent acts with the same access you have on the team you are working in.
 
-With **your own agent**, you choose the access when you connect. Signing in over OAuth takes you to a FlowFuse page where you pick read-only or full access, scope it to all your teams or specific teams, and set an expiration date. A personal access token, for clients without a sign-in flow, carries the same read-only or full-access choice.
+With **your own agent**, you choose the access when you connect. Signing in over OAuth takes you to a FlowFuse page where you choose which teams the agent can reach and the permissions it has in each, and set an expiration date. A personal access token, for clients without a sign-in flow, carries the same choice of teams and permissions.

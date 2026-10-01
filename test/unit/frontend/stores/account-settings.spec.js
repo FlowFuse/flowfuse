@@ -290,6 +290,14 @@ describe('account-settings store', () => {
                 expect(store.featuresCheck.isAiFeatureEnabled).toBe(true)
             })
 
+            it('isAiFeatureEnabled is true when team ai is undefined, matching the backend opt-out default', () => {
+                mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { features: {}, billing: {}, instances: {} } } } })
+                const store = useAccountSettingsStore()
+                store.setSettings({ features: { ai: true } })
+                expect(store.featuresCheck.isAiFeatureEnabledForTeam).toBe(true)
+                expect(store.featuresCheck.isAiFeatureEnabled).toBe(true)
+            })
+
             it('isGeneratedSnapshotDescriptionFeatureEnabled requires platform and team ai', () => {
                 mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { features: { generatedSnapshotDescription: true, ai: true }, billing: {}, instances: {} } } } })
                 const store = useAccountSettingsStore()
