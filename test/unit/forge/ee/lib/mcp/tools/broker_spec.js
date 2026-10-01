@@ -272,6 +272,27 @@ describe('MCP Broker Tools', function () {
             const response = await tool.handler({ teamId: 'team1', brokerId: 'team-broker', topicId: 'topic1' }, { inject })
             response.should.equal(errorResponse)
         })
+
+        it('refuses ids that would reach another route', async function () {
+            for (const [teamId, brokerId, topicId] of [
+                ['team1', 'team-broker', '../../../../../applications/app1'],
+                ['team1', '../../applications/app1', 'topic1'],
+                ['../applications', 'team-broker', 'topic1'],
+                ['team1', 'team-broker', 'topic1?x=1']
+            ]) {
+                const response = await tool.handler({ teamId, brokerId, topicId }, { inject })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            }
+            inject.called.should.be.false()
+        })
+
+        it('accepts a 3rd-party broker hashid', async function () {
+            inject.resolves({ statusCode: 201, json: () => ({}) })
+
+            await tool.handler({ teamId: 'team1', brokerId: 'broker1', topicId: 'topic1' }, { inject })
+            inject.calledOnce.should.be.true()
+        })
     })
 
     describe('platform_delete_broker_client', function () {
@@ -293,11 +314,35 @@ describe('MCP Broker Tools', function () {
         })
 
         it('passes through an error response', async function () {
-            const errorResponse = { statusCode: 404, json: () => ({}) }
+            const errorResponse = { statusCode: 403, json: () => ({ code: 'unauthorized' }) }
             inject.resolves(errorResponse)
 
             const response = await tool.handler({ teamId: 'team1', username: 'alice' }, { inject })
             response.should.equal(errorResponse)
+        })
+
+        it('turns the route\'s bare 404 {} into a not_found error', async function () {
+            inject.resolves({ statusCode: 404, json: () => ({}) })
+
+            const response = await tool.handler({ teamId: 'team1', username: 'alice' }, { inject })
+            response.statusCode.should.equal(404)
+            response.json().should.have.property('code', 'not_found')
+        })
+
+        it('encodes the username, so one containing "/" stays a single path segment', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ status: 'okay' }) })
+
+            await tool.handler({ teamId: 'team1', username: 'rv:client/2' }, { inject })
+            inject.firstCall.args[0].url.should.equal(`/api/v1/teams/team1/broker/client/${encodeURIComponent('rv:client/2')}`)
+        })
+
+        it('refuses ids that would reach another route', async function () {
+            for (const [teamId, username] of [['team1', '..'], ['team1', '.'], ['../applications', 'alice']]) {
+                const response = await tool.handler({ teamId, username }, { inject })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            }
+            inject.called.should.be.false()
         })
     })
 })
