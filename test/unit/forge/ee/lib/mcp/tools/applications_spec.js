@@ -226,6 +226,15 @@ describe('MCP Applications Tools', function () {
             const response = await tool.handler({ applicationId: 'app1' }, { inject })
             response.should.equal(errorResponse)
         })
+
+        it('refuses an applicationId that would reach another route', async function () {
+            for (const applicationId of ['../teams/team1', 'app1?x=1', '..']) {
+                const response = await tool.handler({ applicationId }, { inject })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            }
+            inject.called.should.be.false()
+        })
     })
 
     describe('platform_list_application_snapshots', function () {

@@ -9,7 +9,8 @@ const {
     searchQueryKeys,
     auditLogFilters,
     auditLogFilterKeys,
-    appendQuery
+    appendQuery,
+    toolError
 } = require('../schemas')
 
 // Audit-log routes accept cursor+limit pagination, free-text query, event
@@ -132,6 +133,11 @@ module.exports = [
             applicationId: applicationId.describe('The hashid of the application to delete')
         },
         handler: async (args, { inject }) => {
+            // applicationId goes into the URL path and inject resolves dot segments, so anything but
+            // a plain hashid could send this DELETE to another route (e.g. "../teams/<id>" deletes a team).
+            if (!/^[A-Za-z0-9]+$/.test(args.applicationId)) {
+                return toolError(400, 'invalid_request', 'applicationId must be a hashid')
+            }
             const response = await inject({ method: 'DELETE', url: `/api/v1/applications/${args.applicationId}` })
             return response
         }
