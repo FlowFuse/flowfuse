@@ -1,6 +1,8 @@
 ---
 navTitle: FlowFuse Concepts
 navOrder: 2
+meta:
+   description: Understand the core FlowFuse concepts, including teams, applications, hosted and remote instances, stacks, templates, snapshots and pipelines.
 ---
 
 # FlowFuse Concepts

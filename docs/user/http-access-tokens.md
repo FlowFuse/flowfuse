@@ -1,5 +1,7 @@
 ---
 navTitle: HTTP Access Tokens
+meta:
+   description: Create HTTP access tokens so other applications can reach the dashboard and HTTP endpoints of a FlowFuse instance secured with user authentication.
 ---
 
 # HTTP Access Tokens

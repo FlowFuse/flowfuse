@@ -35,7 +35,19 @@
                     <p class="ff-agent-step__num">01</p>
                     <p class="ff-agent-step__title">{{ client.step1Title || 'Copy the FlowFuse connector URL' }}</p>
                     <p class="ff-agent-step__body">{{ client.step1Body || 'Paste it into your agent in the next step.' }}</p>
-                    <div class="ff-agent-step__cta">
+                    <div v-if="client.step1Url" class="ff-agent-step__cta">
+                        <a
+                            :href="client.step1Url"
+                            class="ff-agent-step__link"
+                            target="_blank"
+                            rel="noopener"
+                            @click="capture('cta-ai-open-client', { position: client.id })"
+                        >
+                            <span>{{ client.step1Label }}</span>
+                            <ArrowTopRightOnSquareIcon class="ff-icon" />
+                        </a>
+                    </div>
+                    <div v-else class="ff-agent-step__cta">
                         <div class="ai-connector__command">
                             <code class="ai-connector__endpoint" :class="{ 'ai-connector__endpoint--wrap': client.step1Command }">{{ stepOneText(client) }}</code>
                             <ff-button kind="primary" size="small" @click="copyStepOne(client)">
@@ -50,7 +62,7 @@
                     <p class="ff-agent-step__num">02</p>
                     <p class="ff-agent-step__title">{{ client.step2Title }}</p>
                     <p class="ff-agent-step__body">{{ client.step2Body }}</p>
-                    <div class="ff-agent-step__cta">
+                    <div v-if="client.step2Url" class="ff-agent-step__cta">
                         <a
                             :href="client.step2Url"
                             class="ff-agent-step__link"
@@ -66,8 +78,7 @@
 
                 <div class="ff-agent-step">
                     <p class="ff-agent-step__num">03</p>
-                    <p class="ff-agent-step__title">Sign in and choose what it reaches</p>
-                    <p class="ff-agent-step__body">Pick which teams it acts on, and whether it can edit or only read.</p>
+                    <p class="ff-agent-step__title">Select teams and permissions</p>
                 </div>
             </div>
         </div>
@@ -106,6 +117,8 @@ import chatgptLogo from '../icons/ai-agents/chatgpt.svg'
 import claudeLogo from '../icons/ai-agents/claude.svg'
 import copilotLogo from '../icons/ai-agents/microsoft-copilot.svg'
 
+const CLOUD_ENDPOINT = 'https://app.flowfuse.com/mcp'
+
 const CLIENTS = [
     {
         id: 'claude',
@@ -114,7 +127,16 @@ const CLIENTS = [
         step2Title: 'Add a custom connector',
         step2Body: 'Paste the URL.',
         step2Label: 'Open Claude',
-        step2Url: 'https://claude.ai/'
+        step2Url: 'https://claude.ai/',
+        cloud: {
+            step1Title: 'Open the FlowFuse connector',
+            step1Body: 'The official FlowFuse MCP connector is available in Claude.',
+            step1Label: 'Connect to Claude',
+            step1Url: 'https://claude.ai/directory/flowfuse',
+            step2Title: 'Choose Connect to Claude',
+            step2Body: 'Claude opens FlowFuse.',
+            step2Url: null
+        }
     },
     {
         id: 'copilot',
@@ -148,7 +170,14 @@ const CLIENTS = [
         step2Title: 'Paste it into Claude Code',
         step2Body: 'It adds the connector itself, then asks you to finish signing in.',
         step2Label: 'See the documentation',
-        step2Url: 'https://flowfuse.com/docs/user/expert/third-party-agents/'
+        step2Url: 'https://flowfuse.com/docs/user/expert/third-party-agents/',
+        cloud: {
+            step1Title: 'Open the MCP list',
+            step1Body: 'Run this in Claude Code.',
+            step1Command: () => '/mcp',
+            step2Title: 'Select FlowFuse and choose Authenticate',
+            step2Body: 'Find it under Show unused connectors.'
+        }
     },
     {
         id: 'codex',
@@ -179,13 +208,18 @@ export default {
     mixins: [clipboardMixin],
     data () {
         return {
-            clients: CLIENTS,
             activeClient: CLIENTS[0].id
         }
     },
     computed: {
         endpoint () {
             return `${window.location.origin}/mcp`
+        },
+        isCloud () {
+            return this.endpoint === CLOUD_ENDPOINT
+        },
+        clients () {
+            return CLIENTS.map(client => (this.isCloud && client.cloud) ? { ...client, ...client.cloud } : client)
         }
     },
     methods: {
