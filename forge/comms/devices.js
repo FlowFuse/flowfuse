@@ -294,7 +294,7 @@ class DeviceCommsHandler {
                 let editorTokenChanged = false
                 if (Object.hasOwn(payload, 'affinity')) {
                     if (payload.affinity && (previousEditorToken !== null)) {
-                        editorTokenChanged = payload.affinity === previousEditorToken
+                        editorTokenChanged = payload.affinity !== previousEditorToken
                     }
                 }
                 if (stateChanged || cameOnline || editorTokenChanged) {
