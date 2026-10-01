@@ -36,7 +36,7 @@ import alerts from '@/services/alerts.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
-import { useProductMcpStore } from '@/stores/product-mcp.js'
+import { MCP_TOAST_DURATION, useProductMcpStore } from '@/stores/product-mcp.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
@@ -100,7 +100,7 @@ export default {
             // twice. Only the call that actually closed it speaks, so the second toggle
             // cannot report the same switch again.
             if (await this.disableMcp()) {
-                alerts.emit('MCP session closed due to team switch.', 'info')
+                alerts.emit('MCP session closed due to team switch.', 'info', MCP_TOAST_DURATION)
             }
         }
     },
@@ -124,11 +124,11 @@ export default {
             if (!this.team) return
             this.enableMcp(this.team)
             // Not a confirmation: nothing is targeting it yet, which is what the amber says
-            alerts.emit('MCP session exposed. Third-party agents can now target this tab.', 'info')
+            alerts.emit('MCP session exposed. Third-party agents can now target this tab.', 'info', MCP_TOAST_DURATION)
         },
         async stopMcp () {
             if (await this.disableMcp()) {
-                alerts.emit('MCP session closed.', 'info')
+                alerts.emit('MCP session closed.', 'info', MCP_TOAST_DURATION)
             }
         }
     }
