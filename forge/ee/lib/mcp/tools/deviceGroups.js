@@ -202,6 +202,11 @@ module.exports = [
             groupId: z.string().describe('The hashid of the device group to delete')
         },
         handler: async (args, { inject }) => {
+            // Both ids go into the URL path and inject resolves dot segments, so anything but a plain
+            // hashid could send this DELETE to another route (e.g. groupId "../../<applicationId>").
+            if (!/^[A-Za-z0-9]+$/.test(args.applicationId) || !/^[A-Za-z0-9]+$/.test(args.groupId)) {
+                return toolError(400, 'invalid_request', 'applicationId and groupId must be hashids')
+            }
             const response = await inject({ method: 'DELETE', url: `/api/v1/applications/${args.applicationId}/device-groups/${args.groupId}` })
             return response
         }

@@ -285,5 +285,14 @@ describe('MCP Device Groups Tools', function () {
             const response = await tool.handler({ applicationId: 'app1', groupId: 'group1' }, { inject })
             response.should.equal(errorResponse)
         })
+
+        it('refuses ids that would reach another route', async function () {
+            for (const [applicationId, groupId] of [['app1', '../../app2'], ['../teams/team1', 'group1'], ['app1', 'group1?x=1']]) {
+                const response = await tool.handler({ applicationId, groupId }, { inject })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            }
+            inject.called.should.be.false()
+        })
     })
 })
