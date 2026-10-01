@@ -291,7 +291,7 @@ class DeviceCommsHandler {
                 const maskTransientStop = previousState === 'restarting' && payload.state === 'stopped'
                 const stateChanged = !maskTransientStop && payload.state !== previousState
                 const cameOnline = previousOnlineStatus !== 'online'
-                const editorTokenChanged = (payload.affinity || '') !== (previousEditorToken || '') 
+                const editorTokenChanged = (payload.affinity || '') !== (previousEditorToken || '')
                 if (stateChanged || cameOnline || editorTokenChanged) {
                     this.app.db.controllers.Device.updateLiveCachedState(
                         device.hashid,
