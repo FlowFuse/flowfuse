@@ -1,5 +1,7 @@
 ---
 navTitle: Shared Team Library
+meta:
+   description: Share flows and functions between Node-RED instances by exporting them to, and importing them from, the FlowFuse Team Library.
 ---
 
 # Shared Team Library
