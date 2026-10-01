@@ -61,6 +61,17 @@ function fromGrant (grant, teamPermissionRows, encodeTeamId) {
     return { default: grant.permissions, teams }
 }
 
+// Plain PATs have no grant; until they are kept off /mcp they keep the access their readOnly flag gives
+function forSession (session) {
+    if (session?.mcpGrant) {
+        return session.mcpGrant
+    }
+    if (session?.pat) {
+        return fromReadOnly(session.pat.readOnly)
+    }
+    return null
+}
+
 function deriveReadOnly (tokenPermissions) {
     return !GROUPS.some(group => anyTeamAllows(tokenPermissions, group, 'write'))
 }
@@ -114,6 +125,7 @@ module.exports = {
     equals,
     fromReadOnly,
     fromGrant,
+    forSession,
     deriveReadOnly,
     effectiveReadOnly,
     classOf,
