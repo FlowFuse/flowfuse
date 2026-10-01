@@ -76,6 +76,16 @@ function deriveReadOnly (tokenPermissions) {
     return !GROUPS.some(group => anyTeamAllows(tokenPermissions, group, 'write'))
 }
 
+// A token's effective readOnly. An MCP token follows its grant, so team removal or deletion needs no
+// recalculation; any other token uses its stored flag.
+function effectiveReadOnly (token, encodeTeamId) {
+    const grant = token.MCPGrant
+    if (!grant) {
+        return token.readOnly ?? false
+    }
+    return deriveReadOnly(fromGrant(grant, grant.MCPGrantTeamPermissions, encodeTeamId))
+}
+
 function classOf (annotations) {
     if (annotations?.readOnlyHint === true) {
         return 'read'
@@ -117,6 +127,7 @@ module.exports = {
     fromGrant,
     forSession,
     deriveReadOnly,
+    effectiveReadOnly,
     classOf,
     resolve,
     anyTeamAllows
