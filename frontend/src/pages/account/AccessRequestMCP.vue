@@ -155,7 +155,7 @@ export default {
     },
     data () {
         return {
-            teamScope: 'all',
+            teamScope: null,
             expiresAt: defaultExpiresAt(),
             selectedTeamIds: [],
             teams: [],

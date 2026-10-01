@@ -61,12 +61,12 @@ function futureDate (days) {
 }
 
 describe('AccessRequestMCP', () => {
-    test('preselects all teams', async () => {
+    test('does not preselect a team scope', async () => {
         const wrapper = await mountPage()
 
         const checked = wrapper.findAll('.ff-radio-btn')
             .filter(r => r.find('.checkbox').attributes('checked') === 'true')
-        expect(checked.map(r => r.text())).toEqual([expect.stringContaining('All teams')])
+        expect(checked).toEqual([])
     })
 
     test('pre-selects read and write for platform, and every category for flow building', async () => {
@@ -85,6 +85,7 @@ describe('AccessRequestMCP', () => {
 
     test('explains which teams the default permissions apply to', async () => {
         const wrapper = await mountPage()
+        await findRadio(wrapper, 'All teams').trigger('click')
         const note = () => wrapper.find('[data-el="default-permissions-note"]').text()
         expect(note()).toBe('These apply to every team without custom permissions, including teams you join later.')
 
@@ -95,9 +96,11 @@ describe('AccessRequestMCP', () => {
         expect(note()).toBe('Every team you belong to has custom permissions, so these only apply to teams you join later.')
     })
 
-    test('enables Allow on load, with all teams and the expiry pre-filled', async () => {
+    test('keeps Allow disabled until a team scope is chosen', async () => {
         const wrapper = await mountPage()
+        expect(allowButton(wrapper).attributes('disabled')).toBeDefined()
 
+        await findRadio(wrapper, 'All teams').trigger('click')
         expect(allowButton(wrapper).attributes('disabled')).toBeUndefined()
     })
 
