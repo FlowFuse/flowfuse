@@ -161,7 +161,7 @@ async function init (app, opts) {
 
                             const patMetadata = {
                                 id: accessToken.id,
-                                readOnly: accessToken.readOnly,
+                                readOnly: mcpToolPermissions.effectiveReadOnly(accessToken, app.db.models.Team.encodeHashid),
                                 adminOptIn: accessToken.adminOptIn,
                                 teamScopes
                             }

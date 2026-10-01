@@ -369,7 +369,7 @@ module.exports = {
             } else {
                 token.expiresAt = expiresAt
             }
-            // An MCP token's readOnly follows its grant, set below
+            // An MCP token's readOnly follows its grant
             if (readOnly !== undefined && !grant) {
                 token.readOnly = readOnly
             }
@@ -400,11 +400,6 @@ module.exports = {
                         }
                     }
                 })
-            }
-            if (grant) {
-                // Removing a team can drop the only override that allowed Write
-                const teamRows = await app.db.models.MCPGrantTeamPermission.findAll({ where: { MCPGrantId: grant.id } })
-                token.readOnly = mcpToolPermissions.deriveReadOnly(mcpToolPermissions.fromGrant(grant, teamRows, app.db.models.Team.encodeHashid))
             }
             await token.save()
             const reloaded = await app.db.models.AccessToken.findOne({

@@ -478,22 +478,26 @@ describe('AccessToken controller', function () {
                     grant.MCPGrantTeamPermissions.map(r => r.TeamId).should.eql([TestObjects.team.id])
                 })
 
-                it('re-derives readOnly when the only override allowing write is removed', async function () {
+                it('reports readOnly from the grant once the only override allowing write is removed', async function () {
                     const writePlatform = { platform: { read: true, write: true, destructive: false }, flow_building: { read: false, write: false, destructive: false } }
                     const result = await createToken({
                         teamIds: [TestObjects.team.hashid, otherTeam.hashid],
                         toolPermissions: { default: readPlatform, teams: { [otherTeam.hashid]: writePlatform } }
                     })
                     const row = await app.db.models.AccessToken.byRefreshToken(result.refreshToken)
-                    row.readOnly.should.be.false()
-                    const updated = await AccessTokenController.updatePersonalAccessToken(TestObjects.alice, row.id, 'ff', null, { teamIds: [TestObjects.team.hashid] })
-                    updated.readOnly.should.be.true()
+                    const reloadWithGrant = () => app.db.models.AccessToken.findOne({
+                        where: { id: row.id },
+                        include: [{ model: app.db.models.MCPGrant, include: [{ model: app.db.models.MCPGrantTeamPermission }] }]
+                    })
+                    mcpToolPermissions.effectiveReadOnly(await reloadWithGrant(), app.db.models.Team.encodeHashid).should.be.false()
+                    await AccessTokenController.updatePersonalAccessToken(TestObjects.alice, row.id, 'ff', null, { teamIds: [TestObjects.team.hashid] })
+                    mcpToolPermissions.effectiveReadOnly(await reloadWithGrant(), app.db.models.Team.encodeHashid).should.be.true()
                 })
 
                 it('ignores a readOnly value for a token with a grant', async function () {
                     const row = await tokenWithBothTeams()
                     const updated = await AccessTokenController.updatePersonalAccessToken(TestObjects.alice, row.id, 'ff', null, { readOnly: false })
-                    updated.readOnly.should.be.true()
+                    mcpToolPermissions.effectiveReadOnly(updated, app.db.models.Team.encodeHashid).should.be.true()
                 })
 
                 it('returns the grant with the updated token', async function () {
