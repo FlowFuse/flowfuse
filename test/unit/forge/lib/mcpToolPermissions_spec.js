@@ -6,6 +6,7 @@ const {
     fromReadOnly,
     fromGrant,
     deriveReadOnly,
+    effectiveReadOnly,
     classOf,
     resolve,
     anyTeamAllows
@@ -162,6 +163,33 @@ describe('mcpToolPermissions', function () {
 
         it('is false for a null tokenPermissions', function () {
             anyTeamAllows(null, 'platform', 'read').should.be.false()
+        })
+    })
+
+    describe('effectiveReadOnly', function () {
+        const encode = (id) => 'team' + id
+        const grantWith = (permissions, teamRows = []) => ({ permissions, MCPGrantTeamPermissions: teamRows })
+
+        it('uses the stored flag for a token without a grant', function () {
+            effectiveReadOnly({ readOnly: true }, encode).should.be.true()
+            effectiveReadOnly({ readOnly: false }, encode).should.be.false()
+            effectiveReadOnly({}, encode).should.be.false()
+        })
+
+        it('follows the grant rather than the stored flag', function () {
+            const readOnlyGrant = grantWith(fromReadOnly(true).default)
+            effectiveReadOnly({ readOnly: false, MCPGrant: readOnlyGrant }, encode).should.be.true()
+        })
+
+        it('is false when only a team row allows write', function () {
+            const writable = fromReadOnly(false).default
+            const grant = grantWith(fromReadOnly(true).default, [{ TeamId: 2, permissions: writable }])
+            effectiveReadOnly({ readOnly: true, MCPGrant: grant }, encode).should.be.false()
+        })
+
+        it('turns true again once that team row is gone', function () {
+            const grant = grantWith(fromReadOnly(true).default, [])
+            effectiveReadOnly({ readOnly: false, MCPGrant: grant }, encode).should.be.true()
         })
     })
 

@@ -114,7 +114,7 @@ module.exports = function (app) {
             id: token.hashid,
             name: token.name,
             expiresAt: token.expiresAt ?? null,
-            readOnly: token.readOnly ?? false,
+            readOnly: mcpToolPermissions.effectiveReadOnly(token, app.db.models.Team.encodeHashid),
             adminOptIn: token.adminOptIn ?? false,
             teams: (token.AccessTokenTeamScopes ?? []).map(s => ({
                 id: app.db.models.Team.encodeHashid(s.TeamId),
