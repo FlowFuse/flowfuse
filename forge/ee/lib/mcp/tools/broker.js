@@ -236,11 +236,6 @@ module.exports = [
                 return toolError(400, 'invalid_request', 'teamId must be a hashid, and username cannot be "." or ".."')
             }
             const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/broker/client/${encodeURIComponent(args.username)}` })
-            // The route answers an unknown or hidden username with a bare 404 {}, which reaches the caller as a meaningless "{}".
-            // A 404 with a body comes from the team or feature check and is passed through as is.
-            if (response.statusCode === 404 && !response.json().code) {
-                return toolError(404, 'not_found', 'No broker client with that username in this team, or you do not have access to it. Check platform_list_broker_clients for the usernames')
-            }
             return response
         }
     }

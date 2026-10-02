@@ -321,14 +321,6 @@ describe('MCP Broker Tools', function () {
             response.should.equal(errorResponse)
         })
 
-        it('turns the route\'s bare 404 {} into a not_found error', async function () {
-            inject.resolves({ statusCode: 404, json: () => ({}) })
-
-            const response = await tool.handler({ teamId: 'team1', username: 'alice' }, { inject })
-            response.statusCode.should.equal(404)
-            response.json().should.have.property('code', 'not_found')
-        })
-
         it('encodes the username, so one containing "/" stays a single path segment', async function () {
             inject.resolves({ statusCode: 200, json: () => ({ status: 'okay' }) })
 
