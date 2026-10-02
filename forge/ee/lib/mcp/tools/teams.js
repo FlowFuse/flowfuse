@@ -325,14 +325,14 @@ module.exports = [
                 return toolError(400, 'invalid_request', 'teamId and userId must be hashids')
             }
             // The route answers 200 { status: "okay" } for a user who is not a member,
-            // which reads as a removal that never happened. Check membership first
-            // when the caller can list members, and leave any other case to the route.
+            // which reads as a removal that never happened, so check membership first.
             const membersResponse = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/members` })
-            if (membersResponse.statusCode === 200) {
-                const members = membersResponse.json().members || []
-                if (!members.some(member => member.id === args.userId)) {
-                    return toolError(404, 'not_found', 'That user is not a member of this team. Check platform_list_team_members for the member ids')
-                }
+            if (membersResponse.statusCode !== 200) {
+                return membersResponse
+            }
+            const members = membersResponse.json().members || []
+            if (!members.some(member => member.id === args.userId)) {
+                return toolError(404, 'not_found', 'That user is not a member of this team. Check platform_list_team_members for the member ids')
             }
             const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/members/${args.userId}` })
             return response
