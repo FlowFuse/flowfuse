@@ -924,4 +924,53 @@ describe('MCP Instances Tools', function () {
             response.should.equal(errorResponse)
         })
     })
+
+    describe('platform_delete_instance_file', function () {
+        const tool = getTool('platform_delete_instance_file')
+        const instanceId = '6c1f3e2a-8b4d-4f10-9a2e-3d5c7b9e1f00'
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('deletes the encoded path through the instance files route', async function () {
+            inject.withArgs({ method: 'DELETE', url: `/api/v1/projects/${instanceId}/files/_/${encodeURIComponent('logs/old.txt')}` }).resolves({ statusCode: 200, body: '' })
+
+            const response = await tool.handler({ instanceId, path: 'logs/old.txt' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.statusCode.should.equal(200)
+            response.json().should.eql({ status: 'okay' })
+        })
+
+        it('rejects an empty path, which would target the file-store root', function () {
+            tool.inputSchema.path.safeParse('').success.should.be.false()
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 400, body: '{}', json: () => ({ code: 'invalid_request', error: 'HTTPError: Response code 404 (Not Found)' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ instanceId, path: 'missing.txt' }, { inject })
+            response.should.equal(errorResponse)
+        })
+
+        it('drops empty segments, so a trailing slash still names the directory', async function () {
+            inject.resolves({ statusCode: 200, body: '' })
+
+            await tool.handler({ instanceId, path: '/logs//old/' }, { inject })
+
+            inject.firstCall.args[0].url.should.equal(`/api/v1/projects/${instanceId}/files/_/${encodeURIComponent('logs/old')}`)
+        })
+
+        it('refuses a path that resolves to the root or climbs out of it', async function () {
+            for (const path of ['/', '//', '.', 'logs/..', '../other', 'logs/./old']) {
+                const response = await tool.handler({ instanceId, path }, { inject })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            }
+            inject.called.should.be.false()
+        })
+    })
 })
