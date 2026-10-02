@@ -9,7 +9,8 @@ const {
     searchQueryKeys,
     auditLogFilters,
     auditLogFilterKeys,
-    appendQuery
+    appendQuery,
+    toolError
 } = require('../schemas')
 
 // Audit-log routes accept cursor+limit pagination, free-text query, event
@@ -112,6 +113,32 @@ module.exports = [
                 payload.description = args.description
             }
             const response = await inject({ method: 'PUT', url: `/api/v1/applications/${args.applicationId}`, payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_delete_application',
+        title: 'Delete Application',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes an application. This cannot be undone.
+            The application must have no hosted instances left, otherwise the call is rejected with a 422 "invalid_application" and nothing is deleted. Delete or move its hosted instances first.
+            Its device groups are deleted with it. Its remote instances (devices) are not deleted: they become unassigned team devices, drop out of their device groups and keep their current target snapshot.
+            Its pipelines are NOT deleted either. They are detached from the application and can no longer be reached, so check with platform_list_pipelines (applicationId) and remove any that are no longer wanted before deleting the application.
+            Before calling this, confirm with the user and tell them which remote instances and pipelines are affected (use platform_get_application and platform_list_pipelines).
+            Only team owners can delete applications. Replies { status: "okay" } on success; an application that does not exist, or that the caller cannot see, returns 404.`,
+        // destructiveHint: the application and its device groups are gone for good.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            applicationId: applicationId.describe('The hashid of the application to delete')
+        },
+        handler: async (args, { inject }) => {
+            // applicationId goes into the URL path and inject resolves dot segments, so anything but
+            // a plain hashid could send this DELETE to another route (e.g. "../teams/<id>" deletes a team).
+            if (!/^[A-Za-z0-9]+$/.test(args.applicationId)) {
+                return toolError(400, 'invalid_request', 'applicationId must be a hashid')
+            }
+            const response = await inject({ method: 'DELETE', url: `/api/v1/applications/${args.applicationId}` })
             return response
         }
     },

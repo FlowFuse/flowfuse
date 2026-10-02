@@ -36,6 +36,7 @@
         "test": "npm-run-all --sequential lint test:unit test:system",
         "test:unit": "npm-run-all --sequential test:unit:forge test:unit:frontend",
         "test:unit:forge": "mocha \"test/unit/forge/**/*_spec.js\" --timeout 10000 --node-option=unhandled-rejections=strict",
+        "test:unit:forge:ci": "mocha  \"test/unit/forge/**/*_spec.js\" --bail --timeout 10000 --node-option=unhandled-rejections=strict",
         "test:unit:frontend": "vitest run --config ./config/vitest.config.ts",
         "test:docs": "node test/e2e/docs/valid-links.js ./docs",
         "test:system": "mocha \"test/system/**/*_spec.js\" --timeout 10000 --node-option=unhandled-rejections=strict",
@@ -50,6 +51,7 @@
         "cover": "npm-run-all --sequential cover:unit cover:system cover:report",
         "cover:unit": "npm-run-all --sequential cover:unit:forge cover:unit:frontend",
         "cover:unit:forge": "nyc --silent npm run test:unit:forge && nyc report --reporter=json --report-dir ./coverage/reports/forge/ && mv ./coverage/reports/forge/coverage-final.json ./coverage/reports/forge-coverage.json",
+        "cover:unit:forge:ci": "nyc --silent npm run test:unit:forge:ci && nyc report --reporter=json --report-dir ./coverage/reports/forge/ && mv ./coverage/reports/forge/coverage-final.json ./coverage/reports/forge-coverage.json",
         "cover:unit:frontend": "vitest --config ./config/vitest.config.ts run --coverage && mv ./coverage/reports/frontend/coverage-final.json ./coverage/reports/frontend-coverage.json",
         "cover:system": "nyc --silent npm run test:system && nyc report --reporter=json --report-dir ./coverage/reports/system/  && mv ./coverage/reports/system/coverage-final.json ./coverage/reports/system-coverage.json",
         "cover:report": "nyc report --reporter=html --reporter=json -t \"./coverage/reports\"",
@@ -104,7 +106,7 @@
         "lottie-web-vue": "^2.0.7",
         "lru-cache": "^11.1.0",
         "marked": "^18.0.5",
-        "mqtt": "^5.1.1",
+        "mqtt": "^5.16.0",
         "mqtt-match": "^3.0.0",
         "nodemailer": "^10.0.3",
         "pg": "^8.11.3",
@@ -192,7 +194,7 @@
         "vue-tsc": "^3.2.6",
         "webpack": "^5.88.2",
         "webpack-cli": "^7.0.2",
-        "webpack-dev-server": "^5.2.1",
+        "webpack-dev-server": "^6.0.0",
         "ws": "^8.20.1"
     },
     "engines": {

@@ -1,6 +1,7 @@
 const { z } = require('zod')
 
-const { basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError } = require('../schemas')
+const { basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError, hostedInstanceId } = require('../schemas')
+const { emptySuccessAsOkay } = require('../utils')
 
 // Tools that work against both hosted instances and remote instances (devices),
 // selected with an instanceType discriminator.
@@ -149,6 +150,69 @@ module.exports = [
                 payload.expiresAt = args.expiresAt
             }
             const response = await inject({ method: 'PUT', url: `/api/v1/${base}/${args.instanceId}/httpTokens/${args.tokenId}`, payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_delete_instance_http_token',
+        title: 'Delete Instance HTTP Token',
+        description: `FlowFuse platform automation tool:
+            Deletes an HTTP bearer token from an instance (hosted instance or remote instance/device). This cannot be undone.
+            External callers presenting the token to the instance's Node-RED HTTP endpoints are then refused, but not necessarily straight away: an instance caches tokens it has recently accepted, so a caller already using it can keep getting through for up to about 5 minutes. A replacement has to be created with platform_create_instance_http_token, which issues a new value.
+            Before calling this, confirm with the user and check what still uses the token. Find token ids with platform_list_instance_http_tokens.
+            Replies { status: "okay" } on success. A token that does not exist on that instance returns a 404.
+            HTTP bearer tokens are a plan-gated feature; a team without it enabled gets a 404 error.`,
+        // destructiveHint: the token is revoked for good, cutting off whoever used it.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
+            instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),
+            tokenId: z.string().describe('The hashid of the token to delete, as returned by platform_list_instance_http_tokens')
+        },
+        handler: async (args, { inject }) => {
+            // Both ids go into the URL path and inject resolves dot segments, so anything but
+            // a plain id could send this DELETE to another route (e.g. "../../../applications/<id>").
+            const validInstanceId = args.instanceType === 'remote'
+                ? /^[A-Za-z0-9]+$/.test(args.instanceId)
+                : hostedInstanceId.safeParse(args.instanceId).success
+            if (!validInstanceId || !/^[A-Za-z0-9]+$/.test(args.tokenId)) {
+                return toolError(400, 'invalid_request', 'instanceId must be a hosted instance UUID or a remote instance (device) hashid matching instanceType, and tokenId a token hashid')
+            }
+            const base = args.instanceType === 'remote' ? 'devices' : 'projects'
+            const response = await inject({ method: 'DELETE', url: `/api/v1/${base}/${args.instanceId}/httpTokens/${args.tokenId}` })
+            // The route answers a successful delete with an empty 201.
+            return emptySuccessAsOkay(response)
+        }
+    },
+    {
+        name: 'platform_delete_instance',
+        title: 'Delete Instance',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes an instance, either a hosted instance or a remote instance (device). This cannot be undone, and there is no way to get the instance back.
+            Deleting a hosted instance removes its container, flows, credentials, settings and files, and ALL of its snapshots. Remote instances (devices) assigned to it are not deleted, but they are left unassigned (not moved to the application), lose their target snapshot and stop running Node-RED (unless in developer mode) until they are given a new one.
+            Deleting a remote instance (device) revokes its credentials, so the physical device can no longer connect to the platform or receive updates. Its snapshots stay behind but can no longer be opened.
+            In both cases, a pipeline stage that deployed to the instance is not deleted, it is left with no deploy target, so edit or remove it afterwards (find it with platform_list_pipelines).
+            Before calling this, confirm with the user and tell them what goes with it. For a hosted instance, use platform_list_instance_snapshots and platform_list_remote_instances to list the snapshots and assigned devices. If the snapshots might be wanted later, export them first with platform_export_snapshot.
+            Only team owners can delete instances. Replies { status: "okay" } on success; an instance that does not exist, or that the caller cannot see, returns 404.`,
+        // destructiveHint: the instance and everything stored with it are gone for good.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            instanceId: z.string().describe('The ID of the instance to delete (hosted instance UUID, or remote instance/device hashid)'),
+            instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")')
+        },
+        handler: async (args, { inject }) => {
+            // instanceId goes into the URL path and inject resolves dot segments, so anything
+            // but a plain id could send this DELETE to another route (e.g. "../applications/<id>").
+            const validId = args.instanceType === 'remote'
+                ? /^[A-Za-z0-9]+$/.test(args.instanceId)
+                : hostedInstanceId.safeParse(args.instanceId).success
+            if (!validId) {
+                return toolError(400, 'invalid_request', 'instanceId must be a hosted instance UUID or a remote instance (device) hashid, matching instanceType')
+            }
+            const base = args.instanceType === 'remote' ? 'devices' : 'projects'
+            const response = await inject({ method: 'DELETE', url: `/api/v1/${base}/${args.instanceId}` })
             return response
         }
     }

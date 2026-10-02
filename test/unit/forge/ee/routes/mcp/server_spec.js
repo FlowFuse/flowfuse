@@ -271,11 +271,99 @@ describe('MCP Platform Tools Server', function () {
                 userProperties.should.have.property('entityType', 'instance')
                 userProperties.should.have.property('entityId', 'instance-1')
                 userProperties.should.have.property('teamId', app.team.hashid)
+                userProperties.should.have.property('browserSessionTeamId', app.team.hashid)
                 userProperties.should.have.property('patId').and.be.a.String().and.not.be.empty()
                 const expectedTelemetry = (app.license.active() || (app.config.telemetry?.enabled !== false && app.settings.get('telemetry:enabled') !== false)) ? 'true' : 'false'
                 userProperties.should.have.property('telemetryEnabled', expectedTelemetry)
 
                 await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-1')
+            })
+
+            it('should refuse a call when the pinned tab belongs to a team with AI disabled', async function () {
+                const properties = { ...(app.team.properties || {}) }
+                properties.features = { ...(properties.features || {}), ai: false }
+                app.team.properties = properties
+                await app.team.save()
+
+                await app.db.controllers.BrowserSession.recordPresence(app.user.hashid, 'tab-3', {
+                    visibility: 'visible',
+                    focused: true,
+                    context: { teamId: app.team.hashid, topicParts: { entityType: 'instance', entityId: 'instance-1' } }
+                })
+                await app.db.controllers.BrowserSession.setActiveBrowserSession(app.user.hashid, 'session-ghi', 'tab-3')
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    headers: {
+                        authorization: `Bearer ${TestObjects.alicePAT.token}`,
+                        'mcp-session-id': 'session-ghi'
+                    },
+                    payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+                })
+                response.statusCode.should.equal(403)
+                response.json().should.have.property('code', 'unauthorized')
+                response.json().should.have.property('error', 'AI features are disabled for this team. A team owner can re-enable AI Features from Team Settings > Danger.')
+                proxyRequest.called.should.be.false()
+
+                await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-3')
+                properties.features.ai = true
+                app.team.properties = properties
+                await app.team.save()
+            })
+
+            it('should refuse a call when the pinned tab belongs to a team with MCP access disabled', async function () {
+                const properties = { ...(app.team.properties || {}) }
+                properties.features = { ...(properties.features || {}), mcpThirdParty: false }
+                app.team.properties = properties
+                await app.team.save()
+
+                await app.db.controllers.BrowserSession.recordPresence(app.user.hashid, 'tab-2', {
+                    visibility: 'visible',
+                    focused: true,
+                    context: { teamId: app.team.hashid, topicParts: { entityType: 'instance', entityId: 'instance-1' } }
+                })
+                await app.db.controllers.BrowserSession.setActiveBrowserSession(app.user.hashid, 'session-def', 'tab-2')
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    headers: {
+                        authorization: `Bearer ${TestObjects.alicePAT.token}`,
+                        'mcp-session-id': 'session-def'
+                    },
+                    payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+                })
+                response.statusCode.should.equal(403)
+                response.json().should.have.property('code', 'unauthorized')
+                response.json().should.have.property('error', 'MCP access is disabled for this team. A team owner can re-enable MCP access from Team Settings > Danger.')
+                proxyRequest.called.should.be.false()
+
+                await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-2')
+                properties.features.mcpThirdParty = true
+                app.team.properties = properties
+                await app.team.save()
+            })
+
+            it('should convert a numeric browser-session teamId to a hashid for browserSessionTeamId only', async function () {
+                await app.db.controllers.BrowserSession.recordPresence(app.user.hashid, 'tab-numeric-team', {
+                    visibility: 'visible',
+                    context: { teamId: app.team.id, topicParts: {} }
+                })
+                await app.db.controllers.BrowserSession.setActiveBrowserSession(app.user.hashid, 'session-numeric', 'tab-numeric-team')
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    headers: { authorization: `Bearer ${TestObjects.alicePAT.token}`, 'mcp-session-id': 'session-numeric' },
+                    payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+                })
+                response.statusCode.should.equal(200)
+                const userProperties = proxyRequest.firstCall.args[3]
+                userProperties.should.have.property('teamId', app.team.id)
+                userProperties.should.have.property('browserSessionTeamId', app.team.hashid)
+
+                await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-numeric-team')
             })
 
             it('should fall back to a single-team PAT scope for the team when no tab is pinned', async function () {
@@ -295,6 +383,126 @@ describe('MCP Platform Tools Server', function () {
                 const userProperties = proxyRequest.firstCall.args[3]
                 userProperties.should.have.property('teamId', app.team.hashid)
                 userProperties.should.not.have.property('activeBrowserSessionId')
+            })
+
+            describe('browser tab team scope', function () {
+                let teamScopedPAT
+
+                before(async function () {
+                    teamScopedPAT = await app.db.controllers.AccessToken.createPersonalAccessToken(
+                        app.user, '', null, 'alice-team-scoped', { teamIds: [app.team.hashid] }
+                    )
+                })
+
+                beforeEach(async function () {
+                    await app.db.controllers.BrowserSession.recordPresence(app.user.hashid, 'tab-own', {
+                        visibility: 'visible',
+                        focused: true,
+                        context: { teamId: app.team.hashid, topicParts: { entityType: 'p', entityId: 'instance-own' } }
+                    })
+                    await app.db.controllers.BrowserSession.recordPresence(app.user.hashid, 'tab-other', {
+                        visibility: 'visible',
+                        focused: true,
+                        context: { teamId: 'other-team', topicParts: { entityType: 'p', entityId: 'instance-other' } }
+                    })
+                    await app.db.controllers.BrowserSession.recordPresence(app.user.hashid, 'tab-account', {
+                        visibility: 'visible',
+                        focused: true,
+                        context: { teamId: null }
+                    })
+                })
+
+                afterEach(async function () {
+                    await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-own')
+                    await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-other')
+                    await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-account')
+                })
+
+                function post (token, mcpSessionId, payload) {
+                    return app.inject({
+                        method: 'POST',
+                        url: '/mcp',
+                        headers: { authorization: `Bearer ${token}`, 'mcp-session-id': mcpSessionId },
+                        payload
+                    })
+                }
+
+                function invoke (sessionId) {
+                    return {
+                        jsonrpc: '2.0',
+                        method: 'tools/call',
+                        id: 1,
+                        params: { name: 'invoke_read_tool', arguments: { tool_name: 'ui_get_context', arguments: { session_id: sessionId } } }
+                    }
+                }
+
+                it('does not forward a pinned tab on a team the token cannot reach', async function () {
+                    await app.db.controllers.BrowserSession.setActiveBrowserSession(app.user.hashid, 'scope-1', 'tab-other')
+
+                    const response = await post(teamScopedPAT.token, 'scope-1', { jsonrpc: '2.0', method: 'tools/list', id: 1 })
+                    response.statusCode.should.equal(200)
+                    const userProperties = proxyRequest.firstCall.args[3]
+                    userProperties.should.not.have.property('activeBrowserSessionId')
+                    userProperties.should.not.have.property('entityType')
+                    userProperties.should.not.have.property('entityId')
+                })
+
+                it('forwards a pinned tab on a team the token can reach', async function () {
+                    await app.db.controllers.BrowserSession.setActiveBrowserSession(app.user.hashid, 'scope-2', 'tab-own')
+
+                    const response = await post(teamScopedPAT.token, 'scope-2', { jsonrpc: '2.0', method: 'tools/list', id: 1 })
+                    response.statusCode.should.equal(200)
+                    const userProperties = proxyRequest.firstCall.args[3]
+                    userProperties.should.have.property('activeBrowserSessionId', 'tab-own')
+                    userProperties.should.have.property('entityId', 'instance-own')
+                })
+
+                it('forwards the tab named by session_id instead of the pinned tab', async function () {
+                    await app.db.controllers.BrowserSession.setActiveBrowserSession(app.user.hashid, 'scope-3', 'tab-other')
+
+                    const response = await post(TestObjects.alicePAT.token, 'scope-3', invoke('tab-own'))
+                    response.statusCode.should.equal(200)
+                    const userProperties = proxyRequest.firstCall.args[3]
+                    userProperties.should.have.property('activeBrowserSessionId', 'tab-own')
+                    userProperties.should.have.property('entityId', 'instance-own')
+                })
+
+                it('does not forward a tab named by session_id on a team the token cannot reach', async function () {
+                    await app.db.controllers.BrowserSession.setActiveBrowserSession(app.user.hashid, 'scope-4', 'tab-own')
+
+                    const response = await post(teamScopedPAT.token, 'scope-4', invoke('tab-other'))
+                    response.statusCode.should.equal(200)
+                    const userProperties = proxyRequest.firstCall.args[3]
+                    userProperties.should.not.have.property('activeBrowserSessionId')
+                    userProperties.should.not.have.property('entityId')
+                })
+
+                it('forwards a tab on any team for an all-teams token', async function () {
+                    await app.db.controllers.BrowserSession.setActiveBrowserSession(app.user.hashid, 'scope-5', 'tab-other')
+
+                    const response = await post(TestObjects.alicePAT.token, 'scope-5', { jsonrpc: '2.0', method: 'tools/list', id: 1 })
+                    response.statusCode.should.equal(200)
+                    const userProperties = proxyRequest.firstCall.args[3]
+                    userProperties.should.have.property('activeBrowserSessionId', 'tab-other')
+                })
+
+                it('forwards a pinned tab on no team for an all-teams token', async function () {
+                    await app.db.controllers.BrowserSession.setActiveBrowserSession(app.user.hashid, 'scope-6', 'tab-account')
+
+                    const response = await post(TestObjects.alicePAT.token, 'scope-6', { jsonrpc: '2.0', method: 'tools/list', id: 1 })
+                    response.statusCode.should.equal(200)
+                    const userProperties = proxyRequest.firstCall.args[3]
+                    userProperties.should.have.property('activeBrowserSessionId', 'tab-account')
+                })
+
+                it('does not forward a pinned tab on no team for a team-scoped token', async function () {
+                    await app.db.controllers.BrowserSession.setActiveBrowserSession(app.user.hashid, 'scope-7', 'tab-account')
+
+                    const response = await post(teamScopedPAT.token, 'scope-7', { jsonrpc: '2.0', method: 'tools/list', id: 1 })
+                    response.statusCode.should.equal(200)
+                    const userProperties = proxyRequest.firstCall.args[3]
+                    userProperties.should.not.have.property('activeBrowserSessionId')
+                })
             })
 
             it('should acknowledge a notification without calling the gateway', async function () {
@@ -357,7 +565,7 @@ describe('MCP Platform Tools Server', function () {
                     proxyRequest.called.should.be.false()
                 })
 
-                it('should reject invoke_delete_tool with 403', async function () {
+                it('should reject invoke_destructive_tool with 403', async function () {
                     const response = await app.inject({
                         method: 'POST',
                         url: '/mcp',
@@ -368,7 +576,7 @@ describe('MCP Platform Tools Server', function () {
                             jsonrpc: '2.0',
                             method: 'tools/call',
                             id: 1,
-                            params: { name: 'invoke_delete_tool' }
+                            params: { name: 'invoke_destructive_tool' }
                         }
                     })
                     response.statusCode.should.equal(403)
@@ -391,6 +599,128 @@ describe('MCP Platform Tools Server', function () {
                     })
                     response.statusCode.should.equal(200)
                     proxyRequest.firstCall.args[1].scope.readOnly.should.be.true()
+                })
+            })
+
+            describe('tool permissions', function () {
+                it('forwards the legacy-resolved permissions for a plain full-access PAT', async function () {
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/mcp',
+                        headers: { authorization: `Bearer ${TestObjects.alicePAT.token}` },
+                        payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+                    })
+                    response.statusCode.should.equal(200)
+                    proxyRequest.firstCall.args[1].scope.permissions.should.eql({
+                        default: {
+                            platform: { read: true, write: true, destructive: false },
+                            flow_building: { read: true, write: true, destructive: false }
+                        },
+                        teams: {}
+                    })
+                })
+
+                it('forwards the legacy-resolved permissions for a plain read-only PAT', async function () {
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/mcp',
+                        headers: { authorization: `Bearer ${TestObjects.aliceReadOnlyPAT.token}` },
+                        payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+                    })
+                    response.statusCode.should.equal(200)
+                    proxyRequest.firstCall.args[1].scope.permissions.should.eql({
+                        default: {
+                            platform: { read: true, write: false, destructive: false },
+                            flow_building: { read: true, write: false, destructive: false }
+                        },
+                        teams: {}
+                    })
+                })
+
+                it('forwards a token default and per-team overrides as stored', async function () {
+                    const scoped = await app.db.controllers.AccessToken.createMCPOAuthToken(app.user.id, {
+                        teamIds: [],
+                        toolPermissions: {
+                            default: {
+                                platform: { read: true, write: false, destructive: false },
+                                flow_building: { read: false, write: false, destructive: false }
+                            },
+                            teams: {
+                                [app.team.hashid]: {
+                                    platform: { read: false, write: false, destructive: false },
+                                    flow_building: { read: true, write: true, destructive: false }
+                                }
+                            }
+                        }
+                    })
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/mcp',
+                        headers: { authorization: `Bearer ${scoped.token}` },
+                        payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+                    })
+                    response.statusCode.should.equal(200)
+                    proxyRequest.firstCall.args[1].scope.permissions.should.eql({
+                        default: {
+                            platform: { read: true, write: false, destructive: false },
+                            flow_building: { read: false, write: false, destructive: false }
+                        },
+                        teams: {
+                            [app.team.hashid]: {
+                                platform: { read: false, write: false, destructive: false },
+                                flow_building: { read: true, write: true, destructive: false }
+                            }
+                        }
+                    })
+                })
+
+                it('allows invoke_write_tool when only one group allows write', async function () {
+                    const scoped = await app.db.controllers.AccessToken.createMCPOAuthToken(app.user.id, {
+                        teamIds: [],
+                        toolPermissions: { default: { flow_building: { write: true } } }
+                    })
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/mcp',
+                        headers: { authorization: `Bearer ${scoped.token}` },
+                        payload: { jsonrpc: '2.0', method: 'tools/call', id: 1, params: { name: 'invoke_write_tool' } }
+                    })
+                    response.statusCode.should.equal(200)
+                })
+
+                it('rejects invoke_destructive_tool when no group, default or override, allows destructive', async function () {
+                    const scoped = await app.db.controllers.AccessToken.createMCPOAuthToken(app.user.id, {
+                        teamIds: [],
+                        toolPermissions: {
+                            default: { platform: { write: true } },
+                            teams: { [app.team.hashid]: { flow_building: { write: true } } }
+                        }
+                    })
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/mcp',
+                        headers: { authorization: `Bearer ${scoped.token}` },
+                        payload: { jsonrpc: '2.0', method: 'tools/call', id: 1, params: { name: 'invoke_destructive_tool' } }
+                    })
+                    response.statusCode.should.equal(403)
+                    proxyRequest.called.should.be.false()
+                })
+
+                it('allows invoke_destructive_tool when only a team override allows destructive', async function () {
+                    const scoped = await app.db.controllers.AccessToken.createMCPOAuthToken(app.user.id, {
+                        teamIds: [],
+                        toolPermissions: {
+                            default: { platform: { write: true } },
+                            teams: { [app.team.hashid]: { platform: { destructive: true } } }
+                        }
+                    })
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/mcp',
+                        headers: { authorization: `Bearer ${scoped.token}` },
+                        payload: { jsonrpc: '2.0', method: 'tools/call', id: 1, params: { name: 'invoke_destructive_tool' } }
+                    })
+                    response.statusCode.should.equal(200)
                 })
             })
         })

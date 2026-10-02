@@ -66,6 +66,18 @@
                     <ff-toggle-switch v-model="agentAutoDeploy" :disabled="!aiEnabled" data-el="team-agent-auto-deploy-toggle" @change="showConfirmAgentAutoDeployToggleDialog" />
                 </div>
             </div>
+            <template v-if="featuresCheck.isMcpThirdPartyFeatureEnabledForPlatform">
+                <FormHeading>MCP Access</FormHeading>
+                <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+                    <div class="grow">
+                        <div class="max-w-sm pr-2">Allow third-party AI agents (e.g. Claude, ChatGPT) to connect to this team over MCP. When disabled, the option to connect an AI agent is hidden and any existing third-party MCP connections to this team are refused.</div>
+                        <div v-if="!aiEnabled" class="max-w-sm pr-2 text-gray-400 italic">Enable AI Features above to use this.</div>
+                    </div>
+                    <div class="min-w-fit shrink-0">
+                        <ff-toggle-switch v-model="mcpEnabled" :disabled="!aiEnabled" data-el="team-mcp-toggle" @change="showConfirmMcpToggleDialog" />
+                    </div>
+                </div>
+            </template>
         </template>
         <TeamAdminTools v-if="isAdmin" :team="team" />
     </div>
@@ -104,7 +116,8 @@ export default {
         return {
             teamTypes: [],
             aiEnabledOverride: null,
-            agentAutoDeployOverride: null
+            agentAutoDeployOverride: null,
+            mcpEnabledOverride: null
         }
     },
     computed: {
@@ -134,6 +147,17 @@ export default {
             },
             set (value) {
                 this.agentAutoDeployOverride = value
+            }
+        },
+        mcpEnabled: {
+            get () {
+                if (this.mcpEnabledOverride !== null) {
+                    return this.mcpEnabledOverride
+                }
+                return getTeamProperty(this.team, 'features.mcpThirdParty', true) !== false
+            },
+            set (value) {
+                this.mcpEnabledOverride = value
             }
         }
     },
@@ -220,6 +244,29 @@ export default {
                 })
             }, () => {
                 this.agentAutoDeployOverride = null
+            })
+        },
+        showConfirmMcpToggleDialog () {
+            const enabling = this.mcpEnabled
+            Dialog.show({
+                header: enabling ? 'Enable MCP Access' : 'Disable MCP Access',
+                kind: enabling ? 'primary' : 'danger',
+                text: enabling
+                    ? 'Are you sure you want to allow third-party AI agents to connect to this team over MCP?'
+                    : 'Are you sure you want to disable third-party AI agent (MCP) access for this team? This will disconnect any active third-party MCP connections and hide the option to connect an AI agent.',
+                confirmLabel: enabling ? 'Enable' : 'Disable'
+            }, () => {
+                teamApi.updateTeam(this.team.id, { features: { mcpThirdParty: enabling } }).then(() => {
+                    alerts.emit(`MCP access ${enabling ? 'enabled' : 'disabled'}`, 'confirmation')
+                    this.mcpEnabledOverride = null
+                    useContextStore().refreshTeam()
+                }).catch(err => {
+                    alerts.emit('Problem updating MCP settings', 'warning')
+                    this.mcpEnabledOverride = null
+                    console.warn(err)
+                })
+            }, () => {
+                this.mcpEnabledOverride = null
             })
         }
     }

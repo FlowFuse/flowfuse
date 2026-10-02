@@ -1684,6 +1684,40 @@ describe('Team API', function () {
                 team.properties.features.should.have.property('agentAutoDeploy', true)
                 should.not.exist(team.properties.features.notAllowed)
             })
+            it('owner can toggle mcpThirdParty', async function () {
+                const team = await app.db.models.Team.create({ name: 'update-team-feat-4', slug: 'team-feat-4', TeamTypeId: app.defaultTeamType.id })
+                await team.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${team.hashid}`,
+                    payload: {
+                        features: { mcpThirdParty: false }
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+
+                await team.reload()
+                team.properties.features.should.have.property('mcpThirdParty', false)
+            })
+            it('member cannot toggle mcpThirdParty', async function () {
+                const team = await app.db.models.Team.create({ name: 'update-team-feat-5', slug: 'team-feat-5', TeamTypeId: app.defaultTeamType.id })
+                await team.addUser(TestObjects.bob, { through: { role: Roles.Member } })
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${team.hashid}`,
+                    payload: {
+                        features: { mcpThirdParty: false }
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(403)
+
+                await team.reload()
+                should.not.exist(team.properties?.features?.mcpThirdParty)
+            })
         })
 
         describe('Suspending team', async function () {
