@@ -274,6 +274,28 @@ describe('Team Members API', function () {
                 response.statusCode.should.equal(400)
             })
 
+            it('returns 404 when removing a user who is not a member of the team', async function () {
+                // Bob exists but is not a member of CTeam
+                const before = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.CTeam.hashid}/members`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                const response = await app.inject({
+                    method: 'DELETE',
+                    url: `/api/v1/teams/${TestObjects.CTeam.hashid}/members/${TestObjects.bob.hashid}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(404)
+                response.json().should.have.property('code', 'not_found')
+                const after = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.CTeam.hashid}/members`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                after.json().count.should.equal(before.json().count)
+            })
+
             it('admin cannot remove only owner from team', async function () {
                 // Alice cannot remove Bob from BTeam
                 const response = await app.inject({

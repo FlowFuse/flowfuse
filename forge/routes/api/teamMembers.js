@@ -108,6 +108,9 @@ module.exports = async function (app) {
                 },
                 '4xx': {
                     $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
                 }
             }
         }
@@ -118,13 +121,17 @@ module.exports = async function (app) {
         // to make this request. All we have to do
         try {
             const result = await app.db.controllers.Team.removeUser(request.team, request.user, request.userRole)
-            if (result) {
-                await app.auditLog.Team.team.user.removed(request.session.User, null, request.team, request.user)
-                app.comms?.team?.notifyMembership(request.team.hashid, request.user.hashid, 'removed')
+            if (!result) {
+                return reply.code(404).send({ code: 'not_found', error: 'Not a member of this team' })
             }
+            await app.auditLog.Team.team.user.removed(request.session.User, null, request.team, request.user)
+            app.comms?.team?.notifyMembership(request.team.hashid, request.user.hashid, 'removed')
             reply.send({ status: 'okay' })
         } catch (err) {
-            reply.code(400).send({ code: 'invalid_request', error: 'cannot remove only owner' })
+            if (err.message === 'Cannot remove last owner') {
+                return reply.code(400).send({ code: 'invalid_request', error: 'cannot remove only owner' })
+            }
+            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
