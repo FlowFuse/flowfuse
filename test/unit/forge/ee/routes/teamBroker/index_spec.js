@@ -102,6 +102,29 @@ describe('Team Broker API', function () {
             TestObjects.tokens[username] = response.cookies[0].value
         }
 
+        describe('Team Broker feature disabled for the team', function () {
+            before(async function () {
+                const properties = app.team.properties || {}
+                app.team.properties = { ...properties, features: { ...properties.features, teamBroker: false } }
+                await app.team.save()
+            })
+            after(async function () {
+                const { teamBroker, ...features } = app.team.properties.features
+                app.team.properties = { ...app.team.properties, features }
+                await app.team.save()
+            })
+            it('replies not_found saying the feature is not enabled', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team.hashid}/broker/clients`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(404)
+                response.json().should.have.property('code', 'not_found')
+                response.json().should.have.property('error', 'Not Found - Team Broker is not enabled for this team')
+            })
+        })
+
         describe('Work with MQTT Broker Users', function () {
             it('Create MQTT Broker User', async function () {
                 const response = await app.inject({

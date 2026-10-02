@@ -791,6 +791,7 @@ describe('3rd Party Broker API', function () {
             })
             response.statusCode.should.equal(404)
             response.json().should.have.property('code', 'not_found')
+            response.json().should.have.property('error', 'The Team Broker is not running')
         })
     })
 })

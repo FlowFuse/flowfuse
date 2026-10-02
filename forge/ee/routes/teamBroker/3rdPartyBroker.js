@@ -25,7 +25,7 @@ module.exports = async function (app) {
 
                 await request.team.ensureTeamTypeExists()
                 if (!request.team.getFeatureProperty('teamBroker', false)) {
-                    reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                    reply.code(404).send({ code: 'not_found', error: 'Not Found - Team Broker is not enabled for this team' })
                     return
                 }
             }
@@ -516,7 +516,7 @@ module.exports = async function (app) {
                 }, 1500)
                 reply.status(200).send({})
             } else {
-                reply.status(404).send({ code: 'not_found', error: 'Broker not found' })
+                reply.status(404).send({ code: 'not_found', error: 'The Team Broker is not running' })
             }
         } else {
             await app.containers.stopBrokerAgent(request.broker)
