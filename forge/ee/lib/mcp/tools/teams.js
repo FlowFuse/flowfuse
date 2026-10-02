@@ -306,7 +306,7 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Removes a member from a team, taking away all of their access to it. This cannot be undone; they would have to be invited again.
             Team owners can remove anyone. Any member can remove themselves (leave the team), but not other people.
-            Removing the team's only owner is rejected with a 400 "cannot remove only owner". Members whose membership is managed through SSO cannot be removed here; that fails with "Cannot modify team membership for an SSO managed user".
+            The team's only owner cannot be removed, and members whose membership is managed through SSO cannot be removed here.
             Removing someone also deletes any of their personal access tokens that were scoped only to this team. If you are removing the current user, that can include the token this session is using, so later calls may start failing.
             Before calling this, confirm with the user. Use platform_list_team_members to find the user id and check how many owners the team has.
             Replies { status: "okay" } on success. A user who is not a member of the team returns a 404.`,
