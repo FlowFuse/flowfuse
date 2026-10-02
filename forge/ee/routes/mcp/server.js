@@ -1,6 +1,7 @@
 const { randomUUID } = require('node:crypto')
 
 const { toTopicSafeSessionId } = require('../../../comms/utils/mcpSessionId')
+const mcpToolPermissions = require('../../../lib/mcpToolPermissions')
 
 // Maps mcpSessionId to the third-party caller's PAT, consumed by the comms layer.
 const MCP_SESSION_TOKEN_CACHE = 'mcp-session-token'
@@ -19,7 +20,7 @@ const MCP_SESSION_TOKEN_CACHE_TTL = 1000 * 60 * 60 // 1 hour
  * @param {import('../../../forge').ForgeApplication} app
  */
 module.exports = async function (app) {
-    // Maps the invoke meta-tool name to its access variant, used by the read-only gate.
+    // Maps the invoke meta-tool name to its access variant, used by the permissions gate.
     function invokeVariant (mcpBody) {
         if (!mcpBody || mcpBody.method !== 'tools/call') {
             return null
@@ -32,6 +33,17 @@ module.exports = async function (app) {
             return 'destructive'
         }
         return 'read'
+    }
+
+    function anyGroupAllows (permissions, category) {
+        return mcpToolPermissions.GROUPS.some(group => mcpToolPermissions.anyTeamAllows(permissions, group, category))
+    }
+
+    function toTeamHashid (teamId) {
+        if (typeof teamId === 'number' || /^\d+$/.test(teamId)) {
+            return app.db.models.Team.encodeHashid(parseInt(teamId, 10))
+        }
+        return teamId
     }
 
     async function resolveTargetBrowserSession (userId, mcpSessionId, mcpBody) {
@@ -65,7 +77,7 @@ module.exports = async function (app) {
         }
         return {
             userId: request.session.User.hashid,
-            scope: { readOnly, teams }
+            scope: { readOnly, teams, permissions: mcpToolPermissions.forSession(request.session) }
         }
     }
 
@@ -88,12 +100,14 @@ module.exports = async function (app) {
             return
         }
 
-        if (caller.scope.readOnly) {
-            const variant = invokeVariant(mcpBody)
-            if (variant === 'write' || variant === 'destructive') {
-                reply.code(403).send({ code: 'unauthorized', error: 'Personal Access Token is read-only' })
-                return
-            }
+        const variant = invokeVariant(mcpBody)
+        if (variant === 'write' && !anyGroupAllows(caller.scope.permissions, 'write')) {
+            reply.code(403).send({ code: 'unauthorized', error: "The token's permissions don't allow write access to any tool group" })
+            return
+        }
+        if (variant === 'destructive' && !anyGroupAllows(caller.scope.permissions, 'destructive')) {
+            reply.code(403).send({ code: 'unauthorized', error: "The token's permissions don't allow destructive access to any tool group" })
+            return
         }
 
         const mcpSessionId = request.headers['mcp-session-id'] ||
@@ -153,6 +167,7 @@ module.exports = async function (app) {
                 }
                 if (context?.teamId) {
                     userProperties.teamId = context.teamId
+                    userProperties.browserSessionTeamId = toTeamHashid(context.teamId)
                     // platform_ui/flow_building calls dispatch against the pinned tab, so the
                     // needsPermission gate (forge/routes/auth/permissions.js) never runs. This
                     // is the only place the pinned team is known before the gateway, so the
