@@ -516,7 +516,7 @@ module.exports = async function (app) {
                 }, 1500)
                 reply.status(200).send({})
             } else {
-                reply.status(404).send({})
+                reply.status(404).send({ code: 'not_found', error: 'Broker not found' })
             }
         } else {
             await app.containers.stopBrokerAgent(request.broker)

@@ -171,6 +171,19 @@ describe('Team Broker API', function () {
                 result.acls[1].should.have.property('pattern', 'bar/test')
             })
 
+            it('Modify an MQTT broker user who doesn\'t exist', async function () {
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${app.team.hashid}/broker/client/doesNotExist`,
+                    body: {
+                        acls: [{ pattern: 'foo/#', action: 'both' }]
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(404)
+                response.json().should.have.property('code', 'not_found')
+            })
+
             it('Get specific MQTT broker user for a team who doesn\'t exist', async function () {
                 const response = await app.inject({
                     method: 'GET',
@@ -178,6 +191,7 @@ describe('Team Broker API', function () {
                     cookies: { sid: TestObjects.tokens.bob }
                 })
                 response.statusCode.should.equal(404)
+                response.json().should.have.property('code', 'not_found')
             })
 
             it('Limit number of MQTT broker users allowed in a team', async function () {
@@ -338,6 +352,7 @@ describe('Team Broker API', function () {
                     cookies: { sid: TestObjects.tokens.bob }
                 })
                 response.statusCode.should.equal(404)
+                response.json().should.have.property('code', 'not_found')
             })
 
             describe('Links MQTT Broker Clients from an instance or device for nr-mqtt-nodes', function () {

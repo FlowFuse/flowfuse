@@ -237,7 +237,7 @@ module.exports = async function (app) {
         if (client) {
             reply.send(app.db.views.TeamBrokerClient.user(client))
         } else {
-            reply.status(404).send({})
+            reply.status(404).send({ code: 'not_found', error: 'Broker client not found' })
         }
     })
 
@@ -313,7 +313,7 @@ module.exports = async function (app) {
             }
 
             if (!client) {
-                return reply.status(404).send({})
+                return reply.status(404).send({ code: 'not_found', error: 'Broker client not found' })
             }
             if (request.body.password) {
                 client.password = request.body.password
@@ -379,7 +379,7 @@ module.exports = async function (app) {
             await client.destroy()
             reply.send({ status: 'okay' })
         } else {
-            reply.status(404).send({})
+            reply.status(404).send({ code: 'not_found', error: 'Broker client not found' })
         }
     })
 

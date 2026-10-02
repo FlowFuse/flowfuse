@@ -782,5 +782,15 @@ describe('3rd Party Broker API', function () {
             })
             response.statusCode.should.equal(200)
         })
+
+        it('suspend replies not_found when there is no team-broker agent', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/suspend`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(404)
+            response.json().should.have.property('code', 'not_found')
+        })
     })
 })
