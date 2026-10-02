@@ -1,10 +1,13 @@
+import Product from '@/services/product.js'
+
 /**
  * Conversation starters offered above the Expert composer.
  *
  * Three are drawn at random each time a conversation starts. Add or remove
  * entries here; nothing else needs to change.
  *
- * - `title`  the line the user reads
+ * - `title`  the line the user reads, and the name PostHog records the
+ *   suggestion under, so renaming one starts it over as a new suggestion
  * - `prompt` the text handed to the Expert
  * - `needsInput` the prompt is incomplete on its own, so clicking it fills the
  *   composer and waits for the user to finish the sentence rather than sending
@@ -189,6 +192,36 @@ export function pickSuggestions (count = 3, pool = PROMPT_SUGGESTIONS) {
         picked.push(...remaining.splice(Math.floor(Math.random() * remaining.length), 1))
     }
     return picked
+}
+
+/**
+ * Record that a set of suggestions was put in front of the user, so clicks
+ * can be read against how often each one was offered.
+ * @param {Array} suggestions the suggestions on screen
+ * @param {Object} [where]
+ * @param {string} [where.context] `editor` or `platform`
+ * @param {string} [where.team] the team id
+ */
+export function trackSuggestionsShown (suggestions, { context, team } = {}) {
+    Product.capture('ff-expert-suggestions-shown', {
+        titles: suggestions.map(suggestion => suggestion.title),
+        context
+    }, team ? { team } : undefined)
+}
+
+/**
+ * Record which suggestion the user picked.
+ * @param {Object} suggestion the suggestion clicked
+ * @param {Array} suggestions the suggestions on screen, for its position
+ * @param {Object} [where] as for `trackSuggestionsShown`
+ */
+export function trackSuggestionClicked (suggestion, suggestions, { context, team } = {}) {
+    Product.capture('ff-expert-suggestion-clicked', {
+        title: suggestion.title,
+        position: suggestions.indexOf(suggestion) + 1,
+        needs_input: !!suggestion.needsInput,
+        context
+    }, team ? { team } : undefined)
 }
 
 export default PROMPT_SUGGESTIONS
