@@ -10428,6 +10428,34 @@ export interface components {
                 id?: string;
                 name?: string | null;
             }[];
+            toolPermissions?: {
+                default?: {
+                    platform?: {
+                        read?: boolean;
+                        write?: boolean;
+                        destructive?: boolean;
+                    };
+                    flow_building?: {
+                        read?: boolean;
+                        write?: boolean;
+                        destructive?: boolean;
+                    };
+                };
+                teams?: {
+                    [key: string]: {
+                        platform?: {
+                            read?: boolean;
+                            write?: boolean;
+                            destructive?: boolean;
+                        };
+                        flow_building?: {
+                            read?: boolean;
+                            write?: boolean;
+                            destructive?: boolean;
+                        };
+                    };
+                };
+            } | null;
         };
         /** PersonalAccessToken */
         PersonalAccessToken: {

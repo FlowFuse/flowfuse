@@ -77,7 +77,7 @@ export default {
             return entry.kind === 'folded-turn' ? entry.questionsMessage._uuid : entry.message._uuid
         },
         onKeyDown (e) {
-            if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'd') {
+            if (e.altKey && e.shiftKey && e.code === 'KeyD') {
                 e.preventDefault()
                 downloadData(this.messages, 'expert-messages.json')
             }

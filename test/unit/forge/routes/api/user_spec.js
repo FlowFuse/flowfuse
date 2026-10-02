@@ -3,6 +3,7 @@ const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
+const mcpToolPermissions = FF_UTIL.require('forge/lib/mcpToolPermissions')
 
 describe('User API', async function () {
     let app
@@ -1089,7 +1090,7 @@ describe('User API', async function () {
         })
         it('Lists an MCP OAuth token as auto-renewing', async function () {
             const grantExpiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000
-            await app.db.controllers.AccessToken.createMCPOAuthToken(TestObjects.alice.id, { grantExpiresAt })
+            await app.db.controllers.AccessToken.createMCPOAuthToken(TestObjects.alice.id, { grantExpiresAt, toolPermissions: mcpToolPermissions.fromReadOnly(true) })
             await app.db.controllers.AccessToken.createPersonalAccessToken(TestObjects.alice, '', null, 'Plain Token')
 
             const response = await app.inject({
@@ -1106,12 +1107,43 @@ describe('User API', async function () {
             // the renewal cycle comes from the backend, matching the real rotation
             mcpToken.autoRenews.should.have.property('every', 1000 * 60 * 30)
             mcpToken.autoRenews.should.have.property('chosen', true)
+            mcpToken.toolPermissions.should.eql(mcpToolPermissions.fromReadOnly(true))
             new Date(mcpToken.autoRenews.until).getTime().should.equal(grantExpiresAt)
 
             // plain PATs do not carry it
             const plainToken = json.tokens.find(t => t.name === 'Plain Token')
             should.exist(plainToken)
             plainToken.should.not.have.property('autoRenews')
+            should.not.exist(plainToken.toolPermissions)
+        })
+        it('Returns an MCP token\'s tool permissions after an edit and logs the change', async function () {
+            const otherTeam = await app.db.models.Team.create({ name: 'MCPEditTeam', TeamTypeId: app.defaultTeamType.id })
+            await otherTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+            const readOnly = mcpToolPermissions.fromReadOnly(true).default
+            const writable = mcpToolPermissions.fromReadOnly(false).default
+            const created = await app.db.controllers.AccessToken.createMCPOAuthToken(TestObjects.alice.id, {
+                teamIds: [TestObjects.ATeam.hashid, otherTeam.hashid],
+                toolPermissions: { default: readOnly, teams: { [otherTeam.hashid]: writable } }
+            })
+            const row = await app.db.models.AccessToken.byRefreshToken(created.refreshToken)
+            try {
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user/tokens/' + row.hashid,
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: { scope: '', teamIds: [TestObjects.ATeam.hashid] }
+                })
+                response.statusCode.should.equal(200)
+                const json = response.json()
+                json.toolPermissions.should.eql({ default: readOnly, teams: {} })
+                json.readOnly.should.be.true()
+
+                const entry = await app.db.models.AuditLog.findOne({ where: { event: 'user.pat.updated' }, order: [['id', 'DESC']] })
+                JSON.stringify(entry.body).should.containEql('toolPermissions')
+            } finally {
+                await row.destroy()
+                await otherTeam.destroy()
+            }
         })
         it('Deleting a user removes any PATs from the db', async function () {
             const userToDelete = await app.db.models.User.create({ username: 'wayne', name: 'Wayne Vane', email: 'wayne@example.com', email_verified: true, password: 'wwPassword' })
