@@ -327,4 +327,85 @@ describe('MCP Teams Tools', function () {
             response.should.equal(errorResponse)
         })
     })
+
+    describe('platform_remove_team_member', function () {
+        const tool = getTool('platform_remove_team_member')
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('removes a member through the team members route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ status: 'okay', removed: true }) }
+            inject.withArgs({ method: 'DELETE', url: '/api/v1/teams/team1/members/user1' }).resolves(routeResponse)
+
+            const response = await tool.handler({ teamId: 'team1', userId: 'user1' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('reports a user who is not a member as not found, which the route answers 200 removed: false to', async function () {
+            inject.withArgs({ method: 'DELETE', url: '/api/v1/teams/team1/members/someoneElse' }).resolves({ statusCode: 200, json: () => ({ status: 'okay', removed: false }) })
+
+            const response = await tool.handler({ teamId: 'team1', userId: 'someoneElse' }, { inject })
+            response.statusCode.should.equal(404)
+            response.json().should.have.property('code', 'not_found')
+        })
+
+        it('refuses ids that would reach another route', async function () {
+            // "../applications" + "../app1" resolves the DELETE to /api/v1/applications/app1
+            for (const [teamId, userId] of [['../applications', '../app1'], ['team1', '../../../applications/app1'], ['team1', 'user1?x=1']]) {
+                const response = await tool.handler({ teamId, userId }, { inject })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            }
+            inject.called.should.be.false()
+        })
+
+        it('passes through the 400 for the only owner', async function () {
+            const errorResponse = { statusCode: 400, json: () => ({ code: 'invalid_request', error: 'cannot remove only owner' }) }
+            inject.withArgs({ method: 'DELETE', url: '/api/v1/teams/team1/members/user1' }).resolves(errorResponse)
+
+            const response = await tool.handler({ teamId: 'team1', userId: 'user1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_revoke_team_invitation', function () {
+        const tool = getTool('platform_revoke_team_invitation')
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('revokes through the team invitations route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
+            inject.withArgs({ method: 'DELETE', url: '/api/v1/teams/team1/invitations/invite1' }).resolves(routeResponse)
+
+            const response = await tool.handler({ teamId: 'team1', invitationId: 'invite1' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ teamId: 'team1', invitationId: 'invite1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+
+        it('refuses ids that would reach another route', async function () {
+            for (const [teamId, invitationId] of [['team1', '../../../applications/app1'], ['../applications', 'app1'], ['team1', 'invite1?x=1']]) {
+                const response = await tool.handler({ teamId, invitationId }, { inject })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            }
+            inject.called.should.be.false()
+        })
+    })
 })
