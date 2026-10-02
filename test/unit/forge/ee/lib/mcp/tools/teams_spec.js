@@ -337,7 +337,7 @@ describe('MCP Teams Tools', function () {
         })
 
         it('removes a member through the team members route', async function () {
-            const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
+            const routeResponse = { statusCode: 200, json: () => ({ status: 'okay', removed: true }) }
             inject.withArgs({ method: 'DELETE', url: '/api/v1/teams/team1/members/user1' }).resolves(routeResponse)
 
             const response = await tool.handler({ teamId: 'team1', userId: 'user1' }, { inject })
@@ -346,12 +346,12 @@ describe('MCP Teams Tools', function () {
             response.should.equal(routeResponse)
         })
 
-        it('passes through the 404 for a user who is not a member', async function () {
-            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found', error: 'Not a member of this team' }) }
-            inject.withArgs({ method: 'DELETE', url: '/api/v1/teams/team1/members/someoneElse' }).resolves(errorResponse)
+        it('reports a user who is not a member as not found, which the route answers 200 removed: false to', async function () {
+            inject.withArgs({ method: 'DELETE', url: '/api/v1/teams/team1/members/someoneElse' }).resolves({ statusCode: 200, json: () => ({ status: 'okay', removed: false }) })
 
             const response = await tool.handler({ teamId: 'team1', userId: 'someoneElse' }, { inject })
-            response.should.equal(errorResponse)
+            response.statusCode.should.equal(404)
+            response.json().should.have.property('code', 'not_found')
         })
 
         it('refuses ids that would reach another route', async function () {

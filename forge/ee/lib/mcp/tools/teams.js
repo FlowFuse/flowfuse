@@ -325,6 +325,10 @@ module.exports = [
                 return toolError(400, 'invalid_request', 'teamId and userId must be hashids')
             }
             const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/members/${args.userId}` })
+            // The route answers 200 for a user who is not a member, with removed: false in the body.
+            if (response.statusCode === 200 && response.json().removed === false) {
+                return toolError(404, 'not_found', 'That user is not a member of this team. Check platform_list_team_members for the member ids')
+            }
             return response
         }
     },
