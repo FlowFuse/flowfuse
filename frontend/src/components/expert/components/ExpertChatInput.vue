@@ -124,7 +124,7 @@ import { mapActions, mapState } from 'pinia'
 import FormHeading from '../../FormHeading.vue'
 import ResizeBar from '../../ResizeBar.vue'
 
-import { pickSuggestions } from '../prompt-suggestions.js'
+import { pickSuggestions, trackSuggestionClicked, trackSuggestionsShown } from '../prompt-suggestions.js'
 
 import CapabilitiesSelector from './CapabilitiesSelector.vue'
 import PromptSuggestions from './PromptSuggestions.vue'
@@ -134,6 +134,7 @@ import ContextSelector from './context-selection/index.vue'
 
 import { useResizingHelper } from '@/composables/ResizingHelper.js'
 
+import { useContextStore } from '@/stores/context.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
@@ -191,7 +192,9 @@ export default {
             // Conversation starters, drawn at random when the composer mounts and
             // re-drawn on "Start over"
             suggestions: [],
-            suggestionUsed: false
+            suggestionUsed: false,
+            // the current three have been reported to PostHog as shown
+            suggestionsTracked: false
         }
     },
     computed: {
@@ -199,7 +202,7 @@ export default {
             'isImmersiveInstance',
             'isImmersiveDevice'
         ]),
-        ...mapState(useUxDrawersStore, ['rightDrawer']),
+        ...mapState(useUxDrawersStore, ['rightDrawer', 'editorImmersiveDrawer']),
         ...mapState(useProductExpertStore, [
             'messages',
             'isSessionExpired',
@@ -248,6 +251,20 @@ export default {
             if (this.suggestionUsed || this.suggestions.length === 0) return false
             if (this.inputText.length > 0 || this.hasUserTurns) return false
             return !this.isInputDisabled
+        },
+        visibleSuggestions () {
+            if (!this.showSuggestions) return null
+            // The editor keeps the Expert mounted behind its drawer while it is closed
+            if (this.isImmersive && !this.editorImmersiveDrawer.state) return null
+            // A fresh array per deal, so Start over registers as a change even
+            // when the suggestions never left the screen
+            return this.suggestions
+        },
+        suggestionTracking () {
+            return {
+                context: this.isImmersive ? 'editor' : 'platform',
+                team: useContextStore().team?.id
+            }
         },
         placeholderText () {
             if (this.isInsightsAgent && !this.hasSelectedCapabilities) {
@@ -302,10 +319,17 @@ export default {
             if (value && this.requestingPlanChange) {
                 this.requestingPlanChange = false
             }
+        },
+        visibleSuggestions (suggestions) {
+            // Once per deal: typing and clearing the box brings the same three back,
+            // which is not a second impression
+            if (!suggestions || this.suggestionsTracked) return
+            this.suggestionsTracked = true
+            trackSuggestionsShown(suggestions, this.suggestionTracking)
         }
     },
     mounted () {
-        this.suggestions = pickSuggestions()
+        this.dealSuggestions()
         this.bindResizer({
             component: this.$refs.resizeTarget,
             maxHeightRatio: 0.9,
@@ -343,7 +367,12 @@ export default {
             this.inputText = ''
             this.requestingPlanChange = false
         },
+        dealSuggestions () {
+            this.suggestions = pickSuggestions()
+            this.suggestionsTracked = false
+        },
         useSuggestion (suggestion) {
+            trackSuggestionClicked(suggestion, this.suggestions, this.suggestionTracking)
             this.suggestionUsed = true
             this.inputText = suggestion.prompt
             if (suggestion.needsInput) {
@@ -376,7 +405,7 @@ export default {
 
             this.inputText = ''
             this.suggestionUsed = false
-            this.suggestions = pickSuggestions()
+            this.dealSuggestions()
             // When in support mode, reset/restore assistant context selection (opt-out by default)
             if (!this.isInsightsAgent) {
                 this.resetContextSelection()
