@@ -359,14 +359,14 @@ describe('MCP Teams Tools', function () {
             response.json().code.should.equal('not_found')
         })
 
-        it('leaves it to the route when the caller cannot list members', async function () {
-            const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
-            inject.withArgs({ method: 'GET', url: membersUrl }).resolves({ statusCode: 403, json: () => ({ code: 'unauthorized' }) })
-            inject.withArgs({ method: 'DELETE', url: '/api/v1/teams/team1/members/user1' }).resolves(routeResponse)
+        it('returns the members error when the caller cannot list members', async function () {
+            const errorResponse = { statusCode: 403, json: () => ({ code: 'unauthorized' }) }
+            inject.withArgs({ method: 'GET', url: membersUrl }).resolves(errorResponse)
 
             const response = await tool.handler({ teamId: 'team1', userId: 'user1' }, { inject })
 
-            response.should.equal(routeResponse)
+            inject.calledOnce.should.be.true()
+            response.should.equal(errorResponse)
         })
 
         it('refuses ids that would reach another route, even when the member check cannot run', async function () {
