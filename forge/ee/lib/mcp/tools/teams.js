@@ -320,19 +320,9 @@ module.exports = [
         handler: async (args, { inject }) => {
             // Both ids go into the URL path and inject resolves dot segments, so anything but
             // a plain hashid could send this DELETE to another route (e.g. teamId "../applications"
-            // with userId "../<id>" deletes an application, and the member check 404s past it).
+            // with userId "../<id>" deletes an application).
             if (!isHashid(args.teamId) || !isHashid(args.userId)) {
                 return toolError(400, 'invalid_request', 'teamId and userId must be hashids')
-            }
-            // The route answers 200 { status: "okay" } for a user who is not a member,
-            // which reads as a removal that never happened, so check membership first.
-            const membersResponse = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/members` })
-            if (membersResponse.statusCode !== 200) {
-                return membersResponse
-            }
-            const members = membersResponse.json().members || []
-            if (!members.some(member => member.id === args.userId)) {
-                return toolError(404, 'not_found', 'That user is not a member of this team. Check platform_list_team_members for the member ids')
             }
             const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/members/${args.userId}` })
             return response
