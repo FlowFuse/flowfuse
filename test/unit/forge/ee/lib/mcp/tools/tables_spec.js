@@ -158,4 +158,30 @@ describe('MCP Tables Tools', function () {
             })
         })
     })
+
+    describe('platform_create_database_table', function () {
+        const tool = getTool('platform_create_database_table')
+
+        it('posts the name and columns to the tables endpoint and returns the response unmodified', async function () {
+            const columns = [{ name: 'id', type: 'bigint' }, { name: 'label', type: 'text', nullable: true }]
+            const injectResponse = { statusCode: 201, json: () => ({}) }
+            inject.resolves(injectResponse)
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', name: 'orders', columns }, { inject })
+            inject.calledOnce.should.be.true()
+            inject.firstCall.args[0].should.eql({
+                method: 'POST',
+                url: '/api/v1/teams/team1/databases/db1/tables',
+                payload: { name: 'orders', columns }
+            })
+            response.should.equal(injectResponse)
+        })
+
+        it('passes through error responses unmodified', async function () {
+            const errorResponse = { statusCode: 409, json: () => ({ code: 'table_exists', error: 'Table already exists' }) }
+            inject.resolves(errorResponse)
+            const columns = [{ name: 'id', type: 'bigint' }]
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', name: 'orders', columns }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
 })

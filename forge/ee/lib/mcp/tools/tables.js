@@ -159,5 +159,35 @@ module.exports = [
             const response = await inject({ method: 'GET', url })
             return response
         }
+    },
+    {
+        name: 'platform_create_database_table',
+        title: 'Create Database Table',
+        description: `FlowFuse platform automation tool:
+            Creates a new table in a FlowFuse Tables database. Both name and at least one column are required.
+            Each column needs a name and a type; the supported types are bigint, bigserial, boolean, date, timestamptz, real, double precision and text. Any other type is rejected.
+            Fails with 409 if a table of that name already exists in the database.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        inputSchema: {
+            teamId: teamIdSchema,
+            databaseId: databaseIdSchema,
+            name: z.string().min(1).describe('Name for the new table'),
+            columns: z.array(z.object({
+                name: z.string().min(1).describe('Column name'),
+                type: z.string().describe('Column data type; one of bigint, bigserial, boolean, date, timestamptz, real, double precision, text'),
+                nullable: z.boolean().optional().describe('Whether the column allows NULL. Defaults to NOT NULL when omitted'),
+                default: z.string().nullable().optional().describe('Default value, or null for none'),
+                generated: z.boolean().optional().describe('Whether the column value is generated'),
+                maxLength: z.number().nullable().optional().describe('Maximum length, or null for unbounded')
+            })).min(1).describe('Column definitions for the new table')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({
+                method: 'POST',
+                url: `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables`,
+                payload: { name: args.name, columns: args.columns }
+            })
+            return response
+        }
     }
 ]
