@@ -20,4 +20,13 @@ function blankHiddenEnvValues (env) {
     return result
 }
 
-module.exports = { redactDatabaseCredentials, blankHiddenEnvValues }
+// Some delete routes answer success with an empty body, which formatResponse
+// cannot parse. Report those as { status: "okay" } so the call reads as done.
+function emptySuccessAsOkay (response) {
+    if (response.statusCode < 400 && !response.body) {
+        return { statusCode: response.statusCode, json: () => ({ status: 'okay' }) }
+    }
+    return response
+}
+
+module.exports = { redactDatabaseCredentials, blankHiddenEnvValues, emptySuccessAsOkay }
