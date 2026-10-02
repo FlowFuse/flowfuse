@@ -246,4 +246,95 @@ describe('MCP Broker Tools', function () {
             response.should.equal(errorResponse)
         })
     })
+
+    describe('platform_delete_broker_topic', function () {
+        const tool = getTool('platform_delete_broker_topic')
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('deletes through the broker topics route', async function () {
+            const routeResponse = { statusCode: 201, json: () => ({}) }
+            inject.withArgs({ method: 'DELETE', url: '/api/v1/teams/team1/brokers/team-broker/topics/topic1' }).resolves(routeResponse)
+
+            const response = await tool.handler({ teamId: 'team1', brokerId: 'team-broker', topicId: 'topic1' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ teamId: 'team1', brokerId: 'team-broker', topicId: 'topic1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+
+        it('refuses ids that would reach another route', async function () {
+            for (const [teamId, brokerId, topicId] of [
+                ['team1', 'team-broker', '../../../../../applications/app1'],
+                ['team1', '../../applications/app1', 'topic1'],
+                ['../applications', 'team-broker', 'topic1'],
+                ['team1', 'team-broker', 'topic1?x=1']
+            ]) {
+                const response = await tool.handler({ teamId, brokerId, topicId }, { inject })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            }
+            inject.called.should.be.false()
+        })
+
+        it('accepts a 3rd-party broker hashid', async function () {
+            inject.resolves({ statusCode: 201, json: () => ({}) })
+
+            await tool.handler({ teamId: 'team1', brokerId: 'broker1', topicId: 'topic1' }, { inject })
+            inject.calledOnce.should.be.true()
+        })
+    })
+
+    describe('platform_delete_broker_client', function () {
+        const tool = getTool('platform_delete_broker_client')
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('deletes through the team broker client route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
+            inject.withArgs({ method: 'DELETE', url: '/api/v1/teams/team1/broker/client/alice' }).resolves(routeResponse)
+
+            const response = await tool.handler({ teamId: 'team1', username: 'alice' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 403, json: () => ({ code: 'unauthorized' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ teamId: 'team1', username: 'alice' }, { inject })
+            response.should.equal(errorResponse)
+        })
+
+        it('encodes the username, so one containing "/" stays a single path segment', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ status: 'okay' }) })
+
+            await tool.handler({ teamId: 'team1', username: 'rv:client/2' }, { inject })
+            inject.firstCall.args[0].url.should.equal(`/api/v1/teams/team1/broker/client/${encodeURIComponent('rv:client/2')}`)
+        })
+
+        it('refuses ids that would reach another route', async function () {
+            for (const [teamId, username] of [['team1', '..'], ['team1', '.'], ['../applications', 'alice']]) {
+                const response = await tool.handler({ teamId, username }, { inject })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            }
+            inject.called.should.be.false()
+        })
+    })
 })
