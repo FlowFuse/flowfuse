@@ -3,6 +3,7 @@ const { randomUUID } = require('crypto')
 const { z } = require('zod')
 
 const { teamId, applicationId, hostedInstanceId, searchQuery, sortParams, limitParam, pageParam, toolError } = require('../schemas')
+const { emptySuccessAsOkay } = require('../utils')
 
 // Mirrors the runningStates/errorStates/stoppedStates groups in frontend/src/composables/InstanceStates.js,
 // the same grouping the dashboard's own Running/Error/Not Running status filter uses (frontend/src/pages/team/Instances.vue).
@@ -593,6 +594,34 @@ module.exports = [
                 payload
             })
             return response
+        }
+    },
+    {
+        name: 'platform_delete_instance_file',
+        title: 'Delete Hosted Instance File',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes a file or a directory from a hosted instance's file store. This cannot be undone.
+            A directory is deleted together with everything inside it, and any public sharing set up on it or on a directory beneath it is removed as well.
+            Flows that read or serve these files will stop finding them. Before calling this, confirm with the user, and use platform_list_hosted_instance_files to check what the path contains.
+            The root of the file store cannot be deleted, and the instance must be running.
+            Replies { status: "okay" } on success. A path that does not exist returns an error.
+            Static file storage is a plan-gated feature: a team without it enabled gets a 404 error.`,
+        // destructiveHint: the file, or a whole directory tree, is gone for good.
+        // idempotentHint: a repeat call has no further effect, it just fails as missing.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            instanceId: hostedInstanceId.describe('The id (UUID) of the hosted instance'),
+            path: z.string().min(1).describe('Path of the file or directory to delete, relative to the file-store root. Use "/" separators, as returned by platform_list_hosted_instance_files')
+        },
+        handler: async (args, { inject }) => {
+            // The launcher's root guard misses a trailing slash, so "//" would delete the whole
+            // file store. Only pass on a path that names something below the root.
+            const segments = args.path.split('/').filter(Boolean)
+            if (segments.length === 0 || segments.some(s => s === '.' || s === '..')) {
+                return toolError(400, 'invalid_request', 'path must name a file or directory below the file-store root, without "." or ".." segments')
+            }
+            const response = await inject({ method: 'DELETE', url: `/api/v1/projects/${args.instanceId}/files/_/${encodeURIComponent(segments.join('/'))}` })
+            return emptySuccessAsOkay(response)
         }
     }
 ]
