@@ -69,6 +69,8 @@ const modelTypes = [
     'ProjectSnapshot',
     'AccessToken',
     'AccessTokenTeamScope',
+    'MCPGrant',
+    'MCPGrantTeamPermission',
     'AccessTokenRefreshRotation',
     'AuthClient',
     'Device',
