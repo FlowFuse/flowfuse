@@ -214,7 +214,7 @@ module.exports = [
             Permanently deletes one stage from a pipeline, leaving the rest of the pipeline intact. This cannot be undone.
             The stages either side are joined up, so deleting B from A -> B -> C leaves A -> C. What the stage deployed to is left untouched.
             The remaining stages must still be in a valid order, otherwise the call is rejected with a 400 "invalid_input" and nothing is deleted. The usual ordering rules apply: a device group stage cannot be the first stage, and a hosted or remote instance stage cannot come after a device group stage. So, for example, the first stage cannot be deleted while a device group stage follows it.
-            A stage that does not belong to the given pipeline returns a 404. Unlike most deletes, no audit log entry is recorded for this.
+            A stage that does not belong to the given pipeline returns a 404.
             Confirm with the user before calling this.
             Only team owners can delete pipeline stages. Replies { status: "okay" } on success.`,
         // destructiveHint: the stage is gone for good.
