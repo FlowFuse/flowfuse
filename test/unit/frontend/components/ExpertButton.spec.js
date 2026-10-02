@@ -32,7 +32,7 @@ const uxDrawersStore = reactive({
 
 const expertStore = reactive({ openAssistantDrawer: vi.fn() })
 
-vi.mock('@/stores/product-mcp.js', () => ({ useProductMcpStore: () => mcpStore }))
+vi.mock('@/stores/product-mcp.js', () => ({ useProductMcpStore: () => mcpStore, MCP_TOAST_DURATION: 30000 }))
 vi.mock('@/stores/context.js', () => ({ useContextStore: () => contextStore }))
 vi.mock('@/stores/account-settings.js', () => ({ useAccountSettingsStore: () => accountSettingsStore }))
 vi.mock('@/stores/ux-drawers.js', () => ({ useUxDrawersStore: () => uxDrawersStore }))
@@ -108,7 +108,7 @@ describe('ExpertButton', () => {
             await wrapper.vm.$nextTick()
 
             expect(mcpStore.disable).toHaveBeenCalled()
-            expect(emit).toHaveBeenCalledWith('MCP session closed due to team switch.', 'info')
+            expect(emit).toHaveBeenCalledWith('MCP session closed due to team switch.', 'info', 30000)
         })
 
         it('stays out of the way when the tab is not exposed', async () => {
