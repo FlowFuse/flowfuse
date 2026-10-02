@@ -4,6 +4,12 @@ import alerts from '@/services/alerts.js'
 import getAppOrchestrator from '@/services/app.orchestrator'
 
 /**
+ * MCP toasts stay up longer than the 3s default: they report what a third party can now
+ * do with this tab, so they need to be read, not glimpsed.
+ */
+export const MCP_TOAST_DURATION = 30000
+
+/**
  * The three comms this store drives. They are created once by the orchestrator and live
  * as long as the app does, so this only ever connects and disconnects them - it never
  * creates or destroys one.
@@ -148,12 +154,12 @@ export const useProductMcpStore = defineStore('product-mcp', {
             if (arrived > 0) {
                 alerts.emit(arrived === 1
                     ? 'An MCP client is now targeting this tab.'
-                    : `${arrived} MCP clients are now targeting this tab.`, 'confirmation')
+                    : `${arrived} MCP clients are now targeting this tab.`, 'confirmation', MCP_TOAST_DURATION)
             }
             if (left > 0) {
                 alerts.emit(left === 1
                     ? 'An MCP client stopped targeting this tab.'
-                    : `${left} MCP clients stopped targeting this tab.`, 'info')
+                    : `${left} MCP clients stopped targeting this tab.`, 'info', MCP_TOAST_DURATION)
             }
         }
     },
