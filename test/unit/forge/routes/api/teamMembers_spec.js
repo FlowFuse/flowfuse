@@ -1,4 +1,6 @@
-const should = require('should') // eslint-disable-line
+const should = require('should')
+const sinon = require('sinon')
+
 const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
@@ -294,6 +296,21 @@ describe('Team Members API', function () {
                     cookies: { sid: TestObjects.tokens.alice }
                 })
                 after.json().count.should.equal(before.json().count)
+            })
+
+            it('returns 500 when the removal fails unexpectedly', async function () {
+                const stub = sinon.stub(app.db.controllers.Team, 'removeUser').rejects(new Error('database unavailable'))
+                try {
+                    const response = await app.inject({
+                        method: 'DELETE',
+                        url: `/api/v1/teams/${TestObjects.ATeam.hashid}/members/${TestObjects.chris.hashid}`,
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(500)
+                    response.json().should.have.property('code', 'unexpected_error')
+                } finally {
+                    stub.restore()
+                }
             })
 
             it('admin cannot remove only owner from team', async function () {
