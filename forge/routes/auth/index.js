@@ -2,6 +2,8 @@ const Sentry = require('@sentry/node')
 const fp = require('fastify-plugin')
 const { isFreeEmail } = require('free-email-domains-list')
 
+const mcpToolPermissions = require('../../lib/mcpToolPermissions')
+
 /**
  * Routes related to session handling, login/out etc
  *
@@ -159,13 +161,17 @@ async function init (app, opts) {
 
                             const patMetadata = {
                                 id: accessToken.id,
-                                readOnly: accessToken.readOnly,
+                                readOnly: mcpToolPermissions.effectiveReadOnly(accessToken, app.db.models.Team.encodeHashid),
                                 adminOptIn: accessToken.adminOptIn,
                                 teamScopes
                             }
 
                             request.session.isPAT = true
                             request.session.pat = patMetadata
+                            const grant = accessToken.MCPGrant
+                            if (grant) {
+                                request.session.mcpGrant = mcpToolPermissions.fromGrant(grant, grant.MCPGrantTeamPermissions, app.db.models.Team.encodeHashid)
+                            }
                             request.requestContext.set('isPAT', true)
                             request.requestContext.set('pat', patMetadata)
 
