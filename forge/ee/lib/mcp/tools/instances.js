@@ -603,8 +603,8 @@ module.exports = [
             Permanently deletes a file or a directory from a hosted instance's file store. This cannot be undone.
             A directory is deleted together with everything inside it, and any public sharing set up on it or on a directory beneath it is removed as well.
             Flows that read or serve these files will stop finding them. Before calling this, confirm with the user, and use platform_list_hosted_instance_files to check what the path contains.
-            The root of the file store cannot be deleted. The instance must be running; a suspended instance answers with a 400.
-            Replies { status: "okay" } on success. A path that does not exist comes back as a 400 "invalid_request" whose error mentions "Response code 404", not as a 404.
+            The root of the file store cannot be deleted, and the instance must be running.
+            Replies { status: "okay" } on success. A path that does not exist returns an error.
             Static file storage is a plan-gated feature: a team without it enabled gets a 404 error.`,
         // destructiveHint: the file, or a whole directory tree, is gone for good.
         // idempotentHint: a repeat call has no further effect, it just fails as missing.
