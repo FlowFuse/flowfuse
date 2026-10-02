@@ -170,6 +170,7 @@ describe('Team Members API', function () {
                     cookies: { sid: TestObjects.tokens.alice }
                 })
                 response.statusCode.should.equal(200)
+                response.json().should.eql({ status: 'okay', removed: true })
 
                 await TestObjects.chris.reload()
                 // Verify Chris' defaultTeam is no longer ATeam
@@ -276,7 +277,7 @@ describe('Team Members API', function () {
                 response.statusCode.should.equal(400)
             })
 
-            it('returns 404 when removing a user who is not a member of the team', async function () {
+            it('reports nothing removed for a user who is not a member of the team', async function () {
                 // Bob exists but is not a member of CTeam
                 const before = await app.inject({
                     method: 'GET',
@@ -288,8 +289,8 @@ describe('Team Members API', function () {
                     url: `/api/v1/teams/${TestObjects.CTeam.hashid}/members/${TestObjects.bob.hashid}`,
                     cookies: { sid: TestObjects.tokens.alice }
                 })
-                response.statusCode.should.equal(404)
-                response.json().should.have.property('code', 'not_found')
+                response.statusCode.should.equal(200)
+                response.json().should.eql({ status: 'okay', removed: false })
                 const after = await app.inject({
                     method: 'GET',
                     url: `/api/v1/teams/${TestObjects.CTeam.hashid}/members`,
@@ -307,7 +308,8 @@ describe('Team Members API', function () {
                         cookies: { sid: TestObjects.tokens.alice }
                     })
                     response.statusCode.should.equal(500)
-                    response.json().should.have.property('code', 'unexpected_error')
+                    // the underlying error is not sent back, as it can include database details
+                    response.json().should.eql({ code: 'unexpected_error', error: 'Unexpected error' })
                 } finally {
                     stub.restore()
                 }
@@ -321,6 +323,7 @@ describe('Team Members API', function () {
                     cookies: { sid: TestObjects.tokens.alice }
                 })
                 response.statusCode.should.equal(400)
+                response.json().should.eql({ code: 'invalid_request', error: 'cannot remove only owner' })
             })
         })
 

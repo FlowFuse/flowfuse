@@ -2485,7 +2485,10 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["APIStatus"];
+                        "application/json": {
+                            status: string;
+                            removed?: boolean;
+                        };
                     };
                 };
                 /** @description Default Response */
