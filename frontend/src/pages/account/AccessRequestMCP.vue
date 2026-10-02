@@ -14,17 +14,15 @@
         </div>
 
         <div class="w-full max-w-md space-y-4 my-4">
-            <!-- Access Level -->
+            <!-- Tool Permissions -->
             <div>
                 <p class="text-gray-500 text-sm mb-2">
-                    Choose whether the agent can make changes or only read data.
+                    Choose what the agent can do in your teams. You can change this for individual teams below.
                 </p>
-                <ff-radio-group
-                    v-model="accessLevel"
-                    label="Access Level"
-                    orientation="vertical"
-                    :options="accessLevelOptions"
-                />
+                <McpToolPermissions v-model="defaultPermissions" :disabled="defaultUnused" />
+                <p v-if="defaultPermissionsNote" class="text-gray-500 text-sm mt-2" data-el="default-permissions-note">
+                    {{ defaultPermissionsNote }}
+                </p>
             </div>
 
             <!-- Team Scope -->
@@ -38,16 +36,55 @@
                     orientation="vertical"
                     :options="teamScopeOptions"
                 />
-                <div v-if="teamScope === 'specific' && teams.length > 0" class="mt-2 ml-6 space-y-1">
-                    <ff-checkbox
-                        v-for="team in teams"
-                        :key="team.id"
-                        :model-value="selectedTeamIds.includes(team.id)"
-                        :label="team.name"
-                        @update:model-value="toggleTeam(team.id)"
-                    />
+            </div>
+
+            <!-- Team Permissions -->
+            <div v-if="teams.length > 0">
+                <label class="block text-sm font-medium mb-1">Team Permissions</label>
+                <p class="text-gray-500 text-sm mb-2">
+                    Each team uses the permissions above unless you edit it.
+                </p>
+                <div class="space-y-2">
+                    <div v-for="team in teams" :key="team.id" data-el="mcp-team-row">
+                        <div class="flex items-center justify-between min-h-6">
+                            <ff-checkbox
+                                v-if="teamScope === 'specific'"
+                                :model-value="selectedTeamIds.includes(team.id)"
+                                :label="team.name"
+                                @update:model-value="toggleTeam(team.id)"
+                            />
+                            <span v-else class="text-sm font-medium">{{ team.name }}</span>
+                            <div v-if="isInScope(team.id)" class="flex items-center gap-3 text-sm">
+                                <span class="text-gray-500" data-el="team-permissions-state">{{ isCustom(team.id) ? 'Custom' : 'Default' }}</span>
+                                <ff-button
+                                    v-if="isCustom(team.id)"
+                                    kind="tertiary"
+                                    size="small"
+                                    data-action="reset-team-default"
+                                    @click="resetToDefault(team.id)"
+                                >
+                                    Reset
+                                </ff-button>
+                                <ff-button
+                                    kind="tertiary"
+                                    size="small"
+                                    data-action="customise-team"
+                                    :aria-expanded="isOpen(team.id)"
+                                    @click="toggleCustomise(team.id)"
+                                >
+                                    {{ isOpen(team.id) ? 'Close' : 'Edit' }}
+                                </ff-button>
+                            </div>
+                        </div>
+                        <div v-if="isInScope(team.id) && isOpen(team.id)" class="ml-6 mt-2 mb-1">
+                            <McpToolPermissions
+                                :model-value="teamPermissions(team.id)"
+                                @update:model-value="value => onTeamPermissionsChange(team.id, value)"
+                            />
+                        </div>
+                    </div>
                 </div>
-                <div v-if="teamScope === 'specific' && selectedTeamIds.length === 0" class="mt-2 ml-6 text-sm text-yellow-600">
+                <div v-if="teamScope === 'specific' && selectedTeamIds.length === 0" class="mt-2 text-sm text-yellow-600">
                     Select at least one team.
                 </div>
             </div>
@@ -79,6 +116,7 @@ import { ArrowSmallLeftIcon, ArrowSmallRightIcon, CommandLineIcon, KeyIcon } fro
 import { mapState } from 'pinia'
 
 import FormRow from '../../components/FormRow.vue'
+import McpToolPermissions from '../../components/mcp/McpToolPermissions.vue'
 
 import client from '@/api/client.ts'
 import teamApi from '@/api/team.ts'
@@ -92,6 +130,19 @@ function defaultExpiresAt () {
     return date.toISOString().split('T')[0]
 }
 
+function defaultToolPermissions () {
+    return {
+        platform: { read: true, write: true, destructive: false },
+        flow_building: { read: true, write: true, destructive: true }
+    }
+}
+
+function permissionsEqual (a, b) {
+    return ['platform', 'flow_building'].every(group => (
+        ['read', 'write', 'destructive'].every(category => !!a[group][category] === !!b[group][category])
+    ))
+}
+
 export default {
     name: 'AccessRequestMCP',
     components: {
@@ -99,22 +150,20 @@ export default {
         KeyIcon,
         ArrowSmallRightIcon,
         ArrowSmallLeftIcon,
-        FormRow
+        FormRow,
+        McpToolPermissions
     },
     data () {
         return {
-            // No defaults for access level/team scope: the user must make an explicit choice before Allow enables
-            accessLevel: null,
             teamScope: null,
             expiresAt: defaultExpiresAt(),
             selectedTeamIds: [],
             teams: [],
+            defaultPermissions: defaultToolPermissions(),
+            teamOverrides: {},
+            openTeamIds: [],
             submitting: false,
             error: null,
-            accessLevelOptions: [
-                { label: 'Full access', value: 'full', description: 'Read and write operations' },
-                { label: 'Read-only', value: 'readonly', description: 'Read operations only' }
-            ],
             teamScopeOptions: [
                 { label: 'All teams', value: 'all', description: 'Access all teams you belong to' },
                 { label: 'Specific teams', value: 'specific', description: 'Choose which teams to grant access to' }
@@ -132,11 +181,35 @@ export default {
             if (Number.isNaN(ts)) return false
             return ts > Date.now() && ts <= Date.now() + ONE_YEAR
         },
+        // With specific teams all customised, no team the token reaches uses the defaults. With all
+        // teams they still apply to teams the user joins later.
+        defaultUnused () {
+            return this.teamScope === 'specific' && this.selectedTeamIds.length > 0 && this.selectedTeamIds.every(teamId => this.isCustom(teamId))
+        },
+        defaultPermissionsNote () {
+            if (this.teamScope === 'all') {
+                return this.teams.length > 0 && this.teams.every(team => this.isCustom(team.id))
+                    ? 'Every team you belong to has custom permissions, so these only apply to teams you join later.'
+                    : 'These apply to every team without custom permissions, including teams you join later.'
+            }
+            if (this.teamScope === 'specific') {
+                return this.defaultUnused
+                    ? 'Not used, every selected team has custom permissions.'
+                    : 'These apply to the selected teams without custom permissions.'
+            }
+            return null
+        },
         disableAllow () {
             if (this.submitting) return true
-            if (!this.accessLevel || !this.teamScope || !this.expiryValid) return true
+            if (!this.teamScope || !this.expiryValid) return true
             if (this.teamScope === 'specific' && this.selectedTeamIds.length === 0) return true
             return false
+        }
+    },
+    watch: {
+        teamScope () {
+            this.teamOverrides = {}
+            this.openTeamIds = []
         }
     },
     async mounted () {
@@ -148,12 +221,45 @@ export default {
         }
     },
     methods: {
+        isInScope (teamId) {
+            return this.teamScope === 'all' || (this.teamScope === 'specific' && this.selectedTeamIds.includes(teamId))
+        },
+        isCustom (teamId) {
+            return Object.prototype.hasOwnProperty.call(this.teamOverrides, teamId)
+        },
+        isOpen (teamId) {
+            return this.openTeamIds.includes(teamId)
+        },
+        teamPermissions (teamId) {
+            return this.teamOverrides[teamId] || this.defaultPermissions
+        },
         toggleTeam (teamId) {
             const idx = this.selectedTeamIds.indexOf(teamId)
             if (idx === -1) {
                 this.selectedTeamIds.push(teamId)
             } else {
                 this.selectedTeamIds.splice(idx, 1)
+                this.resetToDefault(teamId)
+                this.openTeamIds = this.openTeamIds.filter(id => id !== teamId)
+            }
+        },
+        toggleCustomise (teamId) {
+            this.openTeamIds = this.openTeamIds.includes(teamId)
+                ? this.openTeamIds.filter(id => id !== teamId)
+                : [...this.openTeamIds, teamId]
+        },
+        onTeamPermissionsChange (teamId, value) {
+            if (permissionsEqual(value, this.defaultPermissions)) {
+                const { [teamId]: _removed, ...rest } = this.teamOverrides
+                this.teamOverrides = rest
+            } else {
+                this.teamOverrides = { ...this.teamOverrides, [teamId]: value }
+            }
+        },
+        resetToDefault (teamId) {
+            if (this.isCustom(teamId)) {
+                const { [teamId]: _removed, ...rest } = this.teamOverrides
+                this.teamOverrides = rest
             }
         },
         async allowAccess () {
@@ -161,9 +267,9 @@ export default {
             this.error = null
             try {
                 await client.put(`/account/authorize/${this.requestId}/consent`, {
-                    readOnly: this.accessLevel === 'readonly',
                     teamIds: this.teamScope === 'all' ? [] : this.selectedTeamIds,
-                    expiresAt: Date.parse(this.expiresAt)
+                    expiresAt: Date.parse(this.expiresAt),
+                    toolPermissions: { default: this.defaultPermissions, teams: this.teamOverrides }
                 })
                 window.location.href = `/account/complete/${this.requestId}`
             } catch (err) {

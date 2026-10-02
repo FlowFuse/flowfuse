@@ -1,5 +1,6 @@
 const { Op } = require('sequelize')
 
+const mcpToolPermissions = require('../../lib/mcpToolPermissions')
 const { generateToken, generateNumericToken, sha256, randomPhrase, DEFAULT_TOKEN_SESSION_EXPIRY, DEFAULT_REFRESH_TOKEN_EXPIRY } = require('../utils')
 
 // A rotated-out refresh token is honoured within this window, treated as a replay after it.
@@ -271,11 +272,13 @@ module.exports = {
         await app.settings.set('platform:stats:token', false)
     },
 
-    createMCPOAuthToken: async function (app, userId, { readOnly = false, teamIds = [], grantExpiresAt = null } = {}) {
+    createMCPOAuthToken: async function (app, userId, { teamIds = [], grantExpiresAt = null, toolPermissions } = {}) {
         const token = generateToken(32, 'ffpat')
         const refreshToken = generateToken(32, 'ffpat')
         const expiresAt = capToGrant(Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY, grantExpiresAt)
         const refreshTokenExpiresAt = capToGrant(Date.now() + DEFAULT_REFRESH_TOKEN_EXPIRY, grantExpiresAt)
+
+        const derivedReadOnly = mcpToolPermissions.deriveReadOnly(toolPermissions)
 
         await app.db.sequelize.transaction(async (t) => {
             const tok = await app.db.models.AccessToken.create({
@@ -286,7 +289,7 @@ module.exports = {
                 expiresAt,
                 refreshTokenExpiresAt,
                 grantExpiresAt,
-                readOnly,
+                readOnly: derivedReadOnly,
                 adminOptIn: false,
                 ownerId: '' + userId,
                 ownerType: 'user'
@@ -299,6 +302,20 @@ module.exports = {
                     UserId: userId
                 }))
                 await app.db.models.AccessTokenTeamScope.bulkCreate(scopes, { transaction: t })
+            }
+
+            const grant = await app.db.models.MCPGrant.create({
+                AccessTokenId: tok.id,
+                permissions: toolPermissions.default
+            }, { transaction: t })
+
+            const teamPermissions = Object.entries(toolPermissions.teams || {}).map(([teamHashid, permissions]) => ({
+                MCPGrantId: grant.id,
+                TeamId: app.db.models.Team.decodeHashid(teamHashid),
+                permissions
+            }))
+            if (teamPermissions.length > 0) {
+                await app.db.models.MCPGrantTeamPermission.bulkCreate(teamPermissions, { transaction: t })
             }
         })
 
@@ -345,19 +362,20 @@ module.exports = {
         const userId = typeof user === 'number' ? user : user.id
         const token = await app.db.models.AccessToken.byId(tokenId, 'user', userId)
         if (token) {
+            const grant = await app.db.models.MCPGrant.findOne({ where: { AccessTokenId: token.id } })
             token.scope = scope
             if (expiresAt === undefined) {
                 token.expiresAt = null
             } else {
                 token.expiresAt = expiresAt
             }
-            if (readOnly !== undefined) {
+            // An MCP token's readOnly follows its grant
+            if (readOnly !== undefined && !grant) {
                 token.readOnly = readOnly
             }
             if (adminOptIn !== undefined) {
                 token.adminOptIn = adminOptIn
             }
-            await token.save()
             if (teamIds !== undefined) {
                 await app.db.sequelize.transaction(async (t) => {
                     await app.db.models.AccessTokenTeamScope.destroy({
@@ -371,14 +389,27 @@ module.exports = {
                             UserId: userId
                         }))
                         await app.db.models.AccessTokenTeamScope.bulkCreate(scopes, { transaction: t })
+                        if (grant) {
+                            await app.db.models.MCPGrantTeamPermission.destroy({
+                                where: {
+                                    MCPGrantId: grant.id,
+                                    TeamId: { [Op.notIn]: scopes.map(scope => scope.TeamId) }
+                                },
+                                transaction: t
+                            })
+                        }
                     }
                 })
             }
+            await token.save()
             const reloaded = await app.db.models.AccessToken.findOne({
                 where: { id: token.id },
                 include: [{
                     model: app.db.models.AccessTokenTeamScope,
                     include: [{ model: app.db.models.Team, attributes: ['id', 'name'] }]
+                }, {
+                    model: app.db.models.MCPGrant,
+                    include: [{ model: app.db.models.MCPGrantTeamPermission }]
                 }]
             })
             return reloaded
@@ -530,6 +561,9 @@ module.exports = {
             include: [{
                 model: app.db.models.AccessTokenTeamScope,
                 include: [{ model: app.db.models.Team, attributes: ['id', 'name'] }]
+            }, {
+                model: app.db.models.MCPGrant,
+                include: [{ model: app.db.models.MCPGrantTeamPermission }]
             }]
         })
         if (accessToken) {
