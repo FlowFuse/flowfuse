@@ -78,8 +78,10 @@ export default {
             }
             try {
                 const data = await InstanceApi.getInstance(instanceId)
+                // Load the owning team before exposing the instance, so anything
+                // reacting to the instance sees the right team and feature checks.
+                await useAccountStore().setTeam(data.team.slug)
                 this.instance = { ...{ deviceSettings: {} }, ...this.instance, ...data }
-                useAccountStore().setTeam(this.instance.team.slug)
                 this.instance.deviceSettings = await InstanceApi.getInstanceDeviceSettings(instanceId)
                 if (this.instance.deviceSettings?.targetSnapshot) {
                     this.instance.targetSnapshot = await SnapshotApi.getSnapshot(instanceId, this.instance.deviceSettings.targetSnapshot)
