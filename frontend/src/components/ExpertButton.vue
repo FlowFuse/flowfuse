@@ -56,7 +56,7 @@ export default {
             return this.featuresCheck.isAiFeatureEnabled
         },
         showExpertButton () {
-            return this.isAiEnabled && !this.isExpertDrawerOpen
+            return this.isAiEnabled && !this.isExpertDrawerOpen && !this.rightDrawer.expertSuppressed
         },
         showMcpToggle () {
             return this.isAiEnabled && this.featuresCheck.isMcpThirdPartyFeatureEnabled

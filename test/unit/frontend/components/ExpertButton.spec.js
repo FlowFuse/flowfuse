@@ -27,7 +27,7 @@ const accountSettingsStore = reactive({
 })
 
 const uxDrawersStore = reactive({
-    rightDrawer: { state: false, fixed: false, expertState: { pinned: false } }
+    rightDrawer: { state: false, fixed: false, expertSuppressed: false, expertState: { pinned: false } }
 })
 
 const expertStore = reactive({ openAssistantDrawer: vi.fn() })
@@ -65,6 +65,7 @@ describe('ExpertButton', () => {
         mcpStore.status = 'off'
         mcpStore.clientCount = 0
         contextStore.team = null
+        uxDrawersStore.rightDrawer.expertSuppressed = false
     })
 
     afterEach(() => {
@@ -123,6 +124,22 @@ describe('ExpertButton', () => {
 
             expect(mcpStore.disable).not.toHaveBeenCalled()
             expect(mcpStore.resume).not.toHaveBeenCalled()
+        })
+    })
+
+    describe('suppression', () => {
+        it('shows the Expert button normally', () => {
+            const wrapper = mountButton()
+            expect(wrapper.find('[data-el="expert-button"]').exists()).toBe(true)
+        })
+
+        it('hides the Expert button while the drawer is suppressed, keeping the MCP toggle', async () => {
+            const wrapper = mountButton()
+            uxDrawersStore.rightDrawer.expertSuppressed = true
+            await wrapper.vm.$nextTick()
+
+            expect(wrapper.find('[data-el="expert-button"]').exists()).toBe(false)
+            expect(wrapper.find('[data-el="mcp-toggle"]').exists()).toBe(true)
         })
     })
 })

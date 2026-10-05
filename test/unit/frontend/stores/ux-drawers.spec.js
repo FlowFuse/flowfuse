@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -674,6 +677,66 @@ describe('ux-drawers store', () => {
             expect(store.rightDrawer.state).toBe(false)
             expect(store.rightDrawer.closing).toBe(true)
             vi.advanceTimersByTime(300)
+        })
+    })
+
+    describe('expert drawer suppression', () => {
+        it('defaults to not suppressed', () => {
+            expect(useUxDrawersStore().rightDrawer.expertSuppressed).toBe(false)
+        })
+
+        it('suppress and release toggle the flag', () => {
+            const store = useUxDrawersStore()
+            store.suppressExpertDrawer()
+            expect(store.rightDrawer.expertSuppressed).toBe(true)
+            store.releaseExpertDrawer()
+            expect(store.rightDrawer.expertSuppressed).toBe(false)
+        })
+
+        it('never writes the saved expert open/pinned preference', () => {
+            const store = useUxDrawersStore()
+            store.rightDrawer.expertState.pinned = true
+            store.rightDrawer.expertState.open = true
+
+            store.suppressExpertDrawer()
+            store.releaseExpertDrawer()
+
+            expect(store.rightDrawer.expertState).toEqual({ pinned: true, open: true })
+        })
+
+        it('refuses to open the Expert drawer while suppressed, without touching the saved preference', () => {
+            const store = useUxDrawersStore()
+            store.rightDrawer.expertState.pinned = false
+            store.rightDrawer.expertState.open = false
+            store.suppressExpertDrawer()
+
+            store.openRightDrawer({ component: { name: 'ExpertDrawer' }, fixed: true })
+
+            expect(store.rightDrawer.state).toBe(false)
+            expect(store.rightDrawer.component).toBe(null)
+            // openRightDrawer writes expertState whenever an ExpertDrawer opens; a
+            // suppressed open must not reach that write
+            expect(store.rightDrawer.expertState).toEqual({ pinned: false, open: false })
+        })
+
+        it('still opens other drawers while the Expert drawer is suppressed', () => {
+            const store = useUxDrawersStore()
+            store.suppressExpertDrawer()
+
+            store.openRightDrawer({ component: FakeComponent })
+
+            expect(store.rightDrawer.state).toBe(true)
+            expect(store.rightDrawer.component.name).toBe('FakeComponent')
+        })
+
+        it('excludes expertSuppressed from the persisted keys, so it cannot outlive the session', () => {
+            // Asserted against the store's own persist config rather than localStorage:
+            // pinia-plugin-persistedstate does not write under vitest/jsdom, so a
+            // storage-based assertion would pass no matter what was persisted.
+            const source = readFileSync(resolve(process.cwd(), 'frontend/src/stores/ux-drawers.js'), 'utf8')
+            const pick = source.slice(source.indexOf('pick: ['), source.indexOf(']', source.indexOf('pick: [')))
+            expect(pick).toContain('rightDrawer.expertState')
+            expect(pick).not.toContain('expertSuppressed')
         })
     })
 })

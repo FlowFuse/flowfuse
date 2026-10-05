@@ -34,6 +34,7 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
                 pinned: true,
                 open: true
             },
+            expertSuppressed: false,
             component: null,
             header: null,
             wider: false,
@@ -79,6 +80,8 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
                 })
                 return
             }
+
+            if (this.rightDrawer.expertSuppressed && component.name === 'ExpertDrawer') return
 
             // Don't allow opening while drawer is currently closing
             if (this.rightDrawer.closing) return
@@ -230,6 +233,14 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
             if (uxStore.overlay) {
                 uxStore.closeOverlay()
             }
+        },
+
+        suppressExpertDrawer () {
+            this.rightDrawer.expertSuppressed = true
+        },
+
+        releaseExpertDrawer () {
+            this.rightDrawer.expertSuppressed = false
         },
 
         // Editor Immersive Drawer actions

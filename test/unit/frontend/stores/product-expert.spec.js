@@ -52,11 +52,14 @@ vi.mock('@/components/drawers/expert/ExpertDrawer.vue', () => ({
     default: { name: 'ExpertDrawer' }
 }))
 
+const drawersState = {
+    rightDrawer: { expertSuppressed: false, expertState: { pinned: false, open: false } },
+    openRightDrawer: vi.fn(),
+    setRightDrawerWider: vi.fn()
+}
+
 vi.mock('@/stores/ux-drawers.js', () => ({
-    useUxDrawersStore: vi.fn(() => ({
-        openRightDrawer: vi.fn(),
-        setRightDrawerWider: vi.fn()
-    }))
+    useUxDrawersStore: vi.fn(() => drawersState)
 }))
 
 const { dispatch, getToolDefinitions, invokeAction } = vi.hoisted(() => ({
@@ -905,5 +908,24 @@ describe('product-expert store', () => {
 
             expect(mqttService.publishMessage).toHaveBeenCalledTimes(2)
         })
+    })
+})
+
+describe('openAssistantDrawer promise contract', () => {
+    afterEach(() => {
+        drawersState.rightDrawer.expertSuppressed = false
+    })
+
+    it('always returns a thenable, so wakeUpAssistant can chain hydrateClient off it', async () => {
+        // wakeUpAssistant does openAssistantDrawer(...).then(...). Any path that returns
+        // undefined crashes that chain, which is how the overview page's drawer
+        // suppression broke the editor-to-platform conversation handoff.
+        const store = useProductExpertStore()
+        drawersState.rightDrawer.expertSuppressed = true
+
+        const result = store.openAssistantDrawer({ openPinned: false })
+
+        expect(typeof result?.then).toBe('function')
+        await result
     })
 })
