@@ -274,7 +274,12 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                     name: { type: 'string' },
-                    schema: { type: 'string', minLength: 1, default: 'public' },
+                    schema: {
+                        type: 'string',
+                        // Postgres identifiers are at most 63 bytes, and pg_ prefixed and information_schema schemas are reserved
+                        pattern: '^(?!pg_)(?!information_schema$)[a-zA-Z_][a-zA-Z0-9_]{0,62}$',
+                        default: 'public'
+                    },
                     columns: { $ref: 'DatabaseTable' }
                 }
             },

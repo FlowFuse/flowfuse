@@ -249,9 +249,17 @@ describe('Tables API', function () {
         spy.called.should.be.false()
     })
 
-    it('Fail to create a table with an empty schema', async function () {
-        const response = await createTable({ name: 'newtable2', schema: '', columns })
-        response.statusCode.should.equal(400)
+    it('Fail to create a table with an invalid schema', async function () {
+        const invalid = ['', 'a'.repeat(64), '1reports', 'my-schema', 'my schema', 'pg_reports', 'information_schema']
+        for (const schema of invalid) {
+            const response = await createTable({ name: 'newtable2', schema, columns })
+            response.statusCode.should.equal(400, `schema '${schema}' should be rejected`)
+        }
+    })
+
+    it('Create a table in a schema at the maximum length', async function () {
+        const response = await createTable({ name: 'newtable3', schema: 'a'.repeat(63), columns })
+        response.statusCode.should.equal(201)
     })
 
     it('Get details for a table', async function () {
