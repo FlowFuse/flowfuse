@@ -445,6 +445,51 @@ describe('Tables: Postgres Supavisor Driver', function () {
         })
     })
 
+    describe('createTable', function () {
+        const columns = [{ name: 'id', type: 'bigserial', nullable: false }]
+        function setup (team) {
+            app.db.models.Table.byId.resolves({ TeamId: 1, credentials: { host: 'localhost', port: 5432, database: 't1hash', user: 't1hash', password: 'secret' } })
+            const query = sinon.stub().resolves({ rows: [] })
+            pgClients[team.hashid] = {
+                connect: sinon.stub().resolves(),
+                query,
+                end: sinon.stub().resolves()
+            }
+            return query
+        }
+        it('should create the table in the public schema by default', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            await driver.init(app, options)
+            const query = setup(team)
+            await driver.createTable(team, team.hashid, 'table1', columns)
+            query.args.map(a => a[0]).should.eql([
+                'BEGIN',
+                'CREATE TABLE IF NOT EXISTS "public"."table1" (\n"id" bigserial NOT NULL \n)',
+                'COMMIT'
+            ])
+        })
+        it('should create the schema if needed and the table inside it', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            await driver.init(app, options)
+            const query = setup(team)
+            await driver.createTable(team, team.hashid, 'table1', columns, 'reports')
+            query.args.map(a => a[0]).should.eql([
+                'BEGIN',
+                'CREATE SCHEMA IF NOT EXISTS "reports"',
+                'CREATE TABLE IF NOT EXISTS "reports"."table1" (\n"id" bigserial NOT NULL \n)',
+                'COMMIT'
+            ])
+        })
+        it('should roll back the new schema if the table cannot be created', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            await driver.init(app, options)
+            const query = setup(team)
+            query.withArgs(sinon.match(/^CREATE TABLE/)).rejects(new Error('boom'))
+            await driver.createTable(team, team.hashid, 'table1', columns, 'reports').should.be.rejectedWith(/boom/)
+            query.lastCall.args[0].should.equal('ROLLBACK')
+        })
+    })
+
     describe('dropTable', function () {
         it('should look up the schema and drop the qualified table', async function () {
             const team = { id: 1, hashid: 't1hash' }
