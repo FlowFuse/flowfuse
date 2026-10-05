@@ -274,6 +274,7 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                     name: { type: 'string' },
+                    schema: { type: 'string', minLength: 1, default: 'public' },
                     columns: { $ref: 'DatabaseTable' }
                 }
             },
@@ -298,10 +299,10 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         if (request.body.name && request.body.columns) {
             const tables = await app.tables.getTables(request.team, request.params.databaseId)
-            if (tables.tables.filter((t) => t.name === request.body.name).length === 1) {
+            if (tables.tables.filter((t) => t.name === request.body.name && t.schema === request.body.schema).length === 1) {
                 reply.status(409).send({ code: 'table_exists', error: 'Table already exists' })
             } else {
-                const t = await app.tables.createTable(request.team, request.params.databaseId, request.body.name, request.body.columns)
+                const t = await app.tables.createTable(request.team, request.params.databaseId, request.body.name, request.body.columns, request.body.schema)
                 reply.status(201).send(t)
                 await app.auditLog.Team.tables.table.created(request.session?.User || 'system', null, request.team, request.database, request.body.name)
             }
