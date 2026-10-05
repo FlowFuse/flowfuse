@@ -1,23 +1,371 @@
 <template>
-    <component :is="variant" v-if="team" />
+    <TeamHomeExpert v-if="isExpertHome" />
+
+    <ff-page v-else>
+        <template #header>
+            <ff-page-header>
+                <template #breadcrumbs>
+                    <ff-nav-breadcrumb>Home</ff-nav-breadcrumb>
+                </template>
+            </ff-page-header>
+        </template>
+
+        <div id="team-dashboard" class="page-wrapper overflow-auto" :data-team="team.slug">
+            <transition name="fade" mode="out-in">
+                <ff-loading v-if="loading || pendingTeamChange" message="Loading Dashboard..." />
+
+                <div v-else class="ff-team-dashboard">
+                    <section class="instances-section flex gap-3 mb-3 flex-wrap">
+                        <DashboardSection title="Hosted Instances" type="hosted">
+                            <template #icon>
+                                <ProjectsIcon class="ff-icon-lg" />
+                            </template>
+
+                            <div class="stats flex gap-2 mb-5">
+                                <InstanceStat
+                                    :counter="instanceStats.running"
+                                    state="running" type="hosted" @clicked="onStatClick"
+                                />
+                                <InstanceStat
+                                    :counter="instanceStats.error"
+                                    state="error" type="hosted" @clicked="onStatClick"
+                                />
+                                <InstanceStat
+                                    :counter="instanceStats.stopped"
+                                    state="stopped" type="hosted" @clicked="onStatClick"
+                                />
+                            </div>
+
+                            <template #actions>
+                                <ff-button
+                                    v-ff-tooltip:left="!hasPermission('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
+                                    data-action="create-project"
+                                    kind="secondary"
+                                    :to="{name: 'team-instance-create'}"
+                                    :disabled="!hasPermission('project:create')"
+                                >
+                                    <template #icon-left>
+                                        <PlusIcon class="ff-icon" />
+                                    </template>
+                                    Add Instance
+                                </ff-button>
+                            </template>
+
+                            <RecentlyModifiedInstances :total-instances="totalInstances" @delete-instance="openDeleteInstanceForm" />
+                        </DashboardSection>
+
+                        <DashboardSection title="Remote Instances" type="remote">
+                            <template #icon>
+                                <CpuChipIcon class="ff-icon-lg" />
+                            </template>
+                            <template v-if="featuresCheck.isRemoteInstanceFeatureEnabledForPlatform">
+                                <div class="stats flex gap-2 mb-5">
+                                    <InstanceStat
+                                        :counter="deviceStats.running"
+                                        state="running" type="remote" @clicked="onStatClick"
+                                    />
+                                    <InstanceStat
+                                        :counter="deviceStats.error"
+                                        state="error" type="remote" @clicked="onStatClick"
+                                    />
+                                    <InstanceStat
+                                        :counter="deviceStats.stopped"
+                                        state="stopped" type="remote" @clicked="onStatClick"
+                                    />
+                                </div>
+                                <RecentlyModifiedDevices :total-devices="totalDevices" />
+                            </template>
+                            <EmptyState v-else>
+                                <template #img>
+                                    <img class="w-24" src="../../../images/empty-states/team-devices.png">
+                                </template>
+                                <template #message>
+                                    Remote Instances are not available to your team.
+                                </template>
+                            </EmptyState>
+                            <template #actions>
+                                <ff-button
+                                    v-if="featuresCheck.isRemoteInstanceFeatureEnabledForPlatform"
+                                    v-ff-tooltip:left="!hasPermission('device:create') && 'Your role does not allow creating new remote instances. Contact a team admin to change your role.'"
+                                    data-action="create-project"
+                                    kind="secondary"
+                                    :disabled="!hasPermission('device:create') || teamDeviceLimitReached"
+                                    @click="showCreateDeviceDialog"
+                                >
+                                    <template #icon-left>
+                                        <PlusIcon class="ff-icon" />
+                                    </template>
+                                    Add Instance
+                                </ff-button>
+                            </template>
+                        </DashboardSection>
+                    </section>
+
+                    <DashboardSection title="Recent Activity" class="overflow-auto" type="audit">
+                        <template #icon>
+                            <CircleStackIcon class="ff-icon-lg" />
+                        </template>
+
+                        <AuditLog :entries="logEntries" />
+                    </DashboardSection>
+
+                    <ConfirmInstanceDeleteDialog
+                        v-if="isDeleteInstanceDialogOpen" ref="confirmInstanceDeleteDialog"
+                        @cancel="isDeleteInstanceDialogOpen = false"
+                        @confirm="onInstanceDeleted"
+                    />
+                </div>
+            </transition>
+        </div>
+    </ff-page>
+    <TeamDeviceCreateDialog
+        v-if="team && modals.addDevice"
+        ref="teamDeviceCreateDialog"
+        :team="team"
+        :teamDeviceCount="totalDevices"
+        @device-created="deviceCreated"
+        @close="modals.addDevice = false"
+    >
+        <template #description>
+            <p v-if="!featuresCheck?.isHostedInstancesEnabledForTeam && tours.firstDevice">
+                Describe your new Remote Instance here, e.g. "Raspberry Pi", "Allen-Bradley PLC", etc.
+            </p>
+            <p v-else>
+                Remote Instances are managed using the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">FlowFuse Device Agent</a>. The agent will need to be setup on the hardware where you want your Remote Instance to run.
+            </p>
+        </template>
+    </TeamDeviceCreateDialog>
+    <DeviceCredentialsDialog ref="deviceCredentialsDialog" />
 </template>
 
-<script setup>
-import { computed } from 'vue'
+<script>
+import { CircleStackIcon, CpuChipIcon, PlusIcon } from '@heroicons/vue/24/outline'
 
-import Dashboard from '@/pages/team/Home/Dashboard/index.vue'
-import Expert from '@/pages/team/Home/Expert/index.vue'
+import { mapState } from 'pinia'
+
+import TeamAPI from '../../../api/team.js'
+import AuditLog from '../../../components/audit-log/AuditLog.vue'
+import ProjectsIcon from '../../../components/icons/Projects.js'
+import InstanceStat from '../../../components/tiles/InstanceCounter.vue'
+import { useInstanceStates } from '../../../composables/InstanceStates.js'
+import usePermissions from '../../../composables/Permissions.js'
+import { getTeamProperty } from '../../../composables/TeamProperties.js'
+import Alerts from '../../../services/alerts.js'
+import ConfirmInstanceDeleteDialog from '../../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
+import DeviceCredentialsDialog from '../Devices/dialogs/DeviceCredentialsDialog.vue'
+import TeamDeviceCreateDialog from '../Devices/dialogs/TeamDeviceCreateDialog.vue'
+
+import TeamHomeExpert from './Expert/index.vue'
+import DashboardSection from './components/DashboardSection.vue'
+import RecentlyModifiedDevices from './components/RecentlyModifiedDevices.vue'
+import RecentlyModifiedInstances from './components/RecentlyModifiedInstances.vue'
+
+import EmptyState from '@/components/EmptyState.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
+import { useUxToursStore } from '@/stores/ux-tours.js'
 
-defineOptions({ name: 'TeamHomeSwitch' })
+export default {
+    name: 'TeamHome',
+    components: {
+        TeamHomeExpert,
+        EmptyState,
+        DeviceCredentialsDialog,
+        ConfirmInstanceDeleteDialog,
+        InstanceStat,
+        RecentlyModifiedInstances,
+        AuditLog,
+        DashboardSection,
+        CpuChipIcon,
+        ProjectsIcon,
+        CircleStackIcon,
+        PlusIcon,
+        RecentlyModifiedDevices,
+        TeamDeviceCreateDialog
+    },
+    setup () {
+        const { groupBySimplifiedStates } = useInstanceStates()
 
-const contextStore = useContextStore()
-const settingsStore = useAccountSettingsStore()
+        const { hasPermission } = usePermissions()
+        return {
+            groupBySimplifiedStates,
+            hasPermission
+        }
+    },
+    data () {
+        return {
+            loading: true,
+            logEntries: [],
+            instances: [],
+            instanceStateCounts: {},
+            deviceStateCounts: {},
+            isDeleteInstanceDialogOpen: false,
+            devices: [],
+            modals: {
+                addDevice: false
+            }
+        }
+    },
+    computed: {
+        ...mapState(useUxToursStore, ['tours']),
+        isExpertHome () {
+            return !!this.featuresCheck?.isExpertAssistantFeatureEnabled
+        },
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountStore, ['pendingTeamChange']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
+        instanceStats () {
+            return this.groupBySimplifiedStates(this.instanceStateCounts)
+        },
+        deviceStats () {
+            return this.groupBySimplifiedStates(this.deviceStateCounts)
+        },
+        totalInstances () {
+            return this.instanceStateCounts
+                ? Object.values(this.instanceStateCounts).reduce((total, count) => total + count, 0)
+                : 0
+        },
+        totalDevices () {
+            return this.deviceStateCounts
+                ? Object.values(this.deviceStateCounts).reduce((total, count) => total + count, 0)
+                : 0
+        },
+        teamDeviceLimitReached () {
+            const teamTypeDeviceLimit = getTeamProperty(this.team, 'devices.limit')
+            if (teamTypeDeviceLimit > -1 && this.team.deviceCount >= teamTypeDeviceLimit) {
+                // Device specific limit has been reached
+                return true
+            }
+            return false
+        }
+    },
+    watch: {
+        // The feature can be turned off mid-visit; the dashboard must then load the
+        // data its mount hook skipped, or it renders its loading state forever
+        isExpertHome (expert) {
+            if (!expert && this.loading) {
+                this.loadDashboard()
+            }
+        }
+    },
+    async mounted () {
+        if (this.isExpertHome) {
+            return
+        }
 
-const team = computed(() => contextStore.team)
-const variant = computed(() => (
-    settingsStore.featuresCheck?.isExpertAssistantFeatureEnabled ? Expert : Dashboard
-))
+        this.loadDashboard()
+    },
+    methods: {
+        loadDashboard () {
+            if ('billing_session' in this.$route.query) {
+                this.$nextTick(() => {
+                    // Clear the query param so a reload of the page does re-trigger
+                    // the notification
+                    this.$router.replace({ query: '' })
+                    // allow the Alerts service to have subscription by wrapping in nextTick
+                    Alerts.emit('Thanks for signing up to FlowFuse!', 'confirmation')
+                })
+            }
+
+            this.getInstanceStateCounts()
+            this.getDeviceStateCounts()
+            this.getRecentActivity()
+                .finally(() => {
+                    this.loading = false
+                })
+                .catch(e => e)
+        },
+        getRecentActivity () {
+            return TeamAPI.getTeamAuditLog(this.team.id, { }, null, 50)
+                .then((response) => {
+                    this.logEntries = response.log
+                })
+        },
+        onStatClick (payload) {
+            const name = payload.type === 'hosted' ? 'team-hosted-instances' : 'team-remote-instances'
+            this.$router.push({ name, query: { status: payload.state } })
+        },
+        getInstanceStateCounts () {
+            return TeamAPI.getTeamInstanceCounts(this.team.id, [], 'hosted')
+                .then(res => {
+                    this.instanceStateCounts = res
+                })
+                .catch(e => e)
+        },
+        getDeviceStateCounts () {
+            return TeamAPI.getTeamInstanceCounts(this.team.id, [], 'remote')
+                .then(res => {
+                    this.deviceStateCounts = res
+                })
+                .catch(e => e)
+        },
+        openDeleteInstanceForm (instance) {
+            this.isDeleteInstanceDialogOpen = true
+            this.$nextTick(() => this.$refs.confirmInstanceDeleteDialog.show(instance))
+        },
+        onInstanceDeleted (instance) {
+            this.isDeleteInstanceDialogOpen = false
+            // get the new number of instances which triggers a recently modified instances list refresh
+            this.getInstanceStateCounts()
+        },
+        showCreateDeviceDialog () {
+            this.modals.addDevice = true
+            this.$nextTick(() => {
+                this.$refs.teamDeviceCreateDialog.show(null, null, null, true)
+            })
+        },
+        deviceCreated (device) {
+            // navigate to the new Remote Instance
+            this.$refs.deviceCredentialsDialog.show(device)
+        }
+    }
+}
 </script>
+
+<style scoped lang="scss">
+.ff-team-dashboard {
+    height: 100%;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    overflow: auto;
+    container-type: inline-size;
+    container-name: team-dashboard;
+}
+
+.instances-section {
+    // Default: stacked (flex-wrap)
+    // When container is 640px+ wide, display side-by-side
+    @container team-dashboard (min-width: 640px) {
+        flex-wrap: nowrap;
+    }
+}
+</style>
+
+<style lang="scss">
+#team-dashboard {
+    .ff-accordion {
+        border: none;
+
+        &--button {
+            background: var(--ff-color-bg-app);
+            border: none;
+            border-bottom: 1px solid var(--ff-color-border);
+        }
+
+        &--content {
+            & > div {
+                &:nth-child(odd) {
+                    background: var(--ff-color-bg-surface);
+                }
+
+                .ff-audit-entry {
+                    border: none;
+                }
+            }
+        }
+    }
+}
+</style>

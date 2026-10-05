@@ -55,15 +55,15 @@
 import { ChevronRightIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
-import teamAPI from '@/api/team.js'
+import teamAPI from '../../../../api/team.js'
 
-import TeamLink from '@/components/router-links/TeamLink.vue'
-import { getTeamProperty } from '@/composables/TeamProperties.js'
+import TeamLink from '../../../../components/router-links/TeamLink.vue'
+import { getTeamProperty } from '../../../../composables/TeamProperties.js'
 
-import DeviceActions from '@/mixins/DeviceActions.js'
-import DeviceTile from '@/pages/team/Applications/components/compact/DeviceTile.vue'
-import DeviceCredentialsDialog from '@/pages/team/Devices/dialogs/DeviceCredentialsDialog.vue'
-import TeamDeviceCreateDialog from '@/pages/team/Devices/dialogs/TeamDeviceCreateDialog.vue'
+import DeviceActions from '../../../../mixins/DeviceActions.js'
+import DeviceTile from '../../Applications/components/compact/DeviceTile.vue'
+import DeviceCredentialsDialog from '../../Devices/dialogs/DeviceCredentialsDialog.vue'
+import TeamDeviceCreateDialog from '../../Devices/dialogs/TeamDeviceCreateDialog.vue'
 
 import { useContextStore } from '@/stores/context.js'
 
