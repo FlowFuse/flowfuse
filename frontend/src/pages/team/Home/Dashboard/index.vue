@@ -75,7 +75,7 @@
                             </template>
                             <EmptyState v-else>
                                 <template #img>
-                                    <img class="w-24" src="../../../images/empty-states/team-devices.png">
+                                    <img class="w-24" src="@/images/empty-states/team-devices.png">
                                 </template>
                                 <template #message>
                                     Remote Instances are not available to your team.
@@ -141,23 +141,24 @@ import { CircleStackIcon, CpuChipIcon, PlusIcon } from '@heroicons/vue/24/outlin
 
 import { mapState } from 'pinia'
 
-import TeamAPI from '../../../api/team.js'
-import AuditLog from '../../../components/audit-log/AuditLog.vue'
-import ProjectsIcon from '../../../components/icons/Projects.js'
-import InstanceStat from '../../../components/tiles/InstanceCounter.vue'
-import { useInstanceStates } from '../../../composables/InstanceStates.js'
-import usePermissions from '../../../composables/Permissions.js'
-import { getTeamProperty } from '../../../composables/TeamProperties.js'
-import Alerts from '../../../services/alerts.js'
-import ConfirmInstanceDeleteDialog from '../../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
-import DeviceCredentialsDialog from '../Devices/dialogs/DeviceCredentialsDialog.vue'
-import TeamDeviceCreateDialog from '../Devices/dialogs/TeamDeviceCreateDialog.vue'
-
 import DashboardSection from './components/DashboardSection.vue'
+
 import RecentlyModifiedDevices from './components/RecentlyModifiedDevices.vue'
+
 import RecentlyModifiedInstances from './components/RecentlyModifiedInstances.vue'
 
+import TeamAPI from '@/api/team.js'
 import EmptyState from '@/components/EmptyState.vue'
+import AuditLog from '@/components/audit-log/AuditLog.vue'
+import ProjectsIcon from '@/components/icons/Projects.js'
+import InstanceStat from '@/components/tiles/InstanceCounter.vue'
+import { useInstanceStates } from '@/composables/InstanceStates.js'
+import usePermissions from '@/composables/Permissions.js'
+import { getTeamProperty } from '@/composables/TeamProperties.js'
+import ConfirmInstanceDeleteDialog from '@/pages/instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
+import DeviceCredentialsDialog from '@/pages/team/Devices/dialogs/DeviceCredentialsDialog.vue'
+import TeamDeviceCreateDialog from '@/pages/team/Devices/dialogs/TeamDeviceCreateDialog.vue'
+import Alerts from '@/services/alerts.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'

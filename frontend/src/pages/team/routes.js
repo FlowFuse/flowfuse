@@ -11,7 +11,7 @@ import TeamDashboards from './Dashboards/index.vue'
 
 import DeviceGroups from './DeviceGroups/index.vue'
 import TeamDevices from './Devices/index.vue'
-import TeamHome from './Home/index.vue'
+import TeamHome from './Home/Dashboard/index.vue'
 import TeamInstances from './Instances.vue'
 import Library from './Library/index.vue'
 import LibraryRoutes from './Library/routes.js'

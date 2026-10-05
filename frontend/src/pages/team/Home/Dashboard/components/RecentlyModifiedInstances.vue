@@ -28,9 +28,9 @@
 import { ChevronRightIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
-import teamAPI from '../../../../api/team.js'
-import TeamLink from '../../../../components/router-links/TeamLink.vue'
-import InstanceTile from '../../Applications/components/compact/InstanceTile.vue'
+import teamAPI from '@/api/team.js'
+import TeamLink from '@/components/router-links/TeamLink.vue'
+import InstanceTile from '@/pages/team/Applications/components/compact/InstanceTile.vue'
 
 import { useContextStore } from '@/stores/context.js'
 
