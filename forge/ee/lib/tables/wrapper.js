@@ -84,10 +84,10 @@ module.exports = {
             throw new Error('Database driver does not support query')
         }
     },
-    createTable: async (team, databaseId, tableName, columns) => {
+    createTable: async (team, databaseId, tableName, columns, schemaName) => {
         if (this._driver.createTable) {
             this._app.log.info(`Adding table '${tableName}' to database '${databaseId}' for '${team.hashid}'`)
-            return this._driver.createTable(team, databaseId, tableName, columns)
+            return this._driver.createTable(team, databaseId, tableName, columns, schemaName)
         } else {
             throw new Error('Database driver does not support createTable')
         }
