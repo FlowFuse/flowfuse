@@ -122,8 +122,8 @@ export default defineComponent({
                 this.errors.schema = 'The schema must not exceed 63 characters.'
             } else if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(this.newTable.schema)) {
                 this.errors.schema = 'No spaces allowed, must start with a letter or underscore, and only use letters, digits, or underscores.'
-            } else if (/^pg_/i.test(this.newTable.schema)) {
-                this.errors.schema = 'The schema must not start with "pg_".'
+            } else if (this.newTable.schema.startsWith('pg_') || this.newTable.schema === 'information_schema') {
+                this.errors.schema = 'This schema name is reserved by PostgreSQL.'
             } else {
                 this.errors.schema = null
             }
