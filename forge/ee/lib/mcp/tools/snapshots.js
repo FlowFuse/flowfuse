@@ -57,14 +57,11 @@ module.exports = [
         inputSchema: {
             instanceType: z.enum(['hosted', 'remote']).describe('Which kind of instance instanceId refers to: "hosted" for a hosted instance, "remote" for a remote instance (device)'),
             instanceId: z.string().describe('The ID of the instance to snapshot (UUID for a hosted instance, hashid for a remote instance)'),
-            name: z.string().optional().describe('Name for the snapshot'),
+            name: z.string().trim().min(1).max(SNAPSHOT_NAME_MAX_LENGTH).describe('Name for the snapshot'),
             description: z.string().optional().describe('Description of the snapshot')
         },
         handler: async (args, { inject }) => {
-            const payload = {}
-            if (args.name) {
-                payload.name = args.name
-            }
+            const payload = { name: args.name }
             if (args.description) {
                 payload.description = args.description
             }
@@ -154,6 +151,30 @@ module.exports = [
                 return toolError(400, 'invalid_request', 'Pass at least one of name or description to update')
             }
             const response = await inject({ method: 'PUT', url: `/api/v1/snapshots/${args.snapshotId}`, payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_delete_snapshot',
+        title: 'Delete Snapshot',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes a snapshot. This cannot be undone. Works for snapshots owned by a hosted instance or a remote instance (device); the owner is resolved automatically from the snapshot.
+            CAUTION: if the snapshot is deployed anywhere, deleting it also removes it as a target. It is cleared as the device target of its hosted instance, as the target of any device group, and as the target and active snapshot of every device pointing at it. A device that loses its target snapshot stops running Node-RED (unless it is in developer mode) until a new target is set.
+            Before calling this, confirm with the user. Check where the snapshot is deployed first with platform_get_hosted_instance_device_target_snapshot, platform_list_application_device_groups and platform_list_remote_instances, and tell the user which devices will be affected.
+            Only team owners can delete snapshots. Replies { status: "okay" } on success; a snapshot that does not exist, or that the caller cannot see, returns 404.`,
+        // destructiveHint: the snapshot is gone for good, and any device targeting it stops running.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            snapshotId: snapshotId.describe('The hashid of the snapshot to delete')
+        },
+        handler: async (args, { inject }) => {
+            // snapshotId goes into the URL path and inject resolves dot segments, so anything but
+            // a plain hashid could send this DELETE to another route (e.g. "../applications/<id>").
+            if (!/^[A-Za-z0-9]+$/.test(args.snapshotId)) {
+                return toolError(400, 'invalid_request', 'snapshotId must be a hashid')
+            }
+            const response = await inject({ method: 'DELETE', url: `/api/v1/snapshots/${args.snapshotId}` })
             return response
         }
     },

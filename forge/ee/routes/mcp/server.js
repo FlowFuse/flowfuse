@@ -1,6 +1,7 @@
 const { randomUUID } = require('node:crypto')
 
 const { toTopicSafeSessionId } = require('../../../comms/utils/mcpSessionId')
+const mcpToolPermissions = require('../../../lib/mcpToolPermissions')
 
 // Maps mcpSessionId to the third-party caller's PAT, consumed by the comms layer.
 const MCP_SESSION_TOKEN_CACHE = 'mcp-session-token'
@@ -19,7 +20,7 @@ const MCP_SESSION_TOKEN_CACHE_TTL = 1000 * 60 * 60 // 1 hour
  * @param {import('../../../forge').ForgeApplication} app
  */
 module.exports = async function (app) {
-    // Maps the invoke meta-tool name to its access variant, used by the read-only gate.
+    // Maps the invoke meta-tool name to its access variant, used by the permissions gate.
     function invokeVariant (mcpBody) {
         if (!mcpBody || mcpBody.method !== 'tools/call') {
             return null
@@ -28,10 +29,30 @@ module.exports = async function (app) {
         if (name === 'invoke_write_tool') {
             return 'write'
         }
-        if (name === 'invoke_delete_tool') {
-            return 'delete'
+        if (name === 'invoke_destructive_tool') {
+            return 'destructive'
         }
         return 'read'
+    }
+
+    function anyGroupAllows (permissions, category) {
+        return mcpToolPermissions.GROUPS.some(group => mcpToolPermissions.anyTeamAllows(permissions, group, category))
+    }
+
+    function toTeamHashid (teamId) {
+        if (typeof teamId === 'number' || /^\d+$/.test(teamId)) {
+            return app.db.models.Team.encodeHashid(parseInt(teamId, 10))
+        }
+        return teamId
+    }
+
+    async function resolveTargetBrowserSession (userId, mcpSessionId, mcpBody) {
+        const sessionId = mcpBody.method === 'tools/call' ? mcpBody.params?.arguments?.arguments?.session_id : undefined
+        if (sessionId) {
+            const sessions = await app.db.controllers.BrowserSession.getSessionsByUser(userId)
+            return sessions.find(session => session.sessionId === sessionId) || null
+        }
+        return app.db.controllers.BrowserSession.getActiveBrowserSession(userId, mcpSessionId)
     }
 
     // Resolves the caller's identity and scope, or sends an error reply and returns null.
@@ -47,16 +68,16 @@ module.exports = async function (app) {
         const teams = Array.isArray(pat?.teamScopes)
             ? pat.teamScopes.map(entry => Object.keys(entry)[0])
             : []
-        // Gate the third-party MCP surface on the platform having AI enabled. An empty
-        // allow-list is an all-teams PAT, so no single team is pinned here; per-team
-        // access is enforced downstream by the scope-capped token at invoke.
-        if (!app.config.features.enabled('ai')) {
+        // Platform-level gate only. Per-team enablement is enforced downstream by
+        // needsPermission (forge/routes/auth/permissions.js), since an all-teams PAT
+        // pins no single team here.
+        if (!app.config.features.enabled('ai') || !app.config.features.enabled('mcpThirdParty')) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             return null
         }
         return {
             userId: request.session.User.hashid,
-            scope: { readOnly, teams }
+            scope: { readOnly, teams, permissions: mcpToolPermissions.forSession(request.session) }
         }
     }
 
@@ -79,12 +100,14 @@ module.exports = async function (app) {
             return
         }
 
-        if (caller.scope.readOnly) {
-            const variant = invokeVariant(mcpBody)
-            if (variant === 'write' || variant === 'delete') {
-                reply.code(403).send({ code: 'unauthorized', error: 'Personal Access Token is read-only' })
-                return
-            }
+        const variant = invokeVariant(mcpBody)
+        if (variant === 'write' && !anyGroupAllows(caller.scope.permissions, 'write')) {
+            reply.code(403).send({ code: 'unauthorized', error: "The token's permissions don't allow write access to any tool group" })
+            return
+        }
+        if (variant === 'destructive' && !anyGroupAllows(caller.scope.permissions, 'destructive')) {
+            reply.code(403).send({ code: 'unauthorized', error: "The token's permissions don't allow destructive access to any tool group" })
+            return
         }
 
         const mcpSessionId = request.headers['mcp-session-id'] ||
@@ -123,12 +146,16 @@ module.exports = async function (app) {
             userProperties.patId = app.db.models.AccessToken.encodeHashid(patId)
         }
 
-        // Let the gateway know which browser tab (if any) this MCP connection has pinned as its
-        // target, so platform_ui/flow_building tool calls don't need an explicit session id.
+        // Let the gateway know which browser tab this call targets: the one named by the invoked
+        // tool's session_id, else the one this MCP connection has pinned. platform_ui/flow_building
+        // calls run in that tab without reaching the platform's API, so a tab on a team outside the
+        // token's scope is treated as not pinned. The team comes from the tab's latest snapshot, which
+        // stays current: a team switch closes MCP in the tab, and navigation republishes the snapshot.
         if (app.db.controllers.BrowserSession) {
-            const activeBrowserSession = await app.db.controllers.BrowserSession.getActiveBrowserSession(caller.userId, mcpSessionId)
+            const activeBrowserSession = await resolveTargetBrowserSession(caller.userId, mcpSessionId, mcpBody)
             request.log.info(`MCP ingress: userId=${caller.userId} mcpSessionId=${mcpSessionId} -> activeBrowserSession=${activeBrowserSession ? activeBrowserSession.sessionId : 'null'}`)
-            if (activeBrowserSession) {
+            const allowTeam = app.patTeamScopeFilter(request)
+            if (activeBrowserSession && (!allowTeam || allowTeam(activeBrowserSession.context?.teamId))) {
                 userProperties.activeBrowserSessionId = activeBrowserSession.sessionId
                 const context = activeBrowserSession.context
                 const topicParts = context?.topicParts
@@ -140,6 +167,28 @@ module.exports = async function (app) {
                 }
                 if (context?.teamId) {
                     userProperties.teamId = context.teamId
+                    userProperties.browserSessionTeamId = toTeamHashid(context.teamId)
+                    // platform_ui/flow_building calls dispatch against the pinned tab, so the
+                    // needsPermission gate (forge/routes/auth/permissions.js) never runs. This
+                    // is the only place the pinned team is known before the gateway, so the
+                    // same per-team ai/mcpThirdParty check runs here. A plain 'platform' call
+                    // is refused too when a different team's tab is pinned - the common case
+                    // is one tab per team a caller works with.
+                    const pinnedTeam = await app.db.models.Team.byId(context.teamId)
+                    if (pinnedTeam && !pinnedTeam.getFeatureProperty('ai', true)) {
+                        reply.code(403).send({
+                            code: 'unauthorized',
+                            error: 'AI features are disabled for this team. A team owner can re-enable AI Features from Team Settings > Danger.'
+                        })
+                        return
+                    }
+                    if (pinnedTeam && !pinnedTeam.getFeatureProperty('mcpThirdParty', true)) {
+                        reply.code(403).send({
+                            code: 'unauthorized',
+                            error: 'MCP access is disabled for this team. A team owner can re-enable MCP access from Team Settings > Danger.'
+                        })
+                        return
+                    }
                 }
             }
         }

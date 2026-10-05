@@ -1,7 +1,7 @@
 ---
 navTitle: First Run Setup
 meta:
-   descripition: Get started with FlowFuse using our concise first-run setup guide, covering initial access, administrator creation, license uploading, and platform setup.
+   description: Complete the first-run setup after installing FlowFuse by creating the administrator account and optionally uploading an Enterprise license.
    tags:
      - setup
      - flowfuse

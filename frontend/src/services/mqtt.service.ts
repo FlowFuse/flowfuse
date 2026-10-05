@@ -42,6 +42,11 @@ interface MqttNormalizedPublishProperties {
     userProperties?: Record<string, string | string[]>
 }
 
+// How long a connection has to hold before we call it healthy and clear the backoff.
+// A link that connects and then drops seconds later would otherwise reset the attempt
+// counter on every cycle and reconnect in a hot loop instead of backing off.
+const STABLE_CONNECTION_MS = 30000
+
 class MqttService extends BaseService implements MqttServiceI {
     protected $mqtt: MqttModule | null
 
@@ -186,10 +191,25 @@ class MqttService extends BaseService implements MqttServiceI {
     ): void {
         for (const observer of managed.observers) {
             const handler = observer.handlers[event]
-            if (handler) {
-                ;(handler as (...a: unknown[]) => void)(...args)
+            if (!handler) continue
+
+            // Handlers are often async and nothing awaits them here, so a rejection would
+            // otherwise escape as an unhandled rejection. Most come from a client being
+            // torn down with packets still in flight, which is expected on a reconnect.
+            try {
+                const result = (handler as (...a: unknown[]) => unknown)(...args)
+                if (result instanceof Promise) {
+                    result.catch((error) => this._reportHandlerFailure(managed, event, error))
+                }
+            } catch (error) {
+                this._reportHandlerFailure(managed, event, error)
             }
         }
+    }
+
+    private _reportHandlerFailure (managed: ManagedMqttClient, event: string, error: unknown): void {
+        if (this._isIgnorableClientCloseError(error)) return
+        console.warn(`MQTT connection "${managed.key}" ${event} handler failed:`, error)
     }
 
     private async _createAndConnect (
@@ -218,6 +238,7 @@ class MqttService extends BaseService implements MqttServiceI {
             }),
             reconnectAttempt: 0,
             reconnectGeneration: 0,
+            connectedAt: null,
             reconnectTimer: null,
             subscriptions: new Map(),
             observers: new Set([observer]),
@@ -577,7 +598,7 @@ class MqttService extends BaseService implements MqttServiceI {
 
         register('connect', (connack: IConnackPacket) => {
             managed.status = 'connected'
-            managed.reconnectAttempt = 0
+            managed.connectedAt = Date.now()
             managed.terminalFailure = false
             managed.lastError = null
             this.clearReconnectTimer(managed)
@@ -658,6 +679,14 @@ class MqttService extends BaseService implements MqttServiceI {
         ) {
             return
         }
+
+        // Only a connection that held for a while counts as healthy. Clearing the
+        // counter on every connect lets a flapping link retry at the initial delay
+        // indefinitely rather than backing off.
+        if (managed.connectedAt !== null && Date.now() - managed.connectedAt >= STABLE_CONNECTION_MS) {
+            managed.reconnectAttempt = 0
+        }
+        managed.connectedAt = null
 
         const attempt = managed.reconnectAttempt
         const delay = Math.min(

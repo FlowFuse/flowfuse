@@ -1,6 +1,8 @@
 ---
 navTitle: Getting Started
 navOrder: 1
+meta:
+   description: Create your first hosted and remote Node-RED instances in FlowFuse, pick a blueprint, and set up a first DevOps Pipeline.
 ---
 
 # Getting Started with FlowFuse

@@ -124,7 +124,7 @@ export const FEATURE_CONFIGS: FeatureConfig[] = [
     { output: 'isGitIntegrationFeatureEnabled', platformKey: 'gitIntegration', teamKey: 'gitIntegration' },
     { output: 'isInstanceResourcesFeatureEnabled', platformKey: 'instanceResources', teamKey: 'instanceResources' },
     { output: 'isTablesFeatureEnabled', platformKey: 'tables', teamKey: 'tables' },
-    { output: 'isAiFeatureEnabled', platformKey: 'ai', teamKey: 'ai' },
+    { output: 'isAiFeatureEnabled', platformKey: 'ai', teamKey: 'ai', optOut: true },
     { output: 'isExpertAssistantFeatureEnabled', platformKey: 'expertAssistant', teamKey: 'expertAssistant', optOut: true, dependsOnPlatform: 'ai', dependsOnTeam: 'ai', dependsOnTeamOptOut: true },
     { output: 'isExpertInsightsFeatureEnabled', platformKey: 'expertInsights', teamKey: 'expertInsights', optOut: true, dependsOnPlatform: 'ai', dependsOnTeam: 'ai', dependsOnTeamOptOut: true },
     {

@@ -195,6 +195,9 @@ export default {
                     if (this.registrationSession) {
                         payload.registrationSession = this.registrationSession
                     }
+                    if (this.$route.query.type === 'lite') {
+                        payload.agentType = 'lite'
+                    }
                     return deviceApi.create(payload)
                 })
                 .catch(err => {

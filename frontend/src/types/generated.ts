@@ -2485,7 +2485,19 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["APIStatus"];
+                        "application/json": {
+                            status: string;
+                            removed?: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
                     };
                 };
                 /** @description Default Response */
@@ -5712,6 +5724,8 @@ export interface paths {
                         setup?: true;
                         agentHost?: string;
                         registrationSession?: string;
+                        /** @enum {string} */
+                        agentType?: "lite" | "full";
                     } & ((unknown & unknown & unknown) | (unknown & unknown & unknown & unknown));
                 };
             };
@@ -7336,7 +7350,9 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        name?: string;
+                        pipeline: {
+                            name?: string;
+                        };
                     };
                 };
             };
@@ -8497,6 +8513,8 @@ export interface paths {
                 content: {
                     "application/json": {
                         name?: string;
+                        /** @default public */
+                        schema?: string;
                         columns?: components["schemas"]["DatabaseTable"];
                     };
                 };
@@ -10424,6 +10442,34 @@ export interface components {
                 id?: string;
                 name?: string | null;
             }[];
+            toolPermissions?: {
+                default?: {
+                    platform?: {
+                        read?: boolean;
+                        write?: boolean;
+                        destructive?: boolean;
+                    };
+                    flow_building?: {
+                        read?: boolean;
+                        write?: boolean;
+                        destructive?: boolean;
+                    };
+                };
+                teams?: {
+                    [key: string]: {
+                        platform?: {
+                            read?: boolean;
+                            write?: boolean;
+                            destructive?: boolean;
+                        };
+                        flow_building?: {
+                            read?: boolean;
+                            write?: boolean;
+                            destructive?: boolean;
+                        };
+                    };
+                };
+            } | null;
         };
         /** PersonalAccessToken */
         PersonalAccessToken: {
@@ -10575,6 +10621,7 @@ export interface components {
             onlineStatus: "online" | "offline" | "not-seen";
             isDeploying: boolean;
             agentVersion?: string | null;
+            agentType?: string | null;
             mode: string;
             links?: components["schemas"]["LinksMeta"];
             team?: components["schemas"]["TeamSummary"];
@@ -10602,6 +10649,7 @@ export interface components {
             isDeploying: boolean;
             links: components["schemas"]["LinksMeta"];
             application?: components["schemas"]["ApplicationSummary"];
+            agentType?: string;
             mostRecentAuditLogCreatedAt?: string;
             mostRecentAuditLogEvent?: string;
         };

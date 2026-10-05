@@ -157,8 +157,14 @@ module.exports = async function (app) {
             },
             body: {
                 type: 'object',
+                required: ['pipeline'],
                 properties: {
-                    name: { type: 'string' }
+                    pipeline: {
+                        type: 'object',
+                        properties: {
+                            name: { type: 'string' }
+                        }
+                    }
                 }
             },
             response: {
@@ -179,7 +185,7 @@ module.exports = async function (app) {
         const pipeline = await app.db.models.Pipeline.byId(pipelineId)
 
         try {
-            const reqName = request.body.pipeline.name?.trim()
+            const reqName = request.body.pipeline?.name?.trim()
             updates.push('name', pipeline.name, reqName)
             pipeline.name = reqName
 

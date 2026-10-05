@@ -12,6 +12,9 @@
 
             <expert-messages @resizing="scrollToBottom" />
 
+            <!-- Teleport target for the prompt suggestions rendered by the chat input -->
+            <div id="expert-suggestions-slot" />
+
             <div ref="scrollAnchor" class="scroll-anchor" />
         </div>
 

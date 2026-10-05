@@ -44,7 +44,7 @@
             <template #description>
                 <p class="my-4">
                     Further info on Remote Instances can be found
-                    <a href="https://flowfuse.com/docs/user/devices/" target="_blank">here</a>.
+                    <a href="https://flowfuse.com/docs/device-agent/" target="_blank">here</a>.
                 </p>
             </template>
         </TeamDeviceCreateDialog>

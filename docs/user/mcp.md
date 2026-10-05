@@ -1,5 +1,7 @@
 ---
 navTitle: FlowFuse MCP
+meta:
+   description: See what an AI agent can do through the FlowFuse MCP server, from platform actions to building flows, and how read-only or full access limits it.
 ---
 
 # FlowFuse MCP Server
@@ -13,7 +15,7 @@ Two clients use it:
 
 Both use the same capabilities. What an agent can do depends only on the access you grant.
 
-> **Note:** This is not the same as [MCP server nodes](https://flowfuse.com/node-red/flowfuse/mcp/), which build MCP servers inside your flows. This page is about operating FlowFuse itself, where FlowFuse is the server and your agent is the client.
+> **Note:** This is not the same as [MCP server nodes](https://flowfuse.com/docs/flowfuse-nodes/mcp/), which build MCP servers inside your flows. This page is about operating FlowFuse itself, where FlowFuse is the server and your agent is the client.
 
 ## Platform Automations
 
@@ -48,7 +50,7 @@ Flow work runs in a live editor session, not as a file to import. Point the agen
 | Tabs | List tabs | Add, rename, enable, disable and remove tabs |
 | Subflows and subroutines | List subflows | Create and remove subflows, create subroutines |
 | Groups | — | Create, update, move and delete groups, change their members |
-| Palette | Read the installed palette, describe node type properties | Open the palette manager to install packages |
+| Palette | Read the installed palette, describe node type properties | Install FlowFuse and certified nodes directly, open the palette manager to install any other package, see [Node installs](#node-installs) |
 | Canvas | Read the full flow, list config nodes, read debug output, search and select nodes | Navigate to a tab or subflow, align and distribute nodes |
 | FlowFuse Tables | Query table data | Build a [Query Node](/docs/user/ff-tables/#query-nodes) flow that reads and writes tables |
 
@@ -57,6 +59,14 @@ By default nothing goes live until you deploy from Node-RED. A team owner can le
 ## Agent deploy
 
 A team owner turns this on from **Team Settings > Danger > AI Flow Deploy**. It is off by default and needs AI Features enabled for the team.
+
+Available from FlowFuse 3.1 with `@flowfuse/nr-assistant` 0.20.0 or later.
+
+## Node installs
+
+An agent installs FlowFuse-scoped plugins and certified nodes directly, without confirmation, because FlowFuse vets these packages. Which certified nodes are available depends on your license. Any other package opens the palette manager for you to confirm.
+
+Available from FlowFuse 3.1 with `@flowfuse/nr-assistant` 0.20.0 or later.
 
 ## Access and permissions
 
@@ -67,4 +77,4 @@ Access comes at one of two levels:
 
 With **FlowFuse Expert**, an agent acts with the same access you have on the team you are working in.
 
-With **your own agent**, you choose the access when you connect. Signing in over OAuth takes you to a FlowFuse page where you pick read-only or full access, scope it to all your teams or specific teams, and set an expiration date. A personal access token, for clients without a sign-in flow, carries the same read-only or full-access choice.
+With **your own agent**, you choose the access when you connect. Signing in over OAuth takes you to a FlowFuse page where you choose which teams the agent can reach and the permissions it has in each, and set an expiration date. A personal access token, for clients without a sign-in flow, carries the same choice of teams and permissions.

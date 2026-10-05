@@ -28,6 +28,11 @@ import {
 import Product from '@/services/product.js'
 import { connectionKey as teamConnectionKey } from '@/subscribers/team-subscriber.contract'
 
+// How long a disconnect has to last before we mention it. Short drops reconnect on
+// their own, and the notice tells the user to send another message or start a fresh
+// session, which is wrong advice for a blip and stays in the transcript for good.
+const DISCONNECT_NOTICE_DELAY = 15000
+
 export const useProductExpertStore = defineStore('product-expert', {
     state: () => ({
         agentMode: SUPPORT_AGENT, // support-agent or insights-agent
@@ -53,7 +58,10 @@ export const useProductExpertStore = defineStore('product-expert', {
         // decisions here until every card is answered, then send them back in one resume
         // message. Persisted so a refresh mid-batch leaves the pending cards answerable (#8527).
         // { decisions: { [toolUseId]: 'approved'|'denied' }, toolKeys: { [id]: key }, remaining: number }
-        _approvalBatch: null
+        _approvalBatch: null,
+        // Pending "we got disconnected" notice, held back until the drop has lasted
+        // long enough to be worth mentioning. Deliberately not persisted.
+        _disconnectNoticeTimer: null
     }),
     getters: {
         _agentStore () {
@@ -504,7 +512,11 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             switch (true) {
             case parsedTopic.inflightType === 'expert:status-message':
-                await respond({ ack: true })
+                try {
+                    await respond({ ack: true })
+                } catch (e) {
+                    console.warn('expert:status-message ack failed:', e)
+                }
                 break
             case parsedTopic.inflightType === 'expert:tasks': {
                 const items = Array.isArray(payload.items) ? payload.items : []
@@ -675,6 +687,9 @@ export const useProductExpertStore = defineStore('product-expert', {
             // Unblock any approval still awaiting a decision before we drop its message,
             // so the agent's paused tool call resolves (as denied) instead of hanging.
             this.cancelPendingToolApprovals()
+
+            // The transcript this notice belonged to is about to be cleared.
+            this._clearDisconnectNotice()
 
             agentStore.sessionId = uuidv4()
             agentStore.messages = []
@@ -980,7 +995,24 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // do nothing
             }
         },
+        _clearDisconnectNotice () {
+            if (this._disconnectNoticeTimer) {
+                clearTimeout(this._disconnectNoticeTimer)
+                this._disconnectNoticeTimer = null
+            }
+        },
         _onMqttClose  () {
+            // A drop that recovers on its own is not worth a message, so hold the notice
+            // back and let the reconnect cancel it. Close can fire more than once for the
+            // same outage, so an already pending notice keeps its original deadline.
+            if (this._disconnectNoticeTimer) return
+
+            this._disconnectNoticeTimer = setTimeout(() => {
+                this._disconnectNoticeTimer = null
+                this._postDisconnectNotice()
+            }, DISCONNECT_NOTICE_DELAY)
+        },
+        _postDisconnectNotice () {
             const rand = Math.floor(Math.random() * 6)
             const message = [
                 'Looks like we got disconnected. Send another message to pick up where we left off, or start a fresh session.',
@@ -997,6 +1029,10 @@ export const useProductExpertStore = defineStore('product-expert', {
             )
         },
         async _onMqttConnect (connack) {
+            // We heard back from the broker, so whatever the outcome the pending notice is
+            // stale: either we are connected, or handleMqttError posts its own message below.
+            this._clearDisconnectNotice()
+
             if (connack.reasonCode && connack.reasonCode >= 0x80) {
                 // mqtt.js usually emits 'error' instead, but guard anyway
                 return this.handleMqttError(connack.reasonCode, connack.properties?.reasonString)
@@ -1072,6 +1108,10 @@ export const useProductExpertStore = defineStore('product-expert', {
             this.inFlightUpdates = []
         },
         async handleMqttError (code, reason) {
+            // This path always posts a message of its own, so drop any notice still waiting
+            // on the close timer rather than letting a second one land on top of it.
+            this._clearDisconnectNotice()
+
             // stopping inFlight chat requests to ignore any in flight messages if any and also clear the loader
             this.stopInflightChat()
             this._clearInFlightUpdates()
@@ -1470,6 +1510,10 @@ export const useProductExpertStore = defineStore('product-expert', {
                             sessionId: this.sessionId,
                             origin: window.origin || window.location.origin
                         }
+                    }).catch(e => {
+                        // Nothing awaits this abort, and the connection dropping is the
+                        // most common reason we get here in the first place.
+                        console.warn('expert abort publish failed:', e)
                     })
                 }
             }

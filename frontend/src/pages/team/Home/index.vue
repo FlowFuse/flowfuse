@@ -129,7 +129,7 @@
                 Describe your new Remote Instance here, e.g. "Raspberry Pi", "Allen-Bradley PLC", etc.
             </p>
             <p v-else>
-                Remote Instances are managed using the <a href="https://flowfuse.com/docs/user/devices/" target="_blank">FlowFuse Device Agent</a>. The agent will need to be setup on the hardware where you want your Remote Instance to run.
+                Remote Instances are managed using the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">FlowFuse Device Agent</a>. The agent will need to be setup on the hardware where you want your Remote Instance to run.
             </p>
         </template>
     </TeamDeviceCreateDialog>
