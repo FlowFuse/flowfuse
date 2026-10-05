@@ -1,5 +1,6 @@
 const should = require('should') // eslint-disable-line no-unused-vars
 const sinon = require('sinon')
+const { z } = require('zod')
 
 const tools = require('../../../../../../../forge/ee/lib/mcp/tools/tables')
 
@@ -174,6 +175,23 @@ describe('MCP Tables Tools', function () {
                 payload: { name: 'orders', columns }
             })
             response.should.equal(injectResponse)
+        })
+
+        it('passes the schema through when one is given', async function () {
+            const columns = [{ name: 'id', type: 'bigint' }]
+            inject.resolves({ statusCode: 201, json: () => ({}) })
+            await tool.handler({ teamId: 'team1', databaseId: 'db1', name: 'orders', schema: 'reports', columns }, { inject })
+            inject.firstCall.args[0].payload.should.eql({ name: 'orders', columns, schema: 'reports' })
+        })
+
+        it('accepts valid schema names and rejects ones Postgres cannot create', function () {
+            const schema = z.object(tool.inputSchema).shape.schema
+            for (const valid of ['public', 'Reports', '_staging', 'a'.repeat(63)]) {
+                schema.safeParse(valid).success.should.be.true(`'${valid}' should be accepted`)
+            }
+            for (const invalid of ['', 'a'.repeat(64), '1reports', 'my-schema', 'pg_reports', 'information_schema']) {
+                schema.safeParse(invalid).success.should.be.false(`'${invalid}' should be rejected`)
+            }
         })
 
         it('passes through error responses unmodified', async function () {
