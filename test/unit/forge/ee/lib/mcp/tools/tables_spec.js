@@ -163,10 +163,9 @@ describe('MCP Tables Tools', function () {
     describe('platform_create_database_table', function () {
         const tool = getTool('platform_create_database_table')
 
-        it('posts the name and columns to the tables endpoint and returns the response unmodified', async function () {
+        it('posts the name and columns to the tables endpoint and returns the table in the public schema', async function () {
             const columns = [{ name: 'id', type: 'bigint' }, { name: 'label', type: 'text', nullable: true }]
-            const injectResponse = { statusCode: 201, json: () => ({}) }
-            inject.resolves(injectResponse)
+            inject.resolves({ statusCode: 201, json: () => JSON.parse('') })
             const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', name: 'orders', columns }, { inject })
             inject.calledOnce.should.be.true()
             inject.firstCall.args[0].should.eql({
@@ -174,14 +173,16 @@ describe('MCP Tables Tools', function () {
                 url: '/api/v1/teams/team1/databases/db1/tables',
                 payload: { name: 'orders', columns }
             })
-            response.should.equal(injectResponse)
+            response.statusCode.should.equal(201)
+            response.json().should.eql({ table: { name: 'orders', schema: 'public' } })
         })
 
-        it('passes the schema through when one is given', async function () {
+        it('passes the schema through when one is given and returns it', async function () {
             const columns = [{ name: 'id', type: 'bigint' }]
-            inject.resolves({ statusCode: 201, json: () => ({}) })
-            await tool.handler({ teamId: 'team1', databaseId: 'db1', name: 'orders', schema: 'reports', columns }, { inject })
+            inject.resolves({ statusCode: 201, json: () => JSON.parse('') })
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', name: 'orders', schema: 'reports', columns }, { inject })
             inject.firstCall.args[0].payload.should.eql({ name: 'orders', columns, schema: 'reports' })
+            response.json().should.eql({ table: { name: 'orders', schema: 'reports' } })
         })
 
         it('accepts valid schema names and rejects ones Postgres cannot create', function () {

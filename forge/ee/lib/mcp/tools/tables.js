@@ -181,6 +181,12 @@ module.exports = [
                 maxLength: z.number().nullable().optional().describe('Maximum length, or null for unbounded')
             })).min(1).describe('Column definitions for the new table')
         },
+        outputSchema: {
+            table: z.object({
+                name: z.string(),
+                schema: z.string()
+            })
+        },
         handler: async (args, { inject }) => {
             const payload = { name: args.name, columns: args.columns }
             if (args.schema) {
@@ -191,7 +197,14 @@ module.exports = [
                 url: `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables`,
                 payload
             })
-            return response
+            if (response.statusCode >= 400) {
+                return response
+            }
+            // The route replies to a successful create with an empty body
+            return {
+                statusCode: response.statusCode,
+                json: () => ({ table: { name: args.name, schema: args.schema || 'public' } })
+            }
         }
     }
 ]
