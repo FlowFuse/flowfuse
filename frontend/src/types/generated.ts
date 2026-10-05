@@ -8513,6 +8513,8 @@ export interface paths {
                 content: {
                     "application/json": {
                         name?: string;
+                        /** @default public */
+                        schema?: string;
                         columns?: components["schemas"]["DatabaseTable"];
                     };
                 };
