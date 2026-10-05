@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError, hostedInstanceId } = require('../schemas')
+const { pathId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError, hostedInstanceId } = require('../schemas')
 const { emptySuccessAsOkay } = require('../utils')
 
 // Tools that work against both hosted instances and remote instances (devices),
@@ -16,7 +16,7 @@ module.exports = [
             HTTP bearer tokens are a plan-gated feature: a team without it enabled gets a 404 error.`,
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
+            instanceId: pathId.describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
             instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")')
         },
         handler: async (args, { inject }) => {
@@ -34,7 +34,7 @@ module.exports = [
             Use this when the user wants a chronological view of what changed on an instance.`,
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
+            instanceId: pathId.describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
             instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),
             ...basePagination
         },
@@ -55,7 +55,7 @@ module.exports = [
             scope and includeChildren apply only to hosted instances: by default only the instance's own ("project") entries are returned; set scope to "device" to read the entries for its assigned devices instead, and set includeChildren to also include entries from child entities within the chosen scope. A remote instance has no child entities, so these two parameters are rejected when instanceType is "remote".`,
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
+            instanceId: pathId.describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
             instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),
             ...basePagination,
             ...searchQuery,
@@ -88,7 +88,7 @@ module.exports = [
         // destructiveHint: stop and suspend take the instance down, and restart interrupts whatever it is running.
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
         inputSchema: {
-            instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
+            instanceId: pathId.describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
             instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),
             action: z.enum(['start', 'stop', 'restart', 'suspend', 'restartStack']).describe('Lifecycle action to apply. Remote instances accept only restart')
         },
@@ -112,7 +112,7 @@ module.exports = [
             HTTP bearer tokens are a plan-gated feature (the same gate as FlowFuse User Authentication); a team without it enabled gets a 404 error.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
         inputSchema: {
-            instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
+            instanceId: pathId.describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
             instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),
             name: z.string().describe('Human-readable name for the token'),
             expiresAt: z.string().optional().describe('Token expiry as an ISO 8601 timestamp. Omit for a token that never expires')
@@ -138,9 +138,9 @@ module.exports = [
         // destructiveHint: omitting expiresAt clears the expiry, removing a security control from an existing token.
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
+            instanceId: pathId.describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
             instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),
-            tokenId: z.string().describe('The hashid of the token to update, as returned by platform_list_instance_http_tokens'),
+            tokenId: pathId.describe('The hashid of the token to update, as returned by platform_list_instance_http_tokens'),
             expiresAt: z.string().optional().describe('New expiry as an ISO 8601 timestamp. OMITTING THIS CLEARS THE EXPIRY, making the token never expire')
         },
         handler: async (args, { inject }) => {
@@ -166,9 +166,9 @@ module.exports = [
         // idempotentHint: a repeat call has no further effect, it just answers 404.
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
+            instanceId: pathId.describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
             instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),
-            tokenId: z.string().describe('The hashid of the token to delete, as returned by platform_list_instance_http_tokens')
+            tokenId: pathId.describe('The hashid of the token to delete, as returned by platform_list_instance_http_tokens')
         },
         handler: async (args, { inject }) => {
             // Both ids go into the URL path and inject resolves dot segments, so anything but
@@ -199,7 +199,7 @@ module.exports = [
         // idempotentHint: a repeat call has no further effect, it just answers 404.
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            instanceId: z.string().describe('The ID of the instance to delete (hosted instance UUID, or remote instance/device hashid)'),
+            instanceId: pathId.describe('The ID of the instance to delete (hosted instance UUID, or remote instance/device hashid)'),
             instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")')
         },
         handler: async (args, { inject }) => {
