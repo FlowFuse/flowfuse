@@ -164,9 +164,7 @@ module.exports = [
         name: 'platform_create_database_table',
         title: 'Create Database Table',
         description: `FlowFuse platform automation tool:
-            Creates a new table in a FlowFuse Tables database. Both name and at least one column are required.
-            The table is created in the given schema, or in public when none is given. A schema that does not exist yet is created.
-            Each column needs a name and a type; the supported types are bigint, bigserial, boolean, date, timestamptz, real, double precision and text. Any other type is rejected.
+            Creates a new table in a FlowFuse Tables database.
             Fails with 409 if a table of that name already exists in the same schema.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
         inputSchema: {
@@ -176,7 +174,7 @@ module.exports = [
             schema: z.string().regex(/^(?!pg_)(?!information_schema$)[a-zA-Z_][a-zA-Z0-9_]{0,62}$/).optional().describe('Schema to create the table in. Defaults to public, and is created if it does not exist'),
             columns: z.array(z.object({
                 name: z.string().min(1).describe('Column name'),
-                type: z.string().describe('Column data type; one of bigint, bigserial, boolean, date, timestamptz, real, double precision, text'),
+                type: z.enum(['bigint', 'bigserial', 'boolean', 'date', 'timestamptz', 'real', 'double precision', 'text']).describe('Column data type'),
                 nullable: z.boolean().optional().describe('Whether the column allows NULL. Defaults to NOT NULL when omitted'),
                 default: z.string().nullable().optional().describe('Default value, or null for none'),
                 generated: z.boolean().optional().describe('Whether the column value is generated'),

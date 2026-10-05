@@ -194,6 +194,12 @@ describe('MCP Tables Tools', function () {
             }
         })
 
+        it('accepts only the column types the database driver supports', function () {
+            const columns = z.object(tool.inputSchema).shape.columns
+            columns.safeParse([{ name: 'id', type: 'double precision' }]).success.should.be.true()
+            columns.safeParse([{ name: 'id', type: 'varchar' }]).success.should.be.false()
+        })
+
         it('passes through error responses unmodified', async function () {
             const errorResponse = { statusCode: 409, json: () => ({ code: 'table_exists', error: 'Table already exists' }) }
             inject.resolves(errorResponse)
