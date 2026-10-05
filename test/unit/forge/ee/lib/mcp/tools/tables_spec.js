@@ -86,6 +86,34 @@ describe('MCP Tables Tools', function () {
         })
     })
 
+    describe('platform_create_team_database', function () {
+        const tool = getTool('platform_create_team_database')
+
+        it('posts an empty body to the databases endpoint for the team', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ id: 'db1', name: 'team1' }) })
+            await tool.handler({ teamId: 'team1' }, { inject })
+            inject.calledOnce.should.be.true()
+            inject.firstCall.args[0].should.eql({ method: 'POST', url: '/api/v1/teams/team1/databases', payload: {} })
+        })
+
+        it('strips credentials from the created database and wraps it in a database object', async function () {
+            inject.resolves({
+                statusCode: 200,
+                json: () => ({ id: 'db1', name: 'team1', credentials: { password: 'secret1' } })
+            })
+            const response = await tool.handler({ teamId: 'team1' }, { inject })
+            response.statusCode.should.equal(200)
+            response.json().should.eql({ database: { id: 'db1', name: 'team1' } })
+        })
+
+        it('passes through error responses unmodified', async function () {
+            const errorResponse = { statusCode: 409, json: () => ({ code: 'already_exists', error: 'Database already exists' }) }
+            inject.resolves(errorResponse)
+            const response = await tool.handler({ teamId: 'team1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
     describe('platform_list_database_tables', function () {
         const tool = getTool('platform_list_database_tables')
 
