@@ -1,12 +1,9 @@
 const SemVer = require('semver')
 const { z } = require('zod')
 
+const { MIN_AGENT_VERSIONS } = require('../constants')
 const { basePaginationKeys, limitParam, appendQuery, hostedInstanceId, remoteInstanceId, snapshotId, snapshotComponents, toolError } = require('../schemas')
 const { blankHiddenEnvValues } = require('../utils')
-
-// Older agents ignore the forced update the route sends to a device in developer
-// mode, so the target would be stored without the device ever deploying it.
-const DEV_MODE_TARGET_MIN_AGENT_VERSION = '3.8.0'
 
 // Width of ProjectSnapshot.name, a DataTypes.STRING column.
 const SNAPSHOT_NAME_MAX_LENGTH = 255
@@ -351,8 +348,6 @@ module.exports = [
             Only remote instances assigned to an application have their own target. One assigned to a hosted instance follows the target set with platform_set_instance_device_target, and one in a device group is moved to the group's target the next time the group's target changes.
             A target cannot be cleared, only replaced with another snapshot. If the snapshot is already the target, nothing is deployed and the remote instance is returned unchanged.
             Use platform_get_remote_instance to see the current target, and platform_list_instance_snapshots to find a snapshot.`,
-        // destructiveHint: this overwrites the flows the device is running, the same
-        // reasoning as platform_set_instance_device_target.
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             remoteInstanceId,
@@ -373,8 +368,8 @@ module.exports = [
             if (device.agentType === 'lite') {
                 return toolError(400, 'invalid_request', 'The Lite Remote Agent does not support deploying snapshots')
             }
-            if (device.mode === 'developer' && !(device.agentVersion && SemVer.gte(device.agentVersion, DEV_MODE_TARGET_MIN_AGENT_VERSION))) {
-                return toolError(400, 'invalid_request', `Deploying a snapshot to a remote instance in developer mode requires Device Agent v${DEV_MODE_TARGET_MIN_AGENT_VERSION} or later`)
+            if (device.mode === 'developer' && !(device.agentVersion && SemVer.gte(device.agentVersion, MIN_AGENT_VERSIONS.devModeSnapshotDeploy))) {
+                return toolError(400, 'invalid_request', `Deploying a snapshot to a remote instance in developer mode requires Device Agent v${MIN_AGENT_VERSIONS.devModeSnapshotDeploy} or later`)
             }
             // The route redeploys even when the target is unchanged, which in
             // developer mode would throw away the editor changes for nothing.
