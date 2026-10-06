@@ -47,6 +47,10 @@ interface MqttNormalizedPublishProperties {
 // counter on every cycle and reconnect in a hot loop instead of backing off.
 const STABLE_CONNECTION_MS = 30000
 
+// How long to wait for the broker to close the socket after a clean DISCONNECT
+// before closing it ourselves.
+const CLEAN_DISCONNECT_TIMEOUT_MS = 1000
+
 class MqttService extends BaseService implements MqttServiceI {
     protected $mqtt: MqttModule | null
 
@@ -854,6 +858,7 @@ class MqttService extends BaseService implements MqttServiceI {
         if (managed.client) {
             const client = managed.client
             managed.client = null
+            await this._disconnectCleanly(client)
             try {
                 await this.endMqttClient(client, true)
             } catch {
@@ -863,6 +868,35 @@ class MqttService extends BaseService implements MqttServiceI {
         }
 
         this.$clients.delete(clientKey)
+    }
+
+    /**
+     * Sends DISCONNECT and waits for the broker to close the socket, so the broker
+     * drops the last will instead of publishing it. client.end(false) is not enough:
+     * mqtt.js closes the WebSocket a few ms after the DISCONNECT and EMQX often handles
+     * the close first, treating it as a crash. mqtt.js has no public way to send
+     * DISCONNECT without closing the socket, hence the private _sendPacket.
+     */
+    private _disconnectCleanly (client: MqttClient): Promise<void> {
+        const sendPacket = (client as unknown as { _sendPacket?: (packet: IDisconnectPacket, cb?: () => void) => void })._sendPacket
+        if (!client.connected || typeof sendPacket !== 'function') {
+            return Promise.resolve()
+        }
+
+        return new Promise<void>((resolve) => {
+            const done = () => {
+                clearTimeout(timer)
+                client.off('close', done)
+                resolve()
+            }
+            const timer = setTimeout(done, CLEAN_DISCONNECT_TIMEOUT_MS)
+            client.once('close', done)
+            try {
+                sendPacket.call(client, { cmd: 'disconnect', reasonCode: 0, properties: { sessionExpiryInterval: 0 } })
+            } catch {
+                done()
+            }
+        })
     }
 
     private _killStaleClient (client: MqttClient) {

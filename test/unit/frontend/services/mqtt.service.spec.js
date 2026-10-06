@@ -716,6 +716,57 @@ describe('MqttService', async () => {
         expect(service.hasClient('destroy-key')).toBe(false)
     })
 
+    test('destroyClient sends a clean DISCONNECT and waits for the broker to close before ending', async () => {
+        const service = createMqttService({
+            app: {},
+            store: {},
+            router: {}
+        })
+
+        const client = createMockClient()
+        client.once = vi.fn((eventName, handler) => client.on(eventName, handler))
+        client._sendPacket = vi.fn()
+        service.$clients.set('clean-key', { key: 'clean-key', client, listeners: new Set(), destroyed: false })
+
+        const destroying = service.destroyClient('clean-key')
+
+        await vi.waitFor(() => {
+            expect(client._sendPacket).toHaveBeenCalledWith({ cmd: 'disconnect', reasonCode: 0, properties: { sessionExpiryInterval: 0 } })
+        })
+        expect(client.end).not.toHaveBeenCalled()
+
+        client.emit('close')
+        await destroying
+
+        expect(client.end).toHaveBeenCalledTimes(1)
+        expect(service.hasClient('clean-key')).toBe(false)
+    })
+
+    test('destroyClient ends the client anyway when the broker never closes after DISCONNECT', async () => {
+        vi.useFakeTimers()
+        try {
+            const service = createMqttService({
+                app: {},
+                store: {},
+                router: {}
+            })
+
+            const client = createMockClient()
+            client.once = vi.fn((eventName, handler) => client.on(eventName, handler))
+            client._sendPacket = vi.fn()
+            service.$clients.set('stuck-key', { key: 'stuck-key', client, listeners: new Set(), destroyed: false })
+
+            const destroying = service.destroyClient('stuck-key')
+            await vi.advanceTimersByTimeAsync(1000)
+            await destroying
+
+            expect(client._sendPacket).toHaveBeenCalledTimes(1)
+            expect(client.end).toHaveBeenCalledTimes(1)
+        } finally {
+            vi.useRealTimers()
+        }
+    })
+
     test('runClientOperation recovers from previous rejection and cleans tracked entry', async () => {
         const service = createMqttService({
             app: {},
