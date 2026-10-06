@@ -24,6 +24,8 @@
                 Back
             </button>
 
+            <div class="ff-expert-home__spacer ff-expert-home__spacer--top" aria-hidden="true" />
+
             <div class="ff-expert-home__intro" data-el="expert-home-intro">
                 <HomeGreeting />
             </div>
@@ -57,13 +59,49 @@
                 <span v-else>Open the Expert</span>
             </ff-button>
 
-            <div
-                v-if="showSuggestions"
-                class="ff-expert-home__suggestions"
-                :class="{ 'is-inert': isComposerDisabled }"
-                :aria-disabled="isComposerDisabled"
-            >
-                <PromptSuggestions :suggestions="suggestions" @select="onSuggestion" />
+            <div class="ff-expert-home__spacer ff-expert-home__spacer--bottom" aria-hidden="true" />
+
+            <div class="ff-expert-home__fold">
+                <div class="ff-expert-home__columns">
+                    <div class="ff-expert-home__col">
+                        <div
+                            class="ff-expert-home__suggestions"
+                            :class="{ 'is-inert': isComposerDisabled }"
+                            :aria-disabled="isComposerDisabled"
+                        >
+                            <PromptSuggestions :suggestions="suggestions" @select="onSuggestion" />
+                        </div>
+                    </div>
+
+                    <div class="ff-expert-home__col">
+                        <div class="ff-expert-home__section">
+                            <div class="ff-expert-home__section-head">
+                                <p class="ff-expert-home__label">
+                                    <ProjectsIcon class="ff-icon ff-icon-sm" />
+                                    Hosted Instances
+                                </p>
+                            </div>
+                            <RecentlyModifiedInstances variant="compact" :total-instances="totalInstances" />
+                        </div>
+
+                        <div class="ff-expert-home__section">
+                            <div class="ff-expert-home__section-head">
+                                <p class="ff-expert-home__label">
+                                    <CpuChipIcon class="ff-icon ff-icon-sm" />
+                                    Remote Instances
+                                </p>
+                            </div>
+                            <RecentlyModifiedDevices
+                                v-if="featuresCheck.isRemoteInstanceFeatureEnabledForPlatform"
+                                variant="compact"
+                                :total-devices="totalDevices"
+                            />
+                            <p v-else class="ff-expert-home__empty" data-el="remote-unavailable">
+                                Remote Instances are not available to your team.
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </ff-page>
@@ -71,19 +109,25 @@
 
 <script setup lang="ts">
 import { ChevronLeftIcon } from '@heroicons/vue/20/solid'
+import { CpuChipIcon } from '@heroicons/vue/24/outline'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import HomeGreeting from './components/HomeGreeting.vue'
 
+import TeamAPI from '@/api/team.js'
 import ExpertPanel from '@/components/expert/Expert.vue'
 import ExpertModeSwitcher from '@/components/expert/components/ExpertModeSwitcher.vue'
 import PromptSuggestions from '@/components/expert/components/PromptSuggestions.vue'
 import { pickSuggestions } from '@/components/expert/prompt-suggestions.js'
+import ProjectsIcon from '@/components/icons/Projects.js'
+import RecentlyModifiedDevices from '@/pages/team/Home/components/RecentlyModifiedDevices.vue'
+import RecentlyModifiedInstances from '@/pages/team/Home/components/RecentlyModifiedInstances.vue'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { SUPPORT_AGENT } from '@/stores/product-expert-agents.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+import sumCounts from '@/utils/sumCounts'
 
 defineOptions({ name: 'TeamHomeExpert' })
 
@@ -98,6 +142,10 @@ const expertStore = useProductExpertStore() as ReturnType<typeof useProductExper
     handleQuery: (payload: { query: string }) => Promise<unknown>
 }
 const drawersStore = useUxDrawersStore()
+
+const featuresCheck = computed(() => settingsStore.featuresCheck)
+const totalInstances = ref(0)
+const totalDevices = ref(0)
 
 const canSwitchAgent = computed<boolean>(() => {
     const features = settingsStore.featuresCheck
@@ -120,8 +168,6 @@ const canResume = computed<boolean>(() => liveTurns.value > 0 || isComposerDisab
 type Suggestion = { title: string, prompt: string, needsInput?: boolean }
 
 const suggestions = ref<Suggestion[]>(pickSuggestions())
-
-const showSuggestions = computed<boolean>(() => stage.value !== 'conversing')
 
 function onSuggestion (suggestion: Suggestion) {
     if (isComposerDisabled.value) {
@@ -153,6 +199,12 @@ onMounted(() => {
     if (features.isExpertAssistantFeatureEnabled && !features.isExpertInsightsFeatureEnabled) {
         expertStore.setAgentMode(SUPPORT_AGENT)
     }
+    TeamAPI.getTeamInstanceCounts(contextStore.team.id, [], 'hosted')
+        .then(counts => { totalInstances.value = sumCounts(counts) })
+        .catch(e => e)
+    TeamAPI.getTeamInstanceCounts(contextStore.team.id, [], 'remote')
+        .then(counts => { totalDevices.value = sumCounts(counts) })
+        .catch(e => e)
     expertStore.resumeSessionTimer()
     drawersStore.suppressExpertDrawer()
     if (drawersStore.rightDrawer.state) {
@@ -173,6 +225,7 @@ onBeforeUnmount(() => {
 $ff-expand: 480ms;
 $ff-ease: cubic-bezier(0.4, 0, 0.2, 1);
 $ff-column: 820px;
+$ff-wide: 1080px;
 
 .ff-expert-home {
     display: flex;
@@ -210,26 +263,109 @@ $ff-column: 820px;
         pointer-events: none;
     }
 
-    &__suggestions {
-        align-self: center;
+    &__columns {
+        justify-self: center;
         width: 100%;
-        max-width: $ff-column;
-        opacity: 1;
+        max-width: $ff-wide;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 28px;
         transition: opacity 260ms ease;
-
-        &.is-inert {
-            opacity: 0.45;
-            pointer-events: none;
-        }
     }
 
-    &.is-composing &__suggestions {
+    &.is-composing &__columns {
         opacity: 0;
         pointer-events: none;
     }
 
+    &__fold {
+        display: grid;
+        grid-template-rows: 1fr;
+        flex: 0 0 auto;
+        margin-top: 28px;
+        transition: grid-template-rows $ff-expand $ff-ease, margin-top $ff-expand $ff-ease;
+
+        > * {
+            min-height: 0;
+            overflow: hidden;
+        }
+    }
+
+    &.is-composing &__fold {
+        grid-template-rows: 0fr;
+        margin-top: 0;
+    }
+
+    &__spacer {
+        flex: 0 0 0;
+        transition: flex-grow $ff-expand $ff-ease;
+    }
+
+    &.is-composing:not(.is-conversing) &__spacer--top {
+        flex-grow: 1;
+    }
+
+    &.is-composing:not(.is-conversing) &__spacer--bottom {
+        flex-grow: 3;
+    }
+
+    &__suggestions.is-inert {
+        opacity: 0.45;
+        pointer-events: none;
+    }
+
+    &__suggestions :deep(.expert-prompt-suggestions) {
+        margin: 0;
+
+        .expert-prompt-suggestions__heading {
+            justify-content: flex-start;
+            font-size: 0.875rem;
+
+            .ff-icon {
+                width: 18px;
+                height: 18px;
+            }
+        }
+    }
+
+    &__section + &__section {
+        margin-top: 28px;
+    }
+
+    &__section-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding-bottom: 5px;
+    }
+
+    &__label {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        margin: 0;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--ff-color-text-subtle);
+
+        .ff-icon {
+            width: 18px;
+            height: 18px;
+        }
+    }
+
+    &__empty {
+        margin: 0;
+        padding: 6px 8px;
+        font-size: 12px;
+        color: var(--ff-color-text-subtle);
+    }
+
     &__resume {
         align-self: center;
+        flex: 0 0 auto;
         margin-top: 14px;
         max-height: 32px;
         overflow: hidden;
@@ -250,6 +386,7 @@ $ff-column: 820px;
 
     &__mode {
         align-self: center;
+        flex: 0 0 auto;
         display: flex;
         justify-content: center;
         width: 100%;
@@ -274,80 +411,26 @@ $ff-column: 820px;
         flex: 0 0 auto;
         display: grid;
         grid-template-rows: 1fr;
-        transition: grid-template-rows $ff-expand $ff-ease, opacity 260ms ease;
+        transition: grid-template-rows $ff-expand $ff-ease;
 
         > * {
             min-height: 0;
             overflow: hidden;
-            transition: padding-top $ff-expand $ff-ease;
         }
-    }
-
-    &.is-composing &__intro {
-        opacity: 0;
-        pointer-events: none;
     }
 
     &.is-conversing &__intro {
         grid-template-rows: 0fr;
-
-        > * {
-            padding-top: 0;
-        }
     }
 
     &__expert {
         display: flex;
         flex-direction: column;
-        flex: 0 1 auto;
+        flex: 0 0 auto;
         min-height: 0;
         margin-top: 28px;
-        transition: flex-grow $ff-expand $ff-ease, margin-top $ff-expand $ff-ease;
-    }
+        transition: flex-grow $ff-expand $ff-ease;
 
-    &.is-conversing &__expert {
-        flex-grow: 1;
-        margin-top: 0;
-    }
-
-    &__expert :deep(.ff-expert) {
-        height: auto;
-        flex: 1;
-        min-height: 0;
-        background: transparent;
-    }
-
-    &__expert :deep(.messages-container),
-    &__expert :deep(.ff-expert-input) {
-        width: 100%;
-        max-width: $ff-column;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    &__expert :deep(.messages-container) {
-        max-height: 0;
-        padding-top: 0;
-        padding-bottom: 0;
-        opacity: 0;
-        transition: max-height $ff-expand $ff-ease, opacity 300ms ease;
-    }
-
-    &.is-conversing &__expert :deep(.messages-container) {
-        max-height: 70vh;
-        padding-top: 1rem;
-        padding-bottom: 1rem;
-        opacity: 1;
-    }
-
-    &__expert :deep(.ff-expert-input) {
-        border-top: none;
-        background: transparent;
-        min-height: 0;
-        padding: 0;
-    }
-
-    &__expert {
         :deep(.resize-bar),
         :deep(.actions .left),
         :deep(#expert-suggestions-slot) {
@@ -356,7 +439,7 @@ $ff-column: 820px;
 
         :deep(.input-wrapper) {
             flex-direction: row;
-            align-items: center;
+            align-items: stretch;
             border-width: 1px;
             border-color: var(--ff-color-border);
             border-radius: 12px;
@@ -370,6 +453,8 @@ $ff-column: 820px;
         }
 
         :deep(.actions) {
+            display: flex;
+            align-items: center;
             padding: 0 0.6rem 0 0;
             flex: 0 0 auto;
         }
@@ -384,10 +469,64 @@ $ff-column: 820px;
         }
     }
 
+    &.is-conversing &__expert {
+        flex-grow: 1;
+        flex-shrink: 1;
+    }
+
+    &__expert :deep(.ff-expert) {
+        height: auto;
+        flex: 0 0 auto;
+        min-height: 0;
+        background: transparent;
+    }
+
+    &.is-conversing &__expert :deep(.ff-expert) {
+        flex: 1;
+    }
+
+    &__expert :deep(.messages-container),
+    &__expert :deep(.ff-expert-input) {
+        width: 100%;
+        max-width: $ff-column;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    &__expert :deep(.messages-container) {
+        flex-grow: 0;
+        flex-basis: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        opacity: 0;
+        transition: flex-grow $ff-expand $ff-ease, padding-top $ff-expand $ff-ease,
+                    padding-bottom $ff-expand $ff-ease, opacity 300ms ease;
+    }
+
+    &.is-conversing &__expert :deep(.messages-container) {
+        flex-grow: 1;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        opacity: 1;
+    }
+
+    &__expert :deep(.ff-expert-input) {
+        border-top: none;
+        background: transparent;
+        min-height: 0;
+        padding: 0;
+    }
+
     &.is-conversing &__expert :deep(.action-buttons) {
         max-height: 40px;
         opacity: 1;
         margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 760px) {
+    .ff-expert-home__columns {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
@@ -396,8 +535,9 @@ $ff-column: 820px;
     .ff-expert-home__resume,
     .ff-expert-home__mode,
     .ff-expert-home__intro,
-    .ff-expert-home__intro > *,
-    .ff-expert-home__suggestions,
+    .ff-expert-home__columns,
+    .ff-expert-home__fold,
+    .ff-expert-home__spacer,
     .ff-expert-home__expert,
     .ff-expert-home__expert :deep(.messages-container),
     .ff-expert-home__expert :deep(.action-buttons) {

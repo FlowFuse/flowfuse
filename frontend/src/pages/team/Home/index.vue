@@ -151,6 +151,7 @@ import { useInstanceStates } from '../../../composables/InstanceStates.js'
 import usePermissions from '../../../composables/Permissions.js'
 import { getTeamProperty } from '../../../composables/TeamProperties.js'
 import Alerts from '../../../services/alerts.js'
+import sumCounts from '../../../utils/sumCounts'
 import ConfirmInstanceDeleteDialog from '../../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import DeviceCredentialsDialog from '../Devices/dialogs/DeviceCredentialsDialog.vue'
 import TeamDeviceCreateDialog from '../Devices/dialogs/TeamDeviceCreateDialog.vue'
@@ -223,14 +224,10 @@ export default {
             return this.groupBySimplifiedStates(this.deviceStateCounts)
         },
         totalInstances () {
-            return this.instanceStateCounts
-                ? Object.values(this.instanceStateCounts).reduce((total, count) => total + count, 0)
-                : 0
+            return sumCounts(this.instanceStateCounts)
         },
         totalDevices () {
-            return this.deviceStateCounts
-                ? Object.values(this.deviceStateCounts).reduce((total, count) => total + count, 0)
-                : 0
+            return sumCounts(this.deviceStateCounts)
         },
         teamDeviceLimitReached () {
             const teamTypeDeviceLimit = getTeamProperty(this.team, 'devices.limit')

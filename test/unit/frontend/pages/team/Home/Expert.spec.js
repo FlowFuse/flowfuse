@@ -6,7 +6,7 @@ enableAutoUnmount(afterEach)
 
 const mocks = vi.hoisted(() => ({
     accountAuthStore: { user: { name: 'Noley Holland' } },
-    contextStore: { isImmersiveEditor: false },
+    contextStore: { isImmersiveEditor: false, team: { id: 't1' } },
     settingsStore: { featuresCheck: { isExpertAssistantFeatureEnabled: true, isExpertInsightsFeatureEnabled: false } },
     expertStore: {
         messages: [],
@@ -33,6 +33,7 @@ vi.mock('@/stores/context.js', () => ({ useContextStore: () => mocks.contextStor
 vi.mock('@/stores/account-settings.js', () => ({ useAccountSettingsStore: () => mocks.settingsStore }))
 vi.mock('@/stores/product-expert.js', () => ({ useProductExpertStore: () => mocks.expertStore }))
 vi.mock('@/stores/ux-drawers.js', () => ({ useUxDrawersStore: () => mocks.drawersStore }))
+vi.mock('@/api/team.js', () => ({ default: { getTeamInstanceCounts: vi.fn().mockResolvedValue({}) } }))
 
 vi.mock('@/components/expert/Expert.vue', () => ({
     default: { name: 'ExpertPanel', template: '<div data-stub="expert-panel" />' }
@@ -52,7 +53,9 @@ async function mountPage () {
                 // a `true` stub drops the default slot, so nothing below would render
                 'ff-page': { template: '<div><slot name="header" /><slot /></div>' },
                 'ff-page-header': { template: '<div><slot name="breadcrumbs" /></div>' },
-                'ff-nav-breadcrumb': { template: '<span><slot /></span>' }
+                'ff-nav-breadcrumb': { template: '<span><slot /></span>' },
+                RecentlyModifiedInstances: { name: 'RecentlyModifiedInstances', props: ['variant', 'totalInstances'], template: '<div data-stub="instances" />' },
+                RecentlyModifiedDevices: { name: 'RecentlyModifiedDevices', props: ['variant', 'totalDevices'], template: '<div data-stub="devices" />' }
             }
         }
     })
@@ -330,6 +333,34 @@ describe('TeamHomeExpert', () => {
             expect(mocks.expertStore.setPendingInput).toHaveBeenCalledWith('Build a flow that')
             expect(mocks.expertStore.handleQuery).not.toHaveBeenCalled()
             expect(wrapper.find('[data-el="expert-home"]').attributes('data-stage')).toBe('composing')
+        })
+    })
+
+    describe('the instance lists', () => {
+        const features = remote => ({
+            isExpertAssistantFeatureEnabled: true,
+            isExpertInsightsFeatureEnabled: false,
+            isRemoteInstanceFeatureEnabledForPlatform: remote
+        })
+
+        test('renders both lists in the compact variant', async () => {
+            mocks.settingsStore.featuresCheck = features(true)
+            const wrapper = await mountPage()
+            expect(wrapper.findComponent({ name: 'RecentlyModifiedInstances' }).props('variant')).toBe('compact')
+            expect(wrapper.findComponent({ name: 'RecentlyModifiedDevices' }).props('variant')).toBe('compact')
+        })
+
+        test('hides the remote section behind the platform feature check', async () => {
+            mocks.settingsStore.featuresCheck = features(false)
+            const wrapper = await mountPage()
+            expect(wrapper.find('[data-stub="devices"]').exists()).toBe(false)
+            expect(wrapper.find('[data-el="remote-unavailable"]').exists()).toBe(true)
+        })
+
+        test('falls back to a zero count when the API returns nothing', async () => {
+            mocks.settingsStore.featuresCheck = features(true)
+            const wrapper = await mountPage()
+            expect(wrapper.findComponent({ name: 'RecentlyModifiedInstances' }).props('totalInstances')).toBe(0)
         })
     })
 })

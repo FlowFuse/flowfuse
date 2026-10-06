@@ -38,7 +38,6 @@ const greeting = computed(() => (
     flex-direction: column;
     align-items: center;
     gap: 20px;
-    padding: 72px 0 0;
 
     &__mark {
         width: 56px;

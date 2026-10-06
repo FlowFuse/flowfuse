@@ -1,6 +1,6 @@
 <template>
-    <div class="recently-modified">
-        <p class="text-gray-400 text-sm">Recently Modified</p>
+    <div class="recently-modified" :class="{ 'recently-modified--compact': isCompact }">
+        <p v-if="!isCompact" class="text-gray-400 text-sm" data-el="recently-modified-label">Recently Modified</p>
         <ul v-if="instances.length" class="flex flex-1 flex-col gap-1">
             <li v-for="instance in instances" :key="instance.id" class="instance-wrapper flex">
                 <InstanceTile :instance="instance" :minimal-view="true" @delete-instance="$emit('delete-instance', $event)" />
@@ -41,6 +41,10 @@ export default {
         totalInstances: {
             type: Number,
             required: true
+        },
+        variant: {
+            type: String,
+            default: 'boxed'
         }
     },
     emits: ['delete-instance'],
@@ -52,6 +56,9 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
+        isCompact () {
+            return this.variant === 'compact'
+        },
         instancesLeft () {
             return this.totalInstances - this.instances.length
         }
@@ -169,6 +176,19 @@ export default {
 
     .no-instances {
         min-height: 130px;
+    }
+}
+
+.recently-modified--compact {
+    border: 1px solid var(--ff-color-border);
+    border-radius: 0.625rem;
+    background: var(--ff-color-bg-surface);
+    padding: 4px;
+
+    .instance-wrapper .instance-tile {
+        border: none;
+        padding: 2px 4px;
+        min-height: 44px;
     }
 }
 </style>
