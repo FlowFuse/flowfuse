@@ -2,6 +2,7 @@
     <div class="collapsed-question-turn" :class="{ expanded }">
         <AiMessage v-if="!expanded && textAnswer.length" v-bind="{ ...turn.questionsMessage, answer: textAnswer }" :instant="true" />
         <div v-if="!expanded" class="folded-turn">
+            <ReplyLabel v-if="hasAnswers" />
             <div
                 v-for="(entry, index) in turn.entries"
                 :key="index"
@@ -73,6 +74,7 @@ import { mapActions, mapState } from 'pinia'
 
 import AiMessage from './AiMessage.vue'
 import HumanMessage from './HumanMessage.vue'
+import ReplyLabel from './components/ReplyLabel.vue'
 
 import { useProductExpertStore } from '@/stores/product-expert.js'
 
@@ -81,7 +83,8 @@ export default {
     components: {
         AiMessage,
         HumanMessage,
-        PencilIcon
+        PencilIcon,
+        ReplyLabel
     },
     props: {
         turn: {
@@ -104,6 +107,10 @@ export default {
         },
         hasMatchedAnswers () {
             return this.turn.entries.some(entry => entry.answer !== null)
+        },
+        // the label says "you said this", so it only shows when something was actually answered
+        hasAnswers () {
+            return this.hasMatchedAnswers || !!this.unmatchedReply
         },
         unmatchedReply () {
             if (this.hasMatchedAnswers) {
@@ -143,7 +150,7 @@ export default {
     align-items: flex-start;
     gap: 0.75rem;
     padding: 0.125rem 0 0.125rem 0.875rem;
-    border-left: 2px solid var(--ff-color-border);
+    border-left: 2px solid var(--ff-color-accent);
 }
 
 .folded-question {
@@ -236,7 +243,5 @@ export default {
     gap: 0.75rem;
     min-height: 0;
     overflow: hidden;
-    padding-left: 0.875rem;
-    border-left: 2px solid var(--ff-color-accent);
 }
 </style>
