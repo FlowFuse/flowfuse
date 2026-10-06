@@ -62,34 +62,24 @@ async function mountHome ({ expert = false } = {}) {
 }
 
 describe('team Home variant switch', () => {
-    test('renders the dashboard when the Expert is not enabled', async () => {
-        const wrapper = await mountHome({ expert: false })
+    test('picks the variant off the gate', async () => {
+        let wrapper = await mountHome({ expert: false })
         expect(wrapper.find('[data-stub="dashboard-section"]').exists()).toBe(true)
         expect(wrapper.find('[data-stub="expert-home"]').exists()).toBe(false)
-    })
 
-    test('renders the Expert page when the Expert is enabled', async () => {
-        const wrapper = await mountHome({ expert: true })
+        wrapper = await mountHome({ expert: true })
         expect(wrapper.find('[data-stub="expert-home"]').exists()).toBe(true)
         expect(wrapper.find('[data-stub="dashboard-section"]').exists()).toBe(false)
     })
 
-    test('skips the dashboard data fetches entirely on the Expert variant', async () => {
+    test('fetches dashboard data only for the variant that shows it', async () => {
         mocks.teamAPI.getTeamInstanceCounts.mockClear()
         mocks.teamAPI.getTeamAuditLog.mockClear()
-
         await mountHome({ expert: true })
-
         expect(mocks.teamAPI.getTeamInstanceCounts).not.toHaveBeenCalled()
         expect(mocks.teamAPI.getTeamAuditLog).not.toHaveBeenCalled()
-    })
-
-    test('still fetches dashboard data on the dashboard variant', async () => {
-        mocks.teamAPI.getTeamInstanceCounts.mockClear()
-        mocks.teamAPI.getTeamAuditLog.mockClear()
 
         await mountHome({ expert: false })
-
         expect(mocks.teamAPI.getTeamInstanceCounts).toHaveBeenCalled()
         expect(mocks.teamAPI.getTeamAuditLog).toHaveBeenCalled()
     })

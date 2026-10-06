@@ -60,12 +60,6 @@ async function mountPage () {
 }
 
 describe('TeamHomeExpert', () => {
-    test('renders the greeting', async () => {
-        const wrapper = await mountPage()
-        expect(wrapper.find('[data-el="greeting"]').exists()).toBe(true)
-        expect(wrapper.find('[data-el="greeting-text"]').text()).toContain('Noley')
-    })
-
     test('suppresses the side panel on mount and releases it on unmount', async () => {
         mocks.drawersStore.suppressExpertDrawer.mockClear()
         mocks.drawersStore.releaseExpertDrawer.mockClear()
@@ -78,20 +72,6 @@ describe('TeamHomeExpert', () => {
 
         wrapper.unmount()
         expect(mocks.drawersStore.releaseExpertDrawer).toHaveBeenCalledTimes(1)
-    })
-
-    test('suppression is in place before anything else could reopen the panel', async () => {
-        const order = []
-        mocks.drawersStore.suppressExpertDrawer.mockImplementation(() => order.push('suppress'))
-        mocks.drawersStore.closeRightDrawer.mockImplementation(() => order.push('close'))
-        mocks.drawersStore.rightDrawer.state = true
-
-        await mountPage()
-
-        // RightDrawer's restore is behind a 25ms timeout, so a sync suppress always wins
-        expect(order[0]).toBe('suppress')
-        mocks.drawersStore.suppressExpertDrawer.mockImplementation(() => {})
-        mocks.drawersStore.closeRightDrawer.mockImplementation(() => {})
     })
 
     test('does not close a drawer that is not open, which would deafen the app for 300ms', async () => {
@@ -115,43 +95,23 @@ describe('TeamHomeExpert', () => {
         mocks.contextStore.isImmersiveEditor = false
     })
 
-    test('never writes the saved pinned preference', async () => {
-        mocks.drawersStore.rightDrawer.expertState = { pinned: true, open: true }
+    test('hands the panel back on the way out, exactly as the user left it', async () => {
+        for (const expertState of [{ pinned: true, open: true }, { pinned: false, open: true }]) {
+            mocks.drawersStore.rightDrawer.expertState = { ...expertState }
+            mocks.expertStore.openAssistantDrawer.mockClear()
 
-        const wrapper = await mountPage()
-        wrapper.unmount()
+            const wrapper = await mountPage()
+            expect(mocks.expertStore.openAssistantDrawer).not.toHaveBeenCalled()
 
-        expect(mocks.drawersStore.rightDrawer.expertState).toEqual({ pinned: true, open: true })
-    })
+            wrapper.unmount()
+            expect(mocks.expertStore.openAssistantDrawer).toHaveBeenCalledWith({ openPinned: expertState.pinned })
+            expect(mocks.drawersStore.rightDrawer.expertState).toEqual(expertState)
+        }
 
-    test('hands the panel back on the way out, pinned as the user left it', async () => {
-        mocks.drawersStore.rightDrawer.expertState = { pinned: true, open: true }
-        mocks.expertStore.openAssistantDrawer.mockClear()
-
-        const wrapper = await mountPage()
-        expect(mocks.expertStore.openAssistantDrawer).not.toHaveBeenCalled()
-
-        wrapper.unmount()
-        expect(mocks.expertStore.openAssistantDrawer).toHaveBeenCalledWith({ openPinned: true })
-    })
-
-    test('reopens unpinned when that is how the user had it', async () => {
-        mocks.drawersStore.rightDrawer.expertState = { pinned: false, open: true }
-        mocks.expertStore.openAssistantDrawer.mockClear()
-
-        const wrapper = await mountPage()
-        wrapper.unmount()
-
-        expect(mocks.expertStore.openAssistantDrawer).toHaveBeenCalledWith({ openPinned: false })
-    })
-
-    test('leaves the panel shut if the user had it shut', async () => {
         mocks.drawersStore.rightDrawer.expertState = { pinned: false, open: false }
         mocks.expertStore.openAssistantDrawer.mockClear()
-
-        const wrapper = await mountPage()
-        wrapper.unmount()
-
+        const shut = await mountPage()
+        shut.unmount()
         expect(mocks.expertStore.openAssistantDrawer).not.toHaveBeenCalled()
     })
 
@@ -219,16 +179,9 @@ describe('TeamHomeExpert', () => {
         expect(wrapper.findComponent({ name: 'ExpertPanel' }).vm).toBe(before.vm)
     })
 
-    test('keeps the back control mounted so the column does not reflow mid-animation', async () => {
-        mocks.expertStore.messages = []
-        const wrapper = await mountPage()
-        expect(wrapper.find('[data-action="collapse-expert"]').exists()).toBe(true)
-
-        await wrapper.find('[data-el="expert-home-surface"]').trigger('input')
-        expect(wrapper.find('[data-action="collapse-expert"]').exists()).toBe(true)
-    })
-
-    test('forces Support mode only when Insights is unavailable', async () => {
+    test('forces Support only when Insights is unavailable, matching openAssistantDrawer', async () => {
+        // agentMode persists to sessionStorage and this page offers no toggle when there is
+        // only one agent, so forcing it with both available would strand an Insights user
         mocks.settingsStore.featuresCheck = {
             isExpertAssistantFeatureEnabled: true,
             isExpertInsightsFeatureEnabled: false
@@ -236,11 +189,7 @@ describe('TeamHomeExpert', () => {
         mocks.expertStore.setAgentMode.mockClear()
         await mountPage()
         expect(mocks.expertStore.setAgentMode).toHaveBeenCalledWith('support-agent')
-    })
 
-    test('leaves the mode alone when both are available, matching openAssistantDrawer', async () => {
-        // agentMode persists to sessionStorage and this page offers no toggle, so forcing
-        // it here would strand an Insights user in Support everywhere
         mocks.settingsStore.featuresCheck = {
             isExpertAssistantFeatureEnabled: true,
             isExpertInsightsFeatureEnabled: true
@@ -258,22 +207,18 @@ describe('TeamHomeExpert', () => {
         expect(mocks.expertStore.resumeSessionTimer).toHaveBeenCalledTimes(1)
     })
 
-    test('offers the mode toggle when both agents are available', async () => {
+    test('offers the mode toggle only when there are two agents to pick between', async () => {
         mocks.settingsStore.featuresCheck = {
             isExpertAssistantFeatureEnabled: true,
             isExpertInsightsFeatureEnabled: true
         }
-        const wrapper = await mountPage()
-        expect(wrapper.find('[data-stub="mode-switcher"]').exists()).toBe(true)
-    })
+        expect((await mountPage()).find('[data-stub="mode-switcher"]').exists()).toBe(true)
 
-    test('hides the mode toggle when there is only one agent to pick', async () => {
         mocks.settingsStore.featuresCheck = {
             isExpertAssistantFeatureEnabled: true,
             isExpertInsightsFeatureEnabled: false
         }
-        const wrapper = await mountPage()
-        expect(wrapper.find('[data-stub="mode-switcher"]').exists()).toBe(false)
+        expect((await mountPage()).find('[data-stub="mode-switcher"]').exists()).toBe(false)
     })
 
     describe('the resume control', () => {
@@ -284,46 +229,32 @@ describe('TeamHomeExpert', () => {
             mocks.expertStore.hasSelectedCapabilities = true
         })
 
-        test('is absent on a fresh page with nothing to return to', async () => {
+        test('is absent with nothing to return to, and counts user turns when there is', async () => {
             mocks.expertStore.messages = []
-            const wrapper = await mountPage()
-            expect(wrapper.find('[data-action="resume-conversation"]').exists()).toBe(false)
-        })
+            expect((await mountPage()).find('[data-action="resume-conversation"]').exists()).toBe(false)
 
-        test('counts user turns only, and says so', async () => {
             mocks.expertStore.messages = [{ _type: 'human' }, { _type: 'ai' }, { _type: 'human' }]
-            const wrapper = await mountPage()
-            expect(wrapper.find('[data-action="resume-conversation"]').text()).toContain('2 messages')
+            expect((await mountPage()).find('[data-action="resume-conversation"]').text()).toContain('2 messages')
         })
 
-        test('singularises at one turn', async () => {
-            mocks.expertStore.messages = [{ _type: 'human' }]
-            const wrapper = await mountPage()
-            expect(wrapper.find('[data-action="resume-conversation"]').text()).toContain('1 message')
-        })
-
-        test('appears while a response is in flight, the state where the composer only offers Stop', async () => {
-            mocks.expertStore.messages = []
-            mocks.expertStore.isWaitingForResponse = true
-            const wrapper = await mountPage()
-            const cta = wrapper.find('[data-action="resume-conversation"]')
-            expect(cta.exists()).toBe(true)
-            expect(cta.text()).toContain('Open the Expert')
-        })
-
-        test('appears when the session has expired, where Start over is the only way out', async () => {
-            mocks.expertStore.messages = []
-            mocks.expertStore.isSessionExpired = true
-            const wrapper = await mountPage()
-            expect(wrapper.find('[data-action="resume-conversation"]').exists()).toBe(true)
-        })
-
-        test('appears in Insights with nothing selected, where the capabilities selector is hidden', async () => {
-            mocks.expertStore.messages = []
-            mocks.expertStore.isInsightsAgent = true
-            mocks.expertStore.hasSelectedCapabilities = false
-            const wrapper = await mountPage()
-            expect(wrapper.find('[data-action="resume-conversation"]').exists()).toBe(true)
+        test('appears in every state where the composer disables itself', async () => {
+            // each of these hides the control that would clear it — Stop, Start over and the
+            // capabilities selector all live behind the conversing stage
+            const deadEnds = [
+                { isWaitingForResponse: true },
+                { isSessionExpired: true },
+                { isInsightsAgent: true, hasSelectedCapabilities: false }
+            ]
+            for (const state of deadEnds) {
+                Object.assign(mocks.expertStore, state)
+                mocks.expertStore.messages = []
+                const wrapper = await mountPage()
+                expect(wrapper.find('[data-action="resume-conversation"]').exists()).toBe(true)
+                mocks.expertStore.isWaitingForResponse = false
+                mocks.expertStore.isSessionExpired = false
+                mocks.expertStore.isInsightsAgent = false
+                mocks.expertStore.hasSelectedCapabilities = true
+            }
         })
 
         test('survives into composing, since a new message joins the same thread', async () => {

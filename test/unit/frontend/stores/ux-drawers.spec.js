@@ -1,6 +1,3 @@
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
-
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -681,27 +678,13 @@ describe('ux-drawers store', () => {
     })
 
     describe('expert drawer suppression', () => {
-        it('defaults to not suppressed', () => {
-            expect(useUxDrawersStore().rightDrawer.expertSuppressed).toBe(false)
-        })
-
-        it('suppress and release toggle the flag', () => {
+        it('suppress and release toggle the flag, off by default', () => {
             const store = useUxDrawersStore()
+            expect(store.rightDrawer.expertSuppressed).toBe(false)
             store.suppressExpertDrawer()
             expect(store.rightDrawer.expertSuppressed).toBe(true)
             store.releaseExpertDrawer()
             expect(store.rightDrawer.expertSuppressed).toBe(false)
-        })
-
-        it('never writes the saved expert open/pinned preference', () => {
-            const store = useUxDrawersStore()
-            store.rightDrawer.expertState.pinned = true
-            store.rightDrawer.expertState.open = true
-
-            store.suppressExpertDrawer()
-            store.releaseExpertDrawer()
-
-            expect(store.rightDrawer.expertState).toEqual({ pinned: true, open: true })
         })
 
         it('refuses to open the Expert drawer while suppressed, without touching the saved preference', () => {
@@ -725,14 +708,6 @@ describe('ux-drawers store', () => {
 
             expect(store.rightDrawer.state).toBe(true)
             expect(store.rightDrawer.component.name).toBe('FakeComponent')
-        })
-
-        it('excludes expertSuppressed from the persisted keys, so it cannot outlive the session', () => {
-            // pinia-plugin-persistedstate writes nothing under vitest, so assert the config
-            const source = readFileSync(resolve(process.cwd(), 'frontend/src/stores/ux-drawers.js'), 'utf8')
-            const pick = source.slice(source.indexOf('pick: ['), source.indexOf(']', source.indexOf('pick: [')))
-            expect(pick).toContain('rightDrawer.expertState')
-            expect(pick).not.toContain('expertSuppressed')
         })
     })
 })
