@@ -35,6 +35,16 @@ module.exports = {
         state: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
         lastSeenAt: { type: DataTypes.DATE, allowNull: true },
         settingsHash: { type: DataTypes.STRING, allowNull: true },
+        agentType: {
+            // `full` = full agent
+            // `lite` = lite agent
+            type: DataTypes.STRING,
+            allowNull: true,
+            get () {
+                // default null to `full` for backwards compatibility with existing devices
+                return this.getDataValue('agentType') || 'full'
+            }
+        },
         agentVersion: { type: DataTypes.STRING, allowNull: true },
         nodeRedVersion: { type: DataTypes.STRING, allowNull: true },
         mode: { type: DataTypes.STRING, allowNull: true, defaultValue: 'autonomous' },
@@ -100,16 +110,14 @@ module.exports = {
     hooks: function (M, app) {
         return {
             beforeCreate: async (device, options) => {
-                // if the product is licensed, we permit overage
-                const isLicensed = app.license.active()
-                if (isLicensed !== true) {
-                    const { devices } = await app.license.usage('devices')
-                    if (devices.count >= devices.limit) {
+                if (app.license.active() && app.license.status().expired) {
+                    throw new Error('license expired')
+                }
+                const { devices } = await app.license.usage('devices')
+                if (devices.count >= devices.limit) {
+                    // Potential overage - check if overage is permitted by the license
+                    if (!app.license.allowOverage('devices')) {
                         throw new Error('license limit reached')
-                    }
-                } else {
-                    if (app.license.status().expired) {
-                        throw new Error('license expired')
                     }
                 }
             },

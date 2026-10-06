@@ -54,7 +54,7 @@ describe('FlowFuse - Version History', () => {
         cy.intercept('GET', '/api/*/projects/*/history', spy)
         cy.visit(`/instance/${projectId}/version-history/timeline`)
 
-        cy.contains('This is a FlowFuse Enterprise feature. Please upgrade your instance of FlowFuse in order to use it.')
+        cy.contains('This feature is not available with your current license. Please upgrade your instance of FlowFuse in order to use it.')
         cy.contains('Timeline Not Available')
 
         cy.get('@historyRequest').should('not.have.been.called')

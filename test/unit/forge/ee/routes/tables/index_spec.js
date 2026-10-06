@@ -1,4 +1,6 @@
 const should = require('should') // eslint-disable-line
+const sinon = require('sinon')
+
 const setup = require('../../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
@@ -206,6 +208,58 @@ describe('Tables API', function () {
         tables.tables.should.be.an.Array().and.have.length(2)
         tables.tables[0].should.have.property('name', 'table1')
         tables.tables[1].should.have.property('name', 'table2')
+    })
+
+    async function createTable (payload) {
+        const db = (await app.db.models.Table.byTeamId(TestObjects.team.id))[0]
+        return app.inject({
+            method: 'POST',
+            url: `/api/v1/teams/${TestObjects.team.hashid}/databases/${db.hashid}/tables`,
+            cookies: { sid: TestObjects.tokens.bob },
+            payload
+        })
+    }
+    const columns = [{ name: 'id', type: 'bigserial', nullable: false }]
+
+    it('Create a table in the public schema when no schema is given', async function () {
+        const spy = sinon.spy(app.tables, 'createTable')
+        const response = await createTable({ name: 'newtable', columns })
+        spy.restore()
+        response.statusCode.should.equal(201)
+        spy.calledOnce.should.be.true()
+        spy.firstCall.args[2].should.equal('newtable')
+        spy.firstCall.args[4].should.equal('public')
+    })
+
+    it('Create a table in the given schema', async function () {
+        const spy = sinon.spy(app.tables, 'createTable')
+        const response = await createTable({ name: 'table1', schema: 'reports', columns })
+        spy.restore()
+        response.statusCode.should.equal(201)
+        spy.calledOnce.should.be.true()
+        spy.firstCall.args[4].should.equal('reports')
+    })
+
+    it('Fail to create a table that already exists in the same schema', async function () {
+        const spy = sinon.spy(app.tables, 'createTable')
+        const response = await createTable({ name: 'table1', schema: 'public', columns })
+        spy.restore()
+        response.statusCode.should.equal(409)
+        response.json().should.have.property('code', 'table_exists')
+        spy.called.should.be.false()
+    })
+
+    it('Fail to create a table with an invalid schema', async function () {
+        const invalid = ['', 'a'.repeat(64), '1reports', 'my-schema', 'my schema', 'pg_reports', 'information_schema']
+        for (const schema of invalid) {
+            const response = await createTable({ name: 'newtable2', schema, columns })
+            response.statusCode.should.equal(400, `schema '${schema}' should be rejected`)
+        }
+    })
+
+    it('Create a table in a schema at the maximum length', async function () {
+        const response = await createTable({ name: 'newtable3', schema: 'a'.repeat(63), columns })
+        response.statusCode.should.equal(201)
     })
 
     it('Get details for a table', async function () {

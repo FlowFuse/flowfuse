@@ -131,6 +131,7 @@
         "account.verify.auto-create-team": "Created Team Verified",
         "account.verify.request-token": "Token Requested",
         "account.verify.verify-token": "Request Token Verified",
+        "account.mcp-refresh-token-replay": "MCP Refresh Token Replay Detected",
         "user.updated-user": "User Updated",
         "user.updated-password": "Password Updated",
         "user.invitation.accepted": "User Invitation Accepted",

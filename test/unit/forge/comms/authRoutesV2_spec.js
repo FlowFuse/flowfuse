@@ -1671,6 +1671,65 @@ describe('Broker Auth v2 API', async function () {
                     topic: `$share/browser/ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/heartbeat`
                 })
             })
+
+            // MCP client events, published by the platform to one tab:
+            // ff/v1/<team>/u/<user>/s/<session>/mcp/<event>
+            it('allows fe-team to subscribe to the mcp clients event for its own session', async function () {
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/mcp/clients`
+                })
+            })
+            // The filter is matched literally, so a wildcard needs a rule permissive enough to
+            // admit any event. There is only one event, so it is named and the wildcard denied.
+            it('denies fe-team from wildcarding the mcp event', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/mcp/+`
+                })
+            })
+            it('denies fe-team from subscribing to an mcp event that is not published', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/mcp/heartbeat`
+                })
+            })
+            it('denies fe-team from subscribing to another tab mcp events', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-abc12345/mcp/clients`
+                })
+            })
+            it('denies fe-team from wildcarding the session on mcp events', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/+/mcp/clients`
+                })
+            })
+            it('denies fe-team from subscribing to another user mcp events', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${bob.hashid}/s/session-1234567890/mcp/clients`
+                })
+            })
+            it('denies fe-team from subscribing to mcp events on another team', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${otherTeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/mcp/clients`
+                })
+            })
+            it('denies fe-team from publishing mcp events, they come from the platform', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/mcp/clients`
+                })
+            })
+            it('allows forge_platform to publish an mcp event to a tab', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/mcp/clients`
+                })
+            })
         })
 
         describe('MCP In-flight (fe-team)', async function () {
@@ -1758,6 +1817,157 @@ describe('Broker Auth v2 API', async function () {
                 } finally {
                     app.config.features.register('mcpThirdParty', true, true)
                 }
+            })
+        })
+
+        describe('MCP gateway channel (forge_platform)', async function () {
+            // checkMcpTopic verifier coverage - the platform proxying third-party MCP
+            // requests to the central gateway over ff/v1/mcp/... topics
+            const MCP_SESSION = '7d292be0-d561-41c7-afc9-280a3c914284'
+            // A valid replica id that is not this instance's own app.comms.id - in a
+            // multi-replica deployment the ACL check can be served by any replica
+            const OTHER_PLATFORM_ID = '3d7e858c-259f-4d17-b9c0-0d046509cc42'
+
+            before(async function () {
+                await setupEE()
+                app.config.features.register('ai', true, true)
+                app.config.features.register('mcpThirdParty', true, true)
+            })
+
+            after(async function () {
+                await app.close()
+            })
+
+            it('allows forge_platform to publish an mcp request for another replica\'s platformId', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${TestObjects.alice.hashid}/${MCP_SESSION}/request`
+                })
+            })
+            it('allows forge_platform to publish an mcp request for its own platformId', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${app.comms.id}/${TestObjects.alice.hashid}/${MCP_SESSION}/request`
+                })
+            })
+            it('allows forge_platform to subscribe to mcp responses for a platformId', async function () {
+                await allowRead({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/+/+/response`
+                })
+            })
+            it('denies an mcp request with a non-uuid platformId', async function () {
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/not-a-uuid/${TestObjects.alice.hashid}/${MCP_SESSION}/request`
+                })
+            })
+            it('denies an mcp request with a wildcard platformId', async function () {
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/+/${TestObjects.alice.hashid}/${MCP_SESSION}/request`
+                })
+            })
+            it('denies an mcp response subscription with a wildcard platformId', async function () {
+                await denyRead({
+                    username: 'forge_platform',
+                    topic: 'ff/v1/mcp/+/+/+/response'
+                })
+            })
+            it('denies an mcp request with a short mcp session id', async function () {
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${TestObjects.alice.hashid}/short/request`
+                })
+            })
+            it('denies an mcp request with a wildcard character in the session id', async function () {
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${TestObjects.alice.hashid}/sess+ion12345/request`
+                })
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${TestObjects.alice.hashid}/sess#ion12345/request`
+                })
+            })
+            it('allows an mcp request with a hashed session id', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${TestObjects.alice.hashid}/${'a1b2c3d4'.repeat(8)}/request`
+                })
+            })
+            it('denies an mcp request for an unknown user', async function () {
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/nonExistentUser/${MCP_SESSION}/request`
+                })
+            })
+            it('denies an mcp request when mcpThirdParty is disabled', async function () {
+                app.config.features.register('mcpThirdParty', false, true)
+                try {
+                    await denyWrite({
+                        username: 'forge_platform',
+                        topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${TestObjects.alice.hashid}/${MCP_SESSION}/request`
+                    })
+                } finally {
+                    app.config.features.register('mcpThirdParty', true, true)
+                }
+            })
+        })
+
+        describe('MCP flow-building catalog (forge_platform, sentinel userId)', async function () {
+            // The catalog fetch reuses the MCP gateway channel with the catalog sentinel as
+            // userId (see checkMcpTopic): no dedicated topic, and exempt from the feature gate
+            // and user lookup while every other check still applies.
+            const CATALOG_USER = 'flow-building-tool-catalog'
+            const SESSION = '7d292be0-d561-41c7-afc9-280a3c914284'
+            const OTHER_PLATFORM_ID = '3d7e858c-259f-4d17-b9c0-0d046509cc42'
+
+            before(async function () {
+                await setupEE()
+                app.config.features.register('ai', true, true)
+                app.config.features.register('mcpThirdParty', true, true)
+            })
+
+            after(async function () {
+                await app.close()
+            })
+
+            it('allows forge_platform to publish a catalog request for its own platformId', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${app.comms.id}/${CATALOG_USER}/${SESSION}/request`
+                })
+            })
+            it('allows a catalog request for another replica\'s platformId (sentinel skips the user lookup)', async function () {
+                // OTHER_PLATFORM_ID is a different replica and the sentinel is not a real user hashid, yet allowed
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${CATALOG_USER}/${SESSION}/request`
+                })
+            })
+            it('allows a catalog request when mcpThirdParty is disabled (first-party, not gated)', async function () {
+                app.config.features.register('mcpThirdParty', false, true)
+                try {
+                    await allowWrite({
+                        username: 'forge_platform',
+                        topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${CATALOG_USER}/${SESSION}/request`
+                    })
+                } finally {
+                    app.config.features.register('mcpThirdParty', true, true)
+                }
+            })
+            it('denies a catalog request with a non-uuid platformId', async function () {
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/not-a-uuid/${CATALOG_USER}/${SESSION}/request`
+                })
+            })
+            it('denies a catalog request with a short session id (topic-safe check still applies)', async function () {
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${CATALOG_USER}/short/request`
+                })
             })
         })
     })

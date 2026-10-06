@@ -18,7 +18,7 @@ meta:
 # FlowFuse Cloud
 
 FlowFuse Cloud is a hosted service allowing users to sign-up and start creating Node-RED instances without having to install and manage their own instance of FlowFuse.
-The [Concepts](/docs/user/concepts.md) remain the same, but we run the platform for you.
+The [Concepts](/docs/user/concepts/) remain the same, but we run the platform for you.
 
 ## 30-day Free Trial
 
@@ -40,7 +40,7 @@ they know what is happening.
 ## Billing
 
 Customers are billed at the team level for each Node-RED instance they create. This is a recurring monthly charge.
-See the [Billing](/docs/cloud/billing.md) page for more detailed answers about billing.
+See the [Billing](/docs/cloud/billing/) page for more detailed answers about billing.
 
 ## Support
 
@@ -86,8 +86,8 @@ that level. Please Suspend or Delete any no longer required Instances or Devices
 ## Node-RED on FlowFuse Cloud
 
 FlowFuse currently offers Node-RED 4.x, 3.x and 2.x to customers. When creating a
-new instance a [stack](/docs/user/concepts.md#stack) is chosen, which later
-can be [upgraded to a later version](/docs/user/changestack.md).
+new instance a [stack](/docs/user/concepts/#stack) is chosen, which later
+can be [upgraded to a later version](/docs/user/changestack/).
 
 Each Node-RED can install custom modules as advertised in the [Flow Library](https://flows.nodered.org).
 
@@ -231,12 +231,12 @@ FlowFuse Cloud can support custom hostnames for instances in Enterprise teams.
 This allows you to point your own subdomain, such as `dashboard.example.com` at
 one of your instances.
 
-See [Custom Hostnames](/docs/user/custom-hostnames.md) for more information.
+See [Custom Hostnames](/docs/user/custom-hostnames/) for more information.
 
 ## Removing your account
 
 Before you can delete your account, teams you own must either be deleted or have at least 1 other owner.
 Once this is done, you can remove your account by going to the "User Settings" page and clicking the "Delete Account" button.
 
-See also: [cancelling your subscription](/docs/cloud/billing.md#cancelling-your-subscription).
+See also: [cancelling your subscription](/docs/cloud/billing/#cancelling-your-subscription).
 

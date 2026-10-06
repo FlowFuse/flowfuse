@@ -1,5 +1,7 @@
 ---
 navTitle: Teams
+meta:
+   description: Create a FlowFuse team, invite members with an initial role, and remove members who should no longer have access to the team's data.
 ---
 
 # Teams

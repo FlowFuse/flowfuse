@@ -90,8 +90,12 @@ describe('Expert Agent bridge heartbeat task', function () {
             should(() => heartbeatTaskFactory({ maxResponseTime: -1 })).throw(RangeError)
         })
 
-        it('throws a RangeError for a negative maxSuccessiveFailureCount', function () {
-            should(() => heartbeatTaskFactory({ maxSuccessiveFailureCount: -1 })).throw(RangeError)
+        it('throws a RangeError for a maxSuccessiveFailureCount below 1', function () {
+            should(() => heartbeatTaskFactory({ maxSuccessiveFailureCount: 0 })).throw(RangeError)
+        })
+
+        it('throws a RangeError for a maxResyncInterval below 1', function () {
+            should(() => heartbeatTaskFactory({ maxResyncInterval: 0 })).throw(RangeError)
         })
 
         it('throws for an invalid cron expression', function () {
@@ -137,23 +141,52 @@ describe('Expert Agent bridge heartbeat task', function () {
             syncBridgeStub.called.should.be.false()
         })
 
-        it('does not re-sync the bridge while errorCount is below maxSuccessiveFailureCount', async function () {
+        it('does not re-sync a bridge that has never completed a heartbeat', async function () {
             const task = heartbeatTaskFactory({ startDelay: 0, maxSuccessiveFailureCount: 3, schedule: '0 0 * * * *' })
             const app = makeApp()
             await runTask(task, app)
 
             const [, callback] = app.comms.expert.requestBridgeHeartbeat.firstCall.args
+            // failures pile up but the bridge has never succeeded - re-creating it cannot help
+            await callback(new Error('heartbeat missed'), { errorCount: 3 })
+            await callback(new Error('heartbeat missed'), { errorCount: 6 })
+            await callback(new Error('heartbeat missed'), { errorCount: 9 })
+
+            syncBridgeStub.called.should.be.false()
+        })
+
+        it('warns only once while the bridge has never connected', async function () {
+            const task = heartbeatTaskFactory({ startDelay: 0, maxSuccessiveFailureCount: 3, schedule: '0 0 * * * *' })
+            const app = makeApp()
+            await runTask(task, app)
+
+            const [, callback] = app.comms.expert.requestBridgeHeartbeat.firstCall.args
+            await callback(new Error('heartbeat missed'), { errorCount: 1 })
+            await callback(new Error('heartbeat missed'), { errorCount: 2 })
+            await callback(new Error('heartbeat missed'), { errorCount: 3 })
+
+            app.log.warn.withArgs(sinon.match(/has not completed a heartbeat yet/)).callCount.should.equal(1)
+        })
+
+        it('does not re-sync while errorCount is below the first threshold', async function () {
+            const task = heartbeatTaskFactory({ startDelay: 0, maxSuccessiveFailureCount: 3, schedule: '0 0 * * * *' })
+            const app = makeApp()
+            await runTask(task, app)
+
+            const [, callback] = app.comms.expert.requestBridgeHeartbeat.firstCall.args
+            await callback(null, { errorCount: 0 }) // establish that the bridge can connect
             await callback(new Error('heartbeat missed'), { errorCount: 2 })
 
             syncBridgeStub.called.should.be.false()
         })
 
-        it('re-syncs the bridge once errorCount reaches a multiple of maxSuccessiveFailureCount', async function () {
+        it('re-syncs a previously connected bridge once errorCount reaches the first threshold', async function () {
             const task = heartbeatTaskFactory({ startDelay: 0, maxSuccessiveFailureCount: 3, schedule: '0 0 * * * *' })
             const app = makeApp()
             await runTask(task, app)
 
             const [, callback] = app.comms.expert.requestBridgeHeartbeat.firstCall.args
+            await callback(null, { errorCount: 0 })
             await callback(new Error('heartbeat missed'), { errorCount: 3 })
 
             syncBridgeStub.calledOnce.should.be.true()
@@ -161,14 +194,47 @@ describe('Expert Agent bridge heartbeat task', function () {
             syncBridgeStub.firstCall.args[1].should.deepEqual({ force: true })
         })
 
-        it('re-syncs again at the next multiple of maxSuccessiveFailureCount', async function () {
-            const task = heartbeatTaskFactory({ startDelay: 0, maxSuccessiveFailureCount: 3, schedule: '0 0 * * * *' })
+        it('backs off exponentially between re-syncs', async function () {
+            // base 3, uncapped interval: re-sync thresholds are 3, 9, 21, 45, ...
+            const task = heartbeatTaskFactory({ startDelay: 0, maxSuccessiveFailureCount: 3, maxResyncInterval: 1000, schedule: '0 0 * * * *' })
             const app = makeApp()
             await runTask(task, app)
 
             const [, callback] = app.comms.expert.requestBridgeHeartbeat.firstCall.args
-            await callback(new Error('heartbeat missed'), { errorCount: 3 })
-            await callback(new Error('heartbeat missed'), { errorCount: 6 })
+            await callback(null, { errorCount: 0 })
+            for (let errorCount = 1; errorCount <= 21; errorCount++) {
+                await callback(new Error('heartbeat missed'), { errorCount })
+            }
+
+            syncBridgeStub.callCount.should.equal(3) // fired at 3, 9 and 21 only
+        })
+
+        it('caps the backoff interval at maxResyncInterval', async function () {
+            // base 3, interval capped at 6: thresholds are 3, 9, 15, 21, ... (every 6 after the first)
+            const task = heartbeatTaskFactory({ startDelay: 0, maxSuccessiveFailureCount: 3, maxResyncInterval: 6, schedule: '0 0 * * * *' })
+            const app = makeApp()
+            await runTask(task, app)
+
+            const [, callback] = app.comms.expert.requestBridgeHeartbeat.firstCall.args
+            await callback(null, { errorCount: 0 })
+            for (let errorCount = 1; errorCount <= 21; errorCount++) {
+                await callback(new Error('heartbeat missed'), { errorCount })
+            }
+
+            syncBridgeStub.callCount.should.equal(4) // fired at 3, 9, 15 and 21
+        })
+
+        it('re-arms the backoff after a successful heartbeat resets the failure count', async function () {
+            const task = heartbeatTaskFactory({ startDelay: 0, maxSuccessiveFailureCount: 3, maxResyncInterval: 1000, schedule: '0 0 * * * *' })
+            const app = makeApp()
+            await runTask(task, app)
+
+            const [, callback] = app.comms.expert.requestBridgeHeartbeat.firstCall.args
+            await callback(null, { errorCount: 0 })
+            await callback(new Error('heartbeat missed'), { errorCount: 3 }) // re-syncs (first threshold)
+            await callback(new Error('heartbeat missed'), { errorCount: 6 }) // between thresholds, no re-sync
+            await callback(null, { errorCount: 0 })                          // recovery resets the count
+            await callback(new Error('heartbeat missed'), { errorCount: 3 }) // re-syncs again at the first threshold
 
             syncBridgeStub.calledTwice.should.be.true()
         })
@@ -180,10 +246,22 @@ describe('Expert Agent bridge heartbeat task', function () {
             await runTask(task, app)
 
             const [, callback] = app.comms.expert.requestBridgeHeartbeat.firstCall.args
+            await callback(null, { errorCount: 0 })
             await callback(new Error('heartbeat missed'), { errorCount: 3 })
 
             syncBridgeStub.calledOnce.should.be.true()
             app.log.error.calledWithMatch(/Error synchronizing bridge after heartbeat failure: sync boom/).should.be.true()
+        })
+
+        it('ignores the cache-error callback path where no result is supplied', async function () {
+            const task = heartbeatTaskFactory({ startDelay: 0, maxSuccessiveFailureCount: 3, schedule: '0 0 * * * *' })
+            const app = makeApp()
+            await runTask(task, app)
+
+            const [, callback] = app.comms.expert.requestBridgeHeartbeat.firstCall.args
+            await callback(new Error('cache boom')) // no result argument
+
+            syncBridgeStub.called.should.be.false()
         })
     })
 })

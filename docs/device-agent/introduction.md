@@ -24,7 +24,11 @@ The Agent creates a secure connection between the FlowFuse Platform and your dev
 
 You can install the Device Agent on any hardware capable of running Node.js / Node-RED.
 
-The [Quick Start Guide](/docs/device-agent/quickstart.md) will get the Device Agent installed and connected to FlowFuse in under 5 minutes.
+The [Quick Start Guide](/docs/device-agent/quickstart/) will get the Device Agent installed and connected to FlowFuse in under 5 minutes.
 
-For more detailed information on installing and running the Device Agent, the full [installation guide](/docs/device-agent/install/overview.md) has you covered.
+For more detailed information on installing and running the Device Agent, the full [installation guide](/docs/device-agent/install/overview/) has you covered.
 
+### Managing Existing Node-RED instances
+
+If you already have Node-RED running on your hardware that want to start managing with FlowFuse, you can use the Remote Agent plugin for Node-RED.
+This can be installed into Node-RED and get it connected to FlowFuse. Check the [Remote Agent documentation](/docs/device-agent/plugin/overview.md) for more information.

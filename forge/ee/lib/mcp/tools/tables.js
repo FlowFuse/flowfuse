@@ -17,7 +17,7 @@ module.exports = [
         title: 'List Team Databases',
         description: `FlowFuse platform automation tool:
             Lists the FlowFuse Tables databases for a team.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId: teamIdSchema
         },
@@ -41,7 +41,7 @@ module.exports = [
         title: 'Get Team Database',
         description: `FlowFuse platform automation tool:
             Gets a single FlowFuse Tables database for a team.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId: teamIdSchema,
             databaseId: databaseIdSchema
@@ -68,7 +68,7 @@ module.exports = [
             Lists the tables defined in a FlowFuse Tables database. The full list is returned; this endpoint does not paginate.
             Each entry includes the schema it lives in; if the same table name appears under more than one schema, pass that schema to platform_get_database_table or platform_query_database_table_data to pick the right one.
             Use platform_get_database_table to get the full schema of a single table, or platform_query_database_table_data to read row data.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId: teamIdSchema,
             databaseId: databaseIdSchema
@@ -93,7 +93,7 @@ module.exports = [
             Gets the schema definition of a single table in a FlowFuse Tables database (column names, types, and constraints).
             schemaName is required, since the same table name can exist in more than one schema; get it from platform_list_database_tables.
             Use platform_query_database_table_data to read row data instead.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId: teamIdSchema,
             databaseId: databaseIdSchema,
@@ -135,13 +135,13 @@ module.exports = [
             At most 10 rows are returned per call (the limit is capped at 10 by the platform).
             schemaName is required, since the same table name can exist in more than one schema; get it from platform_list_database_tables.
             Use platform_get_database_table first if you need to know the column names and types.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId: teamIdSchema,
             databaseId: databaseIdSchema,
             tableName: tableNameSchema,
             schemaName: schemaNameSchema,
-            limit: z.number().int().min(1).max(10).default(10).describe('Maximum number of rows to return (1-10, default 10)')
+            limit: z.number().int().min(1).max(10).default(10).optional().describe('Maximum number of rows to return (1-10, default 10)')
         },
         outputSchema: {
             count: countSchema,
@@ -158,6 +158,53 @@ module.exports = [
             const url = `${basePath}${qs ? `?${qs}` : ''}`
             const response = await inject({ method: 'GET', url })
             return response
+        }
+    },
+    {
+        name: 'platform_create_database_table',
+        title: 'Create Database Table',
+        description: `FlowFuse platform automation tool:
+            Creates a new table in a FlowFuse Tables database.
+            Fails with 409 if a table of that name already exists in the same schema.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        inputSchema: {
+            teamId: teamIdSchema,
+            databaseId: databaseIdSchema,
+            name: z.string().min(1).describe('Name for the new table'),
+            schema: z.string().regex(/^(?!pg_)(?!information_schema$)[a-zA-Z_][a-zA-Z0-9_]{0,62}$/).optional().describe('Schema to create the table in. Defaults to public, and is created if it does not exist'),
+            columns: z.array(z.object({
+                name: z.string().min(1).describe('Column name'),
+                type: z.enum(['bigint', 'bigserial', 'boolean', 'date', 'timestamptz', 'real', 'double precision', 'text']).describe('Column data type'),
+                nullable: z.boolean().optional().describe('Whether the column allows NULL. Defaults to NOT NULL when omitted'),
+                default: z.string().nullable().optional().describe('Default value, or null for none'),
+                generated: z.boolean().optional().describe('Whether the column value is generated'),
+                maxLength: z.number().nullable().optional().describe('Maximum length, or null for unbounded')
+            })).min(1).describe('Column definitions for the new table')
+        },
+        outputSchema: {
+            table: z.object({
+                name: z.string(),
+                schema: z.string()
+            })
+        },
+        handler: async (args, { inject }) => {
+            const payload = { name: args.name, columns: args.columns }
+            if (args.schema) {
+                payload.schema = args.schema
+            }
+            const response = await inject({
+                method: 'POST',
+                url: `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables`,
+                payload
+            })
+            if (response.statusCode >= 400) {
+                return response
+            }
+            // The route replies to a successful create with an empty body
+            return {
+                statusCode: response.statusCode,
+                json: () => ({ table: { name: args.name, schema: args.schema || 'public' } })
+            }
         }
     }
 ]

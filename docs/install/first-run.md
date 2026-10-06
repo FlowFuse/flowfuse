@@ -1,7 +1,7 @@
 ---
 navTitle: First Run Setup
 meta:
-   descripition: Get started with FlowFuse using our concise first-run setup guide, covering initial access, administrator creation, license uploading, and platform setup.
+   description: Complete the first-run setup after installing FlowFuse by creating the administrator account and optionally uploading an Enterprise license.
    tags:
      - setup
      - flowfuse
@@ -55,4 +55,4 @@ user you created and start using the platform. You can setup your Team and
 create your first Node-RED instance.
 
 More information about using the FlowFuse platform is available in the
-main [user guide](/docs/user/introduction.md).
+main [user guide](/docs/user/introduction/).

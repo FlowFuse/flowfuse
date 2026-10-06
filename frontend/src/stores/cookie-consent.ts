@@ -7,7 +7,7 @@ export const useCookieConsentStore = defineStore('cookie-consent', () => {
     const decision = ref<ConsentDecision>(null)
 
     const analyticsEnabled = computed(() => {
-        return !!(window.posthog || window._ffLoadHubSpot || window._ffLoadGoogleAnalytics)
+        return !!(window.posthog || window._ffLoadHubSpot || window._ffLoadGoogleAnalytics || window._ffLoadGoogleTagManager)
     })
     const shouldShowBanner = computed(() => decision.value === null && analyticsEnabled.value)
 
@@ -20,6 +20,7 @@ export const useCookieConsentStore = defineStore('cookie-consent', () => {
             }
             window._ffLoadHubSpot?.()
             window._ffLoadGoogleAnalytics?.()
+            window._ffLoadGoogleTagManager?.()
         } else if (decision.value === 'rejected') {
             try {
                 window.posthog?.opt_out_capturing()

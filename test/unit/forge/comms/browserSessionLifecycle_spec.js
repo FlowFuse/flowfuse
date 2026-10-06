@@ -1,4 +1,4 @@
-const should = require('should') // eslint-disable-line
+const should = require('should')
 
 const setup = require('../routes/setup')
 
@@ -266,6 +266,32 @@ describe('BrowserSessionLifecycleHandler', function () {
             sessions.should.have.length(0)
         })
 
+        it('keeps the entry when the last will comes from the team the tab left', async function () {
+            client.emit('browser-session', {
+                teamId: 'team-new',
+                userId: 'user14',
+                sessionId: 'session1',
+                event: 'heartbeat',
+                payload: { visibility: 'visible' }
+            })
+            await new Promise(resolve => setImmediate(resolve))
+
+            for (const event of ['close', 'disconnected']) {
+                client.emit('browser-session', {
+                    teamId: 'team-old',
+                    userId: 'user14',
+                    sessionId: 'session1',
+                    event,
+                    payload: {}
+                })
+                await new Promise(resolve => setImmediate(resolve))
+            }
+
+            const sessions = await handler.getSessionsByUser('user14')
+            sessions.should.have.length(1)
+            sessions[0].should.have.property('teamId', 'team-new')
+        })
+
         it('is a no-op for a tab that never registered presence', async function () {
             client.emit('browser-session', {
                 userId: 'user13',
@@ -373,6 +399,81 @@ describe('BrowserSessionLifecycleHandler', function () {
         it('returns empty array for unknown user', async function () {
             const sessions = await handler.getSessionsByUser('nonexistent')
             sessions.should.have.length(0)
+        })
+    })
+    describe('teamId propagation', function () {
+        it('carries the teamId from the event onto the tab snapshot', async function () {
+            client.emit('browser-session', {
+                teamId: 'team-abc',
+                userId: 'team-user',
+                sessionId: 'team-session',
+                event: 'heartbeat',
+                payload: { visibility: 'visible' }
+            })
+            await new Promise(resolve => setImmediate(resolve))
+
+            const sessions = await handler.getSessionsByUser('team-user')
+            const session = sessions.find(s => s.sessionId === 'team-session')
+            session.should.have.property('teamId', 'team-abc')
+        })
+
+        it('stores a null teamId rather than failing when the event has none', async function () {
+            client.emit('browser-session', {
+                userId: 'noteam-user',
+                sessionId: 'noteam-session',
+                event: 'heartbeat',
+                payload: {}
+            })
+            await new Promise(resolve => setImmediate(resolve))
+
+            const sessions = await handler.getSessionsByUser('noteam-user')
+            const session = sessions.find(s => s.sessionId === 'noteam-session')
+            should(session).be.an.Object()
+            should(session.teamId).be.null()
+        })
+    })
+
+    describe('notifyMcp', function () {
+        let published
+        let notifier
+
+        beforeEach(function () {
+            published = []
+            const publishingClient = mockClient()
+            publishingClient.publish = (topic, payload, options) => {
+                published.push({ topic, payload, options })
+            }
+            notifier = BrowserSessionLifecycleHandler(app, publishingClient)
+        })
+
+        it('publishes to the tab own session topic', function () {
+            notifier.notifyMcp('team-1', 'user-1', 'session-1', 'clients', { count: 2 })
+
+            published.should.have.length(1)
+            published[0].topic.should.equal('ff/v1/team-1/u/user-1/s/session-1/mcp/clients')
+            JSON.parse(published[0].payload).should.deepEqual({ count: 2 })
+        })
+
+        it('publishes at qos 1 and does not retain', function () {
+            notifier.notifyMcp('team-1', 'user-1', 'session-1', 'clients', {})
+
+            published[0].options.should.have.property('qos', 1)
+            published[0].options.should.have.property('retain', false)
+        })
+
+        it('defaults to an empty payload', function () {
+            notifier.notifyMcp('team-1', 'user-1', 'session-1', 'clients')
+
+            JSON.parse(published[0].payload).should.deepEqual({})
+        })
+
+        it('publishes nothing when any part of the address is missing', function () {
+            notifier.notifyMcp(null, 'user-1', 'session-1', 'clients', {})
+            notifier.notifyMcp('team-1', null, 'session-1', 'clients', {})
+            notifier.notifyMcp('team-1', 'user-1', null, 'clients', {})
+            notifier.notifyMcp('team-1', 'user-1', 'session-1', null, {})
+
+            published.should.have.length(0)
         })
     })
 })

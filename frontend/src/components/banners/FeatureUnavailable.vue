@@ -26,7 +26,7 @@ export default {
     props: {
         message: {
             type: String,
-            default: 'This is a FlowFuse Enterprise feature'
+            default: 'This feature is not available with your current license'
         },
         minimal: {
             type: Boolean,

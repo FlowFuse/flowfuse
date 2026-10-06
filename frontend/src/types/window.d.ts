@@ -7,5 +7,7 @@ declare global {
         _ffhstc?: string
         _ffLoadHubSpot?: () => void
         _ffLoadGoogleAnalytics?: () => void
+        _ffLoadGoogleTagManager?: () => void
+        _ffGoogleTagManagerLoaded?: boolean
     }
 }

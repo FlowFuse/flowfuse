@@ -5,13 +5,27 @@
         </template>
         <template #helptext>
             <p>FlowFuse can be used to manage instances of Node-RED running on remote devices.</p>
-            <p>Each device must run the <a href="https://flowfuse.com/docs/user/devices/" target="_blank">FlowFuse Device Agent</a>, which connects back to the platform to receive updates.</p>
+            <p>Each device must run the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">FlowFuse Device Agent</a>, which connects back to the platform to receive updates.</p>
             <p>Provisioning tokens can be created to allow Remote Instances to automatically join a team and to be auto assigned to an application or an instance if required.</p>
         </template>
     </SectionTopMenu>
 
     <div class="space-y-6">
-        <ff-loading v-if="loading" message="Loading Tokens..." />
+        <EmptyState
+            v-if="!featuresCheck.isRemoteInstanceFeatureEnabledForPlatform"
+            :feature-unavailable="!featuresCheck.isRemoteInstanceFeatureEnabledForPlatform"
+        >
+            <template #img>
+                <img src="../../../images/empty-states/team-devices.png">
+            </template>
+            <template #header>
+                <span>Remote Instance Provisioning</span>
+            </template>
+            <template #message>
+                Remote Instance Provisioning is not available.
+            </template>
+        </EmptyState>
+        <ff-loading v-else-if="loading" message="Loading Tokens..." />
         <ff-loading v-else-if="creatingToken" message="Creating Token..." />
         <ff-loading v-else-if="deletingItem" message="Deleting Token..." />
         <template v-else>
@@ -69,6 +83,9 @@ import Dialog from '../../../services/dialog.js'
 import CreateProvisioningTokenDialog from '../Devices/dialogs/CreateProvisioningTokenDialog.vue'
 import ProvisioningCredentialsDialog from '../Devices/dialogs/ProvisioningCredentialsDialog.vue'
 
+import EmptyState from '@/components/EmptyState.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
 const TokenFieldFormatter = {
@@ -96,6 +113,7 @@ const AutoAssignToFieldFormatter = {
 export default {
     name: 'TeamDeviceProvisioningTokens',
     components: {
+        EmptyState,
         CreateProvisioningTokenDialog,
         ProvisioningCredentialsDialog,
         SectionTopMenu,
@@ -120,6 +138,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountSettingsStore, ['features', 'featuresCheck']),
         addEnabled: function () {
             return this.hasPermission('team:device:provisioning-token:create')
         },

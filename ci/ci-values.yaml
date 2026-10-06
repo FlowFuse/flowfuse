@@ -42,6 +42,9 @@ forge:
           port: 5432
           database: postgres
           ssl: false
+  telemetry:
+    enabled: true
+    anonymize: false
 
 broker:
   replicas: 1

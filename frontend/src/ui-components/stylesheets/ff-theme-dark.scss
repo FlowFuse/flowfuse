@@ -65,6 +65,23 @@
     --ff-color-status-success-text:    var(--ff-palette-green-400);
     --ff-color-status-success-dot:     var(--ff-palette-green-400);
 
+    /* The button's brand hues, faint enough to read as a tint rather than a fill. Same
+       sequence as the swirling border, so the two are one motif. */
+    --ff-color-expert-wave-1:          rgba(188, 56, 56, 0.18);
+    --ff-color-expert-wave-2:          rgba(147, 51, 234, 0.18);
+    --ff-color-expert-wave-3:          rgba(79, 70, 229, 0.18);
+
+    /* Hover veil for the split Expert button. Translucent because the halves sit over an
+       animated background: an opaque fill blacks it out on the hovered side and puts back
+       the hard divide the wave exists to avoid. Lifts, because bg-surface is identical to
+       bg-app in this theme and an opaque fill reads as no hover at all. */
+    --ff-color-expert-hover-veil:      rgba(255, 255, 255, 0.07);
+
+    /* Interrupted. Flat, not a gradient: the swirl and wave both say the link is alive, so
+       a fault has to be the one thing on this button that does not move. */
+    --ff-color-expert-fault-border:    var(--ff-palette-red-300);
+    --ff-color-expert-fault-glyph:     var(--ff-palette-red-300);
+
     --ff-color-status-progress-bg:     rgba(76, 195, 138, 0.12);
     --ff-color-status-progress-border: rgba(76, 195, 138, 0.35);
 
@@ -75,11 +92,16 @@
     --ff-color-status-warning-bg:      rgba(251, 191, 36, 0.25);
     --ff-color-status-warning-border:  rgba(251, 191, 36, 0.55);
     --ff-color-status-warning-text:    var(--ff-palette-yellow-400);
+    --ff-color-status-warning-dot:     var(--ff-palette-yellow-400);
 
     --ff-color-status-neutral-bg:      var(--ff-color-bg-surface-raised);
     --ff-color-status-neutral-border:  var(--ff-color-border);
     --ff-color-status-neutral-text:    var(--ff-color-text-subtle);
     --ff-color-status-neutral-dot:     var(--ff-color-text-subtle);
+    /* Switched off, rather than reporting a neutral result. Between -neutral-dot (too faint
+       to read as a control) and -text-subtle (dark enough on white to look active). Per
+       theme: dark was already right, only light needed softening. */
+    --ff-color-status-idle-dot:        var(--ff-color-text-subtle);
 
     --ff-color-status-info-bg:         var(--ff-color-bg-surface-raised);
     --ff-color-status-info-border:     var(--ff-color-border);

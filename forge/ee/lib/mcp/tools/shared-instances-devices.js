@@ -1,0 +1,219 @@
+const { z } = require('zod')
+
+const { basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError, hostedInstanceId } = require('../schemas')
+const { emptySuccessAsOkay } = require('../utils')
+
+// Tools that work against both hosted instances and remote instances (devices),
+// selected with an instanceType discriminator.
+module.exports = [
+    {
+        name: 'platform_list_instance_http_tokens',
+        title: 'List Instance HTTP Tokens',
+        description: `FlowFuse platform automation tool:
+            Lists the HTTP bearer tokens configured for an instance, either a hosted instance or a remote instance (device).
+            These tokens are used by external callers to authenticate HTTP requests handled by the
+            instance's Node-RED flows.
+            HTTP bearer tokens are a plan-gated feature: a team without it enabled gets a 404 error.`,
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
+            instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")')
+        },
+        handler: async (args, { inject }) => {
+            const base = args.instanceType === 'remote' ? 'devices' : 'projects'
+            const response = await inject({ method: 'GET', url: `/api/v1/${base}/${args.instanceId}/httpTokens` })
+            return response
+        }
+    },
+    {
+        name: 'platform_get_instance_history',
+        title: 'Get Instance History',
+        description: `FlowFuse platform automation tool:
+            Reads a timeline of changes made to an instance over time, for either a hosted instance or a remote instance (device).
+            This is plan-gated on the projectHistory feature, which defaults to enabled; if the team's plan has this feature disabled, the call returns a not-found error.
+            Use this when the user wants a chronological view of what changed on an instance.`,
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
+            instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),
+            ...basePagination
+        },
+        handler: async (args, { inject }) => {
+            const base = args.instanceType === 'remote' ? 'devices' : 'projects'
+            const url = appendQuery(`/api/v1/${base}/${args.instanceId}/history`, args, basePaginationKeys)
+            const response = await inject({ method: 'GET', url })
+            return response
+        }
+    },
+    {
+        name: 'platform_get_instance_audit_log',
+        title: 'Get Instance Audit Log',
+        description: `FlowFuse platform automation tool:
+            Reads the audit log for an instance, either a hosted instance or a remote instance (device), showing events like deployments, restarts, connection changes, settings changes, and other actions taken against that instance.
+            Use this when the user wants to know what has happened to a specific instance.
+            Results are cursor-paginated and can be narrowed with query, event and username.
+            scope and includeChildren apply only to hosted instances: by default only the instance's own ("project") entries are returned; set scope to "device" to read the entries for its assigned devices instead, and set includeChildren to also include entries from child entities within the chosen scope. A remote instance has no child entities, so these two parameters are rejected when instanceType is "remote".`,
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
+            instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),
+            ...basePagination,
+            ...searchQuery,
+            ...auditLogFilters,
+            scope: z.enum(['project', 'device']).optional().describe('Hosted instances only. Entity level to read entries for: "project" (the instance itself, the default) or "device" (its assigned devices)'),
+            includeChildren: z.boolean().optional().describe('Hosted instances only. Also include audit entries from child entities within the chosen scope')
+        },
+        handler: async (args, { inject }) => {
+            if (args.instanceType === 'remote') {
+                const hostedOnly = ['scope', 'includeChildren'].filter((key) => args[key] !== undefined)
+                if (hostedOnly.length > 0) {
+                    return toolError(400, 'invalid_request', `${hostedOnly.join(', ')} can only be used with hosted instances. Remove these parameters to read a remote instance audit log.`)
+                }
+            }
+            const base = args.instanceType === 'remote' ? 'devices' : 'projects'
+            const keys = [...basePaginationKeys, ...searchQueryKeys, ...auditLogFilterKeys, 'scope', 'includeChildren']
+            const url = appendQuery(`/api/v1/${base}/${args.instanceId}/audit-log`, args, keys)
+            const response = await inject({ method: 'GET', url })
+            return response
+        }
+    },
+    {
+        name: 'platform_instance_action',
+        title: 'Instance Lifecycle Action',
+        description: `FlowFuse platform automation tool:
+            Applies a lifecycle action to an instance, changing whether and how it runs. Confirm with the user before stopping, suspending, or restarting anything.
+            Hosted instances accept: start (resume a suspended instance, or start the flows of a stopped one), stop (stop the flows, container keeps running), restart (restart the flows), suspend (shut the container down entirely), and restartStack (suspend then relaunch the container, picking up stack changes). stop, restart, and suspend are rejected with a 400 "project_suspended" while the instance is suspended - use start to bring it back first.
+            Remote instances (devices) accept only restart, which asks the device to restart Node-RED; the device must be online and reachable (400 "no_response" on timeout, "device_suspended" while suspended).
+            stop, restart and suspend wait for the container operation before replying { status: "okay" }. Two do not: starting a SUSPENDED instance replies { status: "okay" } once the container launch has begun, and restartStack replies with an empty body the moment the relaunch starts. For those two, check platform_get_hosted_instance_status to confirm the final state.`,
+        // destructiveHint: stop and suspend take the instance down, and restart interrupts whatever it is running.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
+        inputSchema: {
+            instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
+            instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),
+            action: z.enum(['start', 'stop', 'restart', 'suspend', 'restartStack']).describe('Lifecycle action to apply. Remote instances accept only restart')
+        },
+        handler: async (args, { inject }) => {
+            if (args.instanceType === 'remote' && args.action !== 'restart') {
+                return toolError(400, 'invalid_request', `Remote instances (devices) only support the restart action, not ${args.action}. The other lifecycle actions apply to hosted instances only.`)
+            }
+            const url = args.instanceType === 'remote'
+                ? `/api/v1/devices/${args.instanceId}/actions/restart`
+                : `/api/v1/projects/${args.instanceId}/actions/${args.action}`
+            const response = await inject({ method: 'POST', url })
+            return response
+        }
+    },
+    {
+        name: 'platform_create_instance_http_token',
+        title: 'Create Instance HTTP Token',
+        description: `FlowFuse platform automation tool:
+            Creates an HTTP bearer token for an instance (hosted instance or remote instance/device). External callers present these tokens to authenticate HTTP requests handled by the instance's Node-RED flows; they are not platform API tokens.
+            The response includes the token value itself, and this is the ONLY time it is shown - relay it to the user immediately and treat it as a secret.
+            HTTP bearer tokens are a plan-gated feature (the same gate as FlowFuse User Authentication); a team without it enabled gets a 404 error.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        inputSchema: {
+            instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
+            instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),
+            name: z.string().describe('Human-readable name for the token'),
+            expiresAt: z.string().optional().describe('Token expiry as an ISO 8601 timestamp. Omit for a token that never expires')
+        },
+        handler: async (args, { inject }) => {
+            const base = args.instanceType === 'remote' ? 'devices' : 'projects'
+            const payload = { name: args.name }
+            if (args.expiresAt !== undefined) {
+                payload.expiresAt = args.expiresAt
+            }
+            const response = await inject({ method: 'POST', url: `/api/v1/${base}/${args.instanceId}/httpTokens`, payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_update_instance_http_token',
+        title: 'Update Instance HTTP Token',
+        description: `FlowFuse platform automation tool:
+            Sets or clears the expiry of an existing HTTP bearer token on an instance (hosted instance or remote instance/device). The expiry is the only thing this can change: the token's name and value are fixed at creation.
+            NOTE: omitting expiresAt does not leave the expiry unchanged - it CLEARS it, making the token never expire. Always pass expiresAt when the token should keep or gain an expiry.
+            Find token ids with platform_list_instance_http_tokens. Tokens managed by the FlowFuse Expert cannot be modified.
+            HTTP bearer tokens are a plan-gated feature; a team without it enabled gets a 404 error.`,
+        // destructiveHint: omitting expiresAt clears the expiry, removing a security control from an existing token.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
+            instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),
+            tokenId: z.string().describe('The hashid of the token to update, as returned by platform_list_instance_http_tokens'),
+            expiresAt: z.string().optional().describe('New expiry as an ISO 8601 timestamp. OMITTING THIS CLEARS THE EXPIRY, making the token never expire')
+        },
+        handler: async (args, { inject }) => {
+            const base = args.instanceType === 'remote' ? 'devices' : 'projects'
+            const payload = {}
+            if (args.expiresAt !== undefined) {
+                payload.expiresAt = args.expiresAt
+            }
+            const response = await inject({ method: 'PUT', url: `/api/v1/${base}/${args.instanceId}/httpTokens/${args.tokenId}`, payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_delete_instance_http_token',
+        title: 'Delete Instance HTTP Token',
+        description: `FlowFuse platform automation tool:
+            Deletes an HTTP bearer token from an instance (hosted instance or remote instance/device). This cannot be undone.
+            External callers presenting the token to the instance's Node-RED HTTP endpoints are then refused, but not necessarily straight away: an instance caches tokens it has recently accepted, so a caller already using it can keep getting through for up to about 5 minutes. A replacement has to be created with platform_create_instance_http_token, which issues a new value.
+            Before calling this, confirm with the user and check what still uses the token. Find token ids with platform_list_instance_http_tokens.
+            Replies { status: "okay" } on success. A token that does not exist on that instance returns a 404.
+            HTTP bearer tokens are a plan-gated feature; a team without it enabled gets a 404 error.`,
+        // destructiveHint: the token is revoked for good, cutting off whoever used it.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
+            instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),
+            tokenId: z.string().describe('The hashid of the token to delete, as returned by platform_list_instance_http_tokens')
+        },
+        handler: async (args, { inject }) => {
+            // Both ids go into the URL path and inject resolves dot segments, so anything but
+            // a plain id could send this DELETE to another route (e.g. "../../../applications/<id>").
+            const validInstanceId = args.instanceType === 'remote'
+                ? /^[A-Za-z0-9]+$/.test(args.instanceId)
+                : hostedInstanceId.safeParse(args.instanceId).success
+            if (!validInstanceId || !/^[A-Za-z0-9]+$/.test(args.tokenId)) {
+                return toolError(400, 'invalid_request', 'instanceId must be a hosted instance UUID or a remote instance (device) hashid matching instanceType, and tokenId a token hashid')
+            }
+            const base = args.instanceType === 'remote' ? 'devices' : 'projects'
+            const response = await inject({ method: 'DELETE', url: `/api/v1/${base}/${args.instanceId}/httpTokens/${args.tokenId}` })
+            // The route answers a successful delete with an empty 201.
+            return emptySuccessAsOkay(response)
+        }
+    },
+    {
+        name: 'platform_delete_instance',
+        title: 'Delete Instance',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes an instance, either a hosted instance or a remote instance (device). This cannot be undone, and there is no way to get the instance back.
+            Deleting a hosted instance removes its container, flows, credentials, settings and files, and ALL of its snapshots. Remote instances (devices) assigned to it are not deleted, but they are left unassigned (not moved to the application), lose their target snapshot and stop running Node-RED (unless in developer mode) until they are given a new one.
+            Deleting a remote instance (device) revokes its credentials, so the physical device can no longer connect to the platform or receive updates. Its snapshots stay behind but can no longer be opened.
+            In both cases, a pipeline stage that deployed to the instance is not deleted, it is left with no deploy target, so edit or remove it afterwards (find it with platform_list_pipelines).
+            Before calling this, confirm with the user and tell them what goes with it. For a hosted instance, use platform_list_instance_snapshots and platform_list_remote_instances to list the snapshots and assigned devices. If the snapshots might be wanted later, export them first with platform_export_snapshot.
+            Only team owners can delete instances. Replies { status: "okay" } on success; an instance that does not exist, or that the caller cannot see, returns 404.`,
+        // destructiveHint: the instance and everything stored with it are gone for good.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            instanceId: z.string().describe('The ID of the instance to delete (hosted instance UUID, or remote instance/device hashid)'),
+            instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")')
+        },
+        handler: async (args, { inject }) => {
+            // instanceId goes into the URL path and inject resolves dot segments, so anything
+            // but a plain id could send this DELETE to another route (e.g. "../applications/<id>").
+            const validId = args.instanceType === 'remote'
+                ? /^[A-Za-z0-9]+$/.test(args.instanceId)
+                : hostedInstanceId.safeParse(args.instanceId).success
+            if (!validId) {
+                return toolError(400, 'invalid_request', 'instanceId must be a hosted instance UUID or a remote instance (device) hashid, matching instanceType')
+            }
+            const base = args.instanceType === 'remote' ? 'devices' : 'projects'
+            const response = await inject({ method: 'DELETE', url: `/api/v1/${base}/${args.instanceId}` })
+            return response
+        }
+    }
+]

@@ -25,7 +25,7 @@ module.exports = async function (app) {
 
                 await request.team.ensureTeamTypeExists()
                 if (!request.team.getFeatureProperty('teamBroker', false)) {
-                    reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                    reply.code(404).send({ code: 'not_found', error: 'Not Found - Team Broker is not enabled for this team' })
                     return
                 }
             }
@@ -456,6 +456,9 @@ module.exports = async function (app) {
                 await agent.reload({ include: [{ model: app.db.models.Team }] })
                 await app.containers.startBrokerAgent(agent)
                 reply.status(200).send({})
+            } else {
+                // Agent already running: starting is a no-op
+                reply.status(200).send({})
             }
         } else {
             if (request.broker.state === 'running') {
@@ -485,9 +488,9 @@ module.exports = async function (app) {
                 await app.containers.sendBrokerAgentCommand(agent, 'stop')
                 reply.status(200).send({})
             } else {
-                // hmm shouldn't be able to get here
+                // Agent missing or not running: stopping is a no-op
+                reply.status(200).send({})
             }
-            // reply.status(403).send({})
         } else {
             await app.containers.sendBrokerAgentCommand(request.broker, 'stop')
             reply.status(200).send({})
@@ -513,7 +516,7 @@ module.exports = async function (app) {
                 }, 1500)
                 reply.status(200).send({})
             } else {
-                reply.status(404).send({})
+                reply.status(404).send({ code: 'not_found', error: 'The Team Broker is not running' })
             }
         } else {
             await app.containers.stopBrokerAgent(request.broker)

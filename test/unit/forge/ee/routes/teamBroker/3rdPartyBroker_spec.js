@@ -107,6 +107,29 @@ describe('3rd Party Broker API', function () {
         return { response, statusCode, broker, credentialId, agentToken }
     }
 
+    describe('Team Broker feature disabled for the team', function () {
+        before(async function () {
+            const properties = app.team.properties || {}
+            app.team.properties = { ...properties, features: { ...properties.features, teamBroker: false } }
+            await app.team.save()
+        })
+        after(async function () {
+            const { teamBroker, ...features } = app.team.properties.features
+            app.team.properties = { ...app.team.properties, features }
+            await app.team.save()
+        })
+        it('replies not_found saying the feature is not enabled', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${app.team.hashid}/brokers`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(404)
+            response.json().should.have.property('code', 'not_found')
+            response.json().should.have.property('error', 'Not Found - Team Broker is not enabled for this team')
+        })
+    })
+
     describe('3rd Party Broker Credentials', function () {
         afterEach(async function () {
             await app.db.models.BrokerCredentials.destroy({
@@ -746,6 +769,52 @@ describe('3rd Party Broker API', function () {
                 result = response.json()
                 result.count.should.equal(0)
             })
+        })
+    })
+
+    describe('Broker Agent Lifecycle', function () {
+        afterEach(async function () {
+            await app.db.models.TeamBrokerAgent.destroy({ where: { TeamId: app.team.id } })
+        })
+
+        it('start replies when the team-broker agent is already running', async function () {
+            await app.db.models.TeamBrokerAgent.create({ state: 'running', TeamId: app.team.id })
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/start`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+        })
+
+        it('stop replies when the team-broker agent is not running', async function () {
+            await app.db.models.TeamBrokerAgent.create({ state: 'stopped', TeamId: app.team.id })
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/stop`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+        })
+
+        it('stop replies when there is no team-broker agent', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/stop`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+        })
+
+        it('suspend replies not_found when there is no team-broker agent', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/suspend`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(404)
+            response.json().should.have.property('code', 'not_found')
+            response.json().should.have.property('error', 'The Team Broker is not running')
         })
     })
 })

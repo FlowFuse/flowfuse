@@ -21,43 +21,6 @@ function loadToolDefinitions () {
 }
 
 /**
- * Registers all tool definitions on a McpServer instance.
- * Called once per request since the server is stateless (fresh per request).
- *
- * @param {Object} server
- * @param {Array} toolDefinitions - loaded tool definitions
- * @param {Function} inject - app.inject helper bound to the request's auth token
- * @param {Function} checkScope - scope check function (stub for now)
- * @param {Object} [options] - optional extra context passed to tool handlers
- * @param {Object} [options.app] - the forge app
- */
-function registerTools (server, toolDefinitions, inject, checkScope, options = {}) {
-    const { app } = options
-    for (const tool of toolDefinitions) {
-        const config = {
-            title: tool.title,
-            description: tool.description,
-            annotations: tool.annotations
-        }
-        if (tool.inputSchema && Object.keys(tool.inputSchema).length > 0) {
-            config.inputSchema = tool.inputSchema
-        }
-        if (tool.outputSchema && Object.keys(tool.outputSchema).length > 0) {
-            config.outputSchema = tool.outputSchema
-        }
-
-        server.registerTool(tool.name, config, async (args) => {
-            const scopeError = checkScope(tool)
-            if (scopeError) {
-                return scopeError
-            }
-            const response = await tool.handler(args, { inject, app })
-            return typeof response?.json === 'function' ? formatResponse(response) : response
-        })
-    }
-}
-
-/**
  * Formats an app.inject() response into an MCP CallToolResult.
  */
 function formatResponse (response) {
@@ -76,4 +39,4 @@ function formatResponse (response) {
     return body
 }
 
-module.exports = { formatResponse, loadToolDefinitions, registerTools }
+module.exports = { formatResponse, loadToolDefinitions }

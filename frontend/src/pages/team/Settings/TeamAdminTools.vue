@@ -108,7 +108,15 @@
                             </div>
                         </td>
                     </tr>
-
+                    <tr>
+                        <th class="font-medium">Runtimes:</th>
+                        <td v-if="!editingLimits"><div>{{ getTeamProperty('runtimes_limit') }}</div></td>
+                        <td v-else>
+                            <div class="grid grid-cols-2 gap-2 my-2">
+                                <FormRow v-model="editableLimits.runtimes.limit" :placeholder="''+(getTeamTypeProperty('runtimes_limit') ?? '')" />
+                            </div>
+                        </td>
+                    </tr>
                     <tr v-for="(instanceType, index) in instanceTypes" :key="index">
                         <th>{{ instanceType.name }} Instance:</th>
                         <template v-if="!editingLimits">
@@ -134,11 +142,11 @@
                         <th>Remote Instance:</th>
                         <td v-if="!editingLimits">
                             <span v-if="!getTeamProperty('devices_free')">
-                                <div>{{ getTeamProperty('instances_' + getTeamProperty('devices_combinedFreeType') + '_free') || 0 }} - {{ getTeamProperty(`devices_limit`) || 'unlimited' }}</div>
+                                <div>{{ getTeamProperty('instances_' + getTeamProperty('devices_combinedFreeType') + '_free') || 0 }} - {{ getTeamProperty(`devices_limit`) > -1 ? getTeamProperty(`devices_limit`) : 'unlimited' }}</div>
                                 <div class="text-xs">Shared with {{ getInstanceTypeName(getTeamProperty('devices_combinedFreeType')) }} </div>
                             </span>
                             <span v-else>
-                                {{ getTeamProperty(`devices_free`) || 0 }} - {{ getTeamProperty(`devices_limit`) || 'unlimited' }}
+                                {{ getTeamProperty(`devices_free`) || 0 }} - {{ getTeamProperty(`devices_limit`) > -1 ? getTeamProperty(`devices_limit`) : 'unlimited' }}
                             </span>
                         </td>
                         <td v-else>
@@ -259,6 +267,7 @@ export default {
             editingLimits: false,
             editableLimits: {
                 users: {},
+                runtimes: {},
                 features: {},
                 certifiedNodesCatalogues: ''
             }
@@ -408,6 +417,7 @@ export default {
             // Copy team properties to an editable object
             // Set editingLimits flag
             this.editableLimits.users = { limit: this.getTeamProperty('users_limit') ?? '' }
+            this.editableLimits.runtimes = { limit: this.getTeamProperty('runtimes_limit') ?? '' }
             this.editableLimits.devices = {
                 free: this.getTeamProperty('devices_free') ?? '',
                 limit: this.getTeamProperty('devices_limit') ?? '',
@@ -457,6 +467,7 @@ export default {
             }
             const properties = {
                 users: { ...this.editableLimits.users },
+                runtimes: { ...this.editableLimits.runtimes },
                 instances: {},
                 devices: { ...this.editableLimits.devices },
                 teamBroker: { clients: { ...this.editableLimits.teamBroker.clients } },
@@ -482,6 +493,7 @@ export default {
                 }
             })
             formatNumber(properties.users, 'limit', this.getTeamTypeProperty('users_limit'))
+            formatNumber(properties.runtimes, 'limit', this.getTeamTypeProperty('runtimes_limit'))
             formatNumber(properties.devices, 'limit', this.getTeamTypeProperty('devices_limit'))
             formatNumber(properties.devices, 'free', this.getTeamTypeProperty('devices_free'))
             formatNumber(properties.teamBroker.clients, 'limit', this.getTeamTypeProperty('teamBroker_clients_limit'))

@@ -6,6 +6,8 @@
  *
  * Other components (ie EE-specific features) can register their own additional ACLs
  */
+const { TOPIC_SAFE_SESSION_ID, FLOW_BUILDING_CATALOG_USER_ID } = require('./utils/mcpSessionId')
+
 module.exports = function (app) {
     const expertRbacToolCheck = async (teamMembership, toolName, application) => {
         const applicationCheck = typeof application !== 'undefined'
@@ -18,7 +20,14 @@ module.exports = function (app) {
         const toolAccessPermission = {
             'automation:select-nodes': 'project:flows:view',
             'automation:get-nodes': 'project:flows:view',
-            'automation:get-flows': 'project:flows:view'
+            'automation:get-flows': 'project:flows:view',
+            // Platform-UI automation rides the same inflight channel but never touches flows.
+            // Discovery returns static tool definitions, and the tools themselves (ui_get_context,
+            // ui_list_routes, ui_navigate) are all readOnlyHint - so they only need view access.
+            // Without these entries both fall through to the project:flows:edit default below,
+            // which locks read-only navigation out for anyone who cannot edit flows.
+            'automation-ui:mcp-get-features': 'project:flows:view',
+            'automation-ui:mcp-call-tool': 'project:flows:view'
         }
         const requiredPermission = toolAccessPermission[toolName] || 'project:flows:edit' // default to highest level of access if tool isn't in the list, to be safe
 
@@ -123,8 +132,9 @@ module.exports = function (app) {
                 return false
             }
         },
-        checkUserIsTeamMember: async function (requestParts, usernameParts) {
-            // requestParts = [ fullTopic , <teamHash> [, <userHash> [, <sessionId>]] ]
+        checkTeamUserSession: async function (requestParts, usernameParts) {
+            // requestParts = [ fullTopic , <teamHash> [, <userHash>] ] - v1
+            // requestParts = [ fullTopic , <teamHash>, <userHash>, <sessionId> ] - v2 (MCP)
             // usernameParts = [ 'fe-team', <userHash>, <teamHash>, <sessionId> ]
             const topicTeamHash = requestParts[1]
             const usernameUserHash = usernameParts[1]
@@ -252,7 +262,7 @@ module.exports = function (app) {
                     const [commandAgent, commandName] = commandParts
                     switch (commandAgent) {
                     case 'automation':
-                        if (['mcp-get-features', 'mcp-call-tool'].indexOf(commandName) === -1) {
+                        if (['mcp-get-features', 'mcp-call-tool', 'agent-action-pending'].indexOf(commandName) === -1) {
                             throw ValidationError('invalid platform command for platform api')
                         }
                         break
@@ -592,11 +602,15 @@ module.exports = function (app) {
          * The platformId is the id of the replica that owns the exchange (see
          * commsClient.platformId). The replica that emits a request is the one that must
          * receive its response, so the platformId is always concrete: there is no wildcard
-         * for it on either side of the channel.
+         * for it on either side of the channel. In a multi-replica deployment the ACL
+         * callback may be served by a different replica than the one that owns the id,
+         * so only the id's shape (a UUID) is validated here, not its identity.
          *
          * Direction is not checked here. It is already fixed by which list a rule sits in
          * (verify() picks sub[] or pub[] from the access level) and by the request/response
          * suffix in the rule's own regex.
+         *
+         * The flow-building catalog fetch reuses this channel with the catalog sentinel as userId.
          */
         checkMcpTopic: async function (topicParts, usernameParts, acl) {
             // topicParts = [ fullTopic , <platformId>, <userId>, <mcpSessionId> ]
@@ -609,6 +623,11 @@ module.exports = function (app) {
             // identity lands there and with the gateway service's own broker config.
             const MCP_GATEWAY_CLIENT_TYPE = 'ff-mcp-gateway'
 
+            // Replica platformIds are minted per-process (commsClient.platformId), and this
+            // check may run on a different replica than the topic's owner, so the id can
+            // only be validated by shape.
+            const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
             const ValidationError = function (message) {
                 const error = new Error(message)
                 error.name = 'ACLValidationError'
@@ -616,10 +635,6 @@ module.exports = function (app) {
             }
 
             try {
-                if (!app.config.features.enabled('mcpThirdParty')) {
-                    throw ValidationError('third-party MCP access is not enabled on this platform')
-                }
-
                 const [, platformId, userId, mcpSessionId] = topicParts
                 const [clientType] = usernameParts
 
@@ -628,6 +643,13 @@ module.exports = function (app) {
                 }
                 if (!platformId || !userId || !mcpSessionId) {
                     throw ValidationError('invalid topic format')
+                }
+
+                // The catalog is a first-party global read, so the sentinel userId is exempt from
+                // the third-party gate and the user lookup; every other check below still applies.
+                const isCatalogFetch = userId === FLOW_BUILDING_CATALOG_USER_ID
+                if (!isCatalogFetch && !app.config.features.enabled('mcpThirdParty')) {
+                    throw ValidationError('third-party MCP access is not enabled on this platform')
                 }
 
                 // ensure the acl that matched belongs to the client presenting it
@@ -651,7 +673,7 @@ module.exports = function (app) {
                     if (!acl.allowWildcard?.session) {
                         throw ValidationError('invalid session wildcard')
                     }
-                } else if (mcpSessionId.length < 8) {
+                } else if (!TOPIC_SAFE_SESSION_ID.test(mcpSessionId)) {
                     throw ValidationError('invalid mcp session id')
                 }
 
@@ -659,7 +681,7 @@ module.exports = function (app) {
                     if (!acl.allowWildcard?.platformId) {
                         throw ValidationError('invalid platform id wildcard')
                     }
-                } else if (platformId !== app.comms.id) {
+                } else if (!UUID_RE.test(platformId)) {
                     throw ValidationError('invalid platform id')
                 }
 
@@ -667,7 +689,7 @@ module.exports = function (app) {
                     if (!acl.allowWildcard?.user) {
                         throw ValidationError('invalid user wildcard')
                     }
-                } else {
+                } else if (!isCatalogFetch) {
                     const user = await app.db.models.User.byId(userId)
                     if (!user || user.suspended) {
                         throw ValidationError('invalid user')
@@ -713,6 +735,7 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isPlatform: true, isSub: true, agent: 'platform' },
                 // platform can listen for third-party MCP responses from the central gateway
                 // - ff/v1/mcp/<platformId>/+/+/response
+                // (the flow-building catalog response reuses this rule via the catalog sentinel)
                 { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/response$/, verify: 'checkMcpTopic', allowWildcard: { user: true, session: true }, isPlatform: true, isSub: true },
                 // - ff/v1/<team>/u/<user>/s/<session>/<event> (shared subscription)
                 //   [^/]+ on the event segment: the subscription wildcard (+) is matched
@@ -753,7 +776,11 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', isPlatform: true, isPub: true, agent: 'platform' },
                 // platform can publish third-party MCP requests to the central gateway
                 // - ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/request
-                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/request$/, verify: 'checkMcpTopic', isPlatform: true, isPub: true }
+                // (the flow-building catalog request reuses this rule via the catalog sentinel)
+                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/request$/, verify: 'checkMcpTopic', isPlatform: true, isPub: true },
+                // platform can tell one browser tab about its MCP state
+                // - ff/v1/<team>/u/<user>/s/<session>/mcp/clients
+                { topic: /^ff\/v1\/[^/]+\/u\/[^/]+\/s\/[^/]+\/mcp\/clients$/ }
             ]
         },
         project: {
@@ -811,9 +838,9 @@ module.exports = function (app) {
         teamFrontend: {
             sub: [
                 // - ff/v1/<team>/t/updated
-                { topic: /^ff\/v1\/([^/]+)\/t\/updated$/, verify: 'checkUserIsTeamMember' },
+                { topic: /^ff\/v1\/([^/]+)\/t\/updated$/, verify: 'checkTeamUserSession' },
                 // - ff/v1/<team>/u/<user>/membership
-                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/membership$/, verify: 'checkUserIsTeamMember' },
+                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/membership$/, verify: 'checkTeamUserSession' },
                 // - ff/v1/<team>/p/+/state
                 { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/state$/, verify: 'checkTeamStateSub' },
                 // - ff/v1/<team>/d/+/state
@@ -823,12 +850,14 @@ module.exports = function (app) {
                 // - ff/v1/<team>/p/+/created|updated|deleted
                 { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/(created|updated|deleted)$/, verify: 'checkTeamStateSub' },
                 // - ff/v1/expert/<user>/<session>/+/+/mcp/inflight/+/request
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/mcp\/inflight\/([^/]+)\/request$/, verify: 'checkMcpInflightTopic', allowWildcard: { entity: true, inflightType: true }, isSub: true }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/mcp\/inflight\/([^/]+)\/request$/, verify: 'checkMcpInflightTopic', allowWildcard: { entity: true, inflightType: true }, isSub: true },
+                // - ff/v1/<team>/u/<user>/s/<session>/mcp/clients
+                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/s\/([^/]+)\/mcp\/clients$/, verify: 'checkTeamUserSession' }
             ],
             pub: [
                 // - ff/v1/<team>/u/<user>/s/<session>/<heartbeat|close|disconnected>
                 //   `disconnected` is the last will, published by the broker, not the tab
-                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/s\/([^/]+)\/(heartbeat|close|disconnected)$/, verify: 'checkUserIsTeamMember' },
+                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/s\/([^/]+)\/(heartbeat|close|disconnected)$/, verify: 'checkTeamUserSession' },
                 // - ff/v1/expert/<user>/<session>/<a|p|d|t>/<entityId>/mcp/inflight/<type>/response
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/mcp\/inflight\/([^/]+)\/response$/, verify: 'checkMcpInflightTopic', isPub: true }
             ]

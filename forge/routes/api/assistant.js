@@ -122,6 +122,41 @@ module.exports = async function (app) {
         }
     })
     /**
+     * Endpoint for nr-assistant to check, live, whether the team has opted in to
+     * agent-initiated deploys. Deliberately not cached/pushed via settings.js - it
+     * must be checked at the moment a deploy is being considered so that turning the
+     * team setting off takes effect immediately, without an instance restart.
+     * @name /api/v1/assistant/deploy-policy
+     * @static
+     * @memberof forge.routes.api.assistant
+     */
+    app.get('/deploy-policy', {
+        config: {
+            rateLimit: app.config.rate_limits
+                ? {
+                    hook: 'preHandler', // apply the rate as a preHandler so that session is available
+                    max: 60, // max requests per window
+                    timeWindow: 60000, // 1 minute window
+                    keyGenerator: (request) => {
+                        return request.ownerId || request.ip
+                    }
+                }
+                : false
+        },
+        schema: {
+            hide: true // dont show in swagger
+        }
+    }, async (request, reply) => {
+        const isAiEnabled = !!(app.config.features.enabled('ai') && request.team?.getFeatureProperty('ai', true))
+        // agentAutoDeploy authorises unattended deploys, so it must be an explicit team-level
+        // opt-in - read the team's own override directly rather than through
+        // Team.getFeatureProperty, which falls back to TeamType.getFeatureProperty and would
+        // return true for every team on any TeamType bootstrapped with enableAllFeatures (the
+        // platform default), regardless of whether anyone actually opted in.
+        const autoDeploy = isAiEnabled && request.team?.properties?.features?.agentAutoDeploy === true
+        reply.send({ autoDeploy })
+    })
+    /**
      * Endpoint for FIM (fill-in-the-middle) code completion requests
      * For now, this is simply a relay to an external assistant service
      * In the future, we may decide to bring that service inside the core or

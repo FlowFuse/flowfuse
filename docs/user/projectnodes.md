@@ -1,5 +1,7 @@
 ---
 navTitle: FlowFuse Project Nodes
+meta:
+   description: Send messages and call flows between Node-RED instances in a team with the Project In, Out and Call nodes, and the limits for remote instances.
 ---
 
 # FlowFuse Project Nodes

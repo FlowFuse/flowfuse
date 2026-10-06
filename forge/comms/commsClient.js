@@ -26,6 +26,7 @@ class CommsClient extends EventEmitter {
                 password: await this.app.settings.get('commsToken'),
                 reconnectPeriod: 5000,
                 protocolVersion: 5,
+                reconnectOnConnackError: true,
                 will: {
                     topic: 'ff/v1/platform/leader',
                     payload: JSON.stringify({ id: this.platformId, vote: -1 })
@@ -56,7 +57,7 @@ class CommsClient extends EventEmitter {
                  * 3rd Party Mcp events
                  */
                 if (topicParts[2] === 'mcp') {
-                    // ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/response/
+                    // ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/response
                     if (topicParts[6] === 'response') {
                         let payload
                         try {
@@ -122,7 +123,8 @@ class CommsClient extends EventEmitter {
                     }
                     const supportedPlatformAutomationCommands = {
                         'automation:mcp-get-features': 'mcp-get-features',
-                        'automation:mcp-call-tool': 'mcp-call-tool'
+                        'automation:mcp-call-tool': 'mcp-call-tool',
+                        'automation:agent-action-pending': 'agent-action-pending'
                     }
 
                     if (supportedInsightsCommands[channelCommand] && direction === 'request') {
@@ -284,6 +286,8 @@ class CommsClient extends EventEmitter {
                 'ff/v1/+/d/+/resources/heartbeat',
                 // Platform sync messages
                 'ff/v1/platform/sync',
+                // Platform leadership vote for housekeeping tasks
+                'ff/v1/platform/leader',
                 // Listen for Expert platform requests.
                 // Uses a dedicated shared subscription group. The group name defines the set
                 // of consumers that share the workload, so keeping Expert separate from the

@@ -1,5 +1,7 @@
 ---
 navTitle: Chat Interface
+meta:
+   description: Use the FlowFuse Expert chat in Support mode to build and debug flows on your canvas, or in Insights mode to query live operational data.
 ---
 
 # Chat Interface
@@ -135,7 +137,7 @@ The settings split actions into two groups: **Flow Building Tools**, the actions
 
 **Role-based limits.** Permissions respect your team role. Read-only team members cannot enable or trigger actions that write or delete, and will see why they are unavailable. This is enforced by Expert itself, not just hidden in the interface.
 
-**Auditability.** Every action Expert takes on the platform is recorded in the [Audit Log](/docs/user/logs.md#ai-agents-and-api-activity), alongside the tool it called and the user it was acting on behalf of.
+**Auditability.** Every action Expert takes on the platform is recorded in the [Audit Log](/docs/user/logs/#ai-agents-and-api-activity), alongside the tool it called and the user it was acting on behalf of.
 
 **Example permission setups.** A few common ways to configure this:
 
@@ -249,7 +251,7 @@ If the Expert starts giving unexpected or inconsistent answers, it may be due to
 
 **Insights mode** connects the Expert to your live data via **Model Context Protocol (MCP)**. Use it when you want to query, analyze, or interact with real-world data - not just your Node-RED flows.
 
-In Insights mode, you first select an MCP Server that you've built using [FlowFuse MCP Server Nodes](https://flowfuse.com/node-red/flowfuse/mcp/). The Expert can then use the tools and resources exposed by that server to answer questions against your live operational data. If you haven't built an MCP Server yet, see the guide on [building an MCP Server using FlowFuse](https://flowfuse.com/blog/2025/10/building-mcp-server-using-flowfuse/).
+In Insights mode, you first select an MCP Server that you've built using [FlowFuse MCP Server Nodes](https://flowfuse.com/docs/flowfuse-nodes/mcp/). The Expert can then use the tools and resources exposed by that server to answer questions against your live operational data. If you haven't built an MCP Server yet, see the guide on [building an MCP Server using FlowFuse](https://flowfuse.com/blog/2025/10/building-mcp-server-using-flowfuse/).
 
 As of v2.32, Insights mode also reaches your **remote instances** at the edge, not just hosted instances. Point the Expert at a remote instance and ask about its live machine or operational data in plain language, with no dashboard to build and no query to write.
 

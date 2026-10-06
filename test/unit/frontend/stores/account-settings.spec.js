@@ -43,6 +43,7 @@ describe('account-settings store', () => {
     beforeEach(() => {
         setActivePinia(createPinia())
         vi.clearAllMocks()
+        delete window.posthog
         mockAuth()
         mockTeam()
     })
@@ -81,6 +82,26 @@ describe('account-settings store', () => {
                 expect(settingsApi.getSettings).toHaveBeenCalledOnce()
                 expect(store.settings).toEqual(settings)
                 expect(store.features).toEqual({ billing: true })
+            })
+        })
+
+        describe('loadPosthogFlags', () => {
+            it('stores the flag values PostHog reports', () => {
+                const onFeatureFlags = vi.fn((cb) => cb(['MCP_THIRD_PARTY'], { MCP_THIRD_PARTY: true }))
+                window.posthog = { onFeatureFlags }
+
+                const store = useAccountSettingsStore()
+                store.loadPosthogFlags()
+
+                expect(store.posthogFlags).toEqual({ MCP_THIRD_PARTY: true })
+            })
+
+            it('does not throw when PostHog is unavailable', () => {
+                delete window.posthog
+
+                const store = useAccountSettingsStore()
+                expect(() => store.loadPosthogFlags()).not.toThrow()
+                expect(store.posthogFlags).toEqual({})
             })
         })
     })
@@ -172,6 +193,24 @@ describe('account-settings store', () => {
                 expect(store.featuresCheck.isHostedInstancesEnabledForTeam).toBe(true)
             })
 
+            it('isTelemetryEnabled reflects the telemetry:enabled setting', () => {
+                const store = useAccountSettingsStore()
+                store.setSettings({ 'telemetry:enabled': true })
+                expect(store.featuresCheck.isTelemetryEnabled).toBe(true)
+                store.setSettings({ 'telemetry:enabled': false })
+                expect(store.featuresCheck.isTelemetryEnabled).toBe(false)
+            })
+
+            it('deployment is cloud only when telemetry:anonymize is false', () => {
+                const store = useAccountSettingsStore()
+                store.setSettings({ 'telemetry:anonymize': false })
+                expect(store.featuresCheck.deployment).toBe('cloud')
+                store.setSettings({ 'telemetry:anonymize': true })
+                expect(store.featuresCheck.deployment).toBe('self-hosted')
+                store.setSettings({})
+                expect(store.featuresCheck.deployment).toBe('self-hosted')
+            })
+
             it('isBlueprintsFeatureEnabled is true when enabled on both platform and team', () => {
                 mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { features: { flowBlueprints: true }, billing: {}, instances: {} } } } })
                 const store = useAccountSettingsStore()
@@ -245,6 +284,14 @@ describe('account-settings store', () => {
 
             it('isAiFeatureEnabled is true when team ai is undefined and enableAllFeatures is true', () => {
                 mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { enableAllFeatures: true, billing: {}, instances: {} } } } })
+                const store = useAccountSettingsStore()
+                store.setSettings({ features: { ai: true } })
+                expect(store.featuresCheck.isAiFeatureEnabledForTeam).toBe(true)
+                expect(store.featuresCheck.isAiFeatureEnabled).toBe(true)
+            })
+
+            it('isAiFeatureEnabled is true when team ai is undefined, matching the backend opt-out default', () => {
+                mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { features: {}, billing: {}, instances: {} } } } })
                 const store = useAccountSettingsStore()
                 store.setSettings({ features: { ai: true } })
                 expect(store.featuresCheck.isAiFeatureEnabledForTeam).toBe(true)

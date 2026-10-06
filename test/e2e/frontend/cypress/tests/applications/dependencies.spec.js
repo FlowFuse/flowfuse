@@ -30,7 +30,7 @@ describe('FlowFuse - Application - Dependencies', () => {
         cy.visit(`/team/${team.slug}/applications/${application.id}`)
         cy.get('[data-nav="application-dependencies"]').click()
 
-        cy.get('[data-el="page-banner-feature-unavailable"]').contains('This is a FlowFuse Enterprise feature. Please upgrade your instance of FlowFuse in order to use it.')
+        cy.get('[data-el="page-banner-feature-unavailable"]').contains('This feature is not available with your current license. Please upgrade your instance of FlowFuse in order to use it.')
         cy.get('[data-el="empty-state"]').contains('Your application doesn\'t contain any Instances or Devices')
     })
 

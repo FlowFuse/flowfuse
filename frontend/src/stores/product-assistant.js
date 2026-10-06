@@ -10,26 +10,26 @@ const MAX_DEBUG_LOG_ENTRIES = 100 // maximum number of debug log entries to keep
 // --- Expert tool permissions (human-in-the-loop, #421) -----------------------
 const TOOL_POLICIES = ['allow', 'ask', 'deny']
 const isToolPolicy = (p) => TOOL_POLICIES.includes(p)
-const TOOL_CLASSES = ['read', 'write', 'delete']
+const TOOL_CLASSES = ['read', 'write', 'destructive']
 // Fail-safe default when a class has no configured default: read allows, the rest ask.
 const fallbackForToolClass = (cls) => (cls === 'read' ? 'allow' : 'ask')
 // The class defaults a team starts with before the user changes anything.
-const defaultToolDefaults = () => ({ read: 'allow', write: 'ask', delete: 'ask' })
+const defaultToolDefaults = () => ({ read: 'allow', write: 'ask', destructive: 'ask' })
 // The team whose saved permissions are in effect. Permissions are per team, so every
 // read/write of defaults or preferences is scoped by this id.
 const currentTeamId = () => useContextStore().team?.id || null
 
 // Derive a tool's permission class from its catalog entry. Read tools view only;
-// delete tools are destructive writes; everything else that changes flows is write.
+// destructive tools are destructive writes; everything else that changes flows is write.
 export const classOf = (entry) => {
     if (!entry) return 'write'
     if (entry.toolClass === 'read') return 'read'
-    if (entry.toolClass === 'delete' || entry.destructive === true) return 'delete'
+    if (entry.toolClass === 'destructive' || entry.destructive === true) return 'destructive'
     return 'write'
 }
 
 // Tool groups partition the catalog into the sections shown in the permissions UI
-// (flow-building vs FlowFuse platform). Each group carries its own read/write/delete
+// (flow-building vs FlowFuse platform). Each group carries its own read/write/destructive
 // class defaults, so a team can, say, auto-allow flow-building reads while still being
 // asked for every platform action.
 export const TOOL_GROUPS = { FLOW_BUILDING: 'flow-building', PLATFORM: 'platform' }
@@ -47,7 +47,7 @@ const eventsRegistry = {
         propertyValue: true
     },
     'editor:close': {
-        nodeRedEvent: 'testing stuff matey',
+        nodeRedEvent: 'editor:close',
         propertyBag: 'editorState',
         propertyName: 'editorOpen',
         propertyValue: false
@@ -174,6 +174,9 @@ function buildInitialEditorState () {
 export const useProductAssistantStore = defineStore('product-assistant', {
     state: () => ({
         version: null,
+        // Bumped on every handled 'assistant-ready', even when the version string is
+        // unchanged, so a caller can tell a fresh signal from a stale leftover version.
+        readyGeneration: 0,
         supportedActions: {},
         assistantFeatures: {},
         palette: {},
@@ -324,16 +327,22 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             return state.editorState?.flowsLoaded || state.editorState?.runtimeState?.state === 'start'
         },
         // --- Expert tool permissions (HITL, #421) ---
-        /** The current team's saved class defaults ({ read, write, delete }) for a group. */
+        /** The current team's saved class defaults ({ read, write, destructive }) for a group. */
         teamGroupDefaults: (state) => (group) => {
             const teamDefaults = state.toolDefaultsByTeam[currentTeamId()] || {}
-            return { ...defaultToolDefaults(), ...(teamDefaults[group] || {}) }
+            const { delete: legacyDelete, ...saved } = teamDefaults[group] || {}
+            // A browser that saved its 'delete' default before the destructive rename still
+            // has it under that key in localStorage - carry it over to the new key once.
+            const migrated = saved.destructive === undefined && legacyDelete !== undefined
+                ? { ...saved, destructive: legacyDelete }
+                : saved
+            return { ...defaultToolDefaults(), ...migrated }
         },
         /** The current team's saved per-tool preferences ({ [key]: policy }). */
         teamToolPreferences: (state) => {
             return state.toolPreferencesByTeam[currentTeamId()] || {}
         },
-        /** The standing default for a tool class ('read'|'write'|'delete') within a group. */
+        /** The standing default for a tool class ('read'|'write'|'destructive') within a group. */
         defaultForToolClass () {
             return (cls, group = TOOL_GROUPS.FLOW_BUILDING) => {
                 const d = this.teamGroupDefaults(group)[cls]
@@ -434,6 +443,7 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             switch (true) {
             case payload.data.type === 'assistant-ready':
                 this.version = payload.data.version
+                this.readyGeneration++
                 this.palette = payload.data.palette ?? {}
                 this.assistantFeatures = payload.data.features
                 this.nodeRedVersion = payload.data.nodeRedVersion
@@ -789,10 +799,18 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             })
         }
     },
-    // Only the user's saved per-team HITL choices persist across sessions; the
-    // catalog/hash, session grants, and all editor/session state are re-derived.
-    persist: {
-        pick: ['toolDefaultsByTeam', 'toolPreferencesByTeam'],
-        storage: localStorage
-    }
+    persist: [
+        // Only the user's saved per-team HITL choices persist across sessions; the
+        // catalog/hash, session grants, and all editor/session state are re-derived.
+        {
+            pick: ['toolDefaultsByTeam', 'toolPreferencesByTeam'],
+            storage: localStorage
+        },
+        // Resolved approval outcomes are chat-scoped: they survive a refresh so an answered
+        // card keeps its outcome instead of offering Allow/Deny again (#8527).
+        {
+            pick: ['toolApprovalStatuses'],
+            storage: sessionStorage
+        }
+    ]
 })

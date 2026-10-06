@@ -29,7 +29,7 @@
                     <template #header>Bill Of Materials not available!</template>
                     <template #message>
                         <p>
-                            This feature isn’t supported for your team tier or platform settings. Explore upgrade options to enable it.
+                            This feature isn't supported for your team tier or platform settings. Explore upgrade options to enable it.
                         </p>
                     </template>
                 </EmptyState>

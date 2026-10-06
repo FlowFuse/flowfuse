@@ -42,6 +42,15 @@ interface MqttNormalizedPublishProperties {
     userProperties?: Record<string, string | string[]>
 }
 
+// How long a connection has to hold before we call it healthy and clear the backoff.
+// A link that connects and then drops seconds later would otherwise reset the attempt
+// counter on every cycle and reconnect in a hot loop instead of backing off.
+const STABLE_CONNECTION_MS = 30000
+
+// How long to wait for the broker to close the socket after a clean DISCONNECT
+// before closing it ourselves.
+const CLEAN_DISCONNECT_TIMEOUT_MS = 1000
+
 class MqttService extends BaseService implements MqttServiceI {
     protected $mqtt: MqttModule | null
 
@@ -169,10 +178,13 @@ class MqttService extends BaseService implements MqttServiceI {
     }
 
     private _buildObserver (options: Partial<MqttConnectionOptions>): ManagedMqttObserver {
-        const { onConnect, onClose, onOffline, onError, onMessage } = options
+        // Only the handlers listed here reach an observer. MqttConnectionHandlers declares
+        // more, and _dispatch fires some of them ('end', 'reconnect'), so any missing here
+        // are silently dropped rather than rejected. Add to both sides when one is needed.
+        const { onConnect, onClose, onDisconnect, onOffline, onError, onMessage } = options
         return {
             id: this.$observerSeq++,
-            handlers: { onConnect, onClose, onOffline, onError, onMessage }
+            handlers: { onConnect, onClose, onDisconnect, onOffline, onError, onMessage }
         }
     }
 
@@ -183,10 +195,25 @@ class MqttService extends BaseService implements MqttServiceI {
     ): void {
         for (const observer of managed.observers) {
             const handler = observer.handlers[event]
-            if (handler) {
-                ;(handler as (...a: unknown[]) => void)(...args)
+            if (!handler) continue
+
+            // Handlers are often async and nothing awaits them here, so a rejection would
+            // otherwise escape as an unhandled rejection. Most come from a client being
+            // torn down with packets still in flight, which is expected on a reconnect.
+            try {
+                const result = (handler as (...a: unknown[]) => unknown)(...args)
+                if (result instanceof Promise) {
+                    result.catch((error) => this._reportHandlerFailure(managed, event, error))
+                }
+            } catch (error) {
+                this._reportHandlerFailure(managed, event, error)
             }
         }
+    }
+
+    private _reportHandlerFailure (managed: ManagedMqttClient, event: string, error: unknown): void {
+        if (this._isIgnorableClientCloseError(error)) return
+        console.warn(`MQTT connection "${managed.key}" ${event} handler failed:`, error)
     }
 
     private async _createAndConnect (
@@ -215,6 +242,7 @@ class MqttService extends BaseService implements MqttServiceI {
             }),
             reconnectAttempt: 0,
             reconnectGeneration: 0,
+            connectedAt: null,
             reconnectTimer: null,
             subscriptions: new Map(),
             observers: new Set([observer]),
@@ -540,11 +568,14 @@ class MqttService extends BaseService implements MqttServiceI {
             protocolVersion: 5,
             keepalive: 45,
             ...(credentials.will && {
+                clean: false,
+                properties: { sessionExpiryInterval: 20 },
                 will: {
                     topic: credentials.will.topic,
                     payload: credentials.will.payload,
                     qos: 1,
-                    retain: false
+                    retain: false,
+                    properties: { willDelayInterval: 15 }
                 }
             })
         })
@@ -571,7 +602,7 @@ class MqttService extends BaseService implements MqttServiceI {
 
         register('connect', (connack: IConnackPacket) => {
             managed.status = 'connected'
-            managed.reconnectAttempt = 0
+            managed.connectedAt = Date.now()
             managed.terminalFailure = false
             managed.lastError = null
             this.clearReconnectTimer(managed)
@@ -652,6 +683,14 @@ class MqttService extends BaseService implements MqttServiceI {
         ) {
             return
         }
+
+        // Only a connection that held for a while counts as healthy. Clearing the
+        // counter on every connect lets a flapping link retry at the initial delay
+        // indefinitely rather than backing off.
+        if (managed.connectedAt !== null && Date.now() - managed.connectedAt >= STABLE_CONNECTION_MS) {
+            managed.reconnectAttempt = 0
+        }
+        managed.connectedAt = null
 
         const attempt = managed.reconnectAttempt
         const delay = Math.min(
@@ -819,6 +858,7 @@ class MqttService extends BaseService implements MqttServiceI {
         if (managed.client) {
             const client = managed.client
             managed.client = null
+            await this._disconnectCleanly(client)
             try {
                 await this.endMqttClient(client, true)
             } catch {
@@ -828,6 +868,35 @@ class MqttService extends BaseService implements MqttServiceI {
         }
 
         this.$clients.delete(clientKey)
+    }
+
+    /**
+     * Sends DISCONNECT and waits for the broker to close the socket, so the broker
+     * drops the last will instead of publishing it. client.end(false) is not enough:
+     * mqtt.js closes the WebSocket a few ms after the DISCONNECT and EMQX often handles
+     * the close first, treating it as a crash. mqtt.js has no public way to send
+     * DISCONNECT without closing the socket, hence the private _sendPacket.
+     */
+    private _disconnectCleanly (client: MqttClient): Promise<void> {
+        const sendPacket = (client as unknown as { _sendPacket?: (packet: IDisconnectPacket, cb?: () => void) => void })._sendPacket
+        if (!client.connected || typeof sendPacket !== 'function') {
+            return Promise.resolve()
+        }
+
+        return new Promise<void>((resolve) => {
+            const done = () => {
+                clearTimeout(timer)
+                client.off('close', done)
+                resolve()
+            }
+            const timer = setTimeout(done, CLEAN_DISCONNECT_TIMEOUT_MS)
+            client.once('close', done)
+            try {
+                sendPacket.call(client, { cmd: 'disconnect', reasonCode: 0, properties: { sessionExpiryInterval: 0 } })
+            } catch {
+                done()
+            }
+        })
     }
 
     private _killStaleClient (client: MqttClient) {

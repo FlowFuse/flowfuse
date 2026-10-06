@@ -15,7 +15,9 @@
             </ff-button>
         </template>
         <template #context-menu="{row}">
-            <ff-kebab-item data-action="edit-token" label="Edit" @click="editToken(row)" />
+            <!-- Auto-renewing (MCP OAuth) tokens are managed by revoke and re-consent only:
+                 the edit dialog writes expiresAt but not the grant's real lifetime -->
+            <ff-kebab-item v-if="!row.autoRenews" data-action="edit-token" label="Edit" @click="editToken(row)" />
             <ff-kebab-item data-action="delete-token" label="Delete" @click="deleteToken(row)" />
         </template>
         <template v-if="tokens.length === 0" #table>
@@ -42,6 +44,21 @@ import TokenDialog from './dialogs/TokenDialog.vue'
 
 import { pluralize } from '@/composables/strings/String.js'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+
+const GROUPS = [
+    { key: 'platform', label: 'Platform' },
+    { key: 'flow_building', label: 'Flow Building' }
+]
+
+function levelOf (categories) {
+    if (categories?.destructive) {
+        return 'read + write + destructive'
+    }
+    if (categories?.write) {
+        return 'read + write'
+    }
+    return categories?.read ? 'read only' : 'none'
+}
 
 export default {
     name: 'PersonalAccessTokens',
@@ -97,8 +114,35 @@ export default {
                     component: {
                         is: markRaw({
                             name: 'ReadOnlyCell',
-                            props: ['readOnly'],
-                            template: '<span v-if="readOnly" class="ff-badge ff-badge--info">Read Only</span><span v-else></span>'
+                            props: ['readOnly', 'toolPermissions'],
+                            template: `
+                                <span v-if="toolPermissions" class="ff-badge ff-badge--info" v-ff-tooltip="tooltip" style="cursor:help">{{ summary }}</span>
+                                <span v-else-if="readOnly" class="ff-badge ff-badge--info">Read Only</span>
+                                <span v-else></span>
+                            `,
+                            computed: {
+                                permissionSets () {
+                                    return [this.toolPermissions.default, ...Object.values(this.toolPermissions.teams || {})]
+                                },
+                                summary () {
+                                    const levels = new Set(this.permissionSets.flatMap(set => GROUPS.map(({ key }) => levelOf(set[key]))))
+                                    if (levels.size === 1 && levels.has('read only')) {
+                                        return 'Read only'
+                                    }
+                                    if (levels.size === 1 && levels.has('read + write')) {
+                                        return 'Read + write'
+                                    }
+                                    return 'Custom'
+                                },
+                                tooltip () {
+                                    const defaults = GROUPS.map(({ key, label }) => `${label}: ${levelOf(this.toolPermissions.default[key])}`).join(', ')
+                                    const overrides = Object.keys(this.toolPermissions.teams || {}).length
+                                    if (overrides === 0) {
+                                        return defaults
+                                    }
+                                    return `${defaults}. ${overrides} ${pluralize('team', overrides)} with custom permissions`
+                                }
+                            }
                         })
                     }
                 },

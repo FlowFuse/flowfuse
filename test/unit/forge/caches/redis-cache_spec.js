@@ -22,7 +22,8 @@ describe('Redis Cache', function () {
             hDel: sinon.stub().resolves(),
             hKeys: sinon.stub(),
             hGetAll: sinon.stub(),
-            hpExpire: sinon.stub().resolves()
+            hpExpire: sinon.stub().resolves(),
+            hScan: sinon.stub()
         }
         createClientStub = sinon.stub(redisClient, 'createClient').returns(fakeClient)
         delete require.cache[require.resolve(REDIS_CACHE_PATH)]
@@ -134,6 +135,13 @@ describe('Redis Cache', function () {
             const fetched = redisCache.getCache('c1')
             fetched.should.equal(created)
         })
+
+        it('passes updateAgeOnGet through to the cache', function () {
+            const cache = redisCache.createCache('aged', { ttl: 5000, updateAgeOnGet: true })
+            cache.updateAgeOnGet.should.be.true()
+            const plain = redisCache.createCache('plain')
+            plain.updateAgeOnGet.should.be.false()
+        })
     })
 
     describe('Cache operations', function () {
@@ -172,6 +180,130 @@ describe('Redis Cache', function () {
 
                 fakeClient.hGet.resolves(JSON.stringify([1, 'two', { three: 3 }]))
                 ;(await cache.get('k')).should.deepEqual([1, 'two', { three: 3 }])
+            })
+
+            it('round-trips falsy values', async function () {
+                fakeClient.hGet.resolves(JSON.stringify(0))
+                ;(await cache.get('k')).should.equal(0)
+
+                fakeClient.hGet.resolves(JSON.stringify(false))
+                ;(await cache.get('k')).should.equal(false)
+
+                fakeClient.hGet.resolves(JSON.stringify(''))
+                ;(await cache.get('k')).should.equal('')
+            })
+
+            it('does not refresh the TTL when updateAgeOnGet is not set', async function () {
+                const ttlCache = redisCache.createCache('ttlonly', { ttl: 5000 })
+                fakeClient.hGet.resolves(JSON.stringify('v'))
+                await ttlCache.get('k')
+                fakeClient.hpExpire.called.should.be.false()
+            })
+        })
+
+        describe('get with updateAgeOnGet', function () {
+            let agedCache
+
+            beforeEach(function () {
+                agedCache = redisCache.createCache('aged', { ttl: 5000, updateAgeOnGet: true })
+            })
+
+            it('uses hGetEx to get and refresh in one call when available', async function () {
+                fakeClient.hGetEx = sinon.stub().resolves([JSON.stringify('v')])
+                const val = await agedCache.get('k')
+                val.should.equal('v')
+                fakeClient.hGetEx.calledOnceWith('aged', 'k', { expiration: { type: 'PX', value: 5000 } }).should.be.true()
+                fakeClient.hGet.called.should.be.false()
+                fakeClient.hpExpire.called.should.be.false()
+            })
+
+            it('returns undefined via hGetEx when the key is missing', async function () {
+                fakeClient.hGetEx = sinon.stub().resolves([null])
+                should(await agedCache.get('missing')).be.undefined()
+            })
+
+            it('falls back to hGet + hpExpire when the client has no hGetEx', async function () {
+                fakeClient.hGet.resolves(JSON.stringify('v'))
+                const val = await agedCache.get('k')
+                val.should.equal('v')
+                fakeClient.hGet.calledOnceWith('aged', 'k').should.be.true()
+                fakeClient.hpExpire.calledOnce.should.be.true()
+            })
+
+            it('does not call hpExpire in the fallback when the key is missing', async function () {
+                fakeClient.hGet.resolves(null)
+                should(await agedCache.get('missing')).be.undefined()
+                fakeClient.hpExpire.called.should.be.false()
+            })
+
+            it('falls back permanently when the server rejects HGETEX as an unknown command', async function () {
+                fakeClient.hGetEx = sinon.stub().rejects(new Error("ERR unknown command 'HGETEX'"))
+                fakeClient.hGet.resolves(JSON.stringify('v'))
+
+                ;(await agedCache.get('k')).should.equal('v')
+                fakeClient.hGetEx.calledOnce.should.be.true()
+                fakeClient.hGet.calledOnce.should.be.true()
+                fakeClient.hpExpire.calledOnce.should.be.true()
+
+                // second get skips hGetEx entirely
+                ;(await agedCache.get('k')).should.equal('v')
+                fakeClient.hGetEx.calledOnce.should.be.true()
+                fakeClient.hGet.calledTwice.should.be.true()
+            })
+
+            it('propagates hGetEx errors that are not unknown-command', async function () {
+                fakeClient.hGetEx = sinon.stub().rejects(new Error('connection lost'))
+                await agedCache.get('k').should.be.rejectedWith(/connection lost/)
+                fakeClient.hGet.called.should.be.false()
+            })
+
+            it('does not refresh when the cache has no ttl', async function () {
+                const noTtlCache = redisCache.createCache('agedNoTtl', { updateAgeOnGet: true })
+                fakeClient.hGetEx = sinon.stub()
+                fakeClient.hGet.resolves(JSON.stringify('v'))
+                ;(await noTtlCache.get('k')).should.equal('v')
+                fakeClient.hGetEx.called.should.be.false()
+                fakeClient.hpExpire.called.should.be.false()
+            })
+        })
+
+        describe('scan', function () {
+            it('passes the pattern to hScan and returns the matching fields', async function () {
+                fakeClient.hScan.resolves({
+                    cursor: '0',
+                    entries: [
+                        { field: 'response:aaa', value: JSON.stringify(1) },
+                        { field: 'response:bbb', value: JSON.stringify(2) }
+                    ]
+                })
+                const keys = await cache.scan('response:*')
+                keys.should.deepEqual(['response:aaa', 'response:bbb'])
+                fakeClient.hScan.calledOnceWith('mycache', '0', { MATCH: 'response:*', COUNT: 100 }).should.be.true()
+            })
+
+            it('iterates the cursor until it returns to 0 and dedupes fields', async function () {
+                fakeClient.hScan.onFirstCall().resolves({
+                    cursor: '17',
+                    entries: [{ field: 'a', value: '1' }, { field: 'b', value: '2' }]
+                })
+                fakeClient.hScan.onSecondCall().resolves({
+                    cursor: '0',
+                    entries: [{ field: 'b', value: '2' }, { field: 'c', value: '3' }]
+                })
+                const keys = await cache.scan('*')
+                keys.should.deepEqual(['a', 'b', 'c'])
+                fakeClient.hScan.calledTwice.should.be.true()
+                fakeClient.hScan.secondCall.args[1].should.equal('17')
+            })
+
+            it('returns an empty array when nothing matches', async function () {
+                fakeClient.hScan.resolves({ cursor: '0', entries: [] })
+                ;(await cache.scan('nomatch:*')).should.deepEqual([])
+            })
+
+            it('rejects a non-string pattern', async function () {
+                await cache.scan(1).should.be.rejectedWith(/Cache scan pattern must be a string/)
+                fakeClient.hScan.called.should.be.false()
             })
         })
 

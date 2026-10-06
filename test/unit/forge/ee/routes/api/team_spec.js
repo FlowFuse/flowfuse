@@ -63,6 +63,58 @@ describe('Team API - with billing enabled', function () {
         sandbox.restore()
     })
 
+    describe('Create Team - trial mode', function () {
+        beforeEach(async function () {
+            const teamTypeProperties = app.defaultTeamType.properties
+            teamTypeProperties.trial = { active: true, duration: 5, sendEmail: false }
+            app.defaultTeamType.properties = teamTypeProperties
+            await app.defaultTeamType.save()
+            await app.settings.set('team:create', true)
+
+            await app.factory.createUser({
+                admin: false,
+                username: 'dave',
+                name: 'Dave Vader',
+                email: 'dave@example.com',
+                password: 'ddPassword'
+            })
+            await login('dave', 'ddPassword')
+        })
+
+        async function createTrialTeam () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/teams',
+                cookies: { sid: TestObjects.tokens.dave },
+                payload: { name: 'daves team', slug: 'daves-team', type: app.defaultTeamType.hashid, trial: true }
+            })
+            response.statusCode.should.equal(200)
+            return app.db.models.Team.bySlug('daves-team')
+        }
+
+        it('auto-creates a default application and instance when the instanceType setting is on', async function () {
+            await app.settings.set('user:team:auto-create:instanceType', app.projectType.hashid)
+            const team = await createTrialTeam()
+
+            const applications = await app.db.models.Application.byTeam(team.id)
+            applications.should.have.length(1)
+            applications[0].should.have.property('name', "Dave Vader's Application")
+
+            const instances = await app.db.models.Project.byTeam(team.hashid)
+            instances.should.have.length(1)
+            instances[0].name.should.match(/^daves-team-dave-[0-9a-f]{8}$/)
+        })
+
+        it('does not auto-create anything when the instanceType setting is off', async function () {
+            const team = await createTrialTeam()
+
+            const applications = await app.db.models.Application.byTeam(team.id)
+            applications.should.have.length(0)
+            const instances = await app.db.models.Project.byTeam(team.hashid)
+            instances.should.have.length(0)
+        })
+    })
+
     describe('Delete Team', function () {
         it('Delete team with expired trial and projects', async function () {
             const subscription = await app.team.getSubscription()

@@ -11,7 +11,18 @@ export function connectionKey (teamId: string): string {
     return `team:${teamId}`
 }
 
-type SubscriberPayload = { reason?: string, id?: string, meta?: { state?: string } }
+/**
+ * Whatever JSON.parse produced from the message body. The named fields are what current
+ * routes happen to read, not a closed set - the index signature says so, and is
+ * load-bearing: without it this is a weak type and TS rejects any handler sharing none of
+ * those names. Values are `unknown` so a route has to check for a shape, not assert it.
+ */
+export type SubscriberPayload = {
+    reason?: string
+    id?: string
+    meta?: { state?: string }
+    [key: string]: unknown
+}
 
 export interface SubscriberRoute {
     pattern: RegExp

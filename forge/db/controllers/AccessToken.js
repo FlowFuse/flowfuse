@@ -1,10 +1,17 @@
 const { Op } = require('sequelize')
 
-const { generateToken, generateNumericToken, sha256, randomPhrase } = require('../utils')
+const mcpToolPermissions = require('../../lib/mcpToolPermissions')
+const { generateToken, generateNumericToken, sha256, randomPhrase, DEFAULT_TOKEN_SESSION_EXPIRY, DEFAULT_REFRESH_TOKEN_EXPIRY } = require('../utils')
 
-const DEFAULT_TOKEN_SESSION_EXPIRY = 1000 * 60 * 30 // 30 mins session - with refresh token support
+// A rotated-out refresh token is honoured within this window, treated as a replay after it.
+const MCP_REFRESH_TOKEN_GRACE = 1000 * 60 // 60 seconds
 
 const DEFAULT_DEVICE_OTC_EXPIRY = 1000 * 60 * 60 * 24 // 24 hours
+
+// Cap a proposed expiry (ms) so an MCP grant never outlives its consent-chosen end date
+function capToGrant (timestamp, grantExpiresAtMs) {
+    return grantExpiresAtMs ? Math.min(timestamp, grantExpiresAtMs) : timestamp
+}
 
 /*
  * fft - project
@@ -265,6 +272,56 @@ module.exports = {
         await app.settings.set('platform:stats:token', false)
     },
 
+    createMCPOAuthToken: async function (app, userId, { teamIds = [], grantExpiresAt = null, toolPermissions } = {}) {
+        const token = generateToken(32, 'ffpat')
+        const refreshToken = generateToken(32, 'ffpat')
+        const expiresAt = capToGrant(Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY, grantExpiresAt)
+        const refreshTokenExpiresAt = capToGrant(Date.now() + DEFAULT_REFRESH_TOKEN_EXPIRY, grantExpiresAt)
+
+        const derivedReadOnly = mcpToolPermissions.deriveReadOnly(toolPermissions)
+
+        await app.db.sequelize.transaction(async (t) => {
+            const tok = await app.db.models.AccessToken.create({
+                name: 'MCP Agent',
+                token,
+                refreshToken,
+                scope: '',
+                expiresAt,
+                refreshTokenExpiresAt,
+                grantExpiresAt,
+                readOnly: derivedReadOnly,
+                adminOptIn: false,
+                ownerId: '' + userId,
+                ownerType: 'user'
+            }, { transaction: t })
+
+            if (teamIds.length > 0) {
+                const scopes = teamIds.map(teamId => ({
+                    AccessTokenId: tok.id,
+                    TeamId: app.db.models.Team.decodeHashid(teamId),
+                    UserId: userId
+                }))
+                await app.db.models.AccessTokenTeamScope.bulkCreate(scopes, { transaction: t })
+            }
+
+            const grant = await app.db.models.MCPGrant.create({
+                AccessTokenId: tok.id,
+                permissions: toolPermissions.default
+            }, { transaction: t })
+
+            const teamPermissions = Object.entries(toolPermissions.teams || {}).map(([teamHashid, permissions]) => ({
+                MCPGrantId: grant.id,
+                TeamId: app.db.models.Team.decodeHashid(teamHashid),
+                permissions
+            }))
+            if (teamPermissions.length > 0) {
+                await app.db.models.MCPGrantTeamPermission.bulkCreate(teamPermissions, { transaction: t })
+            }
+        })
+
+        return { token, expiresAt, refreshToken }
+    },
+
     createPersonalAccessToken: async function (app, user, scope, expiresAt, name, { readOnly = false, adminOptIn = false, teamIds = [] } = {}) {
         const userId = typeof user === 'number' ? user : user.id
         const token = generateToken(32, 'ffpat')
@@ -305,19 +362,20 @@ module.exports = {
         const userId = typeof user === 'number' ? user : user.id
         const token = await app.db.models.AccessToken.byId(tokenId, 'user', userId)
         if (token) {
+            const grant = await app.db.models.MCPGrant.findOne({ where: { AccessTokenId: token.id } })
             token.scope = scope
             if (expiresAt === undefined) {
                 token.expiresAt = null
             } else {
                 token.expiresAt = expiresAt
             }
-            if (readOnly !== undefined) {
+            // An MCP token's readOnly follows its grant
+            if (readOnly !== undefined && !grant) {
                 token.readOnly = readOnly
             }
             if (adminOptIn !== undefined) {
                 token.adminOptIn = adminOptIn
             }
-            await token.save()
             if (teamIds !== undefined) {
                 await app.db.sequelize.transaction(async (t) => {
                     await app.db.models.AccessTokenTeamScope.destroy({
@@ -331,14 +389,27 @@ module.exports = {
                             UserId: userId
                         }))
                         await app.db.models.AccessTokenTeamScope.bulkCreate(scopes, { transaction: t })
+                        if (grant) {
+                            await app.db.models.MCPGrantTeamPermission.destroy({
+                                where: {
+                                    MCPGrantId: grant.id,
+                                    TeamId: { [Op.notIn]: scopes.map(scope => scope.TeamId) }
+                                },
+                                transaction: t
+                            })
+                        }
                     }
                 })
             }
+            await token.save()
             const reloaded = await app.db.models.AccessToken.findOne({
                 where: { id: token.id },
                 include: [{
                     model: app.db.models.AccessTokenTeamScope,
                     include: [{ model: app.db.models.Team, attributes: ['id', 'name'] }]
+                }, {
+                    model: app.db.models.MCPGrant,
+                    include: [{ model: app.db.models.MCPGrantTeamPermission }]
                 }]
             })
             return reloaded
@@ -401,9 +472,11 @@ module.exports = {
     },
 
     refreshToken: async function (app, refreshToken) {
+        const [prefix] = refreshToken.split('_')
         const existingToken = await app.db.models.AccessToken.byRefreshToken(refreshToken)
-        if (existingToken) {
-            const [prefix] = refreshToken.split('_')
+
+        // Editor sessions have no refresh lifetime: rotate on each use, no replay handling.
+        if (existingToken && !existingToken.refreshTokenExpiresAt) {
             const tokenUpdates = {
                 token: generateToken(32, prefix),
                 refreshToken: generateToken(32, prefix),
@@ -412,7 +485,65 @@ module.exports = {
             await app.db.models.AccessToken.update(tokenUpdates, { where: { refreshToken: existingToken.refreshToken } })
             return tokenUpdates
         }
-        return null
+
+        if (existingToken) {
+            if (existingToken.refreshTokenExpiresAt.getTime() < Date.now()) {
+                await existingToken.destroy()
+                return null
+            }
+            const grantExpiresAtMs = existingToken.grantExpiresAt ? existingToken.grantExpiresAt.getTime() : null
+            const token = generateToken(32, prefix)
+            const newRefreshToken = generateToken(32, prefix)
+            const expiresAt = capToGrant(Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY, grantExpiresAtMs)
+            // Compare-and-swap: matches only while the token is current, so of two
+            // simultaneous refreshes exactly one rotates.
+            const [rotatedCount] = await app.db.models.AccessToken.update(
+                {
+                    token,
+                    expiresAt,
+                    refreshToken: newRefreshToken,
+                    refreshTokenExpiresAt: capToGrant(Date.now() + DEFAULT_REFRESH_TOKEN_EXPIRY, grantExpiresAtMs)
+                },
+                { where: { refreshToken: existingToken.refreshToken } }
+            )
+            if (rotatedCount > 0) {
+                await app.db.models.AccessTokenRefreshRotation.create({
+                    tokenHash: existingToken.refreshToken,
+                    rotatedAt: new Date(),
+                    AccessTokenId: existingToken.id
+                })
+                return { token, expiresAt, refreshToken: newRefreshToken }
+            }
+            // Lost the swap: the presented token is now rotated out, resolve it below.
+        }
+
+        const retired = await app.db.models.AccessToken.byRotatedRefreshToken(refreshToken)
+        if (!retired) {
+            return null
+        }
+        const grant = await app.db.models.AccessToken.findOne({ where: { id: retired.AccessTokenId } })
+        if (!grant) {
+            return null
+        }
+        if (Date.now() - retired.rotatedAt.getTime() <= MCP_REFRESH_TOKEN_GRACE) {
+            // Within grace: re-mint an access token but no refresh token, so the client
+            // keeps its current one (RFC 6749 section 6).
+            // Known limitation (accepted, single-client MCP): this overwrites the row's
+            // single token column, so a refresh racing a still-current token can leave the
+            // winner with a dead access token, and a client that only ever holds the
+            // retired token is revoked as a replay on its next cycle. Rare at current
+            // scale; revisit with a cached rotation pair if it becomes a real problem.
+            const grantExpiresAtMs = grant.grantExpiresAt ? grant.grantExpiresAt.getTime() : null
+            const token = generateToken(32, prefix)
+            const expiresAt = capToGrant(Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY, grantExpiresAtMs)
+            await app.db.models.AccessToken.update({ token, expiresAt }, { where: { id: grant.id } })
+            return { token, expiresAt }
+        }
+        // Replayed after grace: revoke the grant (RFC 9700 section 4.14.2).
+        const grantId = grant.id
+        const userId = parseInt(grant.ownerId)
+        await grant.destroy()
+        return { replay: true, grantId, userId }
     },
 
     /**
@@ -430,12 +561,22 @@ module.exports = {
             include: [{
                 model: app.db.models.AccessTokenTeamScope,
                 include: [{ model: app.db.models.Team, attributes: ['id', 'name'] }]
+            }, {
+                model: app.db.models.MCPGrant,
+                include: [{ model: app.db.models.MCPGrantTeamPermission }]
             }]
         })
         if (accessToken) {
             if (accessToken.expiresAt && accessToken.expiresAt.getTime() < Date.now()) {
-                await accessToken.destroy()
-                accessToken = null
+                const refreshTokenValid = accessToken.refreshTokenExpiresAt && accessToken.refreshTokenExpiresAt.getTime() > Date.now()
+                if (refreshTokenValid) {
+                    // Refresh token still valid: reject the access token but keep the
+                    // row so the client can refresh (RFC 6749 §1.5).
+                    accessToken = null
+                } else {
+                    await accessToken.destroy()
+                    accessToken = null
+                }
             }
         }
         return accessToken

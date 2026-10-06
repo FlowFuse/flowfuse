@@ -5,12 +5,47 @@ const { URL } = require('url')
 const { KEY_PROTECTED } = require('../../db/models/ProjectSettings')
 
 const { base64URLEncode, sha256, URLEncode } = require('../../db/utils')
+const mcpToolPermissions = require('../../lib/mcpToolPermissions')
 
 function badRequest (reply, error, description) {
     // This format is defined by the OAuth standard - do not change
     reply.code(400).send({
         error,
         description
+    })
+}
+
+// Per-caller cap on the refresh grant, throttling probes with guessed tokens.
+const MCP_REFRESH_RATE_WINDOW = 1000 * 60 // 60 seconds
+const MCP_REFRESH_RATE_MAX = 30
+
+// A loopback redirect_uri may vary its port between registration and use
+// (RFC 8252 Section 7.3); localhost and 127.0.0.1 are interchangeable.
+function isLoopbackHost (hostname) {
+    return hostname === 'localhost' || hostname === '127.0.0.1'
+}
+
+function redirectUriMatches (registeredURIs, requested) {
+    if (registeredURIs.includes(requested)) {
+        return true
+    }
+    let req
+    try {
+        req = new URL(requested)
+    } catch (err) {
+        return false
+    }
+    if (!isLoopbackHost(req.hostname)) {
+        return false
+    }
+    return registeredURIs.some((uri) => {
+        let reg
+        try {
+            reg = new URL(uri)
+        } catch (err) {
+            return false
+        }
+        return isLoopbackHost(reg.hostname) && reg.protocol === req.protocol && reg.pathname === req.pathname
     })
 }
 
@@ -59,7 +94,7 @@ module.exports = async function (app) {
                     code_challenge_method: { type: 'string' }
                 },
                 // client_id and redirect_uri are handled manually
-                required: ['response_type', 'scope', 'code_challenge', 'code_challenge_method']
+                required: ['response_type', 'code_challenge', 'code_challenge_method']
             }
         },
         attachValidation: true
@@ -88,31 +123,40 @@ module.exports = async function (app) {
         } catch (err) {
             return badRequest(reply, 'invalid_request', 'Invalid redirect_uri')
         }
-        if (client_id !== 'ff-plugin') {
-            // Check client_id is valid. Note - no client_secret provided at this point
-            const authClient = await app.db.controllers.AuthClient.getAuthClient(client_id)
-            if (!authClient) {
-                return badRequest(reply, 'invalid_request', 'Invalid client_id')
-            }
-            // Ensure redirect_uri path component is correct
-            if (
-                // HTTP Auth callback
-                !/\/_ffAuth\/callback$/.test(redirectURI.pathname) &&
-                // Admin Auth callback
-                !/\/auth\/strategy\/callback$/.test(redirectURI.pathname)
-            ) {
-                return badRequest(reply, 'invalid_request', 'Invalid redirect_uri')
-            }
-            if (!/^(editor($|-))|httpAuth-/.test(scope)) {
-                return redirectInvalidRequest(reply, redirect_uri, 'invalid_request', "Invalid scope '" + scope + "'. Only 'editor[-version]' is supported", state)
-            }
-        } else {
+        let isMCP = false
+        if (client_id === 'ff-plugin') {
             // Ensure redirect_uri path component is correct for the tools plugin
             if (!/\/(flow(fuse|forge)-nr-tools|nr-assistant)\/auth\/callback$/.test(redirectURI.pathname)) {
                 return badRequest(reply, 'invalid_request', 'Invalid redirect_uri')
             }
             if (scope !== 'ff-plugin' && scope !== 'ff-assistant') {
                 return redirectInvalidRequest(reply, redirect_uri, 'invalid_request', "Invalid scope '" + scope + "'", state)
+            }
+        } else {
+            const authClient = await app.db.controllers.AuthClient.getAuthClient(client_id)
+            if (!authClient) {
+                return badRequest(reply, 'invalid_request', 'Invalid client_id')
+            }
+            if (authClient.ownerType === 'mcp') {
+                // redirect_uri must match one approved at registration; scope is
+                // not validated here (chosen by the user on the consent page).
+                if (!redirectUriMatches(authClient.redirectURIs, redirect_uri)) {
+                    return badRequest(reply, 'invalid_request', 'Invalid redirect_uri')
+                }
+                isMCP = true
+            } else {
+                // Dynamic client (project/device editor auth): validate callback path
+                if (
+                    // HTTP Auth callback
+                    !/\/_ffAuth\/callback$/.test(redirectURI.pathname) &&
+                    // Admin Auth callback
+                    !/\/auth\/strategy\/callback$/.test(redirectURI.pathname)
+                ) {
+                    return badRequest(reply, 'invalid_request', 'Invalid redirect_uri')
+                }
+                if (!/^(editor($|-))|httpAuth-/.test(scope)) {
+                    return redirectInvalidRequest(reply, redirect_uri, 'invalid_request', "Invalid scope '" + scope + "'. Only 'editor[-version]' is supported", state)
+                }
             }
         }
         // If anything else missing, redirect with details
@@ -137,7 +181,8 @@ module.exports = async function (app) {
             redirect_uri,
             state,
             code_challenge,
-            code_challenge_method
+            code_challenge_method,
+            mcp: isMCP
         }
         const requestId = base64URLEncode(crypto.randomBytes(32))
         await requestCache.set(requestId, requestObject)
@@ -159,6 +204,10 @@ module.exports = async function (app) {
             reply.redirect(`${app.config.base_url}/account/request/${requestId}/editor`)
             return
         }
+        if (isMCP) {
+            reply.redirect(`${app.config.base_url}/account/request/${requestId}/mcp`)
+            return
+        }
         // Redirect to login page with requestId in url - to bounce to an approve page
         reply.redirect(`${app.config.base_url}/account/request/${requestId}`)
     })
@@ -176,8 +225,8 @@ module.exports = async function (app) {
         if (request.sid) {
             request.session = await app.db.controllers.Session.getOrExpire(request.sid)
             if (request.session) {
-                if (requestObject.client_id === 'ff-plugin') {
-                    // This is the FlowFuse Node-RED plugin.
+                if (requestObject.client_id === 'ff-plugin' || requestObject.mcp) {
+                    // FlowFuse Node-RED plugin or MCP agent: user-scoped, no resource ownership checks
                 } else {
                     const authClient = await app.db.controllers.AuthClient.getAuthClient(requestObject.client_id)
                     if (!authClient) {
@@ -267,6 +316,143 @@ module.exports = async function (app) {
         return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
     })
 
+    // RFC 7591: Dynamic Client Registration for MCP agents
+    app.post('/account/client', {
+        config: { allowAnonymous: true },
+        schema: {
+            tags: ['Authentication', 'X-HIDDEN'],
+            body: {
+                type: 'object',
+                properties: {
+                    redirect_uris: { type: 'array', items: { type: 'string' } },
+                    client_name: { type: 'string' },
+                    grant_types: { type: 'array', items: { type: 'string' } },
+                    response_types: { type: 'array', items: { type: 'string' } },
+                    token_endpoint_auth_method: { type: 'string' }
+                },
+                required: ['redirect_uris']
+            }
+        }
+    }, async function (request, reply) {
+        const { redirect_uris, client_name, grant_types, response_types } = request.body
+
+        if (!Array.isArray(redirect_uris) || redirect_uris.length === 0) {
+            return badRequest(reply, 'invalid_redirect_uri', 'At least one redirect_uri is required')
+        }
+        // A redirect_uri must be a loopback http address (local dev tools, RFC 8252
+        // Section 7.3) or an https address; anything else is rejected.
+        for (const uri of redirect_uris) {
+            let parsed
+            try {
+                parsed = new URL(uri)
+            } catch (err) {
+                return badRequest(reply, 'invalid_redirect_uri', `Invalid redirect_uri: ${uri}`)
+            }
+            const loopbackHttp = isLoopbackHost(parsed.hostname) && parsed.protocol === 'http:'
+            const secure = parsed.protocol === 'https:'
+            if (!loopbackHttp && !secure) {
+                return badRequest(reply, 'invalid_redirect_uri', 'redirect_uri must be a loopback http address or an https address')
+            }
+        }
+
+        const client = await app.db.controllers.AuthClient.createMCPClient({
+            name: client_name,
+            redirectURIs: redirect_uris
+        })
+
+        // MCP clients are public (PKCE, no secret), so no client_secret is issued.
+        reply.code(201).send({
+            client_id: client.clientID,
+            client_id_issued_at: Math.floor(client.createdAt.getTime() / 1000),
+            client_name: client.name,
+            redirect_uris,
+            grant_types: grant_types || ['authorization_code', 'refresh_token'],
+            response_types: response_types || ['code'],
+            token_endpoint_auth_method: 'none'
+        })
+    })
+
+    // MCP consent: save the user's access choices before they approve
+    app.put('/account/authorize/:id/consent', {
+        preHandler: (request, reply) => app.verifySession(request, reply),
+        schema: {
+            tags: ['Authentication', 'X-HIDDEN'],
+            params: {
+                type: 'object',
+                properties: {
+                    id: { type: 'string' }
+                },
+                required: ['id']
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    teamIds: { type: 'array', items: { type: 'string' } },
+                    expiresAt: { type: 'number' },
+                    toolPermissions: {
+                        type: 'object',
+                        properties: {
+                            default: mcpToolPermissions.TOOL_PERMISSIONS_SCHEMA,
+                            teams: {
+                                type: 'object',
+                                additionalProperties: mcpToolPermissions.TOOL_PERMISSIONS_SCHEMA
+                            }
+                        },
+                        required: ['default']
+                    }
+                },
+                required: ['toolPermissions']
+            }
+        }
+    }, async function (request, reply) {
+        const requestId = request.params.id
+        const { teamIds = [], expiresAt, toolPermissions } = request.body
+
+        const session = await app.db.models.OAuthSession.findOne({ where: { id: requestId } })
+        if (!session) {
+            return badRequest(reply, 'invalid_request', 'Invalid or expired request')
+        }
+        if (Date.now() - session.createdAt.getTime() >= 1000 * 60 * 5) {
+            await session.destroy()
+            return badRequest(reply, 'invalid_request', 'Request has expired')
+        }
+        const requestObject = session.value
+        if (!requestObject.mcp) {
+            return badRequest(reply, 'invalid_request', 'Invalid request')
+        }
+        // The grant must expire: in the future, at most one year out
+        const ONE_YEAR = 1000 * 60 * 60 * 24 * 365
+        if (!expiresAt || expiresAt <= Date.now() || expiresAt > Date.now() + ONE_YEAR) {
+            return badRequest(reply, 'invalid_request', 'Invalid expiresAt')
+        }
+
+        const overrideTeamIds = Object.keys(toolPermissions.teams || {})
+        for (const teamId of overrideTeamIds) {
+            const decodedId = app.db.models.Team.decodeHashid(teamId)
+            const membership = decodedId ? await app.db.models.TeamMember.findOne({ where: { UserId: request.session.User.id, TeamId: decodedId } }) : null
+            if (!membership) {
+                return badRequest(reply, 'invalid_request', `Not a member of team: ${teamId}`)
+            }
+            if (teamIds.length > 0 && !teamIds.includes(teamId)) {
+                return badRequest(reply, 'invalid_request', `Team override is not in teamIds: ${teamId}`)
+            }
+        }
+
+        const normalisedDefault = mcpToolPermissions.normalise(toolPermissions.default)
+        const normalisedTeams = {}
+        for (const teamId of overrideTeamIds) {
+            const normalisedOverride = mcpToolPermissions.normalise(toolPermissions.teams[teamId])
+            if (!mcpToolPermissions.equals(normalisedOverride, normalisedDefault)) {
+                normalisedTeams[teamId] = normalisedOverride
+            }
+        }
+
+        session.value = { ...requestObject, teamIds, expiresAt, toolPermissions: { default: normalisedDefault, teams: normalisedTeams } }
+        await session.save()
+
+        reply.send({ status: 'ok' })
+    })
+
     app.post('/account/token', {
         config: {
             rateLimit: false // never rate limit this route
@@ -342,7 +528,57 @@ module.exports = async function (app) {
                 return
             }
 
-            if (client_id !== 'ff-plugin') {
+            if (client_id === 'ff-plugin') {
+                const scope = {
+                    'ff-plugin': [
+                        'user:read',
+                        'user:team:list',
+                        'team:read',
+                        'team:projects:list',
+                        'project:read',
+                        'project:snapshot:list',
+                        'project:snapshot:create',
+                        'device:snapshot:list',
+                        'device:snapshot:create'
+                    ],
+                    'ff-assistant': [
+                        'user:read',
+                        'assistant:call'
+                    ]
+                }[requestObject.scope]
+                if (!scope) {
+                    return badRequest(reply, 'access_denied', 'Access Denied')
+                }
+                const accessToken = await app.db.controllers.AccessToken.createTokenForUser(requestObject.userId,
+                    null,
+                    scope,
+                    true
+                )
+                const response = {
+                    access_token: accessToken.token,
+                    expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000),
+                    refresh_token: accessToken.refreshToken,
+                    state: requestObject.state
+                }
+                reply.send(response)
+            } else if (requestObject.mcp) {
+                const accessToken = await app.db.controllers.AccessToken.createMCPOAuthToken(
+                    requestObject.userId,
+                    {
+                        teamIds: requestObject.teamIds || [],
+                        grantExpiresAt: requestObject.expiresAt || null,
+                        toolPermissions: requestObject.toolPermissions || mcpToolPermissions.fromReadOnly(requestObject.readOnly || false)
+                    }
+                )
+                const response = {
+                    access_token: accessToken.token,
+                    token_type: 'bearer',
+                    expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000),
+                    refresh_token: accessToken.refreshToken,
+                    state: requestObject.state
+                }
+                reply.send(response)
+            } else {
                 const authClient = await app.db.controllers.AuthClient.getAuthClient(client_id, client_secret)
                 if (!authClient) {
                     return badRequest(reply, 'invalid_request', 'Invalid client_id')
@@ -404,63 +640,53 @@ module.exports = async function (app) {
                     scope
                 }
                 reply.send(response)
-            } else {
-                const scope = {
-                    'ff-plugin': [
-                        'user:read',
-                        'user:team:list',
-                        'team:read',
-                        'team:projects:list',
-                        'project:read',
-                        'project:snapshot:list',
-                        'project:snapshot:create',
-                        'device:snapshot:list',
-                        'device:snapshot:create'
-                    ],
-                    'ff-assistant': [
-                        'user:read',
-                        'assistant:call'
-                    ]
-                }[requestObject.scope]
-                if (!scope) {
-                    return badRequest(reply, 'access_denied', 'Access Denied')
-                }
-                const accessToken = await app.db.controllers.AccessToken.createTokenForUser(requestObject.userId,
-                    null,
-                    scope,
-                    true
-                )
-                const response = {
-                    access_token: accessToken.token,
-                    expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000),
-                    refresh_token: accessToken.refreshToken,
-                    state: requestObject.state
-                }
-                reply.send(response)
             }
         } else if (grant_type === 'refresh_token') {
-            const existingToken = await app.db.models.AccessToken.byRefreshToken(refresh_token)
-            if (!existingToken) {
-                badRequest(reply, 'invalid_request', 'Invalid refresh_token')
-                return
+            if (!refresh_token) {
+                return badRequest(reply, 'invalid_request', 'Invalid refresh_token')
             }
+            let refreshAuthClient = null
             if (client_id !== 'ff-plugin') {
-                const authClient = await app.db.controllers.AuthClient.getAuthClient(client_id, client_secret)
-                if (!authClient) {
+                refreshAuthClient = await app.db.controllers.AuthClient.getAuthClient(client_id, client_secret)
+                if (!refreshAuthClient) {
                     return badRequest(reply, 'invalid_request', 'Invalid client_id')
                 }
-                // We have validated client_id and client_secret by this point.
-
+            }
+            if (refreshAuthClient?.ownerType === 'mcp') {
+                // Rate-limit only the MCP refresh grant: it owns the unindexed replay
+                // lookups this guards, and editor/device refreshes must not share its
+                // budget. Keyed per client and IP so one client can't starve another.
+                const rateKey = `${client_id}:${request.ip}`
+                const rateCache = app.caches?.getCache?.('mcp-refresh-rate', { ttl: MCP_REFRESH_RATE_WINDOW, max: 100000 })
+                const now = Date.now()
+                const rateEntry = await rateCache?.get(rateKey)
+                // The cache renews an entry's TTL on each set, so the window is anchored on windowStart.
+                const inWindow = rateEntry && now - rateEntry.windowStart < MCP_REFRESH_RATE_WINDOW
+                const rateCount = inWindow ? rateEntry.count : 0
+                if (rateCount >= MCP_REFRESH_RATE_MAX) {
+                    reply.code(429).send({ error: 'slow_down', description: 'Too many refresh attempts' })
+                    return
+                }
+                await rateCache?.set(rateKey, { windowStart: inWindow ? rateEntry.windowStart : now, count: rateCount + 1 })
+            }
+            if (refreshAuthClient && refreshAuthClient.ownerType !== 'mcp') {
+                // MCP tokens are resolved by refreshToken() below, which owns the grace
+                // window and replay detection; other clients re-check ownership here.
+                const existingToken = await app.db.models.AccessToken.byRefreshToken(refresh_token)
+                if (!existingToken) {
+                    badRequest(reply, 'invalid_grant', 'Invalid refresh_token')
+                    return
+                }
                 // Check the owner of the existing session still has access to the project
                 // this client is owned by
                 let owner = null
                 let applicationId
-                if (authClient.ownerType === 'project') {
-                    owner = await app.db.models.Project.byId(authClient.ownerId)
+                if (refreshAuthClient.ownerType === 'project') {
+                    owner = await app.db.models.Project.byId(refreshAuthClient.ownerId)
                     // Project.byId will include the full Application object
                     applicationId = owner?.Application.hashid
-                } else if (authClient.ownerType === 'device') {
-                    owner = await app.db.models.Device.byId(parseInt(authClient.ownerId))
+                } else if (refreshAuthClient.ownerType === 'device') {
+                    owner = await app.db.models.Device.byId(parseInt(refreshAuthClient.ownerId))
                     // Device.byId does not include the full Application object
                     if (owner?.ApplicationId) {
                         applicationId = app.db.models.Application.encodeHashid(owner.ApplicationId)
@@ -481,15 +707,26 @@ module.exports = async function (app) {
                 }
             }
             const accessToken = await app.db.controllers.AccessToken.refreshToken(refresh_token)
-            if (!accessToken) {
-                badRequest(reply, 'invalid_request', 'Invalid refresh_token')
+            if (!accessToken || accessToken.replay) {
+                if (accessToken?.replay) {
+                    await app.auditLog.User.account.mcpRefreshTokenReplay(accessToken.userId, null, {
+                        info: 'MCP refresh token replay detected; grant revoked',
+                        client: client_id,
+                        grant: accessToken.grantId
+                    })
+                }
+                badRequest(reply, 'invalid_grant', 'Invalid refresh_token')
                 return
             }
 
             const response = {
                 access_token: accessToken.token,
-                expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000),
-                refresh_token: accessToken.refreshToken
+                token_type: 'bearer',
+                expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000)
+            }
+            // A within-grace refresh omits refresh_token so the client keeps its current one.
+            if (accessToken.refreshToken) {
+                response.refresh_token = accessToken.refreshToken
             }
             reply.send(response)
         } else {

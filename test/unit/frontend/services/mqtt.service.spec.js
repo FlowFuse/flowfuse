@@ -716,6 +716,57 @@ describe('MqttService', async () => {
         expect(service.hasClient('destroy-key')).toBe(false)
     })
 
+    test('destroyClient sends a clean DISCONNECT and waits for the broker to close before ending', async () => {
+        const service = createMqttService({
+            app: {},
+            store: {},
+            router: {}
+        })
+
+        const client = createMockClient()
+        client.once = vi.fn((eventName, handler) => client.on(eventName, handler))
+        client._sendPacket = vi.fn()
+        service.$clients.set('clean-key', { key: 'clean-key', client, listeners: new Set(), destroyed: false })
+
+        const destroying = service.destroyClient('clean-key')
+
+        await vi.waitFor(() => {
+            expect(client._sendPacket).toHaveBeenCalledWith({ cmd: 'disconnect', reasonCode: 0, properties: { sessionExpiryInterval: 0 } })
+        })
+        expect(client.end).not.toHaveBeenCalled()
+
+        client.emit('close')
+        await destroying
+
+        expect(client.end).toHaveBeenCalledTimes(1)
+        expect(service.hasClient('clean-key')).toBe(false)
+    })
+
+    test('destroyClient ends the client anyway when the broker never closes after DISCONNECT', async () => {
+        vi.useFakeTimers()
+        try {
+            const service = createMqttService({
+                app: {},
+                store: {},
+                router: {}
+            })
+
+            const client = createMockClient()
+            client.once = vi.fn((eventName, handler) => client.on(eventName, handler))
+            client._sendPacket = vi.fn()
+            service.$clients.set('stuck-key', { key: 'stuck-key', client, listeners: new Set(), destroyed: false })
+
+            const destroying = service.destroyClient('stuck-key')
+            await vi.advanceTimersByTimeAsync(1000)
+            await destroying
+
+            expect(client._sendPacket).toHaveBeenCalledTimes(1)
+            expect(client.end).toHaveBeenCalledTimes(1)
+        } finally {
+            vi.useRealTimers()
+        }
+    })
+
     test('runClientOperation recovers from previous rejection and cleans tracked entry', async () => {
         const service = createMqttService({
             app: {},
@@ -1018,6 +1069,143 @@ describe('MqttService', async () => {
         test('requires a credential provider when creating a fresh connection', async () => {
             const service = createMqttService({ app: {}, services: {}, router: {} })
             await expect(service.attachClientObserver('team:team-1', {})).rejects.toThrow('requires a getCredentials callback')
+        })
+    })
+
+    describe('reconnect backoff on a flapping connection', () => {
+        const reconnect = { enabled: true, initialDelay: 1000, maxDelay: 30000, factor: 2 }
+
+        function credentialsProvider () {
+            return vi.fn().mockResolvedValue({
+                url: 'mqtt://example.com',
+                username: 'user',
+                password: 'pass'
+            })
+        }
+
+        test('keeps backing off when the connection drops before it is considered stable', async () => {
+            vi.useFakeTimers()
+
+            const service = createMqttService({ app: {}, store: {}, router: {} })
+            const clients = [createMockClient(), createMockClient(), createMockClient()]
+            clients.forEach(client => mockConnect.mockReturnValueOnce(client))
+            const getCredentials = credentialsProvider()
+
+            try {
+                await service.createClient('flapping', { getCredentials, reconnect })
+
+                // Hold well under the stability window, so the attempt counter must survive.
+                clients[0].emit('connect')
+                await vi.advanceTimersByTimeAsync(5000)
+                clients[0].connected = false
+                clients[0].emit('offline')
+
+                await vi.advanceTimersByTimeAsync(1000)
+                expect(getCredentials).toHaveBeenCalledTimes(2)
+
+                clients[1].emit('connect')
+                await vi.advanceTimersByTimeAsync(5000)
+                clients[1].connected = false
+                clients[1].emit('offline')
+
+                // Second attempt must wait 2000ms, not the initial 1000ms.
+                await vi.advanceTimersByTimeAsync(1000)
+                expect(getCredentials).toHaveBeenCalledTimes(2)
+
+                await vi.advanceTimersByTimeAsync(1000)
+                expect(getCredentials).toHaveBeenCalledTimes(3)
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
+        test('resets the backoff once a connection has held long enough', async () => {
+            vi.useFakeTimers()
+
+            const service = createMqttService({ app: {}, store: {}, router: {} })
+            const clients = [createMockClient(), createMockClient(), createMockClient()]
+            clients.forEach(client => mockConnect.mockReturnValueOnce(client))
+            const getCredentials = credentialsProvider()
+
+            try {
+                await service.createClient('stable', { getCredentials, reconnect })
+
+                clients[0].emit('connect')
+                await vi.advanceTimersByTimeAsync(5000)
+                clients[0].connected = false
+                clients[0].emit('offline')
+
+                await vi.advanceTimersByTimeAsync(1000)
+                expect(getCredentials).toHaveBeenCalledTimes(2)
+
+                // This one holds past the stability window, so the next drop starts over.
+                clients[1].emit('connect')
+                await vi.advanceTimersByTimeAsync(30000)
+                clients[1].connected = false
+                clients[1].emit('offline')
+
+                await vi.advanceTimersByTimeAsync(1000)
+                expect(getCredentials).toHaveBeenCalledTimes(3)
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+    })
+
+    describe('observer handler failures', () => {
+        function credentialsProvider () {
+            return vi.fn().mockResolvedValue({
+                url: 'mqtt://example.com',
+                username: 'user',
+                password: 'pass'
+            })
+        }
+
+        test('does not let a rejected async handler escape as an unhandled rejection', async () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            const service = createMqttService({ app: {}, store: {}, router: {} })
+            const client = createMockClient()
+            mockConnect.mockReturnValue(client)
+
+            try {
+                await service.createClient('handler-failure', {
+                    getCredentials: credentialsProvider(),
+                    onMessage: async () => {
+                        throw new Error('handler blew up')
+                    }
+                })
+
+                client.emit('message', 'topic/a', Buffer.from('x'), { cmd: 'publish' })
+                await vi.waitFor(() => expect(warn).toHaveBeenCalled())
+
+                expect(warn.mock.calls[0][0]).toContain('onMessage handler failed')
+            } finally {
+                warn.mockRestore()
+            }
+        })
+
+        test('stays quiet when a handler fails because the client was torn down', async () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            const service = createMqttService({ app: {}, store: {}, router: {} })
+            const client = createMockClient()
+            mockConnect.mockReturnValue(client)
+
+            try {
+                await service.createClient('handler-teardown', {
+                    getCredentials: credentialsProvider(),
+                    onMessage: async () => {
+                        throw new Error('Connection closed')
+                    }
+                })
+
+                client.emit('message', 'topic/a', Buffer.from('x'), { cmd: 'publish' })
+                await Promise.resolve()
+                await Promise.resolve()
+
+                expect(warn).not.toHaveBeenCalled()
+            } finally {
+                warn.mockRestore()
+            }
         })
     })
 })

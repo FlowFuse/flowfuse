@@ -6,6 +6,7 @@
             class="flex-1"
         />
         <template v-else-if="team">
+            <FeatureUnavailable v-if="remoteInstancesDisabled" fullMessage="Remote Instances are not available for your platform." :class="{'mt-0': displayingTeam }" />
             <FeatureUnavailableToTeam v-if="teamDeviceLimitReached" fullMessage="You have reached the limit for Remote Instances in this team." :class="{'mt-0': displayingTeam }" />
             <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the limit for Instances in this team." :class="{'mt-0': displayingTeam }" />
             <div class="devices-status-bars-container">
@@ -101,7 +102,7 @@
                         class="font-normal ff-btn-icon"
                         data-action="register-device"
                         kind="primary"
-                        :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
+                        :disabled="remoteInstancesDisabled || teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                         @click="showCreateDeviceDialog"
                     >
                         <template #icon-left>
@@ -140,6 +141,7 @@
                         @click="deviceAction('removeFromProject', row.id)"
                     />
                     <ff-kebab-item
+                        v-if="row.agentType !== 'lite'"
                         kind="danger"
                         label="Regenerate Configuration"
                         @click="deviceAction('updateCredentials', row.id)"
@@ -166,7 +168,7 @@
                             </p>
                             <p>
                                 To manage your  <a
-                                    class="ff-link" href="https://flowfuse.com/docs/user/devices"
+                                    class="ff-link" href="https://flowfuse.com/docs/device-agent"
                                     target="_blank"
                                 >FlowFuse Device Agent</a>, and can be used to deploy and debug
                                 instances anywhere, from here, in FlowFuse.
@@ -177,7 +179,7 @@
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
                                 class="font-normal ff-btn-icon"
                                 kind="primary"
-                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
+                                :disabled="remoteInstancesDisabled || teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                                 data-action="register-device"
                                 @click="showCreateDeviceDialog"
                             >
@@ -216,7 +218,7 @@
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
                                 class="font-normal ff-btn-icon"
                                 kind="primary"
-                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
+                                :disabled="remoteInstancesDisabled || teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                                 data-action="register-device"
                                 @click="showCreateDeviceDialog"
                             >
@@ -255,7 +257,7 @@
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
                                 class="font-normal ff-btn-icon"
                                 kind="primary"
-                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
+                                :disabled="remoteInstancesDisabled || teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                                 data-action="register-device"
                                 @click="showCreateDeviceDialog"
                             >
@@ -290,7 +292,7 @@
                 Describe your new Remote Instance here, e.g. "Raspberry Pi", "Allen-Bradley PLC", etc.
             </p>
             <p v-else>
-                Remote Instances are managed using the <a href="https://flowfuse.com/docs/user/devices/" target="_blank">FlowFuse Device Agent</a>. The agent will need to be setup on the hardware where you want your Remote Instance to run.
+                Remote Instances are managed using the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">FlowFuse Device Agent</a>. The agent will need to be setup on the hardware where you want your Remote Instance to run.
             </p>
         </template>
     </TeamDeviceCreateDialog>
@@ -402,7 +404,10 @@ import { debounce } from '../utils/eventHandling.js'
 import { createPollTimer } from '../utils/timers.js'
 
 import EmptyState from './EmptyState.vue'
+
+import FeatureUnavailable from './banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from './banners/FeatureUnavailableToTeam.vue'
+
 import DevicesStatusBar from './charts/DeviceStatusBar.vue'
 import AddDeviceToGroupDialog from './dialogs/device-group-management/AddDeviceToGroupDialog.vue'
 import RemoveDeviceFromGroupDialog from './dialogs/device-group-management/RemoveDeviceFromGroupDialog.vue'
@@ -427,6 +432,7 @@ export default {
         DeviceAssignInstanceDialog,
         DeviceCredentialsDialog,
         DropdownMenu,
+        FeatureUnavailable,
         FeatureUnavailableToTeam,
         PlusSmallIcon,
         SnapshotAssignDialog,
@@ -582,6 +588,9 @@ export default {
             const modeCount = (this.deviceModeFilters.fleetMode ? 1 : 0) + (this.deviceModeFilters.developerMode ? 1 : 0)
             return modeCount + this.selectedStatusGroups.length
         },
+        remoteInstancesDisabled () {
+            return !this.featuresCheck?.isRemoteInstanceFeatureEnabledForPlatform
+        },
         teamRuntimeLimitReached () {
             let teamTypeRuntimeLimit = getTeamProperty(this.team, 'runtimes.limit')
             // Uses this.teamDeviceCount as that tracks live updates made in the page
@@ -594,7 +603,7 @@ export default {
         },
         teamDeviceLimitReached () {
             const teamTypeDeviceLimit = getTeamProperty(this.team, 'devices.limit')
-            if (teamTypeDeviceLimit > 0 && this.teamDeviceCount >= teamTypeDeviceLimit) {
+            if (teamTypeDeviceLimit > -1 && this.teamDeviceCount >= teamTypeDeviceLimit) {
                 // Device specific limit has been reached
                 return true
             }
