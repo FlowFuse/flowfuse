@@ -116,11 +116,12 @@ describe('TeamHomeExpert', () => {
         expect(mocks.expertStore.openAssistantDrawer).not.toHaveBeenCalled()
     })
 
-    test('lands idle with the composer mounted', async () => {
+    test('lands idle: greeting, composer, no back control', async () => {
         mocks.expertStore.messages = []
         const wrapper = await mountPage()
 
         expect(wrapper.find('[data-el="expert-home"]').attributes('data-stage')).toBe('idle')
+        expect(wrapper.find('[data-el="greeting"]').exists()).toBe(true)
         expect(wrapper.find('[data-stub="expert-panel"]').exists()).toBe(true)
     })
 

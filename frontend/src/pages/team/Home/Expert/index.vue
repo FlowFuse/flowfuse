@@ -24,6 +24,10 @@
                 Back
             </button>
 
+            <div class="ff-expert-home__intro" data-el="expert-home-intro">
+                <HomeGreeting />
+            </div>
+
             <div v-if="canSwitchAgent" class="ff-expert-home__mode" data-el="expert-home-mode">
                 <ExpertModeSwitcher />
             </div>
@@ -68,6 +72,8 @@
 <script setup lang="ts">
 import { ChevronLeftIcon } from '@heroicons/vue/20/solid'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+
+import HomeGreeting from './components/HomeGreeting.vue'
 
 import ExpertPanel from '@/components/expert/Expert.vue'
 import ExpertModeSwitcher from '@/components/expert/components/ExpertModeSwitcher.vue'
@@ -209,12 +215,17 @@ $ff-column: 820px;
         width: 100%;
         max-width: $ff-column;
         opacity: 1;
-        transition: opacity 220ms ease;
+        transition: opacity 260ms ease;
 
         &.is-inert {
             opacity: 0.45;
             pointer-events: none;
         }
+    }
+
+    &.is-composing &__suggestions {
+        opacity: 0;
+        pointer-events: none;
     }
 
     &__resume {
@@ -257,6 +268,32 @@ $ff-column: 820px;
         margin-bottom: 10px;
         opacity: 1;
         pointer-events: auto;
+    }
+
+    &__intro {
+        flex: 0 0 auto;
+        display: grid;
+        grid-template-rows: 1fr;
+        transition: grid-template-rows $ff-expand $ff-ease, opacity 260ms ease;
+
+        > * {
+            min-height: 0;
+            overflow: hidden;
+            transition: padding-top $ff-expand $ff-ease;
+        }
+    }
+
+    &.is-composing &__intro {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    &.is-conversing &__intro {
+        grid-template-rows: 0fr;
+
+        > * {
+            padding-top: 0;
+        }
     }
 
     &__expert {
@@ -358,6 +395,9 @@ $ff-column: 820px;
     .ff-expert-home__back,
     .ff-expert-home__resume,
     .ff-expert-home__mode,
+    .ff-expert-home__intro,
+    .ff-expert-home__intro > *,
+    .ff-expert-home__suggestions,
     .ff-expert-home__expert,
     .ff-expert-home__expert :deep(.messages-container),
     .ff-expert-home__expert :deep(.action-buttons) {
