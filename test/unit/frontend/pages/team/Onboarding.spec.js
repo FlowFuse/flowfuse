@@ -158,9 +158,9 @@ describe('Onboarding page', () => {
         expect(routerReplace).not.toHaveBeenCalled()
     })
 
-    test('provides the onboarding surface variant to the expert components', async () => {
+    test('renders the full page panel on the onboarding surface', async () => {
         const wrapper = await mountPage()
-        expect(wrapper.vm.$options.provide.call(wrapper.vm)['expert-surface']).toBe('onboarding')
+        expect(wrapper.findComponent({ name: 'ExpertFullPage' }).props('surface')).toBe('onboarding')
     })
 
     describe('opening the conversation', () => {
