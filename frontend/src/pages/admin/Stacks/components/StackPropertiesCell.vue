@@ -2,7 +2,8 @@
     <div>
         <div v-for="(value, key) in settings.stacks.properties" :key="key">
             <div class="font-medium">{{ value.label }}</div>
-            <div class="pl-2">{{ properties[key] }}</div>
+            <div v-if="value === undefined" class="pl-2">{{ properties[key] }}</div>
+            <div v-else class="pl-2">-</div>
         </div>
     </div>
 </template>
