@@ -62,44 +62,60 @@
             <div class="ff-expert-home__spacer ff-expert-home__spacer--bottom" aria-hidden="true" />
 
             <div class="ff-expert-home__fold">
-                <div class="ff-expert-home__columns">
-                    <div class="ff-expert-home__col">
-                        <div
-                            class="ff-expert-home__suggestions"
-                            :class="{ 'is-inert': isComposerDisabled }"
-                            :aria-disabled="isComposerDisabled"
-                        >
-                            <PromptSuggestions :suggestions="suggestions" @select="onSuggestion" />
+                <div class="ff-expert-home__folded">
+                    <div class="ff-expert-home__columns">
+                        <div class="ff-expert-home__col">
+                            <div
+                                class="ff-expert-home__suggestions"
+                                :class="{ 'is-inert': isComposerDisabled }"
+                                :aria-disabled="isComposerDisabled"
+                            >
+                                <PromptSuggestions :suggestions="suggestions" @select="onSuggestion" />
+                            </div>
+                        </div>
+
+                        <div class="ff-expert-home__col">
+                            <div class="ff-expert-home__section">
+                                <div class="ff-expert-home__section-head">
+                                    <p class="ff-expert-home__label">
+                                        <ProjectsIcon class="ff-icon ff-icon-sm" />
+                                        Hosted Instances
+                                    </p>
+                                </div>
+                                <RecentlyModifiedInstances variant="compact" :total-instances="totalInstances" />
+                            </div>
+
+                            <div class="ff-expert-home__section">
+                                <div class="ff-expert-home__section-head">
+                                    <p class="ff-expert-home__label">
+                                        <CpuChipIcon class="ff-icon ff-icon-sm" />
+                                        Remote Instances
+                                    </p>
+                                </div>
+                                <RecentlyModifiedDevices
+                                    v-if="featuresCheck.isRemoteInstanceFeatureEnabledForPlatform"
+                                    variant="compact"
+                                    :total-devices="totalDevices"
+                                />
+                                <p v-else class="ff-expert-home__empty" data-el="remote-unavailable">
+                                    Remote Instances are not available to your team.
+                                </p>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="ff-expert-home__col">
-                        <div class="ff-expert-home__section">
-                            <div class="ff-expert-home__section-head">
+                    <div class="ff-expert-home__activity" data-el="overview-activity">
+                        <FfAccordion class="ff-expert-home__log" :set-open="false" @state-changed="onActivityToggled">
+                            <template #label>
                                 <p class="ff-expert-home__label">
-                                    <ProjectsIcon class="ff-icon ff-icon-sm" />
-                                    Hosted Instances
+                                    <CircleStackIcon class="ff-icon ff-icon-sm" />
+                                    Recent Activity
                                 </p>
-                            </div>
-                            <RecentlyModifiedInstances variant="compact" :total-instances="totalInstances" />
-                        </div>
-
-                        <div class="ff-expert-home__section">
-                            <div class="ff-expert-home__section-head">
-                                <p class="ff-expert-home__label">
-                                    <CpuChipIcon class="ff-icon ff-icon-sm" />
-                                    Remote Instances
-                                </p>
-                            </div>
-                            <RecentlyModifiedDevices
-                                v-if="featuresCheck.isRemoteInstanceFeatureEnabledForPlatform"
-                                variant="compact"
-                                :total-devices="totalDevices"
-                            />
-                            <p v-else class="ff-expert-home__empty" data-el="remote-unavailable">
-                                Remote Instances are not available to your team.
-                            </p>
-                        </div>
+                            </template>
+                            <template #content>
+                                <AuditLog :entries="logEntries" :loading="activityLoading" />
+                            </template>
+                        </FfAccordion>
                     </div>
                 </div>
             </div>
@@ -109,12 +125,14 @@
 
 <script setup lang="ts">
 import { ChevronLeftIcon } from '@heroicons/vue/20/solid'
-import { CpuChipIcon } from '@heroicons/vue/24/outline'
-import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
+import { CircleStackIcon, CpuChipIcon } from '@heroicons/vue/24/outline'
+import { type Ref, computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 
 import HomeGreeting from './components/HomeGreeting.vue'
 
 import TeamAPI from '@/api/team.js'
+import FfAccordion from '@/components/Accordion.vue'
+import AuditLog from '@/components/audit-log/AuditLog.vue'
 import ExpertPanel from '@/components/expert/Expert.vue'
 import ExpertModeSwitcher from '@/components/expert/components/ExpertModeSwitcher.vue'
 import PromptSuggestions from '@/components/expert/components/PromptSuggestions.vue'
@@ -122,11 +140,14 @@ import { pickSuggestions } from '@/components/expert/prompt-suggestions.js'
 import ProjectsIcon from '@/components/icons/Projects.js'
 import RecentlyModifiedDevices from '@/pages/team/Home/components/RecentlyModifiedDevices.vue'
 import RecentlyModifiedInstances from '@/pages/team/Home/components/RecentlyModifiedInstances.vue'
+import Alerts from '@/services/alerts.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { SUPPORT_AGENT } from '@/stores/product-expert-agents.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+
+import type { AuditLogEntry } from '@/types'
 import sumCounts from '@/utils/sumCounts'
 
 defineOptions({ name: 'TeamHomeExpert' })
@@ -148,6 +169,29 @@ const drawersStore = useUxDrawersStore()
 const featuresCheck = computed(() => settingsStore.featuresCheck)
 const totalInstances = ref(0)
 const totalDevices = ref(0)
+const logEntries = ref<AuditLogEntry[] | null>(null)
+const activityLoading = ref(false)
+
+async function loadInstanceCount (type: string, target: Ref<number>) {
+    try {
+        target.value = sumCounts(await TeamAPI.getTeamInstanceCounts(contextStore.team.id, [], type))
+    } catch {
+        // these only drive the "N more" links, so a failure is not worth a toast on page load
+    }
+}
+
+async function onActivityToggled (open: boolean) {
+    if (!open || activityLoading.value || logEntries.value !== null) return
+    activityLoading.value = true
+    try {
+        const response = await TeamAPI.getTeamAuditLog(contextStore.team.id, {}, null, 50)
+        logEntries.value = response.log
+    } catch {
+        Alerts.emit('Failed to load recent activity.', 'warning')
+    } finally {
+        activityLoading.value = false
+    }
+}
 
 const canSwitchAgent = computed<boolean>(() => {
     const features = settingsStore.featuresCheck
@@ -201,12 +245,8 @@ onMounted(() => {
     if (features.isExpertAssistantFeatureEnabled && !features.isExpertInsightsFeatureEnabled) {
         expertStore.setAgentMode(SUPPORT_AGENT)
     }
-    TeamAPI.getTeamInstanceCounts(contextStore.team.id, [], 'hosted')
-        .then(counts => { totalInstances.value = sumCounts(counts) })
-        .catch(e => e)
-    TeamAPI.getTeamInstanceCounts(contextStore.team.id, [], 'remote')
-        .then(counts => { totalDevices.value = sumCounts(counts) })
-        .catch(e => e)
+    loadInstanceCount('hosted', totalInstances)
+    loadInstanceCount('remote', totalDevices)
     expertStore.resumeSessionTimer()
     drawersStore.suppressExpertDrawer()
     if (drawersStore.rightDrawer.state) {
@@ -266,7 +306,6 @@ $ff-wide: 1080px;
     }
 
     &__columns {
-        justify-self: center;
         width: 100%;
         max-width: $ff-wide;
         display: grid;
@@ -278,6 +317,60 @@ $ff-wide: 1080px;
     &.is-composing &__columns {
         opacity: 0;
         pointer-events: none;
+    }
+
+    &__folded {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    &__activity {
+        width: 100%;
+        max-width: $ff-wide;
+        margin-top: 40px;
+        margin-bottom: 40px;
+    }
+
+    &__log {
+        margin-bottom: 0;
+
+        & > :deep(.ff-accordion--button) {
+            margin: -5px 0;
+            padding: 5px 0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+
+            &:not(:hover) {
+                background: transparent;
+            }
+        }
+
+        & > :deep(.ff-accordion--content) {
+            margin-top: 5px;
+            padding: 4px;
+            border: 1px solid var(--ff-color-border);
+            border-radius: 0.625rem;
+            background: var(--ff-color-bg-surface);
+
+            .ff-accordion {
+                margin-bottom: 0;
+            }
+
+            .ff-accordion--button:not(:hover) {
+                background: transparent;
+            }
+
+            .ff-accordion--button {
+                border: none;
+                border-bottom: 1px solid var(--ff-color-border-subtle);
+            }
+
+            .ff-audit-entry {
+                border: none;
+            }
+        }
     }
 
     &__fold {

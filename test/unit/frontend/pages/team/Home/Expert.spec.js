@@ -20,6 +20,10 @@ const mocks = vi.hoisted(() => ({
         setAgentMode: vi.fn(),
         resumeSessionTimer: vi.fn()
     },
+    teamAPI: {
+        getTeamInstanceCounts: vi.fn().mockResolvedValue({}),
+        getTeamAuditLog: vi.fn().mockResolvedValue({ log: [{ id: 1 }] })
+    },
     drawersStore: {
         rightDrawer: { state: false, expertState: { pinned: true, open: true }, expertSuppressed: false },
         suppressExpertDrawer: vi.fn(),
@@ -33,7 +37,7 @@ vi.mock('@/stores/context.js', () => ({ useContextStore: () => mocks.contextStor
 vi.mock('@/stores/account-settings.js', () => ({ useAccountSettingsStore: () => mocks.settingsStore }))
 vi.mock('@/stores/product-expert.js', () => ({ useProductExpertStore: () => mocks.expertStore }))
 vi.mock('@/stores/ux-drawers.js', () => ({ useUxDrawersStore: () => mocks.drawersStore }))
-vi.mock('@/api/team.js', () => ({ default: { getTeamInstanceCounts: vi.fn().mockResolvedValue({}) } }))
+vi.mock('@/api/team.js', () => ({ default: mocks.teamAPI }))
 
 vi.mock('@/components/expert/Expert.vue', () => ({
     default: { name: 'ExpertPanel', template: '<div data-stub="expert-panel" />' }
@@ -55,7 +59,14 @@ async function mountPage () {
                 'ff-page-header': { template: '<div><slot name="breadcrumbs" /></div>' },
                 'ff-nav-breadcrumb': { template: '<span><slot /></span>' },
                 RecentlyModifiedInstances: { name: 'RecentlyModifiedInstances', props: ['variant', 'totalInstances'], template: '<div data-stub="instances" />' },
-                RecentlyModifiedDevices: { name: 'RecentlyModifiedDevices', props: ['variant', 'totalDevices'], template: '<div data-stub="devices" />' }
+                RecentlyModifiedDevices: { name: 'RecentlyModifiedDevices', props: ['variant', 'totalDevices'], template: '<div data-stub="devices" />' },
+                AuditLog: { name: 'AuditLog', props: ['entries', 'loading'], template: '<div data-stub="audit-log" />' },
+                'ff-accordion': {
+                    name: 'ff-accordion',
+                    props: ['label', 'setOpen'],
+                    emits: ['state-changed'],
+                    template: '<div data-stub="accordion"><slot name="content" /></div>'
+                }
             }
         }
     })
@@ -361,6 +372,31 @@ describe('TeamHomeExpert', () => {
             mocks.settingsStore.featuresCheck = features(true)
             const wrapper = await mountPage()
             expect(wrapper.findComponent({ name: 'RecentlyModifiedInstances' }).props('totalInstances')).toBe(0)
+        })
+    })
+
+    describe('recent activity', () => {
+        test('stays collapsed on load and fires no audit request', async () => {
+            mocks.teamAPI.getTeamAuditLog.mockClear()
+            const wrapper = await mountPage()
+            expect(wrapper.findComponent({ name: 'ff-accordion' }).props('setOpen')).toBe(false)
+            expect(mocks.teamAPI.getTeamAuditLog).not.toHaveBeenCalled()
+        })
+
+        test('fetches on first open and never again', async () => {
+            mocks.teamAPI.getTeamAuditLog.mockClear()
+            const wrapper = await mountPage()
+            const accordion = wrapper.findComponent({ name: 'ff-accordion' })
+
+            await accordion.vm.$emit('state-changed', true)
+            await flushPromises()
+            expect(mocks.teamAPI.getTeamAuditLog).toHaveBeenCalledTimes(1)
+            expect(wrapper.findComponent({ name: 'AuditLog' }).props('entries')).toEqual([{ id: 1 }])
+
+            await accordion.vm.$emit('state-changed', false)
+            await accordion.vm.$emit('state-changed', true)
+            await flushPromises()
+            expect(mocks.teamAPI.getTeamAuditLog).toHaveBeenCalledTimes(1)
         })
     })
 })
