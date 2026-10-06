@@ -260,6 +260,11 @@ export default {
         color: var(--ff-color-text-default);
     }
 
+    &:only-child {
+        border-left: none;
+        border-radius: 5px;
+    }
+
     &--waiting {
         /* The -dot token, not -text: this is a standalone indicator, not text on a tinted pill */
         color: var(--ff-color-status-warning-dot);

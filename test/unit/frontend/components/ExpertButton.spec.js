@@ -142,4 +142,36 @@ describe('ExpertButton', () => {
             expect(wrapper.find('[data-el="mcp-toggle"]').exists()).toBe(true)
         })
     })
+
+    describe('standing alone', () => {
+        it('keeps the MCP toggle when the Expert button is hidden', async () => {
+            const wrapper = mountButton()
+            uxDrawersStore.rightDrawer.expertSuppressed = true
+            await wrapper.vm.$nextTick()
+
+            expect(wrapper.find('[data-el="expert-button"]').exists()).toBe(false)
+            expect(wrapper.find('[data-el="mcp-toggle"]').exists()).toBe(true)
+            // the composite wrapper must survive on the MCP half alone
+            expect(wrapper.find('.expert-composite').exists()).toBe(true)
+        })
+
+        it('drops the whole control when neither half has anything to show', async () => {
+            accountSettingsStore.featuresCheck = {
+                isAiFeatureEnabled: true,
+                isMcpThirdPartyFeatureEnabled: false
+            }
+            const wrapper = mountButton()
+            uxDrawersStore.rightDrawer.expertSuppressed = true
+            await wrapper.vm.$nextTick()
+
+            expect(wrapper.find('.expert-composite').exists()).toBe(false)
+
+            accountSettingsStore.featuresCheck = {
+                isAiFeatureEnabled: true,
+                isMcpThirdPartyFeatureEnabled: true,
+                isExpertAssistantFeatureEnabled: true,
+                isExpertInsightsFeatureEnabled: true
+            }
+        })
+    })
 })
