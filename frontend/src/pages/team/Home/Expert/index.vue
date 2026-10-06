@@ -110,7 +110,7 @@
 <script setup lang="ts">
 import { ChevronLeftIcon } from '@heroicons/vue/20/solid'
 import { CpuChipIcon } from '@heroicons/vue/24/outline'
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 
 import HomeGreeting from './components/HomeGreeting.vue'
 
@@ -130,6 +130,8 @@ import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import sumCounts from '@/utils/sumCounts'
 
 defineOptions({ name: 'TeamHomeExpert' })
+
+provide('expert-surface', 'overview')
 
 const contextStore = useContextStore()
 const settingsStore = useAccountSettingsStore()
@@ -431,9 +433,7 @@ $ff-wide: 1080px;
         margin-top: 28px;
         transition: flex-grow $ff-expand $ff-ease;
 
-        :deep(.resize-bar),
-        :deep(.actions .left),
-        :deep(#expert-suggestions-slot) {
+        :deep(.actions .left) {
             display: none;
         }
 
