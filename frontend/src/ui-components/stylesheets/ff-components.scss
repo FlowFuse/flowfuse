@@ -81,6 +81,21 @@
   margin-right: -$ff-unit-xs;
 }
 
+@property --ff-expert-border-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 135deg;
+}
+
+@keyframes expert-border-swirl {
+  from {
+    --ff-expert-border-angle: 135deg;
+  }
+  to {
+    --ff-expert-border-angle: 495deg;
+  }
+}
+
 .ff-btn {
   border-radius: $ff-unit-sm;
   display: flex;
@@ -173,6 +188,17 @@
     &:hover {
       background-color: var(--ff-color-danger-strong);
       color: var(--ff-color-text-on-brand);
+    }
+  }
+  &--expert {
+    @include ff-expert-border;
+    color: var(--ff-color-text-strong);
+    &:hover, &.active {
+      border-width: 2px;
+      margin: -1px;
+    }
+    &[disabled=""] {
+      animation: none;
     }
   }
 
