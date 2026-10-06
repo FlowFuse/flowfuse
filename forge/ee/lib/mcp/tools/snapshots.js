@@ -1,7 +1,7 @@
 const SemVer = require('semver')
 const { z } = require('zod')
 
-const { MIN_AGENT_VERSIONS } = require('../constants')
+const { MIN_DEVICE_AGENT_VERSIONS } = require('../constants')
 const { basePaginationKeys, limitParam, appendQuery, hostedInstanceId, remoteInstanceId, snapshotId, snapshotComponents, toolError } = require('../schemas')
 const { blankHiddenEnvValues } = require('../utils')
 
@@ -368,8 +368,8 @@ module.exports = [
             if (device.agentType === 'lite') {
                 return toolError(400, 'invalid_request', 'The Lite Remote Agent does not support deploying snapshots')
             }
-            if (device.mode === 'developer' && !(device.agentVersion && SemVer.gte(device.agentVersion, MIN_AGENT_VERSIONS.devModeSnapshotDeploy))) {
-                return toolError(400, 'invalid_request', `Deploying a snapshot to a remote instance in developer mode requires Device Agent v${MIN_AGENT_VERSIONS.devModeSnapshotDeploy} or later`)
+            if (device.mode === 'developer' && !(device.agentVersion && SemVer.gte(device.agentVersion, MIN_DEVICE_AGENT_VERSIONS.devModeSnapshotDeploy))) {
+                return toolError(400, 'invalid_request', `Deploying a snapshot to a remote instance in developer mode requires Device Agent v${MIN_DEVICE_AGENT_VERSIONS.devModeSnapshotDeploy} or later`)
             }
             // The route redeploys even when the target is unchanged, which in
             // developer mode would throw away the editor changes for nothing.
