@@ -77,6 +77,7 @@ export const useUxToursStore = defineStore('ux-tours', {
             }, 1000)
         }
     },
+    skipReset: ['aiConnectorLastShownAt'],
     persist: {
         pick: ['tours', 'completed', 'shouldPresentTour', 'aiConnectorLastShownAt'],
         storage: localStorage

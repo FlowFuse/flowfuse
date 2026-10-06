@@ -1,6 +1,8 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { markRaw } from 'vue'
+import { createApp, markRaw } from 'vue'
+
+import { skipResetPlugin } from '@/stores/plugins/skip-reset.plugin.js'
 
 import { useUxToursStore } from '@/stores/ux-tours.js'
 
@@ -91,5 +93,22 @@ describe('ux-tours store', () => {
         vi.advanceTimersByTime(1000)
         expect(fakeTour.start).toHaveBeenCalledOnce()
         vi.useRealTimers()
+    })
+
+    // Logout resets every store, which used to bring the AI connector modal
+    // back on each login
+    it('keeps the AI connector last shown time across a reset', () => {
+        const pinia = createPinia().use(skipResetPlugin)
+        createApp({}).use(pinia)
+        setActivePinia(pinia)
+        const store = useUxToursStore()
+        store.markAiConnectorShown()
+        store.presentTour()
+
+        store.$reset()
+
+        expect(store.aiConnectorLastShownAt).not.toBeNull()
+        expect(store.shouldAutoShowAiConnectorModal).toBe(false)
+        expect(store.shouldPresentTour).toBe(false)
     })
 })
