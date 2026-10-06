@@ -52,6 +52,15 @@
                 </span>
                 <span v-else>Open the Expert</span>
             </ff-button>
+
+            <div
+                v-if="showSuggestions"
+                class="ff-expert-home__suggestions"
+                :class="{ 'is-inert': isComposerDisabled }"
+                :aria-disabled="isComposerDisabled"
+            >
+                <PromptSuggestions :suggestions="suggestions" @select="onSuggestion" />
+            </div>
         </div>
     </ff-page>
 </template>
@@ -62,6 +71,8 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import ExpertPanel from '@/components/expert/Expert.vue'
 import ExpertModeSwitcher from '@/components/expert/components/ExpertModeSwitcher.vue'
+import PromptSuggestions from '@/components/expert/components/PromptSuggestions.vue'
+import { pickSuggestions } from '@/components/expert/prompt-suggestions.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { SUPPORT_AGENT } from '@/stores/product-expert-agents.js'
@@ -78,6 +89,7 @@ const expertStore = useProductExpertStore() as ReturnType<typeof useProductExper
     isSessionExpired: boolean
     isInsightsAgent: boolean
     hasSelectedCapabilities: boolean
+    handleQuery: (payload: { query: string }) => Promise<unknown>
 }
 const drawersStore = useUxDrawersStore()
 
@@ -91,12 +103,32 @@ type Stage = 'idle' | 'composing' | 'conversing'
 const stage = ref<Stage>('idle')
 const liveTurns = computed<number>(() => expertStore.messages.filter(message => message._type === 'human').length)
 
-const canResume = computed<boolean>(() =>
-    liveTurns.value > 0 ||
+const isComposerDisabled = computed<boolean>(() =>
     expertStore.isWaitingForResponse ||
     expertStore.isSessionExpired ||
     (expertStore.isInsightsAgent && !expertStore.hasSelectedCapabilities)
 )
+
+const canResume = computed<boolean>(() => liveTurns.value > 0 || isComposerDisabled.value)
+
+type Suggestion = { title: string, prompt: string, needsInput?: boolean }
+
+const suggestions = ref<Suggestion[]>(pickSuggestions())
+
+const showSuggestions = computed<boolean>(() => stage.value !== 'conversing')
+
+function onSuggestion (suggestion: Suggestion) {
+    if (isComposerDisabled.value) {
+        return
+    }
+    if (suggestion.needsInput) {
+        stage.value = 'composing'
+        expertStore.setPendingInput(suggestion.prompt)
+        return
+    }
+    stage.value = 'conversing'
+    expertStore.handleQuery({ query: suggestion.prompt }).catch(e => e)
+}
 
 function onComposerInput () {
     if (stage.value === 'idle') {
@@ -170,6 +202,19 @@ $ff-column: 820px;
     &:not(.is-composing) &__back {
         opacity: 0;
         pointer-events: none;
+    }
+
+    &__suggestions {
+        align-self: center;
+        width: 100%;
+        max-width: $ff-column;
+        opacity: 1;
+        transition: opacity 220ms ease;
+
+        &.is-inert {
+            opacity: 0.45;
+            pointer-events: none;
+        }
     }
 
     &__resume {
@@ -267,7 +312,8 @@ $ff-column: 820px;
 
     &__expert {
         :deep(.resize-bar),
-        :deep(.actions .left) {
+        :deep(.actions .left),
+        :deep(#expert-suggestions-slot) {
             display: none;
         }
 

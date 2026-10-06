@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
         isInsightsAgent: false,
         hasSelectedCapabilities: true,
         openAssistantDrawer: vi.fn(),
+        handleQuery: vi.fn().mockResolvedValue(undefined),
         setPendingInput: vi.fn(),
         setAgentMode: vi.fn(),
         resumeSessionTimer: vi.fn()
@@ -273,6 +274,61 @@ describe('TeamHomeExpert', () => {
 
             expect(wrapper.find('[data-el="expert-home"]').attributes('data-stage')).toBe('conversing')
             expect(mocks.expertStore.messages).toHaveLength(1)
+        })
+    })
+
+    describe('prompt suggestions', () => {
+        test('stay under the composer across idle and composing, thread or not', async () => {
+            mocks.expertStore.messages = [{ _type: 'human' }]
+            const wrapper = await mountPage()
+            expect(wrapper.findComponent({ name: 'PromptSuggestions' }).exists()).toBe(true)
+            expect(wrapper.find('[data-action="resume-conversation"]').exists()).toBe(true)
+
+            await wrapper.find('[data-el="expert-home-surface"]').trigger('input')
+            expect(wrapper.findComponent({ name: 'PromptSuggestions' }).exists()).toBe(true)
+        })
+
+        test('go inert rather than vanish while the composer cannot take input', async () => {
+            mocks.expertStore.messages = []
+            mocks.expertStore.handleQuery.mockClear()
+            mocks.expertStore.isWaitingForResponse = true
+            const wrapper = await mountPage()
+
+            const block = wrapper.find('.ff-expert-home__suggestions')
+            expect(block.exists()).toBe(true)
+            expect(block.classes()).toContain('is-inert')
+
+            await wrapper.findComponent({ name: 'PromptSuggestions' })
+                .vm.$emit('select', { title: 'x', prompt: 'anything' })
+            expect(mocks.expertStore.handleQuery).not.toHaveBeenCalled()
+
+            mocks.expertStore.isWaitingForResponse = false
+        })
+
+        test('a finished prompt sends straight away', async () => {
+            mocks.expertStore.messages = []
+            mocks.expertStore.handleQuery.mockClear()
+            const wrapper = await mountPage()
+
+            await wrapper.findComponent({ name: 'PromptSuggestions' })
+                .vm.$emit('select', { title: 'x', prompt: 'how are my instances?' })
+
+            expect(mocks.expertStore.handleQuery).toHaveBeenCalledWith({ query: 'how are my instances?' })
+            expect(wrapper.find('[data-el="expert-home"]').attributes('data-stage')).toBe('conversing')
+        })
+
+        test('a half-finished prompt waits in the composer instead', async () => {
+            mocks.expertStore.messages = []
+            mocks.expertStore.handleQuery.mockClear()
+            mocks.expertStore.setPendingInput.mockClear()
+            const wrapper = await mountPage()
+
+            await wrapper.findComponent({ name: 'PromptSuggestions' })
+                .vm.$emit('select', { title: 'x', prompt: 'Build a flow that', needsInput: true })
+
+            expect(mocks.expertStore.setPendingInput).toHaveBeenCalledWith('Build a flow that')
+            expect(mocks.expertStore.handleQuery).not.toHaveBeenCalled()
+            expect(wrapper.find('[data-el="expert-home"]').attributes('data-stage')).toBe('composing')
         })
     })
 })
