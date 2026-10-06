@@ -5,7 +5,7 @@
             direction="horizontal"
             @mousedown="onStartResize"
         />
-        <div v-if="expertSurface !== 'onboarding'" class="action-buttons">
+        <div v-if="!isFullPageSurface" class="action-buttons">
             <button
                 type="button"
                 class="btn-start-over"
@@ -132,6 +132,7 @@ import ToolPermissionsSettings from './ToolPermissionsSettings.vue'
 import DefaultChip from './chips/DefaultChip.vue'
 import ContextSelector from './context-selection/index.vue'
 
+import { isFullPageSurface } from '@/components/expert/surfaces.js'
 import { useResizingHelper } from '@/composables/ResizingHelper.js'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
@@ -237,13 +238,16 @@ export default {
         canSend () {
             return this.inputText.trim().length > 0 && !this.isInputDisabled
         },
+        isFullPageSurface () {
+            return isFullPageSurface(this.expertSurface)
+        },
         hasUserTurns () {
             // hasMessages is true from the off, the store seeds a welcome message,
             // so the transcript counts as started only once the user has said something
             return this.messages.some(message => message._type === 'human')
         },
         showSuggestions () {
-            if (this.expertSurface === 'onboarding') return false
+            if (this.isFullPageSurface) return false
             if (this.isInsightsAgent) return false
             if (this.suggestionUsed || this.suggestions.length === 0) return false
             if (this.inputText.length > 0 || this.hasUserTurns) return false
@@ -256,7 +260,7 @@ export default {
             if (this.requestingPlanChange) {
                 return 'Describe a change to the plan, or paste an edited version'
             }
-            if (this.expertSurface === 'onboarding') {
+            if (this.isFullPageSurface) {
                 return 'Or just tell me in your own words'
             }
             return this.isInsightsAgent
