@@ -7,6 +7,7 @@ import TeamAuditLog from './AuditLog.vue'
 import TeamBillOfMaterials from './BOM/index.vue'
 import TeamBilling from './Billing/index.vue'
 import BrokersRoutes from './Brokers/routes.js'
+import TeamBuild from './Build.vue'
 import TeamDashboards from './Dashboards/index.vue'
 
 import DeviceGroups from './DeviceGroups/index.vue'
@@ -262,6 +263,15 @@ export default [
         name: 'team-onboarding',
         meta: {
             title: 'Team - Getting Started',
+            layout: 'plain'
+        }
+    },
+    {
+        path: '/team/:team_slug/build',
+        component: TeamBuild,
+        name: 'team-build',
+        meta: {
+            title: 'Team - Build',
             layout: 'plain'
         }
     },
