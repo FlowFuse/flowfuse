@@ -917,9 +917,7 @@ describe('openAssistantDrawer promise contract', () => {
     })
 
     it('always returns a thenable, so wakeUpAssistant can chain hydrateClient off it', async () => {
-        // wakeUpAssistant does openAssistantDrawer(...).then(...). Any path that returns
-        // undefined crashes that chain, which is how the overview page's drawer
-        // suppression broke the editor-to-platform conversation handoff.
+        // wakeUpAssistant chains .then() off this; returning undefined crashes it
         const store = useProductExpertStore()
         drawersState.rightDrawer.expertSuppressed = true
 

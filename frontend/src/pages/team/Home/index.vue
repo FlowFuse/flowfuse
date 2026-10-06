@@ -242,8 +242,6 @@ export default {
         }
     },
     watch: {
-        // The feature can be turned off mid-visit; the dashboard must then load the
-        // data its mount hook skipped, or it renders its loading state forever
         isExpertHome (expert) {
             if (!expert && this.loading) {
                 this.loadDashboard()

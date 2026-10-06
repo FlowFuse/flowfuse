@@ -101,8 +101,6 @@ describe('team Home variant switch', () => {
         mocks.settingsStore.featuresCheck = { isExpertAssistantFeatureEnabled: false }
         await flushPromises()
 
-        // the watcher must kick off the fetches the mount hook skipped, or the
-        // dashboard renders its loading state forever
         expect(mocks.teamAPI.getTeamAuditLog).toHaveBeenCalled()
         expect(wrapper.find('[data-stub="dashboard-section"]').exists()).toBe(true)
         expect(wrapper.find('[data-stub="expert-home"]').exists()).toBe(false)

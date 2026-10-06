@@ -714,8 +714,6 @@ describe('ux-drawers store', () => {
 
             expect(store.rightDrawer.state).toBe(false)
             expect(store.rightDrawer.component).toBe(null)
-            // openRightDrawer writes expertState whenever an ExpertDrawer opens; a
-            // suppressed open must not reach that write
             expect(store.rightDrawer.expertState).toEqual({ pinned: false, open: false })
         })
 
@@ -730,9 +728,7 @@ describe('ux-drawers store', () => {
         })
 
         it('excludes expertSuppressed from the persisted keys, so it cannot outlive the session', () => {
-            // Asserted against the store's own persist config rather than localStorage:
-            // pinia-plugin-persistedstate does not write under vitest/jsdom, so a
-            // storage-based assertion would pass no matter what was persisted.
+            // pinia-plugin-persistedstate writes nothing under vitest, so assert the config
             const source = readFileSync(resolve(process.cwd(), 'frontend/src/stores/ux-drawers.js'), 'utf8')
             const pick = source.slice(source.indexOf('pick: ['), source.indexOf(']', source.indexOf('pick: [')))
             expect(pick).toContain('rightDrawer.expertState')
