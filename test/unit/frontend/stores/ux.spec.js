@@ -240,4 +240,27 @@ describe('ux store', () => {
         expect(store.isNewlyCreatedUser).toBe(false)
         expect(store.userActions.hasOpenedDeviceEditor).toBe(false)
     })
+
+    describe('building flag', () => {
+        it('starts off', () => {
+            expect(useUxStore().building).toBe(false)
+        })
+
+        it('startBuilding / stopBuilding toggle it', () => {
+            const store = useUxStore()
+            store.startBuilding()
+            expect(store.building).toBe(true)
+            store.stopBuilding()
+            expect(store.building).toBe(false)
+        })
+
+        it('does not touch the onboarding stage', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.startBuilding()
+            store.stopBuilding()
+            expect(store.onboardingStage).toBe('intake')
+            expect(userApi.updateUserSettings).not.toHaveBeenCalled()
+        })
+    })
 })

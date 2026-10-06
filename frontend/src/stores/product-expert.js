@@ -839,6 +839,16 @@ export const useProductExpertStore = defineStore('product-expert', {
         setPlanMode (enabled) {
             this.planMode = !!enabled
         },
+        async approvePlan () {
+            // Approving exits read-only plan mode so the build runs as a normal acting turn,
+            // and clears any plan text loaded into the composer via "Edit manually".
+            this.setPlanMode(false)
+            this.setComposerCommand('reset')
+            await this.handleQuery({ query: 'Approved. Proceed with the plan.' })
+            // Cleared once the approval has gone out (over MQTT the context is read
+            // only after the client connects), so that turn still counts as building
+            useUxStore().stopBuilding()
+        },
         /**
          * Adds a system message to the application's message store.
          *
@@ -1401,7 +1411,8 @@ export const useProductExpertStore = defineStore('product-expert', {
             this.addPredefinedAiMessage(payload.message, { isError: true, code: payload.code })
         },
         async _relayInstanceEvent (instance, { seen, buildSystem, showCard = false, onPublished }) {
-            if (!instance?.id || !useUxStore().isOnboarding || !this.shouldUseMqtt) return
+            const uxStore = useUxStore()
+            if (!instance?.id || !(uxStore.isOnboarding || uxStore.building) || !this.shouldUseMqtt) return
             if (seen.has(instance.id)) return
             seen.add(instance.id)
 
@@ -1458,10 +1469,11 @@ export const useProductExpertStore = defineStore('product-expert', {
                 seen: this._relayedInstanceIds,
                 buildSystem: i => ({ kind: 'instance-ready', instance: { id: i.id, name: i.name ?? null }, state: 'running' }),
                 showCard: true,
-                onPublished: i => Product.capture('ff-onboarding-workspace-ready', {}, {
-                    team: useContextStore().team?.id,
-                    instance: i.id
-                })
+                onPublished: i => Product.capture(
+                    useUxStore().building ? 'ff-building-workspace-ready' : 'ff-onboarding-workspace-ready',
+                    {},
+                    { team: useContextStore().team?.id, instance: i.id }
+                )
             })
         },
         async relayInstanceStartFailed (instance) {

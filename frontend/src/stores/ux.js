@@ -23,6 +23,10 @@ export const useUxStore = defineStore('ux', {
         isNewlyCreatedUser: false,
         onboardingStage: null,
         shouldEnterOnboarding: false,
+        // A build conversation started from a Build button. Only lasts while
+        // the Build page is open and until a plan is approved, so it is left
+        // out of persist.pick on purpose.
+        building: false,
         overlay: false
     }),
     getters: {
@@ -92,6 +96,8 @@ export const useUxStore = defineStore('ux', {
             // the funnel. Best-effort: the local stage is already updated.
             userApi.updateUserSettings({ onboardingCompleted: true }).catch(() => {})
         },
+        startBuilding () { this.building = true },
+        stopBuilding () { this.building = false },
         openOverlay () { this.overlay = true },
         closeOverlay () { this.overlay = false }
     },
