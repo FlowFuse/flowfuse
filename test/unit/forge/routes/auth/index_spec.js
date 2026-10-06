@@ -255,6 +255,38 @@ describe('Accounts API', async function () {
             userTeams.teams.should.have.length(1)
         })
 
+        it('auto-creates personal team with a suffixed slug if a team already owns the username', async function () {
+            app.settings.set('user:signup', true)
+            app.settings.set('user:team:auto-create', true)
+
+            await app.db.models.Team.create({ name: 'Taken', slug: 'slugclash', TeamTypeId: app.defaultTeamType.id })
+
+            const response = await registerUser({
+                username: 'SlugClash',
+                password: '12345678',
+                name: 'Slug Clash',
+                email: 'slugclash@example.com'
+            })
+            response.statusCode.should.equal(200)
+
+            await login('SlugClash', '12345678')
+            const user = await app.db.models.User.findOne({ where: { username: 'SlugClash' } })
+            const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
+            const verifyResponse = await app.inject({
+                method: 'POST',
+                url: '/account/verify/token',
+                payload: {
+                    token: verificationToken.token
+                },
+                cookies: { sid: TestObjects.tokens.SlugClash }
+            })
+            verifyResponse.statusCode.should.equal(200)
+
+            const teams = await app.db.models.Team.forUser(user)
+            teams.should.have.length(1)
+            teams[0].Team.slug.should.match(/^slugclash-[0-9a-f]{4}$/)
+        })
+
         it('auto-creates personal team if option set - selected team type', async function () {
             app.settings.set('user:signup', true)
             app.settings.set('user:team:auto-create', true)
