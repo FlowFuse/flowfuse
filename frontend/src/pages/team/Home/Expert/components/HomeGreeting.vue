@@ -5,7 +5,7 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
@@ -14,9 +14,11 @@ defineOptions({ name: 'HomeGreeting' })
 
 const accountAuthStore = useAccountAuthStore()
 
-const firstName = computed(() => accountAuthStore.user?.name?.trim().split(' ')[0] ?? '')
+const firstName = computed<string>(() => accountAuthStore.user?.name?.trim().split(' ')[0] ?? '')
 
-const timeOfDay = computed(() => {
+type TimeOfDay = 'morning' | 'afternoon' | 'evening'
+
+const timeOfDay = computed<TimeOfDay>(() => {
     const hour = new Date().getHours()
     if (hour < 12) return 'morning'
     if (hour < 18) return 'afternoon'

@@ -43,7 +43,7 @@
     </ff-page>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ChevronLeftIcon } from '@heroicons/vue/20/solid'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
@@ -61,16 +61,20 @@ defineOptions({ name: 'TeamHomeExpert' })
 
 const contextStore = useContextStore()
 const settingsStore = useAccountSettingsStore()
-const expertStore = useProductExpertStore()
+const expertStore = useProductExpertStore() as ReturnType<typeof useProductExpertStore> & {
+    messages: { _type: string }[]
+}
 const drawersStore = useUxDrawersStore()
 
-const canSwitchAgent = computed(() => {
+const canSwitchAgent = computed<boolean>(() => {
     const features = settingsStore.featuresCheck
     return !!features.isExpertAssistantFeatureEnabled && !!features.isExpertInsightsFeatureEnabled
 })
 
-const stage = ref('idle')
-const liveTurns = computed(() => expertStore.messages.filter(message => message._type === 'human').length)
+type Stage = 'idle' | 'composing' | 'conversing'
+
+const stage = ref<Stage>('idle')
+const liveTurns = computed<number>(() => expertStore.messages.filter(message => message._type === 'human').length)
 
 function onComposerInput () {
     if (stage.value === 'idle') {
@@ -78,7 +82,7 @@ function onComposerInput () {
     }
 }
 
-watch(liveTurns, (now, before) => {
+watch(liveTurns, (now: number, before: number) => {
     if (now > before) {
         stage.value = 'conversing'
     }
