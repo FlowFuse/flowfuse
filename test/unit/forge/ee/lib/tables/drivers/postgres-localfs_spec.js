@@ -449,6 +449,17 @@ describe('Tables: Postgres LocalFS Driver', function () {
             await driver.createTable(team, team.hashid, 'table1', columns, 'reports').should.be.rejectedWith(/boom/)
             query.lastCall.args[0].should.equal('ROLLBACK')
         })
+        it('should apply the defaults of real, double precision and boolean columns', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            await driver.init(app, options)
+            const query = setup(team)
+            await driver.createTable(team, team.hashid, 'table1', [
+                { name: 'r', type: 'real', default: '1.5' },
+                { name: 'd', type: 'double precision', default: '2.25' },
+                { name: 'b', type: 'boolean', default: 'true' }
+            ])
+            query.args[1][0].should.equal('CREATE TABLE IF NOT EXISTS "public"."table1" (\n"r" real NOT NULL DEFAULT 1.5,\n"d" double precision NOT NULL DEFAULT 2.25,\n"b" boolean NOT NULL DEFAULT true\n)')
+        })
     })
 
     describe('dropTable', function () {
