@@ -58,7 +58,7 @@
 
 <script setup lang="ts">
 import { ChevronLeftIcon } from '@heroicons/vue/20/solid'
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 
 import ExpertPanel from '@/components/expert/Expert.vue'
 import ExpertModeSwitcher from '@/components/expert/components/ExpertModeSwitcher.vue'
@@ -69,6 +69,8 @@ import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 defineOptions({ name: 'TeamHomeExpert' })
+
+provide('expert-surface', 'overview')
 
 const contextStore = useContextStore()
 const settingsStore = useAccountSettingsStore()
@@ -266,14 +268,13 @@ $ff-column: 820px;
     }
 
     &__expert {
-        :deep(.resize-bar),
         :deep(.actions .left) {
             display: none;
         }
 
         :deep(.input-wrapper) {
             flex-direction: row;
-            align-items: center;
+            align-items: stretch;
             border-width: 1px;
             border-color: var(--ff-color-border);
             border-radius: 12px;
@@ -287,6 +288,8 @@ $ff-column: 820px;
         }
 
         :deep(.actions) {
+            display: flex;
+            align-items: center;
             padding: 0 0.6rem 0 0;
             flex: 0 0 auto;
         }
