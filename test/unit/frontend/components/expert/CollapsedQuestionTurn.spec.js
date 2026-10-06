@@ -55,6 +55,19 @@ describe('CollapsedQuestionTurn', () => {
         expect(rows[1].find('[data-action="edit-answer"]').text()).toContain('A dashboard')
     })
 
+    test('labels the folded answers as the person\'s reply', () => {
+        const wrapper = mountTurn()
+        expect(wrapper.find('[data-el="reply-label"]').text()).toBe('You')
+    })
+
+    test('shows no "You" label when every question was skipped', () => {
+        const turn = answeredTurn()
+        turn.replyMessage = null
+        turn.entries = [{ question: 'Q1?', answer: null }, { question: 'Q2?', answer: null }]
+        const wrapper = mountTurn(turn)
+        expect(wrapper.find('[data-el="reply-label"]').exists()).toBe(false)
+    })
+
     test('clicking a chip loads the answer into the composer for correction', async () => {
         const wrapper = mountTurn()
         await wrapper.findAll('[data-action="edit-answer"]')[0].trigger('click')

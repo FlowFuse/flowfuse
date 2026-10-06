@@ -1,11 +1,11 @@
 <template>
     <div ref="messagesWrapper" class="messages-wrapper">
         <ul class="flex flex-col gap-3">
-            <li v-for="entry in renderList" :key="entryKey(entry)" class="flex flex-col gap-3">
+            <li v-for="entry in renderList" :key="entryKey(entry)" class="flex flex-col gap-3" :class="entry.classes">
                 <collapsed-question-turn v-if="entry.kind === 'folded-turn'" :turn="entry" />
                 <component :is="messageTypes[entry.message._type]" v-else-if="messageTypes[entry.message._type]" v-bind="{...entry.message}" />
             </li>
-            <li v-if="isWaitingForResponse">
+            <li v-if="isWaitingForResponse" :class="{ 'turn-start': loadingStartsTurn }">
                 <expert-loading-indicator />
             </li>
         </ul>
@@ -17,7 +17,7 @@
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
 
-import { buildCollapsedTranscript } from '../../../composables/Components/expert/collapseTranscript.js'
+import { annotateTurns, buildCollapsedTranscript } from '../../../composables/Components/expert/collapseTranscript.js'
 
 import ExpertLoadingIndicator from './ExpertLoadingIndicator.vue'
 
@@ -58,11 +58,20 @@ export default {
             }
         },
         renderList () {
-            // Full page surfaces fold answered question turns into quiet while the drawer renders the transcript as-is.
+            // Full page surfaces fold answered question turns into quiet and mark the turn structure for
+            // styling, while the drawer renders the transcript as-is.
             if (isFullPageSurface(this.expertSurface)) {
-                return buildCollapsedTranscript(this.messages)
+                return annotateTurns(buildCollapsedTranscript(this.messages))
             }
             return this.messages.map(message => ({ kind: 'message', message }))
+        },
+        // On a full page surface the loading indicator already sits where the Expert's next turn starts
+        loadingStartsTurn () {
+            if (!isFullPageSurface(this.expertSurface)) {
+                return false
+            }
+            const last = this.renderList[this.renderList.length - 1]
+            return !!last && (last.kind === 'folded-turn' || last.message._type === 'human')
         }
     },
     mounted () {

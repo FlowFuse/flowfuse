@@ -1,5 +1,5 @@
 <template>
-    <message-bubble ref="messageBubble" type="ai" :bare="hasToolApproval">
+    <message-bubble ref="messageBubble" type="ai" :bare="hasToolApproval" :class="answerKindClass">
         <setup-guide-badge v-if="!isChatAnswer && !isQuestionsAnswer && !isPlanAnswer && !hasToolApproval" />
 
         <rich-content
@@ -249,6 +249,10 @@ export default {
         },
         isPlanAnswer () {
             return this.answer.kind === 'plan'
+        },
+        // A hook for surfaces that style answers by kind (the full page surfaces); the drawer adds no styles to it
+        answerKindClass () {
+            return `expert-answer--${this.answer.kind || 'chat'}`
         },
         isActivePlan () {
             return !!this.answer.planId && this.answer.planId === this.activePlanId
