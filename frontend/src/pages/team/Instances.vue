@@ -73,6 +73,7 @@
                                 </section>
                             </template>
                         </ff-popover>
+                        <ExpertBuildButton v-if="hasPermission('project:create')" />
                         <ff-button
                             v-ff-tooltip:left="!hasPermission('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
                             data-action="create-project"
@@ -147,6 +148,7 @@
                         </p>
                     </template>
                     <template #actions>
+                        <ExpertBuildButton v-if="hasPermission('project:create')" />
                         <ff-button
                             v-ff-tooltip:bottom="!hasPermission('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
                             kind="primary"
@@ -204,6 +206,7 @@ import DashboardLink from '../instance/components/DashboardLink.vue'
 import InstanceEditorLink from '../instance/components/EditorLink.vue'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 
+import ExpertBuildButton from '@/components/expert/ExpertBuildButton.vue'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useDataFarmHostedInstancesStore } from '@/stores/data-farm-hosted-instances'
@@ -213,6 +216,7 @@ import PopoverItem from '@/ui-components/components/PopoverItem.vue'
 export default {
     name: 'TeamInstances',
     components: {
+        ExpertBuildButton,
         ConfirmInstanceDeleteDialog,
         InstanceStatusPolling,
         InstanceEditorLink,

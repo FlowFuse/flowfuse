@@ -10,16 +10,19 @@
                 <p>To edit an Application's flow, open the editor of the Instance.</p>
             </template>
             <template v-if="instancesAvailable" #tools>
-                <ff-button
-                    v-ff-tooltip:left="!hasPermission('project:create', { application }) && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
-                    data-action="create-instance"
-                    :to="{ name: 'application-create-instance' }"
-                    type="anchor"
-                    :disabled="!hasPermission('project:create', { application })"
-                >
-                    <template #icon-left><PlusSmallIcon /></template>
-                    Add Instance
-                </ff-button>
+                <div class="flex gap-2 justify-end">
+                    <ExpertBuildButton v-if="hasPermission('project:create', { application })" />
+                    <ff-button
+                        v-ff-tooltip:left="!hasPermission('project:create', { application }) && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
+                        data-action="create-instance"
+                        :to="{ name: 'application-create-instance' }"
+                        type="anchor"
+                        :disabled="!hasPermission('project:create', { application })"
+                    >
+                        <template #icon-left><PlusSmallIcon /></template>
+                        Add Instance
+                    </ff-button>
+                </div>
             </template>
         </SectionTopMenu>
         <FeatureUnavailableToTeam v-if="!instancesAvailable" />
@@ -105,6 +108,7 @@
                     </p>
                 </template>
                 <template #actions>
+                    <ExpertBuildButton v-if="hasPermission('project:create', { application })" />
                     <ff-button
                         v-ff-tooltip:bottom="!hasPermission('project:create', { application }) && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
                         :to="{ name: 'application-create-instance' }"
@@ -158,12 +162,14 @@ import InstanceEditorLinkCell from '../instance/components/cells/InstanceEditorL
 import DeploymentName from './components/cells/DeploymentName.vue'
 import LastSeen from './components/cells/LastSeen.vue'
 
+import ExpertBuildButton from '@/components/expert/ExpertBuildButton.vue'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import PopoverItem from '@/ui-components/components/PopoverItem.vue'
 
 export default {
     name: 'ProjectOverview',
     components: {
+        ExpertBuildButton,
         PlusSmallIcon,
         SectionTopMenu,
         EmptyState,
