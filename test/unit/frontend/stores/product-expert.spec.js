@@ -7,7 +7,7 @@ import { INSIGHTS_AGENT, SUPPORT_AGENT } from '@/stores/product-expert-agents.js
 // (e.g. isExternalMqttBrokerFeatureEnabled, isOnboarding) without redefining the mock.
 const accountSettingsState = { featuresCheck: { isExpertAssistantFeatureEnabled: true } }
 const contextState = { team: null, expert: {} }
-const uxState = { isOnboarding: false }
+const uxState = { isOnboarding: false, building: false, stopBuilding: vi.fn() }
 const mqttService = {
     hasClient: vi.fn(() => false),
     createClient: vi.fn(() => Promise.resolve()),
@@ -26,6 +26,10 @@ vi.mock('@/stores/context.js', () => ({
 
 vi.mock('@/stores/ux.js', () => ({
     useUxStore: vi.fn(() => uxState)
+}))
+
+vi.mock('@/services/product.js', () => ({
+    default: { capture: vi.fn() }
 }))
 
 vi.mock('@/services/app.orchestrator', () => {
@@ -77,6 +81,7 @@ vi.mock('@/stores/account-auth.js', () => ({
 const { useProductExpertStore } = await import('@/stores/product-expert.js')
 const { useProductExpertSupportAgentStore } = await import('@/stores/product-expert-support-agent.js')
 const { useProductExpertInsightsAgentStore } = await import('@/stores/product-expert-insights-agent.js')
+const { default: Product } = await import('@/services/product.js')
 const { useAccountAuthStore } = await import('@/stores/account-auth.js')
 describe('product-expert store', () => {
     beforeEach(() => {
@@ -612,6 +617,7 @@ describe('product-expert store', () => {
         afterEach(() => {
             contextState.team = null
             uxState.isOnboarding = false
+            uxState.building = false
             delete accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled
             mqttService.hasClient.mockReturnValue(false)
         })
@@ -632,6 +638,43 @@ describe('product-expert store', () => {
             await useProductExpertStore().relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
 
             expect(mqttService.publishMessage).not.toHaveBeenCalled()
+        })
+
+        it('publishes during a build conversation outside onboarding', async () => {
+            uxState.building = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+            useProductExpertSupportAgentStore().sessionId = 'session-xyz'
+
+            await useProductExpertStore().relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+        })
+
+        it('captures the build event name during a build conversation', async () => {
+            uxState.building = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+
+            await useProductExpertStore().relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            expect(Product.capture).toHaveBeenCalledWith('ff-building-workspace-ready', {}, { team: 'team-1', instance: 'inst-1' })
+        })
+
+        it('keeps the onboarding event name during onboarding', async () => {
+            uxState.isOnboarding = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+
+            await useProductExpertStore().relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            expect(Product.capture).toHaveBeenCalledWith('ff-onboarding-workspace-ready', {}, { team: 'team-1', instance: 'inst-1' })
         })
 
         it('does not publish when the chat is not using the Expert MQTT channel', async () => {
@@ -940,6 +983,27 @@ describe('product-expert store', () => {
             await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
 
             expect(mqttService.publishMessage).toHaveBeenCalledTimes(2)
+        })
+    })
+
+    describe('approvePlan', () => {
+        it('leaves plan mode, sends the approval, then clears the building flag', async () => {
+            const store = useProductExpertStore()
+            store.setPlanMode(true)
+            let resolveQuery
+            store.handleQuery = vi.fn(() => new Promise(resolve => { resolveQuery = resolve }))
+
+            const pending = store.approvePlan()
+
+            expect(store.planMode).toBe(false)
+            expect(store.handleQuery).toHaveBeenCalledWith({ query: 'Approved. Proceed with the plan.' })
+            // Still in flight: the approval turn has to go out with building on
+            expect(uxState.stopBuilding).not.toHaveBeenCalled()
+
+            resolveQuery()
+            await pending
+
+            expect(uxState.stopBuilding).toHaveBeenCalledTimes(1)
         })
     })
 })
