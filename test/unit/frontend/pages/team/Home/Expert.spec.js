@@ -8,7 +8,17 @@ const mocks = vi.hoisted(() => ({
     accountAuthStore: { user: { name: 'Noley Holland' } },
     contextStore: { isImmersiveEditor: false },
     settingsStore: { featuresCheck: { isExpertAssistantFeatureEnabled: true, isExpertInsightsFeatureEnabled: false } },
-    expertStore: { messages: [], openAssistantDrawer: vi.fn(), setPendingInput: vi.fn(), setAgentMode: vi.fn(), resumeSessionTimer: vi.fn() },
+    expertStore: {
+        messages: [],
+        isWaitingForResponse: false,
+        isSessionExpired: false,
+        isInsightsAgent: false,
+        hasSelectedCapabilities: true,
+        openAssistantDrawer: vi.fn(),
+        setPendingInput: vi.fn(),
+        setAgentMode: vi.fn(),
+        resumeSessionTimer: vi.fn()
+    },
     drawersStore: {
         rightDrawer: { state: false, expertState: { pinned: true, open: true }, expertSuppressed: false },
         suppressExpertDrawer: vi.fn(),
@@ -264,5 +274,75 @@ describe('TeamHomeExpert', () => {
         }
         const wrapper = await mountPage()
         expect(wrapper.find('[data-stub="mode-switcher"]').exists()).toBe(false)
+    })
+
+    describe('the resume control', () => {
+        afterEach(() => {
+            mocks.expertStore.isWaitingForResponse = false
+            mocks.expertStore.isSessionExpired = false
+            mocks.expertStore.isInsightsAgent = false
+            mocks.expertStore.hasSelectedCapabilities = true
+        })
+
+        test('is absent on a fresh page with nothing to return to', async () => {
+            mocks.expertStore.messages = []
+            const wrapper = await mountPage()
+            expect(wrapper.find('[data-action="resume-conversation"]').exists()).toBe(false)
+        })
+
+        test('counts user turns only, and says so', async () => {
+            mocks.expertStore.messages = [{ _type: 'human' }, { _type: 'ai' }, { _type: 'human' }]
+            const wrapper = await mountPage()
+            expect(wrapper.find('[data-action="resume-conversation"]').text()).toContain('2 messages')
+        })
+
+        test('singularises at one turn', async () => {
+            mocks.expertStore.messages = [{ _type: 'human' }]
+            const wrapper = await mountPage()
+            expect(wrapper.find('[data-action="resume-conversation"]').text()).toContain('1 message')
+        })
+
+        test('appears while a response is in flight, the state where the composer only offers Stop', async () => {
+            mocks.expertStore.messages = []
+            mocks.expertStore.isWaitingForResponse = true
+            const wrapper = await mountPage()
+            const cta = wrapper.find('[data-action="resume-conversation"]')
+            expect(cta.exists()).toBe(true)
+            expect(cta.text()).toContain('Open the Expert')
+        })
+
+        test('appears when the session has expired, where Start over is the only way out', async () => {
+            mocks.expertStore.messages = []
+            mocks.expertStore.isSessionExpired = true
+            const wrapper = await mountPage()
+            expect(wrapper.find('[data-action="resume-conversation"]').exists()).toBe(true)
+        })
+
+        test('appears in Insights with nothing selected, where the capabilities selector is hidden', async () => {
+            mocks.expertStore.messages = []
+            mocks.expertStore.isInsightsAgent = true
+            mocks.expertStore.hasSelectedCapabilities = false
+            const wrapper = await mountPage()
+            expect(wrapper.find('[data-action="resume-conversation"]').exists()).toBe(true)
+        })
+
+        test('survives into composing, since a new message joins the same thread', async () => {
+            mocks.expertStore.messages = [{ _type: 'human' }]
+            const wrapper = await mountPage()
+            await wrapper.find('[data-el="expert-home-surface"]').trigger('input')
+
+            expect(wrapper.find('[data-el="expert-home"]').attributes('data-stage')).toBe('composing')
+            expect(wrapper.find('[data-action="resume-conversation"]').exists()).toBe(true)
+        })
+
+        test('clicking it opens the conversation', async () => {
+            mocks.expertStore.messages = [{ _type: 'human' }]
+            const wrapper = await mountPage()
+
+            await wrapper.find('[data-action="resume-conversation"]').trigger('click')
+
+            expect(wrapper.find('[data-el="expert-home"]').attributes('data-stage')).toBe('conversing')
+            expect(mocks.expertStore.messages).toHaveLength(1)
+        })
     })
 })

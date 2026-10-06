@@ -39,6 +39,23 @@
             >
                 <ExpertPanel />
             </div>
+
+            <ff-button
+                v-if="canResume"
+                kind="tertiary"
+                size="small"
+                class="ff-expert-home__resume"
+                data-action="resume-conversation"
+                @click="stage = 'conversing'"
+            >
+                <span v-if="liveTurns > 0">
+                    Continue your conversation
+                    <span class="ff-expert-home__resume-count">
+                        · {{ liveTurns }} {{ liveTurns === 1 ? 'message' : 'messages' }}
+                    </span>
+                </span>
+                <span v-else>Open the Expert</span>
+            </ff-button>
         </div>
     </ff-page>
 </template>
@@ -63,6 +80,10 @@ const contextStore = useContextStore()
 const settingsStore = useAccountSettingsStore()
 const expertStore = useProductExpertStore() as ReturnType<typeof useProductExpertStore> & {
     messages: { _type: string }[]
+    isWaitingForResponse: boolean
+    isSessionExpired: boolean
+    isInsightsAgent: boolean
+    hasSelectedCapabilities: boolean
 }
 const drawersStore = useUxDrawersStore()
 
@@ -75,6 +96,13 @@ type Stage = 'idle' | 'composing' | 'conversing'
 
 const stage = ref<Stage>('idle')
 const liveTurns = computed<number>(() => expertStore.messages.filter(message => message._type === 'human').length)
+
+const canResume = computed<boolean>(() =>
+    liveTurns.value > 0 ||
+    expertStore.isWaitingForResponse ||
+    expertStore.isSessionExpired ||
+    (expertStore.isInsightsAgent && !expertStore.hasSelectedCapabilities)
+)
 
 function onComposerInput () {
     if (stage.value === 'idle') {
@@ -146,6 +174,26 @@ $ff-column: 820px;
     }
 
     &:not(.is-composing) &__back {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    &__resume {
+        align-self: center;
+        margin-top: 14px;
+        max-height: 32px;
+        overflow: hidden;
+        transition: max-height $ff-expand $ff-ease, opacity 220ms ease,
+                    margin-top $ff-expand $ff-ease;
+    }
+
+    &__resume-count {
+        color: var(--ff-color-text-subtle);
+    }
+
+    &.is-conversing &__resume {
+        max-height: 0;
+        margin-top: 0;
         opacity: 0;
         pointer-events: none;
     }
@@ -294,6 +342,7 @@ $ff-column: 820px;
 
 @media (prefers-reduced-motion: reduce) {
     .ff-expert-home__back,
+    .ff-expert-home__resume,
     .ff-expert-home__mode,
     .ff-expert-home__intro,
     .ff-expert-home__intro > *,
