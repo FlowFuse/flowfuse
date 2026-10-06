@@ -100,7 +100,12 @@ export const useProductTablesStore = defineStore('product-tables', {
                 if (!c.unsigned) delete c.unsigned
                 return c
             })
-            return tablesApi.createTable(team.id, databaseId, { name: this.newTable.name, schema: this.newTable.schema || 'public', columns: sanitizedColumns })
+            const result = await tablesApi.createTable(team.id, databaseId, { name: this.newTable.name, schema: this.newTable.schema || 'public', columns: sanitizedColumns })
+            this.resetNewTable()
+            return result
+        },
+        resetNewTable () {
+            this.newTable = { name: '', schema: 'public', columns: [{ ...emptyColumn }] }
         },
         deleteTable ({ teamId, databaseId, tableName, schemaName }) {
             return tablesApi.deleteTable(teamId, databaseId, tableName, schemaName)
