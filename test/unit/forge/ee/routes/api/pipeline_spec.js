@@ -1935,6 +1935,61 @@ describe('Pipelines API', function () {
         })
     })
 
+    describe('Delete Application', function () {
+        it('Destroys the pipelines and stages of the application', async function () {
+            const application = await TestObjects.factory.createApplication({ name: 'application-with-pipelines' }, TestObjects.team)
+            const pipeline = await TestObjects.factory.createPipeline({ name: 'pipeline-to-remove' }, application)
+            const deviceOne = await TestObjects.factory.createDevice({ name: 'delete-app-device-one' }, TestObjects.team, null, application)
+            const deviceTwo = await TestObjects.factory.createDevice({ name: 'delete-app-device-two' }, TestObjects.team, null, application)
+            const stageOne = await TestObjects.factory.createPipelineStage({ name: 'stage-one', deviceId: deviceOne.id, action: 'use_latest_snapshot' }, pipeline)
+            await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceId: deviceTwo.id, action: 'use_latest_snapshot', source: stageOne.hashid }, pipeline)
+            const otherPipeline = await TestObjects.factory.createPipeline({ name: 'pipeline-to-keep' }, TestObjects.application)
+            await TestObjects.factory.createPipelineStage({ name: 'stage-to-keep', instanceId: TestObjects.instanceOne.id }, otherPipeline)
+
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/applications/${application.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            response.statusCode.should.equal(200)
+            should(await app.db.models.Pipeline.findByPk(pipeline.id)).equal(null)
+            const stageCount = await app.db.models.PipelineStage.count({ where: { PipelineId: pipeline.id } })
+            stageCount.should.equal(0)
+            should(await app.db.models.Pipeline.findByPk(otherPipeline.id)).not.equal(null)
+            const otherStageCount = await app.db.models.PipelineStage.count({ where: { PipelineId: otherPipeline.id } })
+            otherStageCount.should.equal(1)
+
+            const logs = await app.db.models.AuditLog.findAll({ where: { event: 'application.pipeline.deleted' } })
+            const removed = logs.filter((log) => JSON.parse(log.body).pipeline.id === pipeline.id)
+            removed.should.have.length(1)
+        })
+
+        it('Leaves the application and its pipelines in place when the delete fails part way', async function () {
+            const application = await TestObjects.factory.createApplication({ name: 'application-delete-fails' }, TestObjects.team)
+            const pipeline = await TestObjects.factory.createPipeline({ name: 'pipeline-delete-fails' }, application)
+            const device = await TestObjects.factory.createDevice({ name: 'delete-fails-device' }, TestObjects.team, null, application)
+            await TestObjects.factory.createPipelineStage({ name: 'stage-delete-fails', deviceId: device.id, action: 'use_latest_snapshot' }, pipeline)
+
+            const destroyStub = sinon.stub(app.db.models.Pipeline.prototype, 'destroy').rejects(new Error('destroy failed'))
+            try {
+                const response = await app.inject({
+                    method: 'DELETE',
+                    url: `/api/v1/applications/${application.hashid}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(500)
+            } finally {
+                destroyStub.restore()
+            }
+
+            should(await app.db.models.Application.byId(application.hashid)).not.equal(null)
+            should(await app.db.models.Pipeline.findByPk(pipeline.id)).not.equal(null)
+            const stageCount = await app.db.models.PipelineStage.count({ where: { PipelineId: pipeline.id } })
+            stageCount.should.equal(1)
+        })
+    })
+
     describe('Update Pipeline', function () {
         describe('When given a new name', function () {
             it('Should update the name of the pipeline', async function () {
