@@ -270,6 +270,11 @@ onBeforeUnmount(() => {
 
 $ff-expand: 480ms;
 $ff-ease: cubic-bezier(0.4, 0, 0.2, 1);
+$ff-enter: 500ms;
+$ff-exit: 300ms;
+$ff-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+$ff-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+$ff-shift: 32px;
 $ff-column: 820px;
 $ff-wide: 1080px;
 
@@ -286,14 +291,14 @@ $ff-wide: 1080px;
         top: 0;
         left: 0;
         z-index: 1;
-        transition: opacity 220ms ease, visibility 220ms;
+        transition: opacity 240ms $ff-decelerate, visibility 240ms;
     }
 
     &:not(.is-composing) &__back {
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
-        transition: opacity $ff-expand $ff-ease, visibility $ff-expand;
+        transition: opacity $ff-exit $ff-accelerate, visibility $ff-exit;
     }
 
     &__instances {
@@ -308,14 +313,20 @@ $ff-wide: 1080px;
     &.is-composing &__folded {
         opacity: 0;
         visibility: hidden;
+        transform: translateY($ff-shift);
         pointer-events: none;
+        transition: opacity $ff-exit $ff-accelerate, transform $ff-exit $ff-accelerate,
+                    visibility $ff-exit;
     }
 
     &__folded {
         display: flex;
         flex-direction: column;
         align-items: center;
-        transition: opacity $ff-expand $ff-ease;
+        transform: translateY(0);
+        transition: opacity $ff-enter $ff-decelerate, transform $ff-enter $ff-decelerate,
+                    visibility $ff-enter;
+        will-change: opacity, transform;
     }
 
     &__activity {
