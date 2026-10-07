@@ -222,9 +222,18 @@ function onSuggestion (suggestion: PromptSuggestion) {
     expertStore.handleQuery({ query: suggestion.prompt }).catch(e => e)
 }
 
-function onComposerInput () {
-    if (stage.value === 'idle') {
-        stage.value = 'composing'
+function onComposerInput (event: Event) {
+    const target = event.target as HTMLTextAreaElement | null
+    if (!target || typeof target.value !== 'string') return
+
+    if (target.value.trim().length > 0) {
+        if (stage.value === 'idle') {
+            stage.value = 'composing'
+        }
+        return
+    }
+    if (stage.value === 'composing') {
+        stage.value = 'idle'
     }
 }
 

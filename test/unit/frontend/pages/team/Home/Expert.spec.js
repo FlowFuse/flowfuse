@@ -40,7 +40,7 @@ vi.mock('@/stores/ux-drawers.js', () => ({ useUxDrawersStore: () => mocks.drawer
 vi.mock('@/api/team.js', () => ({ default: mocks.teamAPI }))
 
 vi.mock('@/components/expert/Expert.vue', () => ({
-    default: { name: 'ExpertPanel', template: '<div data-stub="expert-panel" />' }
+    default: { name: 'ExpertPanel', template: '<div data-stub="expert-panel"><textarea class="chat-input" /></div>' }
 }))
 vi.mock('@/components/expert/components/ExpertModeSwitcher.vue', () => ({
     default: { name: 'ExpertModeSwitcher', template: '<div data-stub="mode-switcher" />' }
@@ -143,7 +143,7 @@ describe('TeamHomeExpert', () => {
         mocks.expertStore.messages = []
         const wrapper = await mountPage()
 
-        await wrapper.find('[data-el="expert-home-surface"]').trigger('input')
+        await wrapper.find('textarea').setValue('how are my instances?')
 
         const root = wrapper.find('[data-el="expert-home"]')
         expect(root.attributes('data-stage')).toBe('composing')
@@ -151,10 +151,26 @@ describe('TeamHomeExpert', () => {
         expect(root.classes()).not.toContain('is-conversing')
     })
 
+    test('clearing what was typed steps back, but an untouched composer never does', async () => {
+        mocks.expertStore.messages = []
+        const wrapper = await mountPage()
+        const root = () => wrapper.find('[data-el="expert-home"]')
+
+        // an empty composer firing input (focus, a cleared pending value) must not move anything
+        await wrapper.find('textarea').setValue('')
+        expect(root().attributes('data-stage')).toBe('idle')
+
+        await wrapper.find('textarea').setValue('how are my instances?')
+        expect(root().attributes('data-stage')).toBe('composing')
+
+        await wrapper.find('textarea').setValue('   ')
+        expect(root().attributes('data-stage')).toBe('idle')
+    })
+
     test('sending is what opens the transcript, not typing', async () => {
         mocks.expertStore.messages = []
         const wrapper = await mountPage()
-        await wrapper.find('[data-el="expert-home-surface"]').trigger('input')
+        await wrapper.find('textarea').setValue('how are my instances?')
         expect(wrapper.find('[data-el="expert-home"]').classes()).not.toContain('is-conversing')
 
         mocks.expertStore.messages = [{ _type: 'human' }]
@@ -168,7 +184,7 @@ describe('TeamHomeExpert', () => {
     test('back returns to idle from either stage', async () => {
         mocks.expertStore.messages = []
         const wrapper = await mountPage()
-        await wrapper.find('[data-el="expert-home-surface"]').trigger('input')
+        await wrapper.find('textarea').setValue('how are my instances?')
 
         await wrapper.find('[data-action="collapse-expert"]').trigger('click')
         expect(wrapper.find('[data-el="expert-home"]').attributes('data-stage')).toBe('idle')
@@ -186,7 +202,7 @@ describe('TeamHomeExpert', () => {
         const wrapper = await mountPage()
         const before = wrapper.findComponent({ name: 'ExpertPanel' })
 
-        await wrapper.find('[data-el="expert-home-surface"]').trigger('input')
+        await wrapper.find('textarea').setValue('how are my instances?')
         mocks.expertStore.messages = [{ _type: 'human' }]
         await wrapper.vm.$nextTick()
         await wrapper.find('[data-action="collapse-expert"]').trigger('click')
@@ -275,7 +291,7 @@ describe('TeamHomeExpert', () => {
         test('survives into composing, since a new message joins the same thread', async () => {
             mocks.expertStore.messages = [{ _type: 'human' }]
             const wrapper = await mountPage()
-            await wrapper.find('[data-el="expert-home-surface"]').trigger('input')
+            await wrapper.find('textarea').setValue('how are my instances?')
 
             expect(wrapper.find('[data-el="expert-home"]').attributes('data-stage')).toBe('composing')
             expect(wrapper.find('[data-action="resume-conversation"]').exists()).toBe(true)
@@ -299,7 +315,7 @@ describe('TeamHomeExpert', () => {
             expect(wrapper.findComponent({ name: 'PromptSuggestions' }).exists()).toBe(true)
             expect(wrapper.find('[data-action="resume-conversation"]').exists()).toBe(true)
 
-            await wrapper.find('[data-el="expert-home-surface"]').trigger('input')
+            await wrapper.find('textarea').setValue('how are my instances?')
             expect(wrapper.findComponent({ name: 'PromptSuggestions' }).exists()).toBe(true)
         })
 
