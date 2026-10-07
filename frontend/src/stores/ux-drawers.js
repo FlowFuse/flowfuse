@@ -89,6 +89,7 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
             if (this.rightDrawer.state && component.name === this.rightDrawer.component?.name) return
 
             const openDrawer = () => {
+                if (this.rightDrawer.expertSuppressed && component.name === 'ExpertDrawer') return
                 if (component.name === 'ExpertDrawer') {
                     // save the ExpertDrawer pinned/open state (expertState is persistent)
                     this.rightDrawer.expertState.pinned = fixed

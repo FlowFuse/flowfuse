@@ -14,15 +14,18 @@
             :class="{ 'is-composing': stage !== 'idle', 'is-conversing': stage === 'conversing' }"
             :data-stage="stage"
         >
-            <button
-                type="button"
+            <ff-button
+                kind="tertiary"
+                size="small"
                 class="ff-expert-home__back"
                 data-action="collapse-expert"
                 @click="stage = 'idle'"
             >
-                <ChevronLeftIcon class="ff-icon ff-icon-sm" />
+                <template #icon-left>
+                    <ChevronLeftIcon />
+                </template>
                 Back
-            </button>
+            </ff-button>
 
             <div class="ff-expert-home__spacer ff-expert-home__spacer--top" aria-hidden="true" />
 
@@ -282,26 +285,12 @@ $ff-wide: 1080px;
         top: 0;
         left: 0;
         z-index: 1;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 4px 9px 4px 6px;
-        border: 1px solid var(--ff-color-border);
-        border-radius: 6px;
-        background: var(--ff-color-bg-app);
-        font-size: 11.5px;
-        color: var(--ff-color-text-subtle);
-        cursor: pointer;
-        transition: opacity 220ms ease;
-
-        &:hover {
-            color: var(--ff-color-text-strong);
-            border-color: var(--ff-color-border-strong);
-        }
+        transition: opacity 220ms ease, visibility 220ms;
     }
 
     &:not(.is-composing) &__back {
         opacity: 0;
+        visibility: hidden;
         pointer-events: none;
     }
 
@@ -461,11 +450,13 @@ $ff-wide: 1080px;
     &__resume {
         align-self: center;
         flex: 0 0 auto;
+        min-height: 0;
         margin-top: 14px;
-        max-height: 32px;
+        max-height: 6rem;
         overflow: hidden;
         transition: max-height $ff-expand $ff-ease, opacity 220ms ease,
-                    margin-top $ff-expand $ff-ease;
+                    margin-top $ff-expand $ff-ease, padding $ff-expand $ff-ease,
+                    visibility $ff-expand;
     }
 
     &__resume-count {
@@ -474,8 +465,11 @@ $ff-wide: 1080px;
 
     &.is-conversing &__resume {
         max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
         margin-top: 0;
         opacity: 0;
+        visibility: hidden;
         pointer-events: none;
     }
 
@@ -489,16 +483,18 @@ $ff-wide: 1080px;
         max-height: 0;
         margin-bottom: 0;
         opacity: 0;
+        visibility: hidden;
         overflow: hidden;
         pointer-events: none;
         transition: max-height $ff-expand $ff-ease, opacity 220ms ease,
-                    margin-bottom $ff-expand $ff-ease;
+                    margin-bottom $ff-expand $ff-ease, visibility $ff-expand;
     }
 
     &.is-conversing &__mode {
-        max-height: 40px;
+        max-height: 6rem;
         margin-bottom: 10px;
         opacity: 1;
+        visibility: visible;
         pointer-events: auto;
     }
 
@@ -526,10 +522,6 @@ $ff-wide: 1080px;
         margin-top: 28px;
         transition: flex-grow $ff-expand $ff-ease;
 
-        :deep(.actions .left) {
-            display: none;
-        }
-
         :deep(.input-wrapper) {
             flex-direction: row;
             align-items: stretch;
@@ -555,10 +547,11 @@ $ff-wide: 1080px;
         :deep(.action-buttons) {
             max-height: 0;
             opacity: 0;
+            visibility: hidden;
             margin-bottom: 0;
             overflow: hidden;
             transition: max-height $ff-expand $ff-ease, opacity 260ms ease,
-                        margin-bottom $ff-expand $ff-ease;
+                        margin-bottom $ff-expand $ff-ease, visibility $ff-expand;
         }
     }
 
@@ -611,8 +604,9 @@ $ff-wide: 1080px;
     }
 
     &.is-conversing &__expert :deep(.action-buttons) {
-        max-height: 40px;
+        max-height: 6rem;
         opacity: 1;
+        visibility: visible;
         margin-bottom: 0.5rem;
     }
 }
