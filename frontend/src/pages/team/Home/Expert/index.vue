@@ -418,6 +418,10 @@ $ff-wide: 1080px;
         text-transform: uppercase;
         letter-spacing: 0.04em;
         color: var(--ff-color-text-subtle);
+
+        .ff-icon {
+            margin-left: 0;
+        }
     }
 
     &__empty {
