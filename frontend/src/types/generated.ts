@@ -8512,8 +8512,11 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        name?: string;
-                        columns?: components["schemas"]["DatabaseTable"];
+                        name: string;
+                        /** @default public */
+                        schema?: string;
+                        /** @default [] */
+                        columns?: unknown[] & components["schemas"]["DatabaseTable"];
                     };
                 };
             };
