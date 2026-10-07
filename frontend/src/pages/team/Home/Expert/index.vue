@@ -67,7 +67,7 @@
                         :class="{ 'is-inert': isComposerDisabled }"
                         :aria-disabled="isComposerDisabled"
                     >
-                        <PromptSuggestions :suggestions="suggestions" @select="onSuggestion" />
+                        <PromptSuggestions :suggestions="suggestions" layout="row" @select="onSuggestion" />
                     </div>
 
                     <div class="ff-expert-home__instances">
@@ -100,7 +100,7 @@
                     </div>
 
                     <div class="ff-expert-home__activity" data-el="overview-activity">
-                        <FfAccordion class="ff-expert-home__log" :set-open="false" @state-changed="onActivityToggled">
+                        <FfAccordion class="ff-expert-home__log" variant="bare" @state-changed="onActivityToggled">
                             <template #label>
                                 <p class="ff-expert-home__label">
                                     <CircleStackIcon class="ff-icon" />
@@ -317,22 +317,7 @@ $ff-wide: 1080px;
     }
 
     &__log {
-        margin-bottom: 0;
-
-        & > :deep(.ff-accordion--button) {
-            margin: -5px 0;
-            padding: 5px 0;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-
-            &:not(:hover) {
-                background: transparent;
-            }
-        }
-
         & > :deep(.ff-accordion--content) {
-            margin-top: 5px;
             padding: 4px;
             border: 1px solid var(--ff-color-border);
             border-radius: 0.625rem;
@@ -385,26 +370,10 @@ $ff-wide: 1080px;
             opacity: 0.45;
             pointer-events: none;
         }
-
-        :deep(.expert-prompt-suggestions__list) {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 0.5rem;
-        }
     }
 
     &__suggestions :deep(.expert-prompt-suggestions) {
         margin: 0;
-
-        .expert-prompt-suggestions__heading {
-            justify-content: flex-start;
-            font-size: 0.875rem;
-
-            .ff-icon {
-                width: 20px;
-                height: 20px;
-            }
-        }
     }
 
     &__section {
@@ -607,8 +576,7 @@ $ff-wide: 1080px;
 }
 
 @media (max-width: 760px) {
-    .ff-expert-home__instances,
-    .ff-expert-home__suggestions :deep(.expert-prompt-suggestions__list) {
+    .ff-expert-home__instances {
         grid-template-columns: minmax(0, 1fr);
     }
 }

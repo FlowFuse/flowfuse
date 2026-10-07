@@ -376,10 +376,11 @@ describe('TeamHomeExpert', () => {
     })
 
     describe('recent activity', () => {
-        test('stays collapsed on load and fires no audit request', async () => {
+        test('renders the log unopened, so no audit request is fired', async () => {
             mocks.teamAPI.getTeamAuditLog.mockClear()
             const wrapper = await mountPage()
-            expect(wrapper.findComponent({ name: 'ff-accordion' }).props('setOpen')).toBe(false)
+            expect(wrapper.findComponent({ name: 'ff-accordion' }).exists()).toBe(true)
+            expect(wrapper.findComponent({ name: 'AuditLog' }).props('entries')).toBe(null)
             expect(mocks.teamAPI.getTeamAuditLog).not.toHaveBeenCalled()
         })
 
