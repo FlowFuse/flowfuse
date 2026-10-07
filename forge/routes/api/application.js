@@ -228,9 +228,9 @@ module.exports = async function (app) {
             const teamHash = request.application.Team?.hashid
             const applicationHash = request.application.hashid
 
-            // The Pipeline models are only registered on licensed (EE) installs
+            // The Pipeline models are only usable on licensed (EE) installs
             const { Pipeline, PipelineStage } = app.db.models
-            const pipelines = Pipeline
+            const pipelines = (app.license.active() && Pipeline)
                 ? await Pipeline.findAll({ where: { ApplicationId: request.application.id } })
                 : []
 
