@@ -14,11 +14,17 @@ import ExpertBuildButton from '../../../../../frontend/src/components/expert/Exp
 const FfButton = {
     name: 'ff-button',
     props: ['kind', 'to'],
-    template: '<button data-stub="ff-button"><slot name="icon-left" /><slot /></button>'
+    template: '<button data-stub="ff-button"><slot name="icon" /><slot /></button>'
 }
 
-function mountButton () {
-    return mount(ExpertBuildButton, { global: { components: { 'ff-button': FfButton } } })
+function mountButton (target = 'instance') {
+    return mount(ExpertBuildButton, {
+        props: { target },
+        global: {
+            components: { 'ff-button': FfButton },
+            directives: { 'ff-tooltip': {} }
+        }
+    })
 }
 
 describe('ExpertBuildButton', () => {
@@ -30,8 +36,24 @@ describe('ExpertBuildButton', () => {
     test('links to the build page for the current team, styled as the Expert', () => {
         const button = mountButton().findComponent(FfButton)
         expect(button.props('kind')).toBe('expert')
-        expect(button.props('to')).toEqual({ name: 'team-build', params: { team_slug: 'ateam' } })
-        expect(button.text()).toContain('Build')
+        expect(button.props('to')).toEqual({ name: 'team-build-instance', params: { team_slug: 'ateam' } })
+    })
+
+    test('is an icon only button with an accessible name', () => {
+        const button = mountButton().find('[data-stub="ff-button"]')
+        expect(button.text()).toBe('')
+        expect(button.find('svg').exists()).toBe(true)
+        expect(button.attributes('aria-label')).toBe('Build an instance using the FlowFuse Expert')
+    })
+
+    test('sends applications and devices to their own build route, named on hover', () => {
+        const application = mountButton('application')
+        expect(application.findComponent(FfButton).props('to')).toEqual({ name: 'team-build-application', params: { team_slug: 'ateam' } })
+        expect(application.find('[data-stub="ff-button"]').attributes('aria-label')).toBe('Build an application using the FlowFuse Expert')
+
+        const device = mountButton('device')
+        expect(device.findComponent(FfButton).props('to')).toEqual({ name: 'team-build-device', params: { team_slug: 'ateam' } })
+        expect(device.find('[data-stub="ff-button"]').attributes('aria-label')).toBe('Build a remote instance using the FlowFuse Expert')
     })
 
     test('renders nothing when AI is off', () => {

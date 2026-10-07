@@ -21,7 +21,7 @@
                 to get started.
             </p>
             <div v-if="hasPermission('project:create')" class="flex justify-center mt-2 not-italic">
-                <ExpertBuildButton />
+                <ExpertBuildButton target="instance" />
             </div>
         </div>
     </div>

@@ -97,7 +97,7 @@
                             Target Snapshot: <b>{{ instance.targetSnapshot?.name || 'none' }}</b>
                         </span>
                     </ff-button>
-                    <ExpertBuildButton v-if="hasPermission('device:create', applicationContext)" />
+                    <ExpertBuildButton v-if="hasPermission('device:create', applicationContext)" target="device" />
                     <ff-button
                         v-ff-tooltip:left="!hasPermission('device:create', applicationContext) && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
                         class="font-normal ff-btn-icon"
@@ -176,7 +176,7 @@
                             </p>
                         </template>
                         <template #actions>
-                            <ExpertBuildButton v-if="hasPermission('device:create', applicationContext)" />
+                            <ExpertBuildButton v-if="hasPermission('device:create', applicationContext)" target="device" />
                             <ff-button
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
                                 class="font-normal ff-btn-icon"
@@ -216,7 +216,7 @@
                             </p>
                         </template>
                         <template #actions>
-                            <ExpertBuildButton v-if="hasPermission('device:create', applicationContext)" />
+                            <ExpertBuildButton v-if="hasPermission('device:create', applicationContext)" target="device" />
                             <ff-button
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
                                 class="font-normal ff-btn-icon"
@@ -256,7 +256,7 @@
                             </p>
                         </template>
                         <template #actions>
-                            <ExpertBuildButton v-if="hasPermission('device:create', applicationContext)" />
+                            <ExpertBuildButton v-if="hasPermission('device:create', applicationContext)" target="device" />
                             <ff-button
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
                                 class="font-normal ff-btn-icon"

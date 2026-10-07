@@ -36,7 +36,7 @@
 
                             <template #actions>
                                 <div class="flex gap-2">
-                                    <ExpertBuildButton v-if="hasPermission('project:create')" />
+                                    <ExpertBuildButton v-if="hasPermission('project:create')" target="instance" />
                                     <ff-button
                                         v-ff-tooltip:left="!hasPermission('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
                                         data-action="create-project"
@@ -86,7 +86,7 @@
                             </EmptyState>
                             <template #actions>
                                 <div v-if="featuresCheck.isRemoteInstanceFeatureEnabledForPlatform" class="flex gap-2">
-                                    <ExpertBuildButton v-if="hasPermission('device:create')" />
+                                    <ExpertBuildButton v-if="hasPermission('device:create')" target="device" />
                                     <ff-button
                                         v-ff-tooltip:left="!hasPermission('device:create') && 'Your role does not allow creating new remote instances. Contact a team admin to change your role.'"
                                         data-action="create-project"

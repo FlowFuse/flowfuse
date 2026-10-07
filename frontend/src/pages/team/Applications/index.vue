@@ -18,7 +18,7 @@
                 </template>
                 <template #tools>
                     <div class="flex gap-2 justify-end">
-                        <ExpertBuildButton v-if="hasPermission('project:create')" />
+                        <ExpertBuildButton v-if="hasPermission('project:create')" target="application" />
                         <ff-button
                             v-if="hasPermission('project:create')"
                             data-action="create-application"
@@ -75,7 +75,7 @@
                     </p>
                 </template>
                 <template #actions>
-                    <ExpertBuildButton v-if="hasPermission('project:create')" />
+                    <ExpertBuildButton v-if="hasPermission('project:create')" target="application" />
                     <ff-button
                         v-if="hasPermission('project:create')"
                         data-action="create-application"

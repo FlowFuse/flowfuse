@@ -1,28 +1,51 @@
 <template>
     <ff-button
         v-if="isAvailable"
+        v-ff-tooltip:bottom="build.label"
         kind="expert"
         data-action="expert-build"
-        :to="{ name: 'team-build', params: { team_slug: team.slug } }"
+        :aria-label="build.label"
+        :to="{ name: build.route, params: { team_slug: team.slug } }"
     >
-        <template #icon-left>
-            <img src="/ff-minimal-red.svg" alt="">
+        <template #icon>
+            <SparklesIcon />
         </template>
-        Build
     </ff-button>
 </template>
 
 <script>
+import { SparklesIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
+const BUILDS = {
+    instance: { route: 'team-build-instance', label: 'Build an instance using the FlowFuse Expert' },
+    application: { route: 'team-build-application', label: 'Build an application using the FlowFuse Expert' },
+    device: { route: 'team-build-device', label: 'Build a remote instance using the FlowFuse Expert' }
+}
+
 export default {
     name: 'ExpertBuildButton',
+    components: {
+        SparklesIcon
+    },
+    props: {
+        // What the button sits next to: picks the build route, which tells the
+        // Expert what the user wants, and the hover text
+        target: {
+            type: String,
+            required: true,
+            validator: value => Object.keys(BUILDS).includes(value)
+        }
+    },
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
+        build () {
+            return BUILDS[this.target]
+        },
         isAvailable () {
             return !!this.team &&
                 !!this.featuresCheck.isAiFeatureEnabled &&

@@ -11,7 +11,7 @@
             </template>
             <template v-if="instancesAvailable" #tools>
                 <div class="flex gap-2 justify-end">
-                    <ExpertBuildButton v-if="hasPermission('project:create', { application })" />
+                    <ExpertBuildButton v-if="hasPermission('project:create', { application })" target="instance" />
                     <ff-button
                         v-ff-tooltip:left="!hasPermission('project:create', { application }) && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
                         data-action="create-instance"
@@ -108,7 +108,7 @@
                     </p>
                 </template>
                 <template #actions>
-                    <ExpertBuildButton v-if="hasPermission('project:create', { application })" />
+                    <ExpertBuildButton v-if="hasPermission('project:create', { application })" target="instance" />
                     <ff-button
                         v-ff-tooltip:bottom="!hasPermission('project:create', { application }) && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
                         :to="{ name: 'application-create-instance' }"
