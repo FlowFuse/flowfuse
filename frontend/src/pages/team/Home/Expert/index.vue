@@ -66,44 +66,40 @@
 
             <div class="ff-expert-home__fold">
                 <div class="ff-expert-home__folded">
-                    <div class="ff-expert-home__columns">
-                        <div class="ff-expert-home__col">
-                            <div
-                                class="ff-expert-home__suggestions"
-                                :class="{ 'is-inert': isComposerDisabled }"
-                                :aria-disabled="isComposerDisabled"
-                            >
-                                <PromptSuggestions :suggestions="suggestions" @select="onSuggestion" />
-                            </div>
-                        </div>
+                    <div
+                        class="ff-expert-home__suggestions"
+                        :class="{ 'is-inert': isComposerDisabled }"
+                        :aria-disabled="isComposerDisabled"
+                    >
+                        <PromptSuggestions :suggestions="suggestions" @select="onSuggestion" />
+                    </div>
 
-                        <div class="ff-expert-home__col">
-                            <div class="ff-expert-home__section">
-                                <div class="ff-expert-home__section-head">
-                                    <p class="ff-expert-home__label">
-                                        <ProjectsIcon class="ff-icon" />
-                                        Hosted Instances
-                                    </p>
-                                </div>
-                                <RecentlyModifiedInstances variant="compact" :total-instances="totalInstances" />
-                            </div>
-
-                            <div class="ff-expert-home__section">
-                                <div class="ff-expert-home__section-head">
-                                    <p class="ff-expert-home__label">
-                                        <CpuChipIcon class="ff-icon" />
-                                        Remote Instances
-                                    </p>
-                                </div>
-                                <RecentlyModifiedDevices
-                                    v-if="featuresCheck.isRemoteInstanceFeatureEnabledForPlatform"
-                                    variant="compact"
-                                    :total-devices="totalDevices"
-                                />
-                                <p v-else class="ff-expert-home__empty" data-el="remote-unavailable">
-                                    Remote Instances are not available to your team.
+                    <div class="ff-expert-home__instances">
+                        <div class="ff-expert-home__section">
+                            <div class="ff-expert-home__section-head">
+                                <p class="ff-expert-home__label">
+                                    <ProjectsIcon class="ff-icon" />
+                                    Hosted Instances
                                 </p>
                             </div>
+                            <RecentlyModifiedInstances variant="compact" :total-instances="totalInstances" />
+                        </div>
+
+                        <div class="ff-expert-home__section">
+                            <div class="ff-expert-home__section-head">
+                                <p class="ff-expert-home__label">
+                                    <CpuChipIcon class="ff-icon" />
+                                    Remote Instances
+                                </p>
+                            </div>
+                            <RecentlyModifiedDevices
+                                v-if="featuresCheck.isRemoteInstanceFeatureEnabledForPlatform"
+                                variant="compact"
+                                :total-devices="totalDevices"
+                            />
+                            <p v-else class="ff-expert-home__empty" data-el="remote-unavailable">
+                                Remote Instances are not available to your team.
+                            </p>
                         </div>
                     </div>
 
@@ -294,16 +290,16 @@ $ff-wide: 1080px;
         pointer-events: none;
     }
 
-    &__columns {
+    &__instances {
         width: 100%;
         max-width: $ff-wide;
+        margin-top: 28px;
         display: grid;
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
         gap: 28px;
-        transition: opacity 260ms ease;
     }
 
-    &.is-composing &__columns {
+    &.is-composing &__folded {
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
@@ -313,6 +309,7 @@ $ff-wide: 1080px;
         display: flex;
         flex-direction: column;
         align-items: center;
+        transition: opacity 260ms ease;
     }
 
     &__activity {
@@ -396,9 +393,20 @@ $ff-wide: 1080px;
         flex-grow: 3;
     }
 
-    &__suggestions.is-inert {
-        opacity: 0.45;
-        pointer-events: none;
+    &__suggestions {
+        width: 100%;
+        max-width: $ff-wide;
+
+        &.is-inert {
+            opacity: 0.45;
+            pointer-events: none;
+        }
+
+        :deep(.expert-prompt-suggestions__list) {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.5rem;
+        }
     }
 
     &__suggestions :deep(.expert-prompt-suggestions) {
@@ -408,7 +416,6 @@ $ff-wide: 1080px;
             justify-content: flex-start;
             font-size: 0.875rem;
 
-            // the shared heading ships ff-icon-sm; match the section labels beside it
             .ff-icon {
                 width: 20px;
                 height: 20px;
@@ -416,8 +423,9 @@ $ff-wide: 1080px;
         }
     }
 
-    &__section + &__section {
-        margin-top: 28px;
+    &__section {
+        display: flex;
+        flex-direction: column;
     }
 
     &__section-head {
@@ -615,7 +623,8 @@ $ff-wide: 1080px;
 }
 
 @media (max-width: 760px) {
-    .ff-expert-home__columns {
+    .ff-expert-home__instances,
+    .ff-expert-home__suggestions :deep(.expert-prompt-suggestions__list) {
         grid-template-columns: minmax(0, 1fr);
     }
 }
@@ -625,7 +634,7 @@ $ff-wide: 1080px;
     .ff-expert-home__resume,
     .ff-expert-home__mode,
     .ff-expert-home__intro,
-    .ff-expert-home__columns,
+    .ff-expert-home__folded,
     .ff-expert-home__fold,
     .ff-expert-home__spacer,
     .ff-expert-home__expert,

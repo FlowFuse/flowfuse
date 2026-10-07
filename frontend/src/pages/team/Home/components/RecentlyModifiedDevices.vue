@@ -216,7 +216,7 @@ export default {
     .device-wrapper .device-tile {
         border: none;
         padding: 2px 4px;
-        min-height: 44px;
+        min-height: 50px;
     }
 }
 </style>
