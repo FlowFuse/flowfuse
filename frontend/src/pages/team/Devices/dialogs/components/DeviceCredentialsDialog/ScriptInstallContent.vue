@@ -26,11 +26,11 @@ const OS_CONFIG = {
     },
     macos: {
         title: 'Open Terminal and run:',
-        command: (otc, url) => `/bin/bash -c "$(curl -fsSL https://flowfuse.github.io/device-agent/get.sh)" && \\\n./flowfuse-device-agent-installer -o ${otc} -u ${url}`
+        command: (otc, url) => `/bin/bash -c "$(curl -fsSL https://flowfuse.github.io/device-agent/get.sh)" && ./flowfuse-device-agent-installer -o ${otc} -u ${url}`
     },
     linux: {
         title: 'Open Terminal and run:',
-        command: (otc, url) => `/bin/bash -c "$(curl -fsSL https://flowfuse.github.io/device-agent/get.sh)" && \\\n./flowfuse-device-agent-installer -o ${otc} -u ${url}`
+        command: (otc, url) => `/bin/bash -c "$(curl -fsSL https://flowfuse.github.io/device-agent/get.sh)" && ./flowfuse-device-agent-installer -o ${otc} -u ${url}`
     }
 }
 
