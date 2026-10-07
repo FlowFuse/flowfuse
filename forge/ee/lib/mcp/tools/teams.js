@@ -190,7 +190,7 @@ module.exports = [
         inputSchema: {
             teamId,
             tokenId: z.string().describe('The hashid of the git token, as returned by platform_list_team_git_tokens'),
-            name: z.string().min(1).max(255).describe('New name for the git token')
+            name: z.string().trim().min(1).max(255).describe('New name for the git token')
         },
         outputSchema: {
             id: z.string(),

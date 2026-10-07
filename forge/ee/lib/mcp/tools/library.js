@@ -10,7 +10,7 @@ module.exports = [
         title: 'Create Team Library Entry',
         description: `FlowFuse platform automation tool:
             Saves an entry in a team's shared library, the library the team's Node-RED instances and devices share in the editor's import and export dialogs.
-            An entry is identified by its path and type. If an entry with the same path and type already exists, its body and meta are replaced and the call still succeeds, so repeating a call is safe but silently overwrites. The same path can hold separate entries of different types.
+            An entry is identified by its path and type. If an entry with the same path and type already exists, its body is replaced, and its meta too when meta is given, and the call still succeeds, so repeating a call is safe but silently overwrites. The same path can hold separate entries of different types.
             Folders are implicit: they exist while an entry sits below them, so saving "utils/helpers/retry" creates the folders "utils" and "utils/helpers". A path cannot be both an entry and a folder; saving one that clashes with the other fails with 400.
             The shared library is a plan-gated feature. A 404 means it is not enabled for the team's plan, the team does not exist, or the caller is not a member of it.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },

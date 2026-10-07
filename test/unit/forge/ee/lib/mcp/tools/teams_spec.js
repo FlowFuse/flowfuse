@@ -464,6 +464,7 @@ describe('MCP Teams Tools', function () {
             const schema = z.object(tool.inputSchema)
             schema.safeParse(args).success.should.be.true()
             schema.safeParse({ ...args, name: '' }).success.should.be.false()
+            schema.safeParse({ ...args, name: '   ' }).success.should.be.false()
         })
     })
 })
