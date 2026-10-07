@@ -14,6 +14,13 @@ function team ({ features = {}, enableAllFeatures = false, teamFeatures } = {}) 
     return result
 }
 
+function apiTeam ({ features = {}, enableAllFeatures = false, teamFeatures = {} } = {}) {
+    return {
+        properties: { features: { ...teamFeatures } },
+        type: { properties: { features: { ...features, ...teamFeatures }, enableAllFeatures } }
+    }
+}
+
 describe('buildFeatureChecks', () => {
     describe('platform AND team features', () => {
         // isPrivateRegistryFeatureEnabled -> platformKey/teamKey 'npm'
@@ -152,6 +159,31 @@ describe('buildFeatureChecks', () => {
             )
             expect(checks.isExpertAssistantFeatureEnabled).toBe(false)
             expect(checks.isExpertInsightsFeatureEnabled).toBe(false)
+        })
+
+        test('enableAllFeatures no longer overrides a flattened per-team false', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { ai: true, expertAssistant: true } }),
+                apiTeam({ enableAllFeatures: true, teamFeatures: { ai: false } })
+            )
+            expect(checks.isAiFeatureEnabled).toBe(false)
+            expect(checks.isExpertAssistantFeatureEnabled).toBe(false)
+        })
+
+        test('enableAllFeatures still applies when the team sets no override', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { npm: true } }),
+                apiTeam({ enableAllFeatures: true })
+            )
+            expect(checks.isPrivateRegistryFeatureEnabled).toBe(true)
+        })
+
+        test('a flattened per-team true stays enabled', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { npm: true } }),
+                apiTeam({ features: { npm: false }, teamFeatures: { npm: true } })
+            )
+            expect(checks.isPrivateRegistryFeatureEnabled).toBe(true)
         })
 
         test('the platform flag still gates a per-team true', () => {
