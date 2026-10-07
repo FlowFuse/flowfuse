@@ -139,8 +139,8 @@ import AuditLog from '@/components/audit-log/AuditLog.vue'
 import ExpertPanel from '@/components/expert/Expert.vue'
 import ExpertModeSwitcher from '@/components/expert/components/ExpertModeSwitcher.vue'
 import PromptSuggestions from '@/components/expert/components/PromptSuggestions.vue'
-import { pickSuggestions } from '@/components/expert/prompt-suggestions.js'
 import ProjectsIcon from '@/components/icons/Projects.js'
+import { type PromptSuggestion, usePromptSuggestions } from '@/composables/PromptSuggestions'
 import RecentlyModifiedDevices from '@/pages/team/Home/components/RecentlyModifiedDevices.vue'
 import RecentlyModifiedInstances from '@/pages/team/Home/components/RecentlyModifiedInstances.vue'
 import Alerts from '@/services/alerts.js'
@@ -214,14 +214,13 @@ const isComposerDisabled = computed<boolean>(() =>
 
 const canResume = computed<boolean>(() => liveTurns.value > 0 || isComposerDisabled.value)
 
-type Suggestion = { title: string, prompt: string, needsInput?: boolean }
+const { suggestions, trackShown, trackClick } = usePromptSuggestions({ surface: 'overview' })
 
-const suggestions = ref<Suggestion[]>(pickSuggestions())
-
-function onSuggestion (suggestion: Suggestion) {
+function onSuggestion (suggestion: PromptSuggestion) {
     if (isComposerDisabled.value) {
         return
     }
+    trackClick(suggestion)
     if (suggestion.needsInput) {
         stage.value = 'composing'
         expertStore.setPendingInput(suggestion.prompt)
@@ -250,6 +249,7 @@ onMounted(() => {
     }
     loadInstanceCount('hosted', totalInstances)
     loadInstanceCount('remote', totalDevices)
+    trackShown()
     expertStore.resumeSessionTimer()
     drawersStore.suppressExpertDrawer()
     if (drawersStore.rightDrawer.state) {
