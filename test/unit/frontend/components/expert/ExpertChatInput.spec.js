@@ -37,6 +37,8 @@ function mountInput ({ immersive = false, editorDrawerOpen = true } = {}) {
     const wrapper = mount(ExpertChatInput, {
         global: {
             plugins: [pinia],
+            // the instance and device editor pages provide this
+            provide: immersive ? { 'expert-surface': 'immersive' } : {},
             stubs: {
                 teleport: true,
                 'resize-bar': true,
@@ -65,8 +67,9 @@ describe('ExpertChatInput prompt suggestion tracking', () => {
         expect(shownEvents()).toHaveLength(1)
         const [, properties, groups] = shownEvents()[0]
         expect(properties).toEqual({
+            ids: wrapper.vm.suggestions.map(s => s.id),
             titles: wrapper.vm.suggestions.map(s => s.title),
-            context: 'platform'
+            surface: 'drawer'
         })
         expect(properties.titles).toHaveLength(3)
         expect(groups).toEqual({ team: 'team-1' })
@@ -91,7 +94,7 @@ describe('ExpertChatInput prompt suggestion tracking', () => {
         await wrapper.vm.$nextTick()
 
         expect(shownEvents()).toHaveLength(2)
-        expect(shownEvents()[1][1].titles).toEqual(wrapper.vm.suggestions.map(s => s.title))
+        expect(shownEvents()[1][1].ids).toEqual(wrapper.vm.suggestions.map(s => s.id))
     })
 
     test('in the editor, nothing is reported while the drawer is closed', async () => {
@@ -102,7 +105,7 @@ describe('ExpertChatInput prompt suggestion tracking', () => {
         drawers.editorImmersiveDrawer.state = true
         await wrapper.vm.$nextTick()
         expect(shownEvents()).toHaveLength(1)
-        expect(shownEvents()[0][1].context).toBe('editor')
+        expect(shownEvents()[0][1].surface).toBe('immersive')
     })
 
     test('reports which suggestion was clicked and where it sat', async () => {
@@ -113,10 +116,11 @@ describe('ExpertChatInput prompt suggestion tracking', () => {
         await wrapper.findAll('[data-action="use-prompt-suggestion"]')[1].trigger('click')
 
         expect(Product.capture).toHaveBeenCalledWith('ff-expert-suggestion-clicked', {
+            id: second.id,
             title: second.title,
             position: 2,
             needs_input: !!second.needsInput,
-            context: 'platform'
+            surface: 'drawer'
         }, { team: 'team-1' })
     })
 })

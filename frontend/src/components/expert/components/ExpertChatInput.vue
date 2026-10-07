@@ -124,17 +124,15 @@ import { mapActions, mapState } from 'pinia'
 import FormHeading from '../../FormHeading.vue'
 import ResizeBar from '../../ResizeBar.vue'
 
-import { pickSuggestions, trackSuggestionClicked, trackSuggestionsShown } from '../prompt-suggestions.js'
-
 import CapabilitiesSelector from './CapabilitiesSelector.vue'
 import PromptSuggestions from './PromptSuggestions.vue'
 import ToolPermissionsSettings from './ToolPermissionsSettings.vue'
 import DefaultChip from './chips/DefaultChip.vue'
 import ContextSelector from './context-selection/index.vue'
 
+import { usePromptSuggestions } from '@/composables/PromptSuggestions'
 import { useResizingHelper } from '@/composables/ResizingHelper.js'
 
-import { useContextStore } from '@/stores/context.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
@@ -170,13 +168,20 @@ export default {
             setHeight,
             isResizing: isInputResizing
         } = useResizingHelper()
+        // Conversation starters, drawn at random when the composer is created and
+        // re-drawn on "Start over"
+        const { suggestions, deal, trackShown, trackClick } = usePromptSuggestions()
 
         return {
             startResize,
             bindResizer,
             heightStyle,
             setHeight,
-            isInputResizing
+            isInputResizing,
+            suggestions,
+            dealSuggestions: deal,
+            trackSuggestionsShown: trackShown,
+            trackSuggestionClicked: trackClick
         }
     },
     data () {
@@ -189,12 +194,7 @@ export default {
             // The composer auto-sizes to its content via CSS (see .chat-input field-sizing).
             // Only once the user drag-resizes do we pin it to an explicit height.
             userResized: false,
-            // Conversation starters, drawn at random when the composer mounts and
-            // re-drawn on "Start over"
-            suggestions: [],
-            suggestionUsed: false,
-            // the current three have been reported to PostHog as shown
-            suggestionsTracked: false
+            suggestionUsed: false
         }
     },
     computed: {
@@ -260,12 +260,6 @@ export default {
             // when the suggestions never left the screen
             return this.suggestions
         },
-        suggestionTracking () {
-            return {
-                context: this.isImmersive ? 'editor' : 'platform',
-                team: useContextStore().team?.id
-            }
-        },
         placeholderText () {
             if (this.isInsightsAgent && !this.hasSelectedCapabilities) {
                 return 'Select a resource to get started'
@@ -320,16 +314,16 @@ export default {
                 this.requestingPlanChange = false
             }
         },
-        visibleSuggestions (suggestions) {
-            // Once per deal: typing and clearing the box brings the same three back,
-            // which is not a second impression
-            if (!suggestions || this.suggestionsTracked) return
-            this.suggestionsTracked = true
-            trackSuggestionsShown(suggestions, this.suggestionTracking)
+        visibleSuggestions: {
+            handler (suggestions) {
+                // Reported once per deal: typing and clearing the box brings the
+                // same three back, which is not a second impression
+                if (suggestions) this.trackSuggestionsShown()
+            },
+            immediate: true
         }
     },
     mounted () {
-        this.dealSuggestions()
         this.bindResizer({
             component: this.$refs.resizeTarget,
             maxHeightRatio: 0.9,
@@ -367,12 +361,8 @@ export default {
             this.inputText = ''
             this.requestingPlanChange = false
         },
-        dealSuggestions () {
-            this.suggestions = pickSuggestions()
-            this.suggestionsTracked = false
-        },
         useSuggestion (suggestion) {
-            trackSuggestionClicked(suggestion, this.suggestions, this.suggestionTracking)
+            this.trackSuggestionClicked(suggestion)
             this.suggestionUsed = true
             this.inputText = suggestion.prompt
             if (suggestion.needsInput) {
