@@ -47,7 +47,7 @@ async function mountPage () {
                 teleport: true
             },
             mocks: {
-                $route: { params: { team_slug: 'ateam' }, path: '/team/ateam/build', query: {}, hash: '' },
+                $route: { params: { team_slug: 'ateam' }, path: '/team/ateam/instances/build', query: {}, hash: '' },
                 $router: { push: routerPush, replace: routerReplace, back: routerBack }
             }
         }
