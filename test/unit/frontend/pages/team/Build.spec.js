@@ -13,8 +13,8 @@ const mocks = vi.hoisted(() => ({
     contextStore: { team: null },
     settingsStore: { featuresCheck: {} },
     accountStore: { setTeam: vi.fn().mockResolvedValue() },
-    expertStore: { openConversation: vi.fn(), setAgentMode: vi.fn() },
-    supportAgentStore: { reset: vi.fn() },
+    expertStore: { messages: [], openConversation: vi.fn(), setAgentMode: vi.fn() },
+    supportAgentStore: { messages: [], reset: vi.fn() },
     uxStore: { startBuilding: vi.fn(), stopBuilding: vi.fn() }
 }))
 
@@ -59,6 +59,8 @@ async function mountPage () {
 describe('Build page', () => {
     beforeEach(() => {
         vi.clearAllMocks()
+        mocks.expertStore.messages = []
+        mocks.supportAgentStore.messages = []
         mocks.contextStore.team = { id: 't1', slug: 'ateam' }
         mocks.settingsStore.featuresCheck = { isAiFeatureEnabled: true, isExpertAssistantFeatureEnabled: true }
     })
@@ -96,15 +98,41 @@ describe('Build page', () => {
         expect(mocks.expertStore.openConversation).not.toHaveBeenCalled()
     })
 
-    test('starts a fresh support agent conversation with building on', async () => {
+    test('lets the Expert open an empty support agent conversation with building on', async () => {
         await mountPage()
         expect(mocks.uxStore.startBuilding).toHaveBeenCalledTimes(1)
-        expect(mocks.supportAgentStore.reset).toHaveBeenCalledTimes(1)
         expect(mocks.expertStore.setAgentMode).toHaveBeenCalledWith(SUPPORT_AGENT)
         expect(mocks.expertStore.openConversation).toHaveBeenCalledTimes(1)
         // building has to be on before the first turn goes out
         expect(mocks.uxStore.startBuilding.mock.invocationCallOrder[0])
             .toBeLessThan(mocks.expertStore.openConversation.mock.invocationCallOrder[0])
+    })
+
+    // The drawer and the build page share the session and its broker client, so
+    // resetting here would leave that client signed in for a session that is gone
+    test('never resets the shared conversation', async () => {
+        mocks.expertStore.messages = [{ _type: 'ai', generated: true }]
+        await mountPage()
+        expect(mocks.supportAgentStore.reset).not.toHaveBeenCalled()
+    })
+
+    test('drops canned lines before the Expert opens a conversation nobody has started', async () => {
+        const canned = [{ _type: 'ai', generated: true }]
+        mocks.expertStore.messages = canned
+        mocks.supportAgentStore.messages = canned
+        await mountPage()
+        expect(mocks.supportAgentStore.messages).toEqual([])
+        expect(mocks.expertStore.openConversation).toHaveBeenCalledTimes(1)
+    })
+
+    test('carries on a conversation that is already under way', async () => {
+        const transcript = [{ _type: 'human' }, { _type: 'ai' }]
+        mocks.expertStore.messages = transcript
+        mocks.supportAgentStore.messages = transcript
+        await mountPage()
+        expect(mocks.supportAgentStore.messages).toBe(transcript)
+        expect(mocks.expertStore.openConversation).not.toHaveBeenCalled()
+        expect(mocks.uxStore.startBuilding).toHaveBeenCalledTimes(1)
     })
 
     test('opens the conversation only once when the team object is refreshed', async () => {

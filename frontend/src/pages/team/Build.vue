@@ -100,12 +100,16 @@ export default {
             this.conversationRequested = true
             // On before the first turn, so the Expert knows from the start
             useUxStore().startBuilding()
-            // Every visit is a new build: whatever the drawer was talking about,
-            // and in whichever mode, does not carry over
-            useProductExpertSupportAgentStore().reset()
+            // Same conversation, session and broker client as the drawer, so planning
+            // there carries over into building here and back again
             const expertStore = useProductExpertStore()
             expertStore.setAgentMode(SUPPORT_AGENT)
-            expertStore.openConversation()
+            if (expertStore.messages.every(message => message.generated)) {
+                // Nobody has said anything yet beyond canned or error lines: drop those
+                // and let the Expert open, on the same session rather than a reset one
+                useProductExpertSupportAgentStore().messages = []
+                expertStore.openConversation()
+            }
         },
         leave () {
             if (window.history.state?.back) {
