@@ -336,7 +336,7 @@ module.exports = {
             await teamClient.end()
         }
     },
-    createTable: async function (team, databaseId, tableName, columns) {
+    createTable: async function (team, databaseId, tableName, columns, schemaName = 'public') {
         const databaseExists = await this._app.db.models.Table.byId(team.id, databaseId)
         if (!databaseExists || databaseExists.TeamId !== team.id) {
             throw new Error(`Database ${databaseId} for team ${team.hashid} does not exist`)
@@ -353,7 +353,8 @@ module.exports = {
             const teamClient = libPg.newClient(options)
             try {
                 await teamClient.connect()
-                let query = `CREATE TABLE IF NOT EXISTS ${libPg.pg.escapeIdentifier(tableName)} (\n`
+                const escapedSchema = libPg.pg.escapeIdentifier(schemaName)
+                let query = `CREATE TABLE IF NOT EXISTS ${escapedSchema}.${libPg.pg.escapeIdentifier(tableName)} (\n`
                 for (const [i, col] of columns.entries()) {
                     if (col.name.length === 0 || col.type.length === 0) {
                         continue
@@ -371,9 +372,9 @@ module.exports = {
                         } else if (col.type === 'bigint') {
                             column += `DEFAULT ${parseInt(col.default)}`
                         } else if (['real', 'double precision'].includes(col.type)) {
-                            column += `DEFAULT ${parseFloat(column.default)}`
+                            column += `DEFAULT ${parseFloat(col.default)}`
                         } else if (col.type === 'boolean') {
-                            column += `DEFAULT ${column.default === 'true'}`
+                            column += `DEFAULT ${col.default === 'true'}`
                         } else if (col.type === 'timestamptz') {
                             column += 'DEFAULT NOW()'
                         }
@@ -388,7 +389,17 @@ module.exports = {
                     query = query.replace(/ ,\n$/, '\n')
                 }
                 query += ')'
-                await teamClient.query(query)
+                await teamClient.query('BEGIN')
+                try {
+                    if (schemaName !== 'public') {
+                        await teamClient.query(`CREATE SCHEMA IF NOT EXISTS ${escapedSchema}`)
+                    }
+                    await teamClient.query(query)
+                    await teamClient.query('COMMIT')
+                } catch (err) {
+                    await teamClient.query('ROLLBACK')
+                    throw err
+                }
             } finally {
                 teamClient.end()
             }
