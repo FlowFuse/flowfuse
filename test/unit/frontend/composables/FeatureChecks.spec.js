@@ -6,8 +6,12 @@ function platformState ({ features = {}, settingsFeatures = {}, posthogFlags = {
     return { features, settings: { features: settingsFeatures }, posthogFlags }
 }
 
-function team ({ features = {}, enableAllFeatures = false } = {}) {
-    return { type: { properties: { features, enableAllFeatures } } }
+function team ({ features = {}, enableAllFeatures = false, teamFeatures } = {}) {
+    const result = { type: { properties: { features, enableAllFeatures } } }
+    if (teamFeatures) {
+        result.properties = { features: teamFeatures }
+    }
+    return result
 }
 
 describe('buildFeatureChecks', () => {
@@ -104,6 +108,58 @@ describe('buildFeatureChecks', () => {
                 team()
             )
             expect(checks.isSharedLibraryFeatureEnabled).toBe(false)
+        })
+    })
+
+    describe('per-team feature overrides', () => {
+        test('a per-team false disables an opt-out feature the team type allows', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { ai: true } }),
+                team({ teamFeatures: { ai: false } })
+            )
+            expect(checks.isAiFeatureEnabled).toBe(false)
+            expect(checks.isAiFeatureEnabledForTeam).toBe(false)
+        })
+
+        test('a per-team false wins over enableAllFeatures', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { npm: true } }),
+                team({ enableAllFeatures: true, teamFeatures: { npm: false } })
+            )
+            expect(checks.isPrivateRegistryFeatureEnabled).toBe(false)
+        })
+
+        test('a per-team true enables a feature the team type does not grant', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { npm: true } }),
+                team({ features: { npm: false }, teamFeatures: { npm: true } })
+            )
+            expect(checks.isPrivateRegistryFeatureEnabled).toBe(true)
+        })
+
+        test('an unrelated per-team key leaves the team type in charge', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { npm: true } }),
+                team({ features: { npm: true }, teamFeatures: { ai: false } })
+            )
+            expect(checks.isPrivateRegistryFeatureEnabled).toBe(true)
+        })
+
+        test('a per-team false on a dependency gates the dependent feature', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { ai: true, expertAssistant: true } }),
+                team({ teamFeatures: { ai: false } })
+            )
+            expect(checks.isExpertAssistantFeatureEnabled).toBe(false)
+            expect(checks.isExpertInsightsFeatureEnabled).toBe(false)
+        })
+
+        test('the platform flag still gates a per-team true', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { npm: false } }),
+                team({ teamFeatures: { npm: true } })
+            )
+            expect(checks.isPrivateRegistryFeatureEnabled).toBe(false)
         })
     })
 
