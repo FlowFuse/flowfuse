@@ -80,9 +80,7 @@ On Team and Enterprise plans an owner adds the connector for the organisation fi
 
 ### Coding agents
 
-In Claude Code signed in with a Claude account, FlowFuse Cloud is already available as a connector. Run `/mcp`, open **Show unused connectors**, select FlowFuse and choose **Authenticate**.
-
-With an API key, on self-hosted, or in another coding agent, ask the agent to add the connector to itself, rather than editing its configuration by hand:
+A coding agent can add the connector to itself. Ask it, rather than editing its configuration by hand:
 
 ```
 Add the FlowFuse MCP tool at https://app.flowfuse.com/mcp. Then ask me to complete the sign-in in the browser that opens.
