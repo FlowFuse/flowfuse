@@ -1,5 +1,6 @@
 const should = require('should') // eslint-disable-line no-unused-vars
 const sinon = require('sinon')
+const { z } = require('zod')
 
 const tools = require('../../../../../../../forge/ee/lib/mcp/tools/teams')
 
@@ -406,6 +407,63 @@ describe('MCP Teams Tools', function () {
                 response.json().should.have.property('code', 'invalid_request')
             }
             inject.called.should.be.false()
+        })
+    })
+
+    describe('platform_update_git_token', function () {
+        const tool = getTool('platform_update_git_token')
+        const args = { teamId: 'team1', tokenId: 'tok1', name: 'renamed' }
+        const notFound = () => ({ statusCode: 404, json: () => ({ code: 'not_found', error: 'Not Found' }) })
+
+        it('is a non-destructive, idempotent write', function () {
+            tool.annotations.should.containEql({ readOnlyHint: false, destructiveHint: false, idempotentHint: true })
+        })
+
+        it('puts only the name to the token route and returns the response', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ id: 'tok1', name: 'renamed', type: 'github' }) }
+            inject.resolves(routeResponse)
+            const response = await tool.handler(args, { inject })
+            inject.calledOnce.should.be.true()
+            inject.firstCall.args[0].should.eql({ method: 'PUT', url: '/api/v1/teams/team1/git/tokens/tok1', payload: { name: 'renamed' } })
+            response.should.equal(routeResponse)
+        })
+
+        it('rejects ids that are not hashids without calling the route', async function () {
+            for (const bad of [{ teamId: '../x' }, { tokenId: 'a/../b' }]) {
+                const response = await tool.handler({ ...args, ...bad }, { inject })
+                response.statusCode.should.equal(400)
+            }
+            inject.called.should.be.false()
+        })
+
+        it('keeps the route 404 when the team has git integration but the token is missing', async function () {
+            const missing = notFound()
+            inject.onFirstCall().resolves(missing)
+            inject.onSecondCall().resolves({ statusCode: 200, json: () => ({ tokens: [] }) })
+            const response = await tool.handler(args, { inject })
+            inject.secondCall.args[0].should.eql({ method: 'GET', url: '/api/v1/teams/team1/git/tokens' })
+            response.should.equal(missing)
+        })
+
+        it('explains a 404 as git integration being unavailable when the token list is also 404', async function () {
+            inject.callsFake(async () => notFound())
+            const response = await tool.handler(args, { inject })
+            response.statusCode.should.equal(404)
+            response.json().error.should.match(/Git integration is not enabled/)
+        })
+
+        it('passes through other errors without probing', async function () {
+            const forbidden = { statusCode: 403, json: () => ({ code: 'unauthorized' }) }
+            inject.resolves(forbidden)
+            const response = await tool.handler(args, { inject })
+            inject.calledOnce.should.be.true()
+            response.should.equal(forbidden)
+        })
+
+        it('requires a non-empty name', function () {
+            const schema = z.object(tool.inputSchema)
+            schema.safeParse(args).success.should.be.true()
+            schema.safeParse({ ...args, name: '' }).success.should.be.false()
         })
     })
 })
