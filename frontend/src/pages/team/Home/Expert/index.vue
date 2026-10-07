@@ -536,6 +536,10 @@ $ff-wide: 1080px;
             background: transparent;
         }
 
+        :deep(.btn-send:disabled) {
+            visibility: hidden;
+        }
+
         :deep(.actions) {
             display: flex;
             align-items: center;
