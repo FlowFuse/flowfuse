@@ -408,4 +408,45 @@ describe('MCP Teams Tools', function () {
             inject.called.should.be.false()
         })
     })
+
+    describe('platform_delete_git_token', function () {
+        const tool = getTool('platform_delete_git_token')
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('deletes the token and reports okay for the empty object reply', async function () {
+            inject.resolves({ statusCode: 200, body: '{}', json: () => ({}) })
+            const response = await tool.handler({ teamId: 'team1', tokenId: 'token1' }, { inject })
+            inject.calledOnce.should.be.true()
+            inject.firstCall.args[0].should.eql({ method: 'DELETE', url: '/api/v1/teams/team1/git/tokens/token1' })
+            response.statusCode.should.equal(200)
+            response.json().should.eql({ status: 'okay' })
+        })
+
+        it('passes through a not found error', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found', error: 'Not Found' }) }
+            inject.resolves(errorResponse)
+            const response = await tool.handler({ teamId: 'team1', tokenId: 'token1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+
+        it('passes through a rejection for a token without write access', async function () {
+            const errorResponse = { statusCode: 403, json: () => ({ code: 'unauthorized', error: 'unauthorized' }) }
+            inject.resolves(errorResponse)
+            const response = await tool.handler({ teamId: 'team1', tokenId: 'token1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+
+        it('refuses ids that would reach another route', async function () {
+            for (const [teamId, tokenId] of [['team1/../team2', 'token1'], ['team1', '../..'], ['team1', 'token1?x=1']]) {
+                const response = await tool.handler({ teamId, tokenId }, { inject })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            }
+            inject.called.should.be.false()
+        })
+    })
 })

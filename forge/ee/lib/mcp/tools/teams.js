@@ -179,6 +179,29 @@ module.exports = [
         }
     },
     {
+        name: 'platform_delete_git_token',
+        title: 'Delete Team Git Token',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes a team git token. The stored token value is gone and cannot be recovered, so a new token has to be created to restore access.
+            CAUTION: pipeline stages that use this token are neither removed nor blocked. They keep their repository settings but lose their token, and every push to or pull from their repository fails from then on, with an unhelpful error, until each stage is pointed at another token. Confirm with the user before calling this, and check which pipelines have git-repository stages with platform_list_pipelines first so you can tell them what will stop working.
+            Only team owners can delete git tokens. Replies { status: "okay" } on success; a token that does not exist, or belongs to another team, returns 404, so repeating a call is harmless. A 404 can also mean git integration is not available to the team.`,
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            tokenId: z.string().describe('The hashid of the git token to delete, as returned by platform_list_team_git_tokens')
+        },
+        handler: async (args, { inject }) => {
+            if (!isHashid(args.teamId) || !isHashid(args.tokenId)) {
+                return toolError(400, 'invalid_request', 'teamId and tokenId must be hashids')
+            }
+            const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/git/tokens/${args.tokenId}` })
+            if (response.statusCode >= 400) {
+                return response
+            }
+            return { statusCode: response.statusCode, json: () => ({ status: 'okay' }) }
+        }
+    },
+    {
         name: 'platform_create_team',
         title: 'Create Team',
         description: `FlowFuse platform automation tool:
