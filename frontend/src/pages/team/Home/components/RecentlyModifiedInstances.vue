@@ -44,7 +44,8 @@ export default {
         },
         variant: {
             type: String,
-            default: 'boxed'
+            default: 'boxed',
+            validator: value => ['boxed', 'compact'].includes(value)
         }
     },
     emits: ['delete-instance'],

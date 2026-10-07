@@ -81,7 +81,7 @@
                             <div class="ff-expert-home__section">
                                 <div class="ff-expert-home__section-head">
                                     <p class="ff-expert-home__label">
-                                        <ProjectsIcon class="ff-icon ff-icon-sm" />
+                                        <ProjectsIcon class="ff-icon" />
                                         Hosted Instances
                                     </p>
                                 </div>
@@ -91,7 +91,7 @@
                             <div class="ff-expert-home__section">
                                 <div class="ff-expert-home__section-head">
                                     <p class="ff-expert-home__label">
-                                        <CpuChipIcon class="ff-icon ff-icon-sm" />
+                                        <CpuChipIcon class="ff-icon" />
                                         Remote Instances
                                     </p>
                                 </div>
@@ -111,7 +111,7 @@
                         <FfAccordion class="ff-expert-home__log" :set-open="false" @state-changed="onActivityToggled">
                             <template #label>
                                 <p class="ff-expert-home__label">
-                                    <CircleStackIcon class="ff-icon ff-icon-sm" />
+                                    <CircleStackIcon class="ff-icon" />
                                     Recent Activity
                                 </p>
                             </template>
@@ -305,6 +305,7 @@ $ff-wide: 1080px;
 
     &.is-composing &__columns {
         opacity: 0;
+        visibility: hidden;
         pointer-events: none;
     }
 
@@ -367,7 +368,8 @@ $ff-wide: 1080px;
         grid-template-rows: 1fr;
         flex: 0 0 auto;
         margin-top: 28px;
-        transition: grid-template-rows $ff-expand $ff-ease, margin-top $ff-expand $ff-ease;
+        transition: grid-template-rows $ff-expand $ff-ease, margin-top $ff-expand $ff-ease,
+                    visibility $ff-expand;
 
         > * {
             min-height: 0;
@@ -378,6 +380,7 @@ $ff-wide: 1080px;
     &.is-composing &__fold {
         grid-template-rows: 0fr;
         margin-top: 0;
+        visibility: hidden;
     }
 
     &__spacer {
@@ -405,9 +408,10 @@ $ff-wide: 1080px;
             justify-content: flex-start;
             font-size: 0.875rem;
 
+            // the shared heading ships ff-icon-sm; match the section labels beside it
             .ff-icon {
-                width: 18px;
-                height: 18px;
+                width: 20px;
+                height: 20px;
             }
         }
     }
@@ -433,11 +437,6 @@ $ff-wide: 1080px;
         text-transform: uppercase;
         letter-spacing: 0.04em;
         color: var(--ff-color-text-subtle);
-
-        .ff-icon {
-            width: 18px;
-            height: 18px;
-        }
     }
 
     &__empty {

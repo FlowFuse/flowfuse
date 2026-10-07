@@ -119,7 +119,7 @@
         </div>
     </ff-page>
     <TeamDeviceCreateDialog
-        v-if="team && modals.addDevice"
+        v-if="!isExpertHome && team && modals.addDevice"
         ref="teamDeviceCreateDialog"
         :team="team"
         :teamDeviceCount="totalDevices"
@@ -135,7 +135,7 @@
             </p>
         </template>
     </TeamDeviceCreateDialog>
-    <DeviceCredentialsDialog ref="deviceCredentialsDialog" />
+    <DeviceCredentialsDialog v-if="!isExpertHome" ref="deviceCredentialsDialog" />
 </template>
 
 <script>
@@ -151,7 +151,6 @@ import { useInstanceStates } from '../../../composables/InstanceStates.js'
 import usePermissions from '../../../composables/Permissions.js'
 import { getTeamProperty } from '../../../composables/TeamProperties.js'
 import Alerts from '../../../services/alerts.js'
-import sumCounts from '../../../utils/sumCounts'
 import ConfirmInstanceDeleteDialog from '../../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import DeviceCredentialsDialog from '../Devices/dialogs/DeviceCredentialsDialog.vue'
 import TeamDeviceCreateDialog from '../Devices/dialogs/TeamDeviceCreateDialog.vue'
@@ -167,6 +166,7 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
+import sumCounts from '@/utils/sumCounts'
 
 export default {
     name: 'TeamHome',
