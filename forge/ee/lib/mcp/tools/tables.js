@@ -229,6 +229,10 @@ module.exports = [
             if (!isHashid(args.teamId) || !isHashid(args.databaseId)) {
                 return toolError(400, 'invalid_request', 'teamId and databaseId must be hashids')
             }
+            // An empty or dot segment drops out of the URL, which would delete the table from any schema
+            if ([args.tableName, args.schemaName].some(segment => segment === '' || segment === '.' || segment === '..')) {
+                return toolError(400, 'invalid_request', 'tableName and schemaName must not be empty, "." or ".."')
+            }
             const url = `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables/${encodeURIComponent(args.tableName)}/${encodeURIComponent(args.schemaName)}`
             const response = await inject({ method: 'DELETE', url })
             return emptySuccessAsOkay(response)

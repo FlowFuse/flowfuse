@@ -426,11 +426,20 @@ describe('MCP Teams Tools', function () {
             response.json().should.eql({ status: 'okay' })
         })
 
-        it('passes through a not found error', async function () {
+        it('keeps the route 404 when the team has git integration but the token is missing', async function () {
             const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found', error: 'Not Found' }) }
-            inject.resolves(errorResponse)
+            inject.onFirstCall().resolves(errorResponse)
+            inject.onSecondCall().resolves({ statusCode: 200, json: () => ({ tokens: [] }) })
             const response = await tool.handler({ teamId: 'team1', tokenId: 'token1' }, { inject })
+            inject.secondCall.args[0].should.eql({ method: 'GET', url: '/api/v1/teams/team1/git/tokens' })
             response.should.equal(errorResponse)
+        })
+
+        it('explains a 404 as git integration being unavailable when the token list is also 404', async function () {
+            inject.callsFake(async () => ({ statusCode: 404, json: () => ({ code: 'not_found', error: 'Not Found' }) }))
+            const response = await tool.handler({ teamId: 'team1', tokenId: 'token1' }, { inject })
+            response.statusCode.should.equal(404)
+            response.json().error.should.match(/Git integration is not enabled/)
         })
 
         it('passes through a rejection for a token without write access', async function () {

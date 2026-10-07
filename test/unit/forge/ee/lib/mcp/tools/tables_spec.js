@@ -233,6 +233,14 @@ describe('MCP Tables Tools', function () {
             inject.firstCall.args[0].url.should.equal('/api/v1/teams/team1/databases/db1/tables/my%20table%2F1/a%20b')
         })
 
+        it('rejects empty and dot table or schema names, which would drop out of the URL', async function () {
+            for (const bad of [{ schemaName: '' }, { schemaName: '.' }, { tableName: '..' }, { tableName: '' }]) {
+                const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', tableName: 'orders', schemaName: 'reports', ...bad }, { inject })
+                response.statusCode.should.equal(400)
+            }
+            inject.called.should.be.false()
+        })
+
         it('requires the schema name', function () {
             z.object(tool.inputSchema).shape.schemaName.safeParse(undefined).success.should.be.false()
         })

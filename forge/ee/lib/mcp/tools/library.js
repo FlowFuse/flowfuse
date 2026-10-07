@@ -12,7 +12,7 @@ module.exports = [
             Permanently deletes an entry from a team's shared library, or a whole folder of entries. This cannot be undone and the content cannot be recovered.
             If an entry has exactly this path, only that entry is deleted. Otherwise the path is treated as a folder and EVERY entry beneath it, at any depth, is deleted. In a folder path, "_" and "%" match any character(s) rather than themselves, so such a path can delete entries in similarly named folders; list the folder first and confirm the exact entries with the user.
             CAUTION: flows and snippets that other members of the team load from the library are gone for everyone. Confirm with the user before calling this, naming the entry or the folder.
-            Entries of different types can share a path. Pass type to delete only the entry of that type; without it a single entry at that path is deleted, and a folder delete covers all types.
+            Entries of different types can share a path. Pass type to delete only the entry of that type; without it one of the entries at that path is deleted, and which one is not defined. A folder delete without type covers all types.
             Replies { status: "okay", deleteCount } with the number of entries removed. A path that matches nothing returns 404, so repeating a call is harmless; the 404 is the same when the shared library is not enabled for the team, the team does not exist, or the caller is not a member of it.`,
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
