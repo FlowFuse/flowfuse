@@ -1963,6 +1963,30 @@ describe('Pipelines API', function () {
             const logs = await app.db.models.AuditLog.findAll({ where: { event: 'application.pipeline.deleted' } })
             const removed = logs.filter((log) => JSON.parse(log.body).pipeline.id === pipeline.id)
             removed.should.have.length(1)
+            // Removed as part of the application delete, not by the requesting user
+            should(removed[0].UserId).equal(null)
+            JSON.parse(removed[0].body).trigger.should.have.property('type', 'system')
+        })
+
+        it('Destroys the pipelines of the applications when a team is deleted', async function () {
+            const team = await TestObjects.factory.createTeam({ name: 'team-to-delete' })
+            const application = await TestObjects.factory.createApplication({ name: 'team-delete-application' }, team)
+            const pipeline = await TestObjects.factory.createPipeline({ name: 'team-delete-pipeline' }, application)
+            const device = await TestObjects.factory.createDevice({ name: 'team-delete-device' }, team, null, application)
+            await TestObjects.factory.createPipelineStage({ name: 'team-delete-stage', deviceId: device.id, action: 'use_latest_snapshot' }, pipeline)
+
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/teams/${team.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            response.statusCode.should.equal(200)
+            should(await app.db.models.Pipeline.findByPk(pipeline.id)).equal(null)
+            const stageCount = await app.db.models.PipelineStage.count({ where: { PipelineId: pipeline.id } })
+            stageCount.should.equal(0)
+            const logs = await app.db.models.AuditLog.findAll({ where: { event: 'application.pipeline.deleted' } })
+            logs.filter((log) => JSON.parse(log.body).pipeline.id === pipeline.id).should.have.length(1)
         })
 
         it('Leaves the application and its pipelines in place when the delete fails part way', async function () {

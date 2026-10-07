@@ -228,27 +228,13 @@ module.exports = async function (app) {
             const teamHash = request.application.Team?.hashid
             const applicationHash = request.application.hashid
 
-            // The Pipeline models are only usable on licensed (EE) installs
-            const { Pipeline, PipelineStage } = app.db.models
-            const pipelines = (app.license.active() && Pipeline)
-                ? await Pipeline.findAll({ where: { ApplicationId: request.application.id } })
-                : []
-
-            // Deleting the application only nulls Pipelines.ApplicationId, which would leave the
-            // pipelines and their stages behind where nothing can reach them. Everything is removed
-            // in one transaction so a failure part way cannot leave orphans.
+            // The Application model's beforeDestroy hook deletes the application's pipelines,
+            // so everything is removed in one transaction
             await app.db.sequelize.transaction(async (transaction) => {
-                for (const pipeline of pipelines) {
-                    await PipelineStage.destroy({ where: { PipelineId: pipeline.id }, individualHooks: true, transaction })
-                    await pipeline.destroy({ transaction })
-                }
                 await request.application.destroy({ transaction })
             })
 
             await app.auditLog.Team.application.deleted(request.session.User, null, request.application.Team, request.application)
-            for (const pipeline of pipelines) {
-                await app.auditLog.Team.application.pipeline.deleted(request.session.User, null, request.application.Team, request.application, pipeline)
-            }
 
             if (teamHash) {
                 app.comms?.team?.notifyEntityLifecycle(teamHash, 'a', applicationHash, 'deleted')
