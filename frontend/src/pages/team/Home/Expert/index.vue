@@ -27,8 +27,6 @@
                 Back
             </ff-button>
 
-            <div class="ff-expert-home__spacer ff-expert-home__spacer--top" aria-hidden="true" />
-
             <div class="ff-expert-home__intro" data-el="expert-home-intro">
                 <HomeGreeting />
             </div>
@@ -61,8 +59,6 @@
                 </span>
                 <span v-else>Open the Expert</span>
             </ff-button>
-
-            <div class="ff-expert-home__spacer ff-expert-home__spacer--bottom" aria-hidden="true" />
 
             <div class="ff-expert-home__fold">
                 <div class="ff-expert-home__folded">
@@ -288,6 +284,7 @@ $ff-wide: 1080px;
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
+        transition: opacity $ff-expand $ff-ease, visibility $ff-expand;
     }
 
     &__instances {
@@ -309,7 +306,7 @@ $ff-wide: 1080px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        transition: opacity 260ms ease;
+        transition: opacity $ff-expand $ff-ease;
     }
 
     &__activity {
@@ -374,23 +371,10 @@ $ff-wide: 1080px;
         }
     }
 
-    &.is-composing &__fold {
+    &.is-conversing &__fold {
         grid-template-rows: 0fr;
         margin-top: 0;
         visibility: hidden;
-    }
-
-    &__spacer {
-        flex: 0 0 0;
-        transition: flex-grow $ff-expand $ff-ease;
-    }
-
-    &.is-composing:not(.is-conversing) &__spacer--top {
-        flex-grow: 1;
-    }
-
-    &.is-composing:not(.is-conversing) &__spacer--bottom {
-        flex-grow: 3;
     }
 
     &__suggestions {
@@ -636,7 +620,6 @@ $ff-wide: 1080px;
     .ff-expert-home__intro,
     .ff-expert-home__folded,
     .ff-expert-home__fold,
-    .ff-expert-home__spacer,
     .ff-expert-home__expert,
     .ff-expert-home__expert :deep(.messages-container),
     .ff-expert-home__expert :deep(.action-buttons) {
