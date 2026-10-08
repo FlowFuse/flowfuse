@@ -18,7 +18,7 @@
                 </span>
             </div>
         </div>
-        <div class="actions">
+        <div class="actions" @click.stop>
             <FinishSetupButton v-if="!isLiteDevice && neverConnected && hasPermission('device:edit')" :device="device" :minimal-view="minimalView" />
             <ff-kebab-menu v-else-if="shouldDisplayKebabMenu">
                 <ff-kebab-item
