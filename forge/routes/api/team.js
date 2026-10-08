@@ -548,7 +548,7 @@ module.exports = async function (app) {
             // preHandler. To do so will require the perms model to know
             // to also check enabled features (and know that admin is allowed to
             // override in this instance)
-            reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
+            return reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
         }
 
         // TODO check license allows multiple teams

@@ -1350,6 +1350,35 @@ describe('Team API', function () {
             const applications = await app.db.models.Application.byTeam(team.id)
             applications.should.have.length(0)
         })
+
+        it('does not create a team for a non-admin when team creation is disabled', async function () {
+            // The route's needsPermission preHandler only rejects an explicit false,
+            // so an unset value is what reaches the handler's own check
+            const originalGet = app.settings.get
+            sinon.stub(app.settings, 'get').callsFake((key) => {
+                if (key === 'team:create') {
+                    return undefined
+                }
+                return originalGet(key)
+            })
+            const createTeamSpy = sinon.spy(app.db.controllers.Team, 'createTeamForUser')
+            try {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/teams',
+                    cookies: { sid: TestObjects.tokens.chris },
+                    payload: { name: 'create-team-disabled', slug: 'create-team-disabled', type: app.defaultTeamType.hashid }
+                })
+                response.statusCode.should.equal(403)
+                await sleep(250)
+                createTeamSpy.called.should.be.false()
+                const team = await app.db.models.Team.bySlug('create-team-disabled')
+                should.not.exist(team)
+            } finally {
+                createTeamSpy.restore()
+                app.settings.get.restore()
+            }
+        })
     })
 
     describe('Provision default workspace', async function () {
