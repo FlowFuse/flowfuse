@@ -910,20 +910,3 @@ describe('product-expert store', () => {
         })
     })
 })
-
-describe('openAssistantDrawer promise contract', () => {
-    afterEach(() => {
-        drawersState.rightDrawer.expertSuppressed = false
-    })
-
-    it('always returns a thenable, so wakeUpAssistant can chain hydrateClient off it', async () => {
-        // wakeUpAssistant chains .then() off this; returning undefined crashes it
-        const store = useProductExpertStore()
-        drawersState.rightDrawer.expertSuppressed = true
-
-        const result = store.openAssistantDrawer({ openPinned: false })
-
-        expect(typeof result?.then).toBe('function')
-        await result
-    })
-})

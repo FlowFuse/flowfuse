@@ -159,14 +159,11 @@ export default {
         if (this.scrollCheckDebounce) {
             clearTimeout(this.scrollCheckDebounce)
         }
-        // Clean up session timer
-        this.resetSessionTimer()
     },
     methods: {
         ...mapActions(useProductExpertStore, [
             'setAgentMode',
             'setAbortController',
-            'resetSessionTimer',
             'addWelcomeMessageIfNeeded',
             'stopInflightChat'
         ]),
