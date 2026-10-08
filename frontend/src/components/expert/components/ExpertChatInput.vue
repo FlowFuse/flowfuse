@@ -5,8 +5,9 @@
             direction="horizontal"
             @mousedown="onStartResize"
         />
-        <div v-if="!isFullPageSurface" class="action-buttons">
+        <div v-if="showActionButtons" class="action-buttons">
             <button
+                v-if="showSessionControls"
                 type="button"
                 class="btn-start-over"
                 :disabled="isWaitingForResponse && !isSessionExpired"
@@ -16,7 +17,7 @@
             </button>
             <div class="right-buttons">
                 <default-chip
-                    v-if="!isInsightsAgent"
+                    v-if="showSessionControls && !isInsightsAgent"
                     class="plan-mode-chip"
                     text="Plan mode"
                     :modelValue="planMode"
@@ -132,7 +133,7 @@ import ToolPermissionsSettings from './ToolPermissionsSettings.vue'
 import DefaultChip from './chips/DefaultChip.vue'
 import ContextSelector from './context-selection/index.vue'
 
-import { isFullPageSurface } from '@/components/expert/surfaces.js'
+import { EXPERT_SURFACES, isFullPageSurface } from '@/components/expert/surfaces.js'
 import { useResizingHelper } from '@/composables/ResizingHelper.js'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
@@ -240,6 +241,14 @@ export default {
         },
         isFullPageSurface () {
             return isFullPageSurface(this.expertSurface)
+        },
+        // Building can call write tools, so its tool permissions have to stay reachable
+        showActionButtons () {
+            return !this.isFullPageSurface || this.expertSurface === EXPERT_SURFACES.BUILDING
+        },
+        // Full page surfaces drive the session and plan mode themselves
+        showSessionControls () {
+            return !this.isFullPageSurface
         },
         hasUserTurns () {
             // hasMessages is true from the off, the store seeds a welcome message,
@@ -423,6 +432,7 @@ export default {
 
 .right-buttons {
     display: flex;
+    margin-left: auto;
     gap: 0.5rem;
     align-items: center;
 }
