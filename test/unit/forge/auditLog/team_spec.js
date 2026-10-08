@@ -220,6 +220,30 @@ describe('Audit Log > Team', async function () {
         logEntry.body.updates[0].should.eql({ key: 'name', old: 'old', new: 'new' })
     })
 
+    it('Provides a logger for when agent auto deploy is enabled for a team', async function () {
+        await teamLogger.team.agentAutoDeploy.enabled(ACTIONED_BY, null, TEAM)
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'team.agent-auto-deploy.enabled')
+        logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('team')
+        logEntry.body.team.id.should.equal(TEAM.hashid)
+    })
+
+    it('Provides a logger for when agent auto deploy is disabled for a team', async function () {
+        await teamLogger.team.agentAutoDeploy.disabled(ACTIONED_BY, null, TEAM)
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'team.agent-auto-deploy.disabled')
+        logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('team')
+        logEntry.body.team.id.should.equal(TEAM.hashid)
+    })
+
     // #endregion
 
     // #region Team - Devices - Developer Mode

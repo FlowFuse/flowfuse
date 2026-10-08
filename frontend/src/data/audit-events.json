@@ -10,6 +10,8 @@
         "team.user.invite.rejected": "User Invite Rejected",
         "team.user.role-changed": "User Role Modified",
         "team.settings.updated": "Team Settings Updated",
+        "team.agent-auto-deploy.enabled": "AI Flow Deploy Enabled",
+        "team.agent-auto-deploy.disabled": "AI Flow Deploy Disabled",
         "team.type.changed": "Team Type Changed",
         "team.device.created": "New Device Created",
         "team.device.deleted": "Device Deleted",
