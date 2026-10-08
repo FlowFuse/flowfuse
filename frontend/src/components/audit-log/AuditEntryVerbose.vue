@@ -59,7 +59,7 @@
     </template>
     <template v-else-if="entry.event === 'team.agent-auto-deploy.enabled'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error">AI agents can now deploy flow changes on this team's instances without waiting for a person to click Deploy.</span>
+        <span v-if="!error">AI agents can now deploy flow changes on this team.</span>
     </template>
     <template v-else-if="entry.event === 'team.agent-auto-deploy.disabled'">
         <label>{{ AuditEvents[entry.event] }}</label>
