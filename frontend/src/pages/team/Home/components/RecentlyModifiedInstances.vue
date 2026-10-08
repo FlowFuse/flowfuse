@@ -17,7 +17,7 @@
         <div v-else class="no-instances flex flex-col flex-1 justify-center text-gray-500 italic">
             <p class="text-center self-center">
                 It's looking a little empty.
-                <team-link :to="{name: 'team-instance-create'}" class="text-indigo-500">Create a Hosted Instance</team-link>
+                <team-link v-ff-track="'ff-instance-create-clicked'" :to="{name: 'team-instance-create'}" class="text-indigo-500">Create a Hosted Instance</team-link>
                 to get started.
             </p>
             <div v-if="hasPermission('project:create')" class="flex justify-center mt-2 not-italic">

@@ -39,6 +39,7 @@
                                     <ExpertBuildButton v-if="hasPermission('project:create')" target="instance" />
                                     <ff-button
                                         v-ff-tooltip:left="!hasPermission('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
+                                        v-ff-track="'ff-instance-create-clicked'"
                                         data-action="create-project"
                                         kind="secondary"
                                         :to="{name: 'team-instance-create'}"
@@ -89,6 +90,7 @@
                                     <ExpertBuildButton v-if="hasPermission('device:create')" target="device" />
                                     <ff-button
                                         v-ff-tooltip:left="!hasPermission('device:create') && 'Your role does not allow creating new remote instances. Contact a team admin to change your role.'"
+                                        v-ff-track="'ff-device-create-clicked'"
                                         data-action="create-project"
                                         kind="secondary"
                                         :disabled="!hasPermission('device:create') || teamDeviceLimitReached"
