@@ -10,7 +10,7 @@
             <button
                 type="button"
                 class="btn-start-over"
-                :disabled="isWaitingForResponse && !isSessionExpired"
+                :disabled="canStopResponse"
                 @click="handleStartOver"
             >
                 Start over
@@ -69,7 +69,7 @@
 
                 <div class="right">
                     <button
-                        v-if="isWaitingForResponse && !isSessionExpired"
+                        v-if="canStopResponse"
                         type="button"
                         class="btn-stop"
                         @click="handleStop"
@@ -212,6 +212,7 @@ export default {
             'hasMessages',
             'isWaitingForResponse',
             'isInputDisabled',
+            'canStopResponse',
             'pendingInput',
             'composerCommand',
             'questionCadence',

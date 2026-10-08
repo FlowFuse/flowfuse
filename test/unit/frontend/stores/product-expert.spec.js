@@ -182,6 +182,26 @@ describe('product-expert store', () => {
         })
     })
 
+    describe('canStopResponse getter', () => {
+        it('is false while idle', () => {
+            const store = useProductExpertStore()
+            expect(store.canStopResponse).toBe(false)
+        })
+
+        it('is true while a response is in flight', () => {
+            const store = useProductExpertStore()
+            store.setAbortController(new AbortController())
+            expect(store.canStopResponse).toBe(true)
+        })
+
+        it('is false once the session has expired, so Start over stays available', () => {
+            const store = useProductExpertStore()
+            store.setAbortController(new AbortController())
+            store._agentStore.sessionExpiredShown = true
+            expect(store.canStopResponse).toBe(false)
+        })
+    })
+
     describe('messages getters', () => {
         it('hasMessages is false when agent store has no messages', () => {
             const store = useProductExpertStore()

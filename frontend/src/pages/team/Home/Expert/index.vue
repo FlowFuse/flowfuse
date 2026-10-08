@@ -43,22 +43,35 @@
                 <ExpertPanel />
             </div>
 
-            <ff-button
-                v-if="canResume"
-                kind="tertiary"
-                size="small"
-                class="ff-expert-home__resume"
-                data-action="resume-conversation"
-                @click="stage = 'conversing'"
-            >
-                <span v-if="liveTurns > 0">
-                    Continue your conversation
-                    <span class="ff-expert-home__resume-count">
-                        · {{ liveTurns }} {{ liveTurns === 1 ? 'message' : 'messages' }}
+            <div v-if="canResume" class="ff-expert-home__resume">
+                <ff-button
+                    kind="tertiary"
+                    size="small"
+                    data-action="resume-conversation"
+                    @click="stage = 'conversing'"
+                >
+                    <span v-if="liveTurns > 0">
+                        Continue your conversation
+                        <span class="ff-expert-home__resume-count">
+                            · {{ liveTurns }} {{ liveTurns === 1 ? 'message' : 'messages' }}
+                        </span>
                     </span>
-                </span>
-                <span v-else>Open the Expert</span>
-            </ff-button>
+                    <span v-else>Open the Expert</span>
+                </ff-button>
+
+                <span v-if="liveTurns > 0" class="ff-expert-home__resume-divider" aria-hidden="true" />
+
+                <ff-button
+                    v-if="liveTurns > 0"
+                    kind="tertiary"
+                    size="small"
+                    data-action="start-over"
+                    :disabled="expertStore.canStopResponse"
+                    @click="onStartOver"
+                >
+                    Start over
+                </ff-button>
+            </div>
 
             <div class="ff-expert-home__fold">
                 <div class="ff-expert-home__folded">
@@ -162,7 +175,9 @@ const settingsStore = useAccountSettingsStore()
 const expertStore = useProductExpertStore() as ReturnType<typeof useProductExpertStore> & {
     messages: { _type: string }[]
     isInputDisabled: boolean
+    canStopResponse: boolean
     handleQuery: (payload: { query: string }) => Promise<unknown>
+    startOver: () => Promise<void>
 }
 const drawersStore = useUxDrawersStore()
 
@@ -219,6 +234,10 @@ const liveTurns = computed<number>(() => expertStore.messages.filter(message => 
 const isComposerDisabled = computed<boolean>(() => expertStore.isInputDisabled)
 
 const canResume = computed<boolean>(() => liveTurns.value > 0 || isComposerDisabled.value)
+
+function onStartOver () {
+    expertStore.startOver().catch(e => e)
+}
 
 const isChatOpen = computed<boolean>(() => stage.value === 'conversing')
 
@@ -451,6 +470,9 @@ $ff-wide: 1080px;
 
     &__resume {
         align-self: center;
+        display: flex;
+        align-items: center;
+        gap: 4px;
         flex: 0 0 auto;
         min-height: 0;
         margin-top: 14px;
@@ -463,6 +485,13 @@ $ff-wide: 1080px;
 
     &__resume-count {
         color: var(--ff-color-text-subtle);
+    }
+
+    &__resume-divider {
+        width: 1px;
+        height: 14px;
+        flex: 0 0 auto;
+        background-color: var(--ff-color-border-subtle);
     }
 
     &.is-conversing &__resume {

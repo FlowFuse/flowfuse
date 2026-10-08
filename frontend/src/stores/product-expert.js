@@ -100,6 +100,9 @@ export const useProductExpertStore = defineStore('product-expert', {
             if (this.isWaitingForResponse) return true
             return this.isInsightsAgent && !this.hasSelectedCapabilities
         },
+        canStopResponse () {
+            return this.isWaitingForResponse && !this.isSessionExpired
+        },
         canImportFlows () {
             const assistantStore = useProductAssistantStore()
             return !!assistantStore.isImmersiveInstance && !!assistantStore.supportedActions['custom:import-flow']
