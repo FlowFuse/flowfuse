@@ -1,6 +1,7 @@
 <template>
     <div ref="resizeTarget" class="ff-expert-input" :style="containerStyle">
         <resize-bar
+            v-if="expertSurface !== 'overview'"
             :is-resizing="isInputResizing"
             direction="horizontal"
             @mousedown="onStartResize"
@@ -247,6 +248,7 @@ export default {
         },
         showSuggestions () {
             if (this.expertSurface === 'onboarding') return false
+            if (this.expertSurface === 'overview') return false
             if (this.isInsightsAgent) return false
             if (this.suggestionUsed || this.suggestions.length === 0) return false
             if (this.inputText.length > 0 || this.hasUserTurns) return false

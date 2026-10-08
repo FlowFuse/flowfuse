@@ -56,7 +56,7 @@ export default {
             return this.featuresCheck.isAiFeatureEnabled
         },
         showExpertButton () {
-            return this.isAiEnabled && !this.isExpertDrawerOpen
+            return this.isAiEnabled && !this.isExpertDrawerOpen && !this.rightDrawer.expertSuppressed
         },
         showMcpToggle () {
             return this.isAiEnabled && this.featuresCheck.isMcpThirdPartyFeatureEnabled
@@ -258,6 +258,11 @@ export default {
     &:hover {
         background-color: var(--ff-color-expert-hover-veil);
         color: var(--ff-color-text-default);
+    }
+
+    &:only-child {
+        border-left: none;
+        border-radius: 5px;
     }
 
     &--waiting {

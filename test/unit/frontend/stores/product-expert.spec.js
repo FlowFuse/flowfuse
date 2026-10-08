@@ -52,11 +52,14 @@ vi.mock('@/components/drawers/expert/ExpertDrawer.vue', () => ({
     default: { name: 'ExpertDrawer' }
 }))
 
+const drawersState = {
+    rightDrawer: { expertSuppressed: false, expertState: { pinned: false, open: false } },
+    openRightDrawer: vi.fn(),
+    setRightDrawerWider: vi.fn()
+}
+
 vi.mock('@/stores/ux-drawers.js', () => ({
-    useUxDrawersStore: vi.fn(() => ({
-        openRightDrawer: vi.fn(),
-        setRightDrawerWider: vi.fn()
-    }))
+    useUxDrawersStore: vi.fn(() => drawersState)
 }))
 
 const { dispatch, getToolDefinitions, invokeAction } = vi.hoisted(() => ({
