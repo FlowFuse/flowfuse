@@ -6,7 +6,7 @@ enableAutoUnmount(afterEach)
 
 const mocks = vi.hoisted(() => ({
     accountAuthStore: { user: { name: 'Noley Holland' } },
-    contextStore: { isImmersiveEditor: false },
+    contextStore: { isImmersiveEditor: false, team: { id: 't1' } },
     settingsStore: { featuresCheck: { isExpertAssistantFeatureEnabled: true, isExpertInsightsFeatureEnabled: false } },
     expertStore: {
         messages: [],
@@ -14,10 +14,16 @@ const mocks = vi.hoisted(() => ({
         isSessionExpired: false,
         isInsightsAgent: false,
         hasSelectedCapabilities: true,
+        isInputDisabled: false,
         openAssistantDrawer: vi.fn(),
+        handleQuery: vi.fn().mockResolvedValue(undefined),
         setPendingInput: vi.fn(),
         setAgentMode: vi.fn(),
         resumeSessionTimer: vi.fn()
+    },
+    teamAPI: {
+        getTeamInstanceCounts: vi.fn().mockResolvedValue({}),
+        getTeamAuditLog: vi.fn().mockResolvedValue({ log: [{ id: 1 }] })
     },
     drawersStore: {
         rightDrawer: { state: false, expertState: { pinned: true, open: true }, expertSuppressed: false },
@@ -32,9 +38,10 @@ vi.mock('@/stores/context.js', () => ({ useContextStore: () => mocks.contextStor
 vi.mock('@/stores/account-settings.js', () => ({ useAccountSettingsStore: () => mocks.settingsStore }))
 vi.mock('@/stores/product-expert.js', () => ({ useProductExpertStore: () => mocks.expertStore }))
 vi.mock('@/stores/ux-drawers.js', () => ({ useUxDrawersStore: () => mocks.drawersStore }))
+vi.mock('@/api/team.js', () => ({ default: mocks.teamAPI }))
 
 vi.mock('@/components/expert/Expert.vue', () => ({
-    default: { name: 'ExpertPanel', template: '<div data-stub="expert-panel" />' }
+    default: { name: 'ExpertPanel', template: '<div data-stub="expert-panel"><textarea class="chat-input" /></div>' }
 }))
 vi.mock('@/components/expert/components/ExpertModeSwitcher.vue', () => ({
     default: { name: 'ExpertModeSwitcher', template: '<div data-stub="mode-switcher" />' }
@@ -51,7 +58,16 @@ async function mountPage () {
                 // a `true` stub drops the default slot, so nothing below would render
                 'ff-page': { template: '<div><slot name="header" /><slot /></div>' },
                 'ff-page-header': { template: '<div><slot name="breadcrumbs" /></div>' },
-                'ff-nav-breadcrumb': { template: '<span><slot /></span>' }
+                'ff-nav-breadcrumb': { template: '<span><slot /></span>' },
+                RecentlyModifiedInstances: { name: 'RecentlyModifiedInstances', props: ['variant', 'totalInstances'], template: '<div data-stub="instances" />' },
+                RecentlyModifiedDevices: { name: 'RecentlyModifiedDevices', props: ['variant', 'totalDevices'], template: '<div data-stub="devices" />' },
+                AuditLog: { name: 'AuditLog', props: ['entries', 'loading'], template: '<div data-stub="audit-log" />' },
+                'ff-accordion': {
+                    name: 'ff-accordion',
+                    props: ['label', 'setOpen'],
+                    emits: ['state-changed'],
+                    template: '<div data-stub="accordion"><slot name="content" /></div>'
+                }
             }
         }
     })
@@ -115,11 +131,12 @@ describe('TeamHomeExpert', () => {
         expect(mocks.expertStore.openAssistantDrawer).not.toHaveBeenCalled()
     })
 
-    test('lands idle with the composer mounted', async () => {
+    test('lands idle: greeting, composer, no back control', async () => {
         mocks.expertStore.messages = []
         const wrapper = await mountPage()
 
         expect(wrapper.find('[data-el="expert-home"]').attributes('data-stage')).toBe('idle')
+        expect(wrapper.find('[data-el="greeting"]').exists()).toBe(true)
         expect(wrapper.find('[data-stub="expert-panel"]').exists()).toBe(true)
     })
 
@@ -127,7 +144,7 @@ describe('TeamHomeExpert', () => {
         mocks.expertStore.messages = []
         const wrapper = await mountPage()
 
-        await wrapper.find('[data-el="expert-home-surface"]').trigger('input')
+        await wrapper.find('textarea').setValue('how are my instances?')
 
         const root = wrapper.find('[data-el="expert-home"]')
         expect(root.attributes('data-stage')).toBe('composing')
@@ -135,10 +152,26 @@ describe('TeamHomeExpert', () => {
         expect(root.classes()).not.toContain('is-conversing')
     })
 
+    test('clearing what was typed steps back, but an untouched composer never does', async () => {
+        mocks.expertStore.messages = []
+        const wrapper = await mountPage()
+        const root = () => wrapper.find('[data-el="expert-home"]')
+
+        // an empty composer firing input (focus, a cleared pending value) must not move anything
+        await wrapper.find('textarea').setValue('')
+        expect(root().attributes('data-stage')).toBe('idle')
+
+        await wrapper.find('textarea').setValue('how are my instances?')
+        expect(root().attributes('data-stage')).toBe('composing')
+
+        await wrapper.find('textarea').setValue('   ')
+        expect(root().attributes('data-stage')).toBe('idle')
+    })
+
     test('sending is what opens the transcript, not typing', async () => {
         mocks.expertStore.messages = []
         const wrapper = await mountPage()
-        await wrapper.find('[data-el="expert-home-surface"]').trigger('input')
+        await wrapper.find('textarea').setValue('how are my instances?')
         expect(wrapper.find('[data-el="expert-home"]').classes()).not.toContain('is-conversing')
 
         mocks.expertStore.messages = [{ _type: 'human' }]
@@ -152,7 +185,7 @@ describe('TeamHomeExpert', () => {
     test('back returns to idle from either stage', async () => {
         mocks.expertStore.messages = []
         const wrapper = await mountPage()
-        await wrapper.find('[data-el="expert-home-surface"]').trigger('input')
+        await wrapper.find('textarea').setValue('how are my instances?')
 
         await wrapper.find('[data-action="collapse-expert"]').trigger('click')
         expect(wrapper.find('[data-el="expert-home"]').attributes('data-stage')).toBe('idle')
@@ -170,7 +203,7 @@ describe('TeamHomeExpert', () => {
         const wrapper = await mountPage()
         const before = wrapper.findComponent({ name: 'ExpertPanel' })
 
-        await wrapper.find('[data-el="expert-home-surface"]').trigger('input')
+        await wrapper.find('textarea').setValue('how are my instances?')
         mocks.expertStore.messages = [{ _type: 'human' }]
         await wrapper.vm.$nextTick()
         await wrapper.find('[data-action="collapse-expert"]').trigger('click')
@@ -236,30 +269,22 @@ describe('TeamHomeExpert', () => {
             expect((await mountPage()).find('[data-action="resume-conversation"]').text()).toContain('2 messages')
         })
 
-        test('appears in every state where the composer disables itself', async () => {
-            // each of these hides the control that would clear it — Stop, Start over and the
-            // capabilities selector all live behind the conversing stage
-            const deadEnds = [
-                { isWaitingForResponse: true },
-                { isSessionExpired: true },
-                { isInsightsAgent: true, hasSelectedCapabilities: false }
-            ]
-            for (const state of deadEnds) {
-                Object.assign(mocks.expertStore, state)
-                mocks.expertStore.messages = []
-                const wrapper = await mountPage()
-                expect(wrapper.find('[data-action="resume-conversation"]').exists()).toBe(true)
-                mocks.expertStore.isWaitingForResponse = false
-                mocks.expertStore.isSessionExpired = false
-                mocks.expertStore.isInsightsAgent = false
-                mocks.expertStore.hasSelectedCapabilities = true
-            }
+        test('appears whenever the composer disables itself', async () => {
+            // the controls that would clear it — Stop, Start over, the capabilities
+            // selector — all live behind the conversing stage
+            mocks.expertStore.messages = []
+            mocks.expertStore.isInputDisabled = true
+            const wrapper = await mountPage()
+
+            expect(wrapper.find('[data-action="resume-conversation"]').exists()).toBe(true)
+
+            mocks.expertStore.isInputDisabled = false
         })
 
         test('survives into composing, since a new message joins the same thread', async () => {
             mocks.expertStore.messages = [{ _type: 'human' }]
             const wrapper = await mountPage()
-            await wrapper.find('[data-el="expert-home-surface"]').trigger('input')
+            await wrapper.find('textarea').setValue('how are my instances?')
 
             expect(wrapper.find('[data-el="expert-home"]').attributes('data-stage')).toBe('composing')
             expect(wrapper.find('[data-action="resume-conversation"]').exists()).toBe(true)
@@ -273,6 +298,115 @@ describe('TeamHomeExpert', () => {
 
             expect(wrapper.find('[data-el="expert-home"]').attributes('data-stage')).toBe('conversing')
             expect(mocks.expertStore.messages).toHaveLength(1)
+        })
+    })
+
+    describe('prompt suggestions', () => {
+        test('stay under the composer across idle and composing, thread or not', async () => {
+            mocks.expertStore.messages = [{ _type: 'human' }]
+            const wrapper = await mountPage()
+            expect(wrapper.findComponent({ name: 'PromptSuggestions' }).exists()).toBe(true)
+            expect(wrapper.find('[data-action="resume-conversation"]').exists()).toBe(true)
+
+            await wrapper.find('textarea').setValue('how are my instances?')
+            expect(wrapper.findComponent({ name: 'PromptSuggestions' }).exists()).toBe(true)
+        })
+
+        test('go inert rather than vanish while the composer cannot take input', async () => {
+            mocks.expertStore.messages = []
+            mocks.expertStore.handleQuery.mockClear()
+            mocks.expertStore.isInputDisabled = true
+            const wrapper = await mountPage()
+
+            const block = wrapper.find('.ff-expert-home__suggestions')
+            expect(block.exists()).toBe(true)
+            expect(block.classes()).toContain('is-inert')
+
+            await wrapper.findComponent({ name: 'PromptSuggestions' })
+                .vm.$emit('select', { title: 'x', prompt: 'anything' })
+            expect(mocks.expertStore.handleQuery).not.toHaveBeenCalled()
+
+            mocks.expertStore.isInputDisabled = false
+        })
+
+        test('a finished prompt sends straight away', async () => {
+            mocks.expertStore.messages = []
+            mocks.expertStore.handleQuery.mockClear()
+            const wrapper = await mountPage()
+
+            await wrapper.findComponent({ name: 'PromptSuggestions' })
+                .vm.$emit('select', { title: 'x', prompt: 'how are my instances?' })
+
+            expect(mocks.expertStore.handleQuery).toHaveBeenCalledWith({ query: 'how are my instances?' })
+            expect(wrapper.find('[data-el="expert-home"]').attributes('data-stage')).toBe('conversing')
+        })
+
+        test('a half-finished prompt waits in the composer instead', async () => {
+            mocks.expertStore.messages = []
+            mocks.expertStore.handleQuery.mockClear()
+            mocks.expertStore.setPendingInput.mockClear()
+            const wrapper = await mountPage()
+
+            await wrapper.findComponent({ name: 'PromptSuggestions' })
+                .vm.$emit('select', { title: 'x', prompt: 'Build a flow that', needsInput: true })
+
+            expect(mocks.expertStore.setPendingInput).toHaveBeenCalledWith('Build a flow that')
+            expect(mocks.expertStore.handleQuery).not.toHaveBeenCalled()
+            expect(wrapper.find('[data-el="expert-home"]').attributes('data-stage')).toBe('composing')
+        })
+    })
+
+    describe('the instance lists', () => {
+        const features = remote => ({
+            isExpertAssistantFeatureEnabled: true,
+            isExpertInsightsFeatureEnabled: false,
+            isRemoteInstanceFeatureEnabledForPlatform: remote
+        })
+
+        test('renders both lists in the compact variant', async () => {
+            mocks.settingsStore.featuresCheck = features(true)
+            const wrapper = await mountPage()
+            expect(wrapper.findComponent({ name: 'RecentlyModifiedInstances' }).props('variant')).toBe('compact')
+            expect(wrapper.findComponent({ name: 'RecentlyModifiedDevices' }).props('variant')).toBe('compact')
+        })
+
+        test('hides the remote section behind the platform feature check', async () => {
+            mocks.settingsStore.featuresCheck = features(false)
+            const wrapper = await mountPage()
+            expect(wrapper.find('[data-stub="devices"]').exists()).toBe(false)
+            expect(wrapper.find('[data-el="remote-unavailable"]').exists()).toBe(true)
+        })
+
+        test('falls back to a zero count when the API returns nothing', async () => {
+            mocks.settingsStore.featuresCheck = features(true)
+            const wrapper = await mountPage()
+            expect(wrapper.findComponent({ name: 'RecentlyModifiedInstances' }).props('totalInstances')).toBe(0)
+        })
+    })
+
+    describe('recent activity', () => {
+        test('renders the log unopened, so no audit request is fired', async () => {
+            mocks.teamAPI.getTeamAuditLog.mockClear()
+            const wrapper = await mountPage()
+            expect(wrapper.findComponent({ name: 'ff-accordion' }).exists()).toBe(true)
+            expect(wrapper.findComponent({ name: 'AuditLog' }).props('entries')).toBe(null)
+            expect(mocks.teamAPI.getTeamAuditLog).not.toHaveBeenCalled()
+        })
+
+        test('fetches on first open and never again', async () => {
+            mocks.teamAPI.getTeamAuditLog.mockClear()
+            const wrapper = await mountPage()
+            const accordion = wrapper.findComponent({ name: 'ff-accordion' })
+
+            await accordion.vm.$emit('state-changed', true)
+            await flushPromises()
+            expect(mocks.teamAPI.getTeamAuditLog).toHaveBeenCalledTimes(1)
+            expect(wrapper.findComponent({ name: 'AuditLog' }).props('entries')).toEqual([{ id: 1 }])
+
+            await accordion.vm.$emit('state-changed', false)
+            await accordion.vm.$emit('state-changed', true)
+            await flushPromises()
+            expect(mocks.teamAPI.getTeamAuditLog).toHaveBeenCalledTimes(1)
         })
     })
 })

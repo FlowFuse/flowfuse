@@ -211,6 +211,7 @@ export default {
             'hasSelectedCapabilities',
             'hasMessages',
             'isWaitingForResponse',
+            'isInputDisabled',
             'pendingInput',
             'composerCommand',
             'questionCadence',
@@ -229,11 +230,6 @@ export default {
             set (value) {
                 this.setQuestionCadence(value)
             }
-        },
-        isInputDisabled () {
-            if (this.isSessionExpired) return true
-            if (this.isWaitingForResponse) return true
-            return this.isInsightsAgent && !this.hasSelectedCapabilities
         },
         isDrawerPinned () {
             return this.rightDrawer.fixed

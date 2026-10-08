@@ -119,7 +119,7 @@
         </div>
     </ff-page>
     <TeamDeviceCreateDialog
-        v-if="team && modals.addDevice"
+        v-if="!isExpertHome && team && modals.addDevice"
         ref="teamDeviceCreateDialog"
         :team="team"
         :teamDeviceCount="totalDevices"
@@ -135,7 +135,7 @@
             </p>
         </template>
     </TeamDeviceCreateDialog>
-    <DeviceCredentialsDialog ref="deviceCredentialsDialog" />
+    <DeviceCredentialsDialog v-if="!isExpertHome" ref="deviceCredentialsDialog" />
 </template>
 
 <script>
@@ -166,6 +166,7 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
+import sumCounts from '@/utils/sumCounts'
 
 export default {
     name: 'TeamHome',
@@ -223,14 +224,10 @@ export default {
             return this.groupBySimplifiedStates(this.deviceStateCounts)
         },
         totalInstances () {
-            return this.instanceStateCounts
-                ? Object.values(this.instanceStateCounts).reduce((total, count) => total + count, 0)
-                : 0
+            return sumCounts(this.instanceStateCounts)
         },
         totalDevices () {
-            return this.deviceStateCounts
-                ? Object.values(this.deviceStateCounts).reduce((total, count) => total + count, 0)
-                : 0
+            return sumCounts(this.deviceStateCounts)
         },
         teamDeviceLimitReached () {
             const teamTypeDeviceLimit = getTeamProperty(this.team, 'devices.limit')
