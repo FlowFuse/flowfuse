@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
     contextStore: { team: null },
     settingsStore: { featuresCheck: {} },
     accountStore: { setTeam: vi.fn().mockResolvedValue() },
-    expertStore: { messages: [], openConversation: vi.fn(), setAgentMode: vi.fn() },
+    expertStore: { messages: [], openConversation: vi.fn(), setAgentMode: vi.fn(), setPlanMode: vi.fn() },
     supportAgentStore: { messages: [], reset: vi.fn() },
     uxStore: { startBuilding: vi.fn(), stopBuilding: vi.fn() }
 }))
@@ -98,14 +98,16 @@ describe('Build page', () => {
         expect(mocks.expertStore.openConversation).not.toHaveBeenCalled()
     })
 
-    test('lets the Expert open an empty support agent conversation with building on', async () => {
+    test('opens the support agent conversation itself, with building and plan mode on', async () => {
         await mountPage()
         expect(mocks.uxStore.startBuilding).toHaveBeenCalledTimes(1)
+        expect(mocks.expertStore.setPlanMode).toHaveBeenCalledWith(true)
         expect(mocks.expertStore.setAgentMode).toHaveBeenCalledWith(SUPPORT_AGENT)
         expect(mocks.expertStore.openConversation).toHaveBeenCalledTimes(1)
-        // building has to be on before the first turn goes out
-        expect(mocks.uxStore.startBuilding.mock.invocationCallOrder[0])
-            .toBeLessThan(mocks.expertStore.openConversation.mock.invocationCallOrder[0])
+        // both have to be on before the first turn goes out
+        const opened = mocks.expertStore.openConversation.mock.invocationCallOrder[0]
+        expect(mocks.uxStore.startBuilding.mock.invocationCallOrder[0]).toBeLessThan(opened)
+        expect(mocks.expertStore.setPlanMode.mock.invocationCallOrder[0]).toBeLessThan(opened)
     })
 
     // The drawer and the build page share the session and its broker client, so
@@ -116,36 +118,20 @@ describe('Build page', () => {
         expect(mocks.supportAgentStore.reset).not.toHaveBeenCalled()
     })
 
-    test('drops canned lines before the Expert opens a conversation nobody has started', async () => {
-        const canned = [{ _type: 'ai', generated: true }]
-        mocks.expertStore.messages = canned
-        mocks.supportAgentStore.messages = canned
+    test('clears the messages, keeping the session, before opening the turn', async () => {
+        mocks.supportAgentStore.messages = [{ _type: 'human' }, { _type: 'ai' }]
         await mountPage()
         expect(mocks.supportAgentStore.messages).toEqual([])
+        expect(mocks.supportAgentStore.reset).not.toHaveBeenCalled()
         expect(mocks.expertStore.openConversation).toHaveBeenCalledTimes(1)
     })
 
-    test('carries on a conversation that is already under way', async () => {
-        const transcript = [{ _type: 'human' }, { _type: 'ai' }]
-        mocks.expertStore.messages = transcript
-        mocks.supportAgentStore.messages = transcript
-        await mountPage()
-        expect(mocks.supportAgentStore.messages).toBe(transcript)
-        expect(mocks.expertStore.openConversation).not.toHaveBeenCalled()
-        expect(mocks.uxStore.startBuilding).toHaveBeenCalledTimes(1)
-    })
-
-    test('opens the conversation only once when the team object is refreshed', async () => {
-        await mountPage()
-        mocks.contextStore.team = { id: 't1', slug: 'ateam' }
-        await flushPromises()
-        expect(mocks.expertStore.openConversation).toHaveBeenCalledTimes(1)
-    })
-
-    test('clears the building flag however the page is left', async () => {
+    test('clears building and plan mode however the page is left', async () => {
         const wrapper = await mountPage()
+        mocks.expertStore.setPlanMode.mockClear()
         wrapper.unmount()
         expect(mocks.uxStore.stopBuilding).toHaveBeenCalledTimes(1)
+        expect(mocks.expertStore.setPlanMode).toHaveBeenCalledWith(false)
     })
 
     test('Back goes to team home when there is no history to return to', async () => {

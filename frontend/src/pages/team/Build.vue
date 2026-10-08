@@ -89,8 +89,9 @@ export default {
     },
     beforeUnmount () {
         // Whatever takes the user away, Back, the header, the browser or the
-        // Expert navigating them, ends the build conversation
+        // Expert navigating them, ends the build conversation and its planning
         useUxStore().stopBuilding()
+        useProductExpertStore().setPlanMode(false)
     },
     methods: {
         openConversation () {
@@ -98,18 +99,16 @@ export default {
                 return
             }
             this.conversationRequested = true
-            // On before the first turn, so the Expert knows from the start
-            useUxStore().startBuilding()
-            // Same conversation, session and broker client as the drawer, so planning
-            // there carries over into building here and back again
             const expertStore = useProductExpertStore()
+            // Building starts in plan mode, and both are on before the first turn so
+            // the Expert knows from the start. Plan approval clears them together.
+            useUxStore().startBuilding()
+            expertStore.setPlanMode(true)
             expertStore.setAgentMode(SUPPORT_AGENT)
-            if (expertStore.messages.every(message => message.generated)) {
-                // Nobody has said anything yet beyond canned or error lines: drop those
-                // and let the Expert open, on the same session rather than a reset one
-                useProductExpertSupportAgentStore().messages = []
-                expertStore.openConversation()
-            }
+            // Start from an empty list but keep the session: the broker client is
+            // signed in for it, so rotating it would get every publish rejected
+            useProductExpertSupportAgentStore().messages = []
+            expertStore.openConversation()
         },
         leave () {
             if (window.history.state?.back) {
