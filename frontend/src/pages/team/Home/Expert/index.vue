@@ -491,7 +491,7 @@ $ff-wide: 1080px;
         width: 1px;
         height: 14px;
         flex: 0 0 auto;
-        background-color: var(--ff-color-border-subtle);
+        background-color: var(--ff-color-text-subtle);
     }
 
     &.is-conversing &__resume {
