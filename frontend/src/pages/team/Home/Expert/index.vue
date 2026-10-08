@@ -161,10 +161,7 @@ const contextStore = useContextStore()
 const settingsStore = useAccountSettingsStore()
 const expertStore = useProductExpertStore() as ReturnType<typeof useProductExpertStore> & {
     messages: { _type: string }[]
-    isWaitingForResponse: boolean
-    isSessionExpired: boolean
-    isInsightsAgent: boolean
-    hasSelectedCapabilities: boolean
+    isInputDisabled: boolean
     handleQuery: (payload: { query: string }) => Promise<unknown>
 }
 const drawersStore = useUxDrawersStore()
@@ -222,6 +219,10 @@ const liveTurns = computed<number>(() => expertStore.messages.filter(message => 
 const isComposerDisabled = computed<boolean>(() => expertStore.isInputDisabled)
 
 const canResume = computed<boolean>(() => liveTurns.value > 0 || isComposerDisabled.value)
+
+const isChatOpen = computed<boolean>(() => stage.value === 'conversing')
+
+provide('expert-chat-open', isChatOpen)
 
 const { suggestions, trackShown, trackClick } = usePromptSuggestions({ surface: 'overview' })
 
@@ -590,8 +591,9 @@ $ff-wide: 1080px;
         padding-top: 0;
         padding-bottom: 0;
         opacity: 0;
+        visibility: hidden;
         transition: flex-grow $ff-expand $ff-ease, padding-top $ff-expand $ff-ease,
-                    padding-bottom $ff-expand $ff-ease, opacity 300ms ease;
+                    padding-bottom $ff-expand $ff-ease, opacity 300ms ease, visibility 300ms;
     }
 
     &.is-conversing &__expert :deep(.messages-container) {
@@ -599,6 +601,7 @@ $ff-wide: 1080px;
         padding-top: 1rem;
         padding-bottom: 1rem;
         opacity: 1;
+        visibility: visible;
     }
 
     &__expert :deep(.ff-expert-input) {
