@@ -219,11 +219,7 @@ type Stage = 'idle' | 'composing' | 'conversing'
 const stage = ref<Stage>('idle')
 const liveTurns = computed<number>(() => expertStore.messages.filter(message => message._type === 'human').length)
 
-const isComposerDisabled = computed<boolean>(() =>
-    expertStore.isWaitingForResponse ||
-    expertStore.isSessionExpired ||
-    (expertStore.isInsightsAgent && !expertStore.hasSelectedCapabilities)
-)
+const isComposerDisabled = computed<boolean>(() => expertStore.isInputDisabled)
 
 const canResume = computed<boolean>(() => liveTurns.value > 0 || isComposerDisabled.value)
 

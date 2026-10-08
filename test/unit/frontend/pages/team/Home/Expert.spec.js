@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
         isSessionExpired: false,
         isInsightsAgent: false,
         hasSelectedCapabilities: true,
+        isInputDisabled: false,
         openAssistantDrawer: vi.fn(),
         handleQuery: vi.fn().mockResolvedValue(undefined),
         setPendingInput: vi.fn(),
@@ -268,24 +269,16 @@ describe('TeamHomeExpert', () => {
             expect((await mountPage()).find('[data-action="resume-conversation"]').text()).toContain('2 messages')
         })
 
-        test('appears in every state where the composer disables itself', async () => {
-            // each of these hides the control that would clear it — Stop, Start over and the
-            // capabilities selector all live behind the conversing stage
-            const deadEnds = [
-                { isWaitingForResponse: true },
-                { isSessionExpired: true },
-                { isInsightsAgent: true, hasSelectedCapabilities: false }
-            ]
-            for (const state of deadEnds) {
-                Object.assign(mocks.expertStore, state)
-                mocks.expertStore.messages = []
-                const wrapper = await mountPage()
-                expect(wrapper.find('[data-action="resume-conversation"]').exists()).toBe(true)
-                mocks.expertStore.isWaitingForResponse = false
-                mocks.expertStore.isSessionExpired = false
-                mocks.expertStore.isInsightsAgent = false
-                mocks.expertStore.hasSelectedCapabilities = true
-            }
+        test('appears whenever the composer disables itself', async () => {
+            // the controls that would clear it — Stop, Start over, the capabilities
+            // selector — all live behind the conversing stage
+            mocks.expertStore.messages = []
+            mocks.expertStore.isInputDisabled = true
+            const wrapper = await mountPage()
+
+            expect(wrapper.find('[data-action="resume-conversation"]').exists()).toBe(true)
+
+            mocks.expertStore.isInputDisabled = false
         })
 
         test('survives into composing, since a new message joins the same thread', async () => {
@@ -322,7 +315,7 @@ describe('TeamHomeExpert', () => {
         test('go inert rather than vanish while the composer cannot take input', async () => {
             mocks.expertStore.messages = []
             mocks.expertStore.handleQuery.mockClear()
-            mocks.expertStore.isWaitingForResponse = true
+            mocks.expertStore.isInputDisabled = true
             const wrapper = await mountPage()
 
             const block = wrapper.find('.ff-expert-home__suggestions')
@@ -333,7 +326,7 @@ describe('TeamHomeExpert', () => {
                 .vm.$emit('select', { title: 'x', prompt: 'anything' })
             expect(mocks.expertStore.handleQuery).not.toHaveBeenCalled()
 
-            mocks.expertStore.isWaitingForResponse = false
+            mocks.expertStore.isInputDisabled = false
         })
 
         test('a finished prompt sends straight away', async () => {
