@@ -21,7 +21,7 @@
         <!-- Updates Available Banner -->
         <update-banner v-if="isEditorContext && isInstanceRunning" />
 
-        <task-list v-if="activeTaskList" :items="activeTaskList.items" :title="activeTaskList.title" />
+        <task-list v-if="showTaskList" :items="activeTaskList.items" :title="activeTaskList.title" />
 
         <expert-chat-input ref="chatInput" @stop="handleStopGeneration" />
     </div>
@@ -29,6 +29,7 @@
 
 <script>
 import { mapActions, mapState } from 'pinia'
+import { unref } from 'vue'
 
 import ExpertChatInput from './components/ExpertChatInput.vue'
 import ExpertMessages from './components/ExpertMessages.vue'
@@ -61,6 +62,10 @@ export default {
         expertSurface: {
             from: 'expert-surface',
             default: 'drawer'
+        },
+        expertChatOpen: {
+            from: 'expert-chat-open',
+            default: true
         }
     },
     props: {
@@ -82,6 +87,9 @@ export default {
         }
     },
     computed: {
+        showTaskList () {
+            return !!this.activeTaskList && unref(this.expertChatOpen)
+        },
         ...mapState(useProductExpertStore, [
             'abortController',
             'agentMode',
