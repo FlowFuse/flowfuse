@@ -78,7 +78,7 @@
                                     Hosted Instances
                                 </p>
                             </div>
-                            <RecentlyModifiedInstances variant="compact" :total-instances="totalInstances" />
+                            <RecentlyModifiedInstances variant="compact" :total-instances="totalInstances" @delete-instance="openDeleteInstanceForm" />
                         </div>
 
                         <div class="ff-expert-home__section">
@@ -115,13 +115,20 @@
                 </div>
             </div>
         </div>
+
+        <ConfirmInstanceDeleteDialog
+            v-if="isDeleteInstanceDialogOpen"
+            ref="confirmInstanceDeleteDialog"
+            @cancel="isDeleteInstanceDialogOpen = false"
+            @confirm="onInstanceDeleted"
+        />
     </ff-page>
 </template>
 
 <script setup lang="ts">
 import { ChevronLeftIcon } from '@heroicons/vue/20/solid'
 import { CircleStackIcon, CpuChipIcon } from '@heroicons/vue/24/outline'
-import { type Ref, computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
+import { type Ref, computed, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 
 import HomeGreeting from './components/HomeGreeting.vue'
 
@@ -133,6 +140,7 @@ import ExpertModeSwitcher from '@/components/expert/components/ExpertModeSwitche
 import PromptSuggestions from '@/components/expert/components/PromptSuggestions.vue'
 import ProjectsIcon from '@/components/icons/Projects.js'
 import { type PromptSuggestion, usePromptSuggestions } from '@/composables/PromptSuggestions'
+import ConfirmInstanceDeleteDialog from '@/pages/instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import RecentlyModifiedDevices from '@/pages/team/Home/components/RecentlyModifiedDevices.vue'
 import RecentlyModifiedInstances from '@/pages/team/Home/components/RecentlyModifiedInstances.vue'
 import Alerts from '@/services/alerts.js'
@@ -166,6 +174,19 @@ const totalInstances = ref(0)
 const totalDevices = ref(0)
 const logEntries = ref<AuditLogEntry[] | null>(null)
 const activityLoading = ref(false)
+
+const isDeleteInstanceDialogOpen = ref(false)
+const confirmInstanceDeleteDialog = ref<{ show: (instance: unknown) => void } | null>(null)
+
+function openDeleteInstanceForm (instance: unknown) {
+    isDeleteInstanceDialogOpen.value = true
+    nextTick(() => confirmInstanceDeleteDialog.value?.show(instance))
+}
+
+function onInstanceDeleted () {
+    isDeleteInstanceDialogOpen.value = false
+    loadInstanceCount('hosted', totalInstances)
+}
 
 async function loadInstanceCount (type: string, target: Ref<number>) {
     try {
