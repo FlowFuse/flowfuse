@@ -156,6 +156,10 @@ module.exports = async function (app) {
     }, async (request, response) => {
         const type = request.query.type
         let name = request.params['*']
+        if (name.length === 0) {
+            response.status(400).send({ code: 'invalid_request', error: 'Missing path' })
+            return
+        }
 
         let deleteCount = 0
         // Try to get the exact name

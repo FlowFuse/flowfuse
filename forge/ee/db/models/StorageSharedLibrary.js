@@ -2,7 +2,7 @@
  * A Team's Shared Library
  * @namespace forge.db.models.StorageSharedLibrary
  */
-const { DataTypes, Op } = require('sequelize')
+const { DataTypes, Op, fn, col, where: sqlWhere } = require('sequelize')
 
 module.exports = {
     name: 'StorageSharedLibrary',
@@ -49,11 +49,10 @@ module.exports = {
                     return this.findOne({ where })
                 },
                 byPath: async (team, type, name) => {
+                    // Literal prefix comparison: LIKE would treat %, _ and \ in the path as pattern characters
                     const where = {
                         TeamId: team,
-                        name: {
-                            [Op.like]: `${name}%`
-                        }
+                        [Op.and]: sqlWhere(fn('substr', col('name'), 1, name.length), name)
                     }
                     if (type) {
                         where.type = type
