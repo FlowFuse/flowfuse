@@ -56,8 +56,10 @@ export const useUxStore = defineStore('ux', {
             // The server is authoritative once onboarding has been completed
             // or skipped, so a session that never persisted the stage locally
             // (a new browser, or one that lost it on logout) is not sent back
-            // into the funnel.
-            if (user.settings?.onboardingCompleted) {
+            // into the funnel. Accounts older than a week always resolve to
+            // done too, whatever stage was stored locally (another account in
+            // the same browser, or one set by the Expert).
+            if (user.settings?.onboardingCompleted || !this.isNewlyCreatedUser) {
                 this.onboardingStage = ONBOARDING_STAGES.DONE
                 this.shouldEnterOnboarding = false
                 return
@@ -66,14 +68,12 @@ export const useUxStore = defineStore('ux', {
             // every boot for a week, so seeding unconditionally would restart
             // onboarding for anyone who had already finished or skipped it.
             if (this.onboardingStage === null) {
-                this.onboardingStage = this.isNewlyCreatedUser
-                    ? ONBOARDING_STAGES.INTAKE
-                    : ONBOARDING_STAGES.DONE
+                this.onboardingStage = ONBOARDING_STAGES.INTAKE
                 // Resolving the stage is itself a one-shot, so raising the
                 // entry flag here is too. Email verification is not a reliable
                 // hook: it only happens when the platform is set up to require
                 // it, and a user who is verified already never sees it.
-                this.shouldEnterOnboarding = this.isNewlyCreatedUser
+                this.shouldEnterOnboarding = true
             }
         },
         startOnboardingBuild () { this.onboardingStage = ONBOARDING_STAGES.BUILDING },

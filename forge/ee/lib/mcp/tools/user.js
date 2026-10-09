@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { basePagination, basePaginationKeys, appendQuery, teamId, toolError } = require('../schemas')
+const { pathId, basePagination, basePaginationKeys, appendQuery, teamId, toolError } = require('../schemas')
 
 module.exports = [
     {
@@ -40,7 +40,7 @@ module.exports = [
             The single-notification call replies { status: "okay" }; the bulk call replies with the refreshed notification list.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            notificationId: z.string().optional().describe('The hashid of a single notification to change. Provide exactly one of notificationId or ids'),
+            notificationId: pathId.optional().describe('The hashid of a single notification to change. Provide exactly one of notificationId or ids'),
             ids: z.array(z.string()).min(1).optional().describe('Hashids of the notifications to change in bulk, at least one. Provide exactly one of notificationId or ids'),
             read: z.boolean().describe('Read state to set: true marks read, false marks unread')
         },
@@ -69,7 +69,7 @@ module.exports = [
         // idempotentHint: a repeat call has no further effect, it just answers 404.
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            notificationId: z.string().describe('The hashid of the notification to delete, as returned by platform_list_notifications')
+            notificationId: pathId.describe('The hashid of the notification to delete, as returned by platform_list_notifications')
         },
         handler: async (args, { inject }) => {
             // notificationId goes into the URL path and inject resolves dot segments, so anything but
@@ -92,7 +92,7 @@ module.exports = [
         // original sender can issue another, so this removes rather than adds.
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
         inputSchema: {
-            invitationId: z.string().describe('The hashid of an invitation the current user received, as returned by platform_list_own_invitations'),
+            invitationId: pathId.describe('The hashid of an invitation the current user received, as returned by platform_list_own_invitations'),
             action: z.enum(['accept', 'reject']).describe('Whether to accept the invitation (join the team) or reject it (decline)')
         },
         handler: async (args, { inject }) => {
