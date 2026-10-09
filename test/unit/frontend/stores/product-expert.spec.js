@@ -846,7 +846,10 @@ describe('product-expert store', () => {
 
             const store = useProductExpertStore()
             await store.relayInstanceReady({ id: 'inst-1', name: 'first' })
-            await store.relayInstanceReady({ id: 'inst-2', name: 'second' })
+            const second = store.relayInstanceReady({ id: 'inst-2', name: 'second' })
+            useProductExpertSupportAgentStore().inFlightRequests.clear()
+            store._drainSendQueue()
+            await second
 
             expect(mqttService.publishMessage).toHaveBeenCalledTimes(2)
         })
@@ -983,6 +986,94 @@ describe('product-expert store', () => {
             await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
 
             expect(mqttService.publishMessage).toHaveBeenCalledTimes(2)
+        })
+    })
+
+    describe('send queue', () => {
+        afterEach(() => {
+            contextState.team = null
+            uxState.building = false
+            delete accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled
+            mqttService.hasClient.mockReturnValue(false)
+        })
+
+        function arrangeMqtt () {
+            uxState.building = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+        }
+
+        function settle (store) {
+            useProductExpertSupportAgentStore().inFlightRequests.clear()
+            store._drainSendQueue()
+        }
+
+        it('holds an instance event while a turn is in flight', async () => {
+            arrangeMqtt()
+            const store = useProductExpertStore()
+            useProductExpertSupportAgentStore().inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+
+            const relay = store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+            await Promise.resolve()
+
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+
+            settle(store)
+            await relay
+
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+        })
+
+        it('sends queued items one at a time in arrival order', async () => {
+            arrangeMqtt()
+            const store = useProductExpertStore()
+            const order = []
+            const agent = useProductExpertSupportAgentStore()
+            agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+
+            const first = store._enqueueSend(async () => {
+                order.push('first')
+                agent.inFlightRequests.set('turn-2', { query: 'a', transactionId: 'turn-2' })
+            })
+            const second = store._enqueueSend(async () => { order.push('second') })
+
+            settle(store)
+            await first
+            await Promise.resolve()
+            expect(order).toEqual(['first'])
+
+            settle(store)
+            await second
+            expect(order).toEqual(['first', 'second'])
+        })
+
+        it('sends the next queued item after the turn in flight is stopped', async () => {
+            arrangeMqtt()
+            const store = useProductExpertStore()
+            useProductExpertSupportAgentStore().inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+
+            const relay = store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+            store.stopInflightChat()
+            await relay
+
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(2)
+            expect(mqttService.publishMessage.mock.calls[0][1].payload.abort).toBe(true)
+            expect(mqttService.publishMessage.mock.calls[1][1].payload.system.kind).toBe('instance-ready')
+        })
+
+        it('drops queued items on Start Over', async () => {
+            arrangeMqtt()
+            const store = useProductExpertStore()
+            useProductExpertSupportAgentStore().inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+
+            const relay = store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+            await store.startOver()
+            await relay
+
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+            expect(store._sendQueue).toHaveLength(0)
         })
     })
 
