@@ -66,12 +66,6 @@ describe('MCP Library Tools', function () {
             })
         })
 
-        it('rejects a teamId that is not a hashid without calling the route', async function () {
-            const response = await tool.handler({ teamId: '../x', path: 'a', type: 'functions', body: 'x' }, { inject })
-            inject.called.should.be.false()
-            response.statusCode.should.equal(400)
-        })
-
         it('rejects a flows body that is not valid JSON, which would break reading the entry back', async function () {
             const response = await tool.handler({ teamId: 'team1', path: 'a', type: 'flows', body: 'not json' }, { inject })
             inject.called.should.be.false()

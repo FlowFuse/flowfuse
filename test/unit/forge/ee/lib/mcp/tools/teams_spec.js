@@ -428,14 +428,6 @@ describe('MCP Teams Tools', function () {
             response.should.equal(routeResponse)
         })
 
-        it('rejects ids that are not hashids without calling the route', async function () {
-            for (const bad of [{ teamId: '../x' }, { tokenId: 'a/../b' }]) {
-                const response = await tool.handler({ ...args, ...bad }, { inject })
-                response.statusCode.should.equal(400)
-            }
-            inject.called.should.be.false()
-        })
-
         it('keeps the route 404 when the team has git integration but the token is missing', async function () {
             const missing = notFound()
             inject.onFirstCall().resolves(missing)

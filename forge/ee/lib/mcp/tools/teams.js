@@ -189,7 +189,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
-            tokenId: z.string().describe('The hashid of the git token, as returned by platform_list_team_git_tokens'),
+            tokenId: pathId.describe('The hashid of the git token, as returned by platform_list_team_git_tokens'),
             name: z.string().trim().min(1).max(255).describe('New name for the git token')
         },
         outputSchema: {
@@ -198,9 +198,6 @@ module.exports = [
             type: z.string()
         },
         handler: async (args, { inject }) => {
-            if (!isHashid(args.teamId) || !isHashid(args.tokenId)) {
-                return toolError(400, 'invalid_request', 'teamId and tokenId must be hashids')
-            }
             const url = `/api/v1/teams/${args.teamId}/git/tokens`
             const response = await inject({ method: 'PUT', url: `${url}/${args.tokenId}`, payload: { name: args.name } })
             if (response.statusCode !== 404) {
