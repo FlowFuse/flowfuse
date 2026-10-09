@@ -75,12 +75,21 @@ module.exports = async function (app) {
             await token.destroy()
             reply.send({})
         } catch (err) {
-            reply.status(500).send({ error: 'unknown_error', message: err.toString() })
+            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
     app.put('/tokens/:tokenId', {
-        preHandler: app.needsPermission('team:git:tokens:edit')
+        preHandler: app.needsPermission('team:git:tokens:edit'),
+        schema: {
+            body: {
+                type: 'object',
+                required: ['name'],
+                properties: {
+                    name: { type: 'string', minLength: 1 }
+                }
+            }
+        }
     }, async (request, reply) => {
         try {
             const token = await app.db.models.GitToken.byId(request.params.tokenId, request.team.id)
@@ -89,13 +98,13 @@ module.exports = async function (app) {
                 reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                 return
             }
-            if (request.body.name && token.name !== request.body.name) {
+            if (token.name !== request.body.name) {
                 token.name = request.body.name
                 await token.save()
             }
             reply.send(app.db.views.GitToken.token(token))
         } catch (err) {
-            reply.status(500).send({ error: 'unknown_error', message: err.toString() })
+            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
