@@ -43,6 +43,10 @@ module.exports = async function (app) {
             return app.needsPermission('library:entry:create')(request, reply)
         }
     }, async (request, response) => {
+        if (!request.body || typeof request.body !== 'object') {
+            response.code(400).send({ code: 'invalid_request', error: 'Missing request body' })
+            return
+        }
         const type = request.body.type
         let body = request.body.body
         const name = request.params['*']
@@ -53,8 +57,22 @@ module.exports = async function (app) {
             return
         }
 
+        // The wildcard is decoded after routing, so encoded slashes and dots
+        // can still produce empty, '.' or '..' segments here
+        if (name.split('/').some(part => part === '' || part === '.' || part === '..')) {
+            response.status(400).send({ code: 'invalid_name', error: 'Invalid entry name' })
+            return
+        }
+
         if (typeof body === 'object') {
             body = JSON.stringify(body)
+        } else if (type === 'flows') {
+            try {
+                JSON.parse(body)
+            } catch (err) {
+                response.code(400).send({ code: 'invalid_request', error: 'Flows body is not valid JSON' })
+                return
+            }
         }
 
         const direct = await app.db.models.StorageSharedLibrary.byName(request.team.id, type, name)
