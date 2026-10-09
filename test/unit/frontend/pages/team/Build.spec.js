@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
     contextStore: { team: null },
     settingsStore: { featuresCheck: {} },
     accountStore: { setTeam: vi.fn().mockResolvedValue() },
-    expertStore: { messages: [], openConversation: vi.fn(), setAgentMode: vi.fn(), setPlanMode: vi.fn() },
+    expertStore: { messages: [], openConversation: vi.fn(), setAgentMode: vi.fn(), setPlanMode: vi.fn(), startOver: vi.fn().mockResolvedValue() },
     supportAgentStore: { messages: [], reset: vi.fn() },
     uxStore: { startBuilding: vi.fn(), stopBuilding: vi.fn() }
 }))
@@ -110,19 +110,22 @@ describe('Build page', () => {
         expect(mocks.expertStore.setPlanMode.mock.invocationCallOrder[0]).toBeLessThan(opened)
     })
 
-    // The drawer and the build page share the session and its broker client, so
-    // resetting here would leave that client signed in for a session that is gone
-    test('never resets the shared conversation', async () => {
-        mocks.expertStore.messages = [{ _type: 'ai', generated: true }]
+    // The agent keeps history per session, so a build has to start a new one
+    // or it would carry over whatever was said in the drawer
+    test('starts a fresh chat on the support agent before opening the turn', async () => {
         await mountPage()
-        expect(mocks.supportAgentStore.reset).not.toHaveBeenCalled()
+        expect(mocks.expertStore.startOver).toHaveBeenCalledTimes(1)
+        const startedOver = mocks.expertStore.startOver.mock.invocationCallOrder[0]
+        expect(mocks.expertStore.setAgentMode.mock.invocationCallOrder[0]).toBeLessThan(startedOver)
+        expect(startedOver).toBeLessThan(mocks.expertStore.openConversation.mock.invocationCallOrder[0])
     })
 
-    test('clears the messages, keeping the session, before opening the turn', async () => {
-        mocks.supportAgentStore.messages = [{ _type: 'human' }, { _type: 'ai' }]
+    test('drops the welcome message so the agent reply comes first', async () => {
+        mocks.expertStore.startOver.mockImplementationOnce(async () => {
+            mocks.supportAgentStore.messages = [{ _type: 'ai', generated: true }]
+        })
         await mountPage()
         expect(mocks.supportAgentStore.messages).toEqual([])
-        expect(mocks.supportAgentStore.reset).not.toHaveBeenCalled()
         expect(mocks.expertStore.openConversation).toHaveBeenCalledTimes(1)
     })
 
