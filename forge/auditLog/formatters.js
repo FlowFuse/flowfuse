@@ -7,8 +7,8 @@ const isObject = (obj) => {
 /**
  * Generate a standard format body for the audit log display and database.
  * Any items null or missing must not generate a property in the body
- * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, sourceDevice?, targetDevice?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, pipeline?, pipelineStage?, pipelineStageTarget?, role?, projectType?, info?, deviceGroup?, interval?, threshold?, token?, pkg? } == {}} objects objects to include in body
- * @returns {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, pipeline?, pipelineStage?, pipelineStageTarget?, role?, projectType? info?, deviceGroup?, interval?, threshold?, token?, pkg? }}
+ * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, sourceDevice?, targetDevice?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, pipeline?, pipelineStage?, pipelineStageTarget?, role?, projectType?, info?, deviceGroup?, interval?, threshold?, token?, pkg?, gitToken?, libraryEntry? } == {}} objects objects to include in body
+ * @returns {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, pipeline?, pipelineStage?, pipelineStageTarget?, role?, projectType? info?, deviceGroup?, interval?, threshold?, token?, pkg?, gitToken?, libraryEntry? }}
  */
 const generateBody = ({
     error, team, application,
@@ -17,7 +17,7 @@ const generateBody = ({
     subscription, license, updates, snapshot, pipeline,
     pipelineStage, pipelineStageTarget, role, projectType,
     info, deviceGroup, interval, threshold, token, pkg,
-    database, table
+    database, table, gitToken, libraryEntry
 } = {}) => {
     const body = {}
 
@@ -120,6 +120,12 @@ const generateBody = ({
     } else if (typeof table === 'string') {
         body.table = { name: table }
     }
+    if (isObject(gitToken)) {
+        body.gitToken = { id: gitToken.id, name: gitToken.name, type: gitToken.type }
+    }
+    if (isObject(libraryEntry)) {
+        body.libraryEntry = { name: libraryEntry.name, type: libraryEntry.type, deleteCount: libraryEntry.deleteCount }
+    }
 
     return body
 }
@@ -192,7 +198,9 @@ const formatLogEntry = (auditLogDbRow) => {
                 token: body?.token,
                 pkg: body?.pkg,
                 database: body?.database,
-                table: body?.table
+                table: body?.table,
+                gitToken: body?.gitToken,
+                libraryEntry: body?.libraryEntry
             })
 
             // if body has the keys:  `key`, `scope`, and `store` AND `store` === 'memory' or 'persistent'

@@ -25,13 +25,15 @@
     <KeyIcon v-else-if="icon === 'overage'" class="ff-icon text-red-700" />
     <PuzzlePieceIcon v-else-if="icon === 'package'" class="ff-icon text-green-700" />
     <CircleStackIcon v-else-if="icon == 'tables'" class="ff-icon text-green-700" />
+    <KeyIcon v-else-if="icon === 'gitops'" class="ff-icon text-green-700" />
+    <BookOpenIcon v-else-if="icon === 'library'" class="ff-icon text-green-700" />
     <InformationCircleIcon v-else class="ff-icon text-gray-600" />
 </template>
 
 <script>
 
 import {
-    ArrowLeftOnRectangleIcon, ArrowRightOnRectangleIcon, BeakerIcon, CircleStackIcon, ClockIcon,
+    ArrowLeftOnRectangleIcon, ArrowRightOnRectangleIcon, BeakerIcon, BookOpenIcon, CircleStackIcon, ClockIcon,
     Cog8ToothIcon, ComputerDesktopIcon, CpuChipIcon, CurrencyDollarIcon,
     EnvelopeIcon, ExclamationCircleIcon, ExclamationTriangleIcon,
     IdentificationIcon, InformationCircleIcon, KeyIcon, LockClosedIcon, PuzzlePieceIcon,
@@ -258,6 +260,16 @@ const iconMap = {
         'team.database.deleted',
         'team.database.table.created',
         'team.database.table.deleted'
+    ],
+    gitops: [
+        'team.git.token.created',
+        'team.git.token.updated',
+        'team.git.token.deleted'
+    ],
+    library: [
+        'team.library.entry.created',
+        'team.library.entry.updated',
+        'team.library.entry.deleted'
     ]
 }
 
@@ -319,7 +331,8 @@ export default {
         TicketIcon,
         InformationCircleIcon,
         PuzzlePieceIcon,
-        CircleStackIcon
+        CircleStackIcon,
+        BookOpenIcon
     }
 }
 </script>

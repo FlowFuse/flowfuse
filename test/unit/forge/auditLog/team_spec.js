@@ -738,4 +738,54 @@ describe('Audit Log > Team', async function () {
             logEntry.body.table.should.only.have.keys('name')
         })
     })
+
+    describe('Team repository token events', function () {
+        const TOKEN = { id: 1, name: 'my token', type: 'github', token: 'secret-value' }
+        it('Create token', async function () {
+            await teamLogger.gitToken.created(ACTIONED_BY, null, TEAM, TOKEN)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.git.token.created')
+            logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+            logEntry.body.should.only.have.keys('team', 'gitToken')
+            logEntry.body.gitToken.should.only.have.keys('id', 'name', 'type')
+        })
+        it('Update token', async function () {
+            const updates = new app.auditLog.formatters.UpdatesCollection()
+            updates.push('name', 'old', 'new')
+            await teamLogger.gitToken.updated(ACTIONED_BY, null, TEAM, TOKEN, updates)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.git.token.updated')
+            logEntry.body.should.only.have.keys('team', 'gitToken', 'updates')
+        })
+        it('Delete token', async function () {
+            await teamLogger.gitToken.deleted(ACTIONED_BY, null, TEAM, TOKEN)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.git.token.deleted')
+            logEntry.body.should.only.have.keys('team', 'gitToken')
+        })
+    })
+
+    describe('Shared library events', function () {
+        const ENTRY = { name: 'folder/entry', type: 'flows', deleteCount: 2 }
+        it('Create entry', async function () {
+            await teamLogger.library.entry.created(ACTIONED_BY, null, TEAM, ENTRY)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.library.entry.created')
+            logEntry.body.should.only.have.keys('team', 'libraryEntry')
+            logEntry.body.libraryEntry.should.only.have.keys('name', 'type', 'deleteCount')
+        })
+        it('Update entry', async function () {
+            await teamLogger.library.entry.updated(ACTIONED_BY, null, TEAM, ENTRY)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.library.entry.updated')
+            logEntry.body.should.only.have.keys('team', 'libraryEntry')
+        })
+        it('Delete entry', async function () {
+            await teamLogger.library.entry.deleted(ACTIONED_BY, null, TEAM, ENTRY)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.library.entry.deleted')
+            logEntry.body.should.only.have.keys('team', 'libraryEntry')
+            logEntry.body.libraryEntry.should.have.property('deleteCount', 2)
+        })
+    })
 })
