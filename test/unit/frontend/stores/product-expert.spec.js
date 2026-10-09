@@ -56,11 +56,14 @@ vi.mock('@/components/drawers/expert/ExpertDrawer.vue', () => ({
     default: { name: 'ExpertDrawer' }
 }))
 
+const drawersState = {
+    rightDrawer: { expertSuppressed: false, expertState: { pinned: false, open: false } },
+    openRightDrawer: vi.fn(),
+    setRightDrawerWider: vi.fn()
+}
+
 vi.mock('@/stores/ux-drawers.js', () => ({
-    useUxDrawersStore: vi.fn(() => ({
-        openRightDrawer: vi.fn(),
-        setRightDrawerWider: vi.fn()
-    }))
+    useUxDrawersStore: vi.fn(() => drawersState)
 }))
 
 const { dispatch, getToolDefinitions, invokeAction } = vi.hoisted(() => ({
@@ -148,6 +151,39 @@ describe('product-expert store', () => {
             const store = useProductExpertStore()
             store.setAbortController(new AbortController())
             expect(store.isWaitingForResponse).toBe(true)
+        })
+    })
+
+    describe('isInputDisabled getter', () => {
+        it('is false while the composer can take input', () => {
+            const store = useProductExpertStore()
+            expect(store.isInputDisabled).toBe(false)
+        })
+
+        it('is true while waiting for a response', () => {
+            const store = useProductExpertStore()
+            store.setAbortController(new AbortController())
+            expect(store.isInputDisabled).toBe(true)
+        })
+
+        it('is true once the session has expired', () => {
+            const store = useProductExpertStore()
+            store._agentStore.sessionExpiredShown = true
+            expect(store.isInputDisabled).toBe(true)
+        })
+
+        it('is true for the insights agent with no capabilities selected', () => {
+            const store = useProductExpertStore()
+            store.setAgentMode(INSIGHTS_AGENT)
+            useProductExpertInsightsAgentStore().setSelectedCapabilities([])
+            expect(store.isInputDisabled).toBe(true)
+        })
+
+        it('is false for the insights agent once capabilities are selected', () => {
+            const store = useProductExpertStore()
+            store.setAgentMode(INSIGHTS_AGENT)
+            useProductExpertInsightsAgentStore().setSelectedCapabilities([{ id: 'cap-1' }])
+            expect(store.isInputDisabled).toBe(false)
         })
     })
 
