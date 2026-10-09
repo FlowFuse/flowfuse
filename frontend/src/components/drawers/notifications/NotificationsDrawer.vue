@@ -80,6 +80,7 @@ import { markRaw } from 'vue'
 import userAPI from '../../../api/user.js'
 
 import alerts from '../../../services/alerts.js'
+import AnnouncementNotification from '../../notifications/Announcement.vue'
 import GenericNotification from '../../notifications/Generic.vue'
 
 import TeamInvitationAcceptedNotification from '../../notifications/invitations/Accepted.vue'
@@ -131,6 +132,13 @@ export default {
             this.closeRightDrawer()
         },
         getNotificationsComponent (notification) {
+            if (notification.type === 'announcement') {
+                // Rich announcements own their click targets (links, video,
+                // button). A plain one stays a single card-wide link.
+                return this.isRichAnnouncement(notification)
+                    ? markRaw(AnnouncementNotification)
+                    : markRaw(GenericNotification)
+            }
             let comp = this.componentCache[notification.type]
             if (comp) {
                 return comp
@@ -150,6 +158,10 @@ export default {
             }
             this.componentCache[notification.type] = comp
             return comp
+        },
+        isRichAnnouncement (notification) {
+            const data = notification.data || {}
+            return data.format === 'markdown' || !!data.video || !!data.cta
         },
         onSelected (notification) {
             this.selections.push(notification)
