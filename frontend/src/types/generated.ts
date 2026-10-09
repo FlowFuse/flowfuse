@@ -726,6 +726,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         onboardingCompleted?: boolean;
+                        aiConnectorLastShownAt?: number;
                     };
                 };
             };

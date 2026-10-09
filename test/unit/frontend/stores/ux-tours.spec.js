@@ -1,14 +1,21 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createApp, markRaw } from 'vue'
+import { markRaw } from 'vue'
 
-import { skipResetPlugin } from '@/stores/plugins/skip-reset.plugin.js'
-
+import userApi from '@/api/user.js'
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
+
+vi.mock('@/api/user.js', () => ({
+    default: {
+        updateUserSettings: vi.fn().mockResolvedValue()
+    }
+}))
 
 describe('ux-tours store', () => {
     beforeEach(() => {
         setActivePinia(createPinia())
+        userApi.updateUserSettings.mockClear()
     })
 
     it('initializes with default state', () => {
@@ -95,20 +102,38 @@ describe('ux-tours store', () => {
         vi.useRealTimers()
     })
 
-    // Logout resets every store, which used to bring the AI connector modal
-    // back on each login
-    it('keeps the AI connector last shown time across a reset', () => {
-        const pinia = createPinia().use(skipResetPlugin)
-        createApp({}).use(pinia)
-        setActivePinia(pinia)
-        const store = useUxToursStore()
-        store.markAiConnectorShown()
-        store.presentTour()
+    describe('AI connector modal', () => {
+        const tenDays = 10 * 24 * 60 * 60 * 1000
 
-        store.$reset()
+        it('is not auto-shown until the user is loaded', () => {
+            expect(useUxToursStore().shouldAutoShowAiConnectorModal).toBe(false)
+        })
 
-        expect(store.aiConnectorLastShownAt).not.toBeNull()
-        expect(store.shouldAutoShowAiConnectorModal).toBe(false)
-        expect(store.shouldPresentTour).toBe(false)
+        it('is auto-shown to a user who has never seen it', () => {
+            useAccountAuthStore().setUser({ settings: {} })
+            expect(useUxToursStore().shouldAutoShowAiConnectorModal).toBe(true)
+        })
+
+        it('is held off for ten days after it was last shown', () => {
+            const authStore = useAccountAuthStore()
+            authStore.setUser({ settings: { aiConnectorLastShownAt: Date.now() - tenDays + 60000 } })
+            expect(useUxToursStore().shouldAutoShowAiConnectorModal).toBe(false)
+
+            authStore.setUser({ settings: { aiConnectorLastShownAt: Date.now() - tenDays - 60000 } })
+            expect(useUxToursStore().shouldAutoShowAiConnectorModal).toBe(true)
+        })
+
+        // Stored in user settings so the hold follows the user across logouts
+        // and browsers, and does not leak to another account on the same one
+        it('records when it was shown locally and in the user settings', () => {
+            useAccountAuthStore().setUser({ settings: {} })
+            const store = useUxToursStore()
+            store.markAiConnectorShown()
+
+            const lastShownAt = useAccountAuthStore().user.settings.aiConnectorLastShownAt
+            expect(lastShownAt).toEqual(expect.any(Number))
+            expect(store.shouldAutoShowAiConnectorModal).toBe(false)
+            expect(userApi.updateUserSettings).toHaveBeenCalledWith({ aiConnectorLastShownAt: lastShownAt })
+        })
     })
 })

@@ -4,6 +4,9 @@ import { markRaw } from 'vue'
 import Tours from '../tours/Tours.js'
 import TourWelcome, { id as WelcomeTourId } from '../tours/tour-welcome.js'
 
+import userApi from '@/api/user.js'
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+
 export const useUxToursStore = defineStore('ux-tours', {
     state: () => ({
         tours: {
@@ -14,18 +17,26 @@ export const useUxToursStore = defineStore('ux-tours', {
         },
         completed: {},
         activeTour: null,
-        shouldPresentTour: false,
-        aiConnectorLastShownAt: null
+        shouldPresentTour: false
     }),
     getters: {
         shouldShowEducationModal: (state) => state.modals.education,
         // Auto-show once, then hold off for ten days after it was last shown.
-        shouldAutoShowAiConnectorModal: (state) => {
-            if (!state.aiConnectorLastShownAt) {
+        // Kept in the user's settings so the hold follows them across logouts
+        // and browsers, and does not leak to another account on the same one.
+        shouldAutoShowAiConnectorModal: () => {
+            const user = useAccountAuthStore().user
+            // Not until the user is loaded, so it doesn't flash for someone
+            // who has already seen it
+            if (!user) {
+                return false
+            }
+            const lastShownAt = user.settings?.aiConnectorLastShownAt
+            if (!lastShownAt) {
                 return true
             }
             const tenDays = 10 * 24 * 60 * 60 * 1000
-            return Date.now() - state.aiConnectorLastShownAt > tenDays
+            return Date.now() - lastShownAt > tenDays
         },
         hasTourBeenCompleted: (state) => (tour) =>
             Object.prototype.hasOwnProperty.call(state.completed, tour)
@@ -63,7 +74,17 @@ export const useUxToursStore = defineStore('ux-tours', {
             this.modals[modal] = false
         },
         markAiConnectorShown () {
-            this.aiConnectorLastShownAt = Date.now()
+            const authStore = useAccountAuthStore()
+            if (!authStore.user) {
+                return
+            }
+            const aiConnectorLastShownAt = Date.now()
+            authStore.setUser({
+                ...authStore.user,
+                settings: { ...authStore.user.settings, aiConnectorLastShownAt }
+            })
+            // Best-effort: the local copy is already updated
+            userApi.updateUserSettings({ aiConnectorLastShownAt }).catch(() => {})
         },
         setWelcomeTour (callback = () => {}) {
             this.setActiveTour(Tours.create(WelcomeTourId, TourWelcome, callback))
@@ -77,9 +98,8 @@ export const useUxToursStore = defineStore('ux-tours', {
             }, 1000)
         }
     },
-    skipReset: ['aiConnectorLastShownAt'],
     persist: {
-        pick: ['tours', 'completed', 'shouldPresentTour', 'aiConnectorLastShownAt'],
+        pick: ['tours', 'completed', 'shouldPresentTour'],
         storage: localStorage
     }
 })
