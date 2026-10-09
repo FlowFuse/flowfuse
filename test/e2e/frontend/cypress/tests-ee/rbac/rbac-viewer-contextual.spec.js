@@ -565,10 +565,11 @@ describe('FlowFuse - RBAC Viewer Contextual permissions', () => {
             }
         })
     })
-    it('should not be able to create new instances', () => {
+    it('should be able to create new instances because they own an application', () => {
         cy.get('[data-nav="team-instances"]').click()
         cy.get('[data-action="create-project"]').should('exist')
-        cy.get('[data-action="create-project"]').should('be.disabled')
+        // the user has an owner role in application-5
+        cy.get('[data-action="create-project"]').should('not.be.disabled')
 
         // todo: users without permissions to create an instance in any application should be redirected when accessing
         //  the instance creation form
