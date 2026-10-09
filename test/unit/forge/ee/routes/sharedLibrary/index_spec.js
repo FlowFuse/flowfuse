@@ -421,6 +421,72 @@ describe('Library Storage API', function () {
             ;(await app.db.models.StorageSharedLibrary.count()).should.equal(4)
         })
 
+        describe('with user tokens', function () {
+            let ownerPAT
+            let readOnlyPAT
+            let viewerPAT
+            let outsiderPAT
+            let expertToken
+
+            before(async function () {
+                const owner = await app.factory.createUser({ username: 'libowner', name: 'Lib Owner', email: 'libowner@example.com', password: 'ooPassword' })
+                await team1.addUser(owner, { through: { role: app.factory.Roles.Roles.Owner } })
+                const viewer = await app.factory.createUser({ username: 'libviewer', name: 'Lib Viewer', email: 'libviewer@example.com', password: 'vvPassword' })
+                await team1.addUser(viewer, { through: { role: app.factory.Roles.Roles.Viewer } })
+                const outsider = await app.factory.createUser({ username: 'liboutsider', name: 'Lib Outsider', email: 'liboutsider@example.com', password: 'ooPassword' })
+
+                ownerPAT = (await app.db.controllers.AccessToken.createPersonalAccessToken(owner, '', null, 'owner-pat')).token
+                readOnlyPAT = (await app.db.controllers.AccessToken.createPersonalAccessToken(owner, '', null, 'owner-read-only-pat', { readOnly: true })).token
+                viewerPAT = (await app.db.controllers.AccessToken.createPersonalAccessToken(viewer, '', null, 'viewer-pat')).token
+                outsiderPAT = (await app.db.controllers.AccessToken.createPersonalAccessToken(outsider, '', null, 'outsider-pat')).token
+                expertToken = (await app.db.controllers.AccessToken.createTokenForUser(owner, null, [], false, 'user:expert-mcp')).token
+            })
+
+            function request (method, path, token, payload) {
+                return app.inject({
+                    method,
+                    url: `/storage/library/${team1.hashid}/${path}`,
+                    payload,
+                    headers: { authorization: `Bearer ${token}` }
+                })
+            }
+
+            it('lets a team owner create, read and delete entries with a personal access token', async function () {
+                const created = await request('POST', 'pat/entry', ownerPAT, { type: 'functions', meta: {}, body: 'return msg' })
+                created.statusCode.should.equal(201)
+
+                const read = await request('GET', 'pat/entry', ownerPAT)
+                read.statusCode.should.equal(200)
+                read.payload.should.equal('return msg')
+
+                const deleted = await request('DELETE', 'pat/entry', ownerPAT)
+                deleted.statusCode.should.equal(200)
+                deleted.json().should.have.property('deleteCount', 1)
+            })
+
+            it('accepts a user:expert-mcp token', async function () {
+                const created = await request('POST', 'expert/entry', expertToken, { type: 'functions', meta: {}, body: 'x' })
+                created.statusCode.should.equal(201)
+            })
+
+            it('applies the role and read-only checks to user tokens', async function () {
+                await request('POST', 'existing', ownerPAT, { type: 'functions', meta: {}, body: 'x' })
+
+                ;(await request('GET', 'existing', readOnlyPAT)).statusCode.should.equal(200)
+                ;(await request('GET', 'existing', viewerPAT)).statusCode.should.equal(403)
+                ;(await request('POST', 'viewer/entry', viewerPAT, { type: 'functions', meta: {}, body: 'x' })).statusCode.should.equal(403)
+                ;(await request('DELETE', 'existing', viewerPAT)).statusCode.should.equal(403)
+                ;(await request('POST', 'ro/entry', readOnlyPAT, { type: 'functions', meta: {}, body: 'x' })).statusCode.should.equal(403)
+                ;(await request('DELETE', 'existing', readOnlyPAT)).statusCode.should.equal(403)
+                ;(await app.db.models.StorageSharedLibrary.count()).should.equal(1)
+            })
+
+            it('returns 404 to a user who is not a member of the team', async function () {
+                ;(await request('GET', 'anything', outsiderPAT)).statusCode.should.equal(404)
+                ;(await request('POST', 'outsider/entry', outsiderPAT, { type: 'functions', meta: {}, body: 'x' })).statusCode.should.equal(404)
+            })
+        })
+
         it('Prevents Library access for team type with feature disabled', async function () {
             // Create a teamType without shared-library access
             const teamType = await app.factory.createTeamType({

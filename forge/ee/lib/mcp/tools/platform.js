@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { teamId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, appendQuery } = require('../schemas')
+const { pathId, teamId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, appendQuery } = require('../schemas')
 const { PLATFORM_UI_TOOL_NAMES, SESSION_GATED_GROUPS, noBrowserSessionGuidance } = require('../sessionGatedTools')
 
 function getProperty (properties, key) {
@@ -128,7 +128,7 @@ module.exports = [
         description: 'FlowFuse platform automation tool: Get a single template by id. Hidden environment variable values are blanked in the response; visible ones are returned as set.',
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            templateId: z.string().describe('Template hashid')
+            templateId: pathId.describe('Template hashid')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/templates/${args.templateId}` })
@@ -141,7 +141,7 @@ module.exports = [
         description: 'FlowFuse platform automation tool: Get a single flow blueprint by id. By default the flow content is omitted from the response.',
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            flowBlueprintId: z.string().describe('Flow blueprint hashid'),
+            flowBlueprintId: pathId.describe('Flow blueprint hashid'),
             includeFlow: z.boolean().default(false).optional().describe('Whether to include the full flow JSON in the response. Omitted by default to keep the response small; set true to fetch it, e.g. to deploy it.')
         },
         handler: async (args, { inject }) => {
@@ -184,7 +184,7 @@ module.exports = [
             Use this to inspect the tier/plan a team is on, or to check a team type before assigning it to a new team.`,
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            teamTypeId: z.string().describe('Team type hashid')
+            teamTypeId: pathId.describe('Team type hashid')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/team-types/${args.teamTypeId}` })

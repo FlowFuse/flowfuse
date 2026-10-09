@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { teamId, applicationId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError } = require('../schemas')
+const { pathId, teamId, applicationId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError } = require('../schemas')
 
 const isHashid = (id) => /^[A-Za-z0-9]+$/.test(id)
 
@@ -53,7 +53,7 @@ module.exports = [
             }
             const url = hasId
                 ? `/api/v1/teams/${args.teamId}`
-                : `/api/v1/teams/slug/${args.teamSlug}`
+                : `/api/v1/teams/slug/${encodeURIComponent(args.teamSlug)}`
             const response = await inject({ method: 'GET', url })
             return response
         }
@@ -252,7 +252,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
-            userId: z.string().describe('The hashid of the team member whose role is changing'),
+            userId: pathId.describe('The hashid of the team member whose role is changing'),
             role: z.union([z.literal(5), z.literal(10), z.literal(30), z.literal(50)]).describe('New team role: 5=Dashboard, 10=Viewer, 30=Member, 50=Owner')
         },
         handler: async (args, { inject }) => {
@@ -293,7 +293,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
-            invitationId: z.string().describe('The hashid of the invitation to resend, as returned by platform_list_team_invitations')
+            invitationId: pathId.describe('The hashid of the invitation to resend, as returned by platform_list_team_invitations')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'POST', url: `/api/v1/teams/${args.teamId}/invitations/${args.invitationId}` })
@@ -315,7 +315,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
-            userId: z.string().describe('The hashid of the member to remove, as returned by platform_list_team_members')
+            userId: pathId.describe('The hashid of the member to remove, as returned by platform_list_team_members')
         },
         handler: async (args, { inject }) => {
             // Both ids go into the URL path and inject resolves dot segments, so anything but
@@ -345,7 +345,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
-            invitationId: z.string().describe('The hashid of the invitation to revoke, as returned by platform_list_team_invitations')
+            invitationId: pathId.describe('The hashid of the invitation to revoke, as returned by platform_list_team_invitations')
         },
         handler: async (args, { inject }) => {
             // Same as above: a crafted invitationId like "../../../applications/<id>" reaches another route.
