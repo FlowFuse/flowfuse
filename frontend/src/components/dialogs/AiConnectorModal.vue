@@ -170,14 +170,7 @@ const CLIENTS = [
         step2Title: 'Paste it into Claude Code',
         step2Body: 'It adds the connector itself, then asks you to finish signing in.',
         step2Label: 'See the documentation',
-        step2Url: 'https://flowfuse.com/docs/user/expert/third-party-agents/',
-        cloud: {
-            step1Title: 'Open the MCP list',
-            step1Body: 'Run this in Claude Code.',
-            step1Command: () => '/mcp',
-            step2Title: 'Select FlowFuse and choose Authenticate',
-            step2Body: 'Find it under Show unused connectors.'
-        }
+        step2Url: 'https://flowfuse.com/docs/user/expert/third-party-agents/'
     },
     {
         id: 'codex',

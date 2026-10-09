@@ -57,6 +57,14 @@
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error">Team settings have been changed.</span>
     </template>
+    <template v-else-if="entry.event === 'team.agent-auto-deploy.enabled'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error">AI agents can now deploy flow changes on this team.</span>
+    </template>
+    <template v-else-if="entry.event === 'team.agent-auto-deploy.disabled'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error">AI agents can no longer deploy flow changes on this team.</span>
+    </template>
 
     <!-- Team Type Events -->
     <template v-else-if="entry.event === 'team.type.changed'">

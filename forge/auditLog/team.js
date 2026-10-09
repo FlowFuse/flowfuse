@@ -59,6 +59,14 @@ module.exports = {
                     await log('team.settings.updated', actionedBy, team?.id, generateBody({ error, team, updates }))
                 }
             },
+            agentAutoDeploy: {
+                async enabled (actionedBy, error, team) {
+                    await log('team.agent-auto-deploy.enabled', actionedBy, team?.id, generateBody({ error, team }))
+                },
+                async disabled (actionedBy, error, team) {
+                    await log('team.agent-auto-deploy.disabled', actionedBy, team?.id, generateBody({ error, team }))
+                }
+            },
             device: {
                 async created (actionedBy, error, team, device) {
                     await log('team.device.created', actionedBy, team?.id, generateBody({ error, device }))
