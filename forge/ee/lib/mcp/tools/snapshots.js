@@ -2,7 +2,7 @@ const SemVer = require('semver')
 const { z } = require('zod')
 
 const { MIN_DEVICE_AGENT_VERSIONS } = require('../constants')
-const { basePaginationKeys, limitParam, appendQuery, hostedInstanceId, remoteInstanceId, snapshotId, snapshotComponents, toolError } = require('../schemas')
+const { pathId, basePaginationKeys, limitParam, appendQuery, hostedInstanceId, remoteInstanceId, snapshotId, snapshotComponents, toolError } = require('../schemas')
 const { blankHiddenEnvValues } = require('../utils')
 
 // Width of ProjectSnapshot.name, a DataTypes.STRING column.
@@ -33,7 +33,7 @@ module.exports = [
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             instanceType: z.enum(['hosted', 'remote']).describe('Which kind of instance instanceId refers to: "hosted" for a hosted instance, "remote" for a remote instance (device)'),
-            instanceId: z.string().describe('The ID of the instance whose snapshots to list (UUID for a hosted instance, hashid for a remote instance)'),
+            instanceId: pathId.describe('The ID of the instance whose snapshots to list (UUID for a hosted instance, hashid for a remote instance)'),
             cursor: z.string().optional().describe('Cursor for pagination (the hashid of the last item from the previous page)'),
             ...limitParam
         },
@@ -59,7 +59,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             instanceType: z.enum(['hosted', 'remote']).describe('Which kind of instance instanceId refers to: "hosted" for a hosted instance, "remote" for a remote instance (device)'),
-            instanceId: z.string().describe('The ID of the instance to snapshot (UUID for a hosted instance, hashid for a remote instance)'),
+            instanceId: pathId.describe('The ID of the instance to snapshot (UUID for a hosted instance, hashid for a remote instance)'),
             name: z.string().trim().min(1).max(SNAPSHOT_NAME_MAX_LENGTH).describe('Name for the snapshot'),
             description: z.string().optional().describe('Description of the snapshot')
         },
@@ -226,7 +226,7 @@ module.exports = [
             Use components to import selectively, for example envVars: "keys" to import env var names without their values.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
         inputSchema: {
-            ownerId: z.string().describe('Target owner id: hosted instance (project) UUID when ownerType is "instance", or device hashid when ownerType is "device"'),
+            ownerId: pathId.describe('Target owner id: hosted instance (project) UUID when ownerType is "instance", or device hashid when ownerType is "device"'),
             ownerType: z.enum(['instance', 'device']).describe('Type of resource that will own the imported snapshot'),
             snapshot: z.object({
                 name: z.string().describe('Name for the imported snapshot'),
