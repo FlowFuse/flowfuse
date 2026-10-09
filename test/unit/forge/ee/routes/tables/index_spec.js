@@ -317,6 +317,7 @@ describe('Tables API', function () {
             url: `/api/v1/teams/${TestObjects.team.hashid}/databases/${db.hashid}/tables/${name}${schema ? '/' + schema : ''}`,
             cookies: { sid: TestObjects.tokens.bob }
         })
+
         before(async function () {
             const created = await app.inject({
                 method: 'POST',
@@ -354,7 +355,7 @@ describe('Tables API', function () {
             const response = await drop('dup', 's2')
             response.statusCode.should.equal(204)
             app.tables.dropTable.calledOnce.should.be.true()
-            app.tables.dropTable.firstCall.args[4].should.equal('s2')
+            app.tables.dropTable.firstCall.args[3].should.equal('s2')
         })
 
         it('Drops a uniquely named table without a schema', async function () {
