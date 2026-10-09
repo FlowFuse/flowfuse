@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { teamId, basePagination, basePaginationKeys, searchQuery, appendQuery, toolError } = require('../schemas')
+const { pathId, teamId, basePagination, basePaginationKeys, searchQuery, appendQuery, toolError } = require('../schemas')
 
 const isHashid = (id) => /^[A-Za-z0-9]+$/.test(id)
 
@@ -38,7 +38,7 @@ module.exports = [
             username: z.string().describe('Username of the broker client to fetch')
         },
         handler: async (args, { inject }) => {
-            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/broker/client/${args.username}` })
+            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/broker/client/${encodeURIComponent(args.username)}` })
             return response
         }
     },
@@ -76,7 +76,7 @@ module.exports = [
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
-            brokerId: z.string().describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid")
+            brokerId: pathId.describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid")
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/brokers/${args.brokerId}` })
@@ -95,7 +95,7 @@ module.exports = [
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
-            brokerId: z.string().describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid")
+            brokerId: pathId.describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid")
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/brokers/${args.brokerId}/topics` })
@@ -115,7 +115,7 @@ module.exports = [
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
-            brokerId: z.string().describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid")
+            brokerId: pathId.describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid")
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/broker/${args.brokerId}/schema` })
@@ -136,7 +136,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             teamId,
-            brokerId: z.string().describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid"),
+            brokerId: pathId.describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid"),
             action: z.enum(['start', 'stop', 'suspend']).describe('Lifecycle transition to apply to the broker topic-collection agent')
         },
         handler: async (args, { inject }) => {
@@ -154,7 +154,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             teamId,
-            brokerId: z.string().describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid"),
+            brokerId: pathId.describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid"),
             topics: z.array(z.object({
                 topic: z.string().describe('MQTT topic string, e.g. "factory/line1/temperature"'),
                 metadata: z.record(z.string(), z.any()).optional().describe('Arbitrary topic metadata, e.g. { description: "..." }')
@@ -176,8 +176,8 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
-            brokerId: z.string().describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid"),
-            topicId: z.string().describe('The hashid of the topic to update, as returned by platform_list_broker_topics'),
+            brokerId: pathId.describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid"),
+            topicId: pathId.describe('The hashid of the topic to update, as returned by platform_list_broker_topics'),
             metadata: z.record(z.string(), z.any()).describe('Replacement metadata object for the topic, e.g. { description: "..." }')
         },
         handler: async (args, { inject }) => {
@@ -199,8 +199,8 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
-            brokerId: z.string().describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid"),
-            topicId: z.string().describe('The hashid of the topic to delete, as returned by platform_list_broker_topics')
+            brokerId: pathId.describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid"),
+            topicId: pathId.describe('The hashid of the topic to delete, as returned by platform_list_broker_topics')
         },
         handler: async (args, { inject }) => {
             // The ids go into the URL path and inject resolves dot segments, so anything but a plain

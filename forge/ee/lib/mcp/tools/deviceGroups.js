@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { appendQuery, applicationId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, teamId, toolError } = require('../schemas')
+const { pathId, appendQuery, applicationId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, teamId, toolError } = require('../schemas')
 
 module.exports = [
     {
@@ -59,7 +59,7 @@ module.exports = [
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             applicationId,
-            groupId: z.string().describe('Device group hashid to fetch')
+            groupId: pathId.describe('Device group hashid to fetch')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/applications/${args.applicationId}/device-groups/${args.groupId}` })
@@ -104,10 +104,10 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             applicationId: applicationId.describe('The hashid of the application the group belongs to'),
-            groupId: z.string().describe('The hashid of the device group to update'),
+            groupId: pathId.describe('The hashid of the device group to update'),
             name: z.string().min(1).optional().describe('New name for the group'),
             description: z.string().optional().describe('New description for the group'),
-            targetSnapshotId: z.string().nullable().optional().describe('The hashid of the snapshot to pin as the group target (deployed to all member devices immediately), or null to clear the pin. The snapshot must belong to the same application')
+            targetSnapshotId: pathId.nullable().optional().describe('The hashid of the snapshot to pin as the group target (deployed to all member devices immediately), or null to clear the pin. The snapshot must belong to the same application')
         },
         handler: async (args, { inject }) => {
             const payload = {}
@@ -139,7 +139,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             applicationId: applicationId.describe('The hashid of the application the group belongs to'),
-            groupId: z.string().describe('The hashid of the device group whose membership to change'),
+            groupId: pathId.describe('The hashid of the device group whose membership to change'),
             add: z.array(z.string()).optional().describe('Hashids of devices to add to the group'),
             remove: z.array(z.string()).optional().describe('Hashids of devices to remove from the group'),
             set: z.array(z.string()).optional().describe('Hashids of devices to set as the exact membership, replacing the current list. Overrides add/remove')
@@ -172,7 +172,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             applicationId: applicationId.describe('The hashid of the application the group belongs to'),
-            groupId: z.string().describe('The hashid of the device group whose settings to update'),
+            groupId: pathId.describe('The hashid of the device group whose settings to update'),
             env: z.array(z.object({
                 name: z.string().describe('Environment variable name: a letter or underscore followed by letters, digits or underscores'),
                 value: z.string().describe('Environment variable value. For an existing hidden variable, pass an empty string (with hidden true) to keep the stored value'),
@@ -199,7 +199,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             applicationId: applicationId.describe('The hashid of the application the group belongs to'),
-            groupId: z.string().describe('The hashid of the device group to delete')
+            groupId: pathId.describe('The hashid of the device group to delete')
         },
         handler: async (args, { inject }) => {
             // Both ids go into the URL path and inject resolves dot segments, so anything but a plain
