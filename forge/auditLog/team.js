@@ -254,16 +254,16 @@ module.exports = {
 
         const library = {
             entry: {
-                async created (actionedBy, error, team, libraryEntry) {
-                    const body = generateBody({ error, team, libraryEntry })
+                async created (actionedBy, error, team, libraryEntry, { project, device } = {}) {
+                    const body = generateBody({ error, team, project, device, libraryEntry })
                     await log('team.library.entry.created', actionedBy, team?.id, body)
                 },
-                async updated (actionedBy, error, team, libraryEntry) {
-                    const body = generateBody({ error, team, libraryEntry })
+                async updated (actionedBy, error, team, libraryEntry, { project, device } = {}) {
+                    const body = generateBody({ error, team, project, device, libraryEntry })
                     await log('team.library.entry.updated', actionedBy, team?.id, body)
                 },
-                async deleted (actionedBy, error, team, libraryEntry) {
-                    const body = generateBody({ error, team, libraryEntry })
+                async deleted (actionedBy, error, team, libraryEntry, { project, device } = {}) {
+                    const body = generateBody({ error, team, project, device, libraryEntry })
                     await log('team.library.entry.deleted', actionedBy, team?.id, body)
                 }
             }

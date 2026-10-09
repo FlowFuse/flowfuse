@@ -54,6 +54,7 @@ describe('Git tokens audit log', function () {
         entries[0].body.should.have.property('team')
         entries[0].body.gitToken.should.only.have.keys('id', 'name', 'type')
         entries[0].body.gitToken.should.have.property('name', 'my token')
+        entries[0].body.gitToken.should.have.property('id', response.json().id)
         JSON.stringify(entries[0].body).should.not.containEql('super-secret-value')
     })
 

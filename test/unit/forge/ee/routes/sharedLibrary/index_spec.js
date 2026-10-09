@@ -440,6 +440,7 @@ describe('Library Storage API', function () {
                 entries[0].libraryEntry.should.only.have.keys('name', 'type')
                 entries[0].libraryEntry.should.have.property('name', 'audit/new')
                 entries[0].libraryEntry.should.have.property('type', 'flows')
+                entries[0].project.should.have.property('id', app.project.id)
                 const updated = await auditEntries('team.library.entry.updated')
                 updated.should.have.length(0)
             })
