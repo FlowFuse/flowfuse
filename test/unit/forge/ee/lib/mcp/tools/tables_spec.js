@@ -1,5 +1,6 @@
 const should = require('should') // eslint-disable-line no-unused-vars
 const sinon = require('sinon')
+const { z } = require('zod')
 
 const tools = require('../../../../../../../forge/ee/lib/mcp/tools/tables')
 
@@ -86,6 +87,34 @@ describe('MCP Tables Tools', function () {
         })
     })
 
+    describe('platform_create_team_database', function () {
+        const tool = getTool('platform_create_team_database')
+
+        it('posts an empty body to the databases endpoint for the team', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ id: 'db1', name: 'team1' }) })
+            await tool.handler({ teamId: 'team1' }, { inject })
+            inject.calledOnce.should.be.true()
+            inject.firstCall.args[0].should.eql({ method: 'POST', url: '/api/v1/teams/team1/databases', payload: {} })
+        })
+
+        it('strips credentials from the created database and wraps it in a database object', async function () {
+            inject.resolves({
+                statusCode: 200,
+                json: () => ({ id: 'db1', name: 'team1', credentials: { password: 'secret1' } })
+            })
+            const response = await tool.handler({ teamId: 'team1' }, { inject })
+            response.statusCode.should.equal(200)
+            response.json().should.eql({ database: { id: 'db1', name: 'team1' } })
+        })
+
+        it('passes through error responses unmodified', async function () {
+            const errorResponse = { statusCode: 409, json: () => ({ code: 'already_exists', error: 'Database already exists' }) }
+            inject.resolves(errorResponse)
+            const response = await tool.handler({ teamId: 'team1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
     describe('platform_list_database_tables', function () {
         const tool = getTool('platform_list_database_tables')
 
@@ -156,6 +185,56 @@ describe('MCP Tables Tools', function () {
                 method: 'GET',
                 url: '/api/v1/teams/team1/databases/db1/tables/table1/data/custom?limit=5'
             })
+        })
+    })
+
+    describe('platform_create_database_table', function () {
+        const tool = getTool('platform_create_database_table')
+
+        it('posts the name and columns to the tables endpoint and returns the table in the public schema', async function () {
+            const columns = [{ name: 'id', type: 'bigint' }, { name: 'label', type: 'text', nullable: true }]
+            inject.resolves({ statusCode: 201, json: () => JSON.parse('') })
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', name: 'orders', columns }, { inject })
+            inject.calledOnce.should.be.true()
+            inject.firstCall.args[0].should.eql({
+                method: 'POST',
+                url: '/api/v1/teams/team1/databases/db1/tables',
+                payload: { name: 'orders', columns }
+            })
+            response.statusCode.should.equal(201)
+            response.json().should.eql({ table: { name: 'orders', schema: 'public' } })
+        })
+
+        it('passes the schema through when one is given and returns it', async function () {
+            const columns = [{ name: 'id', type: 'bigint' }]
+            inject.resolves({ statusCode: 201, json: () => JSON.parse('') })
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', name: 'orders', schema: 'reports', columns }, { inject })
+            inject.firstCall.args[0].payload.should.eql({ name: 'orders', columns, schema: 'reports' })
+            response.json().should.eql({ table: { name: 'orders', schema: 'reports' } })
+        })
+
+        it('accepts valid schema names and rejects ones Postgres cannot create', function () {
+            const schema = z.object(tool.inputSchema).shape.schema
+            for (const valid of ['public', 'Reports', '_staging', 'a'.repeat(63)]) {
+                schema.safeParse(valid).success.should.be.true(`'${valid}' should be accepted`)
+            }
+            for (const invalid of ['', 'a'.repeat(64), '1reports', 'my-schema', 'pg_reports', 'information_schema']) {
+                schema.safeParse(invalid).success.should.be.false(`'${invalid}' should be rejected`)
+            }
+        })
+
+        it('accepts only the column types the database driver supports', function () {
+            const columns = z.object(tool.inputSchema).shape.columns
+            columns.safeParse([{ name: 'id', type: 'double precision' }]).success.should.be.true()
+            columns.safeParse([{ name: 'id', type: 'varchar' }]).success.should.be.false()
+        })
+
+        it('passes through error responses unmodified', async function () {
+            const errorResponse = { statusCode: 409, json: () => ({ code: 'table_exists', error: 'Table already exists' }) }
+            inject.resolves(errorResponse)
+            const columns = [{ name: 'id', type: 'bigint' }]
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', name: 'orders', columns }, { inject })
+            response.should.equal(errorResponse)
         })
     })
 })

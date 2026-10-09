@@ -62,6 +62,31 @@ module.exports = [
         }
     },
     {
+        name: 'platform_create_team_database',
+        title: 'Create Team Database',
+        description: `FlowFuse platform automation tool:
+            Creates the FlowFuse Tables database for a team. A team has at most one database; fails with 409 if it already exists.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        inputSchema: {
+            teamId: teamIdSchema
+        },
+        outputSchema: {
+            database: databaseSchema
+        },
+        handler: async (args, { inject }) => {
+            // The route rejects a request without a body
+            const response = await inject({ method: 'POST', url: `/api/v1/teams/${args.teamId}/databases`, payload: {} })
+            if (response.statusCode >= 400) {
+                return response
+            }
+            const database = redactDatabaseCredentials(response.json())
+            return {
+                statusCode: response.statusCode,
+                json: () => ({ database })
+            }
+        }
+    },
+    {
         name: 'platform_list_database_tables',
         title: 'List Database Tables',
         description: `FlowFuse platform automation tool:
@@ -158,6 +183,53 @@ module.exports = [
             const url = `${basePath}${qs ? `?${qs}` : ''}`
             const response = await inject({ method: 'GET', url })
             return response
+        }
+    },
+    {
+        name: 'platform_create_database_table',
+        title: 'Create Database Table',
+        description: `FlowFuse platform automation tool:
+            Creates a new table in a FlowFuse Tables database.
+            Fails with 409 if a table of that name already exists in the same schema.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        inputSchema: {
+            teamId: teamIdSchema,
+            databaseId: databaseIdSchema,
+            name: z.string().min(1).describe('Name for the new table'),
+            schema: z.string().regex(/^(?!pg_)(?!information_schema$)[a-zA-Z_][a-zA-Z0-9_]{0,62}$/).optional().describe('Schema to create the table in. Defaults to public, and is created if it does not exist'),
+            columns: z.array(z.object({
+                name: z.string().min(1).describe('Column name'),
+                type: z.enum(['bigint', 'bigserial', 'boolean', 'date', 'timestamptz', 'real', 'double precision', 'text']).describe('Column data type'),
+                nullable: z.boolean().optional().describe('Whether the column allows NULL. Defaults to NOT NULL when omitted'),
+                default: z.string().nullable().optional().describe('Default value, or null for none'),
+                generated: z.boolean().optional().describe('Whether the column value is generated'),
+                maxLength: z.number().nullable().optional().describe('Maximum length, or null for unbounded')
+            })).min(1).describe('Column definitions for the new table')
+        },
+        outputSchema: {
+            table: z.object({
+                name: z.string(),
+                schema: z.string()
+            })
+        },
+        handler: async (args, { inject }) => {
+            const payload = { name: args.name, columns: args.columns }
+            if (args.schema) {
+                payload.schema = args.schema
+            }
+            const response = await inject({
+                method: 'POST',
+                url: `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables`,
+                payload
+            })
+            if (response.statusCode >= 400) {
+                return response
+            }
+            // The route replies to a successful create with an empty body
+            return {
+                statusCode: response.statusCode,
+                json: () => ({ table: { name: args.name, schema: args.schema || 'public' } })
+            }
         }
     }
 ]

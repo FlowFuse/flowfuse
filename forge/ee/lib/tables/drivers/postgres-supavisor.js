@@ -372,9 +372,9 @@ module.exports = {
                         } else if (col.type === 'bigint') {
                             column += `DEFAULT ${parseInt(col.default)}`
                         } else if (['real', 'double precision'].includes(col.type)) {
-                            column += `DEFAULT ${parseFloat(column.default)}`
+                            column += `DEFAULT ${parseFloat(col.default)}`
                         } else if (col.type === 'boolean') {
-                            column += `DEFAULT ${column.default === 'true'}`
+                            column += `DEFAULT ${col.default === 'true'}`
                         } else if (col.type === 'timestamptz') {
                             column += 'DEFAULT NOW()'
                         }

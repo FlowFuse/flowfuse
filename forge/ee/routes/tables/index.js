@@ -272,15 +272,20 @@ module.exports = async function (app) {
             tags: ['FF tables'],
             body: {
                 type: 'object',
+                required: ['name'],
                 properties: {
-                    name: { type: 'string' },
+                    name: { type: 'string', minLength: 1 },
                     schema: {
                         type: 'string',
                         // Postgres identifiers are at most 63 bytes, and pg_ prefixed and information_schema schemas are reserved
                         pattern: '^(?!pg_)(?!information_schema$)[a-zA-Z_][a-zA-Z0-9_]{0,62}$',
                         default: 'public'
                     },
-                    columns: { $ref: 'DatabaseTable' }
+                    columns: {
+                        type: 'array',
+                        allOf: [{ $ref: 'DatabaseTable' }],
+                        default: []
+                    }
                 }
             },
             params: {
@@ -302,15 +307,20 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        if (request.body.name && request.body.columns) {
-            const tables = await app.tables.getTables(request.team, request.params.databaseId)
-            if (tables.tables.filter((t) => t.name === request.body.name && t.schema === request.body.schema).length === 1) {
-                reply.status(409).send({ code: 'table_exists', error: 'Table already exists' })
-            } else {
-                const t = await app.tables.createTable(request.team, request.params.databaseId, request.body.name, request.body.columns, request.body.schema)
-                reply.status(201).send(t)
-                await app.auditLog.Team.tables.table.created(request.session?.User || 'system', null, request.team, request.database, request.body.name)
+        const tables = await app.tables.getTables(request.team, request.params.databaseId)
+        if (tables.tables.filter((t) => t.name === request.body.name && t.schema === request.body.schema).length === 1) {
+            return reply.status(409).send({ code: 'table_exists', error: 'Table already exists' })
+        }
+        try {
+            const t = await app.tables.createTable(request.team, request.params.databaseId, request.body.name, request.body.columns, request.body.schema)
+            reply.status(201).send(t)
+            await app.auditLog.Team.tables.table.created(request.session?.User || 'system', null, request.team, request.database, request.body.name)
+        } catch (err) {
+            if (err.message.includes('Unsupported column type')) {
+                return reply.status(400).send({ code: 'invalid_column_type', error: 'Unsupported column type. Supported types: bigint, bigserial, boolean, date, timestamptz, real, double precision, text' })
             }
+            app.log.error(`Create FF tables table error ${err.toString()}`)
+            reply.status(500).send({ code: 'unexpected_error', error: 'Failed to create table' })
         }
     })
 
