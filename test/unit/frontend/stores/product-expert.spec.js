@@ -7,7 +7,7 @@ import { INSIGHTS_AGENT, SUPPORT_AGENT } from '@/stores/product-expert-agents.js
 // (e.g. isExternalMqttBrokerFeatureEnabled, isOnboarding) without redefining the mock.
 const accountSettingsState = { featuresCheck: { isExpertAssistantFeatureEnabled: true } }
 const contextState = { team: null, expert: {} }
-const uxState = { isOnboarding: false, building: false, stopBuilding: vi.fn() }
+const uxState = { isOnboarding: false, building: false, stopBuilding: vi.fn(() => { uxState.building = false }) }
 const mqttService = {
     hasClient: vi.fn(() => false),
     createClient: vi.fn(() => Promise.resolve()),
@@ -987,23 +987,42 @@ describe('product-expert store', () => {
     })
 
     describe('approvePlan', () => {
-        it('leaves plan mode, sends the approval, then clears the building flag', async () => {
+        afterEach(() => {
+            contextState.team = null
+            uxState.building = false
+            delete accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled
+            mqttService.hasClient.mockReturnValue(false)
+        })
+
+        it('leaves plan mode and sends the approval', async () => {
             const store = useProductExpertStore()
             store.setPlanMode(true)
-            let resolveQuery
-            store.handleQuery = vi.fn(() => new Promise(resolve => { resolveQuery = resolve }))
+            store.handleQuery = vi.fn(() => Promise.resolve())
 
-            const pending = store.approvePlan()
+            await store.approvePlan()
 
             expect(store.planMode).toBe(false)
             expect(store.handleQuery).toHaveBeenCalledWith({ query: 'Approved. Proceed with the plan.' })
-            // Still in flight: the approval turn has to go out with building on
+        })
+
+        // The instance is created after the approval has gone out, so building
+        // has to still be on when it becomes ready or the relay skips it
+        it('still relays an instance that becomes ready after the approval', async () => {
+            uxState.building = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+            const store = useProductExpertStore()
+            store.setPlanMode(true)
+            store.handleQuery = vi.fn(() => Promise.resolve())
+
+            await store.approvePlan()
+            await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
             expect(uxState.stopBuilding).not.toHaveBeenCalled()
-
-            resolveQuery()
-            await pending
-
-            expect(uxState.stopBuilding).toHaveBeenCalledTimes(1)
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+            expect(Product.capture).toHaveBeenCalledWith('ff-building-workspace-ready', {}, { team: 'team-1', instance: 'inst-1' })
         })
     })
 })

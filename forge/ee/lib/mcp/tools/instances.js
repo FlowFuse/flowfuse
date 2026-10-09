@@ -2,7 +2,7 @@ const { randomUUID } = require('crypto')
 
 const { z } = require('zod')
 
-const { teamId, applicationId, hostedInstanceId, searchQuery, sortParams, limitParam, pageParam, toolError } = require('../schemas')
+const { pathId, teamId, applicationId, hostedInstanceId, searchQuery, sortParams, limitParam, pageParam, toolError } = require('../schemas')
 const { emptySuccessAsOkay } = require('../utils')
 
 // Mirrors the runningStates/errorStates/stoppedStates groups in frontend/src/composables/InstanceStates.js,
@@ -201,7 +201,7 @@ module.exports = [
             projectType: z.string().describe('The ID of the hosted instance type (use platform_list_hosted_instance_types to find valid values)'),
             stack: z.string().describe('The ID of the stack (use platform_list_hosted_instance_types to find valid values)'),
             template: z.string().describe('The ID of the template (use platform_list_templates to find valid values)'),
-            flowBlueprintId: z.string().optional().describe('Optional blueprint ID to initialize the hosted instance with starter flows (use platform_list_blueprints to find valid values)')
+            flowBlueprintId: pathId.optional().describe('Optional blueprint ID to initialize the hosted instance with starter flows (use platform_list_blueprints to find valid values)')
         },
         handler: async (args, { inject }) => {
             const payload = {
@@ -639,7 +639,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             instanceId: hostedInstanceId.describe('The id (UUID) of the hosted instance to roll back'),
-            snapshotId: z.string().describe('The hashid of the snapshot to roll back to. Must be a snapshot of this hosted instance')
+            snapshotId: pathId.describe('The hashid of the snapshot to roll back to. Must be a snapshot of this hosted instance')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'POST', url: `/api/v1/projects/${args.instanceId}/actions/rollback`, payload: { snapshot: args.snapshotId } })
