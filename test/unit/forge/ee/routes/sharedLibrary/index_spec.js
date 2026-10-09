@@ -421,6 +421,77 @@ describe('Library Storage API', function () {
             ;(await app.db.models.StorageSharedLibrary.count()).should.equal(4)
         })
 
+        describe('audit log', function () {
+            const libraryURL = () => `/storage/library/${app.team.hashid}/`
+
+            async function auditEntries (event) {
+                const logs = await app.db.models.AuditLog.findAll({ where: { event } })
+                return logs.map(log => JSON.parse(log.body))
+            }
+
+            beforeEach(async function () {
+                await app.db.models.AuditLog.destroy({ where: {} })
+            })
+
+            it('logs the creation of an entry', async function () {
+                await addToLibrary(libraryURL(), 'audit/new', 'flows')
+                const entries = await auditEntries('team.library.entry.created')
+                entries.should.have.length(1)
+                entries[0].libraryEntry.should.only.have.keys('name', 'type')
+                entries[0].libraryEntry.should.have.property('name', 'audit/new')
+                entries[0].libraryEntry.should.have.property('type', 'flows')
+                entries[0].project.should.have.property('id', app.project.id)
+                const updated = await auditEntries('team.library.entry.updated')
+                updated.should.have.length(0)
+            })
+
+            it('logs the overwrite of an entry as an update, not a creation', async function () {
+                await addToLibrary(libraryURL(), 'audit/over', 'flows')
+                await app.db.models.AuditLog.destroy({ where: {} })
+                await addToLibrary(libraryURL(), 'audit/over', 'flows', null, 'changed')
+                const updated = await auditEntries('team.library.entry.updated')
+                updated.should.have.length(1)
+                updated[0].libraryEntry.should.have.property('name', 'audit/over')
+                const created = await auditEntries('team.library.entry.created')
+                created.should.have.length(0)
+            })
+
+            it('does not log a rejected entry', async function () {
+                await addToLibrary(libraryURL(), 'audit/file', 'flows')
+                await app.db.models.AuditLog.destroy({ where: {} })
+                const response = await addToLibrary(libraryURL(), 'audit/file/child', 'flows')
+                response.statusCode.should.equal(400)
+                const entries = await auditEntries('team.library.entry.created')
+                entries.should.have.length(0)
+            })
+
+            it('logs the deletion of an entry', async function () {
+                await addToLibrary(libraryURL(), 'audit/single', 'flows')
+                await deleteFromLibrary(libraryURL(), 'audit/single', 'flows')
+                const entries = await auditEntries('team.library.entry.deleted')
+                entries.should.have.length(1)
+                entries[0].libraryEntry.should.have.property('name', 'audit/single')
+                entries[0].libraryEntry.should.have.property('deleteCount', 1)
+            })
+
+            it('logs the path and count when a folder is deleted', async function () {
+                await addToLibrary(libraryURL(), 'audit/folder/a', 'flows')
+                await addToLibrary(libraryURL(), 'audit/folder/b', 'flows')
+                await addToLibrary(libraryURL(), 'audit/folder/sub/c', 'flows')
+                await deleteFromLibrary(libraryURL(), 'audit/folder')
+                const entries = await auditEntries('team.library.entry.deleted')
+                entries.should.have.length(1)
+                entries[0].libraryEntry.should.have.property('name', 'audit/folder/')
+                entries[0].libraryEntry.should.have.property('deleteCount', 3)
+            })
+
+            it('does not log a deletion that matches nothing', async function () {
+                await deleteFromLibrary(libraryURL(), 'audit/missing')
+                const entries = await auditEntries('team.library.entry.deleted')
+                entries.should.have.length(0)
+            })
+        })
+
         describe('with user tokens', function () {
             let ownerPAT
             let readOnlyPAT

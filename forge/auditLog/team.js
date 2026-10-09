@@ -237,6 +237,38 @@ module.exports = {
             }
         }
 
+        const gitToken = {
+            async created (actionedBy, error, team, token) {
+                const body = generateBody({ error, team, gitToken: token })
+                await log('team.git.token.created', actionedBy, team?.id, body)
+            },
+            async updated (actionedBy, error, team, token, updates) {
+                const body = generateBody({ error, team, gitToken: token, updates })
+                await log('team.git.token.updated', actionedBy, team?.id, body)
+            },
+            async deleted (actionedBy, error, team, token) {
+                const body = generateBody({ error, team, gitToken: token })
+                await log('team.git.token.deleted', actionedBy, team?.id, body)
+            }
+        }
+
+        const library = {
+            entry: {
+                async created (actionedBy, error, team, libraryEntry, { project, device } = {}) {
+                    const body = generateBody({ error, team, project, device, libraryEntry })
+                    await log('team.library.entry.created', actionedBy, team?.id, body)
+                },
+                async updated (actionedBy, error, team, libraryEntry, { project, device } = {}) {
+                    const body = generateBody({ error, team, project, device, libraryEntry })
+                    await log('team.library.entry.updated', actionedBy, team?.id, body)
+                },
+                async deleted (actionedBy, error, team, libraryEntry, { project, device } = {}) {
+                    const body = generateBody({ error, team, project, device, libraryEntry })
+                    await log('team.library.entry.deleted', actionedBy, team?.id, body)
+                }
+            }
+        }
+
         const log = async (event, actionedBy, teamId, body) => {
             try {
                 const trigger = triggerObject(actionedBy)
@@ -255,7 +287,9 @@ module.exports = {
             application,
             project,
             billing,
-            tables
+            tables,
+            gitToken,
+            library
         }
     }
 }

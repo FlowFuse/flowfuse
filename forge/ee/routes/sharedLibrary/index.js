@@ -16,6 +16,7 @@ module.exports = async function (app) {
                     const project = await app.db.models.Project.byId(request.session.ownerId)
                     if (project.Team.hashid === id) {
                         // Project exists and the auth token is for this team
+                        request.libraryWriter = { project }
                         return
                     }
                 } else if (request.session.ownerType === 'device') {
@@ -23,6 +24,7 @@ module.exports = async function (app) {
                     const device = await app.db.models.Device.byId(deviceId)
                     if (device?.Team.hashid === id) {
                         // Device exists and the auth token is for this team
+                        request.libraryWriter = { device }
                         return
                     }
                 } else if (request.session.User) {
@@ -64,6 +66,7 @@ module.exports = async function (app) {
             direct.body = body
             direct.meta = JSON.stringify(meta)
             await direct.save()
+            await app.auditLog.Team.library.entry.updated(request.session?.User || 'system', null, request.team, { name, type }, request.libraryWriter)
         } else {
             // Adding a new entry. We need to check each part of the path to ensure
             // none are existing 'files' - otherwise we could end up with a directory
@@ -98,6 +101,7 @@ module.exports = async function (app) {
                 body,
                 TeamId: request.team.id
             })
+            await app.auditLog.Team.library.entry.created(request.session?.User || 'system', null, request.team, { name, type }, request.libraryWriter)
         }
 
         response.status(201).send()
@@ -178,6 +182,7 @@ module.exports = async function (app) {
         if (deleteCount === 0) {
             response.status(404).send({ code: 'not_found', error: 'Not Found' })
         } else {
+            await app.auditLog.Team.library.entry.deleted(request.session?.User || 'system', null, request.team, { name, type, deleteCount }, request.libraryWriter)
             response.send({ status: 'okay', deleteCount })
         }
     })

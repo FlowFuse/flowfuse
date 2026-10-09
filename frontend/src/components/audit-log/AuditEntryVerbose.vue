@@ -180,6 +180,34 @@
         <span v-if="!error && entry.body?.table">Table '{{ entry.body.table.name }}'' deleted in database '{{ entry.body.database.name }}'</span>
     </template>
 
+    <!-- Team Git Token Events -->
+    <template v-else-if="entry.event === 'team.git.token.created'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.gitToken">Git token '{{ entry.body.gitToken.name }}' created</span>
+    </template>
+    <template v-else-if="entry.event === 'team.git.token.updated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.gitToken">Git token '{{ entry.body.gitToken.name }}' updated</span>
+    </template>
+    <template v-else-if="entry.event === 'team.git.token.deleted'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.gitToken">Git token '{{ entry.body.gitToken.name }}' deleted</span>
+    </template>
+
+    <!-- Team Shared Library Events -->
+    <template v-else-if="entry.event === 'team.library.entry.created'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.libraryEntry">Library entry '{{ entry.body.libraryEntry.name }}' created<span v-if="entry.body?.project"> by instance '{{ entry.body.project.name }}'</span><span v-else-if="entry.body?.device"> by device '{{ entry.body.device.name }}'</span></span>
+    </template>
+    <template v-else-if="entry.event === 'team.library.entry.updated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.libraryEntry">Library entry '{{ entry.body.libraryEntry.name }}' overwritten<span v-if="entry.body?.project"> by instance '{{ entry.body.project.name }}'</span><span v-else-if="entry.body?.device"> by device '{{ entry.body.device.name }}'</span></span>
+    </template>
+    <template v-else-if="entry.event === 'team.library.entry.deleted'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.libraryEntry">Library path '{{ entry.body.libraryEntry.name }}' deleted, {{ entry.body.libraryEntry.deleteCount }} {{ entry.body.libraryEntry.deleteCount === 1 ? 'entry' : 'entries' }} removed<span v-if="entry.body?.project"> by instance '{{ entry.body.project.name }}'</span><span v-else-if="entry.body?.device"> by device '{{ entry.body.device.name }}'</span></span>
+    </template>
+
     <!-- Device Actions Events -->
     <template v-else-if="entry.event === 'device.started'">
         <label>{{ AuditEvents[entry.event] }}</label>
