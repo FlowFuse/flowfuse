@@ -94,7 +94,7 @@ export default {
         useProductExpertStore().setPlanMode(false)
     },
     methods: {
-        openConversation () {
+        async openConversation () {
             if (!this.team || this.notAvailable || this.conversationRequested) {
                 return
             }
@@ -105,8 +105,11 @@ export default {
             useUxStore().startBuilding()
             expertStore.setPlanMode(true)
             expertStore.setAgentMode(SUPPORT_AGENT)
-            // Start from an empty list but keep the session: the broker client is
-            // signed in for it, so rotating it would get every publish rejected
+            // A fresh chat every time, so the agent carries nothing over from the drawer.
+            // startOver also drops the broker client, which is signed in per session,
+            // so the first turn signs a new one in for the new session
+            await expertStore.startOver()
+            // startOver leaves the canned welcome, the agent's own reply should come first
             useProductExpertSupportAgentStore().messages = []
             expertStore.openConversation()
         },
