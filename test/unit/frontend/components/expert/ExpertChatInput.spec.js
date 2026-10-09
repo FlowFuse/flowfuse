@@ -19,7 +19,7 @@ function shownEvents () {
     return Product.capture.mock.calls.filter(([event]) => event === 'ff-expert-suggestions-shown')
 }
 
-function mountInput ({ immersive = false, editorDrawerOpen = true } = {}) {
+function mountInput ({ immersive = false, editorDrawerOpen = true, provide } = {}) {
     const pinia = createTestingPinia({ createSpy: vi.fn, stubActions: true })
 
     const drawers = useUxDrawersStore(pinia)
@@ -38,7 +38,7 @@ function mountInput ({ immersive = false, editorDrawerOpen = true } = {}) {
         global: {
             plugins: [pinia],
             // the instance and device editor pages provide this
-            provide: immersive ? { 'expert-surface': 'immersive' } : {},
+            provide: provide ?? (immersive ? { 'expert-surface': 'immersive' } : {}),
             stubs: {
                 teleport: true,
                 'resize-bar': true,
@@ -122,5 +122,61 @@ describe('ExpertChatInput prompt suggestion tracking', () => {
             needs_input: !!second.needsInput,
             surface: 'drawer'
         }, { team: 'team-1' })
+    })
+})
+
+describe('ExpertChatInput on the overview', () => {
+    function mountOverview ({ chatOpen }) {
+        const mounted = mountInput({ provide: { 'expert-surface': 'overview', 'expert-chat-open': chatOpen } })
+        mounted.expert.messages = [{ _type: 'human' }, { _type: 'ai' }]
+        mounted.expert.startNewChat.mockResolvedValue()
+        return mounted
+    }
+
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
+
+    test('a message sent while the conversation is folded away starts a new chat', async () => {
+        const { wrapper, expert } = mountOverview({ chatOpen: false })
+
+        await wrapper.find('textarea').setValue('how are my instances?')
+        await wrapper.find('textarea').trigger('keydown', { key: 'Enter' })
+
+        expect(expert.startNewChat).toHaveBeenCalledWith({ query: 'how are my instances?' })
+        expect(expert.handleQuery).not.toHaveBeenCalled()
+    })
+
+    test('a message sent in the open conversation continues it', async () => {
+        const { wrapper, expert } = mountOverview({ chatOpen: true })
+
+        await wrapper.find('textarea').setValue('and the devices?')
+        await wrapper.find('textarea').trigger('keydown', { key: 'Enter' })
+
+        expect(expert.handleQuery).toHaveBeenCalledWith({ query: 'and the devices?' })
+        expect(expert.startNewChat).not.toHaveBeenCalled()
+    })
+
+    test('an expired conversation does not lock the folded composer', async () => {
+        const { wrapper, expert } = mountOverview({ chatOpen: false })
+        expert.isSessionExpired = true
+        expert.isInputDisabled = true
+        expert.isNewChatDisabled = false
+        await wrapper.vm.$nextTick()
+
+        expect(wrapper.find('textarea').attributes('disabled')).toBeUndefined()
+        expect(wrapper.find('.btn-send').exists()).toBe(true)
+    })
+
+    test('a live reply locks the folded composer and says how to unlock it', async () => {
+        const { wrapper, expert } = mountOverview({ chatOpen: false })
+        expert.isWaitingForResponse = true
+        expert.isNewChatDisabled = true
+        await wrapper.vm.$nextTick()
+
+        const textarea = wrapper.find('textarea')
+        expect(textarea.attributes('disabled')).toBeDefined()
+        expect(textarea.attributes('placeholder')).toBe('The Expert is still replying. Stop it to start a new chat')
+        expect(wrapper.find('.btn-stop').exists()).toBe(true)
     })
 })

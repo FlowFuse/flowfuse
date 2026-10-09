@@ -162,7 +162,9 @@ const settingsStore = useAccountSettingsStore()
 const expertStore = useProductExpertStore() as ReturnType<typeof useProductExpertStore> & {
     messages: { _type: string }[]
     isInputDisabled: boolean
+    isNewChatDisabled: boolean
     handleQuery: (payload: { query: string }) => Promise<unknown>
+    startNewChat: (payload: { query: string }) => Promise<unknown>
 }
 const drawersStore = useUxDrawersStore()
 
@@ -216,7 +218,10 @@ type Stage = 'idle' | 'composing' | 'conversing'
 const stage = ref<Stage>('idle')
 const liveTurns = computed<number>(() => expertStore.messages.filter(message => message._type === 'human').length)
 
-const isComposerDisabled = computed<boolean>(() => expertStore.isInputDisabled)
+// With a thread to fold away, the composer and the suggestions start a new chat rather than extend it
+const startsNewChat = computed<boolean>(() => liveTurns.value > 0)
+
+const isComposerDisabled = computed<boolean>(() => startsNewChat.value ? expertStore.isNewChatDisabled : expertStore.isInputDisabled)
 
 const canResume = computed<boolean>(() => liveTurns.value > 0 || isComposerDisabled.value)
 
@@ -237,6 +242,10 @@ function onSuggestion (suggestion: PromptSuggestion) {
         return
     }
     stage.value = 'conversing'
+    if (startsNewChat.value) {
+        expertStore.startNewChat({ query: suggestion.prompt }).catch(e => e)
+        return
+    }
     expertStore.handleQuery({ query: suggestion.prompt }).catch(e => e)
 }
 
