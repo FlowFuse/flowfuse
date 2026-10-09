@@ -37,7 +37,7 @@ The same three steps, written out:
 
 2. **Sign in.** FlowFuse uses OAuth, so your agent sends you to a FlowFuse login page. If your client asks for an OAuth client ID or secret, leave them blank; FlowFuse registers your client for you.
 
-3. **Select teams and permissions.** Signing in takes you to a FlowFuse authorization page. There you choose which teams the agent can reach and the permissions it has in each, and set an expiration date for the grant.
+3. **Select teams and permissions.** Signing in takes you to a FlowFuse authorization page. There you choose which teams the agent can reach, whether it can **Read**, **Write** or do **Destructive** things in Platform and Flow Building tools, per team if you want, and set an expiration date for the grant. See [Access and permissions](/docs/user/mcp/#access-and-permissions).
 
 Your agent is now connected. If your client does not support OAuth, use a token instead, see [clients without a sign-in flow](#clients-without-a-sign-in-flow).
 
@@ -80,9 +80,7 @@ On Team and Enterprise plans an owner adds the connector for the organisation fi
 
 ### Coding agents
 
-In Claude Code signed in with a Claude account, FlowFuse Cloud is already available as a connector. Run `/mcp`, open **Show unused connectors**, select FlowFuse and choose **Authenticate**.
-
-With an API key, on self-hosted, or in another coding agent, ask the agent to add the connector to itself, rather than editing its configuration by hand:
+A coding agent can add the connector to itself. Ask it, rather than editing its configuration by hand:
 
 ```
 Add the FlowFuse MCP tool at https://app.flowfuse.com/mcp. Then ask me to complete the sign-in in the browser that opens.

@@ -79,7 +79,8 @@ module.exports = {
                 await M.Application.destroy({
                     where: {
                         TeamId: team.id
-                    }
+                    },
+                    individualHooks: true
                 })
                 // Remove Team's device provisioning tokens
                 await M.AccessToken.destroy({

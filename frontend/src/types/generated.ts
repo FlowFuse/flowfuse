@@ -726,6 +726,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         onboardingCompleted?: boolean;
+                        aiConnectorLastShownAt?: number;
                     };
                 };
             };
@@ -8512,10 +8513,11 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        name?: string;
+                        name: string;
                         /** @default public */
                         schema?: string;
-                        columns?: components["schemas"]["DatabaseTable"];
+                        /** @default [] */
+                        columns?: unknown[] & components["schemas"]["DatabaseTable"];
                     };
                 };
             };

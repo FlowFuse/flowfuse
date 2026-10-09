@@ -262,6 +262,38 @@ describe('Tables API', function () {
         response.statusCode.should.equal(201)
     })
 
+    it('Fail to create a table without a name', async function () {
+        const response = await createTable({ columns })
+        response.statusCode.should.equal(400)
+    })
+
+    it('Create a table with no columns when columns is omitted', async function () {
+        const spy = sinon.spy(app.tables, 'createTable')
+        const response = await createTable({ name: 'nocolumns' })
+        spy.restore()
+        response.statusCode.should.equal(201)
+        spy.firstCall.args[3].should.eql([])
+    })
+
+    it('Fail to create a table with an empty name', async function () {
+        const response = await createTable({ name: '', columns })
+        response.statusCode.should.equal(400)
+    })
+
+    it('Create a table with an empty columns list', async function () {
+        const response = await createTable({ name: 'emptycolumns', columns: [] })
+        response.statusCode.should.equal(201)
+    })
+
+    it('Fail to create a table with an unsupported column type', async function () {
+        const stub = sinon.stub(app.tables, 'createTable').rejects(new Error('Unsupported column type'))
+        const response = await createTable({ name: 'badtype', columns: [{ name: 'id', type: 'uuid', nullable: false }] })
+        stub.restore()
+        response.statusCode.should.equal(400)
+        response.json().should.have.property('code', 'invalid_column_type')
+        response.json().error.should.containEql('bigserial')
+    })
+
     it('Get details for a table', async function () {
         const db = (await app.db.models.Table.byTeamId(TestObjects.team.id))[0]
         const response = await app.inject({

@@ -3,6 +3,7 @@ const UserInvitations = require('./userInvitations')
 const UserNotifications = require('./userNotifications')
 
 const KEY_ONBOARDING_COMPLETED = 'onboardingCompleted'
+const KEY_AI_CONNECTOR_LAST_SHOWN_AT = 'aiConnectorLastShownAt'
 
 /**
  * User api routes
@@ -65,7 +66,8 @@ module.exports = async function (app) {
             body: {
                 type: 'object',
                 properties: {
-                    [KEY_ONBOARDING_COMPLETED]: { type: 'boolean' }
+                    [KEY_ONBOARDING_COMPLETED]: { type: 'boolean' },
+                    [KEY_AI_CONNECTOR_LAST_SHOWN_AT]: { type: 'number' }
                 },
                 additionalProperties: false
             },
