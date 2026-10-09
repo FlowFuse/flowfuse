@@ -25,8 +25,8 @@ module.exports = async function (app) {
                         // Device exists and the auth token is for this team
                         return
                     }
-                } else if (!request.session.ownerType) {
-                    // This is a logged-in user. Get their teamMembership so the needsPermission
+                } else if (request.session.User) {
+                    // This is a logged-in user or a user token. Get their teamMembership so the needsPermission
                     // checks in the routes will evaluate properly
                     request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
                     if (request.teamMembership) {

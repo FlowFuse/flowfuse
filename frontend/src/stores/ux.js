@@ -23,9 +23,9 @@ export const useUxStore = defineStore('ux', {
         isNewlyCreatedUser: false,
         onboardingStage: null,
         shouldEnterOnboarding: false,
-        // A build conversation started from a Build button. Only lasts while
-        // the Build page is open and until a plan is approved, so it is left
-        // out of persist.pick on purpose.
+        // A build conversation started from a Build button. It stays on past plan
+        // approval, since the instance is only created after that. Not meant to
+        // outlive the page load, so it is left out of persist.pick on purpose.
         building: false,
         overlay: false
     }),
