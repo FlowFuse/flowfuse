@@ -121,7 +121,7 @@ const generateBody = ({
         body.table = { name: table }
     }
     if (isObject(gitToken)) {
-        body.gitToken = { id: gitToken.hashid, name: gitToken.name, type: gitToken.type }
+        body.gitToken = { id: gitToken.hashid ?? gitToken.id, name: gitToken.name, type: gitToken.type }
     }
     if (isObject(libraryEntry)) {
         body.libraryEntry = { name: libraryEntry.name, type: libraryEntry.type, deleteCount: libraryEntry.deleteCount }

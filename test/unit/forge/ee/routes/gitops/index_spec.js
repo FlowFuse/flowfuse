@@ -58,6 +58,17 @@ describe('Git tokens audit log', function () {
         JSON.stringify(entries[0].body).should.not.containEql('super-secret-value')
     })
 
+    it('keeps the token id when the entry is read back through the audit log API', async function () {
+        const created = await request('POST', '', { name: 'read back', token: 'abc', type: 'github' })
+        const response = await app.inject({
+            method: 'GET',
+            url: `/api/v1/teams/${app.team.hashid}/audit-log`,
+            cookies: { sid }
+        })
+        const entry = response.json().log.find(e => e.event === 'team.git.token.created')
+        entry.body.gitToken.should.have.property('id', created.json().id)
+    })
+
     it('logs token rename with the name change', async function () {
         const created = (await request('POST', '', { name: 'before', token: 'abc' })).json()
         const response = await request('PUT', `/${created.id}`, { name: 'after' })
