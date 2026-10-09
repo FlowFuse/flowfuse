@@ -293,15 +293,6 @@ describe('MCP Tables Tools', function () {
             const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', tableName: 'orders', schemaName: 'public' }, { inject })
             response.should.equal(errorResponse)
         })
-
-        it('refuses ids that would reach another route', async function () {
-            for (const [teamId, databaseId] of [['../teams/team2', 'db1'], ['team1', 'db1/../..'], ['team1', '..']]) {
-                const response = await tool.handler({ teamId, databaseId, tableName: 'orders', schemaName: 'public' }, { inject })
-                response.statusCode.should.equal(400)
-                response.json().should.have.property('code', 'invalid_request')
-            }
-            inject.called.should.be.false()
-        })
     })
 
     describe('platform_delete_team_database', function () {
@@ -333,15 +324,6 @@ describe('MCP Tables Tools', function () {
             inject.resolves(errorResponse)
             const response = await tool.handler({ teamId: 'team1', databaseId: 'db1' }, { inject })
             response.should.equal(errorResponse)
-        })
-
-        it('refuses ids that would reach another route', async function () {
-            for (const [teamId, databaseId] of [['team1/../team2', 'db1'], ['team1', '../..'], ['team1', 'db1?x=1']]) {
-                const response = await tool.handler({ teamId, databaseId }, { inject })
-                response.statusCode.should.equal(400)
-                response.json().should.have.property('code', 'invalid_request')
-            }
-            inject.called.should.be.false()
         })
     })
 })

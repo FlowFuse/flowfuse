@@ -12,8 +12,6 @@ const {
 } = require('../tool-schemas/tables')
 const { redactDatabaseCredentials, emptySuccessAsOkay } = require('../utils')
 
-const isHashid = (id) => /^[A-Za-z0-9]+$/.test(id)
-
 module.exports = [
     {
         name: 'platform_list_team_databases',
@@ -251,9 +249,6 @@ module.exports = [
             schemaName: schemaNameSchema
         },
         handler: async (args, { inject }) => {
-            if (!isHashid(args.teamId) || !isHashid(args.databaseId)) {
-                return toolError(400, 'invalid_request', 'teamId and databaseId must be hashids')
-            }
             // An empty or dot segment drops out of the URL, which would delete the table from any schema
             if ([args.tableName, args.schemaName].some(segment => segment === '' || segment === '.' || segment === '..')) {
                 return toolError(400, 'invalid_request', 'tableName and schemaName must not be empty, "." or ".."')
@@ -277,9 +272,6 @@ module.exports = [
             databaseId: databaseIdSchema
         },
         handler: async (args, { inject }) => {
-            if (!isHashid(args.teamId) || !isHashid(args.databaseId)) {
-                return toolError(400, 'invalid_request', 'teamId and databaseId must be hashids')
-            }
             const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/databases/${args.databaseId}` })
             if (response.statusCode >= 400) {
                 return response

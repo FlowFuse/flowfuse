@@ -54,15 +54,6 @@ describe('MCP Library Tools', function () {
             inject.called.should.be.false()
         })
 
-        it('refuses a teamId that would reach another route', async function () {
-            for (const teamId of ['../teams/team2', 'team1/../team2', 'team1?x=1']) {
-                const response = await tool.handler({ teamId, path: 'a' }, { inject })
-                response.statusCode.should.equal(400)
-                response.json().should.have.property('code', 'invalid_request')
-            }
-            inject.called.should.be.false()
-        })
-
         it('explains the route\'s bare 404, which is also what a disabled library or a non-member gets', async function () {
             inject.resolves({ statusCode: 404, json: () => ({ code: 'not_found', error: 'Not Found' }) })
             const response = await tool.handler({ teamId: 'team1', path: 'missing' }, { inject })

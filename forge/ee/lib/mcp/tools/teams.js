@@ -188,12 +188,9 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
-            tokenId: z.string().describe('The hashid of the git token to delete, as returned by platform_list_team_git_tokens')
+            tokenId: pathId.describe('The hashid of the git token to delete, as returned by platform_list_team_git_tokens')
         },
         handler: async (args, { inject }) => {
-            if (!isHashid(args.teamId) || !isHashid(args.tokenId)) {
-                return toolError(400, 'invalid_request', 'teamId and tokenId must be hashids')
-            }
             const url = `/api/v1/teams/${args.teamId}/git/tokens`
             const response = await inject({ method: 'DELETE', url: `${url}/${args.tokenId}` })
             if (response.statusCode === 404) {

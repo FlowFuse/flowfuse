@@ -2,8 +2,6 @@ const { z } = require('zod')
 
 const { teamId, toolError } = require('../schemas')
 
-const isHashid = (id) => /^[A-Za-z0-9]+$/.test(id)
-
 module.exports = [
     {
         name: 'platform_delete_library_entry',
@@ -21,9 +19,6 @@ module.exports = [
             type: z.string().min(1).optional().describe('Entry type to restrict the delete to, for example "flows" or "functions"')
         },
         handler: async (args, { inject }) => {
-            if (!isHashid(args.teamId)) {
-                return toolError(400, 'invalid_request', 'teamId must be a hashid')
-            }
             const segments = args.path.split('/')
             if (segments.some(segment => segment === '' || segment === '.' || segment === '..')) {
                 return toolError(400, 'invalid_request', 'path must not start or end with "/" or contain empty, "." or ".." segments')
