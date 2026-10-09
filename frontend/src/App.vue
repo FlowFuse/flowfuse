@@ -39,7 +39,8 @@
             </template>
             <template v-else-if="pageLayout === 'plain'">
                 <ff-layout-plain>
-                    <router-view />
+                    <!-- The build routes share one page, keyed so moving between them starts a new chat -->
+                    <router-view :key="$route.name" />
                 </ff-layout-plain>
             </template>
             <EducationModal />
