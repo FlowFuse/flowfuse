@@ -510,4 +510,79 @@ describe('MCP Snapshots Tools', function () {
             response.should.equal(errorResponse)
         })
     })
+
+    describe('platform_set_remote_instance_target', function () {
+        const tool = getTool('platform_set_remote_instance_target')
+
+        function deviceResponse (device) {
+            return { statusCode: 200, json: () => ({ id: 'device1', ownerType: 'application', agentType: 'full', agentVersion: '3.8.0', mode: 'autonomous', targetSnapshot: null, ...device }) }
+        }
+
+        it('puts the target snapshot onto the device route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ id: 'device1' }) }
+            inject.withArgs({ method: 'GET', url: '/api/v1/devices/device1' }).resolves(deviceResponse())
+            inject.withArgs({ method: 'PUT', url: '/api/v1/devices/device1', payload: { targetSnapshot: 'snapshot1' } }).resolves(routeResponse)
+
+            const response = await tool.handler({ remoteInstanceId: 'device1', snapshotId: 'snapshot1' }, { inject })
+
+            inject.calledTwice.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('deploys to a developer mode device on a supported agent', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ id: 'device1' }) }
+            inject.withArgs({ method: 'GET', url: '/api/v1/devices/device1' }).resolves(deviceResponse({ mode: 'developer', agentVersion: '3.9.1' }))
+            inject.withArgs({ method: 'PUT', url: '/api/v1/devices/device1', payload: { targetSnapshot: 'snapshot1' } }).resolves(routeResponse)
+
+            const response = await tool.handler({ remoteInstanceId: 'device1', snapshotId: 'snapshot1' }, { inject })
+            response.should.equal(routeResponse)
+        })
+
+        it('returns the device without redeploying when the snapshot is already the target', async function () {
+            const current = deviceResponse({ targetSnapshot: { id: 'snapshot1', name: 'v1' } })
+            inject.resolves(current)
+
+            const response = await tool.handler({ remoteInstanceId: 'device1', snapshotId: 'snapshot1' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(current)
+        })
+
+        for (const [label, device] of [
+            ['assigned to a hosted instance', { ownerType: 'instance' }],
+            ['not assigned to anything', { ownerType: null }],
+            ['running the Lite agent', { agentType: 'lite' }],
+            ['in developer mode on an agent older than 3.8.0', { mode: 'developer', agentVersion: '3.7.2' }],
+            ['in developer mode with no reported agent version', { mode: 'developer', agentVersion: null }]
+        ]) {
+            it(`rejects a device ${label} without changing the target`, async function () {
+                inject.resolves(deviceResponse(device))
+
+                const response = await tool.handler({ remoteInstanceId: 'device1', snapshotId: 'snapshot1' }, { inject })
+
+                inject.calledOnce.should.be.true()
+                response.statusCode.should.equal(400)
+                response.json().code.should.equal('invalid_request')
+            })
+        }
+
+        it('passes through an error response from the device lookup', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ remoteInstanceId: 'device1', snapshotId: 'snapshot1' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(errorResponse)
+        })
+
+        it('passes through an error response from the update', async function () {
+            const errorResponse = { statusCode: 400, json: () => ({ code: 'invalid_snapshot' }) }
+            inject.withArgs({ method: 'GET', url: '/api/v1/devices/device1' }).resolves(deviceResponse())
+            inject.withArgs({ method: 'PUT', url: '/api/v1/devices/device1', payload: { targetSnapshot: 'other' } }).resolves(errorResponse)
+
+            const response = await tool.handler({ remoteInstanceId: 'device1', snapshotId: 'other' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
 })

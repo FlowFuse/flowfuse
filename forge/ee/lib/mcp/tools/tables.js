@@ -65,6 +65,31 @@ module.exports = [
         }
     },
     {
+        name: 'platform_create_team_database',
+        title: 'Create Team Database',
+        description: `FlowFuse platform automation tool:
+            Creates the FlowFuse Tables database for a team. A team has at most one database; fails with 409 if it already exists.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        inputSchema: {
+            teamId: teamIdSchema
+        },
+        outputSchema: {
+            database: databaseSchema
+        },
+        handler: async (args, { inject }) => {
+            // The route rejects a request without a body
+            const response = await inject({ method: 'POST', url: `/api/v1/teams/${args.teamId}/databases`, payload: {} })
+            if (response.statusCode >= 400) {
+                return response
+            }
+            const database = redactDatabaseCredentials(response.json())
+            return {
+                statusCode: response.statusCode,
+                json: () => ({ database })
+            }
+        }
+    },
+    {
         name: 'platform_list_database_tables',
         title: 'List Database Tables',
         description: `FlowFuse platform automation tool:
