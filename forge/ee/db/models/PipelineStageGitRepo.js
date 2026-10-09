@@ -93,6 +93,9 @@ module.exports = {
                     setImmediate(async () => {
                         try {
                             const gitToken = await this.getGitToken()
+                            if (!gitToken) {
+                                throw new Error('No git token is set for this stage')
+                            }
                             let targetFilename = this.pushPath
                             if (!targetFilename && options.sourceObject?.name) {
                                 targetFilename = 'snapshot-' + options.sourceObject.name + '.json'
@@ -145,6 +148,9 @@ module.exports = {
                     await this.save()
                     try {
                         const gitToken = await this.getGitToken()
+                        if (!gitToken) {
+                            throw new Error('No git token is set for this stage')
+                        }
                         let sourceFilename = this.pullPath
                         if (!sourceFilename) {
                             sourceFilename = this.lastPushPath
