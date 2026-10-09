@@ -434,7 +434,8 @@ describe('Library Storage API', function () {
         for (const [label, encoded, decoy] of [
             ['underscore', 'a_b', ['a/b/c', 'aXb/x']],
             ['percent', '100%25', ['100abc/p', '100/p']],
-            ['backslash', 'a%5Cb', ['a/b/c', 'aXb/x', 'ab/x']]
+            ['backslash', 'a%5Cb', ['a/b/c', 'aXb/x', 'ab/x']],
+            ['emoji', '%F0%9F%93%A6', ['%F0%9F%93%A6x/p']]
         ]) {
             describe(`folder name containing ${label}`, function () {
                 const libraryURL = () => `/storage/library/${app.team.hashid}/`
@@ -452,7 +453,7 @@ describe('Library Storage API', function () {
                     const result = await deleteFromLibrary(libraryURL(), encoded)
                     result.should.have.property('deleteCount', 2)
                     const remaining = (await app.db.models.StorageSharedLibrary.findAll()).map(e => e.name).sort()
-                    remaining.should.eql([...decoy].sort())
+                    remaining.should.eql(decoy.map(decodeURIComponent).sort())
                 })
 
                 it('lists only entries under the exact folder', async function () {

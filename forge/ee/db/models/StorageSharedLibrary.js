@@ -52,7 +52,7 @@ module.exports = {
                     // Literal prefix comparison: LIKE would treat %, _ and \ in the path as pattern characters
                     const where = {
                         TeamId: team,
-                        [Op.and]: sqlWhere(fn('substr', col('name'), 1, name.length), name)
+                        [Op.and]: sqlWhere(fn('substr', col('name'), 1, [...name].length), name)
                     }
                     if (type) {
                         where.type = type
