@@ -53,6 +53,25 @@ export const hasPermission = (scope, teamMembership, context) => {
 }
 
 /**
+ * Checks if a user has the required permission either at the team level or in at least
+ * one application where they have an application-level role.
+ *
+ * Used for team-wide actions that end up in an application of the user's choosing,
+ * e.g. creating an instance from the team pages.
+ *
+ * @param {string} scope - The specific scope for which the permission check is being made.
+ * @param {Object|null} teamMembership - The user's team membership information.
+ * @returns {boolean} Returns true if the user has the permission in the team or in any of their applications.
+ */
+export const hasPermissionInAnyApplication = (scope, teamMembership) => {
+    if (hasPermission(scope, teamMembership)) {
+        return true
+    }
+    const applications = Object.keys(teamMembership?.permissions?.applications || {})
+    return applications.some(applicationId => hasPermission(scope, teamMembership, { applicationId }))
+}
+
+/**
  * Check if the user has the minimum required role.
  * @param {Role} role - The role to check against.
  * @param teamMembership
@@ -111,6 +130,14 @@ export default function usePermissions () {
     const _hasPermission = (scope, context) => hasPermission(scope, teamMembership.value, context)
 
     /**
+     * Checks if a user has the required permission in the team or in at least one of their applications.
+     *
+     * @param {string} scope - The specific scope for which the permission check is being made.
+     * @returns {boolean} Returns true if the user has the permission in the team or in any of their applications.
+     */
+    const _hasPermissionInAnyApplication = (scope) => hasPermissionInAnyApplication(scope, teamMembership.value)
+
+    /**
      * Check if the user has the minimum required role.
      * @param {Role} role - The role to check against.
      * @returns {boolean} True if the user has the minimum required role, otherwise false.
@@ -133,6 +160,7 @@ export default function usePermissions () {
     return {
         isVisitingAdmin: _isVisitingAdmin,
         hasPermission: _hasPermission,
+        hasPermissionInAnyApplication: _hasPermissionInAnyApplication,
         hasAMinimumTeamRoleOf: _hasAMinimumTeamRoleOf,
         hasALowerOrEqualTeamRoleThan: _hasALowerOrEqualTeamRoleThan
     }
