@@ -9,30 +9,31 @@ module.exports = async function (app) {
         const team = await app.db.models.Team.byId(id)
         if (team) {
             request.team = team
-            // Check this feature is enabled for this team type.
-            if (team.getFeatureProperty('shared-library', true)) {
-                // If this is a session token, verify the project or device is in the team
-                if (request.session.ownerType === 'project') {
-                    const project = await app.db.models.Project.byId(request.session.ownerId)
-                    if (project.Team.hashid === id) {
-                        // Project exists and the auth token is for this team
-                        return
-                    }
-                } else if (request.session.ownerType === 'device') {
-                    const deviceId = +request.session.ownerId
-                    const device = await app.db.models.Device.byId(deviceId)
-                    if (device?.Team.hashid === id) {
-                        // Device exists and the auth token is for this team
-                        return
-                    }
-                } else if (request.session.User) {
-                    // This is a logged-in user or a user token. Get their teamMembership so the needsPermission
-                    // checks in the routes will evaluate properly
-                    request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
-                    if (request.teamMembership) {
-                        return
-                    }
+            let authorised = false
+            // If this is a session token, verify the project or device is in the team
+            if (request.session.ownerType === 'project') {
+                const project = await app.db.models.Project.byId(request.session.ownerId)
+                // Project exists and the auth token is for this team
+                authorised = project.Team.hashid === id
+            } else if (request.session.ownerType === 'device') {
+                const deviceId = +request.session.ownerId
+                const device = await app.db.models.Device.byId(deviceId)
+                // Device exists and the auth token is for this team
+                authorised = device?.Team.hashid === id
+            } else if (request.session.User) {
+                // This is a logged-in user or a user token. Get their teamMembership so the needsPermission
+                // checks in the routes will evaluate properly
+                request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
+                authorised = !!request.teamMembership
+            }
+            if (authorised) {
+                // The feature state is only reported once the caller is known to belong to
+                // the team, so a caller outside the team cannot tell whether the team exists.
+                if (team.getFeatureProperty('shared-library', true)) {
+                    return
                 }
+                response.status(404).send({ code: 'not_found', error: 'Not Found - Shared Library is not enabled for this team' })
+                return
             }
         }
         response.status(404).send({ code: 'not_found', error: 'Not Found' })
