@@ -2095,6 +2095,15 @@ describe('Team API', function () {
 
     describe('Get team audit-log', async function () {
         // GET /api/v1/teams/:teamId/audit-log
+        it('rejects an invalid cursor', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/audit-log?cursor=abc`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(400)
+            response.json().should.have.property('code', 'invalid_cursor')
+        })
     })
 
     describe('License limits', async function () {

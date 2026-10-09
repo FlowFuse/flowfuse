@@ -143,6 +143,20 @@ describe('Audit model', function () {
     })
 
     describe('static methods', function () {
+        describe('cursor', function () {
+            it('forEntity rejects an invalid cursor', async () => {
+                await AuditLog.forEntity({}, { cursor: 'abc' }).should.be.rejectedWith({ statusCode: 400, code: 'invalid_cursor' })
+            })
+            it('forTimelineHistory rejects an invalid cursor', async () => {
+                await AuditLog.forTimelineHistory(TestObjects.team1_app1_proj1.id, 'project', { cursor: 'abc' }).should.be.rejectedWith({ statusCode: 400, code: 'invalid_cursor' })
+            })
+            it('forEntity pages with a valid cursor', async () => {
+                const older = await AuditLog.create({ event: 'test.cursor', entityType: 'platform' })
+                const newer = await AuditLog.create({ event: 'test.cursor', entityType: 'platform' })
+                const page = await AuditLog.forEntity({ event: 'test.cursor' }, { cursor: newer.hashid })
+                page.log.map(entry => entry.id).should.eql([older.id])
+            })
+        })
         describe('getFilterAndAssociations', function () {
             describe('for Team', function () {
                 it('should return filter scoped for team only', async () => {
