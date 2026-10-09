@@ -1,6 +1,6 @@
 <template>
-    <div class="recently-modified">
-        <p class="text-gray-400 text-sm">Recently Modified</p>
+    <div class="recently-modified" :class="{ 'recently-modified--compact': isCompact }">
+        <p v-if="!isCompact" class="text-gray-400 text-sm" data-el="recently-modified-label">Recently Modified</p>
         <ul v-if="devices.length" class="flex flex-col gap-1">
             <li v-for="device in devices" :key="device.id" class="device-wrapper flex">
                 <DeviceTile
@@ -81,6 +81,11 @@ export default {
         totalDevices: {
             type: Number,
             required: true
+        },
+        variant: {
+            type: String,
+            default: 'boxed',
+            validator: value => ['boxed', 'compact'].includes(value)
         }
     },
     data () {
@@ -92,6 +97,9 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
+        isCompact () {
+            return this.variant === 'compact'
+        },
         instancesLeft () {
             return this.totalDevices - this.devices.length
         },
@@ -102,6 +110,12 @@ export default {
                 return true
             }
             return false
+        }
+    },
+    watch: {
+        totalDevices () {
+            this.getTeamDevices()
+                .catch(e => e)
         }
     },
     mounted () {
@@ -156,15 +170,17 @@ export default {
             justify-content: space-between;
             align-items: center;
             gap: 10px;
-            will-change: border-color;
+            will-change: border-color, background-color;
             transition: ease-in-out .3s;
+            cursor: pointer;
 
             &.has-more {
                 padding: 10px;
             }
 
             &:hover {
-                border-color: var(--ff-color-border);
+                border-color: var(--ff-color-border-strong);
+                background-color: var(--ff-color-accent-surface);
             }
 
             .details {
@@ -174,12 +190,6 @@ export default {
                     &:last-of-type {
                         font-size: $ff-funit-sm;
                         color: var(--ff-color-text-subtle);
-                    }
-                }
-
-                .name {
-                    &:hover {
-                        color: var(--ff-color-accent-hover);
                     }
                 }
             }
@@ -194,6 +204,19 @@ export default {
 
     .no-devices {
         min-height: 130px;
+    }
+}
+
+.recently-modified--compact {
+    border: 1px solid var(--ff-color-border);
+    border-radius: 0.625rem;
+    background: var(--ff-color-bg-surface);
+    padding: 4px;
+
+    .device-wrapper .device-tile {
+        border: none;
+        padding: 2px 4px;
+        min-height: 50px;
     }
 }
 </style>

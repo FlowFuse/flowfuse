@@ -134,6 +134,33 @@ describe('ux store', () => {
             expect(store.onboardingStage).toBe('done')
         })
 
+        // A stale localStorage stage (another account in the same browser, or
+        // one set by the Expert) must not put an old account into onboarding
+        it('overrides a stale local intake stage for an account older than a week', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(30) })
+            expect(store.onboardingStage).toBe('done')
+            expect(store.shouldEnterOnboarding).toBe(false)
+        })
+
+        it('keeps a stored building stage for an account just inside the week', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.startOnboardingBuild()
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(6) })
+            expect(store.onboardingStage).toBe('building')
+        })
+
+        it('resolves a stored building stage to done for an account just outside the week', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.startOnboardingBuild()
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(8) })
+            expect(store.onboardingStage).toBe('done')
+            expect(store.shouldEnterOnboarding).toBe(false)
+        })
+
         it('leaves the local stage alone when the server has no completed flag', () => {
             const store = useUxStore()
             store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(3), settings: { onboardingCompleted: false } })
