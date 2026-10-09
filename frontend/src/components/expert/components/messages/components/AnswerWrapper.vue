@@ -103,6 +103,7 @@
             :tool-class="answer.toolClass"
             :params="answer.params"
             :status="resolvedToolApprovalStatus"
+            :disabled="interactionDisabled"
             @approve="onToolApprove"
             @allow-always="onToolAllowAlways"
             @deny="onToolDeny"
@@ -193,7 +194,7 @@ export default {
             return msgs.length > 0 && msgs[msgs.length - 1]?._uuid === this.messageUuid
         },
         interactionDisabled () {
-            // Disable the question/plan cards while a response is in flight, and once the turn
+            // Disable the question/plan/approval cards while a response is in flight, and once the turn
             // has passed — i.e. any message has arrived after this one — so a stale card from
             // an earlier turn can no longer be answered.
             return this.isWaitingForResponse || !this.isLatestMessage
