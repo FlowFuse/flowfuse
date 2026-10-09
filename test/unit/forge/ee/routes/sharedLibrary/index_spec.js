@@ -421,6 +421,58 @@ describe('Library Storage API', function () {
             ;(await app.db.models.StorageSharedLibrary.count()).should.equal(4)
         })
 
+        it('Delete rejects an empty path', async function () {
+            const libraryURL = `/storage/library/${app.team.hashid}/`
+            await addToLibrary(libraryURL, 'a', 'flows')
+            await addToLibrary(libraryURL, 'b', 'flows')
+
+            const result = await deleteFromLibrary(libraryURL, '')
+            result.should.have.property('code', 'invalid_request')
+            ;(await app.db.models.StorageSharedLibrary.count()).should.equal(2)
+        })
+
+        for (const [label, encoded, decoy] of [
+            ['underscore', 'a_b', ['a/b/c', 'aXb/x']],
+            ['percent', '100%25', ['100abc/p', '100/p']],
+            ['backslash', 'a%5Cb', ['a/b/c', 'aXb/x', 'ab/x']],
+            ['emoji', '%F0%9F%93%A6', ['%F0%9F%93%A6x/p']]
+        ]) {
+            describe(`folder name containing ${label}`, function () {
+                const libraryURL = () => `/storage/library/${app.team.hashid}/`
+
+                async function populate () {
+                    await addToLibrary(libraryURL(), `${encoded}/x`, 'flows')
+                    await addToLibrary(libraryURL(), `${encoded}/y`, 'flows')
+                    for (const name of decoy) {
+                        await addToLibrary(libraryURL(), name, 'flows')
+                    }
+                }
+
+                it('deletes only entries under the exact folder', async function () {
+                    await populate()
+                    const result = await deleteFromLibrary(libraryURL(), encoded)
+                    result.should.have.property('deleteCount', 2)
+                    const remaining = (await app.db.models.StorageSharedLibrary.findAll()).map(e => e.name).sort()
+                    remaining.should.eql(decoy.map(decodeURIComponent).sort())
+                })
+
+                it('lists only entries under the exact folder', async function () {
+                    await populate()
+                    const response = await getFromLibrary(libraryURL(), encoded, 'flows')
+                    response.statusCode.should.equal(200)
+                    response.json().map(e => e.fn).sort().should.eql(['x', 'y'])
+                })
+
+                it('allows creating an entry with the folder name when only look-alike entries exist', async function () {
+                    for (const name of decoy) {
+                        await addToLibrary(libraryURL(), name, 'flows')
+                    }
+                    const response = await addToLibrary(libraryURL(), encoded, 'flows')
+                    response.statusCode.should.equal(201)
+                })
+            })
+        }
+
         describe('with user tokens', function () {
             let ownerPAT
             let readOnlyPAT
