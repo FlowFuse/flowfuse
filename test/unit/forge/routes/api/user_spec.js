@@ -183,6 +183,24 @@ describe('User API', async function () {
             })
             secondGetResponse.json().settings.should.have.property('onboardingCompleted', true)
         })
+        it('persists when the AI connector modal was last shown', async function () {
+            await login('elvis', 'eePassword')
+            const putResponse = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/settings',
+                cookies: { sid: TestObjects.tokens.elvis },
+                payload: { aiConnectorLastShownAt: 1700000000000 }
+            })
+            putResponse.statusCode.should.equal(200)
+            putResponse.json().should.have.property('aiConnectorLastShownAt', 1700000000000)
+
+            const getResponse = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.elvis }
+            })
+            getResponse.json().settings.should.have.property('aiConnectorLastShownAt', 1700000000000)
+        })
         it('strips settings keys that are not on the allow-list', async function () {
             await login('elvis', 'eePassword')
             const putResponse = await app.inject({

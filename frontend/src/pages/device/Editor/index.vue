@@ -98,6 +98,12 @@ export default {
         EditorDrawer,
         EditorWrapper
     },
+    provide () {
+        return {
+            // tells the Expert in the drawer it is running beside the editor
+            'expert-surface': 'immersive'
+        }
+    },
     setup () {
         const { hasPermission } = usePermissions()
 

@@ -13,9 +13,11 @@
  * @property {string} [platformKey] - Key to look up in the platform features object
  *   (state.features). If truthy, the platform check passes.
  *
- * @property {string} [teamKey] - Key to look up in team type properties
- *   (team.type.properties.features). If truthy or if the team type has
- *   `enableAllFeatures: true`, the team check passes.
+ * @property {string} [teamKey] - Key to look up in the team's own features
+ *   (team.properties.features), falling back to the team type
+ *   (team.type.properties.features) when the team has no value for it. A team
+ *   value wins outright; otherwise the check passes if the team type value is
+ *   truthy or the team type has `enableAllFeatures: true`.
  *
  * @property {boolean} [optOut=false] - Controls the default behavior of the team check.
  *   - `false` (default, opt-in): feature is disabled unless the team type explicitly
@@ -104,6 +106,9 @@ interface TeamTypeProperties {
 }
 
 interface Team {
+    properties?: {
+        features?: Record<string, boolean>
+    }
     type?: {
         properties?: TeamTypeProperties
     }
@@ -190,6 +195,10 @@ function isPlatformFeatureEnabled (state: PlatformState, platformKey: string, pl
 }
 
 function isTeamFeatureEnabled (team: Team | null | undefined, teamKey: string, optOut?: boolean): boolean {
+    const teamFeatures = team?.properties?.features
+    if (teamFeatures && Object.hasOwn(teamFeatures, teamKey)) {
+        return !!teamFeatures[teamKey]
+    }
     if (optOut) {
         const flag = team?.type?.properties?.features?.[teamKey]
         return (flag === undefined || !!flag) || !!team?.type?.properties?.enableAllFeatures

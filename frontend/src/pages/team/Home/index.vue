@@ -1,5 +1,7 @@
 <template>
-    <ff-page>
+    <TeamHomeExpert v-if="isExpertHome" />
+
+    <ff-page v-else>
         <template #header>
             <ff-page-header>
                 <template #breadcrumbs>
@@ -117,7 +119,7 @@
         </div>
     </ff-page>
     <TeamDeviceCreateDialog
-        v-if="team && modals.addDevice"
+        v-if="!isExpertHome && team && modals.addDevice"
         ref="teamDeviceCreateDialog"
         :team="team"
         :teamDeviceCount="totalDevices"
@@ -133,7 +135,7 @@
             </p>
         </template>
     </TeamDeviceCreateDialog>
-    <DeviceCredentialsDialog ref="deviceCredentialsDialog" />
+    <DeviceCredentialsDialog v-if="!isExpertHome" ref="deviceCredentialsDialog" />
 </template>
 
 <script>
@@ -153,6 +155,7 @@ import ConfirmInstanceDeleteDialog from '../../instance/Settings/dialogs/Confirm
 import DeviceCredentialsDialog from '../Devices/dialogs/DeviceCredentialsDialog.vue'
 import TeamDeviceCreateDialog from '../Devices/dialogs/TeamDeviceCreateDialog.vue'
 
+import TeamHomeExpert from './Expert/index.vue'
 import DashboardSection from './components/DashboardSection.vue'
 import RecentlyModifiedDevices from './components/RecentlyModifiedDevices.vue'
 import RecentlyModifiedInstances from './components/RecentlyModifiedInstances.vue'
@@ -163,10 +166,12 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
+import sumCounts from '@/utils/sumCounts'
 
 export default {
     name: 'TeamHome',
     components: {
+        TeamHomeExpert,
         EmptyState,
         DeviceCredentialsDialog,
         ConfirmInstanceDeleteDialog,
@@ -206,6 +211,9 @@ export default {
     },
     computed: {
         ...mapState(useUxToursStore, ['tours']),
+        isExpertHome () {
+            return !!this.featuresCheck?.isExpertAssistantFeatureEnabled
+        },
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountStore, ['pendingTeamChange']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
@@ -216,14 +224,10 @@ export default {
             return this.groupBySimplifiedStates(this.deviceStateCounts)
         },
         totalInstances () {
-            return this.instanceStateCounts
-                ? Object.values(this.instanceStateCounts).reduce((total, count) => total + count, 0)
-                : 0
+            return sumCounts(this.instanceStateCounts)
         },
         totalDevices () {
-            return this.deviceStateCounts
-                ? Object.values(this.deviceStateCounts).reduce((total, count) => total + count, 0)
-                : 0
+            return sumCounts(this.deviceStateCounts)
         },
         teamDeviceLimitReached () {
             const teamTypeDeviceLimit = getTeamProperty(this.team, 'devices.limit')
@@ -234,26 +238,40 @@ export default {
             return false
         }
     },
+    watch: {
+        isExpertHome (expert) {
+            if (!expert && this.loading) {
+                this.loadDashboard()
+            }
+        }
+    },
     async mounted () {
-        if ('billing_session' in this.$route.query) {
-            this.$nextTick(() => {
-                // Clear the query param so a reload of the page does re-trigger
-                // the notification
-                this.$router.replace({ query: '' })
-                // allow the Alerts service to have subscription by wrapping in nextTick
-                Alerts.emit('Thanks for signing up to FlowFuse!', 'confirmation')
-            })
+        if (this.isExpertHome) {
+            return
         }
 
-        this.getInstanceStateCounts()
-        this.getDeviceStateCounts()
-        this.getRecentActivity()
-            .finally(() => {
-                this.loading = false
-            })
-            .catch(e => e)
+        this.loadDashboard()
     },
     methods: {
+        loadDashboard () {
+            if ('billing_session' in this.$route.query) {
+                this.$nextTick(() => {
+                    // Clear the query param so a reload of the page does re-trigger
+                    // the notification
+                    this.$router.replace({ query: '' })
+                    // allow the Alerts service to have subscription by wrapping in nextTick
+                    Alerts.emit('Thanks for signing up to FlowFuse!', 'confirmation')
+                })
+            }
+
+            this.getInstanceStateCounts()
+            this.getDeviceStateCounts()
+            this.getRecentActivity()
+                .finally(() => {
+                    this.loading = false
+                })
+                .catch(e => e)
+        },
         getRecentActivity () {
             return TeamAPI.getTeamAuditLog(this.team.id, { }, null, 50)
                 .then((response) => {

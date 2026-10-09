@@ -95,6 +95,11 @@ export const useProductExpertStore = defineStore('product-expert', {
         hasSelectedCapabilities () {
             return useProductExpertInsightsAgentStore().selectedCapabilities?.length > 0
         },
+        isInputDisabled () {
+            if (this.isSessionExpired) return true
+            if (this.isWaitingForResponse) return true
+            return this.isInsightsAgent && !this.hasSelectedCapabilities
+        },
         canImportFlows () {
             const assistantStore = useProductAssistantStore()
             return !!assistantStore.isImmersiveInstance && !!assistantStore.supportedActions['custom:import-flow']
