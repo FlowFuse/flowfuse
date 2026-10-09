@@ -126,7 +126,8 @@ export const useContextStore = defineStore('context', {
                     questionCadence: useProductExpertStore().questionCadence,
                     planMode: useProductExpertStore().planMode,
                     onboarding: useUxStore().isOnboarding,
-                    onboardingStage: useUxStore().onboardingStage
+                    onboardingStage: useUxStore().onboardingStage,
+                    building: useUxStore().building
                 }
             }
 
@@ -174,6 +175,7 @@ export const useContextStore = defineStore('context', {
                 planMode: useProductExpertStore().planMode,
                 onboarding: useUxStore().isOnboarding,
                 onboardingStage: useUxStore().onboardingStage,
+                building: useUxStore().building,
                 // Capability flags: signal that this version can render the question,
                 // plan, and approval cards. Older instances omit them and the agent drops
                 // the matching tool / runs in backward-compatible mode.
