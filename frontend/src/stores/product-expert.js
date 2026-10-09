@@ -100,6 +100,12 @@ export const useProductExpertStore = defineStore('product-expert', {
             if (this.isWaitingForResponse) return true
             return this.isInsightsAgent && !this.hasSelectedCapabilities
         },
+        // startNewChat discards the session, so an expired one (and the response it
+        // left hanging) does not stand in the way.
+        isNewChatDisabled () {
+            if (this.isWaitingForResponse && !this.isSessionExpired) return true
+            return this.isInsightsAgent && !this.hasSelectedCapabilities
+        },
         canImportFlows () {
             const assistantStore = useProductAssistantStore()
             return !!assistantStore.isImmersiveInstance && !!assistantStore.supportedActions['custom:import-flow']
@@ -729,6 +735,18 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             // Add welcome message for current mode
             this.addWelcomeMessageIfNeeded()
+        },
+        async startNewChat ({ query }) {
+            if (this.isWaitingForResponse) {
+                this.stopInflightChat()
+                this.setAbortController(null)
+            }
+            // The resources picked for the old chat are the ones this query was typed against
+            const insightsStore = useProductExpertInsightsAgentStore()
+            const selectedCapabilities = insightsStore.selectedCapabilities
+            await this.startOver()
+            insightsStore.setSelectedCapabilities(selectedCapabilities)
+            return this.handleQuery({ query })
         },
         setAbortController (controller) {
             this._agentStore.abortController = controller ? markRaw(controller) : null
