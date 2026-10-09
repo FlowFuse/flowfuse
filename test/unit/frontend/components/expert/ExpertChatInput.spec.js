@@ -124,3 +124,30 @@ describe('ExpertChatInput prompt suggestion tracking', () => {
         }, { team: 'team-1' })
     })
 })
+
+describe('ExpertChatInput controls', () => {
+    const { computed } = ExpertChatInput
+
+    function controls (expertSurface) {
+        const vm = { expertSurface }
+        vm.isFullPageSurface = computed.isFullPageSurface.call(vm)
+        return {
+            actionBar: computed.showActionButtons.call(vm),
+            sessionControls: computed.showSessionControls.call(vm)
+        }
+    }
+
+    test('the drawer gets the full action bar', () => {
+        expect(controls('drawer')).toEqual({ actionBar: true, sessionControls: true })
+    })
+
+    // Building can call write tools, so the tool permissions have to be reachable;
+    // start over and plan mode stay with the page, which drives them itself
+    test('building gets the bar for the settings only', () => {
+        expect(controls('building')).toEqual({ actionBar: true, sessionControls: false })
+    })
+
+    test('onboarding gets no action bar', () => {
+        expect(controls('onboarding').actionBar).toBe(false)
+    })
+})

@@ -6,8 +6,9 @@
             direction="horizontal"
             @mousedown="onStartResize"
         />
-        <div v-if="expertSurface !== 'onboarding'" class="action-buttons">
+        <div v-if="showActionButtons" class="action-buttons">
             <button
+                v-if="showSessionControls"
                 type="button"
                 class="btn-start-over"
                 :disabled="isWaitingForResponse && !isSessionExpired"
@@ -17,7 +18,7 @@
             </button>
             <div class="right-buttons">
                 <default-chip
-                    v-if="!isInsightsAgent"
+                    v-if="showSessionControls && !isInsightsAgent"
                     class="plan-mode-chip"
                     text="Plan mode"
                     :modelValue="planMode"
@@ -131,6 +132,7 @@ import ToolPermissionsSettings from './ToolPermissionsSettings.vue'
 import DefaultChip from './chips/DefaultChip.vue'
 import ContextSelector from './context-selection/index.vue'
 
+import { EXPERT_SURFACES, isFullPageSurface } from '@/components/expert/surfaces.js'
 import { usePromptSuggestions } from '@/composables/PromptSuggestions'
 import { useResizingHelper } from '@/composables/ResizingHelper.js'
 
@@ -237,13 +239,24 @@ export default {
         canSend () {
             return this.inputText.trim().length > 0 && !this.isInputDisabled
         },
+        isFullPageSurface () {
+            return isFullPageSurface(this.expertSurface)
+        },
+        // Building can call write tools, so its tool permissions have to stay reachable
+        showActionButtons () {
+            return !this.isFullPageSurface || this.expertSurface === EXPERT_SURFACES.BUILDING
+        },
+        // Full page surfaces drive the session and plan mode themselves
+        showSessionControls () {
+            return !this.isFullPageSurface
+        },
         hasUserTurns () {
             // hasMessages is true from the off, the store seeds a welcome message,
             // so the transcript counts as started only once the user has said something
             return this.messages.some(message => message._type === 'human')
         },
         showSuggestions () {
-            if (this.expertSurface === 'onboarding') return false
+            if (this.isFullPageSurface) return false
             if (this.expertSurface === 'overview') return false
             if (this.isInsightsAgent) return false
             if (this.suggestionUsed || this.suggestions.length === 0) return false
@@ -265,7 +278,7 @@ export default {
             if (this.requestingPlanChange) {
                 return 'Describe a change to the plan, or paste an edited version'
             }
-            if (this.expertSurface === 'onboarding') {
+            if (this.isFullPageSurface) {
                 return 'Or just tell me in your own words'
             }
             return this.isInsightsAgent
@@ -436,6 +449,7 @@ export default {
 
 .right-buttons {
     display: flex;
+    margin-left: auto;
     gap: 0.5rem;
     align-items: center;
 }
