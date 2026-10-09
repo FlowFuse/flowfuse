@@ -12,7 +12,7 @@ module.exports = async function (app) {
             }
             await request.team.ensureTeamTypeExists()
             if (!request.team.getFeatureProperty('gitIntegration', false)) {
-                reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                reply.code(404).send({ code: 'not_found', error: 'Not Found - Git integration is not enabled for this team' })
                 return
             }
             if (!request.teamMembership) {
