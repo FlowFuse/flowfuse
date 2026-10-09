@@ -358,7 +358,7 @@ module.exports = {
             }
         } catch (err) {
             console.error('Error retrieving table:', err)
-            throw new Error(`Failed to create table ${tableName} for team ${team.hashid}: ${err.message}`)
+            throw new Error(`Failed to drop table ${tableName} for team ${team.hashid}: ${err.message}`)
         }
     },
     createColumn: async function (team, database, table, column) {},

@@ -399,6 +399,10 @@ module.exports = async function (app) {
         const requestedSchema = request.params.schemaName
         const tables = await app.tables.getTables(request.team, request.params.databaseId)
         const matches = tables.tables.filter((t) => t.name === request.params.tableName && (!requestedSchema || t.schema === requestedSchema))
+        if (matches.length > 1) {
+            const schemas = matches.map((t) => t.schema).join(', ')
+            return reply.status(400).send({ code: 'schema_required', error: `Table ${request.params.tableName} exists in several schemas (${schemas}). The schema must be given` })
+        }
         if (matches.length === 1) {
             await app.tables.dropTable(request.team, request.params.databaseId, request.params.tableName, requestedSchema)
             reply.status(204).send()
