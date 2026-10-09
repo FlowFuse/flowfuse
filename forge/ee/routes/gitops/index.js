@@ -82,8 +82,6 @@ module.exports = async function (app) {
     app.put('/tokens/:tokenId', {
         preHandler: app.needsPermission('team:git:tokens:edit'),
         schema: {
-            summary: 'Update a git token',
-            tags: ['Git Tokens'],
             body: {
                 type: 'object',
                 required: ['name'],
