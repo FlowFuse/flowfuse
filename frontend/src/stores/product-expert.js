@@ -53,6 +53,10 @@ export const useProductExpertStore = defineStore('product-expert', {
         // reconnect reporting running again doesn't repeat the announcement.
         _relayedInstanceIds: new Set(),
         _relayedFailedInstanceIds: new Set(),
+        // Sends waiting for the turn in flight to settle, so the agent never gets two
+        // messages for one session at once. Not persisted.
+        _sendQueue: [],
+        _sendDraining: false,
         // Open human-in-the-loop approval batch (#421). When a turn defers a tool batch
         // for approval the agent ends the turn and returns the card(s); we hold the
         // decisions here until every card is answered, then send them back in one resume
@@ -256,6 +260,10 @@ export const useProductExpertStore = defineStore('product-expert', {
                 agentStore.sessionId = uuidv4()
             }
 
+            return this._enqueueSend(() => this._openConversation())
+        },
+        async _openConversation () {
+            const agentStore = this._agentStore
             agentStore.abortController = markRaw(new AbortController())
             try {
                 const result = await this.sendQuery({ query: '' })
@@ -275,7 +283,35 @@ export const useProductExpertStore = defineStore('product-expert', {
                 agentStore.abortController = null
             }
         },
-        async handleQuery ({ query }) {
+        handleQuery ({ query }) {
+            return this._enqueueSend(() => this._handleQuery({ query }))
+        },
+        // Runs one send at a time. A job is finished once its turn has settled: the reply
+        // arrived, or the turn was stopped or errored. Whoever settles a turn calls
+        // _drainSendQueue to release the next job.
+        _enqueueSend (job) {
+            return new Promise((resolve, reject) => {
+                this._sendQueue.push({ job, resolve, reject })
+                this._drainSendQueue()
+            })
+        },
+        async _drainSendQueue () {
+            if (this._sendDraining) return
+            this._sendDraining = true
+            try {
+                while (this._sendQueue.length && !this.isWaitingForResponse) {
+                    const { job, resolve, reject } = this._sendQueue.shift()
+                    try {
+                        resolve(await job())
+                    } catch (error) {
+                        reject(error)
+                    }
+                }
+            } finally {
+                this._sendDraining = false
+            }
+        },
+        async _handleQuery ({ query }) {
             const agentStore = this._agentStore
 
             // Auto-initialize session ID if not set
@@ -653,7 +689,10 @@ export const useProductExpertStore = defineStore('product-expert', {
         // resumes from the persisted tool calls, runs the approved ones, and continues.
         // Transport-agnostic: over MQTT the reply arrives via the push handler; over HTTP it
         // is the awaited response, rendered here (mirrors handleQuery).
-        async resumeToolApprovals (decisions) {
+        resumeToolApprovals (decisions) {
+            return this._enqueueSend(() => this._resumeToolApprovals(decisions))
+        },
+        async _resumeToolApprovals (decisions) {
             const agentStore = this._agentStore
             agentStore.abortController = markRaw(new AbortController())
             try {
@@ -695,6 +734,11 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             // The transcript this notice belonged to is about to be cleared.
             this._clearDisconnectNotice()
+
+            // Queued sends belong to the conversation being dropped.
+            this._sendQueue.splice(0).forEach(({ resolve }) => resolve(undefined))
+            // The old session's reply can no longer arrive, so don't stay waiting on it.
+            this._inFlightRequests.clear()
 
             agentStore.sessionId = uuidv4()
             agentStore.messages = []
@@ -994,6 +1038,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                     this._recentlyCompleted.delete(this._recentlyCompleted.keys().next().value)
                 }
                 await this.handleMessageResponse(JSON.parse(message.toString()))
+                this._drainSendQueue()
                 break
             case parsedTopic.isInflightRequest: // in-flight request from the agent (e.g., action invocation, status update)
                 await this.handleInFlightRequest({
@@ -1420,6 +1465,12 @@ export const useProductExpertStore = defineStore('product-expert', {
             if (seen.has(instance.id)) return
             seen.add(instance.id)
 
+            const system = buildSystem(instance)
+            if (showCard) this.addEventMessage(system)
+
+            return this._enqueueSend(() => this._publishSystemEvent(instance, system, onPublished))
+        },
+        async _publishSystemEvent (instance, system, onPublished) {
             try {
                 const mqttService = getAppOrchestrator().$services.mqtt
                 const mqttTopicHelper = useMqttExpertTopicHelper()
@@ -1442,10 +1493,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                     topicType: 'chat',
                     topicAction: 'request'
                 })
-
-                const system = buildSystem(instance)
-
-                if (showCard) this.addEventMessage(system)
 
                 await mqttService.publishMessage(mqttConnectionKey, {
                     topic,
@@ -1536,6 +1583,8 @@ export const useProductExpertStore = defineStore('product-expert', {
             this._inFlightRequests.clear()
             this._clearInFlightUpdates()
             this._agentStore.activeTaskList = null
+            // Stopping ends only the turn in flight; whatever is queued goes out next.
+            this._drainSendQueue()
         }
     },
     persist: {
