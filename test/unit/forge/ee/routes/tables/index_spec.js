@@ -310,6 +310,66 @@ describe('Tables API', function () {
         columns[1].should.have.property('type', 'text')
     })
 
+    describe('Delete a table', function () {
+        let db
+        const drop = (name, schema) => app.inject({
+            method: 'DELETE',
+            url: `/api/v1/teams/${TestObjects.team.hashid}/databases/${db.hashid}/tables/${name}${schema ? '/' + schema : ''}`,
+            cookies: { sid: TestObjects.tokens.bob }
+        })
+
+        before(async function () {
+            const created = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.team.hashid}/databases`,
+                cookies: { sid: TestObjects.tokens.bob },
+                payload: { }
+            })
+            db = { hashid: created.json().id }
+        })
+
+        beforeEach(function () {
+            sinon.stub(app.tables, 'getTables').resolves({
+                tables: [
+                    { name: 'dup', schema: 'public' },
+                    { name: 'dup', schema: 's2' },
+                    { name: 'solo', schema: 'public' }
+                ]
+            })
+            sinon.stub(app.tables, 'dropTable').resolves()
+        })
+
+        afterEach(function () {
+            sinon.restore()
+        })
+
+        it('Returns 400 schema_required when the name exists in several schemas and no schema is given', async function () {
+            const response = await drop('dup')
+            response.statusCode.should.equal(400)
+            response.json().should.have.property('code', 'schema_required')
+            response.json().error.should.match(/public, s2/)
+            app.tables.dropTable.called.should.be.false()
+        })
+
+        it('Drops the table when the schema disambiguates', async function () {
+            const response = await drop('dup', 's2')
+            response.statusCode.should.equal(204)
+            app.tables.dropTable.calledOnce.should.be.true()
+            app.tables.dropTable.firstCall.args[3].should.equal('s2')
+        })
+
+        it('Drops a uniquely named table without a schema', async function () {
+            const response = await drop('solo')
+            response.statusCode.should.equal(204)
+        })
+
+        it('Returns 404 table_not_found when nothing matches', async function () {
+            const response = await drop('missing')
+            response.statusCode.should.equal(404)
+            response.json().should.have.property('code', 'table_not_found')
+        })
+    })
+
     it('Fail to delete database without permission', async function () {
         const db = (await app.db.models.Table.byTeamId(TestObjects.team.id))[0]
         const response = await app.inject({
