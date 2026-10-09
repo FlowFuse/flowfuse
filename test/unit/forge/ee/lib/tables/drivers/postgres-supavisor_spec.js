@@ -226,6 +226,39 @@ describe('Tables: Postgres Supavisor Driver', function () {
             driver._adminClient.query.calledWithMatch(`DROP ROLE IF EXISTS "${team.hashid}-role"`).should.be.true()
             dbObj.destroy.calledOnce.should.be.true()
         })
+        it('should propagate a drop failure and keep the record', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            const dbObj = { destroy: sinon.stub().resolves() }
+            app.db.models.Table.byId.resolves(dbObj)
+            await driver.init(app, options)
+            sinon.stub(axios, 'delete').resolves({ status: 200, data: { success: true } })
+            driver._adminClient.query.withArgs('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid]).resolves({ rows: [{ datname: team.hashid }] })
+            driver._adminClient.query.withArgs(`DROP DATABASE IF EXISTS "${team.hashid}"`).rejects(new Error('database is being accessed by other users'))
+            await driver.destroyDatabase(team, 1).should.be.rejectedWith('database is being accessed by other users')
+            dbObj.destroy.called.should.be.false()
+        })
+        it('should propagate a tenant delete failure and keep the record', async function () {
+            const dbObj = { destroy: sinon.stub().resolves() }
+            app.db.models.Table.byId.resolves(dbObj)
+            await driver.init(app, options)
+            const err = new Error('Request failed with status code 500')
+            err.response = { status: 500 }
+            sinon.stub(axios, 'delete').rejects(err)
+            await driver.destroyDatabase({ id: 1, hashid: 't1hash' }, 1).should.be.rejectedWith('Request failed with status code 500')
+            dbObj.destroy.called.should.be.false()
+        })
+        it('should continue when the Supavisor tenant is already gone', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            const dbObj = { destroy: sinon.stub().resolves() }
+            app.db.models.Table.byId.resolves(dbObj)
+            await driver.init(app, options)
+            const err = new Error('Request failed with status code 404')
+            err.response = { status: 404 }
+            sinon.stub(axios, 'delete').rejects(err)
+            driver._adminClient.query.withArgs('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid]).resolves({ rows: [{ datname: team.hashid }] })
+            await driver.destroyDatabase(team, 1)
+            dbObj.destroy.calledOnce.should.be.true()
+        })
         it('should throw if db does not exist in Table', async function () {
             app.db.models.Table.byId.resolves(null)
             await driver.init(app, options)
