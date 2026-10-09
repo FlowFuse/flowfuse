@@ -14,6 +14,7 @@
                     <ExpertBuildButton v-if="hasPermission('project:create', { application })" target="instance" />
                     <ff-button
                         v-ff-tooltip:left="!hasPermission('project:create', { application }) && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
+                        v-ff-track="'ff-instance-create-clicked'"
                         data-action="create-instance"
                         :to="{ name: 'application-create-instance' }"
                         type="anchor"
@@ -111,6 +112,7 @@
                     <ExpertBuildButton v-if="hasPermission('project:create', { application })" target="instance" />
                     <ff-button
                         v-ff-tooltip:bottom="!hasPermission('project:create', { application }) && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
+                        v-ff-track="'ff-instance-create-clicked'"
                         :to="{ name: 'application-create-instance' }"
                         type="anchor"
                         :disabled="!hasPermission('project:create', { application })"

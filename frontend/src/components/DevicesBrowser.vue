@@ -100,6 +100,7 @@
                     <ExpertBuildButton v-if="hasPermission('device:create', applicationContext)" target="device" />
                     <ff-button
                         v-ff-tooltip:left="!hasPermission('device:create', applicationContext) && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
+                        v-ff-track="'ff-device-create-clicked'"
                         class="font-normal ff-btn-icon"
                         data-action="register-device"
                         kind="primary"
@@ -179,6 +180,7 @@
                             <ExpertBuildButton v-if="hasPermission('device:create', applicationContext)" target="device" />
                             <ff-button
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
+                                v-ff-track="'ff-device-create-clicked'"
                                 class="font-normal ff-btn-icon"
                                 kind="primary"
                                 :disabled="remoteInstancesDisabled || teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
@@ -219,6 +221,7 @@
                             <ExpertBuildButton v-if="hasPermission('device:create', applicationContext)" target="device" />
                             <ff-button
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
+                                v-ff-track="'ff-device-create-clicked'"
                                 class="font-normal ff-btn-icon"
                                 kind="primary"
                                 :disabled="remoteInstancesDisabled || teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
@@ -259,6 +262,7 @@
                             <ExpertBuildButton v-if="hasPermission('device:create', applicationContext)" target="device" />
                             <ff-button
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
+                                v-ff-track="'ff-device-create-clicked'"
                                 class="font-normal ff-btn-icon"
                                 kind="primary"
                                 :disabled="remoteInstancesDisabled || teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
