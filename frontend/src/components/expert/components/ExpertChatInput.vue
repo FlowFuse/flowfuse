@@ -1,6 +1,7 @@
 <template>
     <div ref="resizeTarget" class="ff-expert-input" :style="containerStyle">
         <resize-bar
+            v-if="expertSurface !== 'overview'"
             :is-resizing="isInputResizing"
             direction="horizontal"
             @mousedown="onStartResize"
@@ -124,14 +125,13 @@ import { mapActions, mapState } from 'pinia'
 import FormHeading from '../../FormHeading.vue'
 import ResizeBar from '../../ResizeBar.vue'
 
-import { pickSuggestions } from '../prompt-suggestions.js'
-
 import CapabilitiesSelector from './CapabilitiesSelector.vue'
 import PromptSuggestions from './PromptSuggestions.vue'
 import ToolPermissionsSettings from './ToolPermissionsSettings.vue'
 import DefaultChip from './chips/DefaultChip.vue'
 import ContextSelector from './context-selection/index.vue'
 
+import { usePromptSuggestions } from '@/composables/PromptSuggestions'
 import { useResizingHelper } from '@/composables/ResizingHelper.js'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
@@ -169,13 +169,20 @@ export default {
             setHeight,
             isResizing: isInputResizing
         } = useResizingHelper()
+        // Conversation starters, drawn at random when the composer is created and
+        // re-drawn on "Start over"
+        const { suggestions, deal, trackShown, trackClick } = usePromptSuggestions()
 
         return {
             startResize,
             bindResizer,
             heightStyle,
             setHeight,
-            isInputResizing
+            isInputResizing,
+            suggestions,
+            dealSuggestions: deal,
+            trackSuggestionsShown: trackShown,
+            trackSuggestionClicked: trackClick
         }
     },
     data () {
@@ -188,9 +195,6 @@ export default {
             // The composer auto-sizes to its content via CSS (see .chat-input field-sizing).
             // Only once the user drag-resizes do we pin it to an explicit height.
             userResized: false,
-            // Conversation starters, drawn at random when the composer mounts and
-            // re-drawn on "Start over"
-            suggestions: [],
             suggestionUsed: false
         }
     },
@@ -199,7 +203,7 @@ export default {
             'isImmersiveInstance',
             'isImmersiveDevice'
         ]),
-        ...mapState(useUxDrawersStore, ['rightDrawer']),
+        ...mapState(useUxDrawersStore, ['rightDrawer', 'editorImmersiveDrawer']),
         ...mapState(useProductExpertStore, [
             'messages',
             'isSessionExpired',
@@ -207,6 +211,7 @@ export default {
             'hasSelectedCapabilities',
             'hasMessages',
             'isWaitingForResponse',
+            'isInputDisabled',
             'pendingInput',
             'composerCommand',
             'questionCadence',
@@ -226,11 +231,6 @@ export default {
                 this.setQuestionCadence(value)
             }
         },
-        isInputDisabled () {
-            if (this.isSessionExpired) return true
-            if (this.isWaitingForResponse) return true
-            return this.isInsightsAgent && !this.hasSelectedCapabilities
-        },
         isDrawerPinned () {
             return this.rightDrawer.fixed
         },
@@ -244,10 +244,19 @@ export default {
         },
         showSuggestions () {
             if (this.expertSurface === 'onboarding') return false
+            if (this.expertSurface === 'overview') return false
             if (this.isInsightsAgent) return false
             if (this.suggestionUsed || this.suggestions.length === 0) return false
             if (this.inputText.length > 0 || this.hasUserTurns) return false
             return !this.isInputDisabled
+        },
+        visibleSuggestions () {
+            if (!this.showSuggestions) return null
+            // The editor keeps the Expert mounted behind its drawer while it is closed
+            if (this.isImmersive && !this.editorImmersiveDrawer.state) return null
+            // A fresh array per deal, so Start over registers as a change even
+            // when the suggestions never left the screen
+            return this.suggestions
         },
         placeholderText () {
             if (this.isInsightsAgent && !this.hasSelectedCapabilities) {
@@ -302,10 +311,17 @@ export default {
             if (value && this.requestingPlanChange) {
                 this.requestingPlanChange = false
             }
+        },
+        visibleSuggestions: {
+            handler (suggestions) {
+                // Reported once per deal: typing and clearing the box brings the
+                // same three back, which is not a second impression
+                if (suggestions) this.trackSuggestionsShown()
+            },
+            immediate: true
         }
     },
     mounted () {
-        this.suggestions = pickSuggestions()
         this.bindResizer({
             component: this.$refs.resizeTarget,
             maxHeightRatio: 0.9,
@@ -344,6 +360,7 @@ export default {
             this.requestingPlanChange = false
         },
         useSuggestion (suggestion) {
+            this.trackSuggestionClicked(suggestion)
             this.suggestionUsed = true
             this.inputText = suggestion.prompt
             if (suggestion.needsInput) {
@@ -376,7 +393,7 @@ export default {
 
             this.inputText = ''
             this.suggestionUsed = false
-            this.suggestions = pickSuggestions()
+            this.dealSuggestions()
             // When in support mode, reset/restore assistant context selection (opt-out by default)
             if (!this.isInsightsAgent) {
                 this.resetContextSelection()

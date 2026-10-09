@@ -43,9 +43,14 @@ async function completeUserSignup (app, user, { createTeamOverride = false } = {
             } else {
                 teamTypeId = app.db.models.TeamType.decodeHashid(teamTypeId)
             }
+            // Usernames are only unique among users, so a team may already own this slug
+            let slug = user.username.toLowerCase()
+            while (await app.db.models.Team.count({ where: { slug } })) {
+                slug = `${user.username.toLowerCase()}-${crypto.randomBytes(2).toString('hex')}`
+            }
             const teamProperties = {
                 name: `Team ${user.name}`,
-                slug: user.username,
+                slug,
                 TeamTypeId: teamTypeId
             }
             personalTeam = await app.db.controllers.Team.createTeamForUser(teamProperties, user)
