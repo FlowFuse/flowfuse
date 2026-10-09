@@ -84,6 +84,12 @@ export default {
         InstanceStatusPolling
     },
     mixins: [instanceMixin],
+    provide () {
+        return {
+            // tells the Expert in the drawer it is running beside the editor
+            'expert-surface': 'immersive'
+        }
+    },
     setup () {
         const { hasAMinimumTeamRoleOf, isVisitingAdmin } = usePermissions()
         const { syncLandingTab } = useEditorLandingTab({

@@ -121,6 +121,8 @@ const iconMap = {
         'platform.settings.updated',
         'platform.settings.update',
         'team.settings.updated',
+        'team.agent-auto-deploy.enabled',
+        'team.agent-auto-deploy.disabled',
         'project.settings.updated',
         'device.settings.updated',
         'team.type.changed'

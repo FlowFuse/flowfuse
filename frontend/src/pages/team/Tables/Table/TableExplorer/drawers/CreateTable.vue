@@ -56,6 +56,8 @@
 import { mapActions, mapState } from 'pinia'
 import { defineComponent } from 'vue'
 
+import Alerts from '../../../../../../services/alerts.js'
+
 import TableColumn from './components/TableColumn.vue'
 
 import { useProductTablesStore } from '@/stores/product-tables.js'
@@ -149,8 +151,13 @@ export default defineComponent({
                 databaseId: this.$route.params.id
             })
                 .then(() => this.getTables(this.$route.params.id))
-                .then(() => this.closeRightDrawer())
-                .catch(e => e)
+                .then(() => {
+                    Alerts.emit('Table created successfully', 'confirmation')
+                    this.closeRightDrawer()
+                })
+                .catch(e => {
+                    Alerts.emit(e.response?.data?.error || 'Failed to create the table', 'warning')
+                })
         },
         setHeader () {
             this.setRightDrawerHeader({
