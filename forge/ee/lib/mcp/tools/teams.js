@@ -179,6 +179,39 @@ module.exports = [
         }
     },
     {
+        name: 'platform_update_git_token',
+        title: 'Update Team Git Token',
+        description: `FlowFuse platform automation tool:
+            Renames a git token configured for a team. The name is the only editable field: this never changes or returns the stored credential, and the reply holds only the token's id, name and type.
+            Renaming a token to the name it already has succeeds without changing anything.
+            Only team owners can update git tokens. Use platform_list_team_git_tokens to find the token id.
+            Git integration is a plan-gated feature. A 404 means the token does not exist in this team, or git integration is not enabled for the team's plan.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            tokenId: pathId.describe('The hashid of the git token, as returned by platform_list_team_git_tokens'),
+            name: z.string().trim().min(1).max(255).describe('New name for the git token')
+        },
+        outputSchema: {
+            id: z.string(),
+            name: z.string(),
+            type: z.string()
+        },
+        handler: async (args, { inject }) => {
+            const url = `/api/v1/teams/${args.teamId}/git/tokens`
+            const response = await inject({ method: 'PUT', url: `${url}/${args.tokenId}`, payload: { name: args.name } })
+            if (response.statusCode !== 404) {
+                return response
+            }
+            // The route answers 404 for a missing token and for a team without git integration alike
+            const probe = await inject({ method: 'GET', url })
+            if (probe.statusCode === 404) {
+                return toolError(404, 'not_found', 'Git integration is not enabled for this team, or the team does not exist')
+            }
+            return response
+        }
+    },
+    {
         name: 'platform_create_team',
         title: 'Create Team',
         description: `FlowFuse platform automation tool:
