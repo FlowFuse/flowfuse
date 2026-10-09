@@ -320,6 +320,27 @@ describe('Tables API', function () {
         response.statusCode.should.equal(403)
     })
 
+    it('Fail to delete database when the driver fails, without auditing or removing it', async function () {
+        const db = (await app.db.models.Table.byTeamId(TestObjects.team.id))[0]
+        const stub = sinon.stub(app.tables, 'destroyDatabase').rejects(new Error('database is being accessed by other users'))
+        let response
+        try {
+            response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/teams/${TestObjects.team.hashid}/databases/${db.hashid}`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+        } finally {
+            stub.restore()
+        }
+        response.statusCode.should.equal(500)
+        response.json().should.have.property('code', 'unexpected_error')
+        const logs = await app.db.models.AuditLog.findAll({ where: { event: 'team.database.deleted' } })
+        logs.should.have.length(0)
+        const remaining = await app.db.models.Table.byTeamId(TestObjects.team.id)
+        remaining.should.have.length(1)
+    })
+
     it('Delete Team database', async function () {
         const db = (await app.db.models.Table.byTeamId(TestObjects.team.id))[0]
         const response = await app.inject({

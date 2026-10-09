@@ -166,18 +166,17 @@ module.exports = {
                 }
             })
         } catch (err) {
-            // console.log(err)
+            // A tenant that is already gone (e.g. from an earlier partial delete) is not a failure
+            if (err.response?.status !== 404) {
+                throw err
+            }
         }
         const res = await this._adminClient.query('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid])
         if (res.rows.length === 1) {
-            try {
-                await this._adminClient.query(`DROP DATABASE IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid)}`)
-                await this._adminClient.query(`DROP USER IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid)}`)
-                await this._adminClient.query(`DROP ROLE IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid + '-role')}`)
-                await db.destroy()
-            } catch (err) {
-                // console.log(err)
-            }
+            await this._adminClient.query(`DROP DATABASE IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid)}`)
+            await this._adminClient.query(`DROP USER IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid)}`)
+            await this._adminClient.query(`DROP ROLE IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid + '-role')}`)
+            await db.destroy()
         } else {
             throw new Error(`Database ${team.hashid} does not exist`)
         }
