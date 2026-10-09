@@ -844,15 +844,14 @@ export const useProductExpertStore = defineStore('product-expert', {
         setPlanMode (enabled) {
             this.planMode = !!enabled
         },
-        async approvePlan () {
+        approvePlan () {
             // Approving exits read-only plan mode so the build runs as a normal acting turn,
             // and clears any plan text loaded into the composer via "Edit manually".
+            // Building stays on: the instance gets created after this, and over MQTT
+            // handleQuery resolves once the approval is published, not when the reply arrives
             this.setPlanMode(false)
             this.setComposerCommand('reset')
-            await this.handleQuery({ query: 'Approved. Proceed with the plan.' })
-            // Cleared once the approval has gone out (over MQTT the context is read
-            // only after the client connects), so that turn still counts as building
-            useUxStore().stopBuilding()
+            return this.handleQuery({ query: 'Approved. Proceed with the plan.' })
         },
         /**
          * Adds a system message to the application's message store.

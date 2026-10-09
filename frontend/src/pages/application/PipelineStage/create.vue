@@ -73,7 +73,7 @@ export default {
         team: {
             immediate: true,
             handler (team) {
-                if (team && !this.hasPermission('pipeline:create')) {
+                if (team && !this.hasPermission('pipeline:create', { application: this.application })) {
                     this.$router.replace({
                         name: 'application-pipelines',
                         params: {

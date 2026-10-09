@@ -1,6 +1,8 @@
+const SemVer = require('semver')
 const { z } = require('zod')
 
-const { basePaginationKeys, limitParam, appendQuery, hostedInstanceId, snapshotId, snapshotComponents, toolError } = require('../schemas')
+const { MIN_DEVICE_AGENT_VERSIONS } = require('../constants')
+const { pathId, basePaginationKeys, limitParam, appendQuery, hostedInstanceId, remoteInstanceId, snapshotId, snapshotComponents, toolError } = require('../schemas')
 const { blankHiddenEnvValues } = require('../utils')
 
 // Width of ProjectSnapshot.name, a DataTypes.STRING column.
@@ -31,7 +33,7 @@ module.exports = [
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             instanceType: z.enum(['hosted', 'remote']).describe('Which kind of instance instanceId refers to: "hosted" for a hosted instance, "remote" for a remote instance (device)'),
-            instanceId: z.string().describe('The ID of the instance whose snapshots to list (UUID for a hosted instance, hashid for a remote instance)'),
+            instanceId: pathId.describe('The ID of the instance whose snapshots to list (UUID for a hosted instance, hashid for a remote instance)'),
             cursor: z.string().optional().describe('Cursor for pagination (the hashid of the last item from the previous page)'),
             ...limitParam
         },
@@ -52,11 +54,12 @@ module.exports = [
             Think of it as taking a photo of the instance so you can go back to this exact state later or deploy it elsewhere.
             Set instanceType to "hosted" or "remote" to say which kind of instance instanceId refers to.
             When instanceType is "remote", the device must be online and running or this will fail; call platform_get_remote_instance_status first to check.
+            For a remote instance, the new snapshot is not set as its target. If the user asks for that, set it with platform_set_remote_instance_target.
             Use this when the user wants to save the current state of an instance before making changes, or to create a version that can be rolled out elsewhere.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             instanceType: z.enum(['hosted', 'remote']).describe('Which kind of instance instanceId refers to: "hosted" for a hosted instance, "remote" for a remote instance (device)'),
-            instanceId: z.string().describe('The ID of the instance to snapshot (UUID for a hosted instance, hashid for a remote instance)'),
+            instanceId: pathId.describe('The ID of the instance to snapshot (UUID for a hosted instance, hashid for a remote instance)'),
             name: z.string().trim().min(1).max(SNAPSHOT_NAME_MAX_LENGTH).describe('Name for the snapshot'),
             description: z.string().optional().describe('Description of the snapshot')
         },
@@ -223,7 +226,7 @@ module.exports = [
             Use components to import selectively, for example envVars: "keys" to import env var names without their values.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
         inputSchema: {
-            ownerId: z.string().describe('Target owner id: hosted instance (project) UUID when ownerType is "instance", or device hashid when ownerType is "device"'),
+            ownerId: pathId.describe('Target owner id: hosted instance (project) UUID when ownerType is "instance", or device hashid when ownerType is "device"'),
             ownerType: z.enum(['instance', 'device']).describe('Type of resource that will own the imported snapshot'),
             snapshot: z.object({
                 name: z.string().describe('Name for the imported snapshot'),
@@ -333,6 +336,47 @@ module.exports = [
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'POST', url: `/api/v1/projects/${args.hostedInstanceId}/devices/settings`, payload: { targetSnapshot: args.snapshotId } })
+            return response
+        }
+    },
+    {
+        name: 'platform_set_remote_instance_target',
+        title: 'Set Remote Instance Target Snapshot',
+        description: `FlowFuse platform automation tool:
+            Sets the target snapshot of a remote instance (device) assigned to an application, and tells the device to deploy it straight away.
+            CAUTION: the device replaces the flows it is running as soon as the target changes. In developer mode, any changes made in the device editor that are not saved in a snapshot are lost. Confirm with the user before calling this.
+            Only remote instances assigned to an application have their own target. One assigned to a hosted instance follows the target set with platform_set_instance_device_target, and one in a device group is moved to the group's target the next time the group's target changes.
+            A target cannot be cleared, only replaced with another snapshot. If the snapshot is already the target, nothing is deployed and the remote instance is returned unchanged.
+            Use platform_get_remote_instance to see the current target, and platform_list_instance_snapshots to find a snapshot.`,
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            remoteInstanceId,
+            snapshotId: snapshotId.describe('The hashid of the snapshot the remote instance should run. It must belong to the same team as the remote instance')
+        },
+        handler: async (args, { inject }) => {
+            const deviceResponse = await inject({ method: 'GET', url: `/api/v1/devices/${args.remoteInstanceId}` })
+            if (deviceResponse.statusCode >= 400) {
+                return deviceResponse
+            }
+            const device = deviceResponse.json()
+            // The route stores a target on any device, but for one that is not
+            // application-owned the update it sends carries no snapshot, so the
+            // device stops its flows instead of deploying the target.
+            if (device.ownerType !== 'application') {
+                return toolError(400, 'invalid_request', 'Only a remote instance assigned to an application can have its own target snapshot. For one assigned to a hosted instance, use platform_set_instance_device_target')
+            }
+            if (device.agentType === 'lite') {
+                return toolError(400, 'invalid_request', 'The Lite Remote Agent does not support deploying snapshots')
+            }
+            if (device.mode === 'developer' && !(device.agentVersion && SemVer.gte(device.agentVersion, MIN_DEVICE_AGENT_VERSIONS.devModeSnapshotDeploy))) {
+                return toolError(400, 'invalid_request', `Deploying a snapshot to a remote instance in developer mode requires Device Agent v${MIN_DEVICE_AGENT_VERSIONS.devModeSnapshotDeploy} or later`)
+            }
+            // The route redeploys even when the target is unchanged, which in
+            // developer mode would throw away the editor changes for nothing.
+            if (device.targetSnapshot?.id === args.snapshotId) {
+                return deviceResponse
+            }
+            const response = await inject({ method: 'PUT', url: `/api/v1/devices/${args.remoteInstanceId}`, payload: { targetSnapshot: args.snapshotId } })
             return response
         }
     },
