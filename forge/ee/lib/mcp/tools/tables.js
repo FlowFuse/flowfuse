@@ -1,5 +1,6 @@
 const { z } = require('zod')
 
+const { toolError } = require('../schemas')
 const {
     teamIdSchema,
     databaseIdSchema,
@@ -9,7 +10,7 @@ const {
     countSchema,
     recordSchema
 } = require('../tool-schemas/tables')
-const { redactDatabaseCredentials } = require('../utils')
+const { redactDatabaseCredentials, emptySuccessAsOkay } = require('../utils')
 
 module.exports = [
     {
@@ -230,6 +231,52 @@ module.exports = [
                 statusCode: response.statusCode,
                 json: () => ({ table: { name: args.name, schema: args.schema || 'public' } })
             }
+        }
+    },
+    {
+        name: 'platform_delete_database_table',
+        title: 'Delete Database Table',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes a table from a FlowFuse Tables database, including every row it holds. This cannot be undone and there is no backup to restore from.
+            CAUTION: any flow that reads or writes the table will start failing as soon as it is gone. Confirm with the user before calling this, and use platform_get_database_table and platform_query_database_table_data first so you can tell them what is being lost.
+            Only the table in the given schema is deleted; a table with the same name in another schema is left alone. Team owners only.
+            Replies { status: "okay" } on success; a table or database that does not exist returns 404, so repeating a call is harmless. A 404 can also mean FlowFuse Tables is not available to the team.`,
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId: teamIdSchema,
+            databaseId: databaseIdSchema,
+            tableName: tableNameSchema,
+            schemaName: schemaNameSchema
+        },
+        handler: async (args, { inject }) => {
+            // An empty or dot segment drops out of the URL, which would delete the table from any schema
+            if ([args.tableName, args.schemaName].some(segment => segment === '' || segment === '.' || segment === '..')) {
+                return toolError(400, 'invalid_request', 'tableName and schemaName must not be empty, "." or ".."')
+            }
+            const url = `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables/${encodeURIComponent(args.tableName)}/${encodeURIComponent(args.schemaName)}`
+            const response = await inject({ method: 'DELETE', url })
+            return emptySuccessAsOkay(response)
+        }
+    },
+    {
+        name: 'platform_delete_team_database',
+        title: 'Delete Team Database',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes a team's FlowFuse Tables database: every table in every schema, all of their rows, and the database login. This cannot be undone and there is no backup to restore from.
+            CAUTION: every flow and device in the team that uses the database will start failing, and the team is left with no database until a new one is created. Confirm with the user before calling this, and list what is in it first with platform_list_database_tables so you can tell them what will be lost.
+            The database does not need to be empty. Team owners only.
+            Replies { status: "okay" } on success; a database that does not exist returns 404, so repeating a call is harmless. A 404 can also mean FlowFuse Tables is not available to the team.`,
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId: teamIdSchema,
+            databaseId: databaseIdSchema
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/databases/${args.databaseId}` })
+            if (response.statusCode >= 400) {
+                return response
+            }
+            return { statusCode: response.statusCode, json: () => ({ status: 'okay' }) }
         }
     }
 ]

@@ -408,4 +408,45 @@ describe('MCP Teams Tools', function () {
             inject.called.should.be.false()
         })
     })
+
+    describe('platform_delete_git_token', function () {
+        const tool = getTool('platform_delete_git_token')
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('deletes the token and reports okay for the empty object reply', async function () {
+            inject.resolves({ statusCode: 200, body: '{}', json: () => ({}) })
+            const response = await tool.handler({ teamId: 'team1', tokenId: 'token1' }, { inject })
+            inject.calledOnce.should.be.true()
+            inject.firstCall.args[0].should.eql({ method: 'DELETE', url: '/api/v1/teams/team1/git/tokens/token1' })
+            response.statusCode.should.equal(200)
+            response.json().should.eql({ status: 'okay' })
+        })
+
+        it('keeps the route 404 when the team has git integration but the token is missing', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found', error: 'Not Found' }) }
+            inject.onFirstCall().resolves(errorResponse)
+            inject.onSecondCall().resolves({ statusCode: 200, json: () => ({ tokens: [] }) })
+            const response = await tool.handler({ teamId: 'team1', tokenId: 'token1' }, { inject })
+            inject.secondCall.args[0].should.eql({ method: 'GET', url: '/api/v1/teams/team1/git/tokens' })
+            response.should.equal(errorResponse)
+        })
+
+        it('explains a 404 as git integration being unavailable when the token list is also 404', async function () {
+            inject.callsFake(async () => ({ statusCode: 404, json: () => ({ code: 'not_found', error: 'Not Found' }) }))
+            const response = await tool.handler({ teamId: 'team1', tokenId: 'token1' }, { inject })
+            response.statusCode.should.equal(404)
+            response.json().error.should.match(/Git integration is not enabled/)
+        })
+
+        it('passes through a rejection for a token without write access', async function () {
+            const errorResponse = { statusCode: 403, json: () => ({ code: 'unauthorized', error: 'unauthorized' }) }
+            inject.resolves(errorResponse)
+            const response = await tool.handler({ teamId: 'team1', tokenId: 'token1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
 })
