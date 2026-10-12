@@ -66,7 +66,10 @@ module.exports = async function (app) {
             direct.body = body
             direct.meta = JSON.stringify(meta)
             await direct.save()
-            await app.auditLog.Team.library.entry.updated(request.session?.User || 'system', null, request.team, { name, type }, request.libraryWriter)
+            // Instance and device saves are already logged by Node-RED's own library.set event
+            if (!request.libraryWriter) {
+                await app.auditLog.Team.library.entry.updated(request.session.User, null, request.team, { name, type })
+            }
         } else {
             // Adding a new entry. We need to check each part of the path to ensure
             // none are existing 'files' - otherwise we could end up with a directory
@@ -101,7 +104,9 @@ module.exports = async function (app) {
                 body,
                 TeamId: request.team.id
             })
-            await app.auditLog.Team.library.entry.created(request.session?.User || 'system', null, request.team, { name, type }, request.libraryWriter)
+            if (!request.libraryWriter) {
+                await app.auditLog.Team.library.entry.created(request.session.User, null, request.team, { name, type })
+            }
         }
 
         response.status(201).send()

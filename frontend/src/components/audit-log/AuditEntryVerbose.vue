@@ -187,7 +187,8 @@
     </template>
     <template v-else-if="entry.event === 'team.git.token.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.gitToken">Git token '{{ entry.body.gitToken.name }}' updated</span>
+        <span v-if="!error && nameUpdate">Git token renamed from '{{ nameUpdate.old }}' to '{{ nameUpdate.new }}'</span>
+        <span v-else-if="!error && entry.body?.gitToken">Git token '{{ entry.body.gitToken.name }}' updated</span>
     </template>
     <template v-else-if="entry.event === 'team.git.token.deleted'">
         <label>{{ AuditEvents[entry.event] }}</label>
@@ -197,11 +198,11 @@
     <!-- Team Shared Library Events -->
     <template v-else-if="entry.event === 'team.library.entry.created'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.libraryEntry">Library entry '{{ entry.body.libraryEntry.name }}' created<span v-if="entry.body?.project"> by instance '{{ entry.body.project.name }}'</span><span v-else-if="entry.body?.device"> by device '{{ entry.body.device.name }}'</span></span>
+        <span v-if="!error && entry.body?.libraryEntry">Library entry '{{ entry.body.libraryEntry.name }}' created</span>
     </template>
     <template v-else-if="entry.event === 'team.library.entry.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.libraryEntry">Library entry '{{ entry.body.libraryEntry.name }}' overwritten<span v-if="entry.body?.project"> by instance '{{ entry.body.project.name }}'</span><span v-else-if="entry.body?.device"> by device '{{ entry.body.device.name }}'</span></span>
+        <span v-if="!error && entry.body?.libraryEntry">Library entry '{{ entry.body.libraryEntry.name }}' overwritten</span>
     </template>
     <template v-else-if="entry.event === 'team.library.entry.deleted'">
         <label>{{ AuditEvents[entry.event] }}</label>
@@ -824,6 +825,9 @@ export default {
         },
         updates: function () {
             return this.entry.body?.updates && this.entry.body.updates.length ? this.entry.body.updates : null
+        },
+        nameUpdate: function () {
+            return this.updates?.find(update => update.key === 'name')
         }
     },
     setup () {

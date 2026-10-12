@@ -433,22 +433,29 @@ describe('Library Storage API', function () {
                 await app.db.models.AuditLog.destroy({ where: {} })
             })
 
-            it('logs the creation of an entry', async function () {
-                await addToLibrary(libraryURL(), 'audit/new', 'flows')
+            let userToken
+
+            before(async function () {
+                const user = await app.factory.createUser({ username: 'libaudit', name: 'Lib Audit', email: 'libaudit@example.com', password: 'aaPassword' })
+                await app.team.addUser(user, { through: { role: app.factory.Roles.Roles.Owner } })
+                userToken = (await app.db.controllers.AccessToken.createPersonalAccessToken(user, '', null, 'audit-pat')).token
+            })
+
+            it('logs the creation of an entry by a user', async function () {
+                await addToLibrary(libraryURL(), 'audit/new', 'flows', userToken)
                 const entries = await auditEntries('team.library.entry.created')
                 entries.should.have.length(1)
                 entries[0].libraryEntry.should.only.have.keys('name', 'type')
                 entries[0].libraryEntry.should.have.property('name', 'audit/new')
                 entries[0].libraryEntry.should.have.property('type', 'flows')
-                entries[0].project.should.have.property('id', app.project.id)
                 const updated = await auditEntries('team.library.entry.updated')
                 updated.should.have.length(0)
             })
 
-            it('logs the overwrite of an entry as an update, not a creation', async function () {
-                await addToLibrary(libraryURL(), 'audit/over', 'flows')
+            it('logs the overwrite of an entry by a user as an update, not a creation', async function () {
+                await addToLibrary(libraryURL(), 'audit/over', 'flows', userToken)
                 await app.db.models.AuditLog.destroy({ where: {} })
-                await addToLibrary(libraryURL(), 'audit/over', 'flows', null, 'changed')
+                await addToLibrary(libraryURL(), 'audit/over', 'flows', userToken, 'changed')
                 const updated = await auditEntries('team.library.entry.updated')
                 updated.should.have.length(1)
                 updated[0].libraryEntry.should.have.property('name', 'audit/over')
@@ -456,10 +463,17 @@ describe('Library Storage API', function () {
                 created.should.have.length(0)
             })
 
+            it('does not log saves by an instance, which Node-RED already logs', async function () {
+                await addToLibrary(libraryURL(), 'audit/instance', 'flows')
+                await addToLibrary(libraryURL(), 'audit/instance', 'flows', null, 'changed')
+                ;(await auditEntries('team.library.entry.created')).should.have.length(0)
+                ;(await auditEntries('team.library.entry.updated')).should.have.length(0)
+            })
+
             it('does not log a rejected entry', async function () {
-                await addToLibrary(libraryURL(), 'audit/file', 'flows')
+                await addToLibrary(libraryURL(), 'audit/file', 'flows', userToken)
                 await app.db.models.AuditLog.destroy({ where: {} })
-                const response = await addToLibrary(libraryURL(), 'audit/file/child', 'flows')
+                const response = await addToLibrary(libraryURL(), 'audit/file/child', 'flows', userToken)
                 response.statusCode.should.equal(400)
                 const entries = await auditEntries('team.library.entry.created')
                 entries.should.have.length(0)
