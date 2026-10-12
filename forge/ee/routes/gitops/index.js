@@ -72,6 +72,21 @@ module.exports = async function (app) {
                 reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                 return
             }
+            const stageRepos = await app.db.models.PipelineStageGitRepo.findAll({
+                where: { GitTokenId: token.id },
+                include: [{
+                    model: app.db.models.PipelineStage,
+                    include: [app.db.models.Pipeline]
+                }]
+            })
+            if (stageRepos.length > 0) {
+                const pipelineNames = [...new Set(stageRepos.map(repo => repo.PipelineStage?.Pipeline?.name).filter(Boolean))]
+                reply.code(409).send({
+                    code: 'token_in_use',
+                    error: `Git token is in use by pipelines: ${pipelineNames.join(', ')}`
+                })
+                return
+            }
             await token.destroy()
             reply.send({})
         } catch (err) {
