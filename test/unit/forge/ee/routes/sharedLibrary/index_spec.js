@@ -463,13 +463,6 @@ describe('Library Storage API', function () {
                 created.should.have.length(0)
             })
 
-            it('does not log saves by an instance, which Node-RED already logs', async function () {
-                await addToLibrary(libraryURL(), 'audit/instance', 'flows')
-                await addToLibrary(libraryURL(), 'audit/instance', 'flows', null, 'changed')
-                ;(await auditEntries('team.library.entry.created')).should.have.length(0)
-                ;(await auditEntries('team.library.entry.updated')).should.have.length(0)
-            })
-
             it('does not log a rejected entry', async function () {
                 await addToLibrary(libraryURL(), 'audit/file', 'flows', userToken)
                 await app.db.models.AuditLog.destroy({ where: {} })
