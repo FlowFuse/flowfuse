@@ -12,7 +12,7 @@ module.exports = async function (app) {
             }
             await request.team.ensureTeamTypeExists()
             if (!request.team.getFeatureProperty('gitIntegration', false)) {
-                reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                reply.code(404).send({ code: 'not_found', error: 'Not Found - Git integration is not enabled for this team' })
                 return
             }
             if (!request.teamMembership) {
@@ -72,15 +72,39 @@ module.exports = async function (app) {
                 reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                 return
             }
+            const stageRepos = await app.db.models.PipelineStageGitRepo.findAll({
+                where: { GitTokenId: token.id },
+                include: [{
+                    model: app.db.models.PipelineStage,
+                    include: [app.db.models.Pipeline]
+                }]
+            })
+            if (stageRepos.length > 0) {
+                const pipelineNames = [...new Set(stageRepos.map(repo => repo.PipelineStage?.Pipeline?.name).filter(Boolean))]
+                reply.code(409).send({
+                    code: 'token_in_use',
+                    error: `Git token is in use by pipelines: ${pipelineNames.join(', ')}`
+                })
+                return
+            }
             await token.destroy()
             reply.send({})
         } catch (err) {
-            reply.status(500).send({ error: 'unknown_error', message: err.toString() })
+            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
     app.put('/tokens/:tokenId', {
-        preHandler: app.needsPermission('team:git:tokens:edit')
+        preHandler: app.needsPermission('team:git:tokens:edit'),
+        schema: {
+            body: {
+                type: 'object',
+                required: ['name'],
+                properties: {
+                    name: { type: 'string', minLength: 1 }
+                }
+            }
+        }
     }, async (request, reply) => {
         try {
             const token = await app.db.models.GitToken.byId(request.params.tokenId, request.team.id)
@@ -89,13 +113,13 @@ module.exports = async function (app) {
                 reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                 return
             }
-            if (request.body.name && token.name !== request.body.name) {
+            if (token.name !== request.body.name) {
                 token.name = request.body.name
                 await token.save()
             }
             reply.send(app.db.views.GitToken.token(token))
         } catch (err) {
-            reply.status(500).send({ error: 'unknown_error', message: err.toString() })
+            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 

@@ -50,7 +50,7 @@ describe('Library Storage API', function () {
 
     describe('/library', function () {
         async function addToLibrary (libraryURL, name, type, token, contents) {
-            contents = contents || 'contents'
+            contents = contents || (type === 'flows' ? '[]' : 'contents')
             token = token || tokens.token
             return await app.inject({
                 method: 'POST',
@@ -323,6 +323,56 @@ describe('Library Storage API', function () {
             response2.statusCode.should.equal(400)
         })
 
+        describe('POST validation', function () {
+            const post = (path, payload, extra = {}) => app.inject({
+                method: 'POST',
+                url: `/storage/library/${app.team.hashid}/${path}`,
+                payload,
+                headers: { authorization: `Bearer ${tokens.token}` },
+                ...extra
+            })
+
+            it('rejects empty, trailing slash, empty, dot and dot-dot names', async function () {
+                for (const name of ['', 'tr/', 'a//b', 'a%2F..%2Fb', 'a%2F.']) {
+                    const response = await post(name, { type: 'functions', body: 'x' })
+                    response.statusCode.should.equal(400, name)
+                    response.json().should.have.property('code', 'invalid_name')
+                }
+                const count = await app.db.models.StorageSharedLibrary.count()
+                count.should.equal(0)
+            })
+
+            it('accepts nested folder names with dots inside segments', async function () {
+                const response = await post('folder/sub.dir/my..flow', { type: 'functions', body: 'x' })
+                response.statusCode.should.equal(201)
+            })
+
+            it('rejects a flows body that is not valid JSON', async function () {
+                const response = await post('bad', { type: 'flows', body: 'not json' })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            })
+
+            it('accepts flows as an object, array or JSON string', async function () {
+                const libraryURL = `/storage/library/${app.team.hashid}/`
+                for (const [name, body] of [['obj', { a: 1 }], ['arr', [{ id: '1' }]], ['str', '[{"id":"1"}]']]) {
+                    const response = await post(name, { type: 'flows', body })
+                    response.statusCode.should.equal(201)
+                    const get = await getFromLibrary(libraryURL, name, 'flows')
+                    get.statusCode.should.equal(200)
+                }
+            })
+
+            it('rejects a missing or null body', async function () {
+                const none = await post('nobody', undefined)
+                none.statusCode.should.equal(400)
+                none.json().should.have.property('code', 'invalid_request')
+                const nul = await post('nullbody', 'null', { headers: { authorization: `Bearer ${tokens.token}`, 'content-type': 'application/json' } })
+                nul.statusCode.should.equal(400)
+                nul.json().should.have.property('code', 'invalid_request')
+            })
+        })
+
         it('Deletes an individual entry', async function () {
             const libraryURL = `/storage/library/${app.team.hashid}/`
             /*
@@ -502,6 +552,44 @@ describe('Library Storage API', function () {
             const tokens = await project.refreshAuthTokens()
             await shouldRejectGet(`/storage/library/${team.hashid}/`, tokens.token)
             await shouldRejectPost(`/storage/library/${team.hashid}/foo`, tokens.token)
+        })
+
+        it('Names the disabled feature to team members but not to non-members', async function () {
+            const teamType = await app.factory.createTeamType({
+                name: 'no-shared-library-type-2',
+                properties: {
+                    features: { 'shared-library': false }
+                }
+            })
+            const team = await app.factory.createTeam({ name: 'team4', TeamTypeId: teamType.id })
+            const project = await app.db.models.Project.create({ name: generateName('project'), type: '', url: '' })
+            await team.addProject(project)
+            const projectTokens = await project.refreshAuthTokens()
+
+            const member = await app.factory.createUser({ username: 'disabledmember', name: 'Disabled Member', email: 'disabledmember@example.com', password: 'ooPassword' })
+            await team.addUser(member, { through: { role: app.factory.Roles.Roles.Owner } })
+            const memberPAT = (await app.db.controllers.AccessToken.createPersonalAccessToken(member, '', null, 'member-pat')).token
+            const outsider = await app.factory.createUser({ username: 'disabledoutsider', name: 'Disabled Outsider', email: 'disabledoutsider@example.com', password: 'ooPassword' })
+            const outsiderPAT = (await app.db.controllers.AccessToken.createPersonalAccessToken(outsider, '', null, 'disabled-outsider-pat')).token
+
+            const url = `/storage/library/${team.hashid}/foo`
+            const get = (token) => app.inject({ method: 'GET', url, headers: { authorization: `Bearer ${token}` } })
+
+            const projectResponse = await get(projectTokens.token)
+            projectResponse.statusCode.should.equal(404)
+            projectResponse.json().should.have.property('error', 'Not Found - Shared Library is not enabled for this team')
+
+            const memberResponse = await get(memberPAT)
+            memberResponse.statusCode.should.equal(404)
+            memberResponse.json().should.have.property('error', 'Not Found - Shared Library is not enabled for this team')
+
+            const outsiderResponse = await get(outsiderPAT)
+            outsiderResponse.statusCode.should.equal(404)
+            outsiderResponse.json().should.have.property('error', 'Not Found')
+
+            const project1Response = await get(tokens.token)
+            project1Response.statusCode.should.equal(404)
+            project1Response.json().should.have.property('error', 'Not Found')
         })
     })
 })

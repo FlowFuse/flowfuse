@@ -6,8 +6,9 @@
             direction="horizontal"
             @mousedown="onStartResize"
         />
-        <div v-if="expertSurface !== 'onboarding'" class="action-buttons">
+        <div v-if="showActionButtons" class="action-buttons">
             <button
+                v-if="showSessionControls"
                 type="button"
                 class="btn-start-over"
                 :disabled="isWaitingForResponse && !isSessionExpired"
@@ -17,7 +18,7 @@
             </button>
             <div class="right-buttons">
                 <default-chip
-                    v-if="!isInsightsAgent"
+                    v-if="showSessionControls && !isInsightsAgent"
                     class="plan-mode-chip"
                     text="Plan mode"
                     :modelValue="planMode"
@@ -56,7 +57,7 @@
                 v-model="inputText"
                 class="chat-input"
                 :placeholder="placeholderText"
-                :disabled="isInputDisabled"
+                :disabled="isComposerDisabled"
                 @keydown="handleKeydown"
                 @focus="isTextareaFocused = true"
                 @blur="isTextareaFocused = false"
@@ -72,12 +73,13 @@
                         v-if="isWaitingForResponse && !isSessionExpired"
                         type="button"
                         class="btn-stop"
+                        :disabled="isStoppingTurn"
                         @click="handleStop"
                     >
-                        Stop
+                        {{ isStoppingTurn ? 'Stopping' : 'Stop' }}
                     </button>
                     <button
-                        v-else-if="!isSessionExpired"
+                        v-else-if="!isSessionExpired || startsNewChat"
                         type="button"
                         class="btn-send"
                         :disabled="!canSend"
@@ -121,6 +123,7 @@
 <script>
 import { Cog8ToothIcon } from '@heroicons/vue/20/solid'
 import { mapActions, mapState } from 'pinia'
+import { unref } from 'vue'
 
 import FormHeading from '../../FormHeading.vue'
 import ResizeBar from '../../ResizeBar.vue'
@@ -131,6 +134,7 @@ import ToolPermissionsSettings from './ToolPermissionsSettings.vue'
 import DefaultChip from './chips/DefaultChip.vue'
 import ContextSelector from './context-selection/index.vue'
 
+import { EXPERT_SURFACES, isFullPageSurface } from '@/components/expert/surfaces.js'
 import { usePromptSuggestions } from '@/composables/PromptSuggestions'
 import { useResizingHelper } from '@/composables/ResizingHelper.js'
 
@@ -158,6 +162,10 @@ export default {
         expertSurface: {
             from: 'expert-surface',
             default: 'drawer'
+        },
+        expertChatOpen: {
+            from: 'expert-chat-open',
+            default: true
         }
     },
     emits: ['send', 'stop'],
@@ -211,7 +219,9 @@ export default {
             'hasSelectedCapabilities',
             'hasMessages',
             'isWaitingForResponse',
+            'isStoppingTurn',
             'isInputDisabled',
+            'isNewChatDisabled',
             'pendingInput',
             'composerCommand',
             'questionCadence',
@@ -234,8 +244,26 @@ export default {
         isDrawerPinned () {
             return this.rightDrawer.fixed
         },
+        // On the overview, a message sent while the conversation is folded away starts a new one
+        startsNewChat () {
+            return this.expertSurface === 'overview' && !unref(this.expertChatOpen) && this.hasUserTurns
+        },
+        isComposerDisabled () {
+            return this.startsNewChat ? this.isNewChatDisabled : this.isInputDisabled
+        },
         canSend () {
-            return this.inputText.trim().length > 0 && !this.isInputDisabled
+            return this.inputText.trim().length > 0 && !this.isComposerDisabled
+        },
+        isFullPageSurface () {
+            return isFullPageSurface(this.expertSurface)
+        },
+        // Building can call write tools, so its tool permissions have to stay reachable
+        showActionButtons () {
+            return !this.isFullPageSurface || this.expertSurface === EXPERT_SURFACES.BUILDING
+        },
+        // Full page surfaces drive the session and plan mode themselves
+        showSessionControls () {
+            return !this.isFullPageSurface
         },
         hasUserTurns () {
             // hasMessages is true from the off, the store seeds a welcome message,
@@ -243,7 +271,7 @@ export default {
             return this.messages.some(message => message._type === 'human')
         },
         showSuggestions () {
-            if (this.expertSurface === 'onboarding') return false
+            if (this.isFullPageSurface) return false
             if (this.expertSurface === 'overview') return false
             if (this.isInsightsAgent) return false
             if (this.suggestionUsed || this.suggestions.length === 0) return false
@@ -262,10 +290,13 @@ export default {
             if (this.isInsightsAgent && !this.hasSelectedCapabilities) {
                 return 'Select a resource to get started'
             }
+            if (this.startsNewChat && this.isWaitingForResponse && !this.isSessionExpired) {
+                return 'The Expert is still replying. Stop it to start a new chat'
+            }
             if (this.requestingPlanChange) {
                 return 'Describe a change to the plan, or paste an edited version'
             }
-            if (this.expertSurface === 'onboarding') {
+            if (this.isFullPageSurface) {
                 return 'Or just tell me in your own words'
             }
             return this.isInsightsAgent
@@ -334,7 +365,7 @@ export default {
     },
     methods: {
         ...mapActions(useProductAssistantStore, ['resetContextSelection']),
-        ...mapActions(useProductExpertStore, ['startOver', 'handleQuery', 'setPendingInput', 'setComposerCommand', 'setQuestionCadence', 'setPlanMode', 'fetchToolCatalog']),
+        ...mapActions(useProductExpertStore, ['startOver', 'startNewChat', 'handleQuery', 'setPendingInput', 'setComposerCommand', 'setQuestionCadence', 'setPlanMode', 'fetchToolCatalog']),
         focusInput () {
             this.$refs.textarea?.focus()
         },
@@ -354,7 +385,11 @@ export default {
             // handleQuery renders the reply itself (see the store); the isWaitingForResponse
             // watcher refocuses the input once the response completes (works for both HTTP
             // and MQTT, where the promise resolves before the actual response arrives).
-            this.handleQuery({ query: message }).catch(e => e)
+            if (this.startsNewChat) {
+                this.startNewChat({ query: message }).catch(e => e)
+            } else {
+                this.handleQuery({ query: message }).catch(e => e)
+            }
 
             this.inputText = ''
             this.requestingPlanChange = false
@@ -436,6 +471,7 @@ export default {
 
 .right-buttons {
     display: flex;
+    margin-left: auto;
     gap: 0.5rem;
     align-items: center;
 }
@@ -518,7 +554,7 @@ button {
         border-radius: 0.125rem; // rounded-xs
     }
 
-    &:hover {
+    &:hover:not(:disabled) {
         background-color: var(--ff-color-bg-surface); // gray-50
     }
 }

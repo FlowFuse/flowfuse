@@ -27,6 +27,7 @@ import FlowFuseEventCard from './messages/FlowFuseEventCard.vue'
 import HumanMessage from './messages/HumanMessage.vue'
 import SystemMessage from './messages/SystemMessage.vue'
 
+import { isFullPageSurface } from '@/components/expert/surfaces.js'
 import { downloadData } from '@/composables/Download.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 
@@ -57,8 +58,8 @@ export default {
             }
         },
         renderList () {
-            // The onboarding surface folds answered question turns into quiet while the drawer renders the transcript as-is.
-            if (this.expertSurface === 'onboarding') {
+            // Full page surfaces fold answered question turns into quiet while the drawer renders the transcript as-is.
+            if (isFullPageSurface(this.expertSurface)) {
                 return buildCollapsedTranscript(this.messages)
             }
             return this.messages.map(message => ({ kind: 'message', message }))

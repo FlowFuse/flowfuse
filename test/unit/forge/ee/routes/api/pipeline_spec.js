@@ -1384,6 +1384,104 @@ describe('Pipelines API', function () {
             })
         })
 
+        describe('Git token in use', function () {
+            let gitToken
+            let gitRepo
+            let originalFeatures
+
+            before(async function () {
+                const properties = app.defaultTeamType.properties
+                originalFeatures = properties.features
+                properties.features = { ...properties.features, gitIntegration: true }
+                app.defaultTeamType.properties = properties
+                await app.defaultTeamType.save()
+            })
+
+            after(async function () {
+                const properties = app.defaultTeamType.properties
+                properties.features = originalFeatures
+                app.defaultTeamType.properties = properties
+                await app.defaultTeamType.save()
+            })
+
+            beforeEach(async function () {
+                gitToken = await app.db.models.GitToken.create({
+                    name: 'in-use-token',
+                    token: 'git-token-secret',
+                    type: 'github',
+                    TeamId: TestObjects.team.id
+                })
+                gitRepo = await app.db.models.PipelineStageGitRepo.create({
+                    url: 'https://example.com/repo.git',
+                    branch: 'main',
+                    GitTokenId: gitToken.id,
+                    PipelineStageId: TestObjects.stageOne.id
+                })
+            })
+
+            afterEach(async function () {
+                await gitRepo.destroy()
+                await app.db.models.GitToken.destroy({ where: { id: gitToken.id } })
+            })
+
+            it('Should refuse to delete a git token used by a pipeline stage', async function () {
+                const response = await app.inject({
+                    method: 'DELETE',
+                    url: `/api/v1/teams/${TestObjects.team.hashid}/git/tokens/${gitToken.hashid}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(409)
+                const body = response.json()
+                body.should.have.property('code', 'token_in_use')
+                body.should.have.property('error').match(new RegExp(TestObjects.pipeline.name))
+                should(await app.db.models.GitToken.byId(gitToken.id)).not.be.null()
+            })
+
+            it('Should delete a git token once no pipeline stage uses it', async function () {
+                await gitRepo.destroy()
+
+                const response = await app.inject({
+                    method: 'DELETE',
+                    url: `/api/v1/teams/${TestObjects.team.hashid}/git/tokens/${gitToken.hashid}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(200)
+                should(await app.db.models.GitToken.byId(gitToken.id)).be.null()
+                gitRepo = await app.db.models.PipelineStageGitRepo.create({
+                    url: 'https://example.com/repo.git',
+                    branch: 'main',
+                    PipelineStageId: TestObjects.stageOne.id
+                })
+            })
+
+            it('Should report a missing git token when pulling', async function () {
+                gitRepo.GitTokenId = null
+                await gitRepo.save()
+
+                const result = await gitRepo.pull({})
+
+                should(result).be.null()
+                await gitRepo.reload()
+                gitRepo.should.have.property('status', 'error')
+                gitRepo.should.have.property('statusMessage', 'No git token is set for this stage')
+            })
+
+            it('Should report a missing git token when deploying', async function () {
+                gitRepo.GitTokenId = null
+                await gitRepo.save()
+
+                await gitRepo.deploy({}, {})
+                await new Promise(resolve => setImmediate(resolve))
+                await new Promise(resolve => setTimeout(resolve, 50))
+
+                await gitRepo.reload()
+                gitRepo.should.have.property('status', 'error')
+                gitRepo.should.have.property('statusMessage', 'No git token is set for this stage')
+            })
+        })
+
         describe('With git settings', function () {
             async function createGitToken () {
                 return app.db.models.GitToken.create({

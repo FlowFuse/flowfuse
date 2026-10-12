@@ -87,6 +87,14 @@ describe('QuestionsList', () => {
         expect(onboarding.vm.tileLayout).toBe(true)
     })
 
+    test('uses the tile layout on the building surface too', () => {
+        const building = mount(QuestionsList, {
+            props: { questions: singleQuestion },
+            global: { stubs, provide: { 'expert-surface': 'building' } }
+        })
+        expect(building.vm.tileLayout).toBe(true)
+    })
+
     test('applies the tile class to checkbox options only on the onboarding surface', () => {
         const drawer = mountList(multiQuestion)
         expect(drawer.find('.ff-checkbox--tile').exists()).toBe(false)

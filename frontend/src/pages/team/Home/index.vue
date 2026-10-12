@@ -37,18 +37,22 @@
                             </div>
 
                             <template #actions>
-                                <ff-button
-                                    v-ff-tooltip:left="!hasPermission('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
-                                    data-action="create-project"
-                                    kind="secondary"
-                                    :to="{name: 'team-instance-create'}"
-                                    :disabled="!hasPermission('project:create')"
-                                >
-                                    <template #icon-left>
-                                        <PlusIcon class="ff-icon" />
-                                    </template>
-                                    Add Instance
-                                </ff-button>
+                                <div class="flex gap-2">
+                                    <ExpertBuildButton v-if="hasPermission('project:create')" target="instance" />
+                                    <ff-button
+                                        v-ff-tooltip:left="!hasPermissionInAnyApplication('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
+                                        v-ff-track="'ff-instance-create-clicked'"
+                                        data-action="create-project"
+                                        kind="secondary"
+                                        :to="{name: 'team-instance-create'}"
+                                        :disabled="!hasPermissionInAnyApplication('project:create')"
+                                    >
+                                        <template #icon-left>
+                                            <PlusIcon class="ff-icon" />
+                                        </template>
+                                        Add Instance
+                                    </ff-button>
+                                </div>
                             </template>
 
                             <RecentlyModifiedInstances :total-instances="totalInstances" @delete-instance="openDeleteInstanceForm" />
@@ -84,19 +88,22 @@
                                 </template>
                             </EmptyState>
                             <template #actions>
-                                <ff-button
-                                    v-if="featuresCheck.isRemoteInstanceFeatureEnabledForPlatform"
-                                    v-ff-tooltip:left="!hasPermission('device:create') && 'Your role does not allow creating new remote instances. Contact a team admin to change your role.'"
-                                    data-action="create-project"
-                                    kind="secondary"
-                                    :disabled="!hasPermission('device:create') || teamDeviceLimitReached"
-                                    @click="showCreateDeviceDialog"
-                                >
-                                    <template #icon-left>
-                                        <PlusIcon class="ff-icon" />
-                                    </template>
-                                    Add Instance
-                                </ff-button>
+                                <div v-if="featuresCheck.isRemoteInstanceFeatureEnabledForPlatform" class="flex gap-2">
+                                    <ExpertBuildButton v-if="hasPermission('device:create')" target="device" />
+                                    <ff-button
+                                        v-ff-tooltip:left="!hasPermission('device:create') && 'Your role does not allow creating new remote instances. Contact a team admin to change your role.'"
+                                        v-ff-track="'ff-device-create-clicked'"
+                                        data-action="create-project"
+                                        kind="secondary"
+                                        :disabled="!hasPermission('device:create') || teamDeviceLimitReached"
+                                        @click="showCreateDeviceDialog"
+                                    >
+                                        <template #icon-left>
+                                            <PlusIcon class="ff-icon" />
+                                        </template>
+                                        Add Instance
+                                    </ff-button>
+                                </div>
                             </template>
                         </DashboardSection>
                     </section>
@@ -161,6 +168,7 @@ import RecentlyModifiedDevices from './components/RecentlyModifiedDevices.vue'
 import RecentlyModifiedInstances from './components/RecentlyModifiedInstances.vue'
 
 import EmptyState from '@/components/EmptyState.vue'
+import ExpertBuildButton from '@/components/expert/ExpertBuildButton.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
@@ -171,6 +179,7 @@ import sumCounts from '@/utils/sumCounts'
 export default {
     name: 'TeamHome',
     components: {
+        ExpertBuildButton,
         TeamHomeExpert,
         EmptyState,
         DeviceCredentialsDialog,
@@ -189,10 +198,11 @@ export default {
     setup () {
         const { groupBySimplifiedStates } = useInstanceStates()
 
-        const { hasPermission } = usePermissions()
+        const { hasPermission, hasPermissionInAnyApplication } = usePermissions()
         return {
             groupBySimplifiedStates,
-            hasPermission
+            hasPermission,
+            hasPermissionInAnyApplication
         }
     },
     data () {
