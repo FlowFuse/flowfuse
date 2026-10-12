@@ -505,7 +505,7 @@ describe('Library Storage API', function () {
             it('logs the overwrite of an entry by a user as an update, not a creation', async function () {
                 await addToLibrary(libraryURL(), 'audit/over', 'flows', userToken)
                 await app.db.models.AuditLog.destroy({ where: {} })
-                await addToLibrary(libraryURL(), 'audit/over', 'flows', userToken, 'changed')
+                await addToLibrary(libraryURL(), 'audit/over', 'flows', userToken, '[{"id":"changed"}]')
                 const updated = await auditEntries('team.library.entry.updated')
                 updated.should.have.length(1)
                 updated[0].libraryEntry.should.have.property('name', 'audit/over')
