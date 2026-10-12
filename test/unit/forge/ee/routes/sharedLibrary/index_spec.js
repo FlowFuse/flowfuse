@@ -503,5 +503,43 @@ describe('Library Storage API', function () {
             await shouldRejectGet(`/storage/library/${team.hashid}/`, tokens.token)
             await shouldRejectPost(`/storage/library/${team.hashid}/foo`, tokens.token)
         })
+
+        it('Names the disabled feature to team members but not to non-members', async function () {
+            const teamType = await app.factory.createTeamType({
+                name: 'no-shared-library-type-2',
+                properties: {
+                    features: { 'shared-library': false }
+                }
+            })
+            const team = await app.factory.createTeam({ name: 'team4', TeamTypeId: teamType.id })
+            const project = await app.db.models.Project.create({ name: generateName('project'), type: '', url: '' })
+            await team.addProject(project)
+            const projectTokens = await project.refreshAuthTokens()
+
+            const member = await app.factory.createUser({ username: 'disabledmember', name: 'Disabled Member', email: 'disabledmember@example.com', password: 'ooPassword' })
+            await team.addUser(member, { through: { role: app.factory.Roles.Roles.Owner } })
+            const memberPAT = (await app.db.controllers.AccessToken.createPersonalAccessToken(member, '', null, 'member-pat')).token
+            const outsider = await app.factory.createUser({ username: 'disabledoutsider', name: 'Disabled Outsider', email: 'disabledoutsider@example.com', password: 'ooPassword' })
+            const outsiderPAT = (await app.db.controllers.AccessToken.createPersonalAccessToken(outsider, '', null, 'disabled-outsider-pat')).token
+
+            const url = `/storage/library/${team.hashid}/foo`
+            const get = (token) => app.inject({ method: 'GET', url, headers: { authorization: `Bearer ${token}` } })
+
+            const projectResponse = await get(projectTokens.token)
+            projectResponse.statusCode.should.equal(404)
+            projectResponse.json().should.have.property('error', 'Not Found - Shared Library is not enabled for this team')
+
+            const memberResponse = await get(memberPAT)
+            memberResponse.statusCode.should.equal(404)
+            memberResponse.json().should.have.property('error', 'Not Found - Shared Library is not enabled for this team')
+
+            const outsiderResponse = await get(outsiderPAT)
+            outsiderResponse.statusCode.should.equal(404)
+            outsiderResponse.json().should.have.property('error', 'Not Found')
+
+            const project1Response = await get(tokens.token)
+            project1Response.statusCode.should.equal(404)
+            project1Response.json().should.have.property('error', 'Not Found')
+        })
     })
 })
