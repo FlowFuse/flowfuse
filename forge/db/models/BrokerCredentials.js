@@ -110,7 +110,7 @@ module.exports = {
                     }
                     const limit = Math.min(parseInt(pagination.limit) || 100, 100)
                     if (pagination.cursor) {
-                        pagination.cursor = M.BrokerCredentials.decodeHashid(pagination.cursor)
+                        pagination.cursor = M.BrokerCredentials.decodeCursor(pagination.cursor)
                     }
                     const [rows, count] = await Promise.all([
                         this.findAll({

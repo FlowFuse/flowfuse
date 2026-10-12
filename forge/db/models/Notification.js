@@ -66,7 +66,7 @@ module.exports = {
                         // As we aren't using the default cursor behaviour (Op.gt)
                         // set the appropriate clause and delete cursor so that
                         // buildPaginationSearchClause doesn't do it for us
-                        where.id = { [Op.lt]: M.Notification.decodeHashid(pagination.cursor) }
+                        where.id = { [Op.lt]: M.Notification.decodeCursor(pagination.cursor) }
                         delete pagination.cursor
                     }
                     const { count, rows } = await this.findAndCountAll({
