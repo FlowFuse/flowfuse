@@ -50,7 +50,7 @@ describe('Library Storage API', function () {
 
     describe('/library', function () {
         async function addToLibrary (libraryURL, name, type, token, contents) {
-            contents = contents || 'contents'
+            contents = contents || (type === 'flows' ? '[]' : 'contents')
             token = token || tokens.token
             return await app.inject({
                 method: 'POST',
@@ -321,6 +321,56 @@ describe('Library Storage API', function () {
             // Now try to create an entry that clashes with the directory test/foo
             const response2 = await addToLibrary(libraryURL, 'test/foo', 'functions')
             response2.statusCode.should.equal(400)
+        })
+
+        describe('POST validation', function () {
+            const post = (path, payload, extra = {}) => app.inject({
+                method: 'POST',
+                url: `/storage/library/${app.team.hashid}/${path}`,
+                payload,
+                headers: { authorization: `Bearer ${tokens.token}` },
+                ...extra
+            })
+
+            it('rejects empty, trailing slash, empty, dot and dot-dot names', async function () {
+                for (const name of ['', 'tr/', 'a//b', 'a%2F..%2Fb', 'a%2F.']) {
+                    const response = await post(name, { type: 'functions', body: 'x' })
+                    response.statusCode.should.equal(400, name)
+                    response.json().should.have.property('code', 'invalid_name')
+                }
+                const count = await app.db.models.StorageSharedLibrary.count()
+                count.should.equal(0)
+            })
+
+            it('accepts nested folder names with dots inside segments', async function () {
+                const response = await post('folder/sub.dir/my..flow', { type: 'functions', body: 'x' })
+                response.statusCode.should.equal(201)
+            })
+
+            it('rejects a flows body that is not valid JSON', async function () {
+                const response = await post('bad', { type: 'flows', body: 'not json' })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            })
+
+            it('accepts flows as an object, array or JSON string', async function () {
+                const libraryURL = `/storage/library/${app.team.hashid}/`
+                for (const [name, body] of [['obj', { a: 1 }], ['arr', [{ id: '1' }]], ['str', '[{"id":"1"}]']]) {
+                    const response = await post(name, { type: 'flows', body })
+                    response.statusCode.should.equal(201)
+                    const get = await getFromLibrary(libraryURL, name, 'flows')
+                    get.statusCode.should.equal(200)
+                }
+            })
+
+            it('rejects a missing or null body', async function () {
+                const none = await post('nobody', undefined)
+                none.statusCode.should.equal(400)
+                none.json().should.have.property('code', 'invalid_request')
+                const nul = await post('nullbody', 'null', { headers: { authorization: `Bearer ${tokens.token}`, 'content-type': 'application/json' } })
+                nul.statusCode.should.equal(400)
+                nul.json().should.have.property('code', 'invalid_request')
+            })
         })
 
         it('Deletes an individual entry', async function () {
