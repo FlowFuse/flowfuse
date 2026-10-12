@@ -75,12 +75,12 @@
                         </ff-popover>
                         <ExpertBuildButton v-if="hasPermission('project:create')" target="instance" />
                         <ff-button
-                            v-ff-tooltip:left="!hasPermission('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
+                            v-ff-tooltip:left="!hasPermissionInAnyApplication('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
                             v-ff-track="'ff-instance-create-clicked'"
                             data-action="create-project"
                             kind="primary"
                             :to="{name: 'team-instance-create'}"
-                            :disabled="!hasPermission('project:create')"
+                            :disabled="!hasPermissionInAnyApplication('project:create')"
                         >
                             <template #icon-left>
                                 <PlusSmallIcon />
@@ -151,11 +151,11 @@
                     <template #actions>
                         <ExpertBuildButton v-if="hasPermission('project:create')" target="instance" />
                         <ff-button
-                            v-ff-tooltip:bottom="!hasPermission('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
+                            v-ff-tooltip:bottom="!hasPermissionInAnyApplication('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
                             v-ff-track="'ff-instance-create-clicked'"
                             kind="primary"
                             :to="{name: 'team-instance-create'}"
-                            :disabled="!hasPermission('project:create')"
+                            :disabled="!hasPermissionInAnyApplication('project:create')"
                         >
                             <template #icon-left>
                                 <PlusSmallIcon />
@@ -231,9 +231,9 @@ export default {
     setup () {
         const { statesMap } = useInstanceStates()
         const { navigateTo } = useNavigationHelper()
-        const { hasPermission } = usePermissions()
+        const { hasPermission, hasPermissionInAnyApplication } = usePermissions()
 
-        return { hasPermission, navigateTo, statesMap }
+        return { hasPermission, hasPermissionInAnyApplication, navigateTo, statesMap }
     },
     data () {
         return {
