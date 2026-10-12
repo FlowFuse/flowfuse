@@ -73,12 +73,14 @@
                                 </section>
                             </template>
                         </ff-popover>
+                        <ExpertBuildButton v-if="hasPermission('project:create')" target="instance" />
                         <ff-button
-                            v-ff-tooltip:left="!hasPermission('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
+                            v-ff-tooltip:left="!hasPermissionInAnyApplication('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
+                            v-ff-track="'ff-instance-create-clicked'"
                             data-action="create-project"
                             kind="primary"
                             :to="{name: 'team-instance-create'}"
-                            :disabled="!hasPermission('project:create')"
+                            :disabled="!hasPermissionInAnyApplication('project:create')"
                         >
                             <template #icon-left>
                                 <PlusSmallIcon />
@@ -147,11 +149,13 @@
                         </p>
                     </template>
                     <template #actions>
+                        <ExpertBuildButton v-if="hasPermission('project:create')" target="instance" />
                         <ff-button
-                            v-ff-tooltip:bottom="!hasPermission('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
+                            v-ff-tooltip:bottom="!hasPermissionInAnyApplication('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
+                            v-ff-track="'ff-instance-create-clicked'"
                             kind="primary"
                             :to="{name: 'team-instance-create'}"
-                            :disabled="!hasPermission('project:create')"
+                            :disabled="!hasPermissionInAnyApplication('project:create')"
                         >
                             <template #icon-left>
                                 <PlusSmallIcon />
@@ -204,6 +208,7 @@ import DashboardLink from '../instance/components/DashboardLink.vue'
 import InstanceEditorLink from '../instance/components/EditorLink.vue'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 
+import ExpertBuildButton from '@/components/expert/ExpertBuildButton.vue'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useDataFarmHostedInstancesStore } from '@/stores/data-farm-hosted-instances'
@@ -213,6 +218,7 @@ import PopoverItem from '@/ui-components/components/PopoverItem.vue'
 export default {
     name: 'TeamInstances',
     components: {
+        ExpertBuildButton,
         ConfirmInstanceDeleteDialog,
         InstanceStatusPolling,
         InstanceEditorLink,
@@ -225,9 +231,9 @@ export default {
     setup () {
         const { statesMap } = useInstanceStates()
         const { navigateTo } = useNavigationHelper()
-        const { hasPermission } = usePermissions()
+        const { hasPermission, hasPermissionInAnyApplication } = usePermissions()
 
-        return { hasPermission, navigateTo, statesMap }
+        return { hasPermission, hasPermissionInAnyApplication, navigateTo, statesMap }
     },
     data () {
         return {

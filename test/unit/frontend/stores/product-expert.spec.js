@@ -7,12 +7,13 @@ import { INSIGHTS_AGENT, SUPPORT_AGENT } from '@/stores/product-expert-agents.js
 // (e.g. isExternalMqttBrokerFeatureEnabled, isOnboarding) without redefining the mock.
 const accountSettingsState = { featuresCheck: { isExpertAssistantFeatureEnabled: true } }
 const contextState = { team: null, expert: {} }
-const uxState = { isOnboarding: false }
+const uxState = { isOnboarding: false, building: false, stopBuilding: vi.fn(() => { uxState.building = false }) }
 const mqttService = {
     hasClient: vi.fn(() => false),
     createClient: vi.fn(() => Promise.resolve()),
     destroyClient: vi.fn(() => Promise.resolve()),
     publishMessage: vi.fn(() => Promise.resolve()),
+    subscribe: vi.fn(() => Promise.resolve()),
     getManagedClient: vi.fn(() => ({ status: 'connected' }))
 }
 
@@ -28,6 +29,10 @@ vi.mock('@/stores/ux.js', () => ({
     useUxStore: vi.fn(() => uxState)
 }))
 
+vi.mock('@/services/product.js', () => ({
+    default: { capture: vi.fn() }
+}))
+
 vi.mock('@/services/app.orchestrator', () => {
     const orchestrator = () => ({ $services: { mqtt: mqttService, automations: { dispatch, getToolDefinitions } } })
     return { default: orchestrator, getAppOrchestrator: orchestrator }
@@ -40,7 +45,8 @@ vi.mock('@/stores/product-assistant.js', () => ({
         toolCatalogHash: undefined,
         invokeActionAwaitResponse: invokeAction,
         clearSessionToolOverrides: vi.fn(),
-        clearToolApprovalStatuses: vi.fn()
+        clearToolApprovalStatuses: vi.fn(),
+        setToolApprovalStatus: vi.fn()
     }))
 }))
 
@@ -77,6 +83,7 @@ vi.mock('@/stores/account-auth.js', () => ({
 const { useProductExpertStore } = await import('@/stores/product-expert.js')
 const { useProductExpertSupportAgentStore } = await import('@/stores/product-expert-support-agent.js')
 const { useProductExpertInsightsAgentStore } = await import('@/stores/product-expert-insights-agent.js')
+const { default: Product } = await import('@/services/product.js')
 const { useAccountAuthStore } = await import('@/stores/account-auth.js')
 describe('product-expert store', () => {
     beforeEach(() => {
@@ -179,6 +186,76 @@ describe('product-expert store', () => {
             store.setAgentMode(INSIGHTS_AGENT)
             useProductExpertInsightsAgentStore().setSelectedCapabilities([{ id: 'cap-1' }])
             expect(store.isInputDisabled).toBe(false)
+        })
+    })
+
+    describe('isNewChatDisabled getter', () => {
+        it('is true while a live response is in flight', () => {
+            const store = useProductExpertStore()
+            store.setAbortController(new AbortController())
+            expect(store.isNewChatDisabled).toBe(true)
+        })
+
+        it('is false once the session has expired, even with a response left hanging', () => {
+            const store = useProductExpertStore()
+            store.setAbortController(new AbortController())
+            store._agentStore.sessionExpiredShown = true
+            expect(store.isNewChatDisabled).toBe(false)
+        })
+
+        it('is true for the insights agent with no capabilities selected', () => {
+            const store = useProductExpertStore()
+            store.setAgentMode(INSIGHTS_AGENT)
+            useProductExpertInsightsAgentStore().setSelectedCapabilities([])
+            expect(store.isNewChatDisabled).toBe(true)
+        })
+    })
+
+    describe('startNewChat', () => {
+        // startOver reloads the insights capabilities, which waits for a team
+        beforeEach(() => {
+            contextState.team = { id: 'team-1' }
+        })
+
+        afterEach(() => {
+            contextState.team = null
+        })
+
+        it('clears the old thread and sends the query in a new session', async () => {
+            const store = useProductExpertStore()
+            store.addUserMessage('old question')
+            const oldSessionId = store._agentStore.sessionId
+            const handleQuery = vi.spyOn(store, 'handleQuery').mockResolvedValue()
+
+            await store.startNewChat({ query: 'new question' })
+
+            expect(store.messages.some(m => m._type === 'human')).toBe(false)
+            expect(store._agentStore.sessionId).not.toBe(oldSessionId)
+            expect(handleQuery).toHaveBeenCalledWith({ query: 'new question' })
+        })
+
+        it('drops a response left hanging by an expired session', async () => {
+            const store = useProductExpertStore()
+            store.setAbortController(new AbortController())
+            store._agentStore.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+            store._agentStore.sessionExpiredShown = true
+            vi.spyOn(store, 'handleQuery').mockResolvedValue()
+
+            await store.startNewChat({ query: 'new question' })
+
+            expect(store.abortController).toBeNull()
+            expect(store._agentStore.inFlightRequests.size).toBe(0)
+        })
+
+        it('keeps the insights resources the query was typed against', async () => {
+            const store = useProductExpertStore()
+            store.setAgentMode(INSIGHTS_AGENT)
+            useProductExpertInsightsAgentStore().setSelectedCapabilities([{ id: 'cap-1' }])
+            vi.spyOn(store, 'handleQuery').mockResolvedValue()
+
+            await store.startNewChat({ query: 'new question' })
+
+            expect(useProductExpertInsightsAgentStore().selectedCapabilities).toEqual([{ id: 'cap-1' }])
         })
     })
 
@@ -612,6 +689,7 @@ describe('product-expert store', () => {
         afterEach(() => {
             contextState.team = null
             uxState.isOnboarding = false
+            uxState.building = false
             delete accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled
             mqttService.hasClient.mockReturnValue(false)
         })
@@ -632,6 +710,43 @@ describe('product-expert store', () => {
             await useProductExpertStore().relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
 
             expect(mqttService.publishMessage).not.toHaveBeenCalled()
+        })
+
+        it('publishes during a build conversation outside onboarding', async () => {
+            uxState.building = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+            useProductExpertSupportAgentStore().sessionId = 'session-xyz'
+
+            await useProductExpertStore().relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+        })
+
+        it('captures the build event name during a build conversation', async () => {
+            uxState.building = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+
+            await useProductExpertStore().relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            expect(Product.capture).toHaveBeenCalledWith('ff-building-workspace-ready', {}, { team: 'team-1', instance: 'inst-1' })
+        })
+
+        it('keeps the onboarding event name during onboarding', async () => {
+            uxState.isOnboarding = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+
+            await useProductExpertStore().relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            expect(Product.capture).toHaveBeenCalledWith('ff-onboarding-workspace-ready', {}, { team: 'team-1', instance: 'inst-1' })
         })
 
         it('does not publish when the chat is not using the Expert MQTT channel', async () => {
@@ -803,7 +918,10 @@ describe('product-expert store', () => {
 
             const store = useProductExpertStore()
             await store.relayInstanceReady({ id: 'inst-1', name: 'first' })
-            await store.relayInstanceReady({ id: 'inst-2', name: 'second' })
+            const second = store.relayInstanceReady({ id: 'inst-2', name: 'second' })
+            useProductExpertSupportAgentStore().inFlightRequests.clear()
+            store._drainSendQueue()
+            await second
 
             expect(mqttService.publishMessage).toHaveBeenCalledTimes(2)
         })
@@ -940,6 +1058,285 @@ describe('product-expert store', () => {
             await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
 
             expect(mqttService.publishMessage).toHaveBeenCalledTimes(2)
+        })
+    })
+
+    describe('send queue', () => {
+        afterEach(() => {
+            contextState.team = null
+            uxState.building = false
+            delete accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled
+            mqttService.hasClient.mockReturnValue(false)
+        })
+
+        function arrangeMqtt () {
+            uxState.building = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+        }
+
+        function settle (store) {
+            useProductExpertSupportAgentStore().inFlightRequests.clear()
+            store._drainSendQueue()
+        }
+
+        it('holds an instance event while a turn is in flight', async () => {
+            arrangeMqtt()
+            const store = useProductExpertStore()
+            useProductExpertSupportAgentStore().inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+
+            const relay = store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+            await Promise.resolve()
+
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+
+            settle(store)
+            await relay
+
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+        })
+
+        it('sends queued items one at a time in arrival order', async () => {
+            arrangeMqtt()
+            const store = useProductExpertStore()
+            const order = []
+            const agent = useProductExpertSupportAgentStore()
+            agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+
+            const first = store._enqueueSend(async () => {
+                order.push('first')
+                agent.inFlightRequests.set('turn-2', { query: 'a', transactionId: 'turn-2' })
+            })
+            const second = store._enqueueSend(async () => { order.push('second') })
+
+            settle(store)
+            await first
+            await Promise.resolve()
+            expect(order).toEqual(['first'])
+
+            settle(store)
+            await second
+            expect(order).toEqual(['first', 'second'])
+        })
+
+        describe('after a stop', () => {
+            const replyTopic = 'ff/v1/expert/user-1/chat-1/team/team-1/support/chat/response'
+            const reply = (store, body) => store._onMqttMessage(replyTopic, JSON.stringify(body), {
+                properties: { correlationData: new TextEncoder().encode('turn-1') }
+            })
+
+            let store
+            let relay
+            beforeEach(async () => {
+                arrangeMqtt()
+                store = useProductExpertStore()
+                useProductExpertSupportAgentStore().inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+                relay = store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+                store.stopInflightChat()
+                await Promise.resolve()
+            })
+
+            afterEach(() => {
+                vi.useRealTimers()
+            })
+
+            it('holds the next queued item until the agent says the turn ended', async () => {
+                expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+                expect(mqttService.publishMessage.mock.calls[0][1].payload.abort).toBe(true)
+                expect(store.isStoppingTurn).toBe(true)
+
+                // The acknowledgement only means the abort arrived
+                await reply(store, { aborted: true, answer: [{ content: 'Transaction aborted', aborted: true }] })
+                expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+
+                await reply(store, { kind: 'chat', aborted: true, turnStopped: true })
+                await relay
+
+                expect(store.isStoppingTurn).toBe(false)
+                expect(mqttService.publishMessage).toHaveBeenCalledTimes(2)
+                expect(mqttService.publishMessage.mock.calls[1][1].payload.system.kind).toBe('instance-ready')
+            })
+
+            it('releases the queue without showing the answer of a turn that finished anyway', async () => {
+                const messageCount = store.messages.length
+
+                await reply(store, { kind: 'chat', answer: [{ kind: 'chat', content: 'Done' }] })
+                await relay
+
+                expect(store.messages).toHaveLength(messageCount)
+                expect(mqttService.publishMessage).toHaveBeenCalledTimes(2)
+            })
+
+            it('stops waiting once the fallback runs out', async () => {
+                vi.useFakeTimers()
+                store._turnStopped('turn-1')
+                useProductExpertSupportAgentStore().inFlightRequests.set('turn-2', { query: 'y', transactionId: 'turn-2' })
+                store.stopInflightChat()
+                expect(store.isStoppingTurn).toBe(true)
+
+                vi.advanceTimersByTime(15000)
+
+                expect(store.isStoppingTurn).toBe(false)
+            })
+
+            it('does not hold a new chat back', async () => {
+                await store.startOver()
+
+                expect(store.isStoppingTurn).toBe(false)
+                expect(store.isWaitingForResponse).toBe(false)
+            })
+        })
+
+        it('drops queued items on Start Over', async () => {
+            arrangeMqtt()
+            const store = useProductExpertStore()
+            useProductExpertSupportAgentStore().inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+
+            const relay = store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+            await store.startOver()
+            await relay
+
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+            expect(store._sendQueue).toHaveLength(0)
+        })
+
+        it('keeps the queue moving when rendering a reply throws', async () => {
+            arrangeMqtt()
+            const store = useProductExpertStore()
+            const transactionId = 'turn-1'
+            useProductExpertSupportAgentStore().inFlightRequests.set(transactionId, { query: 'x', transactionId })
+            const relay = store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+            vi.spyOn(store, 'handleMessageResponse').mockRejectedValueOnce(new Error('render failed'))
+
+            const topic = 'ff/v1/expert/user-1/chat-1/team/team-1/support/chat/response'
+            const packet = { properties: { correlationData: new TextEncoder().encode(transactionId) } }
+            await store._onMqttMessage(topic, JSON.stringify({}), packet).catch(() => undefined)
+            await relay
+
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+        })
+
+        it('holds instance events while the connection is down and sends them on reconnect', async () => {
+            arrangeMqtt()
+            const store = useProductExpertStore()
+
+            await store.handleMqttError(0x80, 'gone')
+            const relay = store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+            await Promise.resolve()
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+
+            await store._onMqttConnect({ reasonCode: 0 })
+            await relay
+
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+            expect(mqttService.publishMessage.mock.calls[0][1].payload.system.kind).toBe('instance-ready')
+        })
+
+        it('sends an instance event again after the reconnect when its publish failed', async () => {
+            arrangeMqtt()
+            const store = useProductExpertStore()
+            mqttService.publishMessage.mockRejectedValueOnce(new Error('connection lost'))
+
+            await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+
+            await store._onMqttConnect({ reasonCode: 0 })
+            await vi.waitFor(() => expect(mqttService.publishMessage).toHaveBeenCalledTimes(2))
+            expect(mqttService.publishMessage.mock.calls[1][1].payload.system.kind).toBe('instance-ready')
+        })
+
+        it('still sends user messages while the connection is down', async () => {
+            arrangeMqtt()
+            const store = useProductExpertStore()
+            await store.handleMqttError(0x80, 'gone')
+
+            const sent = vi.fn()
+            await store._enqueueSend(async () => sent())
+
+            expect(sent).toHaveBeenCalledTimes(1)
+        })
+
+        it('waits for the support agent before sending a support event queued there', async () => {
+            arrangeMqtt()
+            const store = useProductExpertStore()
+            useProductExpertSupportAgentStore().inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+            const relay = store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            store.setAgentMode(INSIGHTS_AGENT)
+            settle(store)
+            await Promise.resolve()
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+
+            store.setAgentMode(SUPPORT_AGENT)
+            await relay
+
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+            expect(mqttService.publishMessage.mock.calls[0][1].payload.context.agent).toBe(SUPPORT_AGENT)
+        })
+
+        it('cancels an open approval batch when an instance event goes out', async () => {
+            arrangeMqtt()
+            const store = useProductExpertStore()
+            store.beginApprovalBatch([{ toolUseId: 'call-1', toolKey: 'flow_building_add_nodes' }])
+            const cancel = vi.spyOn(store, 'cancelPendingToolApprovals')
+
+            await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            expect(cancel).toHaveBeenCalledWith('cancelled')
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+        })
+
+        it('settles queued sends on reset', async () => {
+            arrangeMqtt()
+            const store = useProductExpertStore()
+            useProductExpertSupportAgentStore().inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+            const queued = store._enqueueSend(async () => 'sent')
+
+            store.reset()
+
+            await expect(queued).resolves.toBeUndefined()
+        })
+    })
+
+    describe('approvePlan', () => {
+        afterEach(() => {
+            contextState.team = null
+            uxState.building = false
+            delete accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled
+            mqttService.hasClient.mockReturnValue(false)
+        })
+
+        it('leaves plan mode and sends the approval', async () => {
+            const store = useProductExpertStore()
+            store.setPlanMode(true)
+            store.handleQuery = vi.fn(() => Promise.resolve())
+
+            await store.approvePlan()
+
+            expect(store.planMode).toBe(false)
+            expect(store.handleQuery).toHaveBeenCalledWith({ query: 'Approved. Proceed with the plan.' })
+        })
+
+        // The instance is created after the approval has gone out, so building
+        // has to still be on when it becomes ready or the relay skips it
+        it('still relays an instance that becomes ready after the approval', async () => {
+            uxState.building = true
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            mqttService.hasClient.mockReturnValue(true)
+            useAccountAuthStore().user = { id: 'user-1' }
+            const store = useProductExpertStore()
+            store.setPlanMode(true)
+            store.handleQuery = vi.fn(() => Promise.resolve())
+
+            await store.approvePlan()
+            await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            expect(uxState.stopBuilding).not.toHaveBeenCalled()
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+            expect(Product.capture).toHaveBeenCalledWith('ff-building-workspace-ready', {}, { team: 'team-1', instance: 'inst-1' })
         })
     })
 })
