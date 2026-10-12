@@ -182,6 +182,76 @@ describe('product-expert store', () => {
         })
     })
 
+    describe('isNewChatDisabled getter', () => {
+        it('is true while a live response is in flight', () => {
+            const store = useProductExpertStore()
+            store.setAbortController(new AbortController())
+            expect(store.isNewChatDisabled).toBe(true)
+        })
+
+        it('is false once the session has expired, even with a response left hanging', () => {
+            const store = useProductExpertStore()
+            store.setAbortController(new AbortController())
+            store._agentStore.sessionExpiredShown = true
+            expect(store.isNewChatDisabled).toBe(false)
+        })
+
+        it('is true for the insights agent with no capabilities selected', () => {
+            const store = useProductExpertStore()
+            store.setAgentMode(INSIGHTS_AGENT)
+            useProductExpertInsightsAgentStore().setSelectedCapabilities([])
+            expect(store.isNewChatDisabled).toBe(true)
+        })
+    })
+
+    describe('startNewChat', () => {
+        // startOver reloads the insights capabilities, which waits for a team
+        beforeEach(() => {
+            contextState.team = { id: 'team-1' }
+        })
+
+        afterEach(() => {
+            contextState.team = null
+        })
+
+        it('clears the old thread and sends the query in a new session', async () => {
+            const store = useProductExpertStore()
+            store.addUserMessage('old question')
+            const oldSessionId = store._agentStore.sessionId
+            const handleQuery = vi.spyOn(store, 'handleQuery').mockResolvedValue()
+
+            await store.startNewChat({ query: 'new question' })
+
+            expect(store.messages.some(m => m._type === 'human')).toBe(false)
+            expect(store._agentStore.sessionId).not.toBe(oldSessionId)
+            expect(handleQuery).toHaveBeenCalledWith({ query: 'new question' })
+        })
+
+        it('drops a response left hanging by an expired session', async () => {
+            const store = useProductExpertStore()
+            store.setAbortController(new AbortController())
+            store._agentStore.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+            store._agentStore.sessionExpiredShown = true
+            vi.spyOn(store, 'handleQuery').mockResolvedValue()
+
+            await store.startNewChat({ query: 'new question' })
+
+            expect(store.abortController).toBeNull()
+            expect(store._agentStore.inFlightRequests.size).toBe(0)
+        })
+
+        it('keeps the insights resources the query was typed against', async () => {
+            const store = useProductExpertStore()
+            store.setAgentMode(INSIGHTS_AGENT)
+            useProductExpertInsightsAgentStore().setSelectedCapabilities([{ id: 'cap-1' }])
+            vi.spyOn(store, 'handleQuery').mockResolvedValue()
+
+            await store.startNewChat({ query: 'new question' })
+
+            expect(useProductExpertInsightsAgentStore().selectedCapabilities).toEqual([{ id: 'cap-1' }])
+        })
+    })
+
     describe('messages getters', () => {
         it('hasMessages is false when agent store has no messages', () => {
             const store = useProductExpertStore()
