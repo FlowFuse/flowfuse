@@ -57,7 +57,7 @@
                 v-model="inputText"
                 class="chat-input"
                 :placeholder="placeholderText"
-                :disabled="isInputDisabled"
+                :disabled="isComposerDisabled"
                 @keydown="handleKeydown"
                 @focus="isTextareaFocused = true"
                 @blur="isTextareaFocused = false"
@@ -78,7 +78,7 @@
                         Stop
                     </button>
                     <button
-                        v-else-if="!isSessionExpired"
+                        v-else-if="!isSessionExpired || startsNewChat"
                         type="button"
                         class="btn-send"
                         :disabled="!canSend"
@@ -122,6 +122,7 @@
 <script>
 import { Cog8ToothIcon } from '@heroicons/vue/20/solid'
 import { mapActions, mapState } from 'pinia'
+import { unref } from 'vue'
 
 import FormHeading from '../../FormHeading.vue'
 import ResizeBar from '../../ResizeBar.vue'
@@ -160,6 +161,10 @@ export default {
         expertSurface: {
             from: 'expert-surface',
             default: 'drawer'
+        },
+        expertChatOpen: {
+            from: 'expert-chat-open',
+            default: true
         }
     },
     emits: ['send', 'stop'],
@@ -214,6 +219,7 @@ export default {
             'hasMessages',
             'isWaitingForResponse',
             'isInputDisabled',
+            'isNewChatDisabled',
             'pendingInput',
             'composerCommand',
             'questionCadence',
@@ -236,8 +242,15 @@ export default {
         isDrawerPinned () {
             return this.rightDrawer.fixed
         },
+        // On the overview, a message sent while the conversation is folded away starts a new one
+        startsNewChat () {
+            return this.expertSurface === 'overview' && !unref(this.expertChatOpen) && this.hasUserTurns
+        },
+        isComposerDisabled () {
+            return this.startsNewChat ? this.isNewChatDisabled : this.isInputDisabled
+        },
         canSend () {
-            return this.inputText.trim().length > 0 && !this.isInputDisabled
+            return this.inputText.trim().length > 0 && !this.isComposerDisabled
         },
         isFullPageSurface () {
             return isFullPageSurface(this.expertSurface)
@@ -274,6 +287,9 @@ export default {
         placeholderText () {
             if (this.isInsightsAgent && !this.hasSelectedCapabilities) {
                 return 'Select a resource to get started'
+            }
+            if (this.startsNewChat && this.isWaitingForResponse && !this.isSessionExpired) {
+                return 'The Expert is still replying. Stop it to start a new chat'
             }
             if (this.requestingPlanChange) {
                 return 'Describe a change to the plan, or paste an edited version'
@@ -347,7 +363,7 @@ export default {
     },
     methods: {
         ...mapActions(useProductAssistantStore, ['resetContextSelection']),
-        ...mapActions(useProductExpertStore, ['startOver', 'handleQuery', 'setPendingInput', 'setComposerCommand', 'setQuestionCadence', 'setPlanMode', 'fetchToolCatalog']),
+        ...mapActions(useProductExpertStore, ['startOver', 'startNewChat', 'handleQuery', 'setPendingInput', 'setComposerCommand', 'setQuestionCadence', 'setPlanMode', 'fetchToolCatalog']),
         focusInput () {
             this.$refs.textarea?.focus()
         },
@@ -367,7 +383,11 @@ export default {
             // handleQuery renders the reply itself (see the store); the isWaitingForResponse
             // watcher refocuses the input once the response completes (works for both HTTP
             // and MQTT, where the promise resolves before the actual response arrives).
-            this.handleQuery({ query: message }).catch(e => e)
+            if (this.startsNewChat) {
+                this.startNewChat({ query: message }).catch(e => e)
+            } else {
+                this.handleQuery({ query: message }).catch(e => e)
+            }
 
             this.inputText = ''
             this.requestingPlanChange = false

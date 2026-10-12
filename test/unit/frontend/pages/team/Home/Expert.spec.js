@@ -15,8 +15,10 @@ const mocks = vi.hoisted(() => ({
         isInsightsAgent: false,
         hasSelectedCapabilities: true,
         isInputDisabled: false,
+        isNewChatDisabled: false,
         openAssistantDrawer: vi.fn(),
         handleQuery: vi.fn().mockResolvedValue(undefined),
+        startNewChat: vi.fn().mockResolvedValue(undefined),
         setPendingInput: vi.fn(),
         setAgentMode: vi.fn(),
         resumeSessionTimer: vi.fn()
@@ -281,7 +283,7 @@ describe('TeamHomeExpert', () => {
             mocks.expertStore.isInputDisabled = false
         })
 
-        test('survives into composing, since a new message joins the same thread', async () => {
+        test('survives into composing, so the thread is still one click away', async () => {
             mocks.expertStore.messages = [{ _type: 'human' }]
             const wrapper = await mountPage()
             await wrapper.find('textarea').setValue('how are my instances?')
@@ -339,6 +341,35 @@ describe('TeamHomeExpert', () => {
 
             expect(mocks.expertStore.handleQuery).toHaveBeenCalledWith({ query: 'how are my instances?' })
             expect(wrapper.find('[data-el="expert-home"]').attributes('data-stage')).toBe('conversing')
+        })
+
+        test('with a thread behind them, a finished prompt starts a new chat', async () => {
+            mocks.expertStore.messages = [{ _type: 'human' }]
+            mocks.expertStore.handleQuery.mockClear()
+            mocks.expertStore.startNewChat.mockClear()
+            const wrapper = await mountPage()
+
+            await wrapper.findComponent({ name: 'PromptSuggestions' })
+                .vm.$emit('select', { title: 'x', prompt: 'how are my instances?' })
+
+            expect(mocks.expertStore.startNewChat).toHaveBeenCalledWith({ query: 'how are my instances?' })
+            expect(mocks.expertStore.handleQuery).not.toHaveBeenCalled()
+            expect(wrapper.find('[data-el="expert-home"]').attributes('data-stage')).toBe('conversing')
+        })
+
+        test('stay live over an expired thread, since they would start a new chat', async () => {
+            mocks.expertStore.messages = [{ _type: 'human' }]
+            mocks.expertStore.startNewChat.mockClear()
+            mocks.expertStore.isInputDisabled = true
+            const wrapper = await mountPage()
+
+            expect(wrapper.find('.ff-expert-home__suggestions').classes()).not.toContain('is-inert')
+
+            await wrapper.findComponent({ name: 'PromptSuggestions' })
+                .vm.$emit('select', { title: 'x', prompt: 'anything' })
+            expect(mocks.expertStore.startNewChat).toHaveBeenCalledWith({ query: 'anything' })
+
+            mocks.expertStore.isInputDisabled = false
         })
 
         test('a half-finished prompt waits in the composer instead', async () => {
