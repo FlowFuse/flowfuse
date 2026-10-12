@@ -1121,18 +1121,72 @@ describe('product-expert store', () => {
             expect(order).toEqual(['first', 'second'])
         })
 
-        it('sends the next queued item after the turn in flight is stopped', async () => {
-            arrangeMqtt()
-            const store = useProductExpertStore()
-            useProductExpertSupportAgentStore().inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+        describe('after a stop', () => {
+            const replyTopic = 'ff/v1/expert/user-1/chat-1/team/team-1/support/chat/response'
+            const reply = (store, body) => store._onMqttMessage(replyTopic, JSON.stringify(body), {
+                properties: { correlationData: new TextEncoder().encode('turn-1') }
+            })
 
-            const relay = store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
-            store.stopInflightChat()
-            await relay
+            let store
+            let relay
+            beforeEach(async () => {
+                arrangeMqtt()
+                store = useProductExpertStore()
+                useProductExpertSupportAgentStore().inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+                relay = store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+                store.stopInflightChat()
+                await Promise.resolve()
+            })
 
-            expect(mqttService.publishMessage).toHaveBeenCalledTimes(2)
-            expect(mqttService.publishMessage.mock.calls[0][1].payload.abort).toBe(true)
-            expect(mqttService.publishMessage.mock.calls[1][1].payload.system.kind).toBe('instance-ready')
+            afterEach(() => {
+                vi.useRealTimers()
+            })
+
+            it('holds the next queued item until the agent says the turn ended', async () => {
+                expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+                expect(mqttService.publishMessage.mock.calls[0][1].payload.abort).toBe(true)
+                expect(store.isStoppingTurn).toBe(true)
+
+                // The acknowledgement only means the abort arrived
+                await reply(store, { aborted: true, answer: [{ content: 'Transaction aborted', aborted: true }] })
+                expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+
+                await reply(store, { kind: 'chat', aborted: true, turnStopped: true })
+                await relay
+
+                expect(store.isStoppingTurn).toBe(false)
+                expect(mqttService.publishMessage).toHaveBeenCalledTimes(2)
+                expect(mqttService.publishMessage.mock.calls[1][1].payload.system.kind).toBe('instance-ready')
+            })
+
+            it('releases the queue without showing the answer of a turn that finished anyway', async () => {
+                const messageCount = store.messages.length
+
+                await reply(store, { kind: 'chat', answer: [{ kind: 'chat', content: 'Done' }] })
+                await relay
+
+                expect(store.messages).toHaveLength(messageCount)
+                expect(mqttService.publishMessage).toHaveBeenCalledTimes(2)
+            })
+
+            it('stops waiting once the fallback runs out', async () => {
+                vi.useFakeTimers()
+                store._turnStopped('turn-1')
+                useProductExpertSupportAgentStore().inFlightRequests.set('turn-2', { query: 'y', transactionId: 'turn-2' })
+                store.stopInflightChat()
+                expect(store.isStoppingTurn).toBe(true)
+
+                vi.advanceTimersByTime(60000)
+
+                expect(store.isStoppingTurn).toBe(false)
+            })
+
+            it('does not hold a new chat back', async () => {
+                await store.startOver()
+
+                expect(store.isStoppingTurn).toBe(false)
+                expect(store.isWaitingForResponse).toBe(false)
+            })
         })
 
         it('drops queued items on Start Over', async () => {

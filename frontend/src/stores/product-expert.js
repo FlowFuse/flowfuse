@@ -33,6 +33,9 @@ import { connectionKey as teamConnectionKey } from '@/subscribers/team-subscribe
 // session, which is wrong advice for a blip and stays in the transcript for good.
 const DISCONNECT_NOTICE_DELAY = 15000
 
+// How long a stopped turn holds the next send while waiting for the agent to confirm it ended.
+const STOP_CONFIRM_TIMEOUT_MS = 60000
+
 export const useProductExpertStore = defineStore('product-expert', {
     state: () => ({
         agentMode: SUPPORT_AGENT, // support-agent or insights-agent
@@ -95,7 +98,12 @@ export const useProductExpertStore = defineStore('product-expert', {
         activeTaskList () { return this._agentStore.activeTaskList },
         hasMessages () { return this._agentStore.messages.length > 0 },
         isSessionExpired () { return this._agentStore.sessionExpiredShown },
-        isWaitingForResponse () { return !!this._agentStore.abortController || this._inFlightRequests.size > 0 },
+        isWaitingForResponse () { return !!this._agentStore.abortController || this._inFlightRequests.size > 0 || this.isStoppingTurn },
+        // A stopped turn runs on until the agent's next abort check. Until the agent says it
+        // has ended, the session's next message would start a second turn alongside it.
+        isStoppingTurn () {
+            return this.isSupportAgent && useProductExpertSupportAgentStore().stoppingTransactions.size > 0
+        },
         isSupportAgent: (state) => state.agentMode === SUPPORT_AGENT,
         isInsightsAgent: (state) => state.agentMode === INSIGHTS_AGENT,
         activePlanId () { return this._agentStore.activePlanId },
@@ -764,6 +772,8 @@ export const useProductExpertStore = defineStore('product-expert', {
             this._dropSendQueue()
             // The old session's reply can no longer arrive, so don't stay waiting on it.
             this._inFlightRequests.clear()
+            // A turn still stopping writes to the old session only, so the new one needn't wait.
+            this._clearStoppingTurns()
 
             agentStore.sessionId = uuidv4()
             agentStore.messages = []
@@ -1055,6 +1065,18 @@ export const useProductExpertStore = defineStore('product-expert', {
             const transactionId = packet.properties?.correlationData ? new TextDecoder().decode(packet.properties.correlationData) : null
             const sessionId = packet.properties?.userProperties?.sessionId // chat session
             const chatTransactionId = packet.properties?.userProperties?.transactionId // passed through for integrity
+
+            // Ahead of the duplicate check, which the abort's acknowledgement under the same id
+            // already tripped. That acknowledgement only means the abort arrived. Any other
+            // reply means the turn has ended: its stop notice, or the answer of a turn that was
+            // already past its last abort check.
+            if (parsedTopic.isReply && useProductExpertSupportAgentStore().stoppingTransactions.has(transactionId)) {
+                const reply = JSON.parse(message.toString())
+                if (!reply.aborted || reply.turnStopped) {
+                    this._turnStopped(transactionId)
+                }
+                return
+            }
 
             // Drop duplicates (QoS 1 retries, bridge re-fires, redundant resubscribes).
             // Must run synchronously before any await so a second delivery can't race past the check.
@@ -1649,13 +1671,33 @@ export const useProductExpertStore = defineStore('product-expert', {
                         // most common reason we get here in the first place.
                         console.warn('expert abort publish failed:', e)
                     })
+                    this._awaitTurnStopped(inFlightRequest.transactionId)
                 }
             }
             this._inFlightRequests.clear()
             this._clearInFlightUpdates()
             this._agentStore.activeTaskList = null
-            // Stopping ends only the turn in flight; whatever is queued goes out next.
+            // Stopping ends only the turn in flight; whatever is queued goes out once the
+            // agent confirms it has ended.
             this._drainSendQueue()
+        },
+        _awaitTurnStopped (transactionId) {
+            // The fallback covers a lost notice. The agent forgets an abort after a minute and
+            // lets the turn finish, so waiting longer than that buys nothing.
+            const timer = setTimeout(() => this._turnStopped(transactionId), STOP_CONFIRM_TIMEOUT_MS)
+            useProductExpertSupportAgentStore().stoppingTransactions.set(transactionId, timer)
+        },
+        _turnStopped (transactionId) {
+            const stopping = useProductExpertSupportAgentStore().stoppingTransactions
+            if (!stopping.has(transactionId)) return
+            clearTimeout(stopping.get(transactionId))
+            stopping.delete(transactionId)
+            this._drainSendQueue()
+        },
+        _clearStoppingTurns () {
+            const stopping = useProductExpertSupportAgentStore().stoppingTransactions
+            stopping.forEach(timer => clearTimeout(timer))
+            stopping.clear()
         }
     },
     persist: {

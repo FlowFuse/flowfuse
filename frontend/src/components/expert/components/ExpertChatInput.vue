@@ -73,9 +73,10 @@
                         v-if="isWaitingForResponse && !isSessionExpired"
                         type="button"
                         class="btn-stop"
+                        :disabled="isStoppingTurn"
                         @click="handleStop"
                     >
-                        Stop
+                        {{ isStoppingTurn ? 'Stopping' : 'Stop' }}
                     </button>
                     <button
                         v-else-if="!isSessionExpired || startsNewChat"
@@ -218,6 +219,7 @@ export default {
             'hasSelectedCapabilities',
             'hasMessages',
             'isWaitingForResponse',
+            'isStoppingTurn',
             'isInputDisabled',
             'isNewChatDisabled',
             'pendingInput',
@@ -552,7 +554,7 @@ button {
         border-radius: 0.125rem; // rounded-xs
     }
 
-    &:hover {
+    &:hover:not(:disabled) {
         background-color: var(--ff-color-bg-surface); // gray-50
     }
 }
