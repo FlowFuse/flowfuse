@@ -55,6 +55,48 @@ module.exports = async function (app) {
         return app.db.controllers.BrowserSession.getActiveBrowserSession(userId, mcpSessionId)
     }
 
+    // The versions that decide whether the tab's instance or device can run flow building.
+    // The snapshot is client-supplied, so an entity outside the tab's team, which the token scope
+    // was checked against, is ignored.
+    async function entityVersions (topicParts, teamId) {
+        const versions = {}
+        if (!topicParts?.entityId || !teamId) {
+            return versions
+        }
+        const teamHashid = toTeamHashid(teamId)
+        const inTeam = (entity) => !!entity && app.db.models.Team.encodeHashid(entity.TeamId) === teamHashid
+        if (topicParts.entityType === 'p') {
+            let instance = null
+            try {
+                instance = await app.db.models.Project.byId(topicParts.entityId, { barebone: true })
+            } catch (err) {
+                // Not a valid instance id
+            }
+            if (inTeam(instance)) {
+                if (instance.versions['node-red']) {
+                    versions.nodeRedVersion = String(instance.versions['node-red'])
+                }
+                if (instance.versions.launcher) {
+                    versions.launcherVersion = String(instance.versions.launcher)
+                }
+            }
+        } else if (topicParts.entityType === 'd') {
+            let device = null
+            try {
+                device = await app.db.models.Device.byId(topicParts.entityId, { includeAssociations: false })
+            } catch (err) {
+                // Not a valid device hashid
+            }
+            if (inTeam(device)) {
+                if (device.agentVersion) {
+                    versions.deviceAgentVersion = device.agentVersion
+                }
+                versions.deviceAgentLite = device.agentType === 'lite' ? 'true' : 'false'
+            }
+        }
+        return versions
+    }
+
     // Resolves the caller's identity and scope, or sends an error reply and returns null.
     async function resolveCaller (request, reply) {
         if (!request.session?.User) {
@@ -165,6 +207,16 @@ module.exports = async function (app) {
                 if (topicParts?.entityId) {
                     userProperties.entityId = topicParts.entityId
                 }
+                // The gateway refuses a flow-building call up front when the tab cannot serve it,
+                // and holds the version minimums itself, so these are sent raw.
+                userProperties.tabCapabilities = (activeBrowserSession.capabilities || []).join(',')
+                if (context?.scope) {
+                    userProperties.tabScope = String(context.scope)
+                }
+                if (context?.assistantVersion) {
+                    userProperties.assistantVersion = String(context.assistantVersion)
+                }
+                Object.assign(userProperties, await entityVersions(topicParts, context?.teamId))
                 if (context?.teamId) {
                     userProperties.teamId = context.teamId
                     userProperties.browserSessionTeamId = toTeamHashid(context.teamId)
