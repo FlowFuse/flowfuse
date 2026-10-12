@@ -265,7 +265,8 @@ module.exports = [
             Permanently deletes a team's FlowFuse Tables database: every table in every schema, all of their rows, and the database login. This cannot be undone and there is no backup to restore from.
             CAUTION: every flow and device in the team that uses the database will start failing, and the team is left with no database until a new one is created. Confirm with the user before calling this, and list what is in it first with platform_list_database_tables so you can tell them what will be lost.
             The database does not need to be empty. Team owners only.
-            Replies { status: "okay" } on success; a database that does not exist returns 404, so repeating a call is harmless. A 404 can also mean FlowFuse Tables is not available to the team.`,
+            Replies { status: "okay" } on success; a database that does not exist returns 404, so repeating a call is harmless. A 404 can also mean FlowFuse Tables is not available to the team.
+            The delete fails with 500 while a client is still connected to the database, for example a running flow, and the database is kept. Retrying once nothing is connected finishes the delete.`,
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId: teamIdSchema,

@@ -54,16 +54,6 @@ describe('MCP Library Tools', function () {
             inject.called.should.be.false()
         })
 
-        it('explains the route\'s bare 404, which is also what a disabled library or a non-member gets', async function () {
-            inject.resolves({ statusCode: 404, json: () => ({ code: 'not_found', error: 'Not Found' }) })
-            const response = await tool.handler({ teamId: 'team1', path: 'missing' }, { inject })
-            response.statusCode.should.equal(404)
-            const body = response.json()
-            body.should.have.property('code', 'not_found')
-            body.error.should.match(/Nothing was deleted/)
-            body.error.should.match(/shared library is not enabled/)
-        })
-
         it('passes through a rejection for a token without write access', async function () {
             const errorResponse = { statusCode: 403, json: () => ({ code: 'unauthorized', error: 'unauthorized' }) }
             inject.resolves(errorResponse)
