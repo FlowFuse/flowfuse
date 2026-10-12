@@ -1,5 +1,6 @@
 const should = require('should') // eslint-disable-line no-unused-vars
 const sinon = require('sinon')
+const { z } = require('zod')
 
 const tools = require('../../../../../../../forge/ee/lib/mcp/tools/teams')
 
@@ -387,6 +388,31 @@ describe('MCP Teams Tools', function () {
 
             const response = await tool.handler({ teamId: 'team1', invitationId: 'invite1' }, { inject })
             response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_update_git_token', function () {
+        const tool = getTool('platform_update_git_token')
+        const args = { teamId: 'team1', tokenId: 'tok1', name: 'renamed' }
+
+        it('is a non-destructive, idempotent write', function () {
+            tool.annotations.should.containEql({ readOnlyHint: false, destructiveHint: false, idempotentHint: true })
+        })
+
+        it('puts only the name to the token route and returns the response', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ id: 'tok1', name: 'renamed', type: 'github' }) }
+            inject.resolves(routeResponse)
+            const response = await tool.handler(args, { inject })
+            inject.calledOnce.should.be.true()
+            inject.firstCall.args[0].should.eql({ method: 'PUT', url: '/api/v1/teams/team1/git/tokens/tok1', payload: { name: 'renamed' } })
+            response.should.equal(routeResponse)
+        })
+
+        it('requires a non-empty name', function () {
+            const schema = z.object(tool.inputSchema)
+            schema.safeParse(args).success.should.be.true()
+            schema.safeParse({ ...args, name: '' }).success.should.be.false()
+            schema.safeParse({ ...args, name: '   ' }).success.should.be.false()
         })
     })
 })
