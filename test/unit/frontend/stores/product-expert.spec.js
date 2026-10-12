@@ -13,6 +13,7 @@ const mqttService = {
     createClient: vi.fn(() => Promise.resolve()),
     destroyClient: vi.fn(() => Promise.resolve()),
     publishMessage: vi.fn(() => Promise.resolve()),
+    subscribe: vi.fn(() => Promise.resolve()),
     getManagedClient: vi.fn(() => ({ status: 'connected' }))
 }
 
@@ -44,7 +45,8 @@ vi.mock('@/stores/product-assistant.js', () => ({
         toolCatalogHash: undefined,
         invokeActionAwaitResponse: invokeAction,
         clearSessionToolOverrides: vi.fn(),
-        clearToolApprovalStatuses: vi.fn()
+        clearToolApprovalStatuses: vi.fn(),
+        setToolApprovalStatus: vi.fn()
     }))
 }))
 
@@ -1074,6 +1076,103 @@ describe('product-expert store', () => {
 
             expect(mqttService.publishMessage).not.toHaveBeenCalled()
             expect(store._sendQueue).toHaveLength(0)
+        })
+
+        it('keeps the queue moving when rendering a reply throws', async () => {
+            arrangeMqtt()
+            const store = useProductExpertStore()
+            const transactionId = 'turn-1'
+            useProductExpertSupportAgentStore().inFlightRequests.set(transactionId, { query: 'x', transactionId })
+            const relay = store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+            vi.spyOn(store, 'handleMessageResponse').mockRejectedValueOnce(new Error('render failed'))
+
+            const topic = 'ff/v1/expert/user-1/chat-1/team/team-1/support/chat/response'
+            const packet = { properties: { correlationData: new TextEncoder().encode(transactionId) } }
+            await store._onMqttMessage(topic, JSON.stringify({}), packet).catch(() => undefined)
+            await relay
+
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+        })
+
+        it('holds instance events while the connection is down and sends them on reconnect', async () => {
+            arrangeMqtt()
+            const store = useProductExpertStore()
+
+            await store.handleMqttError(0x80, 'gone')
+            const relay = store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+            await Promise.resolve()
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+
+            await store._onMqttConnect({ reasonCode: 0 })
+            await relay
+
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+            expect(mqttService.publishMessage.mock.calls[0][1].payload.system.kind).toBe('instance-ready')
+        })
+
+        it('sends an instance event again after the reconnect when its publish failed', async () => {
+            arrangeMqtt()
+            const store = useProductExpertStore()
+            mqttService.publishMessage.mockRejectedValueOnce(new Error('connection lost'))
+
+            await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+
+            await store._onMqttConnect({ reasonCode: 0 })
+            await vi.waitFor(() => expect(mqttService.publishMessage).toHaveBeenCalledTimes(2))
+            expect(mqttService.publishMessage.mock.calls[1][1].payload.system.kind).toBe('instance-ready')
+        })
+
+        it('still sends user messages while the connection is down', async () => {
+            arrangeMqtt()
+            const store = useProductExpertStore()
+            await store.handleMqttError(0x80, 'gone')
+
+            const sent = vi.fn()
+            await store._enqueueSend(async () => sent())
+
+            expect(sent).toHaveBeenCalledTimes(1)
+        })
+
+        it('waits for the support agent before sending a support event queued there', async () => {
+            arrangeMqtt()
+            const store = useProductExpertStore()
+            useProductExpertSupportAgentStore().inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+            const relay = store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            store.setAgentMode(INSIGHTS_AGENT)
+            settle(store)
+            await Promise.resolve()
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+
+            store.setAgentMode(SUPPORT_AGENT)
+            await relay
+
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+            expect(mqttService.publishMessage.mock.calls[0][1].payload.context.agent).toBe(SUPPORT_AGENT)
+        })
+
+        it('cancels an open approval batch when an instance event goes out', async () => {
+            arrangeMqtt()
+            const store = useProductExpertStore()
+            store.beginApprovalBatch([{ toolUseId: 'call-1', toolKey: 'flow_building_add_nodes' }])
+            const cancel = vi.spyOn(store, 'cancelPendingToolApprovals')
+
+            await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
+
+            expect(cancel).toHaveBeenCalledWith('cancelled')
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+        })
+
+        it('settles queued sends on reset', async () => {
+            arrangeMqtt()
+            const store = useProductExpertStore()
+            useProductExpertSupportAgentStore().inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+            const queued = store._enqueueSend(async () => 'sent')
+
+            store.reset()
+
+            await expect(queued).resolves.toBeUndefined()
         })
     })
 

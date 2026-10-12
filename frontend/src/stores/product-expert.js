@@ -54,9 +54,12 @@ export const useProductExpertStore = defineStore('product-expert', {
         _relayedInstanceIds: new Set(),
         _relayedFailedInstanceIds: new Set(),
         // Sends waiting for the turn in flight to settle, so the agent never gets two
-        // messages for one session at once. Not persisted.
-        _sendQueue: [],
+        // messages for one session at once. Not persisted, and raw since nothing renders it.
+        _sendQueue: markRaw([]),
         _sendDraining: false,
+        // Set while the broker connection is down, so system notices wait for the
+        // reconnect instead of being published into a dead connection.
+        _systemSendsHeld: false,
         // Open human-in-the-loop approval batch (#421). When a turn defers a tool batch
         // for approval the agent ends the turn and returns the card(s); we hold the
         // decisions here until every card is answered, then send them back in one resume
@@ -289,18 +292,34 @@ export const useProductExpertStore = defineStore('product-expert', {
         // Runs one send at a time. A job is finished once its turn has settled: the reply
         // arrived, or the turn was stopped or errored. Whoever settles a turn calls
         // _drainSendQueue to release the next job.
-        _enqueueSend (job) {
+        _enqueueSend (job, { system = false, first = false } = {}) {
             return new Promise((resolve, reject) => {
-                this._sendQueue.push({ job, resolve, reject })
+                // A job sends through the agent that was active when it was queued.
+                const entry = { job, agent: this.agentMode, system, resolve, reject }
+                if (first) {
+                    this._sendQueue.unshift(entry)
+                } else {
+                    this._sendQueue.push(entry)
+                }
                 this._drainSendQueue()
+            })
+        },
+        _nextSendIndex () {
+            // Jobs use the active agent's session and in-flight state, so only the ones
+            // queued for it can run now; the rest wait for the user to switch back.
+            return this._sendQueue.findIndex(entry => {
+                if (entry.agent !== this.agentMode) return false
+                return !(entry.system && this._systemSendsHeld)
             })
         },
         async _drainSendQueue () {
             if (this._sendDraining) return
             this._sendDraining = true
             try {
-                while (this._sendQueue.length && !this.isWaitingForResponse) {
-                    const { job, resolve, reject } = this._sendQueue.shift()
+                while (!this.isWaitingForResponse) {
+                    const index = this._nextSendIndex()
+                    if (index < 0) break
+                    const [{ job, resolve, reject }] = this._sendQueue.splice(index, 1)
                     try {
                         resolve(await job())
                     } catch (error) {
@@ -736,7 +755,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             this._clearDisconnectNotice()
 
             // Queued sends belong to the conversation being dropped.
-            this._sendQueue.splice(0).forEach(({ resolve }) => resolve(undefined))
+            this._dropSendQueue()
             // The old session's reply can no longer arrive, so don't stay waiting on it.
             this._inFlightRequests.clear()
 
@@ -778,8 +797,12 @@ export const useProductExpertStore = defineStore('product-expert', {
             this._agentStore.abortController = controller ? markRaw(controller) : null
         },
         reset () {
+            this._dropSendQueue()
             this._agentStore.reset()
             this.$reset()
+        },
+        _dropSendQueue () {
+            this._sendQueue.splice(0).forEach(({ resolve }) => resolve(undefined))
         },
         addWelcomeMessageIfNeeded () {
             const currentMode = this.agentMode
@@ -876,6 +899,8 @@ export const useProductExpertStore = defineStore('product-expert', {
             if (![INSIGHTS_AGENT, SUPPORT_AGENT].includes(mode)) return
             this.agentMode = mode
             this.loadingVariant = mode
+            // Sends queued for this agent while the other one was active can go out now.
+            this._drainSendQueue()
         },
         /**
          * Sets how clarifying questions are asked: all at once or one at a time.
@@ -1037,8 +1062,11 @@ export const useProductExpertStore = defineStore('product-expert', {
                 if (this._recentlyCompleted.size > 50) {
                     this._recentlyCompleted.delete(this._recentlyCompleted.keys().next().value)
                 }
-                await this.handleMessageResponse(JSON.parse(message.toString()))
-                this._drainSendQueue()
+                try {
+                    await this.handleMessageResponse(JSON.parse(message.toString()))
+                } finally {
+                    this._drainSendQueue()
+                }
                 break
             case parsedTopic.isInflightRequest: // in-flight request from the agent (e.g., action invocation, status update)
                 await this.handleInFlightRequest({
@@ -1148,7 +1176,11 @@ export const useProductExpertStore = defineStore('product-expert', {
                 ])
             } catch (error) {
                 this._onMqttError(error instanceof Error ? error : new Error(String(error)))
+                return
             }
+
+            this._systemSendsHeld = false
+            this._drainSendQueue()
         },
         _onMqttDisconnect (packet) {
             this.handleMqttError(packet.reasonCode, packet.properties?.reasonString)
@@ -1170,6 +1202,10 @@ export const useProductExpertStore = defineStore('product-expert', {
             // This path always posts a message of its own, so drop any notice still waiting
             // on the close timer rather than letting a second one land on top of it.
             this._clearDisconnectNotice()
+
+            // Queued system notices wait for the reconnect. The user's own sends are not
+            // held, so they never sit silently behind a connection that may not come back.
+            this._systemSendsHeld = true
 
             // stopping inFlight chat requests to ignore any in flight messages if any and also clear the loader
             this.stopInflightChat()
@@ -1468,14 +1504,27 @@ export const useProductExpertStore = defineStore('product-expert', {
             const system = buildSystem(instance)
             if (showCard) this.addEventMessage(system)
 
-            return this._enqueueSend(() => this._publishSystemEvent(instance, system, onPublished))
+            return this._enqueueSystemEvent(instance, system, onPublished)
+        },
+        // A notice lost to a dropped connection goes out once more after the reconnect.
+        _enqueueSystemEvent (instance, system, onPublished, { retried = false } = {}) {
+            return this._enqueueSend(async () => {
+                const sent = await this._publishSystemEvent(instance, system, onPublished)
+                if (!sent && !retried) {
+                    this._enqueueSystemEvent(instance, system, onPublished, { retried: true })
+                }
+            }, { system: true, first: retried })
         },
         async _publishSystemEvent (instance, system, onPublished) {
+            const transactionId = uuidv4()
             try {
+                // Like a user message, a notice supersedes open approval cards: the agent
+                // cancels the abandoned calls and asks again if it still needs them.
+                this.cancelPendingToolApprovals('cancelled')
+
                 const mqttService = getAppOrchestrator().$services.mqtt
                 const mqttTopicHelper = useMqttExpertTopicHelper()
 
-                const transactionId = uuidv4()
                 const mqttConnectionKey = this.mqttConnectionKey
 
                 if (!mqttService.hasClient(mqttConnectionKey)) await this.establishMqttComms()
@@ -1511,8 +1560,12 @@ export const useProductExpertStore = defineStore('product-expert', {
                     }
                 })
                 onPublished?.(instance)
+                return true
             } catch (e) {
+                // Never sent, so there is no turn to wait on or abort.
+                this._inFlightRequests.delete(transactionId)
                 this._onMqttError(e)
+                return false
             }
         },
         async relayInstanceReady (instance) {
