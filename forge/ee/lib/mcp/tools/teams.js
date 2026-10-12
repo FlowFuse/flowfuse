@@ -196,17 +196,7 @@ module.exports = [
             type: z.string()
         },
         handler: async (args, { inject }) => {
-            const url = `/api/v1/teams/${args.teamId}/git/tokens`
-            const response = await inject({ method: 'PUT', url: `${url}/${args.tokenId}`, payload: { name: args.name } })
-            if (response.statusCode !== 404) {
-                return response
-            }
-            // The route answers 404 for a missing token and for a team without git integration alike
-            const probe = await inject({ method: 'GET', url })
-            if (probe.statusCode === 404) {
-                return toolError(404, 'not_found', 'Git integration is not enabled for this team, or the team does not exist')
-            }
-            return response
+            return inject({ method: 'PUT', url: `/api/v1/teams/${args.teamId}/git/tokens/${args.tokenId}`, payload: { name: args.name } })
         }
     },
     {

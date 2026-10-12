@@ -394,7 +394,6 @@ describe('MCP Teams Tools', function () {
     describe('platform_update_git_token', function () {
         const tool = getTool('platform_update_git_token')
         const args = { teamId: 'team1', tokenId: 'tok1', name: 'renamed' }
-        const notFound = () => ({ statusCode: 404, json: () => ({ code: 'not_found', error: 'Not Found' }) })
 
         it('is a non-destructive, idempotent write', function () {
             tool.annotations.should.containEql({ readOnlyHint: false, destructiveHint: false, idempotentHint: true })
@@ -407,30 +406,6 @@ describe('MCP Teams Tools', function () {
             inject.calledOnce.should.be.true()
             inject.firstCall.args[0].should.eql({ method: 'PUT', url: '/api/v1/teams/team1/git/tokens/tok1', payload: { name: 'renamed' } })
             response.should.equal(routeResponse)
-        })
-
-        it('keeps the route 404 when the team has git integration but the token is missing', async function () {
-            const missing = notFound()
-            inject.onFirstCall().resolves(missing)
-            inject.onSecondCall().resolves({ statusCode: 200, json: () => ({ tokens: [] }) })
-            const response = await tool.handler(args, { inject })
-            inject.secondCall.args[0].should.eql({ method: 'GET', url: '/api/v1/teams/team1/git/tokens' })
-            response.should.equal(missing)
-        })
-
-        it('explains a 404 as git integration being unavailable when the token list is also 404', async function () {
-            inject.callsFake(async () => notFound())
-            const response = await tool.handler(args, { inject })
-            response.statusCode.should.equal(404)
-            response.json().error.should.match(/Git integration is not enabled/)
-        })
-
-        it('passes through other errors without probing', async function () {
-            const forbidden = { statusCode: 403, json: () => ({ code: 'unauthorized' }) }
-            inject.resolves(forbidden)
-            const response = await tool.handler(args, { inject })
-            inject.calledOnce.should.be.true()
-            response.should.equal(forbidden)
         })
 
         it('requires a non-empty name', function () {

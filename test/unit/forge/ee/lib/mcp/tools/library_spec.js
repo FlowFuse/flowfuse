@@ -66,33 +66,7 @@ describe('MCP Library Tools', function () {
             })
         })
 
-        it('rejects a flows body that is not valid JSON, which would break reading the entry back', async function () {
-            const response = await tool.handler({ teamId: 'team1', path: 'a', type: 'flows', body: 'not json' }, { inject })
-            inject.called.should.be.false()
-            response.statusCode.should.equal(400)
-            response.json().error.should.match(/valid JSON/)
-        })
-
-        it('accepts a flows body that is a JSON string', async function () {
-            inject.resolves(created())
-            await tool.handler({ teamId: 'team1', path: 'a', type: 'flows', body: '[{"id":"n1"}]' }, { inject })
-            inject.calledOnce.should.be.true()
-        })
-
-        it('does not require a function body to be JSON', async function () {
-            inject.resolves(created())
-            await tool.handler({ teamId: 'team1', path: 'a', type: 'functions', body: 'not json' }, { inject })
-            inject.calledOnce.should.be.true()
-        })
-
-        it('explains a 404 as the feature, team or membership being unavailable', async function () {
-            inject.resolves({ statusCode: 404, json: () => ({ code: 'not_found', error: 'Not Found' }) })
-            const response = await tool.handler({ teamId: 'team1', path: 'a', type: 'functions', body: 'x' }, { inject })
-            response.statusCode.should.equal(404)
-            response.json().error.should.match(/shared library is not enabled/)
-        })
-
-        it('passes through other error responses unchanged', async function () {
+        it('passes error responses through unchanged', async function () {
             const errorResponse = { statusCode: 400, json: () => ({ code: 'invalid_name', error: 'Invalid entry name' }) }
             inject.resolves(errorResponse)
             const response = await tool.handler({ teamId: 'team1', path: 'a/b', type: 'functions', body: 'x' }, { inject })

@@ -27,15 +27,9 @@ module.exports = [
         },
         handler: async (args, { inject }) => {
             const segments = args.path.split('/')
+            // The URL resolves "." and ".." segments, even encoded ones, before the route sees the name
             if (segments.some(segment => segment === '' || segment === '.' || segment === '..')) {
                 return toolError(400, 'invalid_request', 'path must not start or end with "/" or contain empty, "." or ".." segments')
-            }
-            if (args.type === 'flows' && typeof args.body === 'string') {
-                try {
-                    JSON.parse(args.body)
-                } catch (err) {
-                    return toolError(400, 'invalid_request', 'The body of a "flows" entry must be valid JSON: an array of nodes or a JSON string of one')
-                }
             }
             const payload = { type: args.type, body: args.body }
             if (args.meta !== undefined) {
@@ -43,9 +37,6 @@ module.exports = [
             }
             const url = `/storage/library/${args.teamId}/${segments.map(encodeURIComponent).join('/')}`
             const response = await inject({ method: 'POST', url, payload })
-            if (response.statusCode === 404) {
-                return toolError(404, 'not_found', 'The shared library is not enabled for this team, or the team does not exist, or you are not a member of it')
-            }
             if (response.statusCode >= 400) {
                 return response
             }
