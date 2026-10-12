@@ -2,8 +2,6 @@ const { z } = require('zod')
 
 const { pathId, teamId, applicationId, toolError, gitStageFields, gitStageFieldKeys } = require('../schemas')
 
-const isHashid = (id) => /^[A-Za-z0-9]+$/.test(id)
-
 const stageAction = z.enum(['create_snapshot', 'use_active_snapshot', 'use_latest_snapshot', 'prompt', 'none']).optional()
     .describe('How the stage obtains the snapshot it passes on when deployed FROM: create_snapshot makes a new one (the default), use_active_snapshot and use_latest_snapshot reuse existing ones, prompt requires a sourceSnapshotId at deploy time, none makes deploys from this stage a no-op. Not meaningful for git-repo stages')
 const deployToDevices = z.boolean().optional()
@@ -198,11 +196,6 @@ module.exports = [
             pipelineId: pathId.describe('The hashid of the pipeline to delete')
         },
         handler: async (args, { inject }) => {
-            // pipelineId goes into the URL path and inject resolves dot segments, so anything but
-            // a plain hashid could send this DELETE to another route (e.g. "../applications/<id>").
-            if (!isHashid(args.pipelineId)) {
-                return toolError(400, 'invalid_request', 'pipelineId must be a hashid')
-            }
             const response = await inject({ method: 'DELETE', url: `/api/v1/pipelines/${args.pipelineId}` })
             return response
         }
@@ -225,10 +218,6 @@ module.exports = [
             stageId: pathId.describe('The hashid of the stage to delete')
         },
         handler: async (args, { inject }) => {
-            // Same as above, for both ids.
-            if (!isHashid(args.pipelineId) || !isHashid(args.stageId)) {
-                return toolError(400, 'invalid_request', 'pipelineId and stageId must be hashids')
-            }
             const response = await inject({ method: 'DELETE', url: `/api/v1/pipelines/${args.pipelineId}/stages/${args.stageId}` })
             return response
         }
