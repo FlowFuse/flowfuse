@@ -103,6 +103,7 @@
             :tool-class="answer.toolClass"
             :params="answer.params"
             :status="resolvedToolApprovalStatus"
+            :disabled="interactionDisabled"
             @approve="onToolApprove"
             @allow-always="onToolAllowAlways"
             @deny="onToolDeny"
@@ -193,7 +194,7 @@ export default {
             return msgs.length > 0 && msgs[msgs.length - 1]?._uuid === this.messageUuid
         },
         interactionDisabled () {
-            // Disable the question/plan cards while a response is in flight, and once the turn
+            // Disable the question/plan/approval cards while a response is in flight, and once the turn
             // has passed — i.e. any message has arrived after this one — so a stale card from
             // an earlier turn can no longer be answered.
             return this.isWaitingForResponse || !this.isLatestMessage
@@ -375,7 +376,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useProductExpertStore, ['updateAnswerStreamedState', 'handleQuery', 'setPendingInput', 'setComposerCommand', 'setPlanMode', 'resolveToolApproval', 'saveQuestionAnswer']),
+        ...mapActions(useProductExpertStore, ['updateAnswerStreamedState', 'handleQuery', 'setPendingInput', 'setComposerCommand', 'approvePlan', 'resolveToolApproval', 'saveQuestionAnswer']),
         buildStreamingOrder () {
             // order matters
             // this is where the decision of the streaming order of components is decided
@@ -408,11 +409,7 @@ export default {
             if (this.isOnboardingSurface) {
                 Product.capture('ff-onboarding-plan-approved', {}, { team: useContextStore().team?.id })
             }
-            // Approving exits read-only plan mode so the build runs as a normal acting turn,
-            // and clears any plan text loaded into the composer via "Edit manually".
-            this.setPlanMode(false)
-            this.setComposerCommand('reset')
-            this.handleQuery({ query: 'Approved. Proceed with the plan.' })
+            this.approvePlan()
         },
         onPlanEditManual () {
             // Load the plan markdown into the composer to edit and resubmit for a re-proposal.

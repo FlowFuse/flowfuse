@@ -34,9 +34,7 @@
                     </template>
                 </ff-dropdown>
             </Teleport>
-            <div class="onboarding-column">
-                <ExpertPanel />
-            </div>
+            <ExpertFullPage surface="onboarding" />
         </template>
     </div>
 </template>
@@ -47,7 +45,7 @@ import { mapState } from 'pinia'
 
 import teamApi from '@/api/team.ts'
 import NavItem from '@/components/NavItem.vue'
-import ExpertPanel from '@/components/expert/Expert.vue'
+import ExpertFullPage from '@/components/expert/ExpertFullPage.vue'
 import navigationMixin from '@/mixins/Navigation.js'
 import Alerts from '@/services/alerts.js'
 import Product from '@/services/product.js'
@@ -62,15 +60,10 @@ import { useUxStore } from '@/stores/ux.js'
 export default {
     name: 'TeamOnboarding',
     components: {
-        ExpertPanel,
+        ExpertFullPage,
         NavItem
     },
     mixins: [navigationMixin],
-    provide () {
-        return {
-            'expert-surface': 'onboarding'
-        }
-    },
     data () {
         return {
             provisioning: false,
@@ -198,11 +191,6 @@ export default {
 <style scoped lang="scss">
 .ff-team-onboarding {
     height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow: hidden;
-    background: var(--ff-color-bg-app);
 }
 
 .skip-onboarding {
@@ -233,69 +221,5 @@ export default {
     .skip-onboarding {
         transition: none;
     }
-}
-
-.onboarding-column {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: 100%;
-    max-width: 46rem;
-    padding: 1.5rem;
-    min-height: 0;
-}
-
-/*
- * The onboarding treatment for the embedded expert panel. Everything below
- * restyles the shared chat components for this surface only; the drawer's
- * own styling is untouched.
- */
-
-.onboarding-column :deep(.ff-expert) {
-    background: transparent;
-}
-
-/* Flatten the chat bubbles: the transcript reads as a document, not a chat */
-.onboarding-column :deep(.message-bubble.ai-message) {
-    background: transparent;
-    padding: 0;
-    border-radius: 0;
-}
-
-.onboarding-column :deep(.message-bubble.human-message) {
-    background: transparent;
-    color: var(--ff-color-text-subtle);
-    padding: 0;
-    align-self: stretch;
-}
-
-/* The active question set renders as a card, per the mockup */
-.onboarding-column :deep(.expert-questions) {
-    background: var(--ff-color-bg-surface);
-    border: 1px solid var(--ff-color-border);
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-    gap: 1.25rem;
-}
-
-.onboarding-column :deep(.expert-questions .question-title) {
-    font-size: 1.25rem;
-    font-weight: 600;
-}
-
-/* The composer sits quietly at the bottom: no divider, no panel chrome */
-.onboarding-column :deep(.ff-expert-input) {
-    border-top: none;
-    background: transparent;
-    min-height: 0;
-    padding: 1rem 0;
-}
-
-.onboarding-column :deep(.expert-questions .ff-radio-group-options) {
-    gap: 0.625rem;
-}
-
-.onboarding-column :deep(.expert-questions .questions-actions) {
-    margin-top: 0.25rem;
 }
 </style>

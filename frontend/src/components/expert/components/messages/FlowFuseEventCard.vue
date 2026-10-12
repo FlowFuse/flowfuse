@@ -12,6 +12,8 @@
 <script>
 import MessageBubble from './components/MessageBubble.vue'
 
+import { isFullPageSurface } from '@/components/expert/surfaces.js'
+
 const BODY_BY_KIND = {
     'instance-ready' (payload) {
         const name = payload.instance?.name
@@ -52,7 +54,7 @@ export default {
     },
     computed: {
         alignRight () {
-            return this.expertSurface !== 'onboarding'
+            return !isFullPageSurface(this.expertSurface)
         },
         body () {
             const describe = BODY_BY_KIND[this.kind]
