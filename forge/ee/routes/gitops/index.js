@@ -53,8 +53,7 @@ module.exports = async function (app) {
                 username: body.username || null,
                 caCertificate: body.caCertificate || null
             })
-            // TODO: audit log
-            // await app.auditLog.Project.project.httpToken.created(request.session.User, null, request.project, body)
+            await app.auditLog.Team.gitToken.created(request.session.User, null, request.team, token)
             reply.send(app.db.views.GitToken.token(token))
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
@@ -88,6 +87,7 @@ module.exports = async function (app) {
                 return
             }
             await token.destroy()
+            await app.auditLog.Team.gitToken.deleted(request.session.User, null, request.team, token)
             reply.send({})
         } catch (err) {
             reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
@@ -114,8 +114,11 @@ module.exports = async function (app) {
                 return
             }
             if (token.name !== request.body.name) {
+                const updates = new app.auditLog.formatters.UpdatesCollection()
+                updates.push('name', token.name, request.body.name)
                 token.name = request.body.name
                 await token.save()
+                await app.auditLog.Team.gitToken.updated(request.session.User, null, request.team, token, updates)
             }
             reply.send(app.db.views.GitToken.token(token))
         } catch (err) {

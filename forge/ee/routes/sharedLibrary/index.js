@@ -15,11 +15,13 @@ module.exports = async function (app) {
                 const project = await app.db.models.Project.byId(request.session.ownerId)
                 // Project exists and the auth token is for this team
                 authorised = project.Team.hashid === id
+                request.libraryWriter = { project }
             } else if (request.session.ownerType === 'device') {
                 const deviceId = +request.session.ownerId
                 const device = await app.db.models.Device.byId(deviceId)
                 // Device exists and the auth token is for this team
                 authorised = device?.Team.hashid === id
+                request.libraryWriter = { device }
             } else if (request.session.User) {
                 // This is a logged-in user or a user token. Get their teamMembership so the needsPermission
                 // checks in the routes will evaluate properly
@@ -83,6 +85,10 @@ module.exports = async function (app) {
             direct.body = body
             direct.meta = JSON.stringify(meta)
             await direct.save()
+            // Instance and device saves are already logged by Node-RED's own library.set event
+            if (!request.libraryWriter) {
+                await app.auditLog.Team.library.entry.updated(request.session.User, null, request.team, { name, type })
+            }
         } else {
             // Adding a new entry. We need to check each part of the path to ensure
             // none are existing 'files' - otherwise we could end up with a directory
@@ -117,6 +123,9 @@ module.exports = async function (app) {
                 body,
                 TeamId: request.team.id
             })
+            if (!request.libraryWriter) {
+                await app.auditLog.Team.library.entry.created(request.session.User, null, request.team, { name, type })
+            }
         }
 
         response.status(201).send()
@@ -197,6 +206,7 @@ module.exports = async function (app) {
         if (deleteCount === 0) {
             response.status(404).send({ code: 'not_found', error: 'Not Found' })
         } else {
+            await app.auditLog.Team.library.entry.deleted(request.session?.User || 'system', null, request.team, { name, type, deleteCount }, request.libraryWriter)
             response.send({ status: 'okay', deleteCount })
         }
     })
