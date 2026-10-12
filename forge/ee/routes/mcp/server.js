@@ -73,11 +73,13 @@ module.exports = async function (app) {
                 // Not a valid instance id
             }
             if (inTeam(instance)) {
-                if (instance.versions['node-red']) {
-                    versions.nodeRedVersion = String(instance.versions['node-red'])
+                const nodeRed = instance.versions?.['node-red']?.current
+                const launcher = instance.versions?.launcher?.current
+                if (nodeRed) {
+                    versions.nodeRedVersion = String(nodeRed)
                 }
-                if (instance.versions.launcher) {
-                    versions.launcherVersion = String(instance.versions.launcher)
+                if (launcher) {
+                    versions.launcherVersion = String(launcher)
                 }
             }
         } else if (topicParts.entityType === 'd') {

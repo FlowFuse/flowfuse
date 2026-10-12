@@ -299,7 +299,7 @@ describe('MCP Platform Tools Server', function () {
                 })
 
                 it('passes the tab capabilities, assistant version and instance versions', async function () {
-                    app.instance.versions = { 'node-red': '4.1.0', launcher: '2.20.0' }
+                    app.instance.versions = { 'node-red': { current: '4.1.0', wanted: '4.1.0' }, launcher: { current: '2.20.0' } }
                     await app.instance.save()
 
                     const userProperties = await callWithTab({
