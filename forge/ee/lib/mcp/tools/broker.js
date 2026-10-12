@@ -1,8 +1,6 @@
 const { z } = require('zod')
 
-const { pathId, teamId, basePagination, basePaginationKeys, searchQuery, appendQuery, toolError } = require('../schemas')
-
-const isHashid = (id) => /^[A-Za-z0-9]+$/.test(id)
+const { pathId, teamId, basePagination, basePaginationKeys, searchQuery, appendQuery } = require('../schemas')
 
 module.exports = [
     {
@@ -203,11 +201,6 @@ module.exports = [
             topicId: pathId.describe('The hashid of the topic to delete, as returned by platform_list_broker_topics')
         },
         handler: async (args, { inject }) => {
-            // The ids go into the URL path and inject resolves dot segments, so anything but a plain
-            // id could send this DELETE to another route (e.g. topicId "../../../../../applications/<id>").
-            if (!isHashid(args.teamId) || !(args.brokerId === 'team-broker' || isHashid(args.brokerId)) || !isHashid(args.topicId)) {
-                return toolError(400, 'invalid_request', 'teamId and topicId must be hashids, and brokerId "team-broker" or a hashid')
-            }
             const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/brokers/${args.brokerId}/topics/${args.topicId}` })
             return response
         }
@@ -230,11 +223,7 @@ module.exports = [
         },
         handler: async (args, { inject }) => {
             // Usernames are free text, so encode the username to keep a "/" from splitting it into
-            // more path segments. "." and ".." survive encoding and would still be resolved as dot
-            // segments, which could send this DELETE to another route.
-            if (!isHashid(args.teamId) || ['.', '..'].includes(args.username)) {
-                return toolError(400, 'invalid_request', 'teamId must be a hashid, and username cannot be "." or ".."')
-            }
+            // more path segments.
             const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/broker/client/${encodeURIComponent(args.username)}` })
             return response
         }
