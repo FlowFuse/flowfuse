@@ -189,7 +189,10 @@ export const useContextStore = defineStore('context', {
         }
     },
     actions: {
-        updateRoute (route) { this.route = route },
+        updateRoute (route) {
+            this.route = route
+            product.setRoute(route?.name)
+        },
         setInstance (instance) {
             this.instance = instance ?? null
             this.setApplication(instance?.application ?? null)

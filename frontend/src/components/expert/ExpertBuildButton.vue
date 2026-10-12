@@ -2,6 +2,7 @@
     <ff-button
         v-if="isAvailable"
         v-ff-tooltip:bottom="build.label"
+        v-ff-track="build.event"
         kind="expert"
         data-action="expert-build"
         :aria-label="build.label"
@@ -21,9 +22,21 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
 const BUILDS = {
-    instance: { route: 'team-build-instance', label: 'Build an instance using the FlowFuse Expert' },
-    application: { route: 'team-build-application', label: 'Build an application using the FlowFuse Expert' },
-    device: { route: 'team-build-device', label: 'Build a remote instance using the FlowFuse Expert' }
+    instance: {
+        route: 'team-build-instance',
+        label: 'Build an instance using the FlowFuse Expert',
+        event: 'ff-expert-build-instance-clicked'
+    },
+    application: {
+        route: 'team-build-application',
+        label: 'Build an application using the FlowFuse Expert',
+        event: 'ff-expert-build-application-clicked'
+    },
+    device: {
+        route: 'team-build-device',
+        label: 'Build a remote instance using the FlowFuse Expert',
+        event: 'ff-expert-build-device-clicked'
+    }
 }
 
 export default {

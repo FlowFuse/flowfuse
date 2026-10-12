@@ -40,7 +40,8 @@ vi.mock('@/routes.js', () => ({
 
 vi.mock('@/services/product.js', () => ({
     default: {
-        setTeam: vi.fn()
+        setTeam: vi.fn(),
+        setRoute: vi.fn()
     }
 }))
 
@@ -72,6 +73,12 @@ describe('context store', () => {
             const route = { name: 'test', fullPath: '/test', params: {} }
             store.updateRoute(route)
             expect(store.route).toEqual(route)
+        })
+
+        it('updateRoute tells analytics which route the user is on', () => {
+            const store = useContextStore()
+            store.updateRoute({ name: 'team-home', fullPath: '/team/a/overview', params: {} })
+            expect(product.setRoute).toHaveBeenCalledWith('team-home')
         })
 
         it('setInstance sets the instance', () => {

@@ -21,6 +21,7 @@
                         <ExpertBuildButton v-if="hasPermission('project:create')" target="application" />
                         <ff-button
                             v-if="hasPermission('project:create')"
+                            v-ff-track="'ff-application-create-clicked'"
                             data-action="create-application"
                             kind="primary"
                             :to="{name: 'team-application-create'}"
@@ -78,6 +79,7 @@
                     <ExpertBuildButton v-if="hasPermission('project:create')" target="application" />
                     <ff-button
                         v-if="hasPermission('project:create')"
+                        v-ff-track="'ff-application-create-clicked'"
                         data-action="create-application"
                         kind="primary"
                         type="anchor"
