@@ -625,6 +625,36 @@ describe('context store', () => {
                 expect(expert.deviceOwnerType).toBeNull()
             })
 
+            it('carries the stored Node-RED and launcher versions of the instance outside the editor', () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'instance-overview' })
+                store.setTeamMembership({ role: 30 })
+                store.setInstance({ id: 'instance-1', meta: { versions: { 'node-red': '3.1.15', launcher: '2.20.0' } } })
+                const expert = store.expert
+                expect(expert.nodeRedVersion).toBe('3.1.15')
+                expect(expert.launcherVersion).toBe('2.20.0')
+                expect(expert.deviceAgentVersion).toBeNull()
+                expect(expert.deviceAgentLite).toBe(false)
+            })
+
+            it('carries the device agent version and lite flag, not the owning instance versions', () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'device-overview' })
+                store.setTeamMembership({ role: 30 })
+                store.setDevice({
+                    id: 'device-1',
+                    agentVersion: '3.1.0',
+                    agentType: 'lite',
+                    ownerType: 'instance',
+                    instance: { id: 'instance-1', meta: { versions: { 'node-red': '4.1.0', launcher: '2.20.0' } } }
+                })
+                const expert = store.expert
+                expect(expert.deviceAgentVersion).toBe('3.1.0')
+                expect(expert.deviceAgentLite).toBe(true)
+                expect(expert.launcherVersion).toBeNull()
+                expect(expert.nodeRedVersion).toBeNull()
+            })
+
             it('reflects the route layout in scope', () => {
                 const store = useContextStore()
                 store.updateRoute({ name: 'device-overview', meta: {} })
