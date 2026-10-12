@@ -8,7 +8,7 @@
             :class="{ 'has-mode-switcher': isInsightsModeEnabled && isEditorContext }"
             @scroll="handleScroll"
         >
-            <info-banner v-if="!isOnboardingSurface" />
+            <info-banner v-if="!isFullPageSurface" />
 
             <expert-messages @resizing="scrollToBottom" />
 
@@ -38,6 +38,7 @@ import InfoBanner from './components/InfoBanner.vue'
 import UpdateBanner from './components/UpdateBanner.vue'
 import TaskList from './components/messages/components/TaskList.vue'
 
+import { isFullPageSurface } from '@/components/expert/surfaces.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
@@ -105,10 +106,10 @@ export default {
             // In editor context, the route name includes 'editor'
             return this.$route?.name?.includes('editor') || false
         },
-        isOnboardingSurface () {
-            // In onboarding, the Expert opens the conversation itself, so the
+        isFullPageSurface () {
+            // On a full page surface the Expert opens the conversation itself, so the
             // canned welcome message and the support banner stay out of it.
-            return this.expertSurface === 'onboarding'
+            return isFullPageSurface(this.expertSurface)
         },
         isInsightsModeEnabled () {
             return !!this.featuresCheck?.isExpertInsightsFeatureEnabled
@@ -134,7 +135,7 @@ export default {
                 if (this.isInsightsAgent) {
                     await this.getCapabilities()
                 }
-                if (!this.isOnboardingSurface) {
+                if (!this.isFullPageSurface) {
                     this.addWelcomeMessageIfNeeded()
                 }
             }

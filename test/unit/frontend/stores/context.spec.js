@@ -40,7 +40,8 @@ vi.mock('@/routes.js', () => ({
 
 vi.mock('@/services/product.js', () => ({
     default: {
-        setTeam: vi.fn()
+        setTeam: vi.fn(),
+        setRoute: vi.fn()
     }
 }))
 
@@ -72,6 +73,12 @@ describe('context store', () => {
             const route = { name: 'test', fullPath: '/test', params: {} }
             store.updateRoute(route)
             expect(store.route).toEqual(route)
+        })
+
+        it('updateRoute tells analytics which route the user is on', () => {
+            const store = useContextStore()
+            store.updateRoute({ name: 'team-home', fullPath: '/team/a/overview', params: {} })
+            expect(product.setRoute).toHaveBeenCalledWith('team-home')
         })
 
         it('setInstance sets the instance', () => {
@@ -498,6 +505,28 @@ describe('context store', () => {
 
                 uxStore.endOnboarding()
                 expect(store.expert.onboarding).toBe(false)
+            })
+
+            // Both branches build the object separately, so a field added to one
+            // and not the other goes missing depending on load timing
+            it('carries the building flag on both the early-return and main paths', async () => {
+                const { useUxStore } = await import('@/stores/ux.js')
+                const store = useContextStore()
+                const uxStore = useUxStore()
+
+                expect(store.route).toBe(null)
+                expect(store.expert.building).toBe(false)
+
+                uxStore.startBuilding()
+                expect(store.expert.building).toBe(true)
+
+                store.setTeamMembership({ role: 30 })
+                store.updateRoute({ name: 'team-build', fullPath: '/team/a/build', params: {} })
+                expect(store.route).not.toBe(null)
+                expect(store.expert.building).toBe(true)
+
+                uxStore.stopBuilding()
+                expect(store.expert.building).toBe(false)
             })
 
             it('includes teamId and teamSlug from context team', () => {
