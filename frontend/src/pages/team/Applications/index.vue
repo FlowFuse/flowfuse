@@ -17,18 +17,21 @@
                     <p>Click an Instance within an Application to go to the Instance's overview.</p>
                 </template>
                 <template #tools>
-                    <ff-button
-                        v-if="hasPermission('project:create')"
-                        data-action="create-application"
-                        kind="primary"
-                        :to="{name: 'team-application-create'}"
-                        type="anchor"
-                    >
-                        <template #icon-left>
-                            <PlusSmallIcon />
-                        </template>
-                        Create Application
-                    </ff-button>
+                    <div class="flex gap-2 justify-end">
+                        <ExpertBuildButton v-if="hasPermission('project:create')" target="application" />
+                        <ff-button
+                            v-if="hasPermission('project:create')"
+                            data-action="create-application"
+                            kind="primary"
+                            :to="{name: 'team-application-create'}"
+                            type="anchor"
+                        >
+                            <template #icon-left>
+                                <PlusSmallIcon />
+                            </template>
+                            Create Application
+                        </ff-button>
+                    </div>
                 </template>
             </ff-page-header>
         </template>
@@ -72,6 +75,7 @@
                     </p>
                 </template>
                 <template #actions>
+                    <ExpertBuildButton v-if="hasPermission('project:create')" target="application" />
                     <ff-button
                         v-if="hasPermission('project:create')"
                         data-action="create-application"
@@ -108,12 +112,14 @@ import usePermissions from '../../../composables/Permissions.js'
 
 import ApplicationListItem from './components/Application.vue'
 
+import ExpertBuildButton from '@/components/expert/ExpertBuildButton.vue'
 import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
 import { useUxLoadingStore } from '@/stores/ux-loading.js'
 
 export default {
     name: 'TeamApplications',
     components: {
+        ExpertBuildButton,
         MagnifyingGlassIcon,
         ApplicationListItem,
         EmptyState,
