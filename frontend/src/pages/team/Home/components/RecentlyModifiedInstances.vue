@@ -17,9 +17,12 @@
         <div v-else class="no-instances flex flex-col flex-1 justify-center text-gray-500 italic">
             <p class="text-center self-center">
                 It's looking a little empty.
-                <team-link :to="{name: 'team-instance-create'}" class="text-indigo-500">Create a Hosted Instance</team-link>
+                <team-link v-ff-track="'ff-instance-create-clicked'" :to="{name: 'team-instance-create'}" class="text-indigo-500">Create a Hosted Instance</team-link>
                 to get started.
             </p>
+            <div v-if="hasPermission('project:create')" class="flex justify-center mt-2 not-italic">
+                <ExpertBuildButton target="instance" />
+            </div>
         </div>
     </div>
 </template>
@@ -32,11 +35,13 @@ import teamAPI from '../../../../api/team.js'
 import TeamLink from '../../../../components/router-links/TeamLink.vue'
 import InstanceTile from '../../Applications/components/compact/InstanceTile.vue'
 
+import ExpertBuildButton from '@/components/expert/ExpertBuildButton.vue'
+import usePermissions from '@/composables/Permissions.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'RecentlyModifiedInstances',
-    components: { TeamLink, InstanceTile, ChevronRightIcon },
+    components: { TeamLink, InstanceTile, ChevronRightIcon, ExpertBuildButton },
     props: {
         totalInstances: {
             type: Number,
@@ -49,6 +54,10 @@ export default {
         }
     },
     emits: ['delete-instance'],
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         return {
             hasMore: false,
