@@ -180,8 +180,6 @@ describe('Tables: Postgres LocalFS Driver', function () {
             const dbObj = { destroy: sinon.stub().resolves() }
             app.db.models.Table.byId.resolves(dbObj)
             await driver.init(app, options)
-            // Simulate database exists in Postgres
-            driver._adminClient.query.withArgs('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid]).resolves({ rows: [{ datname: team.hashid }] })
             await driver.destroyDatabase(team, 1)
             driver._adminClient.query.calledWithMatch(`DROP DATABASE IF EXISTS "${team.hashid}"`).should.be.true()
             driver._adminClient.query.calledWithMatch(`DROP USER IF EXISTS "${team.hashid}"`).should.be.true()
@@ -193,7 +191,6 @@ describe('Tables: Postgres LocalFS Driver', function () {
             const dbObj = { destroy: sinon.stub().resolves() }
             app.db.models.Table.byId.resolves(dbObj)
             await driver.init(app, options)
-            driver._adminClient.query.withArgs('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid]).resolves({ rows: [{ datname: team.hashid }] })
             driver._adminClient.query.withArgs(`DROP DATABASE IF EXISTS "${team.hashid}"`).rejects(new Error('database is being accessed by other users'))
             await driver.destroyDatabase(team, 1).should.be.rejectedWith('database is being accessed by other users')
             dbObj.destroy.called.should.be.false()
@@ -203,13 +200,16 @@ describe('Tables: Postgres LocalFS Driver', function () {
             await driver.init(app, options)
             await driver.destroyDatabase({ id: 1, hashid: 't1hash' }, 1).should.be.rejectedWith('Database t1hash does not exist')
         })
-        it('should throw if db does not exist in Postgres', async function () {
+        it('should finish the cleanup on a retry after the database was dropped', async function () {
             const team = { id: 1, hashid: 't1hash' }
             const dbObj = { destroy: sinon.stub().resolves() }
             app.db.models.Table.byId.resolves(dbObj)
             await driver.init(app, options)
-            driver._adminClient.query.withArgs('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid]).resolves({ rows: [] })
-            await driver.destroyDatabase(team, 1).should.be.rejectedWith('Database t1hash does not exist')
+            driver._adminClient.query.withArgs(`DROP USER IF EXISTS "${team.hashid}"`).onFirstCall().rejects(new Error('role is in use'))
+            await driver.destroyDatabase(team, 1).should.be.rejectedWith('role is in use')
+            dbObj.destroy.called.should.be.false()
+            await driver.destroyDatabase(team, 1)
+            dbObj.destroy.calledOnce.should.be.true()
         })
     })
 
