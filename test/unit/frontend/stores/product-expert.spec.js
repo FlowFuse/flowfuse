@@ -1176,7 +1176,7 @@ describe('product-expert store', () => {
                 store.stopInflightChat()
                 expect(store.isStoppingTurn).toBe(true)
 
-                vi.advanceTimersByTime(60000)
+                vi.advanceTimersByTime(15000)
 
                 expect(store.isStoppingTurn).toBe(false)
             })

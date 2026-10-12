@@ -34,7 +34,8 @@ import { connectionKey as teamConnectionKey } from '@/subscribers/team-subscribe
 const DISCONNECT_NOTICE_DELAY = 15000
 
 // How long a stopped turn holds the next send while waiting for the agent to confirm it ended.
-const STOP_CONFIRM_TIMEOUT_MS = 60000
+// The composer stays locked meanwhile, so this is kept short.
+const STOP_CONFIRM_TIMEOUT_MS = 15000
 
 export const useProductExpertStore = defineStore('product-expert', {
     state: () => ({
@@ -1682,8 +1683,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             this._drainSendQueue()
         },
         _awaitTurnStopped (transactionId) {
-            // The fallback covers a lost notice. The agent forgets an abort after a minute and
-            // lets the turn finish, so waiting longer than that buys nothing.
+            // The fallback covers a notice that never comes, such as from an agent that doesn't send one.
             const timer = setTimeout(() => this._turnStopped(transactionId), STOP_CONFIRM_TIMEOUT_MS)
             useProductExpertSupportAgentStore().stoppingTransactions.set(transactionId, timer)
         },
