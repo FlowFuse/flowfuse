@@ -375,7 +375,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useProductExpertStore, ['updateAnswerStreamedState', 'handleQuery', 'setPendingInput', 'setComposerCommand', 'setPlanMode', 'resolveToolApproval', 'saveQuestionAnswer']),
+        ...mapActions(useProductExpertStore, ['updateAnswerStreamedState', 'handleQuery', 'setPendingInput', 'setComposerCommand', 'approvePlan', 'resolveToolApproval', 'saveQuestionAnswer']),
         buildStreamingOrder () {
             // order matters
             // this is where the decision of the streaming order of components is decided
@@ -408,11 +408,7 @@ export default {
             if (this.isOnboardingSurface) {
                 Product.capture('ff-onboarding-plan-approved', {}, { team: useContextStore().team?.id })
             }
-            // Approving exits read-only plan mode so the build runs as a normal acting turn,
-            // and clears any plan text loaded into the composer via "Edit manually".
-            this.setPlanMode(false)
-            this.setComposerCommand('reset')
-            this.handleQuery({ query: 'Approved. Proceed with the plan.' })
+            this.approvePlan()
         },
         onPlanEditManual () {
             // Load the plan markdown into the composer to edit and resubmit for a re-proposal.

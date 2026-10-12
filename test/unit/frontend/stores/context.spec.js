@@ -500,6 +500,28 @@ describe('context store', () => {
                 expect(store.expert.onboarding).toBe(false)
             })
 
+            // Both branches build the object separately, so a field added to one
+            // and not the other goes missing depending on load timing
+            it('carries the building flag on both the early-return and main paths', async () => {
+                const { useUxStore } = await import('@/stores/ux.js')
+                const store = useContextStore()
+                const uxStore = useUxStore()
+
+                expect(store.route).toBe(null)
+                expect(store.expert.building).toBe(false)
+
+                uxStore.startBuilding()
+                expect(store.expert.building).toBe(true)
+
+                store.setTeamMembership({ role: 30 })
+                store.updateRoute({ name: 'team-build', fullPath: '/team/a/build', params: {} })
+                expect(store.route).not.toBe(null)
+                expect(store.expert.building).toBe(true)
+
+                uxStore.stopBuilding()
+                expect(store.expert.building).toBe(false)
+            })
+
             it('includes teamId and teamSlug from context team', () => {
                 const store = useContextStore()
                 store.setTeam({ id: 'team-42', slug: 'my-team' })
