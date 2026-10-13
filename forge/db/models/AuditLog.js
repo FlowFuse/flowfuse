@@ -225,18 +225,6 @@ module.exports = {
                  * @param {String} pagination.scope - The scope of the audit logs to get. Can be one of ['team', 'application', 'project', 'device']
                  * @param {String} pagination.includeChildren - Whether to include children entities in the scope. Can be one of ['true', 'false', '1', '0']
                  */
-                decodeCursor: (cursor) => {
-                    // decodeHashid returns [] for an invalid hashid, which Sequelize
-                    // renders as `id < ''` and PostgreSQL rejects with a 500
-                    const [id] = M.AuditLog.decodeHashid(cursor) || []
-                    if (id === undefined) {
-                        const err = new Error('Invalid cursor')
-                        err.statusCode = 400
-                        err.code = 'invalid_cursor'
-                        throw err
-                    }
-                    return id
-                },
                 getFilterAndAssociations: async (entityType, entityId, pagination) => {
                     /*
                     The AuditLogs table has entityType [platform|team|application|project|device] and an associated entityId which is dependent on the entityType.

@@ -1,6 +1,7 @@
 const should = require('should')
 const sinon = require('sinon')
 
+const TestModelFactory = require('../../../../../lib/TestModelFactory')
 const setup = require('../../setup')
 
 describe('MCP Platform Tools Server', function () {
@@ -277,6 +278,92 @@ describe('MCP Platform Tools Server', function () {
                 userProperties.should.have.property('telemetryEnabled', expectedTelemetry)
 
                 await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-1')
+            })
+
+            describe('tab capabilities and versions', function () {
+                async function callWithTab (snapshot) {
+                    await app.db.controllers.BrowserSession.recordPresence(app.user.hashid, 'tab-versions', { visibility: 'visible', ...snapshot })
+                    await app.db.controllers.BrowserSession.setActiveBrowserSession(app.user.hashid, 'session-versions', 'tab-versions')
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/mcp',
+                        headers: { authorization: `Bearer ${TestObjects.alicePAT.token}`, 'mcp-session-id': 'session-versions' },
+                        payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+                    })
+                    response.statusCode.should.equal(200)
+                    return proxyRequest.firstCall.args[3]
+                }
+
+                afterEach(async function () {
+                    await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-versions')
+                })
+
+                it('passes the tab capabilities, assistant version and instance versions', async function () {
+                    app.instance.versions = { 'node-red': { current: '4.1.0', wanted: '4.1.0' }, launcher: { current: '2.20.0' } }
+                    await app.instance.save()
+
+                    const userProperties = await callWithTab({
+                        capabilities: ['platform', 'platform_ui', 'flow_building'],
+                        context: { teamId: app.team.hashid, scope: 'immersive', assistantVersion: '0.16.0', topicParts: { entityType: 'p', entityId: app.instance.id } }
+                    })
+                    userProperties.should.have.property('tabCapabilities', 'platform,platform_ui,flow_building')
+                    userProperties.should.have.property('tabScope', 'immersive')
+                    userProperties.should.have.property('assistantVersion', '0.16.0')
+                    userProperties.should.have.property('nodeRedVersion', '4.1.0')
+                    userProperties.should.have.property('launcherVersion', '2.20.0')
+                    userProperties.should.not.have.property('deviceAgentVersion')
+                })
+
+                it('omits the versions nothing reported', async function () {
+                    app.instance.versions = {}
+                    await app.instance.save()
+
+                    const userProperties = await callWithTab({
+                        capabilities: ['platform'],
+                        context: { teamId: app.team.hashid, topicParts: { entityType: 'p', entityId: app.instance.id } }
+                    })
+                    userProperties.should.have.property('tabCapabilities', 'platform')
+                    userProperties.should.not.have.property('assistantVersion')
+                    userProperties.should.not.have.property('nodeRedVersion')
+                    userProperties.should.not.have.property('launcherVersion')
+                })
+
+                it('passes the device agent version and lite flag', async function () {
+                    const factory = new TestModelFactory(app)
+                    const device = await factory.createDevice({ name: 'versions-device', agentVersion: '0.7.0' }, app.team, null, app.application)
+                    device.agentType = 'lite'
+                    await device.save()
+
+                    const userProperties = await callWithTab({
+                        capabilities: ['platform', 'platform_ui'],
+                        context: { teamId: app.team.hashid, topicParts: { entityType: 'd', entityId: device.hashid } }
+                    })
+                    userProperties.should.have.property('deviceAgentVersion', '0.7.0')
+                    userProperties.should.have.property('deviceAgentLite', 'true')
+                    userProperties.should.not.have.property('nodeRedVersion')
+                })
+
+                it('ignores an entity outside the tab team', async function () {
+                    const otherTeam = await app.db.models.Team.create({ name: 'VersionsOtherTeam', TeamTypeId: app.team.TeamTypeId })
+                    const factory = new TestModelFactory(app)
+                    const device = await factory.createDevice({ name: 'other-team-device' }, otherTeam)
+
+                    const userProperties = await callWithTab({
+                        capabilities: [],
+                        context: { teamId: app.team.hashid, topicParts: { entityType: 'd', entityId: device.hashid } }
+                    })
+                    userProperties.should.have.property('tabCapabilities', '')
+                    userProperties.should.not.have.property('deviceAgentVersion')
+                    userProperties.should.not.have.property('deviceAgentLite')
+                })
+
+                it('ignores an entity id that does not resolve', async function () {
+                    const userProperties = await callWithTab({
+                        context: { teamId: app.team.hashid, topicParts: { entityType: 'd', entityId: 'not-a-device' } }
+                    })
+                    userProperties.should.not.have.property('deviceAgentVersion')
+                    userProperties.should.not.have.property('deviceAgentLite')
+                })
             })
 
             it('should refuse a call when the pinned tab belongs to a team with AI disabled', async function () {

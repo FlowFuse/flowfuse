@@ -119,6 +119,9 @@ export const useContextStore = defineStore('context', {
                     isTrialAccount: this.isTrialAccount,
                     trialRuntimesLimit: this.trialRuntimesLimit,
                     nodeRedVersion: assistantStore.nodeRedVersion,
+                    launcherVersion: null,
+                    deviceAgentVersion: null,
+                    deviceAgentLite: false,
                     pageName: null,
                     rawRoute: {},
                     selectedNodes: null,
@@ -165,7 +168,15 @@ export const useContextStore = defineStore('context', {
                 isTrialAccount: this.isTrialAccount,
                 trialRuntimesLimit: this.trialRuntimesLimit,
                 pageName: state.route.name,
-                nodeRedVersion: assistantStore.nodeRedVersion,
+                // Outside the editor the assistant's report may belong to an editor opened earlier, so the
+                // instance's stored versions are used. A device page also sets the instance that owns the
+                // device, whose versions are not the device's.
+                nodeRedVersion: this.isImmersive
+                    ? assistantStore.nodeRedVersion
+                    : (state.device ? null : (state.instance?.meta?.versions?.['node-red'] ?? null)),
+                launcherVersion: state.device ? null : (state.instance?.meta?.versions?.launcher ?? null),
+                deviceAgentVersion: state.device?.agentVersion ?? null,
+                deviceAgentLite: state.device?.agentType === 'lite',
                 rawRoute,
                 selectedNodes,
                 scope: this.isImmersive ? 'immersive' : 'ff-app',
