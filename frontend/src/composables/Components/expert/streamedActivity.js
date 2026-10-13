@@ -5,7 +5,7 @@ export const TOOL_RECORD_KINDS = ['tool-record', 'mcp_tool', 'mcp_resource', 'mc
 // Kinds that arrive on expert:status-message and render in seq order ahead of the final reply.
 export const STREAMED_KINDS = ['tool-record', 'reasoning', 'message']
 
-export const ACTIVITY_KINDS = [...TOOL_RECORD_KINDS, 'reasoning', 'message']
+export const ACTIVITY_KINDS = [...TOOL_RECORD_KINDS, 'reasoning']
 
 export function isToolRecord (item) {
     return TOOL_RECORD_KINDS.includes(item?.kind)

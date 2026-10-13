@@ -1,6 +1,9 @@
 <template>
     <div class="flex flex-col gap-3">
-        <timeline-item v-for="item in toolRecords" :key="item._uuid" :item="item" />
+        <template v-for="item in activity" :key="item._uuid">
+            <reasoning-block v-if="item.kind === 'reasoning'" :item="item" :message-uuid="_uuid" />
+            <timeline-item v-else :item="item" />
+        </template>
         <answer-wrapper
             v-for="(fAnswer, key) in visibleItems"
             :key="slugify(`${fAnswer.kind}-${fAnswer.title}-${fAnswer.summary}-${fAnswer._uuid}`)"
@@ -14,15 +17,16 @@
 
 <script>
 import AnswerWrapper from './components/AnswerWrapper.vue'
+import ReasoningBlock from './components/ReasoningBlock.vue'
 import TimelineItem from './components/TimelineItem.vue'
 
-import { ACTIVITY_KINDS, isToolRecord } from '@/composables/Components/expert/streamedActivity.js'
+import { ACTIVITY_KINDS } from '@/composables/Components/expert/streamedActivity.js'
 import useStreamingList from '@/composables/StreamingListHelper.js'
 import { slugify } from '@/composables/strings/String.js'
 
 export default {
     name: 'AiMessage',
-    components: { AnswerWrapper, TimelineItem },
+    components: { AnswerWrapper, ReasoningBlock, TimelineItem },
     props: {
         query: {
             type: String,
@@ -75,8 +79,8 @@ export default {
         return { initStreamer, setSubItemStreamedState, visibleItems, items }
     },
     computed: {
-        toolRecords () {
-            return this.answer.filter(isToolRecord)
+        activity () {
+            return this.answer.filter(answer => ACTIVITY_KINDS.includes(answer.kind))
         },
         terminalAnswers () {
             return this.answer.filter(answer => !ACTIVITY_KINDS.includes(answer.kind))
