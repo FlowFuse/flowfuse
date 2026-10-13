@@ -684,6 +684,74 @@ describe('product-expert store', () => {
             expect(JSON.parse(mqttService.publishMessage.mock.calls[0][1].payload)).toEqual({ ok: true })
         })
 
+        describe('streamed activity', () => {
+            const statusTopic = 'ff/v1/expert/u1/chat-1/team/t1/support/inflight/expert:status-message/request'
+            const send = (payload, srf = 'srf-1', turn = 'turn-1') => store._onMqttMessage(statusTopic, JSON.stringify(payload), packet(srf, turn))
+            const bubble = () => agent.messages.find(m => m._transactionId === 'turn-1')
+
+            beforeEach(() => {
+                agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+            })
+
+            it('inserts a known kind by seq without acking or touching the loading line', async () => {
+                await send({ kind: 'message', id: 'm2', seq: 2, text: 'second' }, 'srf-1')
+                await send({ kind: 'tool-record', id: 't1', seq: 1, reason: 'why', ok: true }, 'srf-2')
+
+                expect(bubble().answer.map(a => a.id)).toEqual(['t1', 'm2'])
+                expect(mqttService.publishMessage).not.toHaveBeenCalled()
+                expect(store.inFlightUpdates).toHaveLength(0)
+            })
+
+            it('replaces an item with the same id in place', async () => {
+                await send({ kind: 'reasoning', id: 'r1', seq: 1, text: 'Looking', done: false }, 'srf-1')
+                await send({ kind: 'message', id: 'm1', seq: 2, text: 'hi' }, 'srf-2')
+                await send({ kind: 'reasoning', id: 'r1', seq: 1, text: 'Looking at the flow', done: true }, 'srf-3')
+
+                expect(bubble().answer).toHaveLength(2)
+                expect(bubble().answer[0]).toMatchObject({ id: 'r1', text: 'Looking at the flow', done: true })
+            })
+
+            it('keeps handling a payload without a kind as a status line', async () => {
+                await send({ status: 'Checking the flow' })
+
+                expect(bubble()).toBeUndefined()
+                expect(store.inFlightUpdates).toEqual(['Checking the flow'])
+                expect(JSON.parse(mqttService.publishMessage.mock.calls[0][1].payload)).toEqual({ ack: true })
+            })
+
+            it('ignores an unknown kind entirely', async () => {
+                await send({ kind: 'hologram', id: 'h1', seq: 1, status: 'new thing' })
+
+                expect(agent.messages).toHaveLength(0)
+                expect(store.inFlightUpdates).toHaveLength(0)
+                expect(mqttService.publishMessage).not.toHaveBeenCalled()
+            })
+
+            it('drops an event that arrives after the turn has finished', async () => {
+                await store._onMqttMessage(replyTopic, JSON.stringify({}), packet('turn-1', 'turn-1'))
+
+                await send({ kind: 'message', id: 'm1', seq: 1, text: 'late' })
+
+                expect(agent.messages).toHaveLength(0)
+                expect(mqttService.publishMessage).not.toHaveBeenCalled()
+            })
+
+            it('merges final-answer tool records into streamed cards by id', async () => {
+                await send({ kind: 'tool-record', id: 't1', seq: 1, reason: 'why', ok: true }, 'srf-1')
+                const answer = [
+                    { kind: 'mcp_tool', id: 't1', seq: 1, reason: 'why', toolName: 'list_flows' },
+                    { kind: 'mcp_tool', toolName: 'legacy' },
+                    { kind: 'chat', content: 'Done' }
+                ]
+
+                await store._onMqttMessage(replyTopic, JSON.stringify({ answer }), packet('turn-1', 'turn-1'))
+
+                expect(agent.messages).toHaveLength(1)
+                expect(bubble().answer.map(a => a.id || a.toolName || a.kind)).toEqual(['t1', 'legacy', 'chat'])
+                expect(bubble().answer[0]).toMatchObject({ toolName: 'list_flows', ok: true })
+            })
+        })
+
         it('answers an editor action that fails with its error and keeps the chat going', async () => {
             agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
             invokeAction.mockRejectedValueOnce(new Error('Node-RED command timed out'))

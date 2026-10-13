@@ -4,6 +4,7 @@ import { markRaw } from 'vue'
 
 import expertApi from '../api/expert.js'
 import userApi from '../api/user.js'
+import { STREAMED_KINDS, isToolRecord } from '../composables/Components/expert/streamedActivity.js'
 import useTimerHelper from '../composables/TimerHelper.js'
 
 import { useAccountAuthStore } from './account-auth.js'
@@ -555,6 +556,16 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
             }
 
+            // Streamed activity rides expert:status-message with a `kind`. It renders on the
+            // turn's reply, so it is neither acked nor shown on the loading line, and a kind
+            // this client does not know is ignored whole.
+            if (parsedTopic.inflightType === 'expert:status-message' && payload?.kind != null) {
+                if (STREAMED_KINDS.includes(payload.kind) && this._inFlightRequests.has(chatTransactionId)) {
+                    this._appendStreamedActivity(chatTransactionId, payload)
+                }
+                return
+            }
+
             // expert:tasks has its own panel; its status rides expert:status-message.
             // Every other inflight type feeds the loading line, but only while the turn is
             // still live: a status trailing the final reply must not repaint the next turn.
@@ -661,7 +672,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // do nothing
             }
         },
-        async handleMessageResponse (response) {
+        async handleMessageResponse (response, transactionId) {
             // ignore aborted messages through mqtt
             if (Object.prototype.hasOwnProperty.call(response, 'aborted') && response.aborted === true) return
 
@@ -675,7 +686,14 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
 
             if (response.answer && Array.isArray(response.answer)) {
-                this.addAiMessage(response)
+                const streamedBubble = transactionId
+                    ? this._agentStore.messages.find(m => m._type === 'ai' && m._transactionId === transactionId)
+                    : null
+                if (streamedBubble) {
+                    this._mergeFinalAnswer(streamedBubble, response)
+                } else {
+                    this.addAiMessage(response)
+                }
                 this._clearInFlightUpdates()
                 // A deferred-approval turn (#421) ends with one card per tool that needs
                 // approval. Track the batch so we can send every decision back at once.
@@ -1017,6 +1035,63 @@ export const useProductExpertStore = defineStore('product-expert', {
                 _uuid: uuidv4()
             })
         },
+        // Place one streamed item in the turn's reply bubble, creating the bubble on the
+        // first item. An id already in the bubble is replaced in place; otherwise the item
+        // goes in seq order, so events arriving out of order still render in order.
+        _appendStreamedActivity (transactionId, item) {
+            if (!transactionId || !item) return
+
+            const messages = this._agentStore.messages
+            let bubble = messages.find(m => m._type === 'ai' && m._transactionId === transactionId)
+            if (!bubble) {
+                bubble = {
+                    answer: [],
+                    _type: 'ai',
+                    _timestamp: Date.now(),
+                    _streamed: false,
+                    _uuid: uuidv4(),
+                    _transactionId: transactionId
+                }
+                messages.push(bubble)
+            }
+
+            const existingIndex = item.id ? bubble.answer.findIndex(a => a.id === item.id) : -1
+            if (existingIndex !== -1) {
+                const existing = bubble.answer[existingIndex]
+                bubble.answer.splice(existingIndex, 1, { ...item, _uuid: existing._uuid, _streamed: true })
+                return
+            }
+            this._insertBySeq(bubble, { ...item, _uuid: uuidv4(), _streamed: true })
+        },
+        _insertBySeq (bubble, entry) {
+            if (typeof entry.seq !== 'number') {
+                bubble.answer.push(entry)
+                return
+            }
+            const insertBefore = bubble.answer.findIndex(a => typeof a.seq === 'number' && a.seq > entry.seq)
+            if (insertBefore === -1) {
+                bubble.answer.push(entry)
+            } else {
+                bubble.answer.splice(insertBefore, 0, entry)
+            }
+        },
+        // The final reply lands in the bubble its streamed items built. Tool records it
+        // carries upgrade the streamed card with the same id; the rest is appended.
+        _mergeFinalAnswer (bubble, response) {
+            for (const item of response.answer) {
+                const existingIndex = item.id && isToolRecord(item)
+                    ? bubble.answer.findIndex(a => a.id === item.id && isToolRecord(a))
+                    : -1
+                if (existingIndex !== -1) {
+                    const existing = bubble.answer[existingIndex]
+                    bubble.answer.splice(existingIndex, 1, { ...existing, ...item, seq: existing.seq ?? item.seq, _uuid: existing._uuid })
+                    continue
+                }
+                this._insertBySeq(bubble, { ...item, _uuid: uuidv4(), _streamed: false })
+            }
+            const { answer: _answer, ...rest } = response
+            Object.assign(bubble, rest)
+        },
         addUserMessage (message) {
             this._agentStore.messages.push({
                 _type: 'human',
@@ -1111,7 +1186,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                     this._recentlyCompleted.delete(this._recentlyCompleted.keys().next().value)
                 }
                 try {
-                    await this.handleMessageResponse(JSON.parse(message.toString()))
+                    await this.handleMessageResponse(JSON.parse(message.toString()), transactionId)
                 } finally {
                     this._drainSendQueue()
                 }
