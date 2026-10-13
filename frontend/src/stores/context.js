@@ -194,6 +194,7 @@ export const useContextStore = defineStore('context', {
                 supportsPlanMode: true,
                 supportsHITL: true,
                 supportsPlansAndTasks: true,
+                supportsStreamedToolRecords: true,
                 toolPermissions: assistantStore.resolvedToolPermissions,
                 canUseWriteTools: hasAMinimumTeamRoleOf(Roles.Member, this.teamMembership)
             }
