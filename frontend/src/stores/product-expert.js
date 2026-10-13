@@ -101,8 +101,8 @@ export const useProductExpertStore = defineStore('product-expert', {
         hasMessages () { return this._agentStore.messages.length > 0 },
         isSessionExpired () { return this._agentStore.sessionExpiredShown },
         isWaitingForResponse () { return !!this._agentStore.abortController || this._inFlightRequests.size > 0 || this.isStoppingTurn },
-        // Once a live turn's reply bubble shows streamed activity, that activity stands in
-        // for the loading indicator. Agents that do not stream keep the indicator.
+        // Once a live turn's reply bubble shows streamed activity, the loading indicator drops
+        // its status lines and keeps only the dots. Agents that do not stream keep both.
         hasStreamedActivity () {
             return this._agentStore.messages.some(m =>
                 m._type === 'ai' &&

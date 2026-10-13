@@ -5,8 +5,8 @@
                 <collapsed-question-turn v-if="entry.kind === 'folded-turn'" :turn="entry" />
                 <component :is="messageTypes[entry.message._type]" v-else-if="messageTypes[entry.message._type]" v-bind="{...entry.message}" />
             </li>
-            <li v-if="isWaitingForResponse && !hasStreamedActivity">
-                <expert-loading-indicator />
+            <li v-if="isWaitingForResponse">
+                <expert-loading-indicator :show-messages="!hasStreamedActivity" />
             </li>
         </ul>
     </div>

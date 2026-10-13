@@ -5,7 +5,7 @@
             <div class="loading-dot" />
             <div class="loading-dot" />
         </div>
-        <div v-if="showMessage" class="loading-message">
+        <div v-if="showMessages && showMessage" class="loading-message">
             {{ currentMessage }}
         </div>
     </div>
@@ -20,6 +20,13 @@ import { useProductExpertStore } from '@/stores/product-expert.js'
 
 export default {
     name: 'ExpertLoadingIndicator',
+    props: {
+        // Off once the turn streams its own activity, which says more than these lines.
+        showMessages: {
+            type: Boolean,
+            default: true
+        }
+    },
     data () {
         return {
             showMessage: false,
