@@ -352,6 +352,24 @@ describe('product-expert store', () => {
         })
     })
 
+    describe('handleMessageResponse', () => {
+        it('keeps an answer\'s tool records, with or without a reason, in the new bubble', async () => {
+            const store = useProductExpertStore()
+            const agent = useProductExpertSupportAgentStore()
+
+            await store.handleMessageResponse({
+                answer: [
+                    { kind: 'mcp_tool', id: 't1', toolTitle: 'Get flows' },
+                    { kind: 'mcp_tool', id: 't2', reason: 'Why', toolTitle: 'List' },
+                    { kind: 'chat', content: 'Done' }
+                ]
+            })
+
+            expect(agent.messages).toHaveLength(1)
+            expect(agent.messages[0].answer.map(a => a.kind)).toEqual(['mcp_tool', 'mcp_tool', 'chat'])
+        })
+    })
+
     describe('addPredefinedAiMessage', () => {
         it('pushes an ai message with a single-item answer array', () => {
             const store = useProductExpertStore()
