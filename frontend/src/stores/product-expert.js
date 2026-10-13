@@ -1075,6 +1075,10 @@ export const useProductExpertStore = defineStore('product-expert', {
             const existingIndex = item.id ? bubble.answer.findIndex(a => a.id === item.id) : -1
             if (existingIndex !== -1) {
                 const existing = bubble.answer[existingIndex]
+                // An update that arrives late must not roll a newer one back, nor reopen a
+                // finished block.
+                const isOlder = typeof existing.seq === 'number' && typeof item.seq === 'number' && item.seq < existing.seq
+                if (isOlder || (existing.done === true && item.done !== true)) return
                 bubble.answer.splice(existingIndex, 1, { ...item, _uuid: existing._uuid, _streamed: true })
                 return
             }

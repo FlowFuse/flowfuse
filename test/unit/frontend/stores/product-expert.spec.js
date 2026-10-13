@@ -730,6 +730,16 @@ describe('product-expert store', () => {
                 expect(store.hasStreamedActivity).toBe(false)
             })
 
+            it('ignores a late update that is older than the one shown or would reopen a finished block', async () => {
+                await send({ kind: 'reasoning', id: 'r1', seq: 5, text: 'Looking at the flow', done: false }, 'srf-1')
+                await send({ kind: 'reasoning', id: 'r1', seq: 3, text: 'Look', done: false }, 'srf-2')
+                expect(bubble().answer[0]).toMatchObject({ text: 'Looking at the flow', done: false })
+
+                await send({ kind: 'reasoning', id: 'r1', seq: 7, text: 'Looking at the flow wiring', done: true }, 'srf-3')
+                await send({ kind: 'reasoning', id: 'r1', seq: 9, text: 'Looking', done: false }, 'srf-4')
+                expect(bubble().answer[0]).toMatchObject({ text: 'Looking at the flow wiring', done: true })
+            })
+
             it('replaces an item with the same id in place', async () => {
                 await send({ kind: 'reasoning', id: 'r1', seq: 1, text: 'Looking', done: false }, 'srf-1')
                 await send({ kind: 'message', id: 'm1', seq: 2, text: 'hi' }, 'srf-2')
