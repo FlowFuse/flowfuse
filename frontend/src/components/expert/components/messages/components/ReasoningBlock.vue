@@ -3,7 +3,9 @@
         <template #header>
             <LightBulbIcon class="ff-expert-reasoning--glyph" />
             <span class="ff-expert-reasoning--label">{{ item.done ? 'Thought' : 'Thinking' }}</span>
-            <span v-if="preview" class="ff-expert-reasoning--preview" :title="preview">{{ preview }}</span>
+        </template>
+        <template #summary="{ expanded }">
+            <div v-if="preview && !expanded" class="ff-expert-reasoning--preview" :title="preview">{{ preview }}</div>
         </template>
         <rich-content
             class="ff-expert-reasoning--body"
@@ -21,8 +23,9 @@ import { LightBulbIcon } from '@heroicons/vue/20/solid'
 import CollapsibleSection from './CollapsibleSection.vue'
 import RichContent from './resources/RichContent.vue'
 
-// Collapsed whether streaming or done, so the block keeps one line's height while the
-// reasoning arrives; the latest sentence shows in the header until it is done.
+// Collapsed whether streaming or done, so the block keeps its height while the reasoning
+// arrives. One line under the header shows the latest sentence while streaming and the first
+// once done.
 export default {
     name: 'ReasoningBlock',
     components: { CollapsibleSection, LightBulbIcon, RichContent },
@@ -38,10 +41,10 @@ export default {
     },
     computed: {
         preview () {
-            if (this.item.done || typeof this.item.text !== 'string') return ''
+            if (typeof this.item.text !== 'string') return ''
             const plain = this.item.text.replace(/[*_`#>]/g, '')
             const sentences = plain.split(/(?<=[.!?])\s+|\n+/).map(s => s.trim()).filter(Boolean)
-            return sentences[sentences.length - 1] || ''
+            return (this.item.done ? sentences[0] : sentences[sentences.length - 1]) || ''
         }
     }
 }
@@ -64,7 +67,9 @@ export default {
 }
 
 .ff-expert-reasoning--preview {
-    min-width: 0;
+    padding-left: 1.5rem;
+    font-size: 0.8125rem;
+    color: var(--ff-color-text-subtle);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

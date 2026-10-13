@@ -4,6 +4,7 @@
             <ChevronRightIcon class="ff-collapsible--chevron" :class="{ rotated: expanded }" />
             <slot name="header" />
         </div>
+        <slot name="summary" :expanded="expanded" />
         <div class="ff-collapsible--content" :class="{ expanded }">
             <div class="ff-collapsible--inner" :inert="!expanded">
                 <slot />

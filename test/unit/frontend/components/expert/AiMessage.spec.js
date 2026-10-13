@@ -43,14 +43,23 @@ describe('AiMessage', () => {
         expect(wrapper.findAll('.ff-expert-timeline-item--reason').map(n => n.text())).toEqual(['Finding the instance'])
     })
 
-    test('keeps streaming reasoning collapsed with its latest sentence in the header', () => {
+    test('keeps reasoning collapsed with the latest sentence while streaming and the first once done', () => {
         const wrapper = mountMessage([
             { kind: 'reasoning', id: 'r1', seq: 1, text: 'Reading the flow. Now **checking** the wires', done: false, _uuid: 'a' },
-            { kind: 'reasoning', id: 'r2', seq: 2, text: 'Done thinking.', done: true, _uuid: 'b' }
+            { kind: 'reasoning', id: 'r2', seq: 2, text: 'Planning the build.\nThen deploying it.', done: true, _uuid: 'b' }
         ])
 
         expect(wrapper.findAll('.ff-collapsible--content.expanded')).toHaveLength(0)
-        expect(wrapper.findAll('.ff-expert-reasoning--preview').map(n => n.text())).toEqual(['Now checking the wires'])
+        expect(wrapper.findAll('.ff-expert-reasoning--preview').map(n => n.text())).toEqual(['Now checking the wires', 'Planning the build.'])
+    })
+
+    test('hides the reasoning preview line while the block is expanded', async () => {
+        const wrapper = mountMessage([
+            { kind: 'reasoning', id: 'r1', seq: 1, text: 'Planning the build.', done: true, _uuid: 'a' }
+        ])
+
+        await wrapper.find('.ff-collapsible--header').trigger('click')
+        expect(wrapper.find('.ff-expert-reasoning--preview').exists()).toBe(false)
     })
 
     test('interleaves reasoning, tool cards and messages in answer order', () => {
