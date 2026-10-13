@@ -194,9 +194,8 @@ export const useContextStore = defineStore('context', {
                 supportsPlanMode: true,
                 supportsHITL: true,
                 supportsPlansAndTasks: true,
-                supportsStreamedToolRecords: true,
-                supportsStreamedReasoning: true,
-                supportsIntermediateAgentMessages: true,
+                // Tool calls, reasoning and progress messages streamed into the reply.
+                supportsStreamedActivity: true,
                 toolPermissions: assistantStore.resolvedToolPermissions,
                 canUseWriteTools: hasAMinimumTeamRoleOf(Roles.Member, this.teamMembership)
             }
