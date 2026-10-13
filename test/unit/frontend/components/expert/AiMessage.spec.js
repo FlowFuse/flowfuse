@@ -40,6 +40,7 @@ describe('AiMessage', () => {
         const headlines = wrapper.findAll('.ff-expert-timeline-item--name').map(n => n.text())
         expect(headlines).toEqual(['Get flows', 'Finding the instance'])
         expect(wrapper.findAll('.ff-expert-timeline-item--tool').map(n => n.text())).toEqual(['List instances'])
+        expect(wrapper.findAll('.ff-expert-timeline-item--reason').map(n => n.text())).toEqual(['Finding the instance'])
     })
 
     test('keeps streaming reasoning collapsed with its latest sentence in the header', () => {

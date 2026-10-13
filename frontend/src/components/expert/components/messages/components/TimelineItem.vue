@@ -2,11 +2,12 @@
     <collapsible-section class="ff-expert-timeline-item" :auto-open="false">
         <template #header>
             <WrenchIcon class="ff-expert-timeline-item--glyph" />
-            <span class="ff-expert-timeline-item--name">{{ headline }}</span>
+            <span class="ff-expert-timeline-item--name" :title="headline">{{ headline }}</span>
             <span v-if="failed" class="ff-expert-timeline-item--failed-hint">Failed</span>
         </template>
 
         <div class="ff-expert-timeline-item--body">
+            <p v-if="reasonText" class="ff-expert-timeline-item--reason">{{ reasonText }}</p>
             <p v-if="reasonText" class="ff-expert-timeline-item--tool">{{ title }}</p>
             <p v-if="failed && errorText" class="ff-expert-timeline-item--error">{{ errorText }}</p>
             <!-- Dev-only raw tool key, on its own line so it never crowds the reason. -->
@@ -99,7 +100,8 @@ export default {
         title () {
             return [this.item.toolTitle, this.item.toolName, this.item.toolId].find(isUsableName) || 'Tool call'
         },
-        // The reason says what the call is for, so it leads; the tool title moves into the body.
+        // The reason says what the call is for, so it leads on one line; the full reason and
+        // the tool title are in the body.
         headline () {
             return this.reasonText || this.title
         },
@@ -163,6 +165,10 @@ export default {
 }
 
 .ff-expert-timeline-item--name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-weight: 500;
     color: var(--ff-color-text);
 }
@@ -181,6 +187,13 @@ export default {
     margin-top: 0.25rem;
     padding-left: 0.75rem;
     border-left: 2px solid var(--ff-color-border-subtle);
+}
+
+.ff-expert-timeline-item--reason {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--ff-color-text);
 }
 
 .ff-expert-timeline-item--tool {
