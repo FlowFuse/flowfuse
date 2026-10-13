@@ -2,12 +2,12 @@
     <collapsible-section class="ff-expert-timeline-item" :auto-open="false">
         <template #header>
             <WrenchIcon class="ff-expert-timeline-item--glyph" />
-            <span class="ff-expert-timeline-item--name">{{ title }}</span>
+            <span class="ff-expert-timeline-item--name">{{ headline }}</span>
             <span v-if="failed" class="ff-expert-timeline-item--failed-hint">Failed</span>
         </template>
 
         <div class="ff-expert-timeline-item--body">
-            <p v-if="reasonText" class="ff-expert-timeline-item--reason">{{ reasonText }}</p>
+            <p v-if="reasonText" class="ff-expert-timeline-item--tool">{{ title }}</p>
             <p v-if="failed && errorText" class="ff-expert-timeline-item--error">{{ errorText }}</p>
             <!-- Dev-only raw tool key, on its own line so it never crowds the reason. -->
             <div v-if="showRawKey" class="ff-expert-timeline-item--raw-key" :title="kindFull">
@@ -95,10 +95,13 @@ export default {
         errorText () {
             return typeof this.item.error === 'string' ? this.item.error.trim() : ''
         },
-        // First usable name: friendly title, else the tool's own name, else the raw key. This
-        // is the header shown while collapsed; the reason lives in the expanded body.
+        // First usable name: friendly title, else the tool's own name, else the raw key.
         title () {
             return [this.item.toolTitle, this.item.toolName, this.item.toolId].find(isUsableName) || 'Tool call'
+        },
+        // The reason says what the call is for, so it leads; the tool title moves into the body.
+        headline () {
+            return this.reasonText || this.title
         },
         rawKey () {
             return this.item.toolId || ''
@@ -180,7 +183,7 @@ export default {
     border-left: 2px solid var(--ff-color-border-subtle);
 }
 
-.ff-expert-timeline-item--reason {
+.ff-expert-timeline-item--tool {
     margin: 0;
     font-size: 0.8125rem;
     line-height: 1.4;

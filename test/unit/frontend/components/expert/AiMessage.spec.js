@@ -37,9 +37,9 @@ describe('AiMessage', () => {
             { kind: 'chat', content: 'Done', _uuid: 'c' }
         ])
 
-        const names = wrapper.findAll('.ff-expert-timeline-item--name').map(n => n.text())
-        expect(names).toEqual(['Get flows', 'List instances'])
-        expect(wrapper.findAll('.ff-expert-timeline-item--reason')).toHaveLength(1)
+        const headlines = wrapper.findAll('.ff-expert-timeline-item--name').map(n => n.text())
+        expect(headlines).toEqual(['Get flows', 'Finding the instance'])
+        expect(wrapper.findAll('.ff-expert-timeline-item--tool').map(n => n.text())).toEqual(['List instances'])
     })
 
     test('interleaves reasoning, tool cards and messages in answer order', () => {
