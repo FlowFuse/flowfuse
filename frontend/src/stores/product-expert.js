@@ -1038,8 +1038,16 @@ export const useProductExpertStore = defineStore('product-expert', {
         // Place one streamed item in the turn's reply bubble, creating the bubble on the
         // first item. An id already in the bubble is replaced in place; otherwise the item
         // goes in seq order, so events arriving out of order still render in order.
-        _appendStreamedActivity (transactionId, item) {
-            if (!transactionId || !item) return
+        _appendStreamedActivity (transactionId, event) {
+            if (!transactionId || !event) return
+
+            // A streamed tool record moves its own kind to recordKind, so the card sees the
+            // same shape as the record in the final answer.
+            let item = event
+            if (event.kind === 'tool-record') {
+                const { recordKind, ...record } = event
+                item = { ...record, kind: recordKind || 'mcp_tool' }
+            }
 
             const messages = this._agentStore.messages
             let bubble = messages.find(m => m._type === 'ai' && m._transactionId === transactionId)

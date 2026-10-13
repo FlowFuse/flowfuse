@@ -695,7 +695,7 @@ describe('product-expert store', () => {
 
             it('inserts a known kind by seq without acking or touching the loading line', async () => {
                 await send({ kind: 'message', id: 'm2', seq: 2, text: 'second' }, 'srf-1')
-                await send({ kind: 'tool-record', id: 't1', seq: 1, reason: 'why', ok: true }, 'srf-2')
+                await send({ kind: 'tool-record', recordKind: 'mcp_tool', id: 't1', seq: 1, reason: 'why', ok: true }, 'srf-2')
 
                 expect(bubble().answer.map(a => a.id)).toEqual(['t1', 'm2'])
                 expect(mqttService.publishMessage).not.toHaveBeenCalled()
@@ -737,7 +737,7 @@ describe('product-expert store', () => {
             })
 
             it('merges final-answer tool records into streamed cards by id', async () => {
-                await send({ kind: 'tool-record', id: 't1', seq: 1, reason: 'why', ok: true }, 'srf-1')
+                await send({ kind: 'tool-record', recordKind: 'mcp_tool', id: 't1', seq: 1, reason: 'why', ok: true }, 'srf-1')
                 const answer = [
                     { kind: 'mcp_tool', id: 't1', seq: 1, reason: 'why', toolName: 'list_flows' },
                     { kind: 'mcp_tool', toolName: 'legacy' },
@@ -748,7 +748,8 @@ describe('product-expert store', () => {
 
                 expect(agent.messages).toHaveLength(1)
                 expect(bubble().answer.map(a => a.id || a.toolName || a.kind)).toEqual(['t1', 'legacy', 'chat'])
-                expect(bubble().answer[0]).toMatchObject({ toolName: 'list_flows', ok: true })
+                expect(bubble().answer[0]).toMatchObject({ kind: 'mcp_tool', toolName: 'list_flows', ok: true })
+                expect(bubble().answer[0].recordKind).toBeUndefined()
             })
         })
 
