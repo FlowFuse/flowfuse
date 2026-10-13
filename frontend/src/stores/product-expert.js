@@ -101,6 +101,15 @@ export const useProductExpertStore = defineStore('product-expert', {
         hasMessages () { return this._agentStore.messages.length > 0 },
         isSessionExpired () { return this._agentStore.sessionExpiredShown },
         isWaitingForResponse () { return !!this._agentStore.abortController || this._inFlightRequests.size > 0 || this.isStoppingTurn },
+        // Once a live turn's reply bubble shows streamed activity, that activity stands in
+        // for the loading indicator. Agents that do not stream keep the indicator.
+        hasStreamedActivity () {
+            return this._agentStore.messages.some(m =>
+                m._type === 'ai' &&
+                this._inFlightRequests.has(m._transactionId) &&
+                m.answer?.some(item => item._streamed)
+            )
+        },
         // A stopped turn runs on until the agent's next abort check. Until the agent says it
         // has ended, the session's next message would start a second turn alongside it.
         isStoppingTurn () {

@@ -5,7 +5,7 @@
                 <collapsed-question-turn v-if="entry.kind === 'folded-turn'" :turn="entry" />
                 <component :is="messageTypes[entry.message._type]" v-else-if="messageTypes[entry.message._type]" v-bind="{...entry.message}" />
             </li>
-            <li v-if="isWaitingForResponse">
+            <li v-if="isWaitingForResponse && !hasStreamedActivity">
                 <expert-loading-indicator />
             </li>
         </ul>
@@ -48,7 +48,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useProductExpertStore, ['messages', 'isWaitingForResponse']),
+        ...mapState(useProductExpertStore, ['messages', 'isWaitingForResponse', 'hasStreamedActivity']),
         messageTypes () {
             return {
                 ai: markRaw(AiMessage),

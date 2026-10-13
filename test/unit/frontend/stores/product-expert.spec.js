@@ -720,6 +720,16 @@ describe('product-expert store', () => {
                 expect(store.inFlightUpdates).toHaveLength(0)
             })
 
+            it('reports streamed activity only while the turn is live', async () => {
+                expect(store.hasStreamedActivity).toBe(false)
+
+                await send({ kind: 'message', id: 'm1', seq: 1, text: 'hi' })
+                expect(store.hasStreamedActivity).toBe(true)
+
+                agent.inFlightRequests.delete('turn-1')
+                expect(store.hasStreamedActivity).toBe(false)
+            })
+
             it('replaces an item with the same id in place', async () => {
                 await send({ kind: 'reasoning', id: 'r1', seq: 1, text: 'Looking', done: false }, 'srf-1')
                 await send({ kind: 'message', id: 'm1', seq: 2, text: 'hi' }, 'srf-2')
