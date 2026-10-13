@@ -42,6 +42,16 @@ describe('AiMessage', () => {
         expect(wrapper.findAll('.ff-expert-timeline-item--tool').map(n => n.text())).toEqual(['List instances'])
     })
 
+    test('keeps streaming reasoning collapsed with its latest sentence in the header', () => {
+        const wrapper = mountMessage([
+            { kind: 'reasoning', id: 'r1', seq: 1, text: 'Reading the flow. Now **checking** the wires', done: false, _uuid: 'a' },
+            { kind: 'reasoning', id: 'r2', seq: 2, text: 'Done thinking.', done: true, _uuid: 'b' }
+        ])
+
+        expect(wrapper.findAll('.ff-collapsible--content.expanded')).toHaveLength(0)
+        expect(wrapper.findAll('.ff-expert-reasoning--preview').map(n => n.text())).toEqual(['Now checking the wires'])
+    })
+
     test('interleaves reasoning, tool cards and messages in answer order', () => {
         const wrapper = mountMessage([
             { kind: 'reasoning', id: 'r1', seq: 1, text: 'Plan', done: true, _uuid: 'a' },

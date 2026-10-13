@@ -1,8 +1,9 @@
 <template>
-    <collapsible-section class="ff-expert-reasoning" :auto-open="!item.done">
+    <collapsible-section class="ff-expert-reasoning">
         <template #header>
             <LightBulbIcon class="ff-expert-reasoning--glyph" />
             <span class="ff-expert-reasoning--label">{{ item.done ? 'Thought' : 'Thinking' }}</span>
+            <span v-if="preview" class="ff-expert-reasoning--preview" :title="preview">{{ preview }}</span>
         </template>
         <rich-content
             class="ff-expert-reasoning--body"
@@ -20,7 +21,8 @@ import { LightBulbIcon } from '@heroicons/vue/20/solid'
 import CollapsibleSection from './CollapsibleSection.vue'
 import RichContent from './resources/RichContent.vue'
 
-// Open while the text is still arriving so it can be watched live, collapsed once done.
+// Collapsed whether streaming or done, so the block keeps one line's height while the
+// reasoning arrives; the latest sentence shows in the header until it is done.
 export default {
     name: 'ReasoningBlock',
     components: { CollapsibleSection, LightBulbIcon, RichContent },
@@ -32,6 +34,14 @@ export default {
         messageUuid: {
             type: String,
             required: true
+        }
+    },
+    computed: {
+        preview () {
+            if (this.item.done || typeof this.item.text !== 'string') return ''
+            const plain = this.item.text.replace(/[*_`#>]/g, '')
+            const sentences = plain.split(/(?<=[.!?])\s+|\n+/).map(s => s.trim()).filter(Boolean)
+            return sentences[sentences.length - 1] || ''
         }
     }
 }
@@ -50,6 +60,14 @@ export default {
 
 .ff-expert-reasoning--label {
     font-weight: 500;
+    flex-shrink: 0;
+}
+
+.ff-expert-reasoning--preview {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .ff-expert-reasoning--body {
