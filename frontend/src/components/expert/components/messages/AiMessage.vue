@@ -2,6 +2,7 @@
     <div class="flex flex-col gap-3">
         <template v-for="item in activity" :key="item._uuid">
             <reasoning-block v-if="item.kind === 'reasoning'" :item="item" :message-uuid="_uuid" />
+            <agent-message v-else-if="item.kind === 'message'" :item="item" :message-uuid="_uuid" />
             <timeline-item v-else :item="item" />
         </template>
         <answer-wrapper
@@ -16,6 +17,7 @@
 </template>
 
 <script>
+import AgentMessage from './components/AgentMessage.vue'
 import AnswerWrapper from './components/AnswerWrapper.vue'
 import ReasoningBlock from './components/ReasoningBlock.vue'
 import TimelineItem from './components/TimelineItem.vue'
@@ -26,7 +28,7 @@ import { slugify } from '@/composables/strings/String.js'
 
 export default {
     name: 'AiMessage',
-    components: { AnswerWrapper, ReasoningBlock, TimelineItem },
+    components: { AgentMessage, AnswerWrapper, ReasoningBlock, TimelineItem },
     props: {
         query: {
             type: String,
