@@ -634,22 +634,29 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
                 break
             }
-            case parsedTopic.inflightType.startsWith('automation:'):
+            case parsedTopic.inflightType.startsWith('automation:'): {
                 // passes automation requests to the Assistant
+                const action = `automation/${parsedTopic.inflightType.replace('automation:', '')}`
+                let result
                 try {
-                    const result = await assistantStore.invokeActionAwaitResponse({
-                        action: `automation/${parsedTopic.inflightType.replace('automation:', '')}`,
+                    result = await assistantStore.invokeActionAwaitResponse({
+                        action,
                         params: payload.params || {},
                         sessionId,
                         chatTransactionId,
                         transactionId
                     })
-
+                } catch (e) {
+                    // A failed editor action is not a lost connection.
+                    result = { action, success: false, error: e?.message || String(e) }
+                }
+                try {
                     await respond(result)
                 } catch (e) {
                     reportError(e)
                 }
                 break
+            }
             default:
                 // do nothing
             }

@@ -683,6 +683,23 @@ describe('product-expert store', () => {
             expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
             expect(JSON.parse(mqttService.publishMessage.mock.calls[0][1].payload)).toEqual({ ok: true })
         })
+
+        it('answers an editor action that fails with its error and keeps the chat going', async () => {
+            agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+            invokeAction.mockRejectedValueOnce(new Error('Node-RED command timed out'))
+            const addTabTopic = 'ff/v1/expert/u1/chat-1/team/t1/support/inflight/automation:add-tab/request'
+
+            await store._onMqttMessage(addTabTopic, JSON.stringify({ params: { label: 'Flow 2' } }), packet('srf-1', 'turn-1'))
+
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+            expect(JSON.parse(mqttService.publishMessage.mock.calls[0][1].payload)).toEqual({
+                action: 'automation/add-tab',
+                success: false,
+                error: 'Node-RED command timed out'
+            })
+            expect(agent.inFlightRequests.has('turn-1')).toBe(true)
+            expect(agent.messages).toHaveLength(0)
+        })
     })
 
     describe('relayInstanceReady', () => {
