@@ -749,6 +749,22 @@ describe('product-expert store', () => {
                 expect(bubble().answer[0]).toMatchObject({ id: 'r1', text: 'Looking at the flow', done: true })
             })
 
+            it('keeps an updated item at its first seq so later inserts stay in order', async () => {
+                await send({ kind: 'reasoning', id: 'r1', seq: 1, text: 'Looking', done: false }, 'srf-1')
+                await send({ kind: 'reasoning', id: 'r1', seq: 5, text: 'Looking at the flow', done: true }, 'srf-2')
+                await send({ kind: 'message', id: 'm1', seq: 3, text: 'hi' }, 'srf-3')
+
+                expect(bubble().answer.map(a => a.id)).toEqual(['r1', 'm1'])
+                expect(bubble().answer[0]).toMatchObject({ seq: 1, text: 'Looking at the flow' })
+            })
+
+            it('keeps fields an update leaves out', async () => {
+                await send({ kind: 'tool-record', recordKind: 'mcp_tool', id: 't1', seq: 1, reason: 'why' }, 'srf-1')
+                await send({ kind: 'tool-record', recordKind: 'mcp_tool', id: 't1', seq: 2, ok: true, output: { n: 1 } }, 'srf-2')
+
+                expect(bubble().answer[0]).toMatchObject({ reason: 'why', ok: true, output: { n: 1 } })
+            })
+
             it('keeps handling a payload without a kind as a status line', async () => {
                 await send({ status: 'Checking the flow' })
 

@@ -1076,10 +1076,19 @@ export const useProductExpertStore = defineStore('product-expert', {
             if (existingIndex !== -1) {
                 const existing = bubble.answer[existingIndex]
                 // An update that arrives late must not roll a newer one back, nor reopen a
-                // finished block.
-                const isOlder = typeof existing.seq === 'number' && typeof item.seq === 'number' && item.seq < existing.seq
+                // finished block. The item keeps its first seq so the bubble stays sorted;
+                // _latestSeq tracks the newest update.
+                const latestSeq = existing._latestSeq ?? existing.seq
+                const isOlder = typeof latestSeq === 'number' && typeof item.seq === 'number' && item.seq < latestSeq
                 if (isOlder || (existing.done === true && item.done !== true)) return
-                bubble.answer.splice(existingIndex, 1, { ...item, _uuid: existing._uuid, _streamed: true })
+                bubble.answer.splice(existingIndex, 1, {
+                    ...existing,
+                    ...item,
+                    seq: existing.seq ?? item.seq,
+                    _latestSeq: item.seq ?? latestSeq,
+                    _uuid: existing._uuid,
+                    _streamed: true
+                })
                 return
             }
             this._insertBySeq(bubble, { ...item, _uuid: uuidv4(), _streamed: true })
