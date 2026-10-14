@@ -246,6 +246,7 @@ const iconMap = {
         'application.pipeline.stage-deleted',
         'application.pipeline.stage-deployed',
         'project.assigned-to-pipeline-stage',
+        'project.unassigned-from-pipeline-stage',
         'device.pipeline.deployed',
         'device.project.deployed'
     ],

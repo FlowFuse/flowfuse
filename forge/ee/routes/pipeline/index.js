@@ -136,6 +136,9 @@ module.exports = async function (app) {
 
         await pipeline.destroy()
         await app.auditLog.Team.application.pipeline.deleted(request.session.User, null, team, request.application, pipeline)
+        for (const stage of stages) {
+            await logInstancesUnassigned(request.session.User, pipeline, stage)
+        }
 
         reply.send({ status: 'okay' })
     })
@@ -424,6 +427,14 @@ module.exports = async function (app) {
                 // Not request.teamMembership: an admin who isn't in the team has none
                 await app.auditLog.Team.application.pipeline.stageUpdated(request.session.User, null, request.application.Team, request.application, request.pipeline, hydratedStage, updates)
             }
+            const instanceBefore = stageBefore?.Instances?.[0]
+            const instanceAfter = hydratedStage.Instances?.[0]
+            if (instanceBefore?.id !== instanceAfter?.id) {
+                await logInstancesUnassigned(request.session.User, request.pipeline, stageBefore)
+                if (instanceAfter) {
+                    await app.auditLog.Project.project.assignedToPipelineStage(request.session.User, null, instanceAfter, request.pipeline, hydratedStage)
+                }
+            }
             reply.send(await app.db.views.PipelineStage.stage(hydratedStage))
         } catch (error) {
             if (error instanceof ValidationError) {
@@ -485,6 +496,7 @@ module.exports = async function (app) {
 
             // Not request.teamMembership: an admin who isn't in the team has none
             await app.auditLog.Team.application.pipeline.stageDeleted(request.session.User, null, request.application.Team, request.application, request.pipeline, stage)
+            await logInstancesUnassigned(request.session.User, request.pipeline, stage)
 
             reply.send({ status: 'okay' })
         } catch (err) {
@@ -778,6 +790,15 @@ module.exports = async function (app) {
             return true // handled
         }
         return false // not handled
+    }
+
+    /**
+     * Log, on each instance a stage pointed at, that it has been taken off that stage
+     */
+    async function logInstancesUnassigned (user, pipeline, stage) {
+        for (const instance of stage?.Instances || []) {
+            await app.auditLog.Project.project.unassignedFromPipelineStage(user, null, instance, pipeline, stage)
+        }
     }
 
     /**
