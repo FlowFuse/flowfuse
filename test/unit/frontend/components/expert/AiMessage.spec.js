@@ -86,6 +86,7 @@ describe('AiMessage', () => {
         expect(cards[0].find('button.ff-collapsible--header').exists()).toBe(false)
         expect(cards[0].find('.ff-collapsible--content').exists()).toBe(false)
         expect(cards[1].find('button.ff-collapsible--header').attributes('aria-expanded')).toBe('false')
+        expect(cards[1].find('button.ff-collapsible--header').classes()).toContain('ff-btn--plain')
     })
 
     test('shows tool input and output in collapsed JSON viewers', async () => {

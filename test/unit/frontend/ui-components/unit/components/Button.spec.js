@@ -8,4 +8,13 @@ describe('ff-button', () => {
         const wrapper = mount(FfButton, { props: { kind: 'expert' }, slots: { default: 'Build' } })
         expect(wrapper.classes()).toContain('ff-btn--expert')
     })
+
+    test('centres its label by default and aligns it left when asked', () => {
+        const centred = mount(FfButton, { slots: { default: 'Build' } })
+        expect(centred.find('.ff-btn--label').classes()).toContain('justify-center')
+
+        const left = mount(FfButton, { props: { kind: 'plain', align: 'left' }, slots: { default: 'Build' } })
+        expect(left.classes()).toContain('ff-btn--plain')
+        expect(left.find('.ff-btn--label').classes()).toContain('justify-start')
+    })
 })

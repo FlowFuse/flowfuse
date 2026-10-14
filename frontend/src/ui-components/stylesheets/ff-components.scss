@@ -201,6 +201,19 @@
       animation: none;
     }
   }
+  &--plain {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font-weight: inherit;
+    .ff-btn--label {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+      gap: $ff-unit-sm;
+    }
+  }
 
   &.ff-btn-small {
     .ff-btn--icon,

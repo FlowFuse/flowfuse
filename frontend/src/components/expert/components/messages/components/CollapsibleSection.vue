@@ -1,15 +1,16 @@
 <template>
     <div class="ff-collapsible" :class="{ 'is-up': openUp }">
-        <button
+        <ff-button
             v-if="collapsible"
-            type="button"
+            kind="plain"
+            align="left"
             class="ff-collapsible--header"
             :aria-expanded="expanded ? 'true' : 'false'"
             @click="toggle"
         >
             <ChevronRightIcon class="ff-collapsible--chevron" :class="{ rotated: expanded }" />
             <slot name="header" />
-        </button>
+        </ff-button>
         <div v-else class="ff-collapsible--header is-static">
             <span class="ff-collapsible--chevron" />
             <slot name="header" />
@@ -26,9 +27,11 @@
 <script>
 import { ChevronRightIcon } from '@heroicons/vue/20/solid'
 
+import FfButton from '../../../../../ui-components/components/Button.vue'
+
 export default {
     name: 'CollapsibleSection',
-    components: { ChevronRightIcon },
+    components: { ChevronRightIcon, FfButton },
     props: {
         autoOpen: {
             type: Boolean,
@@ -84,12 +87,9 @@ export default {
     gap: 0.5rem;
     width: 100%;
     padding: 0.25rem 0;
-    border: none;
-    background: none;
     text-align: left;
-    font: inherit;
-    cursor: pointer;
     font-size: 0.875rem;
+    line-height: 1.25rem;
     color: var(--ff-color-text-subtle);
 
     &:hover {
