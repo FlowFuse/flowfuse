@@ -183,7 +183,7 @@ module.exports = {
         const moduleList = result.palette?.modules || await app.db.controllers.StorageSettings.getProjectModules(project) || []
         const modules = {}
         moduleList.forEach(module => {
-            modules[module.name] = module.version
+            modules[module.name] = module.version || '*'
         })
         // ensure email alert settings for resources have a value that matches
         // what we show in the UI when no value is set in the DB
