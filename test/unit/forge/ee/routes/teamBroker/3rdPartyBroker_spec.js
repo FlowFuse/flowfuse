@@ -1,5 +1,7 @@
 const { Op } = require('sequelize')
-const should = require('should') // eslint-disable-line
+const should = require('should')
+const sinon = require('sinon')
+
 const setup = require('../../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
@@ -804,6 +806,91 @@ describe('3rd Party Broker API', function () {
                 cookies: { sid: TestObjects.tokens.bob }
             })
             response.statusCode.should.equal(200)
+        })
+
+        it('start keeps a new team-broker agent starting until the driver has launched it', async function () {
+            let stateDuringLaunch
+            const startBrokerAgent = sinon.stub(app.containers, 'startBrokerAgent').callsFake(async () => {
+                stateDuringLaunch = (await app.db.models.TeamBrokerAgent.byTeam(app.team.id)).state
+            })
+            try {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/start`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+                stateDuringLaunch.should.equal('starting')
+                const agent = await app.db.models.TeamBrokerAgent.byTeam(app.team.id)
+                agent.state.should.equal('running')
+            } finally {
+                startBrokerAgent.restore()
+            }
+        })
+
+        it('start removes the team-broker agent if the driver fails to launch it', async function () {
+            const startBrokerAgent = sinon.stub(app.containers, 'startBrokerAgent').rejects(new Error('launch failed'))
+            try {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/start`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(500)
+                const agent = await app.db.models.TeamBrokerAgent.byTeam(app.team.id)
+                should(agent?.state).be.undefined()
+            } finally {
+                startBrokerAgent.restore()
+            }
+        })
+
+        it('start replies 409 while the team-broker agent is suspending', async function () {
+            await app.db.models.TeamBrokerAgent.create({ state: 'suspending', TeamId: app.team.id })
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/start`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(409)
+            response.json().should.have.property('code', 'agent_suspending')
+        })
+
+        it('suspend replies 409 while the team-broker agent is starting', async function () {
+            await app.db.models.TeamBrokerAgent.create({ state: 'starting', TeamId: app.team.id })
+            const stopBrokerAgent = sinon.spy(app.containers, 'stopBrokerAgent')
+            try {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/suspend`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(409)
+                response.json().should.have.property('code', 'agent_starting')
+                stopBrokerAgent.called.should.be.false()
+                const agent = await app.db.models.TeamBrokerAgent.byTeam(app.team.id)
+                agent.state.should.equal('starting')
+            } finally {
+                stopBrokerAgent.restore()
+            }
+        })
+
+        it('suspend marks the team-broker agent suspending before stopping it', async function () {
+            await app.db.models.TeamBrokerAgent.create({ state: 'running', TeamId: app.team.id })
+            let stateDuringStop
+            const stopBrokerAgent = sinon.stub(app.containers, 'stopBrokerAgent').callsFake(async () => {
+                stateDuringStop = (await app.db.models.TeamBrokerAgent.byTeam(app.team.id)).state
+            })
+            try {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/suspend`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+                stateDuringStop.should.equal('suspending')
+            } finally {
+                stopBrokerAgent.restore()
+            }
         })
 
         it('suspend replies not_found when there is no team-broker agent', async function () {
