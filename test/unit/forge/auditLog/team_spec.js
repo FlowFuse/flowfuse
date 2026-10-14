@@ -686,6 +686,16 @@ describe('Audit Log > Team', async function () {
                 logEntry.body.should.only.have.keys('application', 'team', 'pipeline', 'pipelineStage')
             })
 
+            it('Provides a logger for updating a stage in a pipeline in an application', async function () {
+                await teamLogger.application.pipeline.stageUpdated(ACTIONED_BY, null, TEAM, APPLICATION, PIPELINE, PIPELINE_STAGE_1, [{ key: 'name', old: 'old', new: 'new' }])
+                // check log stored
+                const logEntry = await getLog()
+                logEntry.should.have.property('event', 'application.pipeline.stage-updated')
+                logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+                logEntry.should.have.property('body').and.be.an.Object()
+                logEntry.body.should.only.have.keys('application', 'team', 'pipeline', 'pipelineStage', 'updates')
+            })
+
             it('Provides a logger for deleting a stage from a pipeline in an application', async function () {
                 await teamLogger.application.pipeline.stageDeleted(ACTIONED_BY, null, TEAM, APPLICATION, PIPELINE, PIPELINE_STAGE_1)
                 // check log stored

@@ -180,6 +180,9 @@ module.exports = {
                 async stageAdded (actionedBy, error, team, application, pipeline, pipelineStage) {
                     await log('application.pipeline.stage-added', actionedBy, team?.id, generateBody({ error, team, application, pipeline, pipelineStage }))
                 },
+                async stageUpdated (actionedBy, error, team, application, pipeline, pipelineStage, updates) {
+                    await log('application.pipeline.stage-updated', actionedBy, team?.id, generateBody({ error, team, application, pipeline, pipelineStage, updates }))
+                },
                 async stageDeleted (actionedBy, error, team, application, pipeline, pipelineStage) {
                     await log('application.pipeline.stage-deleted', actionedBy, team?.id, generateBody({ error, team, application, pipeline, pipelineStage }))
                 },

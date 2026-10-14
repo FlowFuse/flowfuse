@@ -409,6 +409,8 @@ module.exports = async function (app) {
                 credentialSecret: request.body.credentialSecret
             }
 
+            // Loaded before the update so the audit entry can say what changed
+            const stageBefore = await app.db.models.PipelineStage.byId(request.params.stageId)
             const stage = await app.db.controllers.Pipeline.updatePipelineStage(
                 request.pipeline,
                 request.params.stageId,
@@ -417,6 +419,11 @@ module.exports = async function (app) {
 
             // Controller's stage.reload() drops includes, so re-hydrate for the view.
             const hydratedStage = await app.db.models.PipelineStage.byId(stage.id)
+            const updates = stageUpdates(stageBefore, hydratedStage)
+            if (updates.length > 0) {
+                const team = await request.teamMembership.getTeam()
+                await app.auditLog.Team.application.pipeline.stageUpdated(request.session.User, null, team, request.application, request.pipeline, hydratedStage, updates)
+            }
             reply.send(await app.db.views.PipelineStage.stage(hydratedStage))
         } catch (error) {
             if (error instanceof ValidationError) {
@@ -771,5 +778,44 @@ module.exports = async function (app) {
             return true // handled
         }
         return false // not handled
+    }
+
+    /**
+     * What a stage edit changed, for the audit log. The git credential secret is left out on purpose.
+     */
+    function stageUpdates (before, after) {
+        const updates = new app.auditLog.formatters.UpdatesCollection()
+        for (const key of ['name', 'action', 'deployToDevices']) {
+            if (before[key] !== after[key]) {
+                updates.push(key, before[key], after[key])
+            }
+        }
+        if (stageTarget(before) !== stageTarget(after)) {
+            updates.push('target', stageTarget(before), stageTarget(after))
+        }
+        for (const key of ['url', 'branch', 'pullBranch', 'pushPath', 'pullPath']) {
+            const oldValue = before.PipelineStageGitRepo?.[key]
+            const newValue = after.PipelineStageGitRepo?.[key]
+            if (oldValue !== newValue) {
+                updates.push(key, oldValue, newValue)
+            }
+        }
+        return updates
+    }
+
+    function stageTarget (stage) {
+        if (stage.Instances?.length) {
+            return `instance '${stage.Instances[0].name}'`
+        }
+        if (stage.Devices?.length) {
+            return `device '${stage.Devices[0].name}'`
+        }
+        if (stage.DeviceGroups?.length) {
+            return `device group '${stage.DeviceGroups[0].name}'`
+        }
+        if (stage.PipelineStageGitRepo) {
+            return 'git repository'
+        }
+        return null
     }
 }
