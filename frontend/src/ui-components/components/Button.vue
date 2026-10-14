@@ -36,7 +36,7 @@
         <span v-if="isIconOnly" class="ff-btn--icon">
             <slot name="icon"></slot>
         </span>
-        <span class="ff-btn--label clipped-overflow flex align-center gap-4" :class="align === 'left' ? 'justify-start' : 'justify-center'">
+        <span class="clipped-overflow flex align-center gap-4" :class="align === 'left' ? 'justify-start' : 'justify-center'">
             <slot></slot>
         </span>
         <span v-if="hasIconRight" class="ff-btn--icon ff-btn--icon-right">

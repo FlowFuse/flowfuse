@@ -11,10 +11,10 @@ describe('ff-button', () => {
 
     test('centres its label by default and aligns it left when asked', () => {
         const centred = mount(FfButton, { slots: { default: 'Build' } })
-        expect(centred.find('.ff-btn--label').classes()).toContain('justify-center')
+        expect(centred.find('.clipped-overflow').classes()).toContain('justify-center')
 
         const left = mount(FfButton, { props: { kind: 'plain', align: 'left' }, slots: { default: 'Build' } })
         expect(left.classes()).toContain('ff-btn--plain')
-        expect(left.find('.ff-btn--label').classes()).toContain('justify-start')
+        expect(left.find('.clipped-overflow').classes()).toContain('justify-start')
     })
 })

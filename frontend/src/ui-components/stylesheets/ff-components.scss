@@ -207,7 +207,7 @@
     background: none;
     color: inherit;
     font-weight: inherit;
-    .ff-btn--label {
+    > .clipped-overflow {
       display: flex;
       flex: 1;
       min-width: 0;
