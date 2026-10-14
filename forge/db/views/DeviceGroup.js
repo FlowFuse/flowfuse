@@ -29,7 +29,7 @@ module.exports = function (app) {
         const result = {
             id: group.hashid,
             name: group.name,
-            description: group.description,
+            description: group.description ?? '',
             deviceCount: parseInt(group.deviceCount) || 0,
             targetSnapshot: app.db.views.ProjectSnapshot.snapshotSummary(group.targetSnapshot)
         }
@@ -64,7 +64,7 @@ module.exports = function (app) {
         const result = {
             id: item.hashid,
             name: item.name,
-            description: item.description,
+            description: item.description ?? '',
             deviceCount: 0,
             targetMatchCount: 0,
             activeMatchCount: 0,
@@ -123,7 +123,7 @@ module.exports = function (app) {
             const filtered = {
                 id: item.hashid,
                 name: item.name,
-                description: item.description,
+                description: item.description ?? '',
                 application: item.Application ? app.db.views.Application.applicationSummary(item.Application) : null,
                 deviceCount: parseInt(item.deviceCount) || 0,
                 devices: group.Devices ? group.Devices.map(app.db.views.Device.device) : [],
