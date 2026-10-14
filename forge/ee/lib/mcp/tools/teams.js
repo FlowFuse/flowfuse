@@ -200,6 +200,27 @@ module.exports = [
         }
     },
     {
+        name: 'platform_delete_git_token',
+        title: 'Delete Team Git Token',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes a team git token. The stored token value is gone and cannot be recovered, so a new token has to be created to restore access.
+            Confirm with the user before calling this. The token itself is not revoked with the git provider.
+            A token that a pipeline stage still uses cannot be deleted: the call fails with 409 token_in_use and names the pipelines, which have to be pointed at another token first.
+            Only team owners can delete git tokens. Replies { status: "okay" } on success; a token that does not exist, or belongs to another team, returns 404, so repeating a call is harmless.`,
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            tokenId: pathId.describe('The hashid of the git token to delete, as returned by platform_list_team_git_tokens')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/git/tokens/${args.tokenId}` })
+            if (response.statusCode >= 400) {
+                return response
+            }
+            return { statusCode: response.statusCode, json: () => ({ status: 'okay' }) }
+        }
+    },
+    {
         name: 'platform_create_team',
         title: 'Create Team',
         description: `FlowFuse platform automation tool:
