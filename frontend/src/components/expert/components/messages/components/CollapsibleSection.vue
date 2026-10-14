@@ -1,11 +1,21 @@
 <template>
     <div class="ff-collapsible" :class="{ 'is-up': openUp }">
-        <div class="ff-collapsible--header" @click="toggle">
+        <button
+            v-if="collapsible"
+            type="button"
+            class="ff-collapsible--header"
+            :aria-expanded="expanded ? 'true' : 'false'"
+            @click="toggle"
+        >
             <ChevronRightIcon class="ff-collapsible--chevron" :class="{ rotated: expanded }" />
+            <slot name="header" />
+        </button>
+        <div v-else class="ff-collapsible--header is-static">
+            <span class="ff-collapsible--chevron" />
             <slot name="header" />
         </div>
         <slot name="summary" :expanded="expanded" />
-        <div class="ff-collapsible--content" :class="{ expanded }">
+        <div v-if="collapsible" class="ff-collapsible--content" :class="{ expanded }">
             <div class="ff-collapsible--inner" :inert="!expanded">
                 <slot />
             </div>
@@ -31,6 +41,11 @@ export default {
         openUp: {
             type: Boolean,
             default: false
+        },
+        // Off when there is nothing to expand: no chevron and no toggle.
+        collapsible: {
+            type: Boolean,
+            default: true
         }
     },
     data () {
@@ -67,13 +82,32 @@ export default {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    width: 100%;
     padding: 0.25rem 0;
+    border: none;
+    background: none;
+    text-align: left;
+    font: inherit;
     cursor: pointer;
     font-size: 0.875rem;
     color: var(--ff-color-text-subtle);
 
     &:hover {
         color: var(--ff-color-text);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--ff-color-focus);
+        outline-offset: 2px;
+        border-radius: 0.25rem;
+    }
+
+    &.is-static {
+        cursor: default;
+
+        &:hover {
+            color: var(--ff-color-text-subtle);
+        }
     }
 }
 
