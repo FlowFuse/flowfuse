@@ -14,6 +14,8 @@
 
             <PlatformAlerts />
 
+            <AnnouncementToasts />
+
             <interview-popup v-if="interview?.enabled" :flag="interview.flag" :payload="interview.payload" />
 
             <PlatformDialog />
@@ -33,6 +35,7 @@ import PlatformAlerts from '../components/PlatformAlerts.vue'
 import PlatformDialog from '../components/dialogs/PlatformDialog.vue'
 import LeftDrawer from '../components/drawers/LeftDrawer.vue'
 import RightDrawer from '../components/drawers/RightDrawer.vue'
+import AnnouncementToasts from '../components/notifications/announcements/AnnouncementToasts.vue'
 
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useUxStore } from '@/stores/ux.js'
@@ -40,6 +43,7 @@ import { useUxStore } from '@/stores/ux.js'
 export default {
     name: 'ff-layout-platform',
     components: {
+        AnnouncementToasts,
         LeftDrawer,
         RightDrawer,
         PageHeader,
