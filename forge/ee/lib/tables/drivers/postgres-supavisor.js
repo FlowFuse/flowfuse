@@ -166,21 +166,16 @@ module.exports = {
                 }
             })
         } catch (err) {
-            // console.log(err)
-        }
-        const res = await this._adminClient.query('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid])
-        if (res.rows.length === 1) {
-            try {
-                await this._adminClient.query(`DROP DATABASE IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid)}`)
-                await this._adminClient.query(`DROP USER IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid)}`)
-                await this._adminClient.query(`DROP ROLE IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid + '-role')}`)
-                await db.destroy()
-            } catch (err) {
-                // console.log(err)
+            // A tenant that is already gone (e.g. from an earlier partial delete) is not a failure
+            if (err.response?.status !== 404) {
+                throw err
             }
-        } else {
-            throw new Error(`Database ${team.hashid} does not exist`)
         }
+        // Every drop is IF EXISTS so a retry after a partial failure can finish the cleanup
+        await this._adminClient.query(`DROP DATABASE IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid)}`)
+        await this._adminClient.query(`DROP USER IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid)}`)
+        await this._adminClient.query(`DROP ROLE IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid + '-role')}`)
+        await db.destroy()
     },
     getTables: async function (team, databaseId, paginationOptions) {
         // SELECT * FROM pg_catalog.pg_tables;
