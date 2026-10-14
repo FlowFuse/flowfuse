@@ -104,7 +104,7 @@ module.exports = [
             ...gitStageFields(),
             deployToDevices,
             action: stageAction,
-            source: z.string().optional().describe('Stage ordering is a linked list: this is the hashid of the existing stage the new stage comes after. Required for every stage except a pipeline\'s very first. Omitting it on a pipeline that already has stages does not append the stage, it becomes a second unlinked head and the pipeline then lists only the new stage while the existing ones stop appearing, even though they still exist and can still be fetched by id')
+            source: z.string().optional().describe('Stage ordering is a linked list: this is the hashid of the existing stage the new stage comes after. Required for every stage except a pipeline\'s very first, and it must be the pipeline\'s current last stage: stages can only be appended. Omitting it on a pipeline that already has stages, or naming a stage that is already followed by another, is rejected with invalid_source')
         },
         handler: async (args, { inject }) => {
             const payload = {}
