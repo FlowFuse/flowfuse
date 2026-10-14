@@ -203,7 +203,6 @@ export default {
     unmounted () {
         document.removeEventListener('keydown', this.bindSearchShortcut)
         document.removeEventListener('keydown', this.bindKeyNavigation)
-        window.removeEventListener('resize', this.measureSlot)
     },
 
     methods: {
@@ -220,22 +219,14 @@ export default {
         },
         focusSearch () {
             document.addEventListener('keydown', this.handleEscapeKey)
-            window.addEventListener('resize', this.measureSlot)
-            this.measureSlot()
             this.isFocused = true
             this.$nextTick(() => {
                 this.$refs.input.focus()
                 this.$refs.input.select()
             })
         },
-        measureSlot () {
-            const slot = this.$el.getBoundingClientRect()
-            this.$el.style.setProperty('--search-slot-left', `${slot.left}px`)
-            this.$el.style.setProperty('--search-slot-right', `${slot.right}px`)
-        },
         deFocusSearch () {
             document.removeEventListener('keydown', this.handleEscapeKey)
-            window.removeEventListener('resize', this.measureSlot)
             this.isFocused = false
         },
         handleEscapeKey (event) {
@@ -393,11 +384,8 @@ export default {
 
     &.focused {
         .content-wrapper {
-            position: fixed;
-            left: max(20vw, var(--search-slot-left, 0px));
-            width: calc(min(80vw, var(--search-slot-right, 100vw)) - max(20vw, var(--search-slot-left, 0px)));
+            position: relative;
             background: var(--ff-color-bg-app);
-            top: 15px;
             z-index: 120;
             border: none;
             border-radius: 5px;
@@ -434,6 +422,10 @@ export default {
             }
 
             .results-wrapper {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
                 overflow: auto;
                 max-height: 90vh;
 
@@ -444,7 +436,7 @@ export default {
         }
 
         .overlay {
-            position: absolute;
+            position: fixed;
             width: 100vw;
             height: 100vh;
             background: rgba(0, 0, 0, .3);
@@ -464,6 +456,7 @@ export default {
         }
         &.focused {
             .content-wrapper {
+                position: fixed;
                 width: 100%;
                 top: 0;
                 left: 0;
