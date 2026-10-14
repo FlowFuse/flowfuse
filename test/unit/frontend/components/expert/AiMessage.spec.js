@@ -75,4 +75,31 @@ describe('AiMessage', () => {
         expect(order[2].classList.contains('ff-expert-agent-message')).toBe(true)
         expect(wrapper.find('.ff-expert-timeline-item--failed-hint').exists()).toBe(true)
     })
+
+    test('shows no chevron or toggle on a tool card with nothing to expand', () => {
+        const wrapper = mountMessage([
+            { kind: 'mcp_tool', toolTitle: 'Get flows', _uuid: 'a' },
+            { kind: 'mcp_tool', toolTitle: 'List instances', reason: 'Finding the instance', _uuid: 'b' }
+        ])
+
+        const cards = wrapper.findAll('.ff-expert-timeline-item')
+        expect(cards[0].find('button.ff-collapsible--header').exists()).toBe(false)
+        expect(cards[0].find('.ff-collapsible--content').exists()).toBe(false)
+        expect(cards[1].find('button.ff-collapsible--header').attributes('aria-expanded')).toBe('false')
+    })
+
+    test('shows tool input and output in collapsed JSON viewers', async () => {
+        const wrapper = mountMessage([
+            { kind: 'mcp_tool', toolTitle: 'Get flows', input: { id: 'i1' }, output: '{"n":1}', _uuid: 'a' }
+        ])
+
+        const header = wrapper.find('button.ff-collapsible--header')
+        await header.trigger('click')
+        expect(header.attributes('aria-expanded')).toBe('true')
+
+        const viewers = wrapper.findAllComponents({ name: 'JsonViewer' })
+        expect(viewers.map(v => v.props('label'))).toEqual(['Input', 'Output'])
+        expect(viewers[1].props('value')).toEqual({ n: 1 })
+        expect(viewers.every(v => v.props('defaultCollapsed'))).toBe(true)
+    })
 })
