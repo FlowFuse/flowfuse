@@ -135,7 +135,7 @@
     },
     "devDependencies": {
         "@babel/core": "^7.22.15",
-        "@babel/preset-env": "^7.22.15",
+        "@babel/preset-env": "^8.0.6",
         "@eslint/js": "^9.39.4",
         "@fastify/response-validation": "^3.0.3",
         "@pinia/testing": "1.0.3",
