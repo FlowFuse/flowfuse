@@ -785,10 +785,14 @@ module.exports = async function (app) {
      */
     function stageUpdates (before, after) {
         const updates = new app.auditLog.formatters.UpdatesCollection()
-        for (const key of ['name', 'action', 'deployToDevices']) {
+        for (const key of ['name', 'action']) {
             if (before[key] !== after[key]) {
                 updates.push(key, before[key], after[key])
             }
+        }
+        // A stage created without deployToDevices stores null, which means the same as false
+        if (!!before.deployToDevices !== !!after.deployToDevices) {
+            updates.push('deployToDevices', !!before.deployToDevices, !!after.deployToDevices)
         }
         if (stageTarget(before) !== stageTarget(after)) {
             updates.push('target', stageTarget(before), stageTarget(after))

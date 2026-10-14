@@ -893,6 +893,21 @@ describe('Pipelines API', function () {
                 ])
             })
 
+            it('does not count an unset deploy to devices being saved as false as a change', async function () {
+                // Stages created without deployToDevices store null, and the edit form always sends false
+                const stage = TestObjects.stageOne
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                    payload: { name: 'stage-one', deployToDevices: false },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                const entries = await stageUpdatedEntries(stage)
+                entries.should.have.length(0)
+            })
+
             it('writes nothing when nothing changed', async function () {
                 const stage = TestObjects.stageOne
                 const response = await app.inject({
