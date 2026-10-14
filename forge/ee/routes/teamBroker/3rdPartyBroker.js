@@ -445,16 +445,30 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         if (request.params.brokerId === 'team-broker') {
             const agent = await app.db.models.TeamBrokerAgent.byTeam(request.team.hashid)
-            if (agent && agent.state !== 'running') {
+            if (agent?.state === 'suspending') {
+                reply.status(409).send({ code: 'agent_suspending', error: 'The Team Broker agent is still suspending, try again shortly' })
+            } else if (agent?.state === 'starting') {
+                // Another start is already launching the agent: starting is a no-op
+                reply.status(200).send({})
+            } else if (agent && agent.state !== 'running') {
                 await app.containers.sendBrokerAgentCommand(agent, 'start')
                 reply.status(200).send({})
             } else if (!agent) {
+                // Stays 'starting' until the driver has launched the agent, so a suspend
+                // arriving meanwhile is refused rather than missing a process it can't stop yet
                 const agent = await app.db.models.TeamBrokerAgent.create({
-                    state: 'running',
+                    state: 'starting',
                     TeamId: request.team.id
                 })
                 await agent.reload({ include: [{ model: app.db.models.Team }] })
-                await app.containers.startBrokerAgent(agent)
+                try {
+                    await app.containers.startBrokerAgent(agent)
+                } catch (err) {
+                    await agent.destroy()
+                    throw err
+                }
+                agent.state = 'running'
+                await agent.save()
                 reply.status(200).send({})
             } else {
                 // Agent already running: starting is a no-op
@@ -509,7 +523,13 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         if (request.params.brokerId === 'team-broker') {
             const agent = await app.db.models.TeamBrokerAgent.byTeam(request.team.id)
-            if (agent) {
+            if (agent?.state === 'starting') {
+                reply.status(409).send({ code: 'agent_starting', error: 'The Team Broker agent is still starting, try again shortly' })
+            } else if (agent) {
+                // Marked before stopping, so a start arriving before the row is removed is refused
+                // rather than treating the agent as already running
+                agent.state = 'suspending'
+                await agent.save()
                 await app.containers.stopBrokerAgent(agent)
                 setTimeout(async () => {
                     await agent.destroy()
