@@ -1653,6 +1653,26 @@ describe('Pipelines API', function () {
             should(await app.db.models.Project.byId(instanceId)).not.equal(null)
         })
 
+        it('should write an audit log entry for the deleted stage', async function () {
+            const pipelineId = TestObjects.pipeline.hashid
+            const stage = TestObjects.stageOne
+
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/pipelines/${pipelineId}/stages/${stage.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+
+            const logs = await app.db.models.AuditLog.findAll({ where: { event: 'application.pipeline.stage-deleted' } })
+            const entries = logs.filter((log) => JSON.parse(log.body).pipelineStage.hashid === stage.hashid)
+            entries.should.have.length(1)
+            const body = JSON.parse(entries[0].body)
+            body.pipelineStage.should.have.property('name', stage.name)
+            body.pipeline.should.have.property('id', TestObjects.pipeline.id)
+            entries[0].UserId.should.equal(TestObjects.user.id)
+        })
+
         it('should destroy the pipeline stage, but not touch the assigned device', async function () {
             const pipelineId = TestObjects.pipelineDevices.hashid
             const stageId = TestObjects.pipelineDevicesStageOne.hashid

@@ -483,6 +483,11 @@
         <span v-if="!error && entry.body?.pipeline && entry.body?.pipelineStage">Pipeline Stage '{{ entry.body.pipelineStage?.name }}' was added to the DevOps Pipeline '{{ entry.body.pipeline?.name }}' {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }}</span>
         <span v-else-if="!error">Pipeline data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'application.pipeline.stage-deleted'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.pipeline && entry.body?.pipelineStage">Pipeline Stage '{{ entry.body.pipelineStage?.name }}' was deleted from the DevOps Pipeline '{{ entry.body.pipeline?.name }}' {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }}</span>
+        <span v-else-if="!error">Pipeline data not found in audit entry.</span>
+    </template>
     <template v-else-if="entry.event === 'application.pipeline.stage-deployed'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.pipeline && entry.body?.pipelineStage && !entry.body?.pipelineStageTarget">Pipeline Stage '{{ entry.body.pipelineStage.name }}' in DevOps Pipeline '{{ entry.body.pipeline.name }}' {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }} was deployed</span>

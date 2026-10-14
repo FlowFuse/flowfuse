@@ -468,12 +468,15 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
+            // Loaded before the delete so the audit entry can still say which stage it was
+            const stage = await app.db.models.PipelineStage.byId(request.params.stageId)
             await app.db.controllers.Pipeline.deletePipelineStage(
                 request.pipeline,
                 request.params.stageId
             )
 
-            // TODO - Audit log entry?
+            const team = await request.teamMembership.getTeam()
+            await app.auditLog.Team.application.pipeline.stageDeleted(request.session.User, null, team, request.application, request.pipeline, stage)
 
             reply.send({ status: 'okay' })
         } catch (err) {
