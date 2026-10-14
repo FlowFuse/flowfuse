@@ -363,6 +363,10 @@ export default {
                             this.brokerState = 'connected'
                         } else if (response?.status?.error === 'error_getting_status') {
                             this.brokerState = 'starting'
+                        } else if (this.activeBrokerId === 'team-broker') {
+                            // The team broker itself is always up, only its schema agent is not
+                            // collecting, so this is not a broker connection error
+                            this.brokerState = 'suspended'
                         } else {
                             this.brokerState = 'error'
                             this.errorCode = response.status.error || 'ENOTFOUND'
