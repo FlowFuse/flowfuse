@@ -107,7 +107,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             return this._agentStore.messages.some(m =>
                 m._type === 'ai' &&
                 this._inFlightRequests.has(m._transactionId) &&
-                m.answer?.some(item => item._streamed)
+                m.answer?.some(item => item._live)
             )
         },
         // A stopped turn runs on until the agent's next abort check. Until the agent says it
@@ -695,11 +695,8 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
 
             if (response.answer && Array.isArray(response.answer)) {
-                const streamedBubble = transactionId
-                    ? this._agentStore.messages.find(m => m._type === 'ai' && m._transactionId === transactionId)
-                    : null
-                if (streamedBubble) {
-                    this._mergeFinalAnswer(streamedBubble, response)
+                if (transactionId && this._turnBubbles(transactionId).length > 0) {
+                    this._mergeFinalAnswer(transactionId, response)
                 } else {
                     this.addAiMessage(response)
                 }
@@ -1058,40 +1055,56 @@ export const useProductExpertStore = defineStore('product-expert', {
                 item = { ...record, kind: recordKind || 'mcp_tool' }
             }
 
-            const messages = this._agentStore.messages
-            let bubble = messages.find(m => m._type === 'ai' && m._transactionId === transactionId)
-            if (!bubble) {
-                bubble = {
-                    answer: [],
-                    _type: 'ai',
-                    _timestamp: Date.now(),
-                    _streamed: false,
-                    _uuid: uuidv4(),
-                    _transactionId: transactionId
-                }
-                messages.push(bubble)
-            }
-
-            const existingIndex = item.id ? bubble.answer.findIndex(a => a.id === item.id) : -1
-            if (existingIndex !== -1) {
-                const existing = bubble.answer[existingIndex]
+            const found = item.id ? this._findTurnItem(transactionId, a => a.id === item.id) : null
+            if (found) {
+                const { bubble, index } = found
+                const existing = bubble.answer[index]
                 // An update that arrives late must not roll a newer one back, nor reopen a
                 // finished block. The item keeps its first seq so the bubble stays sorted;
                 // _latestSeq tracks the newest update.
                 const latestSeq = existing._latestSeq ?? existing.seq
                 const isOlder = typeof latestSeq === 'number' && typeof item.seq === 'number' && item.seq < latestSeq
                 if (isOlder || (existing.done === true && item.done !== true)) return
-                bubble.answer.splice(existingIndex, 1, {
+                bubble.answer.splice(index, 1, {
                     ...existing,
                     ...item,
                     seq: existing.seq ?? item.seq,
                     _latestSeq: item.seq ?? latestSeq,
                     _uuid: existing._uuid,
-                    _streamed: true
+                    _streamed: true,
+                    _live: true
                 })
                 return
             }
-            this._insertBySeq(bubble, { ...item, _uuid: uuidv4(), _streamed: true })
+            this._insertBySeq(this._openTurnBubble(transactionId), { ...item, _uuid: uuidv4(), _streamed: true, _live: true })
+        },
+        _turnBubbles (transactionId) {
+            return this._agentStore.messages.filter(m => m._type === 'ai' && m._transactionId === transactionId)
+        },
+        _findTurnItem (transactionId, predicate) {
+            for (const bubble of this._turnBubbles(transactionId)) {
+                const index = bubble.answer.findIndex(predicate)
+                if (index !== -1) return { bubble, index }
+            }
+            return null
+        },
+        // New items go to the turn's last bubble while it is the last message. Once another
+        // message has landed below it, they start a new bubble so the chat keeps the order
+        // things happened in.
+        _openTurnBubble (transactionId) {
+            const messages = this._agentStore.messages
+            const last = messages[messages.length - 1]
+            if (last?._type === 'ai' && last._transactionId === transactionId) return last
+            const bubble = {
+                answer: [],
+                _type: 'ai',
+                _timestamp: Date.now(),
+                _streamed: false,
+                _uuid: uuidv4(),
+                _transactionId: transactionId
+            }
+            messages.push(bubble)
+            return messages[messages.length - 1]
         },
         _insertBySeq (bubble, entry) {
             if (typeof entry.seq !== 'number') {
@@ -1105,22 +1118,39 @@ export const useProductExpertStore = defineStore('product-expert', {
                 bubble.answer.splice(insertBefore, 0, entry)
             }
         },
-        // The final reply lands in the bubble its streamed items built. Tool records it
+        // The final reply lands in the bubbles its streamed items built. Tool records it
         // carries upgrade the streamed card with the same id; the rest is appended.
-        _mergeFinalAnswer (bubble, response) {
+        _mergeFinalAnswer (transactionId, response) {
+            const rest = []
             for (const item of response.answer) {
-                const existingIndex = item.id && isToolRecord(item)
-                    ? bubble.answer.findIndex(a => a.id === item.id && isToolRecord(a))
-                    : -1
-                if (existingIndex !== -1) {
-                    const existing = bubble.answer[existingIndex]
-                    bubble.answer.splice(existingIndex, 1, { ...existing, ...item, seq: existing.seq ?? item.seq, _uuid: existing._uuid })
-                    continue
+                const found = item.id && isToolRecord(item)
+                    ? this._findTurnItem(transactionId, a => a.id === item.id && isToolRecord(a))
+                    : null
+                if (found) {
+                    const { bubble, index } = found
+                    const existing = bubble.answer[index]
+                    bubble.answer.splice(index, 1, { ...existing, ...item, seq: existing.seq ?? item.seq, _uuid: existing._uuid })
+                } else {
+                    rest.push(item)
                 }
-                this._insertBySeq(bubble, { ...item, _uuid: uuidv4(), _streamed: false })
             }
-            const { answer: _answer, ...rest } = response
-            Object.assign(bubble, rest)
+            const bubbles = this._turnBubbles(transactionId)
+            const target = rest.length > 0 ? this._openTurnBubble(transactionId) : bubbles[bubbles.length - 1]
+            for (const item of rest) {
+                this._insertBySeq(target, { ...item, _uuid: uuidv4(), _streamed: false })
+            }
+            const { answer: _answer, ...fields } = response
+            Object.assign(target, fields)
+        },
+        // A turn that ends without a final reply leaves no item still running.
+        _closeTurnItems (transactionId) {
+            for (const bubble of this._turnBubbles(transactionId)) {
+                bubble.answer.forEach((item, index) => {
+                    if (item.done === false) {
+                        bubble.answer.splice(index, 1, { ...item, done: true })
+                    }
+                })
+            }
         },
         addUserMessage (message) {
             this._agentStore.messages.push({
@@ -1786,6 +1816,9 @@ export const useProductExpertStore = defineStore('product-expert', {
                     })
                     this._awaitTurnStopped(inFlightRequest.transactionId)
                 }
+            }
+            for (const transactionId of this._inFlightRequests.keys()) {
+                this._closeTurnItems(transactionId)
             }
             this._inFlightRequests.clear()
             this._clearInFlightUpdates()

@@ -730,6 +730,45 @@ describe('product-expert store', () => {
                 expect(store.hasStreamedActivity).toBe(false)
             })
 
+            it('does not count a final-answer item whose typewriter finished as streamed activity', async () => {
+                await store._onMqttMessage(replyTopic, JSON.stringify({ answer: [{ kind: 'chat', content: 'Done' }] }), packet('turn-1', 'turn-1'))
+                agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+                const message = agent.messages[0]
+                store.updateAnswerStreamedState({ messageUuid: message._uuid, answerUuid: message.answer[0]._uuid })
+
+                expect(store.hasStreamedActivity).toBe(false)
+            })
+
+            it('finishes open items when the turn is stopped', async () => {
+                await send({ kind: 'reasoning', id: 'r1', seq: 1, text: 'I', done: false }, 'srf-1')
+                await send({ kind: 'reasoning', id: 'r0', seq: 0, text: 'Earlier', done: true }, 'srf-2')
+
+                store.stopInflightChat()
+
+                expect(bubble().answer.map(a => a.done)).toEqual([true, true])
+            })
+
+            it('starts a new bubble for activity that follows a message pushed mid-turn', async () => {
+                await send({ kind: 'tool-record', recordKind: 'mcp_tool', id: 't1', seq: 1, reason: 'why', ok: true }, 'srf-1')
+                store.addSystemMessage({ message: 'Instance ready' })
+                await send({ kind: 'message', id: 'm1', seq: 2, text: 'next' }, 'srf-2')
+                await send({ kind: 'tool-record', recordKind: 'mcp_tool', id: 't1', seq: 3, reason: 'why', ok: false }, 'srf-3')
+
+                expect(agent.messages.map(m => m._type)).toEqual(['ai', 'system', 'ai'])
+                expect(agent.messages[0].answer.map(a => [a.id, a.ok])).toEqual([['t1', false]])
+                expect(agent.messages[2].answer.map(a => a.id)).toEqual(['m1'])
+
+                const answer = [
+                    { kind: 'mcp_tool', id: 't1', seq: 1, toolName: 'list_flows' },
+                    { kind: 'chat', content: 'Done' }
+                ]
+                await store._onMqttMessage(replyTopic, JSON.stringify({ answer }), packet('turn-1', 'turn-1'))
+
+                expect(agent.messages).toHaveLength(3)
+                expect(agent.messages[0].answer[0]).toMatchObject({ id: 't1', toolName: 'list_flows' })
+                expect(agent.messages[2].answer.map(a => a.id || a.kind)).toEqual(['m1', 'chat'])
+            })
+
             it('ignores a late update that is older than the one shown or would reopen a finished block', async () => {
                 await send({ kind: 'reasoning', id: 'r1', seq: 5, text: 'Looking at the flow', done: false }, 'srf-1')
                 await send({ kind: 'reasoning', id: 'r1', seq: 3, text: 'Look', done: false }, 'srf-2')
