@@ -294,6 +294,27 @@ describe('Tables API', function () {
         response.json().error.should.containEql('bigserial')
     })
 
+    it('Does not advertise generated or maxLength for the columns of a new table', async function () {
+        const spec = app.swagger()
+        const resolve = schema => {
+            if (schema?.$ref) {
+                return resolve(spec.components.schemas[schema.$ref.split('/').pop()])
+            }
+            if (schema?.allOf) {
+                return Object.assign({}, ...schema.allOf.map(resolve))
+            }
+            return schema
+        }
+        const body = resolve(spec.paths['/api/v1/teams/{teamId}/databases/{databaseId}/tables'].post.requestBody.content['application/json'].schema)
+        const column = resolve(resolve(body.properties.columns).items)
+        Object.keys(column.properties).should.eql(['name', 'type', 'nullable', 'default'])
+    })
+
+    it('Still accepts columns that carry generated and maxLength, such as a copied table schema', async function () {
+        const response = await createTable({ name: 'copiedschema', columns: [{ name: 'c', type: 'text', nullable: true, default: null, generated: false, maxLength: null }] })
+        response.statusCode.should.equal(201)
+    })
+
     it('Get details for a table', async function () {
         const db = (await app.db.models.Table.byTeamId(TestObjects.team.id))[0]
         const response = await app.inject({

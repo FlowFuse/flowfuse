@@ -283,7 +283,19 @@ module.exports = async function (app) {
                     },
                     columns: {
                         type: 'array',
-                        allOf: [{ $ref: 'DatabaseTable' }],
+                        // Only the fields the drivers apply on create. Extra fields, such as the generated
+                        // and maxLength a table schema read returns, are accepted but ignored
+                        items: {
+                            type: 'object',
+                            properties: {
+                                name: { type: 'string' },
+                                type: { type: 'string' },
+                                nullable: { type: 'boolean' },
+                                default: { type: 'string', nullable: true }
+                            },
+                            required: ['name', 'type'],
+                            additionalProperties: true
+                        },
                         default: []
                     }
                 }
