@@ -78,14 +78,13 @@ module.exports = [
         inputSchema: {
             applicationId: applicationId.describe('The hashid of the application to create the device group in'),
             name: z.string().min(1).describe('Name for the new device group'),
-            description: z.string().optional().describe('Description for the group. Defaults to an empty string rather than being left unset, because a group stored without one breaks the device group listings')
+            description: z.string().optional().describe('Description for the group')
         },
         handler: async (args, { inject }) => {
-            // A group created without a description is stored with a null one, which
-            // fails the route's own response schema: the create answers 500 having
-            // created the group anyway, and every later listing of the application's
-            // and the team's groups then 500s on that row too. Default it instead.
-            const payload = { name: args.name, description: args.description ?? '' }
+            const payload = { name: args.name }
+            if (args.description !== undefined) {
+                payload.description = args.description
+            }
             const response = await inject({ method: 'POST', url: `/api/v1/applications/${args.applicationId}/device-groups`, payload })
             return response
         }
