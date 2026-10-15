@@ -4893,7 +4893,7 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        snapshot?: string;
+                        snapshot: string;
                     };
                 };
             };
