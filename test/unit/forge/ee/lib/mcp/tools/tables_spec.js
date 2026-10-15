@@ -193,7 +193,7 @@ describe('MCP Tables Tools', function () {
 
         it('posts the name and columns to the tables endpoint and returns the table in the public schema', async function () {
             const columns = [{ name: 'id', type: 'bigint' }, { name: 'label', type: 'text', nullable: true }]
-            inject.resolves({ statusCode: 201, json: () => JSON.parse('') })
+            inject.resolves({ statusCode: 201, json: () => ({ name: 'orders', schema: 'public' }) })
             const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', name: 'orders', columns }, { inject })
             inject.calledOnce.should.be.true()
             inject.firstCall.args[0].should.eql({
@@ -207,10 +207,16 @@ describe('MCP Tables Tools', function () {
 
         it('passes the schema through when one is given and returns it', async function () {
             const columns = [{ name: 'id', type: 'bigint' }]
-            inject.resolves({ statusCode: 201, json: () => JSON.parse('') })
+            inject.resolves({ statusCode: 201, json: () => ({ name: 'orders', schema: 'reports' }) })
             const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', name: 'orders', schema: 'reports', columns }, { inject })
             inject.firstCall.args[0].payload.should.eql({ name: 'orders', columns, schema: 'reports' })
             response.json().should.eql({ table: { name: 'orders', schema: 'reports' } })
+        })
+
+        it('returns the table the route reports', async function () {
+            inject.resolves({ statusCode: 201, json: () => ({ name: 'orders', schema: 'reported' }) })
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', name: 'orders', columns: [{ name: 'id', type: 'bigint' }] }, { inject })
+            response.json().should.eql({ table: { name: 'orders', schema: 'reported' } })
         })
 
         it('accepts valid schema names and rejects ones Postgres cannot create', function () {

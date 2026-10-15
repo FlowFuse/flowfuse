@@ -231,6 +231,22 @@ describe('Tables API', function () {
         spy.firstCall.args[4].should.equal('public')
     })
 
+    it('Returns the created table name and schema', async function () {
+        const response = await createTable({ name: 'returnedtable', columns })
+        response.statusCode.should.equal(201)
+        response.json().should.eql({ name: 'returnedtable', schema: 'public' })
+
+        const inSchema = await createTable({ name: 'returnedtable', schema: 'reports', columns })
+        inSchema.statusCode.should.equal(201)
+        inSchema.json().should.eql({ name: 'returnedtable', schema: 'reports' })
+    })
+
+    it('Declares the 201 response it sends when a table is created', async function () {
+        const responses = app.swagger().paths['/api/v1/teams/{teamId}/databases/{databaseId}/tables'].post.responses
+        responses.should.have.property('201')
+        responses.should.not.have.property('200')
+    })
+
     it('Create a table in the given schema', async function () {
         const spy = sinon.spy(app.tables, 'createTable')
         const response = await createTable({ name: 'table1', schema: 'reports', columns })
