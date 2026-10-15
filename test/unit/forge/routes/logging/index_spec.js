@@ -142,6 +142,22 @@ describe('Logging API', function () {
             args[2].should.equal('0.4.0')
         })
 
+        it('Adds module with any version to instance settings for nodes.install event without a version', async function () {
+            const url = `/logging/${TestObjects.project1.id}/audit`
+            const response = await app.inject({
+                method: 'POST',
+                url,
+                headers: {
+                    authorization: `Bearer ${TestObjects.tokens.project1}`
+                },
+                payload: { event: 'nodes.install', module: '@flowfuse/unversioned', path: '/nodes' }
+            })
+            response.should.have.property('statusCode', 200)
+            const args = app.db.controllers.Project.addProjectModule.lastCall.args
+            args[1].should.equal('@flowfuse/unversioned')
+            args[2].should.equal('*')
+        })
+
         it('Does not add module to instance settings for nodes.install event with error', async function () {
             const url = `/logging/${TestObjects.project1.id}/audit`
             const response = await app.inject({
