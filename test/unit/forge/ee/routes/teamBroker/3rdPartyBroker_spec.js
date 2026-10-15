@@ -808,6 +808,25 @@ describe('3rd Party Broker API', function () {
             response.statusCode.should.equal(200)
         })
 
+        it('reports the team-broker agent status from the agent itself', async function () {
+            const agent = await app.db.models.TeamBrokerAgent.create({ state: 'running', TeamId: app.team.id })
+            const getBrokerAgentState = sinon.stub(app.containers, 'getBrokerAgentState').resolves({ connected: false, error: null })
+            try {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+                response.json().should.have.property('state', 'running')
+                response.json().should.have.property('status', { connected: false, error: null })
+                getBrokerAgentState.calledOnce.should.be.true()
+                getBrokerAgentState.firstCall.args[0].should.have.property('id', agent.id)
+            } finally {
+                getBrokerAgentState.restore()
+            }
+        })
+
         it('start keeps a new team-broker agent starting until the driver has launched it', async function () {
             let stateDuringLaunch
             const startBrokerAgent = sinon.stub(app.containers, 'startBrokerAgent').callsFake(async () => {

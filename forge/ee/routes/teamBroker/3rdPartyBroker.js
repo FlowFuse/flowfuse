@@ -350,10 +350,7 @@ module.exports = async function (app) {
             if (agentStatus) {
                 const clean = agentStatus.toJSON()
                 delete clean.auth
-                clean.status = {
-                    connected: true,
-                    error: null
-                }
+                clean.status = await app.containers.getBrokerAgentState(agentStatus)
                 // make Team Broker look like a client broker
                 clean.id = clean.hashid
                 clean.name = 'team-broker'
