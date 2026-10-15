@@ -193,7 +193,8 @@ describe('Pipelines API', function () {
                     payload: {
                         name: 'stage-two',
                         instanceId: TestObjects.instanceTwo.id,
-                        action: 'prompt'
+                        action: 'prompt',
+                        source: TestObjects.stageOne.hashid
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -218,7 +219,8 @@ describe('Pipelines API', function () {
                         url: `/api/v1/pipelines/${pipelineId}/stages`,
                         payload: {
                             name: 'stage-two',
-                            instanceId: TestObjects.instanceOne.id // in use
+                            instanceId: TestObjects.instanceOne.id, // in use
+                            source: TestObjects.stageOne.hashid
                         },
                         cookies: { sid: TestObjects.tokens.alice }
                     })
@@ -241,7 +243,8 @@ describe('Pipelines API', function () {
                         payload: {
                             name: 'stage-two',
                             instanceId: TestObjects.instanceTwo.id,
-                            action: 'use_active_snapshot'
+                            action: 'use_active_snapshot',
+                            source: TestObjects.stageOne.hashid
                         },
                         cookies: { sid: TestObjects.tokens.alice }
                     })
@@ -295,7 +298,8 @@ describe('Pipelines API', function () {
                     payload: {
                         name: 'stage-two',
                         deviceId: TestObjects.deviceTwo.hashid,
-                        action: 'prompt'
+                        action: 'prompt',
+                        source: TestObjects.pipelineDevicesStageOne.hashid
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -318,7 +322,8 @@ describe('Pipelines API', function () {
                         url: `/api/v1/pipelines/${TestObjects.pipelineDevices.hashid}/stages`,
                         payload: {
                             name: 'stage-two',
-                            deviceId: TestObjects.deviceOne.hashid // in use
+                            deviceId: TestObjects.deviceOne.hashid, // in use
+                            source: TestObjects.pipelineDevicesStageOne.hashid
                         },
                         cookies: { sid: TestObjects.tokens.alice }
                     })
@@ -366,7 +371,8 @@ describe('Pipelines API', function () {
                     payload: {
                         name: 'stage-two',
                         deviceGroupId: TestObjects.deviceGroupTwo.hashid,
-                        action: 'prompt'
+                        action: 'prompt',
+                        source: TestObjects.stageOne.hashid
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -432,7 +438,7 @@ describe('Pipelines API', function () {
                     const s1 = await TestObjects.factory.createPipelineStage({ name: 'stage-one', instanceId: app.instance.id }, newPipeline)
                     // add a device group stage
                     const s2DeviceGroup = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-c' }, app.application)
-                    await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: s2DeviceGroup.hashid, source: s1.hashid, action: 'use_latest_snapshot' }, newPipeline)
+                    const s2 = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: s2DeviceGroup.hashid, source: s1.hashid, action: 'use_latest_snapshot' }, newPipeline)
                     const newDeviceGroup = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-d' }, app.application)
 
                     // try to add another device group stage
@@ -442,7 +448,8 @@ describe('Pipelines API', function () {
                         payload: {
                             name: 'stage-three',
                             deviceGroupId: newDeviceGroup.hashid,
-                            action: 'prompt'
+                            action: 'prompt',
+                            source: s2.hashid
                         },
                         cookies: { sid: TestObjects.tokens.alice }
                     })
@@ -456,7 +463,7 @@ describe('Pipelines API', function () {
                     const s1 = await TestObjects.factory.createPipelineStage({ name: 'stage-one', instanceId: app.instance.id }, newPipeline)
                     // add a device group stage
                     const s2DeviceGroup = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-c' }, app.application)
-                    await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: s2DeviceGroup.hashid, source: s1.hashid, action: 'use_latest_snapshot' }, newPipeline)
+                    const s2 = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: s2DeviceGroup.hashid, source: s1.hashid, action: 'use_latest_snapshot' }, newPipeline)
 
                     // try to add an instance stage
                     const response = await app.inject({
@@ -465,7 +472,8 @@ describe('Pipelines API', function () {
                         payload: {
                             name: 'stage-three',
                             instanceId: TestObjects.instanceTwo.id,
-                            action: 'prompt'
+                            action: 'prompt',
+                            source: s2.hashid
                         },
                         cookies: { sid: TestObjects.tokens.alice }
                     })
@@ -482,7 +490,7 @@ describe('Pipelines API', function () {
                     const s1 = await TestObjects.factory.createPipelineStage({ name: 'stage-one', instanceId: app.instance.id }, newPipeline)
                     // add a device group stage
                     const s2DeviceGroup = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-c' }, app.application)
-                    await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: s2DeviceGroup.hashid, source: s1.hashid, action: 'use_latest_snapshot' }, newPipeline)
+                    const s2 = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: s2DeviceGroup.hashid, source: s1.hashid, action: 'use_latest_snapshot' }, newPipeline)
 
                     // try to add an instance stage
                     const response = await app.inject({
@@ -491,7 +499,8 @@ describe('Pipelines API', function () {
                         payload: {
                             name: 'stage-three',
                             deviceId: TestObjects.deviceTwo.hashid,
-                            action: 'prompt'
+                            action: 'prompt',
+                            source: s2.hashid
                         },
                         cookies: { sid: TestObjects.tokens.alice }
                     })
@@ -569,6 +578,51 @@ describe('Pipelines API', function () {
                     response.statusCode.should.equal(400)
                     body.should.have.property('code', 'invalid_input')
                     body.should.have.property('error').match(/source stage not found/i)
+                })
+                it('Should reject if the previous stage already has a next stage', async function () {
+                    const pipelineId = TestObjects.pipelineDeviceGroups.hashid
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/pipelines/${pipelineId}/stages`,
+                        payload: {
+                            name: 'stage-three',
+                            deviceGroupId: TestObjects.deviceGroupTwo.hashid,
+                            action: 'use_latest_snapshot',
+                            // stage one is already followed by stage two
+                            source: TestObjects.pipelineDeviceGroupsStageOne.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    const body = await response.json()
+                    response.statusCode.should.equal(400)
+                    body.should.have.property('code', 'invalid_source')
+                    body.should.have.property('error').match(/already followed by another stage/i)
+
+                    const stages = await TestObjects.pipelineDeviceGroups.stages()
+                    stages.should.have.length(2)
+                })
+            })
+            describe('When no previous stage is passed', function () {
+                it('Should reject if the pipeline already has stages', async function () {
+                    const pipelineId = TestObjects.pipeline.hashid
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/pipelines/${pipelineId}/stages`,
+                        payload: {
+                            name: 'stage-two',
+                            instanceId: TestObjects.instanceTwo.id
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    const body = await response.json()
+                    response.statusCode.should.equal(400)
+                    body.should.have.property('code', 'invalid_source')
+                    body.should.have.property('error').match(/source stage is required/i)
+
+                    const stages = await TestObjects.pipeline.stages()
+                    stages.should.have.length(1)
                 })
             })
         })

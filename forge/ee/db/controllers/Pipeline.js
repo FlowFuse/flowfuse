@@ -289,6 +289,12 @@ module.exports = {
         const stages = await pipeline.stages() // stages are a linked list
         const orderedStages = app.db.models.PipelineStage.sortStages(stages) // sort the stages
 
+        // 0. Every stage after the first must name the stage it follows, otherwise it
+        //    becomes a second head and the stages already in the pipeline drop out of the listing
+        if (stages.length > 0 && !source) {
+            throw new PipelineControllerError('invalid_source', 'A source stage is required when adding a stage to a pipeline that already has stages', 400)
+        }
+
         // 1. When adding a device group
         if (options.deviceGroupId) {
             const stageCount = stages.length
@@ -326,6 +332,10 @@ module.exports = {
                 const sourceStage = await app.db.models.PipelineStage.byId(source, { transaction })
                 if (!sourceStage || sourceStage.PipelineId !== pipeline.id) {
                     throw new PipelineControllerError('invalid_input', 'Source stage not found', 400)
+                }
+                // Repointing a stage that already has a next stage would cut off every stage after it
+                if (sourceStage.NextStageId) {
+                    throw new PipelineControllerError('invalid_source', 'The source stage is already followed by another stage. New stages can only be added after the last stage', 400)
                 }
                 sourceStage.NextStageId = stage.id
                 await sourceStage.save({ transaction })
