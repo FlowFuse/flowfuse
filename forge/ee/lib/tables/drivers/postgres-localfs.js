@@ -296,6 +296,9 @@ module.exports = {
                             column += `DEFAULT ${col.default === 'true'}`
                         } else if (col.type === 'timestamptz') {
                             column += 'DEFAULT NOW()'
+                        } else if (col.type === 'date') {
+                            // CURRENT_DATE defaults to the day each row is inserted, anything else is a literal date
+                            column += col.default === 'CURRENT_DATE' ? 'DEFAULT CURRENT_DATE' : `DEFAULT ${libPg.pg.escapeLiteral(col.default)}`
                         }
                     }
                     if (i + 1 !== columns.length) {
