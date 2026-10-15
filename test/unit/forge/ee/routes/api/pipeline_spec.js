@@ -236,6 +236,23 @@ describe('Pipelines API', function () {
                 logs.filter((log) => JSON.parse(log.body).pipelineStage.hashid === response.json().id).should.have.length(1)
             })
 
+            it('Stores deploy to devices as false when it is not given', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages`,
+                    payload: {
+                        name: 'stage-two',
+                        instanceId: TestObjects.instanceTwo.id,
+                        source: TestObjects.stageOne.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                const stage = await app.db.models.PipelineStage.byId(response.json().id)
+                stage.deployToDevices.should.equal(false)
+            })
+
             describe('Validates that the pipeline is correct', function () {
                 it('Rejects a pipeline stage if the instance is already in use', async function () {
                     const pipelineId = TestObjects.pipeline.hashid
@@ -894,8 +911,9 @@ describe('Pipelines API', function () {
             })
 
             it('does not count an unset deploy to devices being saved as false as a change', async function () {
-                // Stages created without deployToDevices store null, and the edit form always sends false
+                // Older stages can still store null for deployToDevices, and the edit form always sends false
                 const stage = TestObjects.stageOne
+                await stage.update({ deployToDevices: null })
                 const response = await app.inject({
                     method: 'PUT',
                     url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,

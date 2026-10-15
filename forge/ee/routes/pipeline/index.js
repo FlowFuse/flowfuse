@@ -790,7 +790,7 @@ module.exports = async function (app) {
                 updates.push(key, before[key], after[key])
             }
         }
-        // A stage created without deployToDevices stores null, which means the same as false
+        // Stages created before deployToDevices defaulted to false can store null, which means the same as false
         if (!!before.deployToDevices !== !!after.deployToDevices) {
             updates.push('deployToDevices', !!before.deployToDevices, !!after.deployToDevices)
         }
