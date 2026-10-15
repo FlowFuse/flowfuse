@@ -226,7 +226,8 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                     snapshot: { type: 'string' }
-                }
+                },
+                required: ['snapshot']
             },
             response: {
                 200: {

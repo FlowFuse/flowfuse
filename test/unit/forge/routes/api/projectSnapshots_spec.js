@@ -979,6 +979,23 @@ describe('Project Snapshots API', function () {
             // not running -> no restart bounce -> the inflight mask is cleared after import
             should(await app.db.controllers.Project.getInflightState(app.project)).be.undefined()
         })
+
+        it('rejects a rollback without a snapshot and logs nothing', async function () {
+            const rolledBackBefore = await app.db.models.AuditLog.count({ where: { event: 'project.snapshot.rolled-back', entityId: app.project.id } })
+
+            const rollbackResponse = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${app.project.id}/actions/rollback`,
+                payload: {},
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            rollbackResponse.statusCode.should.equal(400)
+            rollbackResponse.json().should.have.property('code', 'FST_ERR_VALIDATION')
+            rollbackResponse.json().should.have.property('message').match(/snapshot/)
+
+            const rolledBackAfter = await app.db.models.AuditLog.count({ where: { event: 'project.snapshot.rolled-back', entityId: app.project.id } })
+            rolledBackAfter.should.equal(rolledBackBefore)
+        })
     })
 
     describe('Get snapshot information', function () {
