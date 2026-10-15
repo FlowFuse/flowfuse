@@ -739,6 +739,22 @@ describe('product-expert store', () => {
                 expect(store.hasStreamedActivity).toBe(false)
             })
 
+            it('keeps reporting streamed activity while a stopped turn is ending', async () => {
+                await send({ kind: 'message', id: 'm1', seq: 1, text: 'hi' })
+                agent.stoppingTransactions.set('turn-1', null)
+                agent.inFlightRequests.delete('turn-1')
+
+                expect(store.hasStreamedActivity).toBe(true)
+            })
+
+            it('finishes open items when the final answer lands', async () => {
+                await send({ kind: 'reasoning', id: 'r1', seq: 1, text: 'Looking', done: false }, 'srf-1')
+
+                await store._onMqttMessage(replyTopic, JSON.stringify({ answer: [{ kind: 'chat', content: 'Done' }] }), packet('turn-1', 'turn-1'))
+
+                expect(bubble().answer[0]).toMatchObject({ id: 'r1', done: true })
+            })
+
             it('finishes open items when the turn is stopped', async () => {
                 await send({ kind: 'reasoning', id: 'r1', seq: 1, text: 'I', done: false }, 'srf-1')
                 await send({ kind: 'reasoning', id: 'r0', seq: 0, text: 'Earlier', done: true }, 'srf-2')

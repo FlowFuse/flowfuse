@@ -102,5 +102,20 @@ describe('AiMessage', () => {
         expect(viewers.map(v => v.props('label'))).toEqual(['Input', 'Output'])
         expect(viewers[1].props('value')).toEqual({ n: 1 })
         expect(viewers.every(v => v.props('defaultCollapsed'))).toBe(true)
+        expect(viewers.every(v => v.find('.json-viewer__collapse-toggle').attributes('kind') === 'plain')).toBe(true)
+    })
+
+    test('names a gateway wrapper call after the tool it invoked', () => {
+        const wrapper = mountMessage([
+            {
+                kind: 'mcp_tool',
+                toolName: 'mcp_tool__flowfuse-mcp-gateway-0__invoke_read_tool',
+                toolId: 'mcp_tool__flowfuse-mcp-gateway-0__invoke_read_tool',
+                input: '{"tool_name":"list_orders"}',
+                _uuid: 'a'
+            }
+        ])
+
+        expect(wrapper.find('.ff-expert-timeline-item--name').text()).toBe('list_orders')
     })
 })

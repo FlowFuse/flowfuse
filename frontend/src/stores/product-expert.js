@@ -101,12 +101,14 @@ export const useProductExpertStore = defineStore('product-expert', {
         hasMessages () { return this._agentStore.messages.length > 0 },
         isSessionExpired () { return this._agentStore.sessionExpiredShown },
         isWaitingForResponse () { return !!this._agentStore.abortController || this._inFlightRequests.size > 0 || this.isStoppingTurn },
-        // Once a live turn's reply bubble shows streamed activity, the loading indicator drops
-        // its status lines and keeps only the dots. Agents that do not stream keep both.
+        // Once a live or stopping turn's reply bubble shows streamed activity, the loading
+        // indicator drops its status lines and keeps only the dots. Agents that do not stream
+        // keep both.
         hasStreamedActivity () {
+            const stopping = this.isSupportAgent ? useProductExpertSupportAgentStore().stoppingTransactions : new Map()
             return this._agentStore.messages.some(m =>
                 m._type === 'ai' &&
-                this._inFlightRequests.has(m._transactionId) &&
+                (this._inFlightRequests.has(m._transactionId) || stopping.has(m._transactionId)) &&
                 m.answer?.some(item => item._live)
             )
         },
@@ -1141,8 +1143,9 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
             const { answer: _answer, ...fields } = response
             Object.assign(target, fields)
+            this._closeTurnItems(transactionId)
         },
-        // A turn that ends without a final reply leaves no item still running.
+        // A finished or stopped turn leaves no item still running.
         _closeTurnItems (transactionId) {
             for (const bubble of this._turnBubbles(transactionId)) {
                 bubble.answer.forEach((item, index) => {

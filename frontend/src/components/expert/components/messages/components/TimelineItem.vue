@@ -16,8 +16,8 @@
             </div>
             <!-- Input/output are dev-only today, but render whenever present so a future
                  flag flip needs no UI change. -->
-            <json-viewer v-if="hasInput" :value="parseJson(item.input)" label="Input" collapsible default-collapsed />
-            <json-viewer v-if="hasOutput" :value="parseJson(item.output)" label="Output" collapsible default-collapsed />
+            <json-viewer v-if="hasInput" :value="parseJson(item.input)" label="Input" collapsible default-collapsed toggle-kind="plain" />
+            <json-viewer v-if="hasOutput" :value="parseJson(item.output)" label="Output" collapsible default-collapsed toggle-kind="plain" />
         </div>
     </collapsible-section>
 </template>
@@ -30,13 +30,13 @@ import CollapsibleSection from './CollapsibleSection.vue'
 import JsonViewer from '@/components/JsonViewer.vue'
 
 // Names that must never surface: empty, the old backend placeholder (still in cached turns),
-// and invoke_* wrappers (a non-dev support record's toolId is the wrapper, not the real tool).
+// and invoke_* wrappers, bare or behind a server prefix (the wrapper is not the real tool).
 const AUTOMATION_PLACEHOLDER = 'FlowFuse Automation'
 function isUsableName (value) {
     if (typeof value !== 'string') return false
     const trimmed = value.trim()
     if (trimmed === '' || trimmed === AUTOMATION_PLACEHOLDER) return false
-    return !trimmed.startsWith('invoke_')
+    return !/(^|__)invoke_/.test(trimmed)
 }
 
 export default {
@@ -58,9 +58,11 @@ export default {
         errorText () {
             return typeof this.item.error === 'string' ? this.item.error.trim() : ''
         },
-        // First usable name: friendly title, else the tool's own name, else the raw key.
+        // First usable name: friendly title, else the tool's own name, else the tool a gateway
+        // wrapper called, else the raw key.
         title () {
-            return [this.item.toolTitle, this.item.toolName, this.item.toolId].find(isUsableName) || 'Tool call'
+            const input = this.parseJson(this.item.input)
+            return [this.item.toolTitle, this.item.toolName, input?.tool_name, this.item.toolId].find(isUsableName) || 'Tool call'
         },
         // The reason says what the call is for, so it leads on one line; the full reason and
         // the tool title are in the body.
