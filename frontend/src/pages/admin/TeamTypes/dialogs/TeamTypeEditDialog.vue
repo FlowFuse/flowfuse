@@ -455,7 +455,6 @@ export default {
             for (const cat of extraCataloguesArray) {
                 const u = URL.parse(cat)
                 if (!u) {
-                    this.errors.extraCataloguesArray = `Invalid URL ${cat}`
                     return false
                 }
             }
