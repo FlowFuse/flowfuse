@@ -421,8 +421,8 @@ module.exports = async function (app) {
             const hydratedStage = await app.db.models.PipelineStage.byId(stage.id)
             const updates = stageUpdates(stageBefore, hydratedStage)
             if (updates.length > 0) {
-                const team = await request.teamMembership.getTeam()
-                await app.auditLog.Team.application.pipeline.stageUpdated(request.session.User, null, team, request.application, request.pipeline, hydratedStage, updates)
+                // Not request.teamMembership: an admin who isn't in the team has none
+                await app.auditLog.Team.application.pipeline.stageUpdated(request.session.User, null, request.application.Team, request.application, request.pipeline, hydratedStage, updates)
             }
             reply.send(await app.db.views.PipelineStage.stage(hydratedStage))
         } catch (error) {

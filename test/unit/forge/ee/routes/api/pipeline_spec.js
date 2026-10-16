@@ -926,6 +926,29 @@ describe('Pipelines API', function () {
                 entries.should.have.length(0)
             })
 
+            it('records the change for an admin who is not a team member', async function () {
+                await TestObjects.factory.createUser({
+                    admin: true,
+                    username: 'nonmemberadminedit',
+                    name: 'Non Member Admin',
+                    email: 'nonmemberadminedit@example.com',
+                    password: 'nmPassword'
+                })
+                await login('nonmemberadminedit', 'nmPassword')
+                const stage = TestObjects.stageOne
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                    payload: { name: 'admin-renamed' },
+                    cookies: { sid: TestObjects.tokens.nonmemberadminedit }
+                })
+                response.statusCode.should.equal(200)
+
+                const entries = await stageUpdatedEntries(stage)
+                entries.should.have.length(1)
+            })
+
             it('writes nothing when nothing changed', async function () {
                 const stage = TestObjects.stageOne
                 const response = await app.inject({
