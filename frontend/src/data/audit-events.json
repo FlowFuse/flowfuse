@@ -83,6 +83,7 @@
         "project.protected": "Project Protected",
         "project.unprotected": "Project Unprotected",
         "project.assigned-to-pipeline-stage": "Instance Assigned to DevOps Pipeline Stage",
+        "project.unassigned-from-pipeline-stage": "Instance Removed from DevOps Pipeline Stage",
         "project.device.assigned": "Device Assigned to Instance",
         "project.device.unassigned": "Device Unassigned from Instance",
         "project.stack.changed": "Instance Stack Changed",

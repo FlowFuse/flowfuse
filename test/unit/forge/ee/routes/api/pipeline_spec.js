@@ -1772,6 +1772,72 @@ describe('Pipelines API', function () {
         })
     })
 
+    describe('Instance pipeline stage audit log', function () {
+        async function instanceEntries (event, instance, stage) {
+            const logs = await app.db.models.AuditLog.findAll({ where: { event, entityType: 'project', entityId: instance.id } })
+            return logs.map(log => JSON.parse(log.body)).filter(body => body.pipelineStage.hashid === stage.hashid)
+        }
+
+        it('logs the instance being taken off a stage when the stage is deleted', async function () {
+            const stage = TestObjects.stageOne
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+
+            const entries = await instanceEntries('project.unassigned-from-pipeline-stage', TestObjects.instanceOne, stage)
+            entries.should.have.length(1)
+            entries[0].pipeline.should.have.property('name', TestObjects.pipeline.name)
+        })
+
+        it('logs every instance being taken off its stage when the pipeline is deleted', async function () {
+            const stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+
+            const first = await instanceEntries('project.unassigned-from-pipeline-stage', TestObjects.instanceOne, TestObjects.stageOne)
+            first.should.have.length(1)
+            const second = await instanceEntries('project.unassigned-from-pipeline-stage', TestObjects.instanceTwo, stageTwo)
+            second.should.have.length(1)
+        })
+
+        it('logs both instances when a stage is moved to another instance', async function () {
+            const stage = TestObjects.stageOne
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                payload: { instanceId: TestObjects.instanceTwo.id },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+
+            const removed = await instanceEntries('project.unassigned-from-pipeline-stage', TestObjects.instanceOne, stage)
+            removed.should.have.length(1)
+            const added = await instanceEntries('project.assigned-to-pipeline-stage', TestObjects.instanceTwo, stage)
+            added.should.have.length(1)
+        })
+
+        it('logs nothing on the instance when only the stage name changes', async function () {
+            const stage = TestObjects.stageOne
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                payload: { name: 'renamed-stage' },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+
+            const removed = await instanceEntries('project.unassigned-from-pipeline-stage', TestObjects.instanceOne, stage)
+            removed.should.have.length(0)
+        })
+    })
+
     describe('Delete Pipeline Stage', function () {
         it('should destroy the pipeline stage, but not touch the assigned instance', async function () {
             const pipelineId = TestObjects.pipeline.hashid
