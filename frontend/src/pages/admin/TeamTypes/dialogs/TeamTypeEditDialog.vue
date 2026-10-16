@@ -451,10 +451,10 @@ export default {
             })
         },
         formValid () {
-            const extraCataloguesArray = this.input.properties.extraCatalogues.split('\n')
+            const extraCataloguesArray = this.input.properties.extraCatalogues.split('\n').filter(cat => cat.trim().length > 0)
             for (const cat of extraCataloguesArray) {
                 const u = URL.parse(cat)
-                if (!u) {
+                if (u === null) {
                     return false
                 }
             }
@@ -562,10 +562,10 @@ export default {
                 }
 
                 opts.properties.extraCatalogues = []
-                const extraCataloguesArray = this.input.properties.extraCatalogues.split('\n')
+                const extraCataloguesArray = this.input.properties.extraCatalogues.split('\n').filter(cat => cat.trim().length > 0)
                 for (const cat of extraCataloguesArray) {
                     const u = URL.parse(cat)
-                    if (u) {
+                    if (u !== null) {
                         opts.properties.extraCatalogues.push(cat)
                     }
                 }
