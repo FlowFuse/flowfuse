@@ -292,7 +292,7 @@ module.exports = async function (app) {
                                 default: { type: 'string', nullable: true }
                             },
                             required: ['name', 'type'],
-                            additionalProperties: true
+                            additionalProperties: false
                         },
                         default: []
                     }
