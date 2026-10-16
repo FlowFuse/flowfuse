@@ -2,6 +2,8 @@ const { Op } = require('sequelize')
 const should = require('should')
 const sinon = require('sinon')
 
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+
 const setup = require('../../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
@@ -907,6 +909,10 @@ describe('3rd Party Broker API', function () {
                 })
                 response.statusCode.should.equal(200)
                 stateDuringStop.should.equal('suspending')
+                // The route removes the agent row after a delay, let it finish before the app is closed
+                while (await app.db.models.TeamBrokerAgent.byTeam(app.team.id)) {
+                    await sleep(100)
+                }
             } finally {
                 stopBrokerAgent.restore()
             }
