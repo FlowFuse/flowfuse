@@ -278,7 +278,8 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const team = await request.teamMembership.getTeam()
+        // Not request.teamMembership: an admin who isn't in the team has none
+        const team = request.application.Team
         const name = request.body.name?.trim() // name of the stage
         const {
             instanceId,
@@ -475,8 +476,8 @@ module.exports = async function (app) {
                 request.params.stageId
             )
 
-            const team = await request.teamMembership.getTeam()
-            await app.auditLog.Team.application.pipeline.stageDeleted(request.session.User, null, team, request.application, request.pipeline, stage)
+            // Not request.teamMembership: an admin who isn't in the team has none
+            await app.auditLog.Team.application.pipeline.stageDeleted(request.session.User, null, request.application.Team, request.application, request.pipeline, stage)
 
             reply.send({ status: 'okay' })
         } catch (err) {

@@ -210,6 +210,32 @@ describe('Pipelines API', function () {
                 response.statusCode.should.equal(200)
             })
 
+            it('Lets an admin who is not a team member add a stage and logs it', async function () {
+                await TestObjects.factory.createUser({
+                    admin: true,
+                    username: 'nonmemberadminadd',
+                    name: 'Non Member Admin',
+                    email: 'nonmemberadminadd@example.com',
+                    password: 'nmPassword'
+                })
+                await login('nonmemberadminadd', 'nmPassword')
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages`,
+                    payload: {
+                        name: 'admin-stage',
+                        instanceId: TestObjects.instanceTwo.id,
+                        source: TestObjects.stageOne.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.nonmemberadminadd }
+                })
+                response.statusCode.should.equal(200)
+
+                const logs = await app.db.models.AuditLog.findAll({ where: { event: 'application.pipeline.stage-added' } })
+                logs.filter((log) => JSON.parse(log.body).pipelineStage.hashid === response.json().id).should.have.length(1)
+            })
+
             describe('Validates that the pipeline is correct', function () {
                 it('Rejects a pipeline stage if the instance is already in use', async function () {
                     const pipelineId = TestObjects.pipeline.hashid
@@ -1651,6 +1677,29 @@ describe('Pipelines API', function () {
 
             should(await app.db.models.PipelineStage.byId(stageId)).equal(null)
             should(await app.db.models.Project.byId(instanceId)).not.equal(null)
+        })
+
+        it('should let an admin who is not a team member delete a stage and log it', async function () {
+            await TestObjects.factory.createUser({
+                admin: true,
+                username: 'nonmemberadmin',
+                name: 'Non Member Admin',
+                email: 'nonmemberadmin@example.com',
+                password: 'nmPassword'
+            })
+            await login('nonmemberadmin', 'nmPassword')
+            const stage = TestObjects.stageOne
+
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                cookies: { sid: TestObjects.tokens.nonmemberadmin }
+            })
+            response.statusCode.should.equal(200)
+            should(await app.db.models.PipelineStage.byId(stage.hashid)).equal(null)
+
+            const logs = await app.db.models.AuditLog.findAll({ where: { event: 'application.pipeline.stage-deleted' } })
+            logs.filter((log) => JSON.parse(log.body).pipelineStage.hashid === stage.hashid).should.have.length(1)
         })
 
         it('should write an audit log entry for the deleted stage', async function () {
