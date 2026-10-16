@@ -1754,6 +1754,37 @@ describe('Device API', async function () {
                 response.json().targetSnapshot.should.have.property('id', TestObjects.app1Snapshot.id)
             })
 
+            it('records the new target in the team audit log', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion: '3.8.0', application: TestObjects.Application1.hashid })
+
+                await setTarget(device, TestObjects.app1Snapshot.id)
+
+                const entry = await app.db.models.AuditLog.findOne({ where: { event: 'team.device.updated' }, order: [['id', 'DESC']] })
+                const body = typeof entry.body === 'string' ? JSON.parse(entry.body) : entry.body
+                const update = body.updates.find(u => u.key === 'targetSnapshotId')
+                should(update.old).be.null()
+                update.new.should.equal(await getTargetSnapshotId(device))
+            })
+
+            it('does not redeploy when the snapshot is already the target', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion: '3.8.0', application: TestObjects.Application1.hashid })
+                await setTarget(device, TestObjects.app1Snapshot.id)
+                const auditCount = () => app.db.models.AuditLog.count({ where: { event: 'device.snapshot.target-set' } })
+                const countBefore = await auditCount()
+                const sendDeviceUpdateCommand = sinon.spy(app.db.controllers.Device, 'sendDeviceUpdateCommand')
+
+                try {
+                    const response = await setTarget(device, TestObjects.app1Snapshot.id)
+
+                    response.statusCode.should.equal(200)
+                    response.json().targetSnapshot.should.have.property('id', TestObjects.app1Snapshot.id)
+                    sendDeviceUpdateCommand.called.should.be.false()
+                    ;(await auditCount()).should.equal(countBefore)
+                } finally {
+                    sendDeviceUpdateCommand.restore()
+                }
+            })
+
             it('rejects a targetSnapshot that is not a string', async function () {
                 const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion: '3.8.0', application: TestObjects.Application1.hashid })
 
