@@ -1749,6 +1749,35 @@ describe('Pipelines API', function () {
                 body.should.not.have.property('deviceGroups')
             })
 
+            it('Should leave credentials in the repository url out of the audit log', async function () {
+                const gitToken = await createGitToken()
+                const stage = TestObjects.stageOne
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                    payload: {
+                        gitTokenId: gitToken.hashid,
+                        url: 'https://someone:secret-token@example.com/repo.git',
+                        branch: 'main'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                const logs = await app.db.models.AuditLog.findAll({ where: { event: 'application.pipeline.stage-updated' } })
+                const entries = logs.map(log => JSON.parse(log.body)).filter(body => body.pipelineStage.hashid === stage.hashid)
+                entries.should.have.length(1)
+                entries[0].updates.should.containDeep([
+                    { key: 'url', new: 'https://example.com/repo.git' }
+                ])
+                JSON.stringify(entries[0]).should.not.containEql('secret-token')
+                // git fields left empty when moving to a git repo are not changes
+                entries[0].updates.map(u => u.key).should.not.containEql('pullBranch')
+                entries[0].updates.map(u => u.key).should.not.containEql('pushPath')
+                entries[0].updates.map(u => u.key).should.not.containEql('pullPath')
+            })
+
             it('Should still rebind to a device group as before when git settings are absent', async function () {
                 const pipelineId = TestObjects.pipelineDeviceGroups.hashid
                 const stageId = TestObjects.pipelineDeviceGroupsStageTwo.hashid
