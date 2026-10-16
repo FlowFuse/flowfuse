@@ -1,7 +1,6 @@
 const { z } = require('zod')
 
 const { pathId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError, hostedInstanceId } = require('../schemas')
-const { emptySuccessAsOkay } = require('../utils')
 
 // Tools that work against both hosted instances and remote instances (devices),
 // selected with an instanceType discriminator.
@@ -180,9 +179,7 @@ module.exports = [
                 return toolError(400, 'invalid_request', 'instanceId must be a hosted instance UUID or a remote instance (device) hashid matching instanceType, and tokenId a token hashid')
             }
             const base = args.instanceType === 'remote' ? 'devices' : 'projects'
-            const response = await inject({ method: 'DELETE', url: `/api/v1/${base}/${args.instanceId}/httpTokens/${args.tokenId}` })
-            // The route answers a successful delete with an empty 201.
-            return emptySuccessAsOkay(response)
+            return inject({ method: 'DELETE', url: `/api/v1/${base}/${args.instanceId}/httpTokens/${args.tokenId}` })
         }
     },
     {

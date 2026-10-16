@@ -2,6 +2,7 @@ const should = require('should') // eslint-disable-line no-unused-vars
 const sinon = require('sinon')
 const { z } = require('zod')
 
+const { formatResponse } = require('../../../../../../../forge/ee/lib/mcp/toolLoader')
 const tools = require('../../../../../../../forge/ee/lib/mcp/tools/tables')
 
 function getTool (name) {
@@ -247,12 +248,11 @@ describe('MCP Tables Tools', function () {
         })
 
         it('deletes the table in the given schema and reports okay for the empty reply', async function () {
-            inject.resolves({ statusCode: 204, body: '' })
+            inject.resolves({ statusCode: 204, body: '', json: () => JSON.parse('') })
             const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', tableName: 'orders', schemaName: 'reports' }, { inject })
             inject.calledOnce.should.be.true()
             inject.firstCall.args[0].should.eql({ method: 'DELETE', url: '/api/v1/teams/team1/databases/db1/tables/orders/reports' })
-            response.statusCode.should.equal(204)
-            response.json().should.eql({ status: 'okay' })
+            formatResponse(response).should.eql({ status: 'okay' })
         })
 
         it('encodes table and schema names that contain reserved characters', async function () {
