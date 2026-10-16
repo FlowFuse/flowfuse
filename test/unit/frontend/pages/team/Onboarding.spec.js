@@ -133,6 +133,19 @@ describe('Onboarding page', () => {
         expect(wrapper.find('[data-stub="expert-panel"]').exists()).toBe(false)
     })
 
+    // The Expert moves the phase with ui_set_onboarding_phase while the user may
+    // still be on this page, so leaving intake must not turn the page into a 404
+    test('goes to the team home when onboarding moves past intake while the user is on the page', async () => {
+        const wrapper = await mountPage()
+        expect(wrapper.find('[data-stub="expert-panel"]').exists()).toBe(true)
+
+        mocks.uxStore.isOnboardingIntake = false
+        await flushPromises()
+
+        expect(routerReplace).toHaveBeenCalledTimes(1)
+        expect(routerReplace).toHaveBeenCalledWith({ name: 'team-home', params: { team_slug: 'ateam' } })
+    })
+
     // The Expert provisions the workspace partway through the conversation, so
     // an instance appearing must not throw the user off the page they are on
     test('stays available once the workspace has been provisioned', async () => {
