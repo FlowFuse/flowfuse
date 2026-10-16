@@ -1002,7 +1002,7 @@ module.exports = async function (app) {
                 }
                 if (team.TeamType?.properties?.extraCatalogues) {
                     for (const cat of team.TeamType.properties.extraCatalogues) {
-                        if (settings.settings.palette.catalogue.indexOf(cat) == -1) {
+                        if (settings.settings.palette.catalogue.indexOf(cat) === -1) {
                             settings.settings.palette.catalogue.push(cat)
                         }
                     }

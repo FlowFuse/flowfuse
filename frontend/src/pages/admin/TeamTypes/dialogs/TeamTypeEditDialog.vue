@@ -453,7 +453,6 @@ export default {
         formValid () {
             const extraCataloguesArray = this.input.properties.extraCatalogues.split('\n')
             for (const cat of extraCataloguesArray) {
-                console.log(cat)
                 const u = URL.parse(cat)
                 if (!u) {
                     this.errors.extraCataloguesArray = `Invalid URL ${cat}`
@@ -566,7 +565,7 @@ export default {
                 opts.properties.extraCatalogues = []
                 const extraCataloguesArray = this.input.properties.extraCatalogues.split('\n')
                 for (const cat of extraCataloguesArray) {
-                    URL.parse(cat)
+                    const u = URL.parse(cat)
                     if (u) {
                         opts.properties.extraCatalogues.push(cat)
                     }

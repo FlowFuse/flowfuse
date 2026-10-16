@@ -411,7 +411,7 @@ module.exports = async function (app) {
                 }
                 if (team.TeamType?.properties?.extraCatalogues) {
                     for (const cat of team.TeamType.properties.extraCatalogues) {
-                        if (response.palette.catalogues.indexOf(cat) == -1) {
+                        if (response.palette.catalogues.indexOf(cat) === -1) {
                             response.palette.catalogues.push(cat)
                         }
                     }
