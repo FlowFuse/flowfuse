@@ -364,7 +364,7 @@ module.exports = [
         name: 'platform_update_hosted_instance_env',
         title: 'Update Hosted Instance Environment Variables',
         description: `FlowFuse platform automation tool:
-            Replaces the full set of environment variables on a hosted instance. Variables missing from the list are removed, so read the current set first (platform_get_hosted_instance_config) and resend everything that should stay.
+            Replaces the full set of environment variables on a hosted instance. Variables missing from the list are removed, so read the current set first from settings.env in platform_get_hosted_instance and resend everything that should stay. Hidden values come back blank there, and the FF_ entries marked platform are set by the platform and ignored when sent back.
             To keep an existing hidden (secret) variable's stored value without knowing it, resend it with hidden true and an empty value. A hidden entry with an empty value that does not already exist on the instance is dropped.
             Settings the instance's template locks are silently dropped rather than rejected, so a locked value can come back unchanged with no error. "settings_validation" is raised for malformed input instead, such as a bad or duplicated env var name.
             The new values take effect when the instance's flows next restart (use platform_instance_action with restart to apply them immediately).
