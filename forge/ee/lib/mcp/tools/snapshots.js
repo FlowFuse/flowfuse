@@ -352,16 +352,6 @@ module.exports = [
             snapshotId: snapshotId.describe('The hashid of the snapshot the remote instance should run. It must belong to the same application as the remote instance')
         },
         handler: async (args, { inject }) => {
-            const deviceResponse = await inject({ method: 'GET', url: `/api/v1/devices/${args.remoteInstanceId}` })
-            if (deviceResponse.statusCode >= 400) {
-                return deviceResponse
-            }
-            const device = deviceResponse.json()
-            // The route redeploys even when the target is unchanged, which in
-            // developer mode would throw away the editor changes for nothing.
-            if (device.targetSnapshot?.id === args.snapshotId) {
-                return deviceResponse
-            }
             const response = await inject({ method: 'PUT', url: `/api/v1/devices/${args.remoteInstanceId}`, payload: { targetSnapshot: args.snapshotId } })
             return response
         }
