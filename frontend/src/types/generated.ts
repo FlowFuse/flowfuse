@@ -8523,12 +8523,15 @@ export interface paths {
             };
             responses: {
                 /** @description Default Response */
-                200: {
+                201: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["DatabaseTable"];
+                        "application/json": {
+                            name: string;
+                            schema: string;
+                        };
                     };
                 };
                 /** @description Default Response */

@@ -226,10 +226,9 @@ module.exports = [
             if (response.statusCode >= 400) {
                 return response
             }
-            // The route replies to a successful create with an empty body
             return {
                 statusCode: response.statusCode,
-                json: () => ({ table: { name: args.name, schema: args.schema || 'public' } })
+                json: () => ({ table: response.json() })
             }
         }
     },

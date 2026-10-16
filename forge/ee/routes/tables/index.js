@@ -295,8 +295,14 @@ module.exports = async function (app) {
                 }
             },
             response: {
-                200: {
-                    $ref: 'DatabaseTable'
+                201: {
+                    type: 'object',
+                    properties: {
+                        name: { type: 'string' },
+                        schema: { type: 'string' }
+                    },
+                    required: ['name', 'schema'],
+                    additionalProperties: false
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -312,8 +318,8 @@ module.exports = async function (app) {
             return reply.status(409).send({ code: 'table_exists', error: 'Table already exists' })
         }
         try {
-            const t = await app.tables.createTable(request.team, request.params.databaseId, request.body.name, request.body.columns, request.body.schema)
-            reply.status(201).send(t)
+            await app.tables.createTable(request.team, request.params.databaseId, request.body.name, request.body.columns, request.body.schema)
+            reply.status(201).send({ name: request.body.name, schema: request.body.schema })
             await app.auditLog.Team.tables.table.created(request.session?.User || 'system', null, request.team, request.database, request.body.name)
         } catch (err) {
             if (err.message.includes('Unsupported column type')) {
