@@ -470,6 +470,16 @@ describe('Tables: Postgres LocalFS Driver', function () {
             ])
             query.args[1][0].should.equal('CREATE TABLE IF NOT EXISTS "public"."table1" (\n"r" real NOT NULL DEFAULT 1.5,\n"d" double precision NOT NULL DEFAULT 2.25,\n"b" boolean NOT NULL DEFAULT true\n)')
         })
+        it('should apply the defaults of date columns', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            await driver.init(app, options)
+            const query = setup(team)
+            await driver.createTable(team, team.hashid, 'table1', [
+                { name: 'd', type: 'date', default: '2026-01-01' },
+                { name: 't', type: 'date', default: 'CURRENT_DATE' }
+            ])
+            query.args[1][0].should.equal('CREATE TABLE IF NOT EXISTS "public"."table1" (\n"d" date NOT NULL DEFAULT \'2026-01-01\',\n"t" date NOT NULL DEFAULT CURRENT_DATE\n)')
+        })
     })
 
     describe('dropTable', function () {
