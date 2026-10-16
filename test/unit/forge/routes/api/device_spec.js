@@ -1764,7 +1764,6 @@ describe('Device API', async function () {
                         'https://example.com/cat-from-team-type.json'
                     ])
                     const device = await createDevice({ name: 'CertifiedNodes', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-                    const newToken = Buffer.from(`platform/${TestObjects.ATeam.hashid}:verySecret`).toString('base64')
                     const liveSettings = await getLiveSettings(device)
                     liveSettings.palette.should.have.property('catalogues')
                     liveSettings.palette.catalogues.should.containEql('https://example.com/cat-from-team-type.json')
