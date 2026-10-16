@@ -529,7 +529,11 @@ module.exports = async function (app) {
                 await agent.save()
                 await app.containers.stopBrokerAgent(agent)
                 setTimeout(async () => {
-                    await agent.destroy()
+                    try {
+                        await agent.destroy()
+                    } catch (err) {
+                        app.log.warn(`Failed to remove the suspended Team Broker agent: ${err.toString()}`)
+                    }
                 }, 1500)
                 reply.status(200).send({})
             } else {
