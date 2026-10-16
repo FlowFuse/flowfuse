@@ -6,7 +6,7 @@
                 <component :is="messageTypes[entry.message._type]" v-else-if="messageTypes[entry.message._type]" v-bind="{...entry.message}" />
             </li>
             <li v-if="isWaitingForResponse">
-                <expert-loading-indicator />
+                <expert-loading-indicator :show-messages="!hasStreamedActivity" />
             </li>
         </ul>
     </div>
@@ -48,7 +48,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useProductExpertStore, ['messages', 'isWaitingForResponse']),
+        ...mapState(useProductExpertStore, ['messages', 'isWaitingForResponse', 'hasStreamedActivity']),
         messageTypes () {
             return {
                 ai: markRaw(AiMessage),

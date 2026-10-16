@@ -145,7 +145,7 @@ export default {
     border: 1px solid var(--ff-color-border);
     border-radius: 6px;
     background: var(--ff-color-bg-surface);
-    // Match the "N tool calls" strip (ToolCalls.vue) so the card lines up with it.
+    // Line up with the tool-call cards.
     max-width: 90%;
 }
 
