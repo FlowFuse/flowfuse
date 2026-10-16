@@ -349,7 +349,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             remoteInstanceId,
-            snapshotId: snapshotId.describe('The hashid of the snapshot the remote instance should run. It must belong to the same team as the remote instance')
+            snapshotId: snapshotId.describe('The hashid of the snapshot the remote instance should run. It must belong to the same application as the remote instance')
         },
         handler: async (args, { inject }) => {
             const deviceResponse = await inject({ method: 'GET', url: `/api/v1/devices/${args.remoteInstanceId}` })
