@@ -352,6 +352,24 @@ describe('product-expert store', () => {
         })
     })
 
+    describe('handleMessageResponse', () => {
+        it('keeps an answer\'s tool records, with or without a reason, in the new bubble', async () => {
+            const store = useProductExpertStore()
+            const agent = useProductExpertSupportAgentStore()
+
+            await store.handleMessageResponse({
+                answer: [
+                    { kind: 'mcp_tool', id: 't1', toolTitle: 'Get flows' },
+                    { kind: 'mcp_tool', id: 't2', reason: 'Why', toolTitle: 'List' },
+                    { kind: 'chat', content: 'Done' }
+                ]
+            })
+
+            expect(agent.messages).toHaveLength(1)
+            expect(agent.messages[0].answer.map(a => a.kind)).toEqual(['mcp_tool', 'mcp_tool', 'chat'])
+        })
+    })
+
     describe('addPredefinedAiMessage', () => {
         it('pushes an ai message with a single-item answer array', () => {
             const store = useProductExpertStore()
@@ -682,6 +700,166 @@ describe('product-expert store', () => {
             expect(dispatch).toHaveBeenCalledWith('open-node', { id: 'n1' })
             expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
             expect(JSON.parse(mqttService.publishMessage.mock.calls[0][1].payload)).toEqual({ ok: true })
+        })
+
+        describe('streamed activity', () => {
+            const statusTopic = 'ff/v1/expert/u1/chat-1/team/t1/support/inflight/expert:status-message/request'
+            const send = (payload, srf = 'srf-1', turn = 'turn-1') => store._onMqttMessage(statusTopic, JSON.stringify(payload), packet(srf, turn))
+            const bubble = () => agent.messages.find(m => m._transactionId === 'turn-1')
+
+            beforeEach(() => {
+                agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+            })
+
+            it('inserts a known kind by seq without acking or touching the loading line', async () => {
+                await send({ kind: 'message', id: 'm2', seq: 2, text: 'second' }, 'srf-1')
+                await send({ kind: 'tool-record', recordKind: 'mcp_tool', id: 't1', seq: 1, reason: 'why', ok: true }, 'srf-2')
+
+                expect(bubble().answer.map(a => a.id)).toEqual(['t1', 'm2'])
+                expect(mqttService.publishMessage).not.toHaveBeenCalled()
+                expect(store.inFlightUpdates).toHaveLength(0)
+            })
+
+            it('reports streamed activity only while the turn is live', async () => {
+                expect(store.hasStreamedActivity).toBe(false)
+
+                await send({ kind: 'message', id: 'm1', seq: 1, text: 'hi' })
+                expect(store.hasStreamedActivity).toBe(true)
+
+                agent.inFlightRequests.delete('turn-1')
+                expect(store.hasStreamedActivity).toBe(false)
+            })
+
+            it('does not count a final-answer item whose typewriter finished as streamed activity', async () => {
+                await store._onMqttMessage(replyTopic, JSON.stringify({ answer: [{ kind: 'chat', content: 'Done' }] }), packet('turn-1', 'turn-1'))
+                agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+                const message = agent.messages[0]
+                store.updateAnswerStreamedState({ messageUuid: message._uuid, answerUuid: message.answer[0]._uuid })
+
+                expect(store.hasStreamedActivity).toBe(false)
+            })
+
+            it('keeps reporting streamed activity while a stopped turn is ending', async () => {
+                await send({ kind: 'message', id: 'm1', seq: 1, text: 'hi' })
+                agent.stoppingTransactions.set('turn-1', null)
+                agent.inFlightRequests.delete('turn-1')
+
+                expect(store.hasStreamedActivity).toBe(true)
+            })
+
+            it('finishes open items when the final answer lands', async () => {
+                await send({ kind: 'reasoning', id: 'r1', seq: 1, text: 'Looking', done: false }, 'srf-1')
+
+                await store._onMqttMessage(replyTopic, JSON.stringify({ answer: [{ kind: 'chat', content: 'Done' }] }), packet('turn-1', 'turn-1'))
+
+                expect(bubble().answer[0]).toMatchObject({ id: 'r1', done: true })
+            })
+
+            it('finishes open items when the turn is stopped', async () => {
+                await send({ kind: 'reasoning', id: 'r1', seq: 1, text: 'I', done: false }, 'srf-1')
+                await send({ kind: 'reasoning', id: 'r0', seq: 0, text: 'Earlier', done: true }, 'srf-2')
+
+                store.stopInflightChat()
+
+                expect(bubble().answer.map(a => a.done)).toEqual([true, true])
+            })
+
+            it('starts a new bubble for activity that follows a message pushed mid-turn', async () => {
+                await send({ kind: 'tool-record', recordKind: 'mcp_tool', id: 't1', seq: 1, reason: 'why', ok: true }, 'srf-1')
+                store.addSystemMessage({ message: 'Instance ready' })
+                await send({ kind: 'message', id: 'm1', seq: 2, text: 'next' }, 'srf-2')
+                await send({ kind: 'tool-record', recordKind: 'mcp_tool', id: 't1', seq: 3, reason: 'why', ok: false }, 'srf-3')
+
+                expect(agent.messages.map(m => m._type)).toEqual(['ai', 'system', 'ai'])
+                expect(agent.messages[0].answer.map(a => [a.id, a.ok])).toEqual([['t1', false]])
+                expect(agent.messages[2].answer.map(a => a.id)).toEqual(['m1'])
+
+                const answer = [
+                    { kind: 'mcp_tool', id: 't1', seq: 1, toolName: 'list_flows' },
+                    { kind: 'chat', content: 'Done' }
+                ]
+                await store._onMqttMessage(replyTopic, JSON.stringify({ answer }), packet('turn-1', 'turn-1'))
+
+                expect(agent.messages).toHaveLength(3)
+                expect(agent.messages[0].answer[0]).toMatchObject({ id: 't1', toolName: 'list_flows' })
+                expect(agent.messages[2].answer.map(a => a.id || a.kind)).toEqual(['m1', 'chat'])
+            })
+
+            it('ignores a late update that is older than the one shown or would reopen a finished block', async () => {
+                await send({ kind: 'reasoning', id: 'r1', seq: 5, text: 'Looking at the flow', done: false }, 'srf-1')
+                await send({ kind: 'reasoning', id: 'r1', seq: 3, text: 'Look', done: false }, 'srf-2')
+                expect(bubble().answer[0]).toMatchObject({ text: 'Looking at the flow', done: false })
+
+                await send({ kind: 'reasoning', id: 'r1', seq: 7, text: 'Looking at the flow wiring', done: true }, 'srf-3')
+                await send({ kind: 'reasoning', id: 'r1', seq: 9, text: 'Looking', done: false }, 'srf-4')
+                expect(bubble().answer[0]).toMatchObject({ text: 'Looking at the flow wiring', done: true })
+            })
+
+            it('replaces an item with the same id in place', async () => {
+                await send({ kind: 'reasoning', id: 'r1', seq: 1, text: 'Looking', done: false }, 'srf-1')
+                await send({ kind: 'message', id: 'm1', seq: 2, text: 'hi' }, 'srf-2')
+                await send({ kind: 'reasoning', id: 'r1', seq: 1, text: 'Looking at the flow', done: true }, 'srf-3')
+
+                expect(bubble().answer).toHaveLength(2)
+                expect(bubble().answer[0]).toMatchObject({ id: 'r1', text: 'Looking at the flow', done: true })
+            })
+
+            it('keeps an updated item at its first seq so later inserts stay in order', async () => {
+                await send({ kind: 'reasoning', id: 'r1', seq: 1, text: 'Looking', done: false }, 'srf-1')
+                await send({ kind: 'reasoning', id: 'r1', seq: 5, text: 'Looking at the flow', done: true }, 'srf-2')
+                await send({ kind: 'message', id: 'm1', seq: 3, text: 'hi' }, 'srf-3')
+
+                expect(bubble().answer.map(a => a.id)).toEqual(['r1', 'm1'])
+                expect(bubble().answer[0]).toMatchObject({ seq: 1, text: 'Looking at the flow' })
+            })
+
+            it('keeps fields an update leaves out', async () => {
+                await send({ kind: 'tool-record', recordKind: 'mcp_tool', id: 't1', seq: 1, reason: 'why' }, 'srf-1')
+                await send({ kind: 'tool-record', recordKind: 'mcp_tool', id: 't1', seq: 2, ok: true, output: { n: 1 } }, 'srf-2')
+
+                expect(bubble().answer[0]).toMatchObject({ reason: 'why', ok: true, output: { n: 1 } })
+            })
+
+            it('keeps handling a payload without a kind as a status line', async () => {
+                await send({ status: 'Checking the flow' })
+
+                expect(bubble()).toBeUndefined()
+                expect(store.inFlightUpdates).toEqual(['Checking the flow'])
+                expect(JSON.parse(mqttService.publishMessage.mock.calls[0][1].payload)).toEqual({ ack: true })
+            })
+
+            it('ignores an unknown kind entirely', async () => {
+                await send({ kind: 'hologram', id: 'h1', seq: 1, status: 'new thing' })
+
+                expect(agent.messages).toHaveLength(0)
+                expect(store.inFlightUpdates).toHaveLength(0)
+                expect(mqttService.publishMessage).not.toHaveBeenCalled()
+            })
+
+            it('drops an event that arrives after the turn has finished', async () => {
+                await store._onMqttMessage(replyTopic, JSON.stringify({}), packet('turn-1', 'turn-1'))
+
+                await send({ kind: 'message', id: 'm1', seq: 1, text: 'late' })
+
+                expect(agent.messages).toHaveLength(0)
+                expect(mqttService.publishMessage).not.toHaveBeenCalled()
+            })
+
+            it('merges final-answer tool records into streamed cards by id', async () => {
+                await send({ kind: 'tool-record', recordKind: 'mcp_tool', id: 't1', seq: 1, reason: 'why', ok: true }, 'srf-1')
+                const answer = [
+                    { kind: 'mcp_tool', id: 't1', seq: 1, reason: 'why', toolName: 'list_flows' },
+                    { kind: 'mcp_tool', toolName: 'legacy' },
+                    { kind: 'chat', content: 'Done' }
+                ]
+
+                await store._onMqttMessage(replyTopic, JSON.stringify({ answer }), packet('turn-1', 'turn-1'))
+
+                expect(agent.messages).toHaveLength(1)
+                expect(bubble().answer.map(a => a.id || a.toolName || a.kind)).toEqual(['t1', 'legacy', 'chat'])
+                expect(bubble().answer[0]).toMatchObject({ kind: 'mcp_tool', toolName: 'list_flows', ok: true })
+                expect(bubble().answer[0].recordKind).toBeUndefined()
+            })
         })
 
         it('answers an editor action that fails with its error and keeps the chat going', async () => {

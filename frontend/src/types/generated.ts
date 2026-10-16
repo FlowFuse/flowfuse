@@ -8517,25 +8517,26 @@ export interface paths {
                         /** @default public */
                         schema?: string;
                         /** @default [] */
-                        columns?: ({
+                        columns?: {
                             name: string;
                             type: string;
                             nullable?: boolean;
                             default?: string | null;
-                        } & {
-                            [key: string]: unknown;
-                        })[];
+                        }[];
                     };
                 };
             };
             responses: {
                 /** @description Default Response */
-                200: {
+                201: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["DatabaseTable"];
+                        "application/json": {
+                            name: string;
+                            schema: string;
+                        };
                     };
                 };
                 /** @description Default Response */

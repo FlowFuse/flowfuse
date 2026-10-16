@@ -4,6 +4,7 @@ import { markRaw } from 'vue'
 
 import expertApi from '../api/expert.js'
 import userApi from '../api/user.js'
+import { STREAMED_KINDS, isToolRecord } from '../composables/Components/expert/streamedActivity.js'
 import useTimerHelper from '../composables/TimerHelper.js'
 
 import { useAccountAuthStore } from './account-auth.js'
@@ -100,6 +101,17 @@ export const useProductExpertStore = defineStore('product-expert', {
         hasMessages () { return this._agentStore.messages.length > 0 },
         isSessionExpired () { return this._agentStore.sessionExpiredShown },
         isWaitingForResponse () { return !!this._agentStore.abortController || this._inFlightRequests.size > 0 || this.isStoppingTurn },
+        // Once a live or stopping turn's reply bubble shows streamed activity, the loading
+        // indicator drops its status lines and keeps only the dots. Agents that do not stream
+        // keep both.
+        hasStreamedActivity () {
+            const stopping = this.isSupportAgent ? useProductExpertSupportAgentStore().stoppingTransactions : new Map()
+            return this._agentStore.messages.some(m =>
+                m._type === 'ai' &&
+                (this._inFlightRequests.has(m._transactionId) || stopping.has(m._transactionId)) &&
+                m.answer?.some(item => item._live)
+            )
+        },
         // A stopped turn runs on until the agent's next abort check. Until the agent says it
         // has ended, the session's next message would start a second turn alongside it.
         isStoppingTurn () {
@@ -555,6 +567,16 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
             }
 
+            // Streamed activity rides expert:status-message with a `kind`. It renders on the
+            // turn's reply, so it is neither acked nor shown on the loading line, and a kind
+            // this client does not know is ignored whole.
+            if (parsedTopic.inflightType === 'expert:status-message' && payload?.kind != null) {
+                if (STREAMED_KINDS.includes(payload.kind) && this._inFlightRequests.has(chatTransactionId)) {
+                    this._appendStreamedActivity(chatTransactionId, payload)
+                }
+                return
+            }
+
             // expert:tasks has its own panel; its status rides expert:status-message.
             // Every other inflight type feeds the loading line, but only while the turn is
             // still live: a status trailing the final reply must not repaint the next turn.
@@ -661,7 +683,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // do nothing
             }
         },
-        async handleMessageResponse (response) {
+        async handleMessageResponse (response, transactionId) {
             // ignore aborted messages through mqtt
             if (Object.prototype.hasOwnProperty.call(response, 'aborted') && response.aborted === true) return
 
@@ -675,7 +697,11 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
 
             if (response.answer && Array.isArray(response.answer)) {
-                this.addAiMessage(response)
+                if (transactionId && this._turnBubbles(transactionId).length > 0) {
+                    this._mergeFinalAnswer(transactionId, response)
+                } else {
+                    this.addAiMessage(response)
+                }
                 this._clearInFlightUpdates()
                 // A deferred-approval turn (#421) ends with one card per tool that needs
                 // approval. Track the batch so we can send every decision back at once.
@@ -1017,6 +1043,118 @@ export const useProductExpertStore = defineStore('product-expert', {
                 _uuid: uuidv4()
             })
         },
+        // Place one streamed item in the turn's reply bubble, creating the bubble on the
+        // first item. An id already in the bubble is replaced in place; otherwise the item
+        // goes in seq order, so events arriving out of order still render in order.
+        _appendStreamedActivity (transactionId, event) {
+            if (!transactionId || !event) return
+
+            // A streamed tool record moves its own kind to recordKind, so the card sees the
+            // same shape as the record in the final answer.
+            let item = event
+            if (event.kind === 'tool-record') {
+                const { recordKind, ...record } = event
+                item = { ...record, kind: recordKind || 'mcp_tool' }
+            }
+
+            const found = item.id ? this._findTurnItem(transactionId, a => a.id === item.id) : null
+            if (found) {
+                const { bubble, index } = found
+                const existing = bubble.answer[index]
+                // An update that arrives late must not roll a newer one back, nor reopen a
+                // finished block. The item keeps its first seq so the bubble stays sorted;
+                // _latestSeq tracks the newest update.
+                const latestSeq = existing._latestSeq ?? existing.seq
+                const isOlder = typeof latestSeq === 'number' && typeof item.seq === 'number' && item.seq < latestSeq
+                if (isOlder || (existing.done === true && item.done !== true)) return
+                bubble.answer.splice(index, 1, {
+                    ...existing,
+                    ...item,
+                    seq: existing.seq ?? item.seq,
+                    _latestSeq: item.seq ?? latestSeq,
+                    _uuid: existing._uuid,
+                    _streamed: true,
+                    _live: true
+                })
+                return
+            }
+            this._insertBySeq(this._openTurnBubble(transactionId), { ...item, _uuid: uuidv4(), _streamed: true, _live: true })
+        },
+        _turnBubbles (transactionId) {
+            return this._agentStore.messages.filter(m => m._type === 'ai' && m._transactionId === transactionId)
+        },
+        _findTurnItem (transactionId, predicate) {
+            for (const bubble of this._turnBubbles(transactionId)) {
+                const index = bubble.answer.findIndex(predicate)
+                if (index !== -1) return { bubble, index }
+            }
+            return null
+        },
+        // New items go to the turn's last bubble while it is the last message. Once another
+        // message has landed below it, they start a new bubble so the chat keeps the order
+        // things happened in.
+        _openTurnBubble (transactionId) {
+            const messages = this._agentStore.messages
+            const last = messages[messages.length - 1]
+            if (last?._type === 'ai' && last._transactionId === transactionId) return last
+            const bubble = {
+                answer: [],
+                _type: 'ai',
+                _timestamp: Date.now(),
+                _streamed: false,
+                _uuid: uuidv4(),
+                _transactionId: transactionId
+            }
+            messages.push(bubble)
+            return messages[messages.length - 1]
+        },
+        _insertBySeq (bubble, entry) {
+            if (typeof entry.seq !== 'number') {
+                bubble.answer.push(entry)
+                return
+            }
+            const insertBefore = bubble.answer.findIndex(a => typeof a.seq === 'number' && a.seq > entry.seq)
+            if (insertBefore === -1) {
+                bubble.answer.push(entry)
+            } else {
+                bubble.answer.splice(insertBefore, 0, entry)
+            }
+        },
+        // The final reply lands in the bubbles its streamed items built. Tool records it
+        // carries upgrade the streamed card with the same id; the rest is appended.
+        _mergeFinalAnswer (transactionId, response) {
+            const rest = []
+            for (const item of response.answer) {
+                const found = item.id && isToolRecord(item)
+                    ? this._findTurnItem(transactionId, a => a.id === item.id && isToolRecord(a))
+                    : null
+                if (found) {
+                    const { bubble, index } = found
+                    const existing = bubble.answer[index]
+                    bubble.answer.splice(index, 1, { ...existing, ...item, seq: existing.seq ?? item.seq, _uuid: existing._uuid })
+                } else {
+                    rest.push(item)
+                }
+            }
+            const bubbles = this._turnBubbles(transactionId)
+            const target = rest.length > 0 ? this._openTurnBubble(transactionId) : bubbles[bubbles.length - 1]
+            for (const item of rest) {
+                this._insertBySeq(target, { ...item, _uuid: uuidv4(), _streamed: false })
+            }
+            const { answer: _answer, ...fields } = response
+            Object.assign(target, fields)
+            this._closeTurnItems(transactionId)
+        },
+        // A finished or stopped turn leaves no item still running.
+        _closeTurnItems (transactionId) {
+            for (const bubble of this._turnBubbles(transactionId)) {
+                bubble.answer.forEach((item, index) => {
+                    if (item.done === false) {
+                        bubble.answer.splice(index, 1, { ...item, done: true })
+                    }
+                })
+            }
+        },
         addUserMessage (message) {
             this._agentStore.messages.push({
                 _type: 'human',
@@ -1111,7 +1249,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                     this._recentlyCompleted.delete(this._recentlyCompleted.keys().next().value)
                 }
                 try {
-                    await this.handleMessageResponse(JSON.parse(message.toString()))
+                    await this.handleMessageResponse(JSON.parse(message.toString()), transactionId)
                 } finally {
                     this._drainSendQueue()
                 }
@@ -1681,6 +1819,9 @@ export const useProductExpertStore = defineStore('product-expert', {
                     })
                     this._awaitTurnStopped(inFlightRequest.transactionId)
                 }
+            }
+            for (const transactionId of this._inFlightRequests.keys()) {
+                this._closeTurnItems(transactionId)
             }
             this._inFlightRequests.clear()
             this._clearInFlightUpdates()

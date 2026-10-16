@@ -10,7 +10,7 @@ const {
     countSchema,
     recordSchema
 } = require('../tool-schemas/tables')
-const { redactDatabaseCredentials, emptySuccessAsOkay } = require('../utils')
+const { redactDatabaseCredentials } = require('../utils')
 
 module.exports = [
     {
@@ -202,7 +202,7 @@ module.exports = [
                 name: z.string().min(1).describe('Column name'),
                 type: z.enum(['bigint', 'bigserial', 'boolean', 'date', 'timestamptz', 'real', 'double precision', 'text']).describe('Column data type'),
                 nullable: z.boolean().optional().describe('Whether the column allows NULL. Defaults to NOT NULL when omitted'),
-                default: z.string().nullable().optional().describe('Default value, or null for none')
+                default: z.string().nullable().optional().describe('Default value, or null for none. For a date column, a date such as 2026-01-01, or CURRENT_DATE to default to the day each row is inserted')
             })).min(1).describe('Column definitions for the new table')
         },
         outputSchema: {
@@ -224,10 +224,9 @@ module.exports = [
             if (response.statusCode >= 400) {
                 return response
             }
-            // The route replies to a successful create with an empty body
             return {
                 statusCode: response.statusCode,
-                json: () => ({ table: { name: args.name, schema: args.schema || 'public' } })
+                json: () => ({ table: response.json() })
             }
         }
     },
@@ -252,8 +251,7 @@ module.exports = [
                 return toolError(400, 'invalid_request', 'tableName and schemaName must not be empty, "." or ".."')
             }
             const url = `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables/${encodeURIComponent(args.tableName)}/${encodeURIComponent(args.schemaName)}`
-            const response = await inject({ method: 'DELETE', url })
-            return emptySuccessAsOkay(response)
+            return inject({ method: 'DELETE', url })
         }
     },
     {

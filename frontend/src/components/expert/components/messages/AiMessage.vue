@@ -1,6 +1,10 @@
 <template>
     <div class="flex flex-col gap-3">
-        <tool-calls v-if="toolCalls" :message="toolCalls" />
+        <template v-for="item in activity" :key="item._uuid">
+            <reasoning-block v-if="item.kind === 'reasoning'" :item="item" :message-uuid="_uuid" />
+            <agent-message v-else-if="item.kind === 'message'" :item="item" :message-uuid="_uuid" />
+            <timeline-item v-else :item="item" />
+        </template>
         <answer-wrapper
             v-for="(fAnswer, key) in visibleItems"
             :key="slugify(`${fAnswer.kind}-${fAnswer.title}-${fAnswer.summary}-${fAnswer._uuid}`)"
@@ -13,16 +17,18 @@
 </template>
 
 <script>
+import AgentMessage from './components/AgentMessage.vue'
 import AnswerWrapper from './components/AnswerWrapper.vue'
+import ReasoningBlock from './components/ReasoningBlock.vue'
+import TimelineItem from './components/TimelineItem.vue'
 
-import ToolCalls from './components/ToolCalls.vue'
-
+import { ACTIVITY_KINDS } from '@/composables/Components/expert/streamedActivity.js'
 import useStreamingList from '@/composables/StreamingListHelper.js'
 import { slugify } from '@/composables/strings/String.js'
 
 export default {
     name: 'AiMessage',
-    components: { ToolCalls, AnswerWrapper },
+    components: { AgentMessage, AnswerWrapper, ReasoningBlock, TimelineItem },
     props: {
         query: {
             type: String,
@@ -58,6 +64,12 @@ export default {
             required: true,
             type: Boolean
         },
+        // eslint-disable-next-line vue/prop-name-casing
+        _transactionId: {
+            required: false,
+            type: String,
+            default: null
+        },
         instant: {
             type: Boolean,
             default: false
@@ -69,45 +81,23 @@ export default {
         return { initStreamer, setSubItemStreamedState, visibleItems, items }
     },
     computed: {
-        toolCalls () {
-            // todo we need to reconsider how we serve data to the tool calls component. This is ok for now as it
-            //  only impacts the immediate child component (was hacked out of the expert store)
-            const mcpItems = this.answer.filter(answer => ['mcp_tool', 'mcp_resource', 'mcp_resource_template', 'mcp_prompt'].includes(answer.kind))
-
-            // Handle MCP calls if present - includes tools, resources, and prompts
-            if (mcpItems.length > 0) {
-                const toolCalls = mcpItems.map(item => ({
-                    id: item.toolId,
-                    name: item.toolName,
-                    title: item.toolTitle || item.toolName,
-                    kind: item.kind,
-                    args: item.input,
-                    output: item.output,
-                    durationMs: item.durationMs
-                }))
-
-                // Calculate total duration in seconds
-                const totalDurationMs = mcpItems.reduce((sum, item) => sum + (item.durationMs || 0), 0)
-                const totalDurationSec = (totalDurationMs / 1000).toFixed(2)
-
-                return {
-                    type: 'ai',
-                    kind: 'tool_calls',
-                    toolCalls,
-                    duration: totalDurationSec,
-                    content: `${toolCalls.length} tool call(s)`,
-                    timestamp: Date.now()
-                }
-            }
-
-            return null
+        activity () {
+            return this.answer.filter(answer => ACTIVITY_KINDS.includes(answer.kind))
         },
-        filteredAnswers () {
-            return this.answer.filter(answer => !['mcp_tool', 'mcp_resource', 'mcp_resource_template', 'mcp_prompt'].includes(answer.kind))
+        terminalAnswers () {
+            return this.answer.filter(answer => !ACTIVITY_KINDS.includes(answer.kind))
+        }
+    },
+    watch: {
+        // A streamed bubble mounts holding only activity; the final reply merges in later.
+        terminalAnswers (answers) {
+            if (answers.length > this.visibleItems.length) {
+                this.initStreamer(answers, { shouldStream: !this.instant && !this._streamed })
+            }
         }
     },
     async mounted () {
-        await this.initStreamer(this.filteredAnswers, { shouldStream: !this.instant && !this._streamed })
+        await this.initStreamer(this.terminalAnswers, { shouldStream: !this.instant && !this._streamed })
     },
     methods: { slugify }
 }

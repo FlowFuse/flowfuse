@@ -2,6 +2,7 @@ const should = require('should') // eslint-disable-line no-unused-vars
 const sinon = require('sinon')
 const { z } = require('zod')
 
+const { formatResponse } = require('../../../../../../../forge/ee/lib/mcp/toolLoader')
 const tools = require('../../../../../../../forge/ee/lib/mcp/tools/tables')
 
 function getTool (name) {
@@ -197,7 +198,7 @@ describe('MCP Tables Tools', function () {
 
         it('posts the name and columns to the tables endpoint and returns the table in the public schema', async function () {
             const columns = [{ name: 'id', type: 'bigint' }, { name: 'label', type: 'text', nullable: true }]
-            inject.resolves({ statusCode: 201, json: () => JSON.parse('') })
+            inject.resolves({ statusCode: 201, json: () => ({ name: 'orders', schema: 'public' }) })
             const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', name: 'orders', columns }, { inject })
             inject.calledOnce.should.be.true()
             inject.firstCall.args[0].should.eql({
@@ -211,10 +212,16 @@ describe('MCP Tables Tools', function () {
 
         it('passes the schema through when one is given and returns it', async function () {
             const columns = [{ name: 'id', type: 'bigint' }]
-            inject.resolves({ statusCode: 201, json: () => JSON.parse('') })
+            inject.resolves({ statusCode: 201, json: () => ({ name: 'orders', schema: 'reports' }) })
             const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', name: 'orders', schema: 'reports', columns }, { inject })
             inject.firstCall.args[0].payload.should.eql({ name: 'orders', columns, schema: 'reports' })
             response.json().should.eql({ table: { name: 'orders', schema: 'reports' } })
+        })
+
+        it('returns the table the route reports', async function () {
+            inject.resolves({ statusCode: 201, json: () => ({ name: 'orders', schema: 'reported' }) })
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', name: 'orders', columns: [{ name: 'id', type: 'bigint' }] }, { inject })
+            response.json().should.eql({ table: { name: 'orders', schema: 'reported' } })
         })
 
         it('accepts valid schema names and rejects ones Postgres cannot create', function () {
@@ -251,12 +258,11 @@ describe('MCP Tables Tools', function () {
         })
 
         it('deletes the table in the given schema and reports okay for the empty reply', async function () {
-            inject.resolves({ statusCode: 204, body: '' })
+            inject.resolves({ statusCode: 204, body: '', json: () => JSON.parse('') })
             const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', tableName: 'orders', schemaName: 'reports' }, { inject })
             inject.calledOnce.should.be.true()
             inject.firstCall.args[0].should.eql({ method: 'DELETE', url: '/api/v1/teams/team1/databases/db1/tables/orders/reports' })
-            response.statusCode.should.equal(204)
-            response.json().should.eql({ status: 'okay' })
+            formatResponse(response).should.eql({ status: 'okay' })
         })
 
         it('encodes table and schema names that contain reserved characters', async function () {

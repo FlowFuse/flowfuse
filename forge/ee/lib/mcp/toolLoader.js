@@ -30,6 +30,11 @@ function formatResponse (response) {
         return response
     }
 
+    // Some routes answer success with an empty body, which response.json() cannot parse
+    if (response.statusCode < 400 && !response.body) {
+        return { status: 'okay' }
+    }
+
     const body = response.json()
     if (response.statusCode >= 400) {
         return {
