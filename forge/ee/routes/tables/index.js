@@ -283,8 +283,6 @@ module.exports = async function (app) {
                     },
                     columns: {
                         type: 'array',
-                        // Only the fields the drivers apply on create. Extra fields, such as the generated
-                        // and maxLength a table schema read returns, are accepted but ignored
                         items: {
                             type: 'object',
                             properties: {
