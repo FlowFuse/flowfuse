@@ -821,11 +821,23 @@ module.exports = async function (app) {
         for (const key of ['url', 'branch', 'pullBranch', 'pushPath', 'pullPath']) {
             const oldValue = before.PipelineStageGitRepo?.[key]
             const newValue = after.PipelineStageGitRepo?.[key]
-            if (oldValue !== newValue) {
-                updates.push(key, oldValue, newValue)
+            // A field that is missing (no git repo) and one left empty mean the same
+            if ((oldValue || '') !== (newValue || '')) {
+                if (key === 'url') {
+                    updates.push(key, withoutCredentials(oldValue), withoutCredentials(newValue))
+                } else {
+                    updates.push(key, oldValue, newValue)
+                }
             }
         }
         return updates
+    }
+
+    /**
+     * Drops any user:password@ part from a repository URL so it never lands in the audit log
+     */
+    function withoutCredentials (url) {
+        return url ? url.replace(/^([a-z][a-z0-9+.-]*:\/\/)[^/@]*@/i, '$1') : url
     }
 
     function stageTarget (stage) {
