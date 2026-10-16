@@ -112,6 +112,7 @@ interface Team {
     type?: {
         properties?: TeamTypeProperties
     }
+    aiOnboarding?: boolean
 }
 
 type FeatureChecks = Record<string, boolean>
@@ -132,13 +133,6 @@ export const FEATURE_CONFIGS: FeatureConfig[] = [
     { output: 'isAiFeatureEnabled', platformKey: 'ai', teamKey: 'ai', optOut: true },
     { output: 'isExpertAssistantFeatureEnabled', platformKey: 'expertAssistant', teamKey: 'expertAssistant', optOut: true, dependsOnPlatform: 'ai', dependsOnTeam: 'ai', dependsOnTeamOptOut: true },
     { output: 'isExpertInsightsFeatureEnabled', platformKey: 'expertInsights', teamKey: 'expertInsights', optOut: true, dependsOnPlatform: 'ai', dependsOnTeam: 'ai', dependsOnTeamOptOut: true },
-    {
-        output: 'isAiOnboardingFeatureEnabled',
-        platformKey: 'aiOnboarding',
-        dependsOn: 'isExpertAssistantFeatureEnabled',
-        dependsOnPlatform: 'externalBroker',
-        dependsOnTeam: 'teamBroker'
-    },
     {
         output: 'isGeneratedSnapshotDescriptionFeatureEnabled',
         platformKey: 'generatedSnapshotDescription',
@@ -255,6 +249,9 @@ export function buildFeatureChecks (state: PlatformState, team: Team | null | un
             checks[output] = !!posthogFlags[posthogKey]
         }
     }
+
+    // Decided by the server, which uses the same answer at signup to leave the team empty
+    checks.isAiOnboardingFeatureEnabled = !!team?.aiOnboarding
 
     return checks
 }

@@ -370,46 +370,97 @@ describe('Accounts API', async function () {
                 instance.safeName.should.match(/team-user-user3-(\w)+/)
             })
 
-            it('skips application and instance creation when AI onboarding is enabled', async function () {
-                app.config.features.register('aiOnboarding', true, true)
-                try {
+            describe('with AI onboarding enabled on the platform', function () {
+                let originalFeatures
+                let teamType
+
+                beforeEach(function () {
+                    originalFeatures = app.config.features.getAllFeatures()
+                    app.config.features.register('aiOnboarding', true, true)
+                    app.config.features.register('externalBroker', true, true)
                     app.settings.set('user:signup', true)
                     app.settings.set('user:team:auto-create', true)
                     app.settings.set('user:team:auto-create:instanceType', app.projectType.hashid)
+                })
+
+                afterEach(async function () {
+                    app.config.features.register('aiOnboarding', originalFeatures.aiOnboarding, true)
+                    app.config.features.register('externalBroker', originalFeatures.externalBroker, true)
+                    app.settings.set('user:team:auto-create:instanceType', null)
+                    app.settings.set('user:team:auto-create:teamType', null)
+                    if (teamType) {
+                        // inactive, else it becomes the new default and breaks other tests
+                        teamType.active = false
+                        await teamType.save()
+                        teamType = null
+                    }
+                })
+
+                // Signs a new user up into a team type with the given features (and only those,
+                // unless enableAllFeatures is set) and returns how many instances they ended up
+                // with once their email is verified
+                async function signUpWithFeatures (username, features, { enableAllFeatures = false } = {}) {
+                    const defaults = app.defaultTeamType.properties
+                    teamType = await app.db.models.TeamType.create({
+                        name: `type-${username}`,
+                        properties: { ...defaults, enableAllFeatures, features: { ...defaults.features, ...features } }
+                    })
+                    app.settings.set('user:team:auto-create:teamType', teamType.hashid)
 
                     const response = await registerUser({
-                        username: 'flaguser',
+                        username,
                         password: '12345678',
-                        name: 'Flag User',
-                        email: 'flaguser@example.com'
+                        name: username,
+                        email: `${username}@example.com`
                     })
                     response.statusCode.should.equal(200)
 
-                    const user = await app.db.models.User.findOne({ where: { username: 'flaguser' } })
+                    const user = await app.db.models.User.findOne({ where: { username } })
                     const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
                     const verifyResponse = await app.inject({
                         method: 'POST',
                         url: '/account/verify/token',
-                        payload: {
-                            token: verificationToken.token
-                        },
-                        cookies: { sid: TestObjects.tokens.flaguser }
+                        payload: { token: verificationToken.token },
+                        cookies: { sid: TestObjects.tokens[username] }
                     })
                     verifyResponse.statusCode.should.equal(200)
 
-                    // The team is still created
+                    // The team is always created
                     const teamMemberships = await app.db.models.Team.forUser(user)
                     teamMemberships.length.should.equal(1)
-
-                    // ...but with nothing in it
-                    const applications = await app.db.models.Application.byTeam(teamMemberships[0].Team.id)
-                    applications.length.should.equal(0)
-                    const instances = await app.db.models.Project.byUser(user)
-                    instances.length.should.equal(0)
-                } finally {
-                    app.config.features.register('aiOnboarding', false, true)
-                    app.settings.set('user:team:auto-create:instanceType', null)
+                    return (await app.db.models.Project.byUser(user)).length
                 }
+
+                it('skips the default workspace when the new team will be offered AI onboarding', async function () {
+                    const instances = await signUpWithFeatures('onboarded', { teamBroker: true })
+                    instances.should.equal(0)
+                })
+
+                it('skips the default workspace when the team type enables all features', async function () {
+                    const instances = await signUpWithFeatures('allfeatures', {}, { enableAllFeatures: true })
+                    instances.should.equal(0)
+                })
+
+                it('creates the default workspace when the team type has no team broker', async function () {
+                    const instances = await signUpWithFeatures('nobroker', { teamBroker: false })
+                    instances.should.equal(1)
+                })
+
+                it('creates the default workspace when the team type turns the Expert off', async function () {
+                    const instances = await signUpWithFeatures('noexpert', { teamBroker: true, expertAssistant: false })
+                    instances.should.equal(1)
+                })
+
+                it('creates the default workspace when the team type turns AI off', async function () {
+                    const instances = await signUpWithFeatures('noai', { teamBroker: true, ai: false })
+                    instances.should.equal(1)
+                })
+
+                it('creates the default workspace when the platform has no external broker', async function () {
+                    app.config.features.register('externalBroker', false, true)
+                    const instances = await signUpWithFeatures('noextbroker', { teamBroker: true })
+                    instances.should.equal(1)
+                })
             })
 
             it('auto-creates an application & instance if instanceType option is set and there is no application yet', async function () {

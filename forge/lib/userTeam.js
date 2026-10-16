@@ -64,10 +64,13 @@ async function completeUserSignup (app, user, { createTeamOverride = false } = {
         }
     }
 
-    // With AI-led onboarding enabled, stop here: the team stays empty and the
-    // default workspace gets provisioned later, on demand.
-    if (app.config.features.enabled('aiOnboarding')) {
-        return
+    // When the new team will be offered AI-led onboarding, stop here: the team stays
+    // empty and the default workspace gets provisioned later, on demand.
+    if (personalTeam) {
+        await personalTeam.ensureTeamTypeExists()
+        if (personalTeam.isAiOnboardingOffered()) {
+            return
+        }
     }
 
     // only create a starting instance if the flag is set and this user and their teams have no instances
