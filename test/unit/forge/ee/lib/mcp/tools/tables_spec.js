@@ -192,6 +192,10 @@ describe('MCP Tables Tools', function () {
     describe('platform_create_database_table', function () {
         const tool = getTool('platform_create_database_table')
 
+        it('only offers the column fields the platform applies', function () {
+            Object.keys(tool.inputSchema.columns.element.shape).should.eql(['name', 'type', 'nullable', 'default'])
+        })
+
         it('posts the name and columns to the tables endpoint and returns the table in the public schema', async function () {
             const columns = [{ name: 'id', type: 'bigint' }, { name: 'label', type: 'text', nullable: true }]
             inject.resolves({ statusCode: 201, json: () => ({ name: 'orders', schema: 'public' }) })

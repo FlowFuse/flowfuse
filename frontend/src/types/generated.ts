@@ -8517,7 +8517,12 @@ export interface paths {
                         /** @default public */
                         schema?: string;
                         /** @default [] */
-                        columns?: unknown[] & components["schemas"]["DatabaseTable"];
+                        columns?: {
+                            name: string;
+                            type: string;
+                            nullable?: boolean;
+                            default?: string | null;
+                        }[];
                     };
                 };
             };

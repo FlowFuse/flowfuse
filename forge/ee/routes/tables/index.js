@@ -283,7 +283,17 @@ module.exports = async function (app) {
                     },
                     columns: {
                         type: 'array',
-                        allOf: [{ $ref: 'DatabaseTable' }],
+                        items: {
+                            type: 'object',
+                            properties: {
+                                name: { type: 'string' },
+                                type: { type: 'string' },
+                                nullable: { type: 'boolean' },
+                                default: { type: 'string', nullable: true }
+                            },
+                            required: ['name', 'type'],
+                            additionalProperties: false
+                        },
                         default: []
                     }
                 }
