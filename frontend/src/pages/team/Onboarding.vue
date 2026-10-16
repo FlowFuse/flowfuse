@@ -73,7 +73,10 @@ export default {
             // Anything beyond it is them engaging, which lets the seeded
             // transcript exist without counting as engagement.
             initialUserTurns: null,
-            hasEngaged: false
+            hasEngaged: false,
+            // Whether the page has been shown to the user. Once it has, onboarding
+            // ending under them (the Expert moving the phase) leads home, not to a 404.
+            wasAvailable: false
         }
     },
     computed: {
@@ -128,15 +131,23 @@ export default {
         notAvailable: {
             immediate: true,
             handler (unavailable) {
-                if (unavailable) {
-                    // Replace rather than push: onboarding is not somewhere the user should be able to go Back to.
-                    this.$router.replace({
-                        name: 'page-not-found',
-                        params: { pathMatch: this.$route.path.substring(1).split('/') },
-                        query: this.$route.query,
-                        hash: this.$route.hash
-                    })
+                if (!unavailable) {
+                    if (this.team) {
+                        this.wasAvailable = true
+                    }
+                    return
                 }
+                // Replace rather than push: onboarding is not somewhere the user should be able to go Back to.
+                if (this.wasAvailable) {
+                    this.$router.replace({ name: 'team-home', params: { team_slug: this.team.slug } })
+                    return
+                }
+                this.$router.replace({
+                    name: 'page-not-found',
+                    params: { pathMatch: this.$route.path.substring(1).split('/') },
+                    query: this.$route.query,
+                    hash: this.$route.hash
+                })
             }
         }
     },
