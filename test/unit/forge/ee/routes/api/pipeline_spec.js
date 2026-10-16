@@ -236,6 +236,23 @@ describe('Pipelines API', function () {
                 logs.filter((log) => JSON.parse(log.body).pipelineStage.hashid === response.json().id).should.have.length(1)
             })
 
+            it('Stores deploy to devices as false when it is not given', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages`,
+                    payload: {
+                        name: 'stage-two',
+                        instanceId: TestObjects.instanceTwo.id,
+                        source: TestObjects.stageOne.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                const stage = await app.db.models.PipelineStage.byId(response.json().id)
+                stage.deployToDevices.should.equal(false)
+            })
+
             describe('Validates that the pipeline is correct', function () {
                 it('Rejects a pipeline stage if the instance is already in use', async function () {
                     const pipelineId = TestObjects.pipeline.hashid
@@ -851,6 +868,102 @@ describe('Pipelines API', function () {
     })
 
     describe('Update Pipeline Stage', function () {
+        describe('Audit log', function () {
+            async function stageUpdatedEntries (stage) {
+                const logs = await app.db.models.AuditLog.findAll({ where: { event: 'application.pipeline.stage-updated' } })
+                return logs.map(log => JSON.parse(log.body)).filter(body => body.pipelineStage.hashid === stage.hashid)
+            }
+
+            it('records the changed name and action', async function () {
+                const stage = TestObjects.stageOne
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                    payload: { name: 'renamed-stage', action: 'prompt' },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                const entries = await stageUpdatedEntries(stage)
+                entries.should.have.length(1)
+                entries[0].pipelineStage.should.have.property('name', 'renamed-stage')
+                entries[0].updates.should.containDeep([
+                    { key: 'name', old: 'stage-one', new: 'renamed-stage' },
+                    { key: 'action', old: 'create_snapshot', new: 'prompt' }
+                ])
+            })
+
+            it('records a change of target', async function () {
+                const stage = TestObjects.stageOne
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                    payload: { instanceId: TestObjects.instanceTwo.id },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                const entries = await stageUpdatedEntries(stage)
+                entries.should.have.length(1)
+                entries[0].updates.should.containDeep([
+                    { key: 'target', old: "instance 'project1'", new: "instance 'instance-two'" }
+                ])
+            })
+
+            it('does not count an unset deploy to devices being saved as false as a change', async function () {
+                // Older stages can still store null for deployToDevices, and the edit form always sends false
+                const stage = TestObjects.stageOne
+                await stage.update({ deployToDevices: null })
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                    payload: { name: 'stage-one', deployToDevices: false },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                const entries = await stageUpdatedEntries(stage)
+                entries.should.have.length(0)
+            })
+
+            it('records the change for an admin who is not a team member', async function () {
+                await TestObjects.factory.createUser({
+                    admin: true,
+                    username: 'nonmemberadminedit',
+                    name: 'Non Member Admin',
+                    email: 'nonmemberadminedit@example.com',
+                    password: 'nmPassword'
+                })
+                await login('nonmemberadminedit', 'nmPassword')
+                const stage = TestObjects.stageOne
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                    payload: { name: 'admin-renamed' },
+                    cookies: { sid: TestObjects.tokens.nonmemberadminedit }
+                })
+                response.statusCode.should.equal(200)
+
+                const entries = await stageUpdatedEntries(stage)
+                entries.should.have.length(1)
+            })
+
+            it('writes nothing when nothing changed', async function () {
+                const stage = TestObjects.stageOne
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                    payload: { name: 'stage-one' },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                const entries = await stageUpdatedEntries(stage)
+                entries.should.have.length(0)
+            })
+        })
+
         describe('With a new name', function () {
             it('Should update a single pipeline stage with a new name', async function () {
                 const pipelineId = TestObjects.pipeline.hashid
