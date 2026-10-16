@@ -11004,6 +11004,7 @@ export interface components {
                 [key: string]: unknown;
             };
             billingURL?: string;
+            aiOnboarding?: boolean;
         } & components["schemas"]["TeamSummary"];
         /** UserTeamList */
         UserTeamList: ({

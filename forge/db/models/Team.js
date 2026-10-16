@@ -475,6 +475,20 @@ module.exports = {
                         return this.TeamType.getFeatureProperty(key, defaultValue)
                     }
                 },
+                /**
+                 * Whether this team is offered AI-led onboarding. This is the one place the rule
+                 * lives: signup uses it to leave the team empty, and the frontend reads it from
+                 * the team view. Requires this.TeamType to be loaded.
+                 * @returns {boolean}
+                 */
+                isAiOnboardingOffered: function () {
+                    if (!app.config.features.enabled('aiOnboarding') || !app.config.features.enabled('externalBroker')) {
+                        return false
+                    }
+                    return !!this.getFeatureProperty('teamBroker', false) &&
+                        !!this.getFeatureProperty('ai', true) &&
+                        !!this.getFeatureProperty('expertAssistant', true)
+                },
                 getInstanceTypeProperty: function (instanceType, property, defaultValue) {
                     // instanceType can be:
                     // - number (raw id)

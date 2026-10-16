@@ -133,6 +133,42 @@ describe('Team API', function () {
             })
             response.statusCode.should.equal(404)
         })
+
+        describe('aiOnboarding', function () {
+            // Each test gets a fresh app, so the flags and team set here don't leak
+            async function getTeam () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.BTeam.hashid}`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+                return response.json()
+            }
+
+            it('is true when the team will be offered AI onboarding', async function () {
+                app.config.features.register('aiOnboarding', true, true)
+                app.config.features.register('externalBroker', true, true)
+                const team = await getTeam()
+                team.should.have.property('aiOnboarding', true)
+            })
+
+            it('is false when AI onboarding is off for the platform', async function () {
+                app.config.features.register('aiOnboarding', false, true)
+                app.config.features.register('externalBroker', true, true)
+                const team = await getTeam()
+                team.should.have.property('aiOnboarding', false)
+            })
+
+            it('is false when the team has the team broker turned off', async function () {
+                app.config.features.register('aiOnboarding', true, true)
+                app.config.features.register('externalBroker', true, true)
+                TestObjects.BTeam.properties = { features: { teamBroker: false } }
+                await TestObjects.BTeam.save()
+                const team = await getTeam()
+                team.should.have.property('aiOnboarding', false)
+            })
+        })
     })
 
     describe('Get team details by slug', async function () {

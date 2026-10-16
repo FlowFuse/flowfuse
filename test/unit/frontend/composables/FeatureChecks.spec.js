@@ -277,43 +277,22 @@ describe('buildFeatureChecks', () => {
     })
 
     describe('ai onboarding', () => {
-        // isAiOnboardingFeatureEnabled -> platformKey 'aiOnboarding',
-        // dependsOn 'isExpertAssistantFeatureEnabled', dependsOnPlatform 'externalBroker', dependsOnTeam 'teamBroker'
-        const enabledPlatform = platformState({ features: { aiOnboarding: true, expertAssistant: true, ai: true, externalBroker: true } })
-        const enabledTeam = team({ features: { teamBroker: true } })
+        // Decided by the server and sent on the team, so the frontend doesn't rebuild the rule
+        const allFlagsOn = platformState({ features: { aiOnboarding: true, expertAssistant: true, ai: true, externalBroker: true } })
 
-        test('enabled when the flag and all dependencies are enabled', () => {
-            const checks = buildFeatureChecks(enabledPlatform, enabledTeam)
+        test('enabled when the server says the team is offered AI onboarding', () => {
+            const checks = buildFeatureChecks(platformState(), { ...team(), aiOnboarding: true })
             expect(checks.isAiOnboardingFeatureEnabled).toBe(true)
         })
 
-        test('disabled when the platform flag is missing', () => {
-            const checks = buildFeatureChecks(
-                platformState({ features: { expertAssistant: true, ai: true, externalBroker: true } }),
-                enabledTeam
-            )
+        test('disabled when the server says it is not, whatever the platform flags', () => {
+            const checks = buildFeatureChecks(allFlagsOn, { ...team({ features: { teamBroker: true } }), aiOnboarding: false })
             expect(checks.isAiOnboardingFeatureEnabled).toBe(false)
         })
 
-        test('forced false when the expert assistant dependency is disabled', () => {
-            const checks = buildFeatureChecks(
-                platformState({ features: { aiOnboarding: true, expertAssistant: true, ai: false, externalBroker: true } }),
-                enabledTeam
-            )
-            expect(checks.isAiOnboardingFeatureEnabled).toBe(false)
-        })
-
-        test('forced false when the platform external broker dependency is missing', () => {
-            const checks = buildFeatureChecks(
-                platformState({ features: { aiOnboarding: true, expertAssistant: true, ai: true } }),
-                enabledTeam
-            )
-            expect(checks.isAiOnboardingFeatureEnabled).toBe(false)
-        })
-
-        test('forced false when the team broker dependency is missing', () => {
-            const checks = buildFeatureChecks(enabledPlatform, team())
-            expect(checks.isAiOnboardingFeatureEnabled).toBe(false)
+        test('disabled when the team has no answer yet', () => {
+            expect(buildFeatureChecks(allFlagsOn, team({ features: { teamBroker: true } })).isAiOnboardingFeatureEnabled).toBe(false)
+            expect(buildFeatureChecks(allFlagsOn, null).isAiOnboardingFeatureEnabled).toBe(false)
         })
     })
 
