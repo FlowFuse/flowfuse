@@ -3,7 +3,6 @@ const { randomUUID } = require('crypto')
 const { z } = require('zod')
 
 const { pathId, teamId, applicationId, hostedInstanceId, searchQuery, sortParams, limitParam, pageParam, toolError } = require('../schemas')
-const { emptySuccessAsOkay } = require('../utils')
 
 // Mirrors the runningStates/errorStates/stoppedStates groups in frontend/src/composables/InstanceStates.js,
 // the same grouping the dashboard's own Running/Error/Not Running status filter uses (frontend/src/pages/team/Instances.vue).
@@ -620,8 +619,7 @@ module.exports = [
             if (segments.length === 0 || segments.some(s => s === '.' || s === '..')) {
                 return toolError(400, 'invalid_request', 'path must name a file or directory below the file-store root, without "." or ".." segments')
             }
-            const response = await inject({ method: 'DELETE', url: `/api/v1/projects/${args.instanceId}/files/_/${encodeURIComponent(segments.join('/'))}` })
-            return emptySuccessAsOkay(response)
+            return inject({ method: 'DELETE', url: `/api/v1/projects/${args.instanceId}/files/_/${encodeURIComponent(segments.join('/'))}` })
         }
     },
     {

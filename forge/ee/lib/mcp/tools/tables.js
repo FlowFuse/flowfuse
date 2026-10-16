@@ -10,7 +10,7 @@ const {
     countSchema,
     recordSchema
 } = require('../tool-schemas/tables')
-const { redactDatabaseCredentials, emptySuccessAsOkay } = require('../utils')
+const { redactDatabaseCredentials } = require('../utils')
 
 module.exports = [
     {
@@ -254,8 +254,7 @@ module.exports = [
                 return toolError(400, 'invalid_request', 'tableName and schemaName must not be empty, "." or ".."')
             }
             const url = `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables/${encodeURIComponent(args.tableName)}/${encodeURIComponent(args.schemaName)}`
-            const response = await inject({ method: 'DELETE', url })
-            return emptySuccessAsOkay(response)
+            return inject({ method: 'DELETE', url })
         }
     },
     {

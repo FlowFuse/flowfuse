@@ -1,6 +1,7 @@
 const should = require('should') // eslint-disable-line no-unused-vars
 const sinon = require('sinon')
 
+const { formatResponse } = require('../../../../../../../forge/ee/lib/mcp/toolLoader')
 const tools = require('../../../../../../../forge/ee/lib/mcp/tools/instances')
 
 function getTool (name) {
@@ -935,13 +936,12 @@ describe('MCP Instances Tools', function () {
         })
 
         it('deletes the encoded path through the instance files route', async function () {
-            inject.withArgs({ method: 'DELETE', url: `/api/v1/projects/${instanceId}/files/_/${encodeURIComponent('logs/old.txt')}` }).resolves({ statusCode: 200, body: '' })
+            inject.withArgs({ method: 'DELETE', url: `/api/v1/projects/${instanceId}/files/_/${encodeURIComponent('logs/old.txt')}` }).resolves({ statusCode: 200, body: '', json: () => JSON.parse('') })
 
             const response = await tool.handler({ instanceId, path: 'logs/old.txt' }, { inject })
 
             inject.calledOnce.should.be.true()
-            response.statusCode.should.equal(200)
-            response.json().should.eql({ status: 'okay' })
+            formatResponse(response).should.eql({ status: 'okay' })
         })
 
         it('rejects an empty path, which would target the file-store root', function () {
@@ -957,7 +957,7 @@ describe('MCP Instances Tools', function () {
         })
 
         it('drops empty segments, so a trailing slash still names the directory', async function () {
-            inject.resolves({ statusCode: 200, body: '' })
+            inject.resolves({ statusCode: 200, body: '', json: () => JSON.parse('') })
 
             await tool.handler({ instanceId, path: '/logs//old/' }, { inject })
 
