@@ -31,7 +31,8 @@ const alertsAndNotifications = {
 // sender side (MCP Gateway's/Chatbot's agent-action-pending caller) must match.
 const agentAttributableEvents = {
     'flows.set': 'deploy',
-    'nodes.install': 'install'
+    'nodes.install': 'install',
+    'nr-assistant.inject': 'inject'
 }
 
 /** Node-RED Audit Logging backend

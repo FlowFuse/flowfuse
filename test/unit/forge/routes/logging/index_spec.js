@@ -539,6 +539,51 @@ describe('Logging API', function () {
                 should.exist(await cache().get(otherModuleKey))
             })
 
+            it('attributes an nr-assistant.inject event to a matching pending action and consumes it', async function () {
+                const key = `${TestObjects.alice.hashid}:p:${TestObjects.project1.id}:inject`
+                await primePending(key, { source: 'mcp:expert', toolName: 'inject_message' })
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/logging/${TestObjects.project1.id}/audit`,
+                    headers: { authorization: `Bearer ${TestObjects.tokens.project1}` },
+                    payload: { event: 'nr-assistant.inject', node: 'node-1', type: 'function', name: 'double payload', z: 'tab-1', msgid: 'msg-1', user: TestObjects.alice.hashid }
+                })
+                response.should.have.property('statusCode', 200)
+
+                const entry = await app.db.models.AuditLog.findOne({
+                    where: { event: 'nr-assistant.inject', entityId: TestObjects.project1.id },
+                    order: [['createdAt', 'DESC']]
+                })
+                should.exist(entry)
+                entry.source.should.equal('mcp:expert')
+                const body = JSON.parse(entry.body)
+                body.sourceContext.should.have.property('toolName', 'inject_message')
+
+                should.not.exist(await cache().get(key))
+            })
+
+            it('leaves an nr-assistant.inject event unattributed when only a deploy is pending', async function () {
+                const deployKey = `${TestObjects.alice.hashid}:p:${TestObjects.project1.id}:deploy`
+                await primePending(deployKey, { source: 'mcp:expert', toolName: 'deploy_flows' })
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/logging/${TestObjects.project1.id}/audit`,
+                    headers: { authorization: `Bearer ${TestObjects.tokens.project1}` },
+                    payload: { event: 'nr-assistant.inject', node: 'node-1', type: 'function', name: 'double payload', z: 'tab-1', msgid: 'msg-1', user: TestObjects.alice.hashid }
+                })
+                response.should.have.property('statusCode', 200)
+
+                const entry = await app.db.models.AuditLog.findOne({
+                    where: { event: 'nr-assistant.inject', entityId: TestObjects.project1.id },
+                    order: [['createdAt', 'DESC']]
+                })
+                should.exist(entry)
+                should.not.exist(entry.source)
+                should.exist(await cache().get(deployKey))
+            })
+
             it('leaves a flows.set event unattributed when there is no matching pending action', async function () {
                 const response = await app.inject({
                     method: 'POST',
@@ -596,6 +641,28 @@ describe('Logging API', function () {
                 // Postgres, unlike SQLite, won't compare it against a bare number.
                 const entry = await app.db.models.AuditLog.findOne({
                     where: { event: 'flows.set', entityId: String(TestObjects.device1.id) },
+                    order: [['createdAt', 'DESC']]
+                })
+                should.exist(entry)
+                entry.source.should.equal('mcp:expert')
+
+                should.not.exist(await cache().get(key))
+            })
+
+            it('attributes an nr-assistant.inject event to a matching pending action', async function () {
+                const key = `${TestObjects.alice.hashid}:d:${TestObjects.device1.hashid}:inject`
+                await primePending(key, { source: 'mcp:expert', toolName: 'inject_message' })
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/logging/device/${TestObjects.device1.hashid}/audit`,
+                    headers: { authorization: `Bearer ${TestObjects.tokens.device1}` },
+                    payload: { event: 'nr-assistant.inject', node: 'node-1', type: 'function', name: 'double payload', z: 'tab-1', msgid: 'msg-1', user: TestObjects.alice.hashid }
+                })
+                response.should.have.property('statusCode', 200)
+
+                const entry = await app.db.models.AuditLog.findOne({
+                    where: { event: 'nr-assistant.inject', entityId: String(TestObjects.device1.id) },
                     order: [['createdAt', 'DESC']]
                 })
                 should.exist(entry)
