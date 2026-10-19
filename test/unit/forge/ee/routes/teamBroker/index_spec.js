@@ -151,7 +151,7 @@ describe('Team Broker API', function () {
                 result.acls[0].should.have.property('action', 'both')
             })
 
-            it('Create MQTT Broker User without acl', async function () {
+            it('Create MQTT Broker User without explict acl', async function () {
                 const response = await app.inject({
                     method: 'POST',
                     url: `/api/v1/teams/${app.team.hashid}/broker/client`,
