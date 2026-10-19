@@ -113,7 +113,8 @@
         "library.set": "Saved to Library",
         "nodes.install": "Third-Party Nodes Installed",
         "nodes.remove": "Third-Party Nodes Removed",
-        "context.delete": "Context Key Deleted"
+        "context.delete": "Context Key Deleted",
+        "nr-assistant.inject": "Message Injected"
     },
     "platform": {
         "platform.license.applied": "License Applied",
@@ -183,6 +184,7 @@
         "library.set": "Saved to Library",
         "nodes.install": "Third-Party Nodes Installed",
         "nodes.remove": "Third-Party Nodes Removed",
+        "nr-assistant.inject": "Message Injected",
         "safe-mode": "Node-RED has been placed in Safe Mode",
         "settings.update": "Node-RED Settings Updated"
     }
