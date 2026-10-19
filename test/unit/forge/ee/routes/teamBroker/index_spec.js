@@ -151,6 +151,25 @@ describe('Team Broker API', function () {
                 result.acls[0].should.have.property('action', 'both')
             })
 
+            it('Create MQTT Broker User without acl', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${app.team.hashid}/broker/client`,
+                    cookies: { sid: TestObjects.tokens.bob },
+                    body: {
+                        username: 'chris',
+                        password: 'ccPassword'
+                    }
+                })
+                response.statusCode.should.equal(201)
+                const result = response.json()
+                result.should.have.property('id')
+                result.should.have.property('username', 'chris')
+                result.should.have.property('acls')
+                result.acls.should.have.a.lengthOf(1)
+                result.acls[0].should.have.property('action', 'both')
+            })
+
             it('Get all MQTT broker users for a team', async function () {
                 const response = await app.inject({
                     method: 'GET',
