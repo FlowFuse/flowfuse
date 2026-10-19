@@ -199,6 +199,56 @@ describe('OAuth', async function () {
             should.exist(m, 'location header format incorrect: ' + response.headers.location)
         })
 
+        it('does not treat a half-logged-in session as logged in', async function () {
+            // An MFA-enabled user who has only supplied their password holds a
+            // session that has not finished logging in. The authorize route reads
+            // the cookie directly, so it must not bounce such a session past the
+            // login page, and calling complete directly must be denied.
+            const mfaUser = await app.factory.createUser({
+                username: 'mfa-editor',
+                name: 'MFA Editor',
+                email: 'mfa-editor@example.com',
+                password: 'mmPassword',
+                mfa_enabled: true
+            })
+            await app.team.addUser(mfaUser, { through: { role: app.factory.Roles.Roles.Member } })
+            await app.db.models.MFAToken.createTokenForUser(mfaUser)
+
+            // Password-only login returns a session cookie but a 403
+            const loginResponse = await app.inject({
+                method: 'POST',
+                url: '/account/login',
+                payload: { username: 'mfa-editor', password: 'mmPassword' }
+            })
+            loginResponse.should.have.property('statusCode', 403)
+            const sid = loginResponse.cookies[0].value
+
+            const instanceCreds = await app.project.refreshAuthTokens()
+            const requestOptions = generateOAuthRequest({ clientID: instanceCreds.clientID })
+
+            // authorize must send the half session to the login page, not complete
+            const authResponse = await app.inject({
+                method: 'GET',
+                url: requestOptions.authURL,
+                cookies: { sid }
+            })
+            authResponse.should.have.property('statusCode', 302)
+            const requestMatch = /\/account\/request\/([^/]+)\/editor$/.exec(authResponse.headers.location)
+            should.exist(requestMatch, 'expected a redirect to the login page, got: ' + authResponse.headers.location)
+
+            // calling complete directly with the half session must be denied
+            const completeResponse = await app.inject({
+                method: 'GET',
+                url: `/account/complete/${requestMatch[1]}`,
+                cookies: { sid }
+            })
+            completeResponse.should.have.property('statusCode', 400)
+            completeResponse.json().should.have.property('error', 'access_denied')
+
+            await app.db.models.MFAToken.deleteTokenForUser(mfaUser)
+            await mfaUser.destroy()
+        })
+
         it('completes oauth flow - team owner - full-access', async function () {
             await app.team.addUser(TestObjects.bob, { through: { role: app.factory.Roles.Roles.Owner } })
             const scope = await runFullLogin(TestObjects.bob)
