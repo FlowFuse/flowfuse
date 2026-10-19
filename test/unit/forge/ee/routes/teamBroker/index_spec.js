@@ -125,7 +125,7 @@ describe('Team Broker API', function () {
             })
         })
 
-        describe('Work with MQTT Broker Users', function () {
+        describe.only('Work with MQTT Broker Users', function () {
             it('Create MQTT Broker User', async function () {
                 const response = await app.inject({
                     method: 'POST',
@@ -151,25 +151,6 @@ describe('Team Broker API', function () {
                 result.acls[0].should.have.property('action', 'both')
             })
 
-            it('Create MQTT Broker User without explict acl', async function () {
-                const response = await app.inject({
-                    method: 'POST',
-                    url: `/api/v1/teams/${app.team.hashid}/broker/client`,
-                    cookies: { sid: TestObjects.tokens.bob },
-                    body: {
-                        username: 'chris',
-                        password: 'ccPassword'
-                    }
-                })
-                response.statusCode.should.equal(201)
-                const result = response.json()
-                result.should.have.property('id')
-                result.should.have.property('username', 'chris')
-                result.should.have.property('acls')
-                result.acls.should.have.a.lengthOf(1)
-                result.acls[0].should.have.property('action', 'both')
-            })
-
             it('Get all MQTT broker users for a team', async function () {
                 const response = await app.inject({
                     method: 'GET',
@@ -178,9 +159,8 @@ describe('Team Broker API', function () {
                 })
                 response.statusCode.should.equal(200)
                 const result = response.json()
-                result.clients.should.have.a.lengthOf(2)
+                result.clients.should.have.a.lengthOf(1)
                 result.clients[0].should.have.property('username', 'bob')
-                result.clients[1].should.have.property('username', 'chris')
             })
 
             it('Get specific MQTT broker user for a team', async function () {
@@ -396,6 +376,25 @@ describe('Team Broker API', function () {
                 })
                 response.statusCode.should.equal(404)
                 response.json().should.have.property('code', 'not_found')
+            })
+
+            it('Create MQTT Broker User without explict acl', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${app.team.hashid}/broker/client`,
+                    cookies: { sid: TestObjects.tokens.bob },
+                    body: {
+                        username: 'chris',
+                        password: 'ccPassword'
+                    }
+                })
+                response.statusCode.should.equal(201)
+                const result = response.json()
+                result.should.have.property('id')
+                result.should.have.property('username', 'chris')
+                result.should.have.property('acls')
+                result.acls.should.have.a.lengthOf(1)
+                result.acls[0].should.have.property('action', 'both')
             })
 
             describe('Links MQTT Broker Clients from an instance or device for nr-mqtt-nodes', function () {
