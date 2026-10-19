@@ -166,7 +166,7 @@ module.exports = async function (app) {
         }
         try {
             const newUser = request.body
-            newUser.acls = JSON.stringify(newUser.acls || [{ action: 'both', pattern: '#', id: generateUuid()}])
+            newUser.acls = JSON.stringify(newUser.acls || [{ action: 'both', pattern: '#', id: generateUuid() }])
             await request.team.checkTeamBrokerClientCreateAllowed()
             const user = await app.db.models.TeamBrokerClient.create({ ...request.body, TeamId: request.team.id })
             reply.status(201).send(app.db.views.TeamBrokerClient.user(user))
