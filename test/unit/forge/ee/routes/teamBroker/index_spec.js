@@ -125,7 +125,7 @@ describe('Team Broker API', function () {
             })
         })
 
-        describe.only('Work with MQTT Broker Users', function () {
+        describe('Work with MQTT Broker Users', function () {
             it('Create MQTT Broker User', async function () {
                 const response = await app.inject({
                     method: 'POST',
