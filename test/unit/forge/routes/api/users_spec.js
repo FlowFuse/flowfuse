@@ -155,6 +155,13 @@ describe('Users API', async function () {
             firstPage.users[0].should.have.property('username', 'alice')
             firstPage.users[1].should.have.property('username', 'dave')
         })
+        it('can search for users - hashid', async function () {
+            const firstPage = await getUsers(undefined, undefined, TestObjects.dave.hashid)
+            firstPage.should.have.property('meta')
+            firstPage.meta.should.not.have.property('next_cursor')
+            firstPage.users.should.have.length(1)
+            firstPage.users[0].should.have.property('username', 'dave')
+        })
     })
 
     describe('Create a new user', async function () {
