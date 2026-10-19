@@ -178,8 +178,9 @@ describe('Team Broker API', function () {
                 })
                 response.statusCode.should.equal(200)
                 const result = response.json()
-                result.clients.should.have.a.lengthOf(1)
+                result.clients.should.have.a.lengthOf(2)
                 result.clients[0].should.have.property('username', 'bob')
+                result.clients[1].should.have.property('username', 'chris')
             })
 
             it('Get specific MQTT broker user for a team', async function () {
