@@ -55,14 +55,16 @@ Flow work runs in a live editor session, not as a file to import. Point the agen
 | Config nodes | List config nodes | Create and update config nodes | Delete config nodes |
 | Import | None | Import a flow onto the canvas | None |
 | Palette | Read the installed palette, list node types, describe node type properties | Install FlowFuse and certified nodes directly, open the palette manager to install any other package, see [Node installs](#node-installs) | None |
-| Canvas | Read the full flow, read debug output, search and select nodes, navigate to a tab or subflow | Align and distribute nodes, set the deploy mode | Deploy changes, see [Agent deploy](#agent-deploy) |
+| Canvas | Read the full flow, read debug output, search and select nodes, navigate to a tab or subflow | Align and distribute nodes, set the deploy mode | Deploy changes, inject test messages into deployed nodes, see [Agent deploy and inject](#agent-deploy-and-inject) |
 | FlowFuse Tables | Query table data | Build a [Query Node](/docs/user/ff-tables/#query-nodes) flow that reads and writes tables | None |
 
-By default nothing goes live until you deploy from Node-RED. A team owner can let agents deploy their own changes, see [Agent deploy](#agent-deploy).
+By default nothing goes live until you deploy from Node-RED. A team owner can let agents deploy their own changes and test them, see [Agent deploy and inject](#agent-deploy-and-inject).
 
-## Agent deploy
+## Agent deploy and inject
 
-A team owner turns this on from **Team Settings > Danger > AI Flow Deploy**. It is off by default and needs AI Features enabled for the team.
+A team owner turns this on from **Team Settings > Danger > AI Flow Deploy and Inject**. It is off by default and needs AI Features enabled for the team.
+
+With it on, an agent can deploy its changes and inject test messages into deployed nodes, then read the results from the debug sidebar. An injected message runs the real flow, so downstream nodes act on it as usual. Each inject is recorded in the instance audit log.
 
 Available from FlowFuse 3.1 with `@flowfuse/nr-assistant` 0.20.0 or later.
 
