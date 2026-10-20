@@ -781,14 +781,25 @@ describe('3rd Party Broker API', function () {
             await app.db.models.TeamBrokerAgent.destroy({ where: { TeamId: app.team.id } })
         })
 
-        it('start replies when the team-broker agent is already running', async function () {
-            await app.db.models.TeamBrokerAgent.create({ state: 'running', TeamId: app.team.id })
-            const response = await app.inject({
-                method: 'POST',
-                url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/start`,
-                cookies: { sid: TestObjects.tokens.bob }
-            })
-            response.statusCode.should.equal(200)
+        it('start re-sends the start command to an already-running team-broker agent', async function () {
+            // After a stop or the 24h auto-shutdown the agent stays recorded as running,
+            // so switching the toggle on must re-issue the start command to resume
+            // collection rather than treating it as a no-op.
+            const agent = await app.db.models.TeamBrokerAgent.create({ state: 'running', TeamId: app.team.id })
+            const sendBrokerAgentCommand = sinon.stub(app.containers, 'sendBrokerAgentCommand').resolves()
+            try {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/start`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+                sendBrokerAgentCommand.calledOnce.should.be.true()
+                sendBrokerAgentCommand.firstCall.args[0].should.have.property('id', agent.id)
+                sendBrokerAgentCommand.firstCall.args[1].should.equal('start')
+            } finally {
+                sendBrokerAgentCommand.restore()
+            }
         })
 
         it('stop replies when the team-broker agent is not running', async function () {
