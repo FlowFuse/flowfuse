@@ -17,6 +17,7 @@ describe('Tables: Postgres LocalFS Driver', function () {
         app = {
             log: {
                 error: sinon.stub(),
+                warn: sinon.stub(),
                 info: sinon.stub(),
                 debug: sinon.stub()
             },
@@ -171,6 +172,50 @@ describe('Tables: Postgres LocalFS Driver', function () {
             app.db.models.Table.byTeamId.resolves([{ id: 1 }])
             await driver.init(app, options)
             await driver.createDatabase({ id: 1 }, 'existingdb').should.be.rejectedWith('Database already exists')
+        })
+
+        it('should drop what it created and rethrow when a step after CREATE DATABASE fails', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            await driver.init(app, options)
+            const client = { connect: sinon.stub().resolves(), end: sinon.stub().resolves(), query: sinon.stub().rejects(new Error('grant failed')) }
+            pgClients[team.hashid] = client
+            await driver.createDatabase(team, 't1').should.be.rejectedWith('grant failed')
+            driver._adminClient.query.calledWithMatch(`DROP DATABASE IF EXISTS "${team.hashid}"`).should.be.true()
+            driver._adminClient.query.calledWithMatch(`DROP USER IF EXISTS "${team.hashid}"`).should.be.true()
+            driver._adminClient.query.calledWithMatch(`DROP ROLE IF EXISTS "${team.hashid}-role"`).should.be.true()
+            app.db.models.Table.create.called.should.be.false()
+        })
+
+        it('should drop what it created and rethrow when creating the Table record fails', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            app.db.models.Table.create.rejects(new Error('db down'))
+            await driver.init(app, options)
+            await driver.createDatabase(team, 't1').should.be.rejectedWith('db down')
+            driver._adminClient.query.calledWithMatch(`DROP DATABASE IF EXISTS "${team.hashid}"`).should.be.true()
+        })
+
+        it('should rethrow the original error when the cleanup fails too', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            app.db.models.Table.create.rejects(new Error('db down'))
+            await driver.init(app, options)
+            driver._adminClient.query.withArgs(`DROP DATABASE IF EXISTS "${team.hashid}"`).rejects(new Error('drop failed'))
+            await driver.createDatabase(team, 't1').should.be.rejectedWith('db down')
+            app.log.warn.calledWithMatch('Failed to clean up database').should.be.true()
+        })
+
+        it('should not drop anything when CREATE DATABASE itself fails', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            await driver.init(app, options)
+            driver._adminClient.query.withArgs(`CREATE DATABASE "${team.hashid}"`).rejects(new Error('already being created'))
+            await driver.createDatabase(team, 't1').should.be.rejectedWith('already being created')
+            driver._adminClient.query.calledWithMatch('DROP').should.be.false()
+        })
+
+        it('should not drop anything when the database already exists', async function () {
+            await driver.init(app, options)
+            driver._adminClient.query.withArgs('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', ['existingdb']).resolves({ rows: [{ datname: 'existingdb' }] })
+            await driver.createDatabase({ id: 1, hashid: 'existingdb' }, 'existingdb').should.be.rejectedWith('Database already exists')
+            driver._adminClient.query.calledWithMatch('DROP').should.be.false()
         })
     })
 

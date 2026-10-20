@@ -61,9 +61,11 @@ module.exports = {
             throw new Error('Database already exists')
         } else {
             const password = generatePassword(16)
+            let databaseCreated = false
             try {
                 const escapedDatabaseName = libPg.pg.escapeIdentifier(team.hashid)
                 await this._adminClient.query(`CREATE DATABASE ${escapedDatabaseName}`)
+                databaseCreated = true
                 await this._adminClient.query(`REVOKE connect ON DATABASE ${escapedDatabaseName} FROM PUBLIC;`)
                 await this._adminClient.query(`ALTER DATABASE ${escapedDatabaseName} SET statement_timeout='30s';`)
                 const teamClient = libPg.newClient({ ...this._options.backend, database: team.hashid })
@@ -148,16 +150,28 @@ module.exports = {
                     throw new Error(`Failed to create database for team ${team.hashid}: ${response.statusText}`)
                 }
             } catch (err) {
-                // console.log(err)
                 this._app.log.error(`Failed to create database\n${this._options.supavisor.url}/api/tenants/${team.hashid}\n${err.toString()}`)
+                if (databaseCreated) {
+                    await this._rollbackCreate(team)
+                }
+                throw err
             }
         }
     },
-    destroyDatabase: async function (team, databaseId) {
-        const db = await this._app.db.models.Table.byId(team.id, databaseId)
-        if (!db) {
-            throw new Error(`Database ${databaseId} for team ${team.hashid} does not exist`)
+    _rollbackCreate: async function (team) {
+        // Only called once CREATE DATABASE succeeded, so everything removed here was created by this call
+        try {
+            await this._deleteTenant(team)
+        } catch (err) {
+            this._app.log.warn(`Failed to clean up tenant for team ${team.hashid}: ${err.toString()}`)
         }
+        try {
+            await libPg.dropTeamDatabase(this._adminClient, team.hashid)
+        } catch (err) {
+            this._app.log.warn(`Failed to clean up database for team ${team.hashid}: ${err.toString()}`)
+        }
+    },
+    _deleteTenant: async function (team) {
         try {
             await axios.delete(`${this._options.supavisor.url}/api/tenants/${team.hashid}`, {
                 headers: {
@@ -171,10 +185,14 @@ module.exports = {
                 throw err
             }
         }
-        // Every drop is IF EXISTS so a retry after a partial failure can finish the cleanup
-        await this._adminClient.query(`DROP DATABASE IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid)}`)
-        await this._adminClient.query(`DROP USER IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid)}`)
-        await this._adminClient.query(`DROP ROLE IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid + '-role')}`)
+    },
+    destroyDatabase: async function (team, databaseId) {
+        const db = await this._app.db.models.Table.byId(team.id, databaseId)
+        if (!db) {
+            throw new Error(`Database ${databaseId} for team ${team.hashid} does not exist`)
+        }
+        await this._deleteTenant(team)
+        await libPg.dropTeamDatabase(this._adminClient, team.hashid)
         await db.destroy()
     },
     getTables: async function (team, databaseId, paginationOptions) {

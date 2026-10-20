@@ -115,6 +115,28 @@ describe('Tables API', function () {
         response.statusCode.should.equal(409)
     })
 
+    it('Fail to create a database when the driver fails, auditing the error', async function () {
+        const stub = sinon.stub(app.tables, 'createDatabase').rejects(new Error('tenant PUT failed'))
+        let response
+        try {
+            response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.team.hashid}/databases`,
+                cookies: { sid: TestObjects.tokens.bob },
+                payload: { name: 'Test Database' }
+            })
+        } finally {
+            stub.restore()
+        }
+        response.statusCode.should.equal(500)
+        response.json().should.have.property('code', 'unexpected_error')
+        response.json().should.have.property('error', 'Failed to create database')
+        const logs = await app.db.models.AuditLog.findAll({ where: { event: 'team.database.created' }, order: [['id', 'DESC']] })
+        const body = typeof logs[0].body === 'string' ? JSON.parse(logs[0].body) : logs[0].body
+        body.should.have.property('error')
+        body.error.should.have.property('message', 'tenant PUT failed')
+    })
+
     it('Get Team database list after creation', async function () {
         const response = await app.inject({
             method: 'GET',
