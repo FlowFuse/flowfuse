@@ -56,7 +56,7 @@
                         Send feedback
                     </ff-button>
                     <ff-button kind="tertiary" size="small" data-action="dismiss-feedback" :disabled="pending" @click="dismissTurnFeedback(messageUuid)">
-                        No thanks
+                        Skip
                     </ff-button>
                 </div>
             </div>
