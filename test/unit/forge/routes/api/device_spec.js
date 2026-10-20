@@ -1639,6 +1639,130 @@ describe('Device API', async function () {
                 response.statusCode.should.equal(400)
             })
         })
+        describe('set target snapshot', function () {
+            before(async function () {
+                // A second application in the same team, each with a snapshot of its instance
+                TestObjects.Application2 = await app.factory.createApplication({ name: 'target-app-2' }, TestObjects.ATeam)
+                TestObjects.Project2 = await app.factory.createInstance(
+                    { name: generateProjectName() },
+                    TestObjects.Application2,
+                    app.stack,
+                    app.template,
+                    app.projectType,
+                    { start: false }
+                )
+                TestObjects.app1Snapshot = (await createSnapshot(TestObjects.Project1.id, 'app-1-snapshot', TestObjects.tokens.alice)).json()
+                TestObjects.app2Snapshot = (await createSnapshot(TestObjects.Project2.id, 'app-2-snapshot', TestObjects.tokens.alice)).json()
+            })
+
+            async function setTarget (device, targetSnapshot) {
+                return app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: { targetSnapshot },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+            }
+
+            async function getTargetSnapshotId (device) {
+                const dbDevice = await app.db.models.Device.byId(device.id)
+                return dbDevice.targetSnapshotId
+            }
+
+            it('sets a snapshot from the same application as the target', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion: '3.8.0', application: TestObjects.Application1.hashid })
+
+                const response = await setTarget(device, TestObjects.app1Snapshot.id)
+
+                response.statusCode.should.equal(200)
+                response.json().targetSnapshot.should.have.property('id', TestObjects.app1Snapshot.id)
+            })
+
+            it('rejects a snapshot from another application in the team', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion: '3.8.0', application: TestObjects.Application1.hashid })
+
+                const response = await setTarget(device, TestObjects.app2Snapshot.id)
+
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_snapshot')
+                should(await getTargetSnapshotId(device)).be.null()
+            })
+
+            it('sets a snapshot of its own instance on an instance owned device', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, instance: TestObjects.Project1.id })
+
+                const response = await setTarget(device, TestObjects.app1Snapshot.id)
+
+                response.statusCode.should.equal(200)
+                response.json().targetSnapshot.should.have.property('id', TestObjects.app1Snapshot.id)
+            })
+
+            it('rejects a snapshot of another instance on an instance owned device', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, instance: TestObjects.Project1.id })
+
+                const response = await setTarget(device, TestObjects.app2Snapshot.id)
+
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_snapshot')
+                should(await getTargetSnapshotId(device)).be.null()
+            })
+
+            it('rejects a target on an unassigned device', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+
+                const response = await setTarget(device, TestObjects.app1Snapshot.id)
+
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_snapshot')
+                should(await getTargetSnapshotId(device)).be.null()
+            })
+
+            it('rejects a target on a device running the Lite agent', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion: '3.8.0', application: TestObjects.Application1.hashid })
+                const dbDevice = await app.db.models.Device.byId(device.id)
+                await dbDevice.update({ agentType: 'lite' })
+
+                const response = await setTarget(device, TestObjects.app1Snapshot.id)
+
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+                should(await getTargetSnapshotId(device)).be.null()
+            })
+
+            for (const agentVersion of ['3.7.2', null]) {
+                it(`rejects a target on a developer mode device with agent version ${agentVersion}`, async function () {
+                    const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion: '3.8.0', application: TestObjects.Application1.hashid })
+                    const dbDevice = await app.db.models.Device.byId(device.id)
+                    await dbDevice.update({ mode: 'developer', agentVersion })
+
+                    const response = await setTarget(device, TestObjects.app1Snapshot.id)
+
+                    response.statusCode.should.equal(400)
+                    response.json().should.have.property('code', 'invalid_request')
+                    should(await getTargetSnapshotId(device)).be.null()
+                })
+            }
+
+            it('sets a target on a developer mode device with agent 3.8.0 or later', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion: '3.8.0', application: TestObjects.Application1.hashid })
+                const dbDevice = await app.db.models.Device.byId(device.id)
+                await dbDevice.update({ mode: 'developer' })
+
+                const response = await setTarget(device, TestObjects.app1Snapshot.id)
+
+                response.statusCode.should.equal(200)
+                response.json().targetSnapshot.should.have.property('id', TestObjects.app1Snapshot.id)
+            })
+
+            it('rejects a targetSnapshot that is not a string', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion: '3.8.0', application: TestObjects.Application1.hashid })
+
+                const response = await setTarget(device, { id: TestObjects.app1Snapshot.id })
+
+                response.statusCode.should.equal(400)
+                should(await getTargetSnapshotId(device)).be.null()
+            })
+        })
         describe('device certified nodes', function () {
             async function setTeamFlags (certifiedNodes, ffNodes) {
                 const defaultTeamTypeProperties = app.defaultTeamType.properties
