@@ -64,6 +64,13 @@
                 </div>
             </div>
         </transition>
+        <turn-feedback
+            v-if="feedback"
+            :message-uuid="turn.questionsMessage._uuid"
+            :vote="turn.questionsMessage._vote"
+            :shared="turn.questionsMessage._shared"
+            :share-dismissed="turn.questionsMessage._shareDismissed"
+        />
     </div>
 </template>
 
@@ -73,6 +80,7 @@ import { mapActions, mapState } from 'pinia'
 
 import AiMessage from './AiMessage.vue'
 import HumanMessage from './HumanMessage.vue'
+import TurnFeedback from './components/TurnFeedback.vue'
 
 import { useProductExpertStore } from '@/stores/product-expert.js'
 
@@ -81,7 +89,8 @@ export default {
     components: {
         AiMessage,
         HumanMessage,
-        PencilIcon
+        PencilIcon,
+        TurnFeedback
     },
     props: {
         turn: {
@@ -95,7 +104,11 @@ export default {
         }
     },
     computed: {
-        ...mapState(useProductExpertStore, ['isWaitingForResponse']),
+        ...mapState(useProductExpertStore, ['isWaitingForResponse', 'feedbackMessageUuids']),
+        // Rendered here rather than through AiMessage so the row stays put while the step is folded.
+        feedback () {
+            return this.feedbackMessageUuids.has(this.turn.questionsMessage._uuid)
+        },
         // A questions part carries the turn's prose in content, so strip only the questions.
         textAnswer () {
             return this.turn.questionsMessage.answer

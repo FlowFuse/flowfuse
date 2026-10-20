@@ -7,7 +7,7 @@
  * bubble's transaction id.
  */
 
-const NON_RATABLE_KINDS = ['tool-approval', 'questions', 'plan']
+const NON_RATABLE_KINDS = ['tool-approval']
 
 function isRatable (message) {
     if (message._type !== 'ai' || !message._transactionId || message.generated || message.error) {

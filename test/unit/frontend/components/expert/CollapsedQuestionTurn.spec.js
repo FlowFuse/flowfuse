@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => {
     return {
-        expertStore: { setPendingInput: vi.fn(), isWaitingForResponse: false }
+        expertStore: { setPendingInput: vi.fn(), isWaitingForResponse: false, feedbackMessageUuids: new Set() }
     }
 })
 
@@ -14,6 +14,9 @@ vi.mock('@/stores/product-expert.js', () => ({
 // needs placeholders it can expand into.
 vi.mock('@/components/expert/components/messages/AiMessage.vue', () => ({
     default: { name: 'AiMessage', props: ['answer'], template: '<div data-stub="ai-message" />' }
+}))
+vi.mock('@/components/expert/components/messages/components/TurnFeedback.vue', () => ({
+    default: { name: 'TurnFeedback', props: ['messageUuid', 'vote'], template: '<div data-stub="turn-feedback" />' }
 }))
 vi.mock('@/components/expert/components/messages/HumanMessage.vue', () => ({
     default: { name: 'HumanMessage', template: '<div data-stub="human-message" />' }
@@ -44,6 +47,21 @@ describe('CollapsedQuestionTurn', () => {
     beforeEach(() => {
         mocks.expertStore.setPendingInput.mockClear()
         mocks.expertStore.isWaitingForResponse = false
+        mocks.expertStore.feedbackMessageUuids = new Set()
+    })
+
+    test('shows the rating row for the question turn when it closes a rated turn', () => {
+        mocks.expertStore.feedbackMessageUuids = new Set(['a1'])
+        const turn = answeredTurn()
+        turn.questionsMessage._vote = 'up'
+        const feedback = mountTurn(turn).findComponent({ name: 'TurnFeedback' })
+        expect(feedback.exists()).toBe(true)
+        expect(feedback.props('messageUuid')).toBe('a1')
+        expect(feedback.props('vote')).toBe('up')
+    })
+
+    test('hides the rating row when the question turn cannot be rated', () => {
+        expect(mountTurn().find('[data-stub="turn-feedback"]').exists()).toBe(false)
     })
 
     test('renders one quiet line per question with the pick as a chip', () => {

@@ -21,11 +21,17 @@ describe('getFeedbackMessageUuids', () => {
             human('h1'), ai('a1', { generated: true }),
             human('h2'), ai('a2', { error: true }),
             human('h3'), ai('a3', { _transactionId: undefined }),
-            human('h4'), ai('a4', { answer: [{ kind: 'tool-approval', id: 't' }] }),
-            human('h5'), ai('a5', { answer: [{ kind: 'questions', questions: [] }] }),
-            human('h6'), ai('a6', { answer: [{ kind: 'plan', content: 'p' }] })
+            human('h4'), ai('a4', { answer: [{ kind: 'tool-approval', id: 't' }] })
         ]
         expect(getFeedbackMessageUuids(messages).size).toBe(0)
+    })
+
+    it('rates question and plan cards', () => {
+        const messages = [
+            human('h1'), ai('a1', { answer: [{ kind: 'questions', questions: [] }] }),
+            human('h2'), ai('a2', { answer: [{ kind: 'plan', content: 'p' }] })
+        ]
+        expect([...getFeedbackMessageUuids(messages)]).toEqual(['a1', 'a2'])
     })
 
     it('skips a turn that is still open', () => {
