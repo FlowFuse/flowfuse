@@ -448,11 +448,15 @@ module.exports = async function (app) {
                 // Another start is already launching the agent: starting is a no-op
                 reply.status(200).send({})
             } else if (agent) {
-                // The agent is up (running, or running but no longer collecting after a
-                // stop or the 24h auto-shutdown). Always (re)send the start command so
-                // switching the toggle on resumes collection; the agent treats a repeat
-                // start as a reconnect, so this is safe when it is already collecting.
-                await app.containers.sendBrokerAgentCommand(agent, 'start')
+                // The agent is up. The stored 'running' state doesn't tell us whether
+                // it's actually collecting, so ask the agent. Only send start when it
+                // isn't connected (stopped via the API or after the 24h auto-shutdown),
+                // since start fully tears the agent down and reconnects it, which would
+                // take a healthy agent offline and drop in-flight messages.
+                const status = await app.containers.getBrokerAgentState(agent)
+                if (!status?.connected) {
+                    await app.containers.sendBrokerAgentCommand(agent, 'start')
+                }
                 reply.status(200).send({})
             } else {
                 // Stays 'starting' until the driver has launched the agent, so a suspend
