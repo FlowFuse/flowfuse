@@ -99,6 +99,9 @@ async function init (app, opts) {
                     return
                 }
                 if (request.routeOptions.config.allowAnonymous) {
+                    // The cookie session failed validation. Treat the request
+                    // as anonymous rather than exposing the half-authenticated user
+                    request.session = null
                     return
                 }
                 await request.session.destroy()
