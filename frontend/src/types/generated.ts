@@ -9195,12 +9195,12 @@ export interface paths {
                             id?: string;
                             username?: string;
                             acls?: unknown[];
-                            owner?: null | {
+                            owner?: {
                                 /** @enum {string} */
                                 instanceType?: "instance" | "device";
                                 id?: string;
                                 name?: string;
-                            };
+                            } | null;
                         };
                     };
                 };
