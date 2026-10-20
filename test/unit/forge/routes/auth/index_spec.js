@@ -1341,7 +1341,7 @@ describe('Accounts API', async function () {
 
         async function getLatestAuditEntry () {
             return app.db.models.AuditLog.findOne({
-                order: [['createdAt', 'DESC']]
+                order: [['id', 'DESC']]
             })
         }
 
