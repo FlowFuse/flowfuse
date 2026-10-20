@@ -7,13 +7,9 @@
  * bubble's transaction id.
  */
 
-const NON_RATABLE_KINDS = ['tool-approval']
-
+// A vote is sent against the bubble's transaction id, so a bubble the Expert never replied with can't take one.
 function isRatable (message) {
-    if (message._type !== 'ai' || !message._transactionId || message.generated || message.error) {
-        return false
-    }
-    return !(message.answer || []).some(item => NON_RATABLE_KINDS.includes(item.kind))
+    return message._type === 'ai' && !!message._transactionId
 }
 
 /**

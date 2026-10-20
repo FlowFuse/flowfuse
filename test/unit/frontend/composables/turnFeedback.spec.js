@@ -16,22 +16,20 @@ describe('getFeedbackMessageUuids', () => {
         expect([...getFeedbackMessageUuids(messages)]).toEqual(['a1'])
     })
 
-    it('skips a turn closed by a message that cannot be rated', () => {
-        const messages = [
-            human('h1'), ai('a1', { generated: true }),
-            human('h2'), ai('a2', { error: true }),
-            human('h3'), ai('a3', { _transactionId: undefined }),
-            human('h4'), ai('a4', { answer: [{ kind: 'tool-approval', id: 't' }] })
-        ]
+    it('skips a turn closed by a message without a transaction id', () => {
+        const messages = [human('h1'), ai('a1', { _transactionId: undefined })]
         expect(getFeedbackMessageUuids(messages).size).toBe(0)
     })
 
-    it('rates question and plan cards', () => {
+    it('rates every kind of answer, errors included', () => {
         const messages = [
             human('h1'), ai('a1', { answer: [{ kind: 'questions', questions: [] }] }),
-            human('h2'), ai('a2', { answer: [{ kind: 'plan', content: 'p' }] })
+            human('h2'), ai('a2', { answer: [{ kind: 'plan', content: 'p' }] }),
+            human('h3'), ai('a3', { answer: [{ kind: 'tool-approval', id: 't' }] }),
+            human('h4'), ai('a4', { error: true }),
+            human('h5'), ai('a5', { generated: true })
         ]
-        expect([...getFeedbackMessageUuids(messages)]).toEqual(['a1', 'a2'])
+        expect([...getFeedbackMessageUuids(messages)]).toEqual(['a1', 'a2', 'a3', 'a4', 'a5'])
     })
 
     it('skips a turn that is still open', () => {
