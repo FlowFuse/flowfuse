@@ -514,45 +514,19 @@ describe('MCP Snapshots Tools', function () {
     describe('platform_set_remote_instance_target', function () {
         const tool = getTool('platform_set_remote_instance_target')
 
-        function deviceResponse (device) {
-            return { statusCode: 200, json: () => ({ id: 'device1', targetSnapshot: null, ...device }) }
-        }
-
         it('puts the target snapshot onto the device route', async function () {
             const routeResponse = { statusCode: 200, json: () => ({ id: 'device1' }) }
-            inject.withArgs({ method: 'GET', url: '/api/v1/devices/device1' }).resolves(deviceResponse())
-            inject.withArgs({ method: 'PUT', url: '/api/v1/devices/device1', payload: { targetSnapshot: 'snapshot1' } }).resolves(routeResponse)
+            inject.resolves(routeResponse)
 
             const response = await tool.handler({ remoteInstanceId: 'device1', snapshotId: 'snapshot1' }, { inject })
 
-            inject.calledTwice.should.be.true()
+            inject.calledOnceWith({ method: 'PUT', url: '/api/v1/devices/device1', payload: { targetSnapshot: 'snapshot1' } }).should.be.true()
             response.should.equal(routeResponse)
         })
 
-        it('returns the device without redeploying when the snapshot is already the target', async function () {
-            const current = deviceResponse({ targetSnapshot: { id: 'snapshot1', name: 'v1' } })
-            inject.resolves(current)
-
-            const response = await tool.handler({ remoteInstanceId: 'device1', snapshotId: 'snapshot1' }, { inject })
-
-            inject.calledOnce.should.be.true()
-            response.should.equal(current)
-        })
-
-        it('passes through an error response from the device lookup', async function () {
-            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
-            inject.resolves(errorResponse)
-
-            const response = await tool.handler({ remoteInstanceId: 'device1', snapshotId: 'snapshot1' }, { inject })
-
-            inject.calledOnce.should.be.true()
-            response.should.equal(errorResponse)
-        })
-
-        it('passes through an error response from the update', async function () {
+        it('passes through an error response', async function () {
             const errorResponse = { statusCode: 400, json: () => ({ code: 'invalid_snapshot' }) }
-            inject.withArgs({ method: 'GET', url: '/api/v1/devices/device1' }).resolves(deviceResponse())
-            inject.withArgs({ method: 'PUT', url: '/api/v1/devices/device1', payload: { targetSnapshot: 'other' } }).resolves(errorResponse)
+            inject.resolves(errorResponse)
 
             const response = await tool.handler({ remoteInstanceId: 'device1', snapshotId: 'other' }, { inject })
             response.should.equal(errorResponse)

@@ -736,7 +736,7 @@ module.exports = async function (app) {
             }
         } else {
             // ### Modify device properties ###
-            if (request.body.targetSnapshot !== undefined && request.body.targetSnapshot !== device.targetSnapshotId) {
+            if (request.body.targetSnapshot !== undefined && request.body.targetSnapshot !== device.targetSnapshot?.hashid) {
                 // get snapshot from db
                 const targetSnapshot = await app.db.models.ProjectSnapshot.byId(request.body.targetSnapshot, { includeFlows: false, includeSettings: false })
                 if (!targetSnapshot) {
@@ -784,7 +784,7 @@ module.exports = async function (app) {
                 })
                 await app.auditLog.Device.device.snapshot.deployed(request.session.User, null, device, targetSnapshot)
                 await app.auditLog.Device.device.snapshot.targetSet(request.session.User, null, device, targetSnapshot)
-                updates.push('targetSnapshotId', originalSnapshotId, device.targetSnapshotId)
+                updates.push('targetSnapshotId', originalSnapshotId, targetSnapshot.id)
                 sendDeviceUpdate = true
                 // If in developer mode, set the force flag to true otherwise the agent will ignore the update
                 if (device.mode === 'developer') {
