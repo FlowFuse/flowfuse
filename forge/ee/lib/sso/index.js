@@ -121,11 +121,13 @@ module.exports.init = async function (app) {
                         email: request.body.username
                     }
                     const userInfo = app.auditLog.formatters.userObject(request.body)
-                    if (verifyLDAPUser(providerConfig, tempUser, request.body.password)) {
+                    if (await verifyLDAPUser(providerConfig, tempUser, request.body.password)) {
                         // TODO create user
                         const newUserProperties = await lookupLDAPUser(providerConfig, request.body.username)
                         if (newUserProperties) {
                             const newUser = await app.db.models.User.create(newUserProperties)
+                            // verifyLDAPUser again to apply group membership to real user
+                            await verifyLDAPUser(providerConfig, newUser, request.body.password)
                             const sessionInfo = await app.createSessionCookie(newUser.username, providerConfig.options.sessionExpiry, providerConfig.options.sessionIdle)
                             if (sessionInfo) {
                                 userInfo.id = sessionInfo.session.UserId
@@ -261,8 +263,8 @@ module.exports.init = async function (app) {
                 userClient = new Client(clientOptions)
                 try {
                     await userClient.bind(userDN, password)
-                    // if ldap group support enabled
-                    if (providerConfig.options.groupMapping) {
+                    // if ldap group support enabled and it's not the tempUser used for provisioning
+                    if (providerConfig.options.groupMapping && (user instanceof app.db.models.User)) {
                         await updateTeamMembershipLDAP(adminClient, user, userDN, providerConfig.options)
                     }
                     return true
