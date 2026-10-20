@@ -58,7 +58,8 @@ const iconMap = {
         'library.set',
         'nodes.install',
         'nodes.remove',
-        'context.delete'
+        'context.delete',
+        'nr-assistant.inject'
     ],
     template: [
         'application.created',

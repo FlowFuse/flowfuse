@@ -1,3 +1,5 @@
+const SemVer = require('semver')
+
 const { hash } = require('../../db/utils')
 // eslint-disable-next-line no-unused-vars
 const { DeviceTunnelManager } = require('../../ee/lib/deviceEditor/DeviceTunnelManager')
@@ -603,7 +605,8 @@ module.exports = async function (app) {
                     name: { type: 'string' },
                     type: { type: 'string' },
                     instance: { type: 'string', nullable: true },
-                    application: { type: 'string', nullable: true }
+                    application: { type: 'string', nullable: true },
+                    targetSnapshot: { type: 'string' }
                 }
             },
             response: {
@@ -733,7 +736,7 @@ module.exports = async function (app) {
             }
         } else {
             // ### Modify device properties ###
-            if (request.body.targetSnapshot !== undefined && request.body.targetSnapshot !== device.targetSnapshotId) {
+            if (request.body.targetSnapshot !== undefined && request.body.targetSnapshot !== device.targetSnapshot?.hashid) {
                 // get snapshot from db
                 const targetSnapshot = await app.db.models.ProjectSnapshot.byId(request.body.targetSnapshot, { includeFlows: false, includeSettings: false })
                 if (!targetSnapshot) {
@@ -743,6 +746,31 @@ module.exports = async function (app) {
                 const snapshotTeamId = await targetSnapshot.getTeamId()
                 if (snapshotTeamId !== device.Team.id) {
                     reply.code(400).send({ code: 'invalid_snapshot', error: 'invalid snapshot' })
+                    return
+                }
+                if (device.isApplicationOwned) {
+                    // Scoped to application (not just team) because granular RBAC can
+                    // authorize a caller for this application without authorizing them
+                    // for another application in the same team.
+                    if (await targetSnapshot.getApplicationId() !== device.ApplicationId) {
+                        reply.code(400).send({ code: 'invalid_snapshot', error: 'Snapshot does not belong to the same application as the device' })
+                        return
+                    }
+                } else if (!targetSnapshot.ProjectId || targetSnapshot.ProjectId !== device.ProjectId) {
+                    // The update sent to a device that is not application owned only
+                    // carries a snapshot of its own instance, so any other target
+                    // would stop its flows instead of deploying.
+                    reply.code(400).send({ code: 'invalid_snapshot', error: 'A device that is not assigned to an application can only target a snapshot of its own instance' })
+                    return
+                }
+                if (device.agentType === 'lite') {
+                    reply.code(400).send({ code: 'invalid_request', error: 'The Lite Remote Agent does not support deploying snapshots' })
+                    return
+                }
+                // Older agents ignore the forced update sent to a device in developer
+                // mode, so the target would be stored but never deployed.
+                if (device.mode === 'developer' && !(device.agentVersion && SemVer.gte(device.agentVersion, '3.8.0'))) {
+                    reply.code(400).send({ code: 'invalid_request', error: 'Deploying a snapshot to a device in developer mode requires Device Agent v3.8.0 or later' })
                     return
                 }
                 // store original value for later audit log
@@ -756,7 +784,7 @@ module.exports = async function (app) {
                 })
                 await app.auditLog.Device.device.snapshot.deployed(request.session.User, null, device, targetSnapshot)
                 await app.auditLog.Device.device.snapshot.targetSet(request.session.User, null, device, targetSnapshot)
-                updates.push('targetSnapshotId', originalSnapshotId, device.targetSnapshotId)
+                updates.push('targetSnapshotId', originalSnapshotId, targetSnapshot.id)
                 sendDeviceUpdate = true
                 // If in developer mode, set the force flag to true otherwise the agent will ignore the update
                 if (device.mode === 'developer') {

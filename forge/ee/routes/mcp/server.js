@@ -101,7 +101,8 @@ module.exports = async function (app) {
 
     // Resolves the caller's identity and scope, or sends an error reply and returns null.
     async function resolveCaller (request, reply) {
-        if (!request.session?.User) {
+        // This endpoint is for token-backed callers only.
+        if (!request.session?.User || !request.session.isPAT) {
             // RFC 9728 §5.1: point unauthenticated callers at the resource metadata.
             reply.header('WWW-Authenticate', `Bearer resource_metadata="${app.config.base_url}/.well-known/oauth-protected-resource/mcp"`)
             reply.code(401).send({ code: 'unauthorized', error: 'Unauthorized' })
@@ -128,7 +129,7 @@ module.exports = async function (app) {
     // POST serves the MCP Streamable HTTP protocol in JSON mode: each request is
     // forwarded to the gateway and its response returned. Notifications (no id)
     // are acknowledged; the gateway populates its session on the first request.
-    app.post('/', { config: { allowAnonymous: true } }, async (request, reply) => {
+    app.post('/', { config: { allowAnonymous: true, allowMcpGrant: true } }, async (request, reply) => {
         const caller = await resolveCaller(request, reply)
         if (!caller) {
             return
@@ -264,12 +265,12 @@ module.exports = async function (app) {
 
     // The gateway is the MCP server; this proxy does not hold a server-initiated
     // stream, so it does not offer the optional GET SSE channel.
-    app.get('/', async (request, reply) => {
+    app.get('/', { config: { allowMcpGrant: true } }, async (request, reply) => {
         reply.code(405).send({ code: 'method_not_allowed', error: 'MCP HTTP streaming is not available.' })
     })
 
     // Session teardown: nothing is held server-side in JSON mode, so acknowledge.
-    app.delete('/', async (request, reply) => {
+    app.delete('/', { config: { allowMcpGrant: true } }, async (request, reply) => {
         reply.code(204).send()
     })
 }

@@ -5820,6 +5820,7 @@ export interface paths {
                         type?: string;
                         instance?: string | null;
                         application?: string | null;
+                        targetSnapshot?: string;
                     };
                 };
             };

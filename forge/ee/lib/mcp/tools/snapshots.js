@@ -1,7 +1,5 @@
-const SemVer = require('semver')
 const { z } = require('zod')
 
-const { MIN_DEVICE_AGENT_VERSIONS } = require('../constants')
 const { pathId, basePaginationKeys, limitParam, appendQuery, hostedInstanceId, remoteInstanceId, snapshotId, snapshotComponents, toolError } = require('../schemas')
 const { blankHiddenEnvValues } = require('../utils')
 
@@ -351,31 +349,9 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             remoteInstanceId,
-            snapshotId: snapshotId.describe('The hashid of the snapshot the remote instance should run. It must belong to the same team as the remote instance')
+            snapshotId: snapshotId.describe('The hashid of the snapshot the remote instance should run. It must belong to the same application as the remote instance')
         },
         handler: async (args, { inject }) => {
-            const deviceResponse = await inject({ method: 'GET', url: `/api/v1/devices/${args.remoteInstanceId}` })
-            if (deviceResponse.statusCode >= 400) {
-                return deviceResponse
-            }
-            const device = deviceResponse.json()
-            // The route stores a target on any device, but for one that is not
-            // application-owned the update it sends carries no snapshot, so the
-            // device stops its flows instead of deploying the target.
-            if (device.ownerType !== 'application') {
-                return toolError(400, 'invalid_request', 'Only a remote instance assigned to an application can have its own target snapshot. For one assigned to a hosted instance, use platform_set_instance_device_target')
-            }
-            if (device.agentType === 'lite') {
-                return toolError(400, 'invalid_request', 'The Lite Remote Agent does not support deploying snapshots')
-            }
-            if (device.mode === 'developer' && !(device.agentVersion && SemVer.gte(device.agentVersion, MIN_DEVICE_AGENT_VERSIONS.devModeSnapshotDeploy))) {
-                return toolError(400, 'invalid_request', `Deploying a snapshot to a remote instance in developer mode requires Device Agent v${MIN_DEVICE_AGENT_VERSIONS.devModeSnapshotDeploy} or later`)
-            }
-            // The route redeploys even when the target is unchanged, which in
-            // developer mode would throw away the editor changes for nothing.
-            if (device.targetSnapshot?.id === args.snapshotId) {
-                return deviceResponse
-            }
             const response = await inject({ method: 'PUT', url: `/api/v1/devices/${args.remoteInstanceId}`, payload: { targetSnapshot: args.snapshotId } })
             return response
         }
