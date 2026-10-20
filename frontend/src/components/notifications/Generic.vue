@@ -24,9 +24,12 @@ import { defineAsyncComponent, markRaw } from 'vue'
 
 import IconDeviceSolid from '../../components/icons/DeviceSolid.js'
 import IconNodeRedSolid from '../../components/icons/NodeRedSolid.js'
+
 import NotificationMessageMixin from '../../mixins/NotificationMessage.js'
 
 import NotificationMessage from './Notification.vue'
+
+import { escapeHtml } from '@/composables/strings/String.js'
 
 export default {
     name: 'GenericNotification',
@@ -137,7 +140,9 @@ export default {
             while (match) {
                 const key = match[1]
                 const value = this.getObjectProperty(this.notification.data || {}, key) || key.split('.')[0].replace(/\b\w/g, l => l.toUpperCase())
-                result = result.replace(match[0], value)
+                // The message is rendered with v-html, so the substituted value must be escaped
+                const safeValue = escapeHtml(value)
+                result = result.replace(match[0], () => safeValue)
                 match = regex.exec(result)
             }
             return result
