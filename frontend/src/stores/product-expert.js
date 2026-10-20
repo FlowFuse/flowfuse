@@ -5,6 +5,7 @@ import { markRaw } from 'vue'
 import expertApi from '../api/expert.js'
 import userApi from '../api/user.js'
 import { STREAMED_KINDS, isToolRecord } from '../composables/Components/expert/streamedActivity.js'
+import { getFeedbackMessageUuids, serializeConversation } from '../composables/Components/expert/turnFeedback.js'
 import useTimerHelper from '../composables/TimerHelper.js'
 
 import { useAccountAuthStore } from './account-auth.js'
@@ -147,6 +148,27 @@ export const useProductExpertStore = defineStore('product-expert', {
         shouldUseMqtt () {
             const accountSettingsStore = useAccountSettingsStore()
             return accountSettingsStore.featuresCheck?.isExternalMqttBrokerFeatureEnabled && this.isSupportAgent
+        },
+        // Ratings feed the Expert's product analytics, so they only exist where telemetry is
+        // not anonymized, and only over MQTT where the vote can be published.
+        canRateTurns () {
+            return !!this.shouldUseMqtt && useAccountSettingsStore().featuresCheck?.deployment === 'cloud'
+        },
+        // The AI messages that carry the rating row: the last one of each finished turn.
+        feedbackMessageUuids () {
+            if (!this.canRateTurns) {
+                return new Set()
+            }
+            const stopping = useProductExpertSupportAgentStore().stoppingTransactions
+            const messages = this._agentStore.messages
+            const uuids = getFeedbackMessageUuids(messages, {
+                isOpen: (message) => this._inFlightRequests.has(message._transactionId) || stopping.has(message._transactionId)
+            })
+            if (this.isWaitingForResponse) {
+                const lastHuman = messages.map(m => m._type).lastIndexOf('human')
+                messages.slice(lastHuman + 1).forEach(message => uuids.delete(message._uuid))
+            }
+            return uuids
         }
     },
     actions: {
@@ -442,7 +464,6 @@ export const useProductExpertStore = defineStore('product-expert', {
         async sendMqttQuery ({ query, toolApprovals } = {}) {
             const servicesOrchestrator = getAppOrchestrator()
             const mqttService = servicesOrchestrator.$services.mqtt
-            const mqttTopicHelper = useMqttExpertTopicHelper()
 
             const transactionId = uuidv4()
             const mqttConnectionKey = this.mqttConnectionKey
@@ -452,6 +473,22 @@ export const useProductExpertStore = defineStore('product-expert', {
             // add the query as an inFlight request
             this._inFlightRequests.set(transactionId, { query, transactionId })
 
+            try {
+                const payload = { query }
+                // Resume a deferred approval turn (#421): decisions drive the turn, no query.
+                if (toolApprovals) payload.toolApprovals = toolApprovals
+
+                await this._publishChatRequest(payload, transactionId)
+
+                return Promise.resolve()
+            } catch (e) {
+                this._onMqttError(e)
+                return Promise.reject(e)
+            }
+        },
+        _publishChatRequest (payload, transactionId) {
+            const mqttService = getAppOrchestrator().$services.mqtt
+            const mqttTopicHelper = useMqttExpertTopicHelper()
             const { entityId, entityType } = mqttTopicHelper.getEntityTopicPaths()
 
             const topic = mqttTopicHelper.buildTopic({
@@ -462,32 +499,66 @@ export const useProductExpertStore = defineStore('product-expert', {
                 topicAction: 'request'
             })
 
-            try {
-                const payload = {
-                    query,
+            return mqttService.publishMessage(this.mqttConnectionKey, {
+                topic,
+                qos: 2,
+                payload: {
+                    ...payload,
                     context: {
                         ...useContextStore().expert,
                         agent: this.agentMode
                     }
+                },
+                correlationData: transactionId,
+                userProperties: {
+                    sessionId: this.sessionId,
+                    origin: window.origin || window.location.origin
                 }
-                // Resume a deferred approval turn (#421): decisions drive the turn, no query.
-                if (toolApprovals) payload.toolApprovals = toolApprovals
-
-                await mqttService.publishMessage(mqttConnectionKey, {
-                    topic,
-                    qos: 2,
-                    payload,
-                    correlationData: transactionId,
-                    userProperties: {
-                        sessionId: this.sessionId,
-                        origin: window.origin || window.location.origin
-                    }
-                })
-
-                return Promise.resolve()
-            } catch (e) {
-                this._onMqttError(e)
-                return Promise.reject(e)
+            })
+        },
+        // Fire-and-forget: a vote is not a turn, so it skips the send queue, the in-flight
+        // registry and the approval cancel that a real request goes through.
+        async _publishTurnVote (message, vote) {
+            const mqttService = getAppOrchestrator().$services.mqtt
+            try {
+                if (!mqttService.hasClient(this.mqttConnectionKey)) await this.establishMqttComms()
+                await this._publishChatRequest({ vote: { ...vote, turnId: message._transactionId } }, uuidv4())
+                return true
+            } catch {
+                return false
+            }
+        },
+        async rateTurn (messageUuid, value) {
+            const message = this._agentStore.messages.find(m => m._uuid === messageUuid)
+            if (!message || !this.canRateTurns || message._vote === value) {
+                return false
+            }
+            const sent = await this._publishTurnVote(message, { value })
+            if (sent) {
+                message._vote = value
+            }
+            return sent
+        },
+        async shareTurnConversation (messageUuid) {
+            const messages = this._agentStore.messages
+            const message = messages.find(m => m._uuid === messageUuid)
+            if (!message || !this.canRateTurns || !message._vote || message._shared) {
+                return false
+            }
+            const sent = await this._publishTurnVote(message, {
+                value: message._vote,
+                share: true,
+                conversation: serializeConversation(messages, messageUuid)
+            })
+            if (sent) {
+                message._shared = true
+            }
+            return sent
+        },
+        dismissTurnShare (messageUuid) {
+            const message = this._agentStore.messages.find(m => m._uuid === messageUuid)
+            if (message) {
+                message._shareDismissed = true
             }
         },
         async establishMqttComms () {
@@ -700,7 +771,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 if (transactionId && this._turnBubbles(transactionId).length > 0) {
                     this._mergeFinalAnswer(transactionId, response)
                 } else {
-                    this.addAiMessage(response)
+                    this.addAiMessage(response, transactionId)
                 }
                 this._clearInFlightUpdates()
                 // A deferred-approval turn (#421) ends with one card per tool that needs
@@ -1030,7 +1101,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 })
             }
         },
-        addAiMessage (message) {
+        addAiMessage (message, transactionId) {
             const answer = message.answer
                 ? message.answer.map(a => ({ ...a, _uuid: uuidv4(), _streamed: false }))
                 : []
@@ -1040,7 +1111,8 @@ export const useProductExpertStore = defineStore('product-expert', {
                 _type: 'ai',
                 _timestamp: Date.now(),
                 _streamed: false,
-                _uuid: uuidv4()
+                _uuid: uuidv4(),
+                ...(transactionId && { _transactionId: transactionId })
             })
         },
         // Place one streamed item in the turn's reply bubble, creating the bubble on the
@@ -1195,7 +1267,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             messages.forEach((message) => {
                 switch (true) {
                 case isAiMessage(message):
-                    this.addAiMessage(message, false)
+                    this.addAiMessage(message)
                     break
                 case isUserMessage(message):
                     this.addUserMessage(message.query)

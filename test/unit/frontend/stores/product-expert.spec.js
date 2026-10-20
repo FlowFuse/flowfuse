@@ -368,6 +368,24 @@ describe('product-expert store', () => {
             expect(agent.messages).toHaveLength(1)
             expect(agent.messages[0].answer.map(a => a.kind)).toEqual(['mcp_tool', 'mcp_tool', 'chat'])
         })
+
+        it('stamps the transaction id on a reply that no streamed bubble preceded', async () => {
+            const agent = useProductExpertSupportAgentStore()
+            const store = useProductExpertStore()
+
+            await store.handleMessageResponse({ answer: [{ kind: 'chat', content: 'Hi' }] }, 'turn-1')
+
+            expect(agent.messages[0]._transactionId).toBe('turn-1')
+        })
+
+        it('leaves the transaction id off a reply that carries none', async () => {
+            const agent = useProductExpertSupportAgentStore()
+            const store = useProductExpertStore()
+
+            await store.handleMessageResponse({ answer: [{ kind: 'chat', content: 'Hi' }] })
+
+            expect(agent.messages[0]).not.toHaveProperty('_transactionId')
+        })
     })
 
     describe('addPredefinedAiMessage', () => {
@@ -1532,6 +1550,156 @@ describe('product-expert store', () => {
             expect(uxState.stopBuilding).not.toHaveBeenCalled()
             expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
             expect(Product.capture).toHaveBeenCalledWith('ff-building-workspace-ready', {}, { team: 'team-1', instance: 'inst-1' })
+        })
+    })
+
+    describe('turn feedback', () => {
+        const topic = 'ff/v1/expert/u1/chat-1/t/t1/support/chat/request'
+        let store
+        let agent
+        beforeEach(() => {
+            accountAuthState.user = { id: 'u1' }
+            contextState.team = { id: 't1' }
+            contextState.expert = { deployment: 'cloud', telemetryEnabled: true }
+            accountSettingsState.featuresCheck = { isExpertAssistantFeatureEnabled: true, isExternalMqttBrokerFeatureEnabled: true, deployment: 'cloud' }
+            store = useProductExpertStore()
+            agent = useProductExpertSupportAgentStore()
+            agent.sessionId = 'chat-1'
+            mqttService.hasClient.mockReturnValue(true)
+            agent.messages.push(
+                { _type: 'human', content: 'Build it', _timestamp: 1000, _uuid: 'h1' },
+                { _type: 'ai', answer: [{ kind: 'chat', content: 'Done' }], _timestamp: 2000, _uuid: 'a1', _transactionId: 'turn-1' }
+            )
+        })
+
+        afterEach(() => {
+            contextState.team = null
+            contextState.expert = {}
+            accountSettingsState.featuresCheck = { isExpertAssistantFeatureEnabled: true }
+            mqttService.hasClient.mockReturnValue(false)
+        })
+
+        it('publishes a vote on the chat request topic against the voted turn', async () => {
+            await store.rateTurn('a1', 'up')
+
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+            const [key, options] = mqttService.publishMessage.mock.calls[0]
+            expect(key).toBe('expert/support-agent')
+            expect(options.topic).toBe(topic)
+            expect(options.qos).toBe(2)
+            expect(options.payload).toEqual({
+                vote: { value: 'up', turnId: 'turn-1' },
+                context: { deployment: 'cloud', telemetryEnabled: true, agent: SUPPORT_AGENT }
+            })
+            expect(options.correlationData).toEqual(expect.any(String))
+            expect(options.correlationData).not.toBe('turn-1')
+            expect(options.userProperties.sessionId).toBe('chat-1')
+            expect(agent.messages[1]._vote).toBe('up')
+        })
+
+        it('is not a request: no in-flight entry, no send queue, no approval cancel', async () => {
+            const cancel = vi.spyOn(store, 'cancelPendingToolApprovals')
+            const enqueue = vi.spyOn(store, '_enqueueSend')
+
+            await store.rateTurn('a1', 'down')
+
+            expect(agent.inFlightRequests.size).toBe(0)
+            expect(store.isWaitingForResponse).toBe(false)
+            expect(enqueue).not.toHaveBeenCalled()
+            expect(cancel).not.toHaveBeenCalled()
+        })
+
+        it('publishes again on a switch and ignores the vote already held', async () => {
+            await store.rateTurn('a1', 'up')
+            await store.rateTurn('a1', 'up')
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+
+            await store.rateTurn('a1', 'down')
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(2)
+            expect(mqttService.publishMessage.mock.calls[1][1].payload.vote.value).toBe('down')
+            expect(agent.messages[1]._vote).toBe('down')
+        })
+
+        it('keeps the vote unset when the publish fails', async () => {
+            mqttService.publishMessage.mockRejectedValueOnce(new Error('offline'))
+
+            const sent = await store.rateTurn('a1', 'up')
+
+            expect(sent).toBe(false)
+            expect(agent.messages[1]._vote).toBeUndefined()
+        })
+
+        it('does not publish where the rating is unavailable', async () => {
+            accountSettingsState.featuresCheck.deployment = 'self-hosted'
+            await store.rateTurn('a1', 'up')
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+        })
+
+        it('shares the conversation up to the voted answer with the current vote', async () => {
+            agent.messages.push({ _type: 'human', content: 'Later', _timestamp: 3000, _uuid: 'h2' })
+            await store.rateTurn('a1', 'down')
+            mqttService.publishMessage.mockClear()
+
+            await store.shareTurnConversation('a1')
+
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+            const { payload } = mqttService.publishMessage.mock.calls[0][1]
+            expect(payload.vote).toEqual({
+                value: 'down',
+                turnId: 'turn-1',
+                share: true,
+                conversation: [
+                    { role: 'user', timestamp: new Date(1000).toISOString(), content: 'Build it' },
+                    { role: 'assistant', timestamp: new Date(2000).toISOString(), content: 'Done' }
+                ]
+            })
+            expect(payload.context.agent).toBe(SUPPORT_AGENT)
+            expect(agent.messages[1]._shared).toBe(true)
+        })
+
+        it('only shares after a vote, and only once', async () => {
+            await store.shareTurnConversation('a1')
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+
+            await store.rateTurn('a1', 'up')
+            await store.shareTurnConversation('a1')
+            await store.shareTurnConversation('a1')
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(2)
+        })
+
+        it('remembers a dismissed share offer on the message', () => {
+            store.dismissTurnShare('a1')
+            expect(agent.messages[1]._shareDismissed).toBe(true)
+        })
+
+        describe('feedbackMessageUuids', () => {
+            it('holds the last answer of each finished turn', () => {
+                agent.messages.push(
+                    { _type: 'ai', answer: [{ kind: 'chat', content: 'More' }], _uuid: 'a2', _transactionId: 'turn-2' },
+                    { _type: 'event', kind: 'instance-ready', _uuid: 'e1' },
+                    { _type: 'human', content: 'Again', _uuid: 'h2' },
+                    { _type: 'ai', answer: [{ kind: 'chat', content: 'Sure' }], _uuid: 'a3', _transactionId: 'turn-3' }
+                )
+                expect([...store.feedbackMessageUuids]).toEqual(['a2', 'a3'])
+            })
+
+            it('is empty unless the deployment is cloud and the transport MQTT', () => {
+                accountSettingsState.featuresCheck.deployment = 'self-hosted'
+                expect(store.feedbackMessageUuids.size).toBe(0)
+
+                accountSettingsState.featuresCheck.deployment = 'cloud'
+                store.agentMode = INSIGHTS_AGENT
+                expect(store.canRateTurns).toBe(false)
+            })
+
+            it('leaves out the turn still running', () => {
+                agent.inFlightRequests.set('turn-2', { query: 'x', transactionId: 'turn-2' })
+                agent.messages.push(
+                    { _type: 'human', content: 'Again', _uuid: 'h2' },
+                    { _type: 'ai', answer: [{ kind: 'chat', content: 'Working' }], _uuid: 'a2', _transactionId: 'turn-2' }
+                )
+                expect([...store.feedbackMessageUuids]).toEqual(['a1'])
+            })
         })
     })
 })
