@@ -118,4 +118,30 @@ describe('AiMessage', () => {
 
         expect(wrapper.find('.ff-expert-timeline-item--name').text()).toBe('list_orders')
     })
+
+    describe('turn feedback', () => {
+        const feedbackStubs = { ...stubs, 'turn-feedback': { name: 'TurnFeedback', template: '<div data-el="turn-feedback" />' } }
+
+        function mountFeedback (props) {
+            return mount(AiMessage, {
+                props: { answer: [{ kind: 'chat', content: 'Done', _uuid: 'c', _streamed: true }], _type: 'ai', _timestamp: 1, _uuid: 'm1', _streamed: true, ...props },
+                global: { stubs: feedbackStubs }
+            })
+        }
+
+        test('shows the rating row only when flagged', () => {
+            expect(mountFeedback({ feedback: true }).find('[data-el="turn-feedback"]').exists()).toBe(true)
+            expect(mountFeedback({ feedback: false }).find('[data-el="turn-feedback"]').exists()).toBe(false)
+        })
+
+        test('waits for the answer to finish streaming', () => {
+            const wrapper = mountFeedback({ feedback: true, answer: [{ kind: 'chat', content: 'Done', _uuid: 'c', _streamed: false }] })
+            expect(wrapper.find('[data-el="turn-feedback"]').exists()).toBe(false)
+        })
+
+        test('is not shown on a re-rendered folded turn', () => {
+            const wrapper = mountFeedback({ instant: true })
+            expect(wrapper.find('[data-el="turn-feedback"]').exists()).toBe(false)
+        })
+    })
 })

@@ -13,6 +13,13 @@
             :instant="instant"
             @streaming-complete="setSubItemStreamedState(key)"
         />
+        <turn-feedback
+            v-if="showFeedback"
+            :message-uuid="_uuid"
+            :vote="_vote"
+            :shared="_shared"
+            :share-dismissed="_shareDismissed"
+        />
     </div>
 </template>
 
@@ -21,6 +28,7 @@ import AgentMessage from './components/AgentMessage.vue'
 import AnswerWrapper from './components/AnswerWrapper.vue'
 import ReasoningBlock from './components/ReasoningBlock.vue'
 import TimelineItem from './components/TimelineItem.vue'
+import TurnFeedback from './components/TurnFeedback.vue'
 
 import { ACTIVITY_KINDS } from '@/composables/Components/expert/streamedActivity.js'
 import useStreamingList from '@/composables/StreamingListHelper.js'
@@ -28,7 +36,7 @@ import { slugify } from '@/composables/strings/String.js'
 
 export default {
     name: 'AiMessage',
-    components: { AgentMessage, AnswerWrapper, ReasoningBlock, TimelineItem },
+    components: { AgentMessage, AnswerWrapper, ReasoningBlock, TimelineItem, TurnFeedback },
     props: {
         query: {
             type: String,
@@ -70,6 +78,29 @@ export default {
             type: String,
             default: null
         },
+        // eslint-disable-next-line vue/prop-name-casing
+        _vote: {
+            required: false,
+            type: String,
+            default: null
+        },
+        // eslint-disable-next-line vue/prop-name-casing
+        _shared: {
+            required: false,
+            type: Boolean,
+            default: false
+        },
+        // eslint-disable-next-line vue/prop-name-casing
+        _shareDismissed: {
+            required: false,
+            type: Boolean,
+            default: false
+        },
+        // Set on the message that closes a finished turn; the rating row waits for its answers to finish streaming.
+        feedback: {
+            type: Boolean,
+            default: false
+        },
         instant: {
             type: Boolean,
             default: false
@@ -86,6 +117,9 @@ export default {
         },
         terminalAnswers () {
             return this.answer.filter(answer => !ACTIVITY_KINDS.includes(answer.kind))
+        },
+        showFeedback () {
+            return this.feedback && this.terminalAnswers.every(answer => answer._streamed)
         }
     },
     watch: {

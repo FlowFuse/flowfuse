@@ -3,7 +3,7 @@
         <ul class="flex flex-col gap-3">
             <li v-for="entry in renderList" :key="entryKey(entry)" class="flex flex-col gap-3">
                 <collapsed-question-turn v-if="entry.kind === 'folded-turn'" :turn="entry" />
-                <component :is="messageTypes[entry.message._type]" v-else-if="messageTypes[entry.message._type]" v-bind="{...entry.message}" />
+                <component :is="messageTypes[entry.message._type]" v-else-if="messageTypes[entry.message._type]" v-bind="messageProps(entry.message)" />
             </li>
             <li v-if="isWaitingForResponse">
                 <expert-loading-indicator :show-messages="!hasStreamedActivity" />
@@ -48,7 +48,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useProductExpertStore, ['messages', 'isWaitingForResponse', 'hasStreamedActivity']),
+        ...mapState(useProductExpertStore, ['messages', 'isWaitingForResponse', 'hasStreamedActivity', 'feedbackMessageUuids']),
         messageTypes () {
             return {
                 ai: markRaw(AiMessage),
@@ -74,6 +74,12 @@ export default {
         window.removeEventListener('keydown', this.onKeyDown)
     },
     methods: {
+        messageProps (message) {
+            if (message._type !== 'ai') {
+                return { ...message }
+            }
+            return { ...message, feedback: this.feedbackMessageUuids.has(message._uuid) }
+        },
         entryKey (entry) {
             return entry.kind === 'folded-turn' ? entry.questionsMessage._uuid : entry.message._uuid
         },
