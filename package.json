@@ -124,7 +124,7 @@
         "tar-stream": "^3.1.7",
         "uuid": "^14.0.0",
         "validate-npm-package-name": "^8.0.0",
-        "vue": "^3.4.5",
+        "vue": "^3.5.44",
         "vue-echarts": "^8.0.1",
         "vue-router": "^4.2.5",
         "vue-shepherd": "^3.0.0",
