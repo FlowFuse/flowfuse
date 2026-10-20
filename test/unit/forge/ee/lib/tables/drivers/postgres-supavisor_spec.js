@@ -18,6 +18,7 @@ describe('Tables: Postgres Supavisor Driver', function () {
         app = {
             log: {
                 error: sinon.stub(),
+                warn: sinon.stub(),
                 info: sinon.stub(),
                 debug: sinon.stub()
             },
@@ -205,6 +206,68 @@ describe('Tables: Postgres Supavisor Driver', function () {
                 return Promise.resolve({ rows: [{ datname: 'existingdb' }] })
             })
             await driver.createDatabase({ id: 1, hashid: 'existingdb' }, 'existingdb').should.be.rejectedWith('Database already exists')
+        })
+
+        it('should rethrow and clean up when the tenant creation fails', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            sinon.stub(axios, 'put').rejects(new Error('Request failed with status code 500'))
+            sinon.stub(axios, 'delete').resolves({ status: 200 })
+            await driver.init(app, options)
+            await driver.createDatabase(team, 't1').should.be.rejectedWith('Request failed with status code 500')
+            axios.delete.calledWithMatch(`http://db.local:5433/api/tenants/${team.hashid}`).should.be.true()
+            driver._adminClient.query.calledWithMatch(`DROP DATABASE IF EXISTS "${team.hashid}"`).should.be.true()
+            driver._adminClient.query.calledWithMatch(`DROP USER IF EXISTS "${team.hashid}"`).should.be.true()
+            driver._adminClient.query.calledWithMatch(`DROP ROLE IF EXISTS "${team.hashid}-role"`).should.be.true()
+            app.db.models.Table.create.called.should.be.false()
+        })
+
+        it('should rethrow and clean up when the tenant response is not a 201', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            sinon.stub(axios, 'put').resolves({ status: 200, statusText: 'OK' })
+            sinon.stub(axios, 'delete').resolves({ status: 200 })
+            await driver.init(app, options)
+            await driver.createDatabase(team, 't1').should.be.rejectedWith('Failed to create database for team t1hash: OK')
+            driver._adminClient.query.calledWithMatch(`DROP DATABASE IF EXISTS "${team.hashid}"`).should.be.true()
+        })
+
+        it('should clean up when creating the Table record fails', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            app.db.models.Table.create.rejects(new Error('db down'))
+            sinon.stub(axios, 'put').resolves({ status: 201 })
+            sinon.stub(axios, 'delete').resolves({ status: 200 })
+            await driver.init(app, options)
+            await driver.createDatabase(team, 't1').should.be.rejectedWith('db down')
+            axios.delete.calledOnce.should.be.true()
+            driver._adminClient.query.calledWithMatch(`DROP DATABASE IF EXISTS "${team.hashid}"`).should.be.true()
+        })
+
+        it('should still drop the database when the tenant cleanup fails', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            sinon.stub(axios, 'put').rejects(new Error('put failed'))
+            sinon.stub(axios, 'delete').rejects(new Error('delete failed'))
+            await driver.init(app, options)
+            await driver.createDatabase(team, 't1').should.be.rejectedWith('put failed')
+            app.log.warn.calledWithMatch('Failed to clean up tenant').should.be.true()
+            driver._adminClient.query.calledWithMatch(`DROP DATABASE IF EXISTS "${team.hashid}"`).should.be.true()
+        })
+
+        it('should not clean up when CREATE DATABASE itself fails', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            sinon.stub(axios, 'delete').resolves({ status: 200 })
+            await driver.init(app, options)
+            driver._adminClient.query.withArgs(`CREATE DATABASE "${team.hashid}"`).rejects(new Error('already being created'))
+            await driver.createDatabase(team, 't1').should.be.rejectedWith('already being created')
+            axios.delete.called.should.be.false()
+            driver._adminClient.query.calledWithMatch('DROP').should.be.false()
+        })
+
+        it('should not clean up when the database already exists', async function () {
+            sinon.stub(axios, 'delete').resolves({ status: 200 })
+            await driver.init(app, options)
+            driver._adminClient.query.withArgs('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', ['existingdb']).resolves({ rows: [{ datname: 'existingdb' }] })
+            await driver.createDatabase({ id: 1, hashid: 'existingdb' }, 'existingdb').should.be.rejectedWith('Database already exists')
+            axios.delete.called.should.be.false()
+            driver._adminClient.query.calledWithMatch('DROP').should.be.false()
         })
     })
 
