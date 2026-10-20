@@ -3,7 +3,7 @@
         <div class="ff-turn-feedback--row">
             <ff-button
                 v-ff-tooltip:bottom="'Good answer'"
-                kind="tertiary"
+                kind="plain"
                 size="small"
                 data-action="vote-up"
                 aria-label="Good answer"
@@ -18,7 +18,7 @@
             </ff-button>
             <ff-button
                 v-ff-tooltip:bottom="'Bad answer'"
-                kind="tertiary"
+                kind="plain"
                 size="small"
                 data-action="vote-down"
                 aria-label="Bad answer"
@@ -157,13 +157,20 @@ export default {
 
     // Muted until the row is used, so the answer stays the focus.
     .ff-btn {
+        padding: 0.25rem;
+        border-radius: 0.25rem;
+        color: var(--ff-color-text-subtle);
         opacity: 0.6;
-        transition: opacity 0.15s ease;
+        transition: opacity 0.15s ease, color 0.15s ease;
 
         &:hover,
         &:focus-visible,
         &[aria-pressed="true"] {
             opacity: 1;
+        }
+
+        &:hover {
+            color: var(--ff-color-text-strong);
         }
 
         &[aria-pressed="true"] svg {

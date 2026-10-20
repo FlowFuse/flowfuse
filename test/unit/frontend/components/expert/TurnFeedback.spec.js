@@ -68,7 +68,7 @@ describe('TurnFeedback', () => {
 
         expect(up(wrapper).attributes('aria-pressed')).toBe('true')
         expect(down(wrapper).attributes('aria-pressed')).toBe('false')
-        expect(buttons.map(b => b.props('kind'))).toEqual(['tertiary', 'tertiary'])
+        expect(buttons.map(b => b.props('kind'))).toEqual(['plain', 'plain'])
         expect(up(wrapper).find('svg').attributes('viewBox')).toBe('0 0 20 20')
         expect(down(wrapper).find('svg').attributes('viewBox')).toBe('0 0 24 24')
     })
