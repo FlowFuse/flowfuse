@@ -238,6 +238,12 @@ async function init (app, opts) {
                         delete request.session.scope
                     }
                     resolveSourceContext(request)
+                    // An MCP token's tool permissions are only enforced for calls made through
+                    // the MCP door, so it must not reach the REST API directly
+                    if (request.session.mcpGrant && !request.routeOptions.config.allowMcpGrant && request.requestContext.get('sourceContext')?.source !== 'mcp') {
+                        reply.code(403).send({ code: 'unauthorized', error: 'MCP tokens can only be used through the MCP endpoint' })
+                        return
+                    }
                     return
                 }
                 reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
