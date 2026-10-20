@@ -1749,7 +1749,7 @@ describe('Pipelines API', function () {
                 body.should.not.have.property('deviceGroups')
             })
 
-            it('Should leave credentials in the repository url out of the audit log', async function () {
+            it('Should redact credentials in the repository url in the audit log', async function () {
                 const gitToken = await createGitToken()
                 const stage = TestObjects.stageOne
 
@@ -1769,9 +1769,10 @@ describe('Pipelines API', function () {
                 const entries = logs.map(log => JSON.parse(log.body)).filter(body => body.pipelineStage.hashid === stage.hashid)
                 entries.should.have.length(1)
                 entries[0].updates.should.containDeep([
-                    { key: 'url', new: 'https://example.com/repo.git' }
+                    { key: 'url', new: 'https://[REDACTED]@example.com/repo.git' }
                 ])
                 JSON.stringify(entries[0]).should.not.containEql('secret-token')
+                JSON.stringify(entries[0]).should.not.containEql('someone')
                 // git fields left empty when moving to a git repo are not changes
                 entries[0].updates.map(u => u.key).should.not.containEql('pullBranch')
                 entries[0].updates.map(u => u.key).should.not.containEql('pushPath')

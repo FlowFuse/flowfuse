@@ -824,7 +824,7 @@ module.exports = async function (app) {
             // A field that is missing (no git repo) and one left empty mean the same
             if ((oldValue || '') !== (newValue || '')) {
                 if (key === 'url') {
-                    updates.push(key, withoutCredentials(oldValue), withoutCredentials(newValue))
+                    updates.push(key, redactCredentials(oldValue), redactCredentials(newValue))
                 } else {
                     updates.push(key, oldValue, newValue)
                 }
@@ -834,10 +834,11 @@ module.exports = async function (app) {
     }
 
     /**
-     * Drops any user:password@ part from a repository URL so it never lands in the audit log
+     * Replaces any user:password@ part in a repository URL with [REDACTED] so the
+     * credentials never land in the audit log, while still showing the URL had some
      */
-    function withoutCredentials (url) {
-        return url ? url.replace(/^([a-z][a-z0-9+.-]*:\/\/)[^/@]*@/i, '$1') : url
+    function redactCredentials (url) {
+        return url ? url.replace(/^([a-z][a-z0-9+.-]*:\/\/)[^/@]*@/i, '$1[REDACTED]@') : url
     }
 
     function stageTarget (stage) {
