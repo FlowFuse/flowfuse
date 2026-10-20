@@ -221,6 +221,17 @@ const formatLogEntry = (auditLogDbRow) => {
                 formatted.body = formatted.body || {}
                 formatted.body.flowsSet = formatted.body?.flowsSet || { type: body.type }
             }
+            if (formatted.event === 'nr-assistant.inject') {
+                formatted.body = formatted.body || {}
+                formatted.body.inject = formatted.body?.inject || {
+                    node: body.node,
+                    type: body.type,
+                    name: body.name,
+                    z: body.z,
+                    flowName: body.flowName,
+                    msgid: body.msgid
+                }
+            }
             // TODO: Add other known Node-RED audit events
             // including: 'nodes.install', 'nodes.remove', 'library.set'
             // this will permit audit viewer to access the details of the event

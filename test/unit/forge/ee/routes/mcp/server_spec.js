@@ -97,6 +97,32 @@ describe('MCP Platform Tools Server', function () {
                 )
             })
 
+            it('should reject a browser cookie session and not reach the gateway', async function () {
+                // A logged-in browser session is a valid platform session, but the
+                // MCP endpoint is for token-backed callers only. A cookie must not
+                // be accepted as identity here.
+                const login = await app.inject({
+                    method: 'POST',
+                    url: '/account/login',
+                    payload: { username: 'alice', password: 'aaPassword' }
+                })
+                login.statusCode.should.equal(200)
+                const sid = login.cookies[0].value
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    cookies: { sid },
+                    payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+                })
+                response.statusCode.should.equal(401)
+                response.headers.should.have.property(
+                    'www-authenticate',
+                    `Bearer resource_metadata="${app.config.base_url}/.well-known/oauth-protected-resource/mcp"`
+                )
+                proxyRequest.called.should.be.false()
+            })
+
             it('should forward the request and return the gateway response', async function () {
                 const response = await app.inject({
                     method: 'POST',

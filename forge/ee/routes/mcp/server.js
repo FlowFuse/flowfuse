@@ -101,7 +101,8 @@ module.exports = async function (app) {
 
     // Resolves the caller's identity and scope, or sends an error reply and returns null.
     async function resolveCaller (request, reply) {
-        if (!request.session?.User) {
+        // This endpoint is for token-backed callers only.
+        if (!request.session?.User || !request.session.isPAT) {
             // RFC 9728 §5.1: point unauthenticated callers at the resource metadata.
             reply.header('WWW-Authenticate', `Bearer resource_metadata="${app.config.base_url}/.well-known/oauth-protected-resource/mcp"`)
             reply.code(401).send({ code: 'unauthorized', error: 'Unauthorized' })

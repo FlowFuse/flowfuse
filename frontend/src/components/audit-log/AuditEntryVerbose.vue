@@ -770,6 +770,11 @@
         <label>{{ AuditEvents[entry.event] }}</label>
         <span>Nodes have been removed via the "Manage Palette" option inside Node-RED</span>
     </template>
+    <template v-else-if="entry.event === 'nr-assistant.inject'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="entry.body?.inject?.node">A message was injected into {{ entry.body.inject.type || 'a' }} node <template v-if="entry.body.inject.name">'{{ entry.body.inject.name }}' ({{ entry.body.inject.node }})</template><template v-else>{{ entry.body.inject.node }}</template><template v-if="entry.body.inject.flowName"> on flow tab '{{ entry.body.inject.flowName }}'</template><template v-else-if="entry.body.inject.z"> on flow tab {{ entry.body.inject.z }}</template>.</span>
+        <span v-else>A message was injected into a node.</span>
+    </template>
     <template v-else-if="entry.event === 'context.delete'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="entry.body?.context?.scope && entry.body?.context?.store && entry.body?.context?.key">Context key '{{ entry.body.context.scope }}.{{ entry.body.context.key }}' was deleted from context store '{{ entry.body.context.store }}' inside Node-RED.</span>

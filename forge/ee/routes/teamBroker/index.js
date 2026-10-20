@@ -2,6 +2,12 @@ const crypto = require('crypto')
 
 const schemaApi = require('./schema')
 
+const generateUuid = (length = 6) => {
+    return Array.from(crypto.getRandomValues(new Uint8Array(6)), (byte) =>
+        byte.toString(36).padStart(2, '0')
+    ).join('').substring(0, length)
+}
+
 module.exports = async function (app) {
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.teamId !== undefined || request.params.teamSlug !== undefined) {
@@ -160,7 +166,7 @@ module.exports = async function (app) {
         }
         try {
             const newUser = request.body
-            newUser.acls = JSON.stringify(newUser.acls)
+            newUser.acls = JSON.stringify(newUser.acls || [{ action: 'both', pattern: '#', id: generateUuid() }])
             await request.team.checkTeamBrokerClientCreateAllowed()
             const user = await app.db.models.TeamBrokerClient.create({ ...request.body, TeamId: request.team.id })
             reply.status(201).send(app.db.views.TeamBrokerClient.user(user))
@@ -549,12 +555,6 @@ module.exports = async function (app) {
                             error: 'Team Broker client limit reached'
                         })
                 }
-            }
-            // mvp for generating default acls
-            const generateUuid = (length = 6) => {
-                return Array.from(crypto.getRandomValues(new Uint8Array(6)), (byte) =>
-                    byte.toString(36).padStart(2, '0')
-                ).join('').substring(0, length)
             }
             const acls = [
                 {
