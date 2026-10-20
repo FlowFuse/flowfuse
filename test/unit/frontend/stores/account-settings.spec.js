@@ -87,7 +87,7 @@ describe('account-settings store', () => {
 
         describe('loadPosthogFlags', () => {
             it('stores the flag values PostHog reports', () => {
-                const onFeatureFlags = vi.fn((cb) => cb(['MCP_THIRD_PARTY'], { MCP_THIRD_PARTY: true }))
+                const onFeatureFlags = vi.fn((onFlags) => onFlags(['MCP_THIRD_PARTY'], { MCP_THIRD_PARTY: true }))
                 window.posthog = { onFeatureFlags }
 
                 const store = useAccountSettingsStore()
