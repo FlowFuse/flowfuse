@@ -3,7 +3,7 @@
         <div class="ff-turn-feedback--row">
             <ff-button
                 v-ff-tooltip:bottom="'Good answer'"
-                :kind="vote === 'up' ? 'secondary' : 'tertiary'"
+                kind="tertiary"
                 size="small"
                 data-action="vote-up"
                 aria-label="Good answer"
@@ -18,7 +18,7 @@
             </ff-button>
             <ff-button
                 v-ff-tooltip:bottom="'Bad answer'"
-                :kind="vote === 'down' ? 'secondary' : 'tertiary'"
+                kind="tertiary"
                 size="small"
                 data-action="vote-down"
                 aria-label="Bad answer"
@@ -31,22 +31,31 @@
                     <HandThumbDownIcon v-else />
                 </template>
             </ff-button>
-            <span v-if="shared" class="ff-turn-feedback--confirmed" data-el="share-confirmed">
+            <span v-if="feedbackSent" class="ff-turn-feedback--confirmed" data-el="feedback-confirmed">
                 <CheckIcon aria-hidden="true" />
-                Conversation shared. Thank you.
+                {{ confirmation }}
             </span>
         </div>
-        <div class="ff-turn-feedback--offer" :class="{ open: offerVisible }" data-el="share-offer">
-            <div class="ff-turn-feedback--offer-inner" :inert="!offerVisible">
-                <p>
-                    Share this conversation with FlowFuse to help us improve the Expert.
-                    It includes your messages, the answers, and any flows or debug output up to this answer.
+        <div class="ff-turn-feedback--panel" :class="{ open: panelVisible }" data-el="feedback-panel">
+            <div class="ff-turn-feedback--panel-inner" :inert="!panelVisible">
+                <textarea
+                    v-model="comment"
+                    class="ff-input ff-text-input"
+                    rows="3"
+                    maxlength="2000"
+                    data-el="feedback-comment"
+                    :placeholder="placeholder"
+                    :disabled="pending"
+                />
+                <ff-checkbox v-model="share" label="Include this conversation" data-el="feedback-share" :disabled="pending" />
+                <p class="ff-turn-feedback--hint">
+                    Shares your messages, the answers, and any flows or debug output up to this answer with FlowFuse.
                 </p>
                 <div class="ff-turn-feedback--actions">
-                    <ff-button kind="secondary" size="small" data-action="share" :disabled="pending" @click="share">
-                        Share conversation
+                    <ff-button kind="primary" size="small" data-action="send-feedback" :disabled="!canSend || pending" @click="send">
+                        Send feedback
                     </ff-button>
-                    <ff-button kind="tertiary" size="small" data-action="dismiss-share" @click="dismissTurnShare(messageUuid)">
+                    <ff-button kind="tertiary" size="small" data-action="dismiss-feedback" :disabled="pending" @click="dismissTurnFeedback(messageUuid)">
                         No thanks
                     </ff-button>
                 </div>
@@ -78,23 +87,38 @@ export default {
             type: Boolean,
             default: false
         },
-        shareDismissed: {
+        feedbackSent: {
+            type: Boolean,
+            default: false
+        },
+        feedbackDismissed: {
             type: Boolean,
             default: false
         }
     },
     data () {
         return {
-            pending: false
+            pending: false,
+            comment: '',
+            share: false
         }
     },
     computed: {
-        offerVisible () {
-            return !!this.vote && !this.shared && !this.shareDismissed
+        panelVisible () {
+            return !!this.vote && !this.feedbackSent && !this.feedbackDismissed
+        },
+        placeholder () {
+            return this.vote === 'down' ? 'What went wrong? (optional)' : 'What was good about this answer? (optional)'
+        },
+        canSend () {
+            return this.comment.trim().length > 0 || this.share
+        },
+        confirmation () {
+            return this.shared ? 'Thanks for your feedback. Conversation shared.' : 'Thanks for your feedback.'
         }
     },
     methods: {
-        ...mapActions(useProductExpertStore, ['rateTurn', 'shareTurnConversation', 'dismissTurnShare']),
+        ...mapActions(useProductExpertStore, ['rateTurn', 'submitTurnFeedback', 'dismissTurnFeedback']),
         async rate (value) {
             if (this.pending || this.vote === value) {
                 return
@@ -106,10 +130,10 @@ export default {
                 this.pending = false
             }
         },
-        async share () {
+        async send () {
             this.pending = true
             try {
-                await this.shareTurnConversation(this.messageUuid)
+                await this.submitTurnFeedback(this.messageUuid, { comment: this.comment, share: this.share })
             } finally {
                 this.pending = false
             }
@@ -141,6 +165,10 @@ export default {
         &[aria-pressed="true"] {
             opacity: 1;
         }
+
+        &[aria-pressed="true"] svg {
+            color: var(--ff-color-accent);
+        }
     }
 }
 
@@ -157,7 +185,7 @@ export default {
     }
 }
 
-.ff-turn-feedback--offer {
+.ff-turn-feedback--panel {
     display: grid;
     grid-template-rows: 0fr;
     opacity: 0;
@@ -169,14 +197,23 @@ export default {
     }
 }
 
-.ff-turn-feedback--offer-inner {
+.ff-turn-feedback--panel-inner {
     min-height: 0;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 32rem;
+    padding-top: 0.25rem;
 
-    p {
-        margin: 0.25rem 0 0.5rem;
-        max-width: 32rem;
+    textarea {
+        resize: vertical;
+        height: auto;
     }
+}
+
+.ff-turn-feedback--hint {
+    margin: 0;
 }
 
 .ff-turn-feedback--actions {
@@ -187,7 +224,7 @@ export default {
 
 @media (prefers-reduced-motion: reduce) {
     .ff-turn-feedback--row .ff-btn,
-    .ff-turn-feedback--offer {
+    .ff-turn-feedback--panel {
         transition: none;
     }
 }

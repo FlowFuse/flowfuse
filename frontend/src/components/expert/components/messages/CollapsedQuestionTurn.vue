@@ -69,7 +69,8 @@
             :message-uuid="turn.questionsMessage._uuid"
             :vote="turn.questionsMessage._vote"
             :shared="turn.questionsMessage._shared"
-            :share-dismissed="turn.questionsMessage._shareDismissed"
+            :feedback-sent="turn.questionsMessage._feedbackSent"
+            :feedback-dismissed="turn.questionsMessage._feedbackDismissed"
         />
     </div>
 </template>

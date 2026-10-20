@@ -1635,41 +1635,95 @@ describe('product-expert store', () => {
             expect(mqttService.publishMessage).not.toHaveBeenCalled()
         })
 
-        it('shares the conversation up to the voted answer with the current vote', async () => {
-            agent.messages.push({ _type: 'human', content: 'Later', _timestamp: 3000, _uuid: 'h2' })
+        const conversationUpToA1 = [
+            { role: 'user', timestamp: new Date(1000).toISOString(), content: 'Build it' },
+            { role: 'assistant', timestamp: new Date(2000).toISOString(), content: 'Done' }
+        ]
+
+        it('sends a comment with the current vote and no conversation', async () => {
             await store.rateTurn('a1', 'down')
             mqttService.publishMessage.mockClear()
 
-            await store.shareTurnConversation('a1')
+            const sent = await store.submitTurnFeedback('a1', { comment: '  Wrong flow  ', share: false })
 
+            expect(sent).toBe(true)
             expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
             const { payload } = mqttService.publishMessage.mock.calls[0][1]
-            expect(payload.vote).toEqual({
-                value: 'down',
-                turnId: 'turn-1',
-                share: true,
-                conversation: [
-                    { role: 'user', timestamp: new Date(1000).toISOString(), content: 'Build it' },
-                    { role: 'assistant', timestamp: new Date(2000).toISOString(), content: 'Done' }
-                ]
-            })
+            expect(payload.vote).toEqual({ value: 'down', turnId: 'turn-1', comment: 'Wrong flow' })
             expect(payload.context.agent).toBe(SUPPORT_AGENT)
-            expect(agent.messages[1]._shared).toBe(true)
+            expect(agent.messages[1]._comment).toBe('Wrong flow')
+            expect(agent.messages[1]._feedbackSent).toBe(true)
+            expect(agent.messages[1]._shared).toBeUndefined()
         })
 
-        it('only shares after a vote, and only once', async () => {
-            await store.shareTurnConversation('a1')
+        it('shares the conversation up to the voted answer without a comment', async () => {
+            agent.messages.push({ _type: 'human', content: 'Later', _timestamp: 3000, _uuid: 'h2' })
+            await store.rateTurn('a1', 'up')
+            mqttService.publishMessage.mockClear()
+
+            await store.submitTurnFeedback('a1', { comment: '   ', share: true })
+
+            const { payload } = mqttService.publishMessage.mock.calls[0][1]
+            expect(payload.vote).toEqual({ value: 'up', turnId: 'turn-1', share: true, conversation: conversationUpToA1 })
+            expect(agent.messages[1]._comment).toBeUndefined()
+            expect(agent.messages[1]._shared).toBe(true)
+            expect(agent.messages[1]._feedbackSent).toBe(true)
+        })
+
+        it('sends comment and conversation together', async () => {
+            await store.rateTurn('a1', 'up')
+            mqttService.publishMessage.mockClear()
+
+            await store.submitTurnFeedback('a1', { comment: 'Great', share: true })
+
+            expect(mqttService.publishMessage.mock.calls[0][1].payload.vote).toEqual({
+                value: 'up',
+                turnId: 'turn-1',
+                comment: 'Great',
+                share: true,
+                conversation: conversationUpToA1
+            })
+        })
+
+        it('sends nothing without a vote, a comment or a share, and only once', async () => {
+            await store.submitTurnFeedback('a1', { comment: 'Early' })
             expect(mqttService.publishMessage).not.toHaveBeenCalled()
 
             await store.rateTurn('a1', 'up')
-            await store.shareTurnConversation('a1')
-            await store.shareTurnConversation('a1')
+            await store.submitTurnFeedback('a1', { comment: ' ', share: false })
+            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+
+            await store.submitTurnFeedback('a1', { comment: 'Nice' })
+            await store.submitTurnFeedback('a1', { comment: 'Again' })
             expect(mqttService.publishMessage).toHaveBeenCalledTimes(2)
         })
 
-        it('remembers a dismissed share offer on the message', () => {
-            store.dismissTurnShare('a1')
-            expect(agent.messages[1]._shareDismissed).toBe(true)
+        it('leaves the message untouched when the feedback publish fails', async () => {
+            await store.rateTurn('a1', 'up')
+            mqttService.publishMessage.mockRejectedValueOnce(new Error('offline'))
+
+            const sent = await store.submitTurnFeedback('a1', { comment: 'Nice', share: true })
+
+            expect(sent).toBe(false)
+            expect(agent.messages[1]._comment).toBeUndefined()
+            expect(agent.messages[1]._shared).toBeUndefined()
+            expect(agent.messages[1]._feedbackSent).toBeUndefined()
+        })
+
+        it('re-sends the stored comment, but not the conversation, when the vote changes', async () => {
+            await store.rateTurn('a1', 'up')
+            await store.submitTurnFeedback('a1', { comment: 'Nice', share: true })
+            mqttService.publishMessage.mockClear()
+
+            await store.rateTurn('a1', 'down')
+
+            expect(mqttService.publishMessage.mock.calls[0][1].payload.vote).toEqual({ value: 'down', turnId: 'turn-1', comment: 'Nice' })
+            expect(agent.messages[1]._vote).toBe('down')
+        })
+
+        it('remembers a dismissed feedback panel on the message', () => {
+            store.dismissTurnFeedback('a1')
+            expect(agent.messages[1]._feedbackDismissed).toBe(true)
         })
 
         describe('feedbackMessageUuids', () => {

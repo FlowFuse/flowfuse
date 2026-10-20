@@ -18,7 +18,8 @@
             :message-uuid="_uuid"
             :vote="_vote"
             :shared="_shared"
-            :share-dismissed="_shareDismissed"
+            :feedback-sent="_feedbackSent"
+            :feedback-dismissed="_feedbackDismissed"
         />
     </div>
 </template>
@@ -91,7 +92,13 @@ export default {
             default: false
         },
         // eslint-disable-next-line vue/prop-name-casing
-        _shareDismissed: {
+        _feedbackSent: {
+            required: false,
+            type: Boolean,
+            default: false
+        },
+        // eslint-disable-next-line vue/prop-name-casing
+        _feedbackDismissed: {
             required: false,
             type: Boolean,
             default: false

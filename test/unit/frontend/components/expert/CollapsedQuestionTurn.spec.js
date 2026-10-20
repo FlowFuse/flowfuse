@@ -16,7 +16,7 @@ vi.mock('@/components/expert/components/messages/AiMessage.vue', () => ({
     default: { name: 'AiMessage', props: ['answer'], template: '<div data-stub="ai-message" />' }
 }))
 vi.mock('@/components/expert/components/messages/components/TurnFeedback.vue', () => ({
-    default: { name: 'TurnFeedback', props: ['messageUuid', 'vote'], template: '<div data-stub="turn-feedback" />' }
+    default: { name: 'TurnFeedback', props: ['messageUuid', 'vote', 'shared', 'feedbackSent', 'feedbackDismissed'], template: '<div data-stub="turn-feedback" />' }
 }))
 vi.mock('@/components/expert/components/messages/HumanMessage.vue', () => ({
     default: { name: 'HumanMessage', template: '<div data-stub="human-message" />' }
@@ -54,10 +54,14 @@ describe('CollapsedQuestionTurn', () => {
         mocks.expertStore.feedbackMessageUuids = new Set(['a1'])
         const turn = answeredTurn()
         turn.questionsMessage._vote = 'up'
+        turn.questionsMessage._feedbackSent = true
+        turn.questionsMessage._feedbackDismissed = true
         const feedback = mountTurn(turn).findComponent({ name: 'TurnFeedback' })
         expect(feedback.exists()).toBe(true)
         expect(feedback.props('messageUuid')).toBe('a1')
         expect(feedback.props('vote')).toBe('up')
+        expect(feedback.props('feedbackSent')).toBe(true)
+        expect(feedback.props('feedbackDismissed')).toBe(true)
     })
 
     test('hides the rating row when the question turn cannot be rated', () => {

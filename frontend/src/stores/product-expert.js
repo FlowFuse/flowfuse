@@ -518,11 +518,12 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         // Fire-and-forget: a vote is not a turn, so it skips the send queue, the in-flight
         // registry and the approval cancel that a real request goes through.
+        // The stored comment rides on every vote because the latest submission has to carry it.
         async _publishTurnVote (message, vote) {
             const mqttService = getAppOrchestrator().$services.mqtt
             try {
                 if (!mqttService.hasClient(this.mqttConnectionKey)) await this.establishMqttComms()
-                await this._publishChatRequest({ vote: { ...vote, turnId: message._transactionId } }, uuidv4())
+                await this._publishChatRequest({ vote: { ...(message._comment ? { comment: message._comment } : {}), ...vote, turnId: message._transactionId } }, uuidv4())
                 return true
             } catch {
                 return false
@@ -539,26 +540,37 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
             return sent
         },
-        async shareTurnConversation (messageUuid) {
+        async submitTurnFeedback (messageUuid, { comment, share } = {}) {
             const messages = this._agentStore.messages
             const message = messages.find(m => m._uuid === messageUuid)
-            if (!message || !this.canRateTurns || !message._vote || message._shared) {
+            const trimmed = typeof comment === 'string' ? comment.trim() : ''
+            if (!message || !this.canRateTurns || !message._vote || message._feedbackSent || (!trimmed && !share)) {
                 return false
             }
-            const sent = await this._publishTurnVote(message, {
-                value: message._vote,
-                share: true,
-                conversation: serializeConversation(messages, messageUuid)
-            })
+            const vote = { value: message._vote }
+            if (trimmed) {
+                vote.comment = trimmed
+            }
+            if (share) {
+                vote.share = true
+                vote.conversation = serializeConversation(messages, messageUuid)
+            }
+            const sent = await this._publishTurnVote(message, vote)
             if (sent) {
-                message._shared = true
+                if (trimmed) {
+                    message._comment = trimmed
+                }
+                if (share) {
+                    message._shared = true
+                }
+                message._feedbackSent = true
             }
             return sent
         },
-        dismissTurnShare (messageUuid) {
+        dismissTurnFeedback (messageUuid) {
             const message = this._agentStore.messages.find(m => m._uuid === messageUuid)
             if (message) {
-                message._shareDismissed = true
+                message._feedbackDismissed = true
             }
         },
         async establishMqttComms () {
