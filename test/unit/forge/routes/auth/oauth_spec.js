@@ -742,7 +742,7 @@ describe('OAuth', async function () {
             })
 
             async function sessionFor (token) {
-                const request = { headers: { authorization: `Bearer ${token}` }, requestContext: { set () {} } }
+                const request = { headers: { authorization: `Bearer ${token}` }, routeOptions: { config: { allowMcpGrant: true } }, requestContext: { set () {} } }
                 await mcpApp.verifySession(request, { code () { return this }, send () {} })
                 return request.session
             }
