@@ -93,8 +93,16 @@ describe('TurnFeedback', () => {
         expect(bad.find('[data-el="feedback-comment"]').attributes('placeholder')).toBe('What went wrong? (optional)')
     })
 
-    test('keeps send disabled until there is a comment or the checkbox is ticked', async () => {
+    test('ticks the share checkbox by default', () => {
         const { wrapper } = mountFeedback({ vote: 'up' })
+
+        expect(wrapper.find('input[type="checkbox"]').element.checked).toBe(true)
+        expect(sendButton(wrapper).attributes('disabled')).toBeUndefined()
+    })
+
+    test('keeps send disabled while unticked until there is a comment', async () => {
+        const { wrapper } = mountFeedback({ vote: 'up' })
+        await wrapper.find('input[type="checkbox"]').setValue(false)
         expect(sendButton(wrapper).attributes('disabled')).toBeDefined()
 
         await wrapper.find('[data-el="feedback-comment"]').setValue('   ')
@@ -102,21 +110,27 @@ describe('TurnFeedback', () => {
 
         await wrapper.find('[data-el="feedback-comment"]').setValue('Helpful')
         expect(sendButton(wrapper).attributes('disabled')).toBeUndefined()
-
-        await wrapper.find('[data-el="feedback-comment"]').setValue('')
-        await wrapper.find('input[type="checkbox"]').setValue(true)
-        expect(sendButton(wrapper).attributes('disabled')).toBeUndefined()
     })
 
     test('sends the comment and the share choice through the store', async () => {
         const { wrapper, store } = mountFeedback({ vote: 'down' })
 
         await wrapper.find('[data-el="feedback-comment"]').setValue('Wrong node')
-        await wrapper.find('input[type="checkbox"]').setValue(true)
         await sendButton(wrapper).trigger('click')
         await flushPromises()
 
         expect(store.submitTurnFeedback).toHaveBeenCalledWith('m1', { comment: 'Wrong node', share: true })
+    })
+
+    test('sends without the conversation once unticked', async () => {
+        const { wrapper, store } = mountFeedback({ vote: 'down' })
+
+        await wrapper.find('[data-el="feedback-comment"]').setValue('Wrong node')
+        await wrapper.find('input[type="checkbox"]').setValue(false)
+        await sendButton(wrapper).trigger('click')
+        await flushPromises()
+
+        expect(store.submitTurnFeedback).toHaveBeenCalledWith('m1', { comment: 'Wrong node', share: false })
     })
 
     test('describes what sharing includes', () => {

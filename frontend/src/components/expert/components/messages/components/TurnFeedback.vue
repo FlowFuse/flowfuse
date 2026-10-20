@@ -100,7 +100,7 @@ export default {
         return {
             pending: false,
             comment: '',
-            share: false
+            share: true
         }
     },
     computed: {
