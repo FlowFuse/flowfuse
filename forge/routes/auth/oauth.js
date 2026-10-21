@@ -158,6 +158,11 @@ module.exports = async function (app) {
         } catch (err) {
             return badRequest(reply, 'invalid_request', 'Invalid redirect_uri')
         }
+        // Only http(s) callbacks are valid - this rejects schemes such as javascript:
+        // that would otherwise pass the path checks below
+        if (redirectURI.protocol !== 'http:' && redirectURI.protocol !== 'https:') {
+            return badRequest(reply, 'invalid_request', 'Invalid redirect_uri')
+        }
         let isMCP = false
         if (client_id === 'ff-plugin') {
             // Ensure redirect_uri path component is correct for the tools plugin

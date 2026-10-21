@@ -28,6 +28,7 @@ import { mapState } from 'pinia'
 
 import client from '@/api/client.ts'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { redirectToOAuthClient } from '@/utils/oauthRedirect.ts'
 
 export default {
     name: 'AccessRequest',
@@ -43,11 +44,11 @@ export default {
     methods: {
         async allowAccess () {
             const response = await client.put(`/account/complete/${this.$router.currentRoute.value.params.id}`, {})
-            window.location.href = response.data.redirect
+            redirectToOAuthClient(response.data.redirect)
         },
         async denyAccess () {
             const response = await client.put(`/account/reject/${this.$router.currentRoute.value.params.id}`, {})
-            window.location.href = response.data.redirect
+            redirectToOAuthClient(response.data.redirect)
         }
     }
 }

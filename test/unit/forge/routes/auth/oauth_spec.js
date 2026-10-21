@@ -892,6 +892,24 @@ describe('OAuth', async function () {
                 })
             }
 
+            it('rejects a non-http(s) ff-plugin redirect_uri that matches the callback path', async function () {
+                for (const scope of ['ff-plugin', 'ff-assistant']) {
+                    const params = new URLSearchParams({
+                        client_id: 'ff-plugin',
+                        scope,
+                        response_type: 'code',
+                        redirect_uri: `javascript:alert(document.domain)//x/${scope === 'ff-plugin' ? 'flowfuse-nr-tools' : 'nr-assistant'}/auth/callback`,
+                        state: 'abc',
+                        code_challenge: pkce().challenge,
+                        code_challenge_method: 'S256'
+                    })
+                    const response = await mcpApp.inject({ method: 'GET', url: `/account/authorize?${params}`, cookies: { sid } })
+                    response.should.have.property('statusCode', 400)
+                    response.json().should.have.property('error', 'invalid_request')
+                    should.not.exist(response.headers.location)
+                }
+            })
+
             it('refuses GET complete for an MCP request, even with consent', async function () {
                 const { requestId } = await startMCPRequest({ sid })
                 ;(await consent(requestId, { sid })).should.have.property('statusCode', 200)
