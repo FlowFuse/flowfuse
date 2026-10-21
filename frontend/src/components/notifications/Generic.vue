@@ -24,7 +24,6 @@ import { defineAsyncComponent, markRaw } from 'vue'
 
 import IconDeviceSolid from '../../components/icons/DeviceSolid.js'
 import IconNodeRedSolid from '../../components/icons/NodeRedSolid.js'
-
 import NotificationMessageMixin from '../../mixins/NotificationMessage.js'
 
 import NotificationMessage from './Notification.vue'
@@ -134,18 +133,14 @@ export default {
     },
     methods: {
         substitutions (str) {
-            let result = str
-            const regex = /{{([^}]+)}}/g // find all {{key}} occurrences
-            let match = regex.exec(result)
-            while (match) {
-                const key = match[1]
-                const value = this.getObjectProperty(this.notification.data || {}, key) || key.split('.')[0].replace(/\b\w/g, l => l.toUpperCase())
-                // The message is rendered with v-html, so the substituted value must be escaped
-                const safeValue = escapeHtml(value)
-                result = result.replace(match[0], () => safeValue)
-                match = regex.exec(result)
-            }
-            return result
+            // Single pass over the template, and the message is rendered with v-html,
+            // so each substituted value must be escaped
+            return str.replace(/{{([^}]+)}}/g, (match, key) => {
+                const data = this.notification.data || {}
+                const fallback = key.split('.')[0].replace(/\b\w/g, l => l.toUpperCase())
+                const value = this.getObjectProperty(data, key) || fallback
+                return escapeHtml(value)
+            })
         },
         getObjectProperty (obj, path) {
             return (path || '').trim().split('.').reduce((acc, part) => acc && acc[part], obj)
