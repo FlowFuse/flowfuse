@@ -321,6 +321,8 @@ describe('Tables API', function () {
     it('Fail to create a table with a numeric default that is not a number, naming the column', async function () {
         const cases = [
             { name: 'count', type: 'bigint', default: 'abc' },
+            { name: 'count', type: 'bigint', default: '99999999999999999999999' },
+            { name: 'count', type: 'bigint', default: '9223372036854775807' },
             { name: 'ratio', type: 'real', default: 'abc' },
             { name: 'ratio', type: 'double precision', default: 'Infinity' }
         ]
@@ -344,6 +346,7 @@ describe('Tables API', function () {
             name: 'numericdefaults',
             columns: [
                 { name: 'count', type: 'bigint', default: '12abc' },
+                { name: 'big', type: 'bigint', default: '9007199254740993' },
                 { name: 'ratio', type: 'real', default: '1.5' }
             ]
         })

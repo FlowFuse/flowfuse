@@ -1,12 +1,14 @@
 // The drivers turn numeric defaults into SQL with parseInt/parseFloat. A value that comes out as
 // NaN or Infinity lands in the query as a bare word, which Postgres rejects with an unrelated error.
+// A bigint outside its range still creates the table, but every insert relying on the default then fails.
 function findInvalidNumericDefault (columns) {
     return columns.find(col => {
         if (!col.name || !col.default) {
             return false
         }
         if (col.type === 'bigint') {
-            return isNaN(parseInt(col.default))
+            const value = parseInt(col.default)
+            return isNaN(value) || value >= 2 ** 63 || value < -(2 ** 63)
         }
         if (col.type === 'real' || col.type === 'double precision') {
             return !Number.isFinite(parseFloat(col.default))
