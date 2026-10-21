@@ -447,10 +447,18 @@ module.exports = async function (app) {
             } else if (agent?.state === 'starting') {
                 // Another start is already launching the agent: starting is a no-op
                 reply.status(200).send({})
-            } else if (agent && agent.state !== 'running') {
-                await app.containers.sendBrokerAgentCommand(agent, 'start')
+            } else if (agent) {
+                // The agent is up. The stored 'running' state doesn't tell us whether
+                // it's actually collecting, so ask the agent. Only send start when it
+                // isn't connected (stopped via the API or after the 24h auto-shutdown),
+                // since start fully tears the agent down and reconnects it, which would
+                // take a healthy agent offline and drop in-flight messages.
+                const status = await app.containers.getBrokerAgentState(agent)
+                if (!status?.connected) {
+                    await app.containers.sendBrokerAgentCommand(agent, 'start')
+                }
                 reply.status(200).send({})
-            } else if (!agent) {
+            } else {
                 // Stays 'starting' until the driver has launched the agent, so a suspend
                 // arriving meanwhile is refused rather than missing a process it can't stop yet
                 const agent = await app.db.models.TeamBrokerAgent.create({
@@ -466,9 +474,6 @@ module.exports = async function (app) {
                 }
                 agent.state = 'running'
                 await agent.save()
-                reply.status(200).send({})
-            } else {
-                // Agent already running: starting is a no-op
                 reply.status(200).send({})
             }
         } else {
