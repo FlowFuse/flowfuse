@@ -682,7 +682,8 @@ describe('FlowFuse - Instance Snapshots', () => {
     it('Can rollback a snapshot', () => {
         // Premise: Ensure the rollback endpoint is available and callable
         // (NOTE: this is not testing the full mechanics of the rollback feature, only to prevent repeat regression. See #2032)
-        cy.intercept('POST', '/api/*/projects/*/actions/rollback').as('rollbackSnapshot')
+        // The response is stubbed so the instance keeps its settings for later specs
+        cy.intercept('POST', '/api/*/projects/*/actions/rollback', { statusCode: 200, body: {} }).as('rollbackSnapshot')
 
         cy.get('[data-el="snapshots"] tbody').find('tr').first().click()
 

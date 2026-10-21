@@ -756,6 +756,16 @@ describe('FlowFuse - Application - DevOps Pipelines', () => {
 
         cy.get('[data-el="application-device-group-name"] input').should('have.value', GROUP_NAME)
         cy.get('[data-el="application-device-group-description"] input').should('have.value', `Description for group ${GROUP_NAME}`)
+
+        // Tidy Up, so later specs see only the fixture device group
+        cy.request('GET', `/api/v1/applications/${application.id}/pipelines`).then((response) => {
+            const pipeline = response.body.pipelines.find((pipeline) => pipeline.name === PIPELINE_NAME)
+            return cy.request('DELETE', `/api/v1/pipelines/${pipeline.id}`)
+        })
+        cy.request('GET', `/api/v1/applications/${application.id}/device-groups`).then((response) => {
+            const group = response.body.groups.find((group) => group.name === GROUP_NAME)
+            return cy.request('DELETE', `/api/v1/applications/${application.id}/device-groups/${group.id}`)
+        })
     })
 
     it('can not push to a protected instance', () => {
