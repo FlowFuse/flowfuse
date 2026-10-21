@@ -139,9 +139,9 @@ describe('AiMessage', () => {
             expect(wrapper.find('[data-el="turn-feedback"]').exists()).toBe(false)
         })
 
-        test('is not shown on a re-rendered folded turn', () => {
-            const wrapper = mountFeedback({ instant: true })
-            expect(wrapper.find('[data-el="turn-feedback"]').exists()).toBe(false)
+        test('keeps the typed comment off the root element', () => {
+            const wrapper = mountFeedback({ feedback: true, _comment: 'the flow deleted my credentials node' })
+            expect(wrapper.html()).not.toContain('the flow deleted my credentials node')
         })
     })
 })

@@ -85,6 +85,13 @@ export default {
             type: String,
             default: null
         },
+        // Declared so the comment the user typed stays off the root element; it is sent, never shown.
+        // eslint-disable-next-line vue/prop-name-casing
+        _comment: {
+            required: false,
+            type: String,
+            default: null
+        },
         // eslint-disable-next-line vue/prop-name-casing
         _shared: {
             required: false,
