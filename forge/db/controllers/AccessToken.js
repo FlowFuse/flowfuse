@@ -1,4 +1,4 @@
-const { Op } = require('sequelize')
+const { Op, UniqueConstraintError } = require('sequelize')
 
 const mcpToolPermissions = require('../../lib/mcpToolPermissions')
 const { generateToken, generateNumericToken, sha256, randomPhrase, DEFAULT_TOKEN_SESSION_EXPIRY, DEFAULT_REFRESH_TOKEN_EXPIRY } = require('../utils')
@@ -495,26 +495,39 @@ module.exports = {
             const token = generateToken(32, prefix)
             const newRefreshToken = generateToken(32, prefix)
             const expiresAt = capToGrant(Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY, grantExpiresAtMs)
-            // Compare-and-swap: matches only while the token is current, so of two
-            // simultaneous refreshes exactly one rotates.
-            const [rotatedCount] = await app.db.models.AccessToken.update(
-                {
-                    token,
-                    expiresAt,
-                    refreshToken: newRefreshToken,
-                    refreshTokenExpiresAt: capToGrant(Date.now() + DEFAULT_REFRESH_TOKEN_EXPIRY, grantExpiresAtMs)
-                },
-                { where: { refreshToken: existingToken.refreshToken } }
-            )
-            if (rotatedCount > 0) {
-                await app.db.models.AccessTokenRefreshRotation.create({
+            // Claim the rotation by recording it before rotating the row: the unique tokenHash
+            // index lets exactly one of two simultaneous refreshes insert it, and the record
+            // already exists when the other one looks it up below.
+            let rotation = null
+            try {
+                rotation = await app.db.models.AccessTokenRefreshRotation.create({
                     tokenHash: existingToken.refreshToken,
                     rotatedAt: new Date(),
                     AccessTokenId: existingToken.id
                 })
+            } catch (err) {
+                if (!(err instanceof UniqueConstraintError)) {
+                    throw err
+                }
+            }
+            if (rotation) {
+                const [rotatedCount] = await app.db.models.AccessToken.update(
+                    {
+                        token,
+                        expiresAt,
+                        refreshToken: newRefreshToken,
+                        refreshTokenExpiresAt: capToGrant(Date.now() + DEFAULT_REFRESH_TOKEN_EXPIRY, grantExpiresAtMs)
+                    },
+                    { where: { refreshToken: existingToken.refreshToken } }
+                )
+                if (rotatedCount === 0) {
+                    // The grant was revoked since it was read.
+                    await rotation.destroy()
+                    return null
+                }
                 return { token, expiresAt, refreshToken: newRefreshToken }
             }
-            // Lost the swap: the presented token is now rotated out, resolve it below.
+            // Lost the claim: the presented token is now rotated out, resolve it below.
         }
 
         const retired = await app.db.models.AccessToken.byRotatedRefreshToken(refreshToken)
