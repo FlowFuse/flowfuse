@@ -1,6 +1,6 @@
 import { nextTick, onBeforeUnmount, ref } from 'vue'
 
-export default function useStreamingWords ({ delayMs = 30, splitRegex = /\s+/, joinWith = ' ' } = {}) {
+export default function useStreamingWords ({ delayMs = 30, wordsPerTick = 1, splitRegex = /\s+/, joinWith = ' ' } = {}) {
     const text = ref('')
     const isStreaming = ref(false)
 
@@ -34,8 +34,9 @@ export default function useStreamingWords ({ delayMs = 30, splitRegex = /\s+/, j
                     return resolve()
                 }
 
-                text.value += (text.value ? joinWith : '') + words[index]
-                index += 1
+                const chunk = words.slice(index, index + wordsPerTick).join(joinWith)
+                text.value += (text.value ? joinWith : '') + chunk
+                index += wordsPerTick
                 timer = setTimeout(tick, delayMs)
             }
 

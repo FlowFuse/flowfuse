@@ -9,6 +9,10 @@ describe('useMarkdownHelper', () => {
         const html = markedInstance.parse('```mermaid\nflowchart LR\n A[Inject] --> B[Debug]\n```')
         expect(html).toContain('ff-code-block ff-code-block--mermaid')
         expect(html).toContain('ff-code-block--copy')
+        expect(html).toContain('ff-btn ff-btn--tertiary ff-btn-small ff-code-block--toggle')
+        expect(html).toContain('data-export="svg"')
+        expect(html).toContain('data-export="image"')
+        expect(html).toContain('data-export="png"')
         expect(html).toContain('A[Inject] --&gt; B[Debug]')
     })
 

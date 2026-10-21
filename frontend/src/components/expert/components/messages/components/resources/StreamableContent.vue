@@ -12,6 +12,7 @@
 import { mapState } from 'pinia'
 
 import { CODE_BLOCK_ICONS, useMarkdownHelper } from '@/composables/strings/Markdown.js'
+import { getCachedDiagram, renderMermaid, serializeSvg, svgToPngBlob } from '@/composables/strings/Mermaid.js'
 import useStreamingWords from '@/composables/strings/StreamingWords.js'
 import { sanitize } from '@/composables/strings/String.js'
 
@@ -69,7 +70,8 @@ export default {
     emits: ['streaming-complete', 'update:modelValue'],
     setup () {
         const { stream, text, isStreaming } = useStreamingWords({
-            delayMs: 30
+            delayMs: 10,
+            wordsPerTick: 4
         })
         const { markedInstance } = useMarkdownHelper()
 
@@ -124,27 +126,78 @@ export default {
         this.renderDiagrams()
     },
     methods: {
-        // Mermaid blocks stay as plain code while streaming (the source is incomplete) and
-        // are swapped for the rendered SVG once the content is final.
+        // Mermaid blocks stay as plain code until their closing fence has streamed in, then
+        // are swapped for the rendered SVG, so earlier diagrams render while later text streams.
         async renderDiagrams () {
-            if (!this.richContent || this.isStreaming) return
-            const blocks = [...this.$el.querySelectorAll('.ff-code-block--mermaid:not([data-mermaid-state])')]
-            if (!blocks.length) return
-            const { renderMermaid } = await import('@/composables/strings/Mermaid.js')
-            for (const block of blocks) {
-                block.setAttribute('data-mermaid-state', 'pending')
+            if (!this.richContent) return
+            const blocks = [...this.$el.querySelectorAll('.ff-code-block--mermaid')]
+            const ready = this.isStreaming ? this.completedMermaidBlocks() : blocks.length
+            for (const block of blocks.slice(0, ready)) {
+                if (block.hasAttribute('data-mermaid-state')) continue
                 const source = block.querySelector('pre code')?.textContent || ''
-                try {
-                    const svg = await renderMermaid(source, this.$el)
-                    const diagram = document.createElement('div')
-                    diagram.className = 'ff-code-block--diagram'
-                    diagram.innerHTML = svg
-                    block.appendChild(diagram)
-                    block.setAttribute('data-mermaid-state', 'rendered')
-                } catch (_) {
-                    // invalid diagram: leave the source visible
+                const cached = getCachedDiagram(source)
+                if (cached === null) {
                     block.setAttribute('data-mermaid-state', 'failed')
+                } else if (cached) {
+                    this.showDiagram(block, cached)
+                } else {
+                    block.setAttribute('data-mermaid-state', 'pending')
+                    renderMermaid(source, this.$el)
+                        .then(svg => {
+                            if (block.isConnected) {
+                                this.showDiagram(block, svg)
+                            }
+                        })
+                        .catch(() => {
+                            block.setAttribute('data-mermaid-state', 'failed')
+                        })
                 }
+            }
+        },
+        // The streamed text is cut mid-block, so count the mermaid blocks whose end has arrived.
+        completedMermaidBlocks () {
+            const parts = this.streamedText.split('ff-code-block--mermaid').slice(1)
+            return parts.filter(part => part.includes('</pre>')).length
+        },
+        showDiagram (block, svg) {
+            const diagram = document.createElement('div')
+            diagram.className = 'ff-code-block--diagram'
+            diagram.innerHTML = svg
+            block.appendChild(diagram)
+            block.setAttribute('data-mermaid-state', 'rendered')
+        },
+        async exportDiagram (btn) {
+            const svgEl = btn.closest('.ff-code-block').querySelector('.ff-code-block--diagram svg')
+            if (!svgEl) return
+            const label = btn.textContent
+            const flash = text => {
+                btn.textContent = text
+                setTimeout(() => { btn.textContent = label }, 2000)
+            }
+            try {
+                switch (btn.dataset.export) {
+                case 'svg':
+                    await navigator.clipboard.writeText(serializeSvg(svgEl))
+                    flash('Copied')
+                    break
+                case 'image': {
+                    const blob = svgToPngBlob(svgEl)
+                    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+                    flash('Copied')
+                    break
+                }
+                case 'png': {
+                    const url = URL.createObjectURL(await svgToPngBlob(svgEl))
+                    const a = document.createElement('a')
+                    a.href = url
+                    a.download = 'diagram.png'
+                    a.click()
+                    URL.revokeObjectURL(url)
+                    break
+                }
+                }
+            } catch (_) {
+                flash('Failed')
             }
         },
         handleClick (event) {
@@ -152,6 +205,14 @@ export default {
             if (toggleBtn) {
                 const showCode = toggleBtn.closest('.ff-code-block').toggleAttribute('data-mermaid-code')
                 toggleBtn.setAttribute('aria-pressed', String(showCode))
+                toggleBtn.classList.toggle('active', showCode)
+                toggleBtn.blur()
+                return
+            }
+            const exportBtn = event.target.closest('.ff-code-block--export')
+            if (exportBtn) {
+                this.exportDiagram(exportBtn)
+                exportBtn.blur()
                 return
             }
             const copyBtn = event.target.closest('.ff-code-block--copy') || event.target.closest('.ff-table-block--copy')
@@ -307,27 +368,23 @@ export default {
     :deep(.ff-code-block--actions) {
         display: inline-flex;
         align-items: center;
+        flex-wrap: wrap;
         gap: 0.5rem;
     }
 
-    :deep(.ff-code-block--toggle) {
+    :deep(.ff-code-block--toggle),
+    :deep(.ff-code-block--export) {
         display: none;
-        padding: 0.125rem 0.5rem;
-        font-size: 0.75rem;
-        background: transparent;
-        border: 1px solid var(--ff-color-border);
-        border-radius: 4px;
-        cursor: pointer;
-        color: var(--ff-color-accent-text);
+        flex-shrink: 0;
 
-        &[aria-pressed="true"] {
-            color: var(--ff-color-text-on-brand);
-            background-color: var(--ff-color-accent);
+        &:focus:not(:focus-visible) {
+            outline: none;
         }
     }
 
-    :deep(.ff-code-block--mermaid[data-mermaid-state="rendered"] .ff-code-block--toggle) {
-        display: inline-flex;
+    :deep(.ff-code-block--mermaid[data-mermaid-state="rendered"] .ff-code-block--toggle),
+    :deep(.ff-code-block--mermaid[data-mermaid-state="rendered"]:not([data-mermaid-code]) .ff-code-block--export) {
+        display: flex;
     }
 
     :deep(.ff-code-block--diagram) {

@@ -45,9 +45,9 @@ export function useMarkdownHelper () {
                     highlighted = hljs.highlightAuto(text).value
                 }
                 const langLabel = language ? `<span class="ff-code-block--lang">${language}</span>` : ''
-                const toggle = isMermaid ? '<button type="button" class="ff-code-block--toggle" aria-pressed="false">Code</button>' : ''
+                const mermaidActions = isMermaid ? '<button type="button" class="ff-btn ff-btn--tertiary ff-btn-small ff-code-block--toggle" aria-pressed="false">Code</button><button type="button" class="ff-btn ff-btn--tertiary ff-btn-small ff-code-block--export" data-export="svg">Copy SVG</button><button type="button" class="ff-btn ff-btn--tertiary ff-btn-small ff-code-block--export" data-export="image">Copy image</button><button type="button" class="ff-btn ff-btn--tertiary ff-btn-small ff-code-block--export" data-export="png">Download PNG</button>' : ''
                 const blockClass = isMermaid ? 'ff-code-block ff-code-block--mermaid' : 'ff-code-block'
-                return `<div class="${blockClass}"><div class="ff-code-block--header"><span class="ff-code-block--actions"><button class="ff-code-block--copy">${ICON_DUPLICATE}</button>${toggle}</span>${langLabel}</div><pre><code class="hljs">${highlighted.replace(/\n/g, '&#10;')}</code></pre></div>`
+                return `<div class="${blockClass}"><div class="ff-code-block--header"><span class="ff-code-block--actions"><button class="ff-code-block--copy">${ICON_DUPLICATE}</button>${mermaidActions}</span>${langLabel}</div><pre><code class="hljs">${highlighted.replace(/\n/g, '&#10;')}</code></pre></div>`
             },
             checkbox ({ checked }) {
                 return `<span class="ff-checkbox${checked ? ' ff-checkbox--checked' : ''}">${checked ? '&#x2611;' : '&#x2610;'}</span>`
