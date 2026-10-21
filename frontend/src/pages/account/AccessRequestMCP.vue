@@ -271,14 +271,20 @@ export default {
                     expiresAt: Date.parse(this.expiresAt),
                     toolPermissions: { default: this.defaultPermissions, teams: this.teamOverrides }
                 })
-                window.location.href = `/account/complete/${this.requestId}`
+                const response = await client.put(`/account/complete/${this.requestId}`, {})
+                window.location.href = response.data.redirect
             } catch (err) {
                 this.error = err.response?.data?.description || 'Failed to process request. Please try again.'
                 this.submitting = false
             }
         },
-        denyAccess () {
-            window.location.href = `/account/reject/${this.requestId}`
+        async denyAccess () {
+            try {
+                const response = await client.put(`/account/reject/${this.requestId}`, {})
+                window.location.href = response.data.redirect
+            } catch (err) {
+                this.error = err.response?.data?.description || 'Failed to process request. Please try again.'
+            }
         }
     }
 }
