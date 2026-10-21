@@ -399,8 +399,17 @@ export default {
             display: none;
         }
 
-        // The Expert renders with Mermaid's default theme; recolour it from the FlowFuse variables
+        // The diagram takes its colours from these variables, so it follows the theme without being re-rendered
         .ff-code-block--diagram {
+            --pele-bg: var(--ff-color-bg-surface);
+            --pele-fg: var(--ff-color-text);
+            --pele-muted: var(--ff-color-text-subtle);
+            --pele-line: var(--ff-color-text-subtle);
+            --pele-surface: var(--ff-color-bg-surface-raised);
+            --pele-surface-alt: var(--ff-color-bg-surface-raised);
+            --pele-border: var(--ff-color-accent);
+            --pele-accent: var(--ff-color-accent);
+
             padding: 1rem;
             overflow-x: auto;
             background: var(--ff-color-bg-surface);
@@ -410,53 +419,6 @@ export default {
                 max-width: 100%;
                 height: auto;
                 margin: 0 auto;
-            }
-
-            text,
-            .label,
-            .nodeLabel,
-            .edgeLabel,
-            .titleText,
-            .legend text,
-            .pieTitleText,
-            .slice,
-            .loopText,
-            .messageText {
-                fill: var(--ff-color-text) !important;
-                color: var(--ff-color-text) !important;
-            }
-
-            .node :is(rect, polygon, circle, ellipse, path),
-            .cluster rect,
-            rect.actor,
-            .note,
-            .statediagram-state rect {
-                fill: var(--ff-color-bg-surface-raised) !important;
-                stroke: var(--ff-color-accent) !important;
-            }
-
-            .edgePath .path,
-            .flowchart-link,
-            .messageLine0,
-            .messageLine1,
-            .transition,
-            .actor-line,
-            .timeline-line {
-                stroke: var(--ff-color-text-subtle) !important;
-            }
-
-            .arrowheadPath,
-            .marker,
-            marker path {
-                fill: var(--ff-color-text-subtle) !important;
-                stroke: var(--ff-color-text-subtle) !important;
-            }
-
-            .edgeLabel rect,
-            .labelBkg {
-                fill: var(--ff-color-bg-surface) !important;
-                background-color: var(--ff-color-bg-surface) !important;
-                opacity: 1;
             }
         }
     }
