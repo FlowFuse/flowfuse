@@ -12,7 +12,7 @@
 import { mapState } from 'pinia'
 
 import { CODE_BLOCK_ICONS, useMarkdownHelper } from '@/composables/strings/Markdown.js'
-import { getCachedDiagram, renderMermaid, serializeSvg, svgToPngBlob } from '@/composables/strings/Mermaid.js'
+import { sanitizeDiagram, serializeSvg, svgToPngBlob } from '@/composables/strings/Mermaid.js'
 import useStreamingWords from '@/composables/strings/StreamingWords.js'
 import { sanitize } from '@/composables/strings/String.js'
 
@@ -65,6 +65,12 @@ export default {
             type: Boolean,
             required: false,
             default: false
+        },
+        // SVGs rendered by the Expert, matched to mermaid blocks by their source
+        diagrams: {
+            type: Array,
+            required: false,
+            default: () => []
         }
     },
     emits: ['streaming-complete', 'update:modelValue'],
@@ -127,30 +133,19 @@ export default {
     },
     methods: {
         // Mermaid blocks stay as plain code until their closing fence has streamed in, then
-        // are swapped for the rendered SVG, so earlier diagrams render while later text streams.
-        async renderDiagrams () {
+        // are swapped for the SVG the Expert rendered, so earlier diagrams show while later text streams.
+        renderDiagrams () {
             if (!this.richContent) return
             const blocks = [...this.$el.querySelectorAll('.ff-code-block--mermaid')]
             const ready = this.isStreaming ? this.completedMermaidBlocks() : blocks.length
             for (const block of blocks.slice(0, ready)) {
                 if (block.hasAttribute('data-mermaid-state')) continue
                 const source = block.querySelector('pre code')?.textContent || ''
-                const cached = getCachedDiagram(source)
-                if (cached === null) {
-                    block.setAttribute('data-mermaid-state', 'failed')
-                } else if (cached) {
-                    this.showDiagram(block, cached)
+                const diagram = this.diagrams.find(d => d.source?.trim() === source.trim())
+                if (diagram?.svg) {
+                    this.showDiagram(block, diagram.svg)
                 } else {
-                    block.setAttribute('data-mermaid-state', 'pending')
-                    renderMermaid(source, this.$el)
-                        .then(svg => {
-                            if (block.isConnected) {
-                                this.showDiagram(block, svg)
-                            }
-                        })
-                        .catch(() => {
-                            block.setAttribute('data-mermaid-state', 'failed')
-                        })
+                    block.setAttribute('data-mermaid-state', 'failed')
                 }
             }
         },
@@ -162,13 +157,14 @@ export default {
         showDiagram (block, svg) {
             const diagram = document.createElement('div')
             diagram.className = 'ff-code-block--diagram'
-            diagram.innerHTML = svg
+            diagram.innerHTML = sanitizeDiagram(svg)
             block.appendChild(diagram)
             block.setAttribute('data-mermaid-state', 'rendered')
         },
         async exportDiagram (btn) {
-            const svgEl = btn.closest('.ff-code-block').querySelector('.ff-code-block--diagram svg')
-            if (!svgEl) return
+            const source = btn.closest('.ff-code-block').querySelector('pre code')?.textContent || ''
+            const svg = this.diagrams.find(d => d.source?.trim() === source.trim())?.svg
+            if (!svg) return
             const label = btn.textContent
             const flash = text => {
                 btn.textContent = text
@@ -177,17 +173,17 @@ export default {
             try {
                 switch (btn.dataset.export) {
                 case 'svg':
-                    await navigator.clipboard.writeText(serializeSvg(svgEl))
+                    await navigator.clipboard.writeText(serializeSvg(svg))
                     flash('Copied')
                     break
                 case 'image': {
-                    const blob = svgToPngBlob(svgEl)
+                    const blob = svgToPngBlob(svg)
                     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
                     flash('Copied')
                     break
                 }
                 case 'png': {
-                    const url = URL.createObjectURL(await svgToPngBlob(svgEl))
+                    const url = URL.createObjectURL(await svgToPngBlob(svg))
                     const a = document.createElement('a')
                     a.href = url
                     a.download = 'diagram.png'
@@ -397,6 +393,59 @@ export default {
             max-width: 100%;
             height: auto;
             margin: 0 auto;
+        }
+
+        // The Expert renders with Mermaid's default theme; recolour it from the FlowFuse variables
+        svg text,
+        svg .label,
+        svg .nodeLabel,
+        svg .edgeLabel,
+        svg .titleText,
+        svg .legend text,
+        svg .pieTitleText,
+        svg .slice,
+        svg .loopText,
+        svg .messageText,
+        svg .actor text {
+            fill: var(--ff-color-text) !important;
+            color: var(--ff-color-text) !important;
+        }
+
+        svg .node rect,
+        svg .node polygon,
+        svg .node circle,
+        svg .node ellipse,
+        svg .node path,
+        svg .cluster rect,
+        svg rect.actor,
+        svg .note,
+        svg .statediagram-state rect {
+            fill: var(--ff-color-bg-surface-raised) !important;
+            stroke: var(--ff-color-accent) !important;
+        }
+
+        svg .edgePath .path,
+        svg .flowchart-link,
+        svg .messageLine0,
+        svg .messageLine1,
+        svg .transition,
+        svg .actor-line,
+        svg .timeline-line {
+            stroke: var(--ff-color-text-subtle) !important;
+        }
+
+        svg .arrowheadPath,
+        svg .marker,
+        svg marker path {
+            fill: var(--ff-color-text-subtle) !important;
+            stroke: var(--ff-color-text-subtle) !important;
+        }
+
+        svg .edgeLabel rect,
+        svg .labelBkg {
+            fill: var(--ff-color-bg-surface) !important;
+            background-color: var(--ff-color-bg-surface) !important;
+            opacity: 1;
         }
     }
 
