@@ -7,9 +7,15 @@
  * bubble's transaction id.
  */
 
+import { ACTIVITY_KINDS } from './streamedActivity.js'
+
 // A vote is sent against the bubble's transaction id, so a bubble the Expert never replied with can't take one.
+// A bubble holding only activity is a turn that never finished, e.g. one hydrated after a reload mid-reply.
 function isRatable (message) {
-    return message._type === 'ai' && !!message._transactionId
+    return message._type === 'ai' &&
+        !!message._transactionId &&
+        Array.isArray(message.answer) &&
+        message.answer.some(item => !ACTIVITY_KINDS.includes(item.kind))
 }
 
 /**
@@ -29,6 +35,10 @@ export function getFeedbackMessageUuids (messages, { isOpen = () => false } = {}
         if (message._type === 'human') {
             close()
         } else if (message._type === 'ai') {
+            // A voted bubble keeps its row when the turn carries on, e.g. after its approval card is resolved.
+            if (closing?._vote) {
+                close()
+            }
             closing = message
         }
     }

@@ -1710,15 +1710,27 @@ describe('product-expert store', () => {
             expect(agent.messages[1]._feedbackSent).toBeUndefined()
         })
 
-        it('re-sends the stored comment, but not the conversation, when the vote changes', async () => {
+        it('re-sends the stored comment and share flag, but not the conversation, when the vote changes', async () => {
             await store.rateTurn('a1', 'up')
             await store.submitTurnFeedback('a1', { comment: 'Nice', share: true })
             mqttService.publishMessage.mockClear()
 
             await store.rateTurn('a1', 'down')
 
-            expect(mqttService.publishMessage.mock.calls[0][1].payload.vote).toEqual({ value: 'down', turnId: 'turn-1', comment: 'Nice' })
+            expect(mqttService.publishMessage.mock.calls[0][1].payload.vote).toEqual({ value: 'down', turnId: 'turn-1', comment: 'Nice', share: true })
             expect(agent.messages[1]._vote).toBe('down')
+        })
+
+        it('logs a vote that failed to publish and keeps the thumb unset', async () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            const error = new Error('broker down')
+            mqttService.publishMessage.mockRejectedValueOnce(error)
+
+            expect(await store.rateTurn('a1', 'up')).toBe(false)
+
+            expect(warn).toHaveBeenCalledWith('expert turn vote publish failed:', error)
+            expect(agent.messages[1]._vote).toBeUndefined()
+            warn.mockRestore()
         })
 
         it('remembers a dismissed feedback panel on the message', () => {
@@ -1752,6 +1764,15 @@ describe('product-expert store', () => {
                     { _type: 'human', content: 'Again', _uuid: 'h2' },
                     { _type: 'ai', answer: [{ kind: 'chat', content: 'Working' }], _uuid: 'a2', _transactionId: 'turn-2' }
                 )
+                expect([...store.feedbackMessageUuids]).toEqual(['a1'])
+            })
+
+            it('keeps the row on a voted card while the turn resumes', () => {
+                agent.messages[1]._vote = 'up'
+                agent.inFlightRequests.set('turn-2', { query: '', transactionId: 'turn-2' })
+                agent.messages.push({ _type: 'ai', answer: [{ kind: 'chat', content: 'Denied' }], _uuid: 'a2', _transactionId: 'turn-2' })
+
+                expect(store.isWaitingForResponse).toBe(true)
                 expect([...store.feedbackMessageUuids]).toEqual(['a1'])
             })
         })

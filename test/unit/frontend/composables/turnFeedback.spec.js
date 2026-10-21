@@ -32,6 +32,16 @@ describe('getFeedbackMessageUuids', () => {
         expect([...getFeedbackMessageUuids(messages)]).toEqual(['a1', 'a2', 'a3', 'a4', 'a5'])
     })
 
+    it('keeps the row on a voted message when the turn carries on', () => {
+        const messages = [human('h1'), ai('a1', { _vote: 'up', answer: [{ kind: 'tool-approval', id: 't' }] }), ai('a2')]
+        expect([...getFeedbackMessageUuids(messages)]).toEqual(['a1', 'a2'])
+    })
+
+    it('skips a message holding only activity, as left by a turn that never finished', () => {
+        const messages = [human('h1'), ai('a1', { answer: [{ kind: 'reasoning', content: 'Composing structured content' }] })]
+        expect(getFeedbackMessageUuids(messages).size).toBe(0)
+    })
+
     it('skips a turn that is still open', () => {
         const messages = [human('h1'), ai('a1'), human('h2'), ai('a2')]
         const uuids = getFeedbackMessageUuids(messages, { isOpen: m => m._transactionId === 'tx-a2' })

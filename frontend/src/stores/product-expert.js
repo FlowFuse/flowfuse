@@ -166,7 +166,9 @@ export const useProductExpertStore = defineStore('product-expert', {
             })
             if (this.isWaitingForResponse) {
                 const lastHuman = messages.map(m => m._type).lastIndexOf('human')
-                messages.slice(lastHuman + 1).forEach(message => uuids.delete(message._uuid))
+                messages.slice(lastHuman + 1)
+                    .filter(message => !message._vote)
+                    .forEach(message => uuids.delete(message._uuid))
             }
             return uuids
         }
@@ -518,14 +520,23 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         // Fire-and-forget: a vote is not a turn, so it skips the send queue, the in-flight
         // registry and the approval cancel that a real request goes through.
-        // The stored comment rides on every vote because the latest submission has to carry it.
+        // The stored comment and share flag ride on every vote because the latest submission
+        // replaces the earlier one. The conversation itself was already sent with the first share.
         async _publishTurnVote (message, vote) {
             const mqttService = getAppOrchestrator().$services.mqtt
+            const stored = {}
+            if (message._comment) {
+                stored.comment = message._comment
+            }
+            if (message._shared) {
+                stored.share = true
+            }
             try {
                 if (!mqttService.hasClient(this.mqttConnectionKey)) await this.establishMqttComms()
-                await this._publishChatRequest({ vote: { ...(message._comment ? { comment: message._comment } : {}), ...vote, turnId: message._transactionId } }, uuidv4())
+                await this._publishChatRequest({ vote: { ...stored, ...vote, turnId: message._transactionId } }, uuidv4())
                 return true
-            } catch {
+            } catch (e) {
+                console.warn('expert turn vote publish failed:', e)
                 return false
             }
         },
@@ -1793,42 +1804,14 @@ export const useProductExpertStore = defineStore('product-expert', {
                 this.cancelPendingToolApprovals('cancelled')
 
                 const mqttService = getAppOrchestrator().$services.mqtt
-                const mqttTopicHelper = useMqttExpertTopicHelper()
 
-                const mqttConnectionKey = this.mqttConnectionKey
-
-                if (!mqttService.hasClient(mqttConnectionKey)) await this.establishMqttComms()
+                if (!mqttService.hasClient(this.mqttConnectionKey)) await this.establishMqttComms()
 
                 // Register like a real request so _onMqttMessage's in-flight guard lets the
                 // reply through instead of silently dropping it.
                 this._inFlightRequests.set(transactionId, { query: '', transactionId })
 
-                const { entityId, entityType } = mqttTopicHelper.getEntityTopicPaths()
-
-                const topic = mqttTopicHelper.buildTopic({
-                    entityType,
-                    entityId,
-                    agentChannel: 'support',
-                    topicType: 'chat',
-                    topicAction: 'request'
-                })
-
-                await mqttService.publishMessage(mqttConnectionKey, {
-                    topic,
-                    qos: 2,
-                    payload: {
-                        system,
-                        context: {
-                            ...useContextStore().expert,
-                            agent: this.agentMode
-                        }
-                    },
-                    correlationData: transactionId,
-                    userProperties: {
-                        sessionId: this.sessionId,
-                        origin: window.origin || window.location.origin
-                    }
-                })
+                await this._publishChatRequest({ system }, transactionId)
                 onPublished?.(instance)
                 return true
             } catch (e) {
