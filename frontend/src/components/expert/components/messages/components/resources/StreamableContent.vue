@@ -356,11 +356,6 @@ export default {
         }
     }
 
-    :deep(.ff-code-block--mermaid[data-mermaid-state="rendered"]:not([data-mermaid-code]) pre),
-    :deep(.ff-code-block--mermaid[data-mermaid-code] .ff-code-block--diagram) {
-        display: none;
-    }
-
     :deep(.ff-code-block--actions) {
         display: inline-flex;
         align-items: center;
@@ -368,84 +363,96 @@ export default {
         gap: 0.5rem;
     }
 
-    :deep(.ff-code-block--toggle),
-    :deep(.ff-code-block--export) {
-        display: none;
-        flex-shrink: 0;
+    :deep(.ff-code-block--mermaid) {
+        .ff-code-block--toggle,
+        .ff-code-block--export {
+            display: none;
+            flex-shrink: 0;
 
-        &:focus:not(:focus-visible) {
-            outline: none;
+            &:focus:not(:focus-visible) {
+                outline: none;
+            }
         }
-    }
 
-    :deep(.ff-code-block--mermaid[data-mermaid-state="rendered"] .ff-code-block--toggle),
-    :deep(.ff-code-block--mermaid[data-mermaid-state="rendered"]:not([data-mermaid-code]) .ff-code-block--export) {
-        display: flex;
-    }
+        &[data-mermaid-state="rendered"] {
+            .ff-code-block--toggle {
+                display: flex;
+            }
 
-    :deep(.ff-code-block--diagram) {
-        padding: 1rem;
-        overflow-x: auto;
-        background: var(--ff-color-bg-surface);
+            &:not([data-mermaid-code]) {
+                pre {
+                    display: none;
+                }
 
-        svg {
-            display: block;
-            max-width: 100%;
-            height: auto;
-            margin: 0 auto;
+                .ff-code-block--export {
+                    display: flex;
+                }
+            }
+        }
+
+        &[data-mermaid-code] .ff-code-block--diagram {
+            display: none;
         }
 
         // The Expert renders with Mermaid's default theme; recolour it from the FlowFuse variables
-        svg text,
-        svg .label,
-        svg .nodeLabel,
-        svg .edgeLabel,
-        svg .titleText,
-        svg .legend text,
-        svg .pieTitleText,
-        svg .slice,
-        svg .loopText,
-        svg .messageText,
-        svg .actor text {
-            fill: var(--ff-color-text) !important;
-            color: var(--ff-color-text) !important;
-        }
+        .ff-code-block--diagram {
+            padding: 1rem;
+            overflow-x: auto;
+            background: var(--ff-color-bg-surface);
 
-        svg .node rect,
-        svg .node polygon,
-        svg .node circle,
-        svg .node ellipse,
-        svg .node path,
-        svg .cluster rect,
-        svg rect.actor,
-        svg .note,
-        svg .statediagram-state rect {
-            fill: var(--ff-color-bg-surface-raised) !important;
-            stroke: var(--ff-color-accent) !important;
-        }
+            svg {
+                display: block;
+                max-width: 100%;
+                height: auto;
+                margin: 0 auto;
+            }
 
-        svg .edgePath .path,
-        svg .flowchart-link,
-        svg .messageLine0,
-        svg .messageLine1,
-        svg .transition,
-        svg .actor-line,
-        svg .timeline-line {
-            stroke: var(--ff-color-text-subtle) !important;
-        }
+            text,
+            .label,
+            .nodeLabel,
+            .edgeLabel,
+            .titleText,
+            .legend text,
+            .pieTitleText,
+            .slice,
+            .loopText,
+            .messageText {
+                fill: var(--ff-color-text) !important;
+                color: var(--ff-color-text) !important;
+            }
 
-        svg .arrowheadPath,
-        svg .marker,
-        svg marker path {
-            fill: var(--ff-color-text-subtle) !important;
-            stroke: var(--ff-color-text-subtle) !important;
-        }
+            .node :is(rect, polygon, circle, ellipse, path),
+            .cluster rect,
+            rect.actor,
+            .note,
+            .statediagram-state rect {
+                fill: var(--ff-color-bg-surface-raised) !important;
+                stroke: var(--ff-color-accent) !important;
+            }
 
-        svg .edgeLabel rect,
-        svg .labelBkg {
-            fill: var(--ff-color-bg-surface) !important;
-            background-color: var(--ff-color-bg-surface) !important;
-            opacity: 1;
+            .edgePath .path,
+            .flowchart-link,
+            .messageLine0,
+            .messageLine1,
+            .transition,
+            .actor-line,
+            .timeline-line {
+                stroke: var(--ff-color-text-subtle) !important;
+            }
+
+            .arrowheadPath,
+            .marker,
+            marker path {
+                fill: var(--ff-color-text-subtle) !important;
+                stroke: var(--ff-color-text-subtle) !important;
+            }
+
+            .edgeLabel rect,
+            .labelBkg {
+                fill: var(--ff-color-bg-surface) !important;
+                background-color: var(--ff-color-bg-surface) !important;
+                opacity: 1;
+            }
         }
     }
 
