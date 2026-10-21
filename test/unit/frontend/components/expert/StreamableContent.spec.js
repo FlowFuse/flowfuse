@@ -26,6 +26,20 @@ describe('StreamableContent mermaid diagrams', () => {
         const block = wrapper.element.querySelector('.ff-code-block--mermaid')
         expect(block.getAttribute('data-mermaid-state')).toBe('rendered')
         expect(block.querySelector('.ff-code-block--diagram svg')).not.toBeNull()
+        expect(block.querySelector('pre').hidden).toBe(true)
+        expect(block.querySelectorAll('.ff-code-block--export')).toHaveLength(3)
+    })
+
+    test('switches between the diagram and its code', async () => {
+        const wrapper = mountContent({ shouldStream: false, diagrams })
+        await flushPromises()
+        const block = wrapper.element.querySelector('.ff-code-block--mermaid')
+        block.querySelector('.ff-code-block--toggle').click()
+        expect(block.querySelector('pre').hidden).toBe(false)
+        expect(block.querySelector('.ff-code-block--diagram').hidden).toBe(true)
+        block.querySelector('.ff-code-block--toggle').click()
+        expect(block.querySelector('pre').hidden).toBe(true)
+        expect(block.querySelector('.ff-code-block--diagram').hidden).toBe(false)
     })
 
     test('shows the diagram while streaming, which collapses the code indentation', async () => {
@@ -42,5 +56,6 @@ describe('StreamableContent mermaid diagrams', () => {
         await flushPromises()
         const block = wrapper.element.querySelector('.ff-code-block--mermaid')
         expect(block.getAttribute('data-mermaid-state')).toBe('failed')
+        expect(block.querySelector('.ff-code-block--toggle')).toBeNull()
     })
 })

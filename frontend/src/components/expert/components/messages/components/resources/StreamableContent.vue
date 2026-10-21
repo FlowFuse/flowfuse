@@ -164,6 +164,15 @@ export default {
             diagram.className = 'ff-code-block--diagram'
             diagram.innerHTML = sanitizeDiagram(svg)
             block.appendChild(diagram)
+            block.querySelector('pre').hidden = true
+            const button = (label, className, exportAs) => `<button type="button" class="ff-btn ff-btn--tertiary ff-btn-small ${className}"${exportAs ? ` data-export="${exportAs}"` : ' aria-pressed="false"'}>${label}</button>`
+            const actions = document.createElement('span')
+            actions.className = 'ff-code-block--diagram-actions'
+            actions.innerHTML = button('Code', 'ff-code-block--toggle') +
+                button('Copy SVG', 'ff-code-block--export', 'svg') +
+                button('Copy image', 'ff-code-block--export', 'image') +
+                button('Download PNG', 'ff-code-block--export', 'png')
+            block.querySelector('.ff-code-block--copy').after(actions)
             block.setAttribute('data-mermaid-state', 'rendered')
         },
         async exportDiagram (btn) {
@@ -204,7 +213,11 @@ export default {
         handleClick (event) {
             const toggleBtn = event.target.closest('.ff-code-block--toggle')
             if (toggleBtn) {
-                const showCode = toggleBtn.closest('.ff-code-block').toggleAttribute('data-mermaid-code')
+                const block = toggleBtn.closest('.ff-code-block')
+                const showCode = toggleBtn.getAttribute('aria-pressed') !== 'true'
+                block.querySelector('pre').hidden = !showCode
+                block.querySelector('.ff-code-block--diagram').hidden = showCode
+                block.querySelectorAll('.ff-code-block--export').forEach(btn => { btn.hidden = showCode })
                 toggleBtn.setAttribute('aria-pressed', String(showCode))
                 toggleBtn.classList.toggle('active', showCode)
                 toggleBtn.blur()
@@ -361,65 +374,37 @@ export default {
         }
     }
 
-    :deep(.ff-code-block--actions) {
-        display: inline-flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0.5rem;
+    // The diagram takes its colours from these variables, so it follows the theme without being re-rendered
+    :deep(.ff-code-block--diagram) {
+        --pele-bg: var(--ff-color-bg-surface);
+        --pele-fg: var(--ff-color-text);
+        --pele-muted: var(--ff-color-text-subtle);
+        --pele-line: var(--ff-color-text-subtle);
+        --pele-surface: var(--ff-color-bg-surface-raised);
+        --pele-surface-alt: var(--ff-color-bg-surface-raised);
+        --pele-border: var(--ff-color-accent);
+        --pele-accent: var(--ff-color-accent);
+
+        padding: 1rem;
+        overflow-x: auto;
+        background: var(--ff-color-bg-surface);
+
+        svg {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            margin: 0 auto;
+        }
     }
 
-    :deep(.ff-code-block--mermaid) {
-        .ff-code-block--toggle,
-        .ff-code-block--export {
+    :deep(.ff-code-block--diagram-actions) {
+        display: inline-flex;
+        gap: 0.5rem;
+        margin: 0 auto 0 0.5rem;
+
+        // .ff-btn sets display, which would override the hidden attribute
+        [hidden] {
             display: none;
-            flex-shrink: 0;
-
-            &:focus:not(:focus-visible) {
-                outline: none;
-            }
-        }
-
-        &[data-mermaid-state="rendered"] {
-            .ff-code-block--toggle {
-                display: flex;
-            }
-
-            &:not([data-mermaid-code]) {
-                pre {
-                    display: none;
-                }
-
-                .ff-code-block--export {
-                    display: flex;
-                }
-            }
-        }
-
-        &[data-mermaid-code] .ff-code-block--diagram {
-            display: none;
-        }
-
-        // The diagram takes its colours from these variables, so it follows the theme without being re-rendered
-        .ff-code-block--diagram {
-            --pele-bg: var(--ff-color-bg-surface);
-            --pele-fg: var(--ff-color-text);
-            --pele-muted: var(--ff-color-text-subtle);
-            --pele-line: var(--ff-color-text-subtle);
-            --pele-surface: var(--ff-color-bg-surface-raised);
-            --pele-surface-alt: var(--ff-color-bg-surface-raised);
-            --pele-border: var(--ff-color-accent);
-            --pele-accent: var(--ff-color-accent);
-
-            padding: 1rem;
-            overflow-x: auto;
-            background: var(--ff-color-bg-surface);
-
-            svg {
-                display: block;
-                max-width: 100%;
-                height: auto;
-                margin: 0 auto;
-            }
         }
     }
 
