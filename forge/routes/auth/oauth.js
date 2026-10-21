@@ -192,7 +192,7 @@ module.exports = async function (app) {
             if (request.sid) {
                 // This is the editor auth flow. If logged-in, redirect straight
                 // to the complete route. Otherwise prompt to login
-                request.session = await app.db.controllers.Session.getOrExpire(request.sid)
+                request.session = await app.db.controllers.Session.getValidSession(request.sid)
                 if (request.session) {
                     // Logged in with valid session - bounce to complete page
                     reply.redirect(`${app.config.base_url}/account/complete/${requestId}`)
@@ -223,7 +223,7 @@ module.exports = async function (app) {
             return badRequest(reply, 'invalid_request', 'Invalid request')
         }
         if (request.sid) {
-            request.session = await app.db.controllers.Session.getOrExpire(request.sid)
+            request.session = await app.db.controllers.Session.getValidSession(request.sid)
             if (request.session) {
                 if (requestObject.client_id === 'ff-plugin' || requestObject.mcp) {
                     // FlowFuse Node-RED plugin or MCP agent: user-scoped, no resource ownership checks
