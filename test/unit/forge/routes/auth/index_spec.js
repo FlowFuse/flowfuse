@@ -867,6 +867,39 @@ describe('Accounts API', async function () {
                 temp.should.have.property('value', '')
             })
 
+            it('treats a session without the mfa verified flag as anonymous on anonymous routes', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/account/login',
+                    payload: { username: 'mfauser', password: 'mmPassword' }
+                })
+                response.should.have.property('statusCode', 403)
+                const sid = response.cookies[0].value
+
+                // /api/v1/settings allows anonymous access and returns a different
+                // payload for a logged-in user. The half-logged-in session must get
+                // the anonymous payload, not the logged-in one
+                const settingsResponse = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/settings',
+                    cookies: { sid }
+                })
+                settingsResponse.should.have.property('statusCode', 200)
+                const settings = settingsResponse.json()
+                settings.should.have.property('user:signup')
+                settings.should.not.have.property('team:create')
+                // The session is left in place so the mfa flow can still be completed
+                settingsResponse.cookies.should.have.length(0)
+
+                const mfaResponse = await app.inject({
+                    method: 'POST',
+                    url: '/account/login/token',
+                    payload: { token: mfaToken.generateToken() },
+                    cookies: { sid }
+                })
+                mfaResponse.should.have.property('statusCode', 200)
+            })
+
             it('rejects access if session does not have mfa verified flag set', async function () {
                 // Do initial login
                 const response = await app.inject({
