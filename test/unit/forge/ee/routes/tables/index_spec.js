@@ -318,6 +318,71 @@ describe('Tables API', function () {
         response.statusCode.should.equal(400)
     })
 
+    it('Fail to create a table with a numeric default that is not a number, naming the column', async function () {
+        const cases = [
+            { name: 'count', type: 'bigint', default: 'abc' },
+            { name: 'ratio', type: 'real', default: 'abc' },
+            { name: 'ratio', type: 'double precision', default: 'Infinity' }
+        ]
+        for (const column of cases) {
+            const spy = sinon.spy(app.tables, 'createTable')
+            const response = await createTable({ name: 'baddefault', columns: [column] })
+            spy.restore()
+            response.statusCode.should.equal(400, `${column.type} default '${column.default}' should be rejected`)
+            response.json().should.eql({
+                code: 'invalid_column_default',
+                error: `Invalid default value "${column.default}" for ${column.type} column "${column.name}"`
+            })
+            spy.called.should.be.false()
+        }
+    })
+
+    it('Create a table with numeric defaults the driver can already use', async function () {
+        // parseInt/parseFloat accept a leading number, so these work today and must keep working
+        const spy = sinon.spy(app.tables, 'createTable')
+        const response = await createTable({
+            name: 'numericdefaults',
+            columns: [
+                { name: 'count', type: 'bigint', default: '12abc' },
+                { name: 'ratio', type: 'real', default: '1.5' }
+            ]
+        })
+        spy.restore()
+        response.statusCode.should.equal(201)
+        spy.calledOnce.should.be.true()
+    })
+
+    it('Fail to create a table with a date default Postgres rejects, naming the column', async function () {
+        const messages = [
+            'invalid input syntax for type date: "not-a-date"',
+            'date/time field value out of range: "not-a-date"'
+        ]
+        for (const message of messages) {
+            const stub = sinon.stub(app.tables, 'createTable').rejects(new Error(`Failed to create table baddate for team ${TestObjects.team.hashid}: ${message}`))
+            const response = await createTable({
+                name: 'baddate',
+                columns: [
+                    { name: 'id', type: 'bigserial' },
+                    { name: 'created', type: 'date', default: 'not-a-date' }
+                ]
+            })
+            stub.restore()
+            response.statusCode.should.equal(400)
+            response.json().should.eql({
+                code: 'invalid_column_default',
+                error: 'Invalid default value "not-a-date" for date column "created"'
+            })
+        }
+    })
+
+    it('Keeps the generic error when a driver failure is not about a column default', async function () {
+        const stub = sinon.stub(app.tables, 'createTable').rejects(new Error('Failed to create table other: connection refused'))
+        const response = await createTable({ name: 'other', columns })
+        stub.restore()
+        response.statusCode.should.equal(500)
+        response.json().should.have.property('error', 'Failed to create table')
+    })
+
     it('Create a table with an empty columns list', async function () {
         const response = await createTable({ name: 'emptycolumns', columns: [] })
         response.statusCode.should.equal(201)
