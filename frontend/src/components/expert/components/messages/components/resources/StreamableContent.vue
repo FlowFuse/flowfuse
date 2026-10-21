@@ -141,13 +141,18 @@ export default {
             for (const block of blocks.slice(0, ready)) {
                 if (block.hasAttribute('data-mermaid-state')) continue
                 const source = block.querySelector('pre code')?.textContent || ''
-                const diagram = this.diagrams.find(d => d.source?.trim() === source.trim())
-                if (diagram?.svg) {
-                    this.showDiagram(block, diagram.svg)
+                const svg = this.findDiagramSvg(source)
+                if (svg) {
+                    this.showDiagram(block, svg)
                 } else {
                     block.setAttribute('data-mermaid-state', 'failed')
                 }
             }
+        },
+        // Streaming collapses runs of whitespace in the code, so sources are compared ignoring whitespace.
+        findDiagramSvg (source) {
+            const normalize = text => text.replace(/\s+/g, ' ').trim()
+            return this.diagrams.find(d => normalize(d.source || '') === normalize(source))?.svg
         },
         // The streamed text is cut mid-block, so count the mermaid blocks whose end has arrived.
         completedMermaidBlocks () {
@@ -163,7 +168,7 @@ export default {
         },
         async exportDiagram (btn) {
             const source = btn.closest('.ff-code-block').querySelector('pre code')?.textContent || ''
-            const svg = this.diagrams.find(d => d.source?.trim() === source.trim())?.svg
+            const svg = this.findDiagramSvg(source)
             if (!svg) return
             const label = btn.textContent
             const flash = text => {
