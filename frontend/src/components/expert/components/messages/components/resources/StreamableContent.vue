@@ -104,6 +104,7 @@ export default {
         isStreaming (isStreaming) {
             if (!isStreaming) {
                 this.$emit('streaming-complete')
+                this.renderDiagrams()
                 if (this.modelValue) {
                     this.$emit('update:modelValue', {
                         ...this.modelValue,
@@ -117,9 +118,42 @@ export default {
         if (this.shouldStream) {
             this.stream(this.rawText)
         }
+        this.renderDiagrams()
+    },
+    updated () {
+        this.renderDiagrams()
     },
     methods: {
+        // Mermaid blocks stay as plain code while streaming (the source is incomplete) and
+        // are swapped for the rendered SVG once the content is final.
+        async renderDiagrams () {
+            if (!this.richContent || this.isStreaming) return
+            const blocks = [...this.$el.querySelectorAll('.ff-code-block--mermaid:not([data-mermaid-state])')]
+            if (!blocks.length) return
+            const { renderMermaid } = await import('@/composables/strings/Mermaid.js')
+            for (const block of blocks) {
+                block.setAttribute('data-mermaid-state', 'pending')
+                const source = block.querySelector('pre code')?.textContent || ''
+                try {
+                    const svg = await renderMermaid(source, this.$el)
+                    const diagram = document.createElement('div')
+                    diagram.className = 'ff-code-block--diagram'
+                    diagram.innerHTML = svg
+                    block.appendChild(diagram)
+                    block.setAttribute('data-mermaid-state', 'rendered')
+                } catch (_) {
+                    // invalid diagram: leave the source visible
+                    block.setAttribute('data-mermaid-state', 'failed')
+                }
+            }
+        },
         handleClick (event) {
+            const toggleBtn = event.target.closest('.ff-code-block--toggle')
+            if (toggleBtn) {
+                const showCode = toggleBtn.closest('.ff-code-block').toggleAttribute('data-mermaid-code')
+                toggleBtn.setAttribute('aria-pressed', String(showCode))
+                return
+            }
             const copyBtn = event.target.closest('.ff-code-block--copy') || event.target.closest('.ff-table-block--copy')
             if (!copyBtn) return
 
@@ -262,6 +296,50 @@ export default {
                 white-space: pre;
                 word-break: normal;
             }
+        }
+    }
+
+    :deep(.ff-code-block--mermaid[data-mermaid-state="rendered"]:not([data-mermaid-code]) pre),
+    :deep(.ff-code-block--mermaid[data-mermaid-code] .ff-code-block--diagram) {
+        display: none;
+    }
+
+    :deep(.ff-code-block--actions) {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    :deep(.ff-code-block--toggle) {
+        display: none;
+        padding: 0.125rem 0.5rem;
+        font-size: 0.75rem;
+        background: transparent;
+        border: 1px solid var(--ff-color-border);
+        border-radius: 4px;
+        cursor: pointer;
+        color: var(--ff-color-accent-text);
+
+        &[aria-pressed="true"] {
+            color: var(--ff-color-text-on-brand);
+            background-color: var(--ff-color-accent);
+        }
+    }
+
+    :deep(.ff-code-block--mermaid[data-mermaid-state="rendered"] .ff-code-block--toggle) {
+        display: inline-flex;
+    }
+
+    :deep(.ff-code-block--diagram) {
+        padding: 1rem;
+        overflow-x: auto;
+        background: var(--ff-color-bg-surface);
+
+        svg {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            margin: 0 auto;
         }
     }
 
