@@ -13,7 +13,7 @@ vi.mock('@/stores/product-expert.js', () => ({
 // The real message components pull in the full expert tree; the fold only
 // needs placeholders it can expand into.
 vi.mock('@/components/expert/components/messages/AiMessage.vue', () => ({
-    default: { name: 'AiMessage', props: ['answer'], template: '<div data-stub="ai-message" />' }
+    default: { name: 'AiMessage', props: ['answer', 'feedback'], template: '<div data-stub="ai-message" />' }
 }))
 vi.mock('@/components/expert/components/messages/components/TurnFeedback.vue', () => ({
     default: { name: 'TurnFeedback', props: ['messageUuid', 'vote', 'shared', 'feedbackSent', 'feedbackDismissed'], template: '<div data-stub="turn-feedback" />' }
@@ -62,6 +62,16 @@ describe('CollapsedQuestionTurn', () => {
         expect(feedback.props('vote')).toBe('up')
         expect(feedback.props('feedbackSent')).toBe(true)
         expect(feedback.props('feedbackDismissed')).toBe(true)
+    })
+
+    test('draws the rating row once, outside the folded message', () => {
+        mocks.expertStore.feedbackMessageUuids = new Set(['a1'])
+        const turn = answeredTurn()
+        turn.questionsMessage.answer = [{ kind: 'questions', content: 'A few questions first.', questions: [] }]
+        const wrapper = mountTurn(turn)
+
+        expect(wrapper.findComponent({ name: 'AiMessage' }).props('feedback')).toBeUndefined()
+        expect(wrapper.findAll('[data-stub="turn-feedback"]')).toHaveLength(1)
     })
 
     test('hides the rating row when the question turn cannot be rated', () => {
