@@ -5,7 +5,7 @@ import Brokers from '../../../../../frontend/src/pages/team/Brokers/index.vue'
 import alerts from '../../../../../frontend/src/services/alerts.js'
 
 vi.mock('../../../../../frontend/src/api/broker.js', () => ({
-    default: { getBrokerStatus: vi.fn() }
+    default: { getBrokerStatus: vi.fn(), startBroker: vi.fn(), suspendBroker: vi.fn() }
 }))
 vi.mock('../../../../../frontend/src/services/alerts.js', () => ({
     default: { emit: vi.fn() }
@@ -30,6 +30,8 @@ function brokerPage (activeBrokerId) {
 describe('Brokers page broker state', () => {
     beforeEach(() => {
         brokerAPI.getBrokerStatus.mockReset()
+        brokerAPI.startBroker.mockReset()
+        brokerAPI.suspendBroker.mockReset()
         alerts.emit.mockReset()
     })
 
@@ -78,7 +80,7 @@ describe('Brokers page broker state', () => {
         brokerAPI.getBrokerStatus.mockResolvedValue({ state: 'running', status: { connected: false, error: 'error_getting_status' } })
         const page = brokerPage('team-broker')
         // Pretend it has been starting for longer than the timeout
-        page.startingSince = Date.now() - 60000
+        page.startingSince = Date.now() - 120000
 
         await Brokers.methods.getBrokerState.call(page)
 
@@ -95,7 +97,7 @@ describe('Brokers page broker state', () => {
     test('a successful status clears the timed-out state', async () => {
         const page = brokerPage('team-broker')
         page.startingTimedOut = true
-        page.startingSince = Date.now() - 60000
+        page.startingSince = Date.now() - 120000
         brokerAPI.getBrokerStatus.mockResolvedValue({ state: 'running', status: { connected: true, error: null } })
 
         await Brokers.methods.getBrokerState.call(page)
@@ -103,5 +105,36 @@ describe('Brokers page broker state', () => {
         expect(page.brokerState).toBe('connected')
         expect(page.startingTimedOut).toBe(false)
         expect(page.startingSince).toBe(null)
+    })
+
+    test('the toggle retries a start after a timeout even though the backend row is still running', async () => {
+        const page = brokerPage('broker-1')
+        page.$route = { params: { brokerId: 'broker-1' } }
+        page.startingTimedOut = true
+        page.startingSince = Date.now() - 120000
+        brokerAPI.getBrokerStatus.mockResolvedValue({ state: 'running', status: { connected: false, error: 'error_getting_status' } })
+        brokerAPI.startBroker.mockResolvedValue({})
+
+        await Brokers.methods.toggleAgent.call(page)
+
+        expect(brokerAPI.startBroker).toHaveBeenCalledTimes(1)
+        expect(brokerAPI.suspendBroker).not.toHaveBeenCalled()
+        expect(page.brokerState).toBe('starting')
+        expect(page.startingTimedOut).toBe(false)
+        expect(page.startingSince).toBe(null)
+        expect(page.loadingState).toBe(false)
+    })
+
+    test('the toggle still suspends a running agent that has not timed out', async () => {
+        const page = brokerPage('broker-1')
+        page.$route = { params: { brokerId: 'broker-1' } }
+        brokerAPI.getBrokerStatus.mockResolvedValue({ state: 'running', status: { connected: true, error: null } })
+        brokerAPI.suspendBroker.mockResolvedValue({})
+
+        await Brokers.methods.toggleAgent.call(page)
+
+        expect(brokerAPI.suspendBroker).toHaveBeenCalledTimes(1)
+        expect(brokerAPI.startBroker).not.toHaveBeenCalled()
+        expect(page.brokerState).toBe('suspending')
     })
 })

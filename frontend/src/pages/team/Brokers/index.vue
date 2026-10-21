@@ -88,16 +88,16 @@ import usePermissions from '../../../composables/Permissions.js'
 import alerts from '../../../services/alerts.js'
 import { Roles } from '../../../utils/roles.js'
 
-// How long we wait on a broker that keeps reporting "still starting" before we
-// treat its agent as unreachable, stop spinning, and let the user try again.
-const STARTING_TIMEOUT = 30000
-
 import BrokerStatusBadge from './components/BrokerStatusBadge.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
+
+// How long we wait on a broker that keeps reporting "still starting" before we
+// treat its agent as unreachable, stop spinning, and let the user try again.
+const STARTING_TIMEOUT = 60000
 
 export default {
     name: 'TeamBrokers',
@@ -436,7 +436,7 @@ export default {
             this.loadingState = true
             try {
                 const state = await brokerAPI.getBrokerStatus(this.team.id, this.$route.params.brokerId)
-                if (state.state === 'running') {
+                if (state.state === 'running' && !this.startingTimedOut) {
                     await brokerAPI.suspendBroker(this.team.id, this.$route.params.brokerId)
                     this.brokerState = 'suspending'
                 } else {
