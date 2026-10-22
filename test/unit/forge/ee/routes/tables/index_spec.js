@@ -323,6 +323,7 @@ describe('Tables API', function () {
             { name: 'count', type: 'bigint', default: 'abc' },
             { name: 'count', type: 'bigint', default: '99999999999999999999999' },
             { name: 'count', type: 'bigint', default: '9223372036854775807' },
+            { name: 'count', type: 'bigint', default: '-9223372036854775808' },
             { name: 'ratio', type: 'real', default: 'abc' },
             { name: 'ratio', type: 'double precision', default: 'Infinity' }
         ]
