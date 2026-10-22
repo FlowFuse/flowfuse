@@ -624,15 +624,15 @@ module.exports = async function (app) {
                 reply.send(response)
             } else if (requestObject.mcp) {
                 // Only issue a token for a request the user approved on the consent page
-                if (requestObject.approvedBy !== requestObject.userId || !requestObject.expiresAt) {
+                if (requestObject.approvedBy !== requestObject.userId || !requestObject.expiresAt || !requestObject.toolPermissions) {
                     return badRequest(reply, 'access_denied', 'Access Denied')
                 }
                 const accessToken = await app.db.controllers.AccessToken.createMCPOAuthToken(
                     requestObject.userId,
                     {
-                        teamIds: requestObject.teamIds || [],
+                        teamIds: requestObject.teamIds,
                         grantExpiresAt: requestObject.expiresAt,
-                        toolPermissions: requestObject.toolPermissions || mcpToolPermissions.fromReadOnly(requestObject.readOnly || false)
+                        toolPermissions: requestObject.toolPermissions
                     }
                 )
                 const response = {

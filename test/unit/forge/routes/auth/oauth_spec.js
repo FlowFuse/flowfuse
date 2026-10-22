@@ -760,37 +760,6 @@ describe('OAuth', async function () {
                 issued.MCPGrant.MCPGrantTeamPermissions.should.have.length(0)
             })
 
-            it('builds a read-only grant at exchange from a session saved with only readOnly', async function () {
-                const reg = (await register()).json()
-                const { verifier, challenge } = pkce()
-                const authResponse = await mcpApp.inject({ method: 'GET', url: authorizeURL(reg.client_id, redirectURI, challenge), cookies: { sid } })
-                const requestId = /\/account\/request\/([^/]+)\/mcp$/.exec(authResponse.headers.location)[1]
-                await mcpApp.inject({
-                    method: 'PUT',
-                    url: `/account/authorize/${requestId}/consent`,
-                    payload: { teamIds: [], expiresAt: Date.now() + 1000 * 60 * 60, toolPermissions: toolPermissionsPayload(false) },
-                    cookies: { sid }
-                })
-                const oauthSession = await mcpApp.db.models.OAuthSession.findOne({ where: { id: requestId } })
-                const { toolPermissions, ...legacyValue } = oauthSession.value
-                oauthSession.value = { ...legacyValue, readOnly: true }
-                await oauthSession.save()
-                const completeResponse = await mcpApp.inject({ method: 'PUT', url: `/account/complete/${requestId}`, payload: {}, cookies: { sid } })
-                const authCode = new URL(completeResponse.json().redirect).searchParams.get('code')
-                const tokenResponse = await mcpApp.inject({
-                    method: 'POST',
-                    url: '/account/token',
-                    payload: { grant_type: 'authorization_code', code: authCode, redirect_uri: redirectURI, client_id: reg.client_id, code_verifier: verifier }
-                })
-                const issued = await mcpApp.db.models.AccessToken.byRefreshToken(tokenResponse.json().refresh_token)
-                issued.readOnly.should.be.true()
-                const grant = await mcpApp.db.models.MCPGrant.findOne({ where: { AccessTokenId: issued.id } })
-                grant.permissions.should.eql({
-                    platform: { read: true, write: false, destructive: false },
-                    flow_building: { read: true, write: false, destructive: false }
-                })
-            })
-
             async function sessionFor (token) {
                 const request = { headers: { authorization: `Bearer ${token}` }, routeOptions: { config: { allowMcpGrant: true } }, requestContext: { set () {} } }
                 await mcpApp.verifySession(request, { code () { return this }, send () {} })
@@ -1007,6 +976,23 @@ describe('OAuth', async function () {
                 const requestObject = (await mcpApp.db.models.OAuthSession.findOne({ where: { id: requestId } })).value
                 const code = base64URLEncode(crypto.randomBytes(32))
                 await mcpApp.db.models.OAuthSession.create({ id: code, value: { ...requestObject, userId: mcpUser.id, code } })
+                const tokenResponse = await mcpApp.inject({
+                    method: 'POST',
+                    url: '/account/token',
+                    payload: { grant_type: 'authorization_code', code, redirect_uri: redirectURI, client_id: clientID, code_verifier: verifier }
+                })
+                tokenResponse.should.have.property('statusCode', 400)
+                tokenResponse.json().should.have.property('error', 'access_denied')
+            })
+
+            it('refuses to exchange an approved MCP code without tool permissions', async function () {
+                const { clientID, verifier, requestId } = await startMCPRequest()
+                const requestObject = (await mcpApp.db.models.OAuthSession.findOne({ where: { id: requestId } })).value
+                const code = base64URLEncode(crypto.randomBytes(32))
+                await mcpApp.db.models.OAuthSession.create({
+                    id: code,
+                    value: { ...requestObject, userId: mcpUser.id, approvedBy: mcpUser.id, expiresAt: Date.now() + 1000 * 60 * 60, teamIds: [], code }
+                })
                 const tokenResponse = await mcpApp.inject({
                     method: 'POST',
                     url: '/account/token',
