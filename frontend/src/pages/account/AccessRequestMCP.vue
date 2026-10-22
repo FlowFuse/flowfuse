@@ -121,6 +121,7 @@ import McpToolPermissions from '../../components/mcp/McpToolPermissions.vue'
 import client from '@/api/client.ts'
 import teamApi from '@/api/team.ts'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { redirectToOAuthClient } from '@/utils/oauthRedirect.ts'
 
 const ONE_DAY = 1000 * 60 * 60 * 24
 const ONE_YEAR = ONE_DAY * 365
@@ -271,14 +272,20 @@ export default {
                     expiresAt: Date.parse(this.expiresAt),
                     toolPermissions: { default: this.defaultPermissions, teams: this.teamOverrides }
                 })
-                window.location.href = `/account/complete/${this.requestId}`
+                const response = await client.put(`/account/complete/${this.requestId}`, {})
+                redirectToOAuthClient(response.data.redirect)
             } catch (err) {
                 this.error = err.response?.data?.description || 'Failed to process request. Please try again.'
                 this.submitting = false
             }
         },
-        denyAccess () {
-            window.location.href = `/account/reject/${this.requestId}`
+        async denyAccess () {
+            try {
+                const response = await client.put(`/account/reject/${this.requestId}`, {})
+                redirectToOAuthClient(response.data.redirect)
+            } catch (err) {
+                this.error = err.response?.data?.description || 'Failed to process request. Please try again.'
+            }
         }
     }
 }
