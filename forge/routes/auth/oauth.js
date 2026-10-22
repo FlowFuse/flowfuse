@@ -365,6 +365,7 @@ module.exports = async function (app) {
         reply.send({ redirect: await issueCode(requestObject, request.session.User) })
     })
     app.put('/account/reject/:code', {
+        preHandler: verifyBrowserSession,
         schema: {
             tags: ['Authentication', 'X-HIDDEN']
         }

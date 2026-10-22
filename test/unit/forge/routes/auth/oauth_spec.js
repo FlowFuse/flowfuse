@@ -937,11 +937,38 @@ describe('OAuth', async function () {
             })
 
             it('rejects a request via PUT', async function () {
-                const response = await mcpApp.inject({ method: 'PUT', url: `/account/reject/${await startPluginRequest()}`, payload: {} })
+                const response = await mcpApp.inject({ method: 'PUT', url: `/account/reject/${await startPluginRequest()}`, payload: {}, cookies: { sid } })
                 response.should.have.property('statusCode', 200)
                 const callback = new URL(response.json().redirect)
                 callback.searchParams.get('error').should.equal('access_denied')
                 callback.searchParams.get('state').should.equal('abc')
+            })
+
+            it('refuses PUT reject without a session', async function () {
+                const response = await mcpApp.inject({ method: 'PUT', url: `/account/reject/${await startPluginRequest()}`, payload: {} })
+                response.should.have.property('statusCode', 401)
+            })
+
+            it('refuses the editor auth shortcut for an MCP client', async function () {
+                // A logged-in editor-scope request bounces straight to GET complete,
+                // which must not issue a code for an MCP client
+                const reg = (await register()).json()
+                const params = new URLSearchParams({
+                    client_id: reg.client_id,
+                    scope: 'editor',
+                    response_type: 'code',
+                    redirect_uri: redirectURI,
+                    state: 'abc',
+                    code_challenge: pkce().challenge,
+                    code_challenge_method: 'S256'
+                })
+                const authResponse = await mcpApp.inject({ method: 'GET', url: `/account/authorize?${params}`, cookies: { sid } })
+                authResponse.should.have.property('statusCode', 302)
+                const completePath = new URL(authResponse.headers.location).pathname
+                completePath.should.match(/^\/account\/complete\//)
+                const completeResponse = await mcpApp.inject({ method: 'GET', url: completePath, cookies: { sid } })
+                completeResponse.should.have.property('statusCode', 400)
+                should.not.exist(completeResponse.headers.location)
             })
 
             it('refuses PUT complete for an MCP request without consent', async function () {
