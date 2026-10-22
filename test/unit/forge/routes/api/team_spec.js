@@ -2030,6 +2030,27 @@ describe('Team API', function () {
             result.will.should.have.property('payload')
             should.doesNotThrow(() => JSON.parse(result.will.payload))
         })
+        it('issues credentials to concurrent requests for the same session', async function () {
+            // Tabs that share sessionStorage (a restored or duplicated tab) ask for
+            // the same username at the same moment
+            const responses = await Promise.all([1, 2, 3, 4].map(() => app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/comms-credentials`,
+                payload: { sessionId: 'tab-concurrent' },
+                cookies: { sid: TestObjects.tokens.bob }
+            })))
+            responses.map(r => r.statusCode).should.eql([200, 200, 200, 200])
+            const clients = await app.db.models.BrokerClient.findAll({
+                where: { username: `fe-team:${TestObjects.bob.hashid}:${TestObjects.ATeam.hashid}:tab-concurrent` }
+            })
+            clients.should.have.length(1)
+            // The last credentials written are the ones that still authenticate
+            const results = await Promise.all(responses.map(r => {
+                const { username, password } = r.json()
+                return app.db.controllers.BrokerClient.authenticateCredentials(username, password)
+            }))
+            results.filter(Boolean).should.have.length(1)
+        })
         it('rejects a non-member with 404', async function () {
             const response = await app.inject({
                 method: 'POST',
