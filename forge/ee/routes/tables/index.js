@@ -8,7 +8,7 @@ function findInvalidNumericDefault (columns) {
         }
         if (col.type === 'bigint') {
             const value = parseInt(col.default)
-            return isNaN(value) || value >= 2 ** 63 || value < -(2 ** 63)
+            return isNaN(value) || value >= 2 ** 63 || value <= -(2 ** 63)
         }
         if (col.type === 'real' || col.type === 'double precision') {
             return !Number.isFinite(parseFloat(col.default))
