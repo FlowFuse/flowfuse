@@ -144,7 +144,7 @@ async function init (app, opts) {
                             return
                         }
                         Sentry.setUser({ id: request.session.User.hashid, username: request.session.User.username, email: request.session.User.email, name: request.session.User.name })
-                        if (accessToken.name) {
+                        if (accessToken.name !== null && accessToken.name !== undefined) {
                             const scopes = accessToken.AccessTokenTeamScopes ?? []
                             let teamScopes = null
 
