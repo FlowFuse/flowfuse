@@ -20,6 +20,7 @@ describe('BrokerClient', function () {
                 models: {
                     BrokerClient: {
                         create: sandbox.stub(),
+                        upsert: sandbox.stub(),
                         destroy: sandbox.stub(),
                         findOne: sandbox.stub(),
                         findOrCreate: sandbox.stub(),
@@ -134,7 +135,7 @@ describe('BrokerClient', function () {
         it('should create broker client for team frontend', async function () {
             const fakeClient = fakeBrokerClient()
             app.db.models.BrokerClient.findOne.resolves(null)
-            app.db.models.BrokerClient.create.resolves(fakeClient)
+            app.db.models.BrokerClient.upsert.resolves(fakeClient)
             const user = { id: 7, hashid: 'userHash' }
             const team = { id: 11, hashid: 'teamHash' }
             const sessionId = 'tab-1234567890'
@@ -144,7 +145,7 @@ describe('BrokerClient', function () {
             should(result).have.property('password')
             result.password.should.match(/^ffbtf_/)
             should(result).have.property('url', 'http://public.url')
-            app.db.models.BrokerClient.create.calledWith({
+            app.db.models.BrokerClient.upsert.calledWith({
                 username: expectedUsername,
                 password: result.password,
                 ownerId: '' + user.id,
@@ -154,7 +155,7 @@ describe('BrokerClient', function () {
         it('should destroy existing client for same session before creating a new one', async function () {
             const existingClient = fakeBrokerClient()
             app.db.models.BrokerClient.findOne.resolves(existingClient)
-            app.db.models.BrokerClient.create.resolves(fakeBrokerClient())
+            app.db.models.BrokerClient.upsert.resolves(fakeBrokerClient())
             const user = { id: 7, hashid: 'userHash' }
             const team = { id: 11, hashid: 'teamHash' }
             const result = await BrokerClient.createClientForTeamFrontend(app, user, team, 'tab-1234567890')
@@ -163,7 +164,7 @@ describe('BrokerClient', function () {
         })
         it('should look up existing client scoped to the full username (including sessionId) so different tabs do not revoke each other', async function () {
             app.db.models.BrokerClient.findOne.resolves(null)
-            app.db.models.BrokerClient.create.resolves(fakeBrokerClient())
+            app.db.models.BrokerClient.upsert.resolves(fakeBrokerClient())
             const user = { id: 7, hashid: 'userHash' }
             const team = { id: 11, hashid: 'teamHash' }
             await BrokerClient.createClientForTeamFrontend(app, user, team, 'tab-A')
@@ -173,7 +174,7 @@ describe('BrokerClient', function () {
         })
         it('should include a last will that clears the tab presence entry', async function () {
             app.db.models.BrokerClient.findOne.resolves(null)
-            app.db.models.BrokerClient.create.resolves(fakeBrokerClient())
+            app.db.models.BrokerClient.upsert.resolves(fakeBrokerClient())
             const user = { id: 7, hashid: 'userHash' }
             const team = { id: 11, hashid: 'teamHash' }
             const sessionId = 'tab-1234567890'
@@ -194,7 +195,7 @@ describe('BrokerClient', function () {
         it('should create broker client for expert client', async function () {
             const fakeClient = fakeBrokerClient()
             app.db.models.BrokerClient.findOne.resolves(null) // no existing client
-            app.db.models.BrokerClient.create.resolves(fakeClient)
+            app.db.models.BrokerClient.upsert.resolves(fakeClient)
             const user = { id: 123, hashid: 'abc123' }
             const sessionId = 'sess123'
             const result = await BrokerClient.createClientForExpertClient(app, user, sessionId)
@@ -202,7 +203,7 @@ describe('BrokerClient', function () {
             should(result).have.property('username', expectedUsername)
             should(result).have.property('password')
             result.password.should.match(/^ffbec_/) // check it has the right prefix
-            app.db.models.BrokerClient.create.calledWith({
+            app.db.models.BrokerClient.upsert.calledWith({
                 username: expectedUsername,
                 password: result.password,
                 ownerId: '' + user.id,
@@ -212,7 +213,7 @@ describe('BrokerClient', function () {
         it('should destroy existing client before creating new one', async function () {
             const fakeClient = fakeBrokerClient()
             app.db.models.BrokerClient.findOne.resolves(fakeClient) // existing client found
-            app.db.models.BrokerClient.create.resolves(fakeClient)
+            app.db.models.BrokerClient.upsert.resolves(fakeClient)
             const user = { id: 123, hashid: 'abc123' }
             const sessionId = 'sess123'
             const result = await BrokerClient.createClientForExpertClient(app, user, sessionId)
@@ -221,7 +222,7 @@ describe('BrokerClient', function () {
             should(result).have.property('password')
             result.password.should.match(/^ffbec_/) // check it has the right prefix
             fakeClient.destroy.called.should.be.true() // should have destroyed existing client
-            app.db.models.BrokerClient.create.calledWith({
+            app.db.models.BrokerClient.upsert.calledWith({
                 username: expectedUsername,
                 password: result.password,
                 ownerId: '' + user.id,
