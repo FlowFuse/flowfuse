@@ -12,10 +12,20 @@
 import { mapState } from 'pinia'
 
 import { CODE_BLOCK_ICONS, useMarkdownHelper } from '@/composables/strings/Markdown.js'
+import { THEME_VARIABLES, sanitizeDiagram, serializeSvg, svgToPngBlob } from '@/composables/strings/Mermaid.js'
 import useStreamingWords from '@/composables/strings/StreamingWords.js'
 import { sanitize } from '@/composables/strings/String.js'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
+
+// Sources are compared ignoring whitespace, so a diagram still matches its block if the spacing differs
+function normalizeSource (source) {
+    return source.replace(/\s+/g, ' ').trim()
+}
+
+function diagramButton (label, className, attributes) {
+    return `<button type="button" class="ff-btn ff-btn--tertiary ff-btn-small ${className}" ${attributes}>${label}</button>`
+}
 
 export default {
     name: 'StreamableContent',
@@ -64,12 +74,19 @@ export default {
             type: Boolean,
             required: false,
             default: false
+        },
+        // SVGs rendered by the Expert, matched to mermaid blocks by their source
+        diagrams: {
+            type: Array,
+            required: false,
+            default: () => []
         }
     },
     emits: ['streaming-complete', 'update:modelValue'],
     setup () {
         const { stream, text, isStreaming } = useStreamingWords({
-            delayMs: 30
+            delayMs: 10,
+            wordsPerTick: 4
         })
         const { markedInstance } = useMarkdownHelper()
 
@@ -85,6 +102,13 @@ export default {
             }
 
             return rawText
+        },
+        // Streaming re-renders the content on every tick, so each diagram is sanitized once up front
+        safeDiagrams () {
+            return this.diagrams.map(diagram => ({
+                source: normalizeSource(diagram.source || ''),
+                svg: sanitizeDiagram(diagram.svg || '')
+            }))
         },
         text () {
             const text = this.shouldStream ? this.streamedText : this.rawText
@@ -104,6 +128,7 @@ export default {
         isStreaming (isStreaming) {
             if (!isStreaming) {
                 this.$emit('streaming-complete')
+                this.renderDiagrams()
                 if (this.modelValue) {
                     this.$emit('update:modelValue', {
                         ...this.modelValue,
@@ -117,9 +142,124 @@ export default {
         if (this.shouldStream) {
             this.stream(this.rawText)
         }
+        this.renderDiagrams()
+    },
+    updated () {
+        this.renderDiagrams()
     },
     methods: {
+        // Mermaid blocks stay as plain code until their closing fence has streamed in, then
+        // are swapped for the SVG the Expert rendered, so earlier diagrams show while later text streams.
+        renderDiagrams () {
+            if (!this.richContent) return
+            const blocks = [...this.$el.querySelectorAll('.ff-code-block--mermaid')]
+            const ready = this.isStreaming ? this.completedMermaidBlocks() : blocks.length
+            for (const block of blocks.slice(0, ready)) {
+                if (block.hasAttribute('data-mermaid-state')) continue
+                const source = block.querySelector('pre code')?.textContent || ''
+                const svg = this.findDiagramSvg(source)
+                if (svg) {
+                    this.showDiagram(block, svg)
+                } else {
+                    block.setAttribute('data-mermaid-state', 'failed')
+                }
+            }
+        },
+        findDiagramSvg (source) {
+            const key = normalizeSource(source)
+            return this.safeDiagrams.find(diagram => diagram.source === key)?.svg
+        },
+        // The page theme, so exports look like the diagram on screen
+        diagramTheme (block) {
+            const style = getComputedStyle(block.querySelector('.ff-code-block--diagram'))
+            const theme = {}
+            for (const name of THEME_VARIABLES) {
+                const value = style.getPropertyValue(name).trim()
+                if (value) {
+                    theme[name] = value
+                }
+            }
+            return theme
+        },
+        // The streamed text is cut mid-block, so count the mermaid blocks whose end has arrived.
+        completedMermaidBlocks () {
+            const parts = this.streamedText.split('ff-code-block--mermaid').slice(1)
+            return parts.filter(part => part.includes('</pre>')).length
+        },
+        showDiagram (block, svg) {
+            const diagram = document.createElement('div')
+            diagram.className = 'ff-code-block--diagram'
+            diagram.innerHTML = svg
+            block.appendChild(diagram)
+            block.querySelector('pre').hidden = true
+            const actions = document.createElement('span')
+            actions.className = 'ff-code-block--diagram-actions'
+            actions.innerHTML = [
+                diagramButton('Code', 'ff-code-block--toggle', 'aria-pressed="false"'),
+                diagramButton('Copy SVG', 'ff-code-block--export', 'data-export="svg"'),
+                diagramButton('Copy image', 'ff-code-block--export', 'data-export="image"'),
+                diagramButton('Download PNG', 'ff-code-block--export', 'data-export="png"')
+            ].join('')
+            block.querySelector('.ff-code-block--copy').after(actions)
+            block.setAttribute('data-mermaid-state', 'rendered')
+        },
+        async exportDiagram (btn) {
+            const block = btn.closest('.ff-code-block')
+            const source = block.querySelector('pre code')?.textContent || ''
+            const svg = this.findDiagramSvg(source)
+            if (!svg) return
+            const theme = this.diagramTheme(block)
+            const label = btn.textContent
+            const flash = text => {
+                btn.textContent = text
+                setTimeout(() => { btn.textContent = label }, 2000)
+            }
+            try {
+                switch (btn.dataset.export) {
+                case 'svg':
+                    await navigator.clipboard.writeText(serializeSvg(svg, theme))
+                    flash('Copied')
+                    break
+                case 'image': {
+                    const blob = svgToPngBlob(svg, { theme })
+                    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+                    flash('Copied')
+                    break
+                }
+                case 'png': {
+                    const url = URL.createObjectURL(await svgToPngBlob(svg, { theme }))
+                    const a = document.createElement('a')
+                    a.href = url
+                    a.download = 'diagram.png'
+                    a.click()
+                    // Revoking straight after the click can cancel the download in Safari and Firefox
+                    setTimeout(() => URL.revokeObjectURL(url), 40 * 1000)
+                    break
+                }
+                }
+            } catch (_) {
+                flash('Failed')
+            }
+        },
         handleClick (event) {
+            const toggleBtn = event.target.closest('.ff-code-block--toggle')
+            if (toggleBtn) {
+                const block = toggleBtn.closest('.ff-code-block')
+                const showCode = toggleBtn.getAttribute('aria-pressed') !== 'true'
+                block.querySelector('pre').hidden = !showCode
+                block.querySelector('.ff-code-block--diagram').hidden = showCode
+                block.querySelectorAll('.ff-code-block--export').forEach(btn => { btn.hidden = showCode })
+                toggleBtn.setAttribute('aria-pressed', String(showCode))
+                toggleBtn.classList.toggle('active', showCode)
+                toggleBtn.blur()
+                return
+            }
+            const exportBtn = event.target.closest('.ff-code-block--export')
+            if (exportBtn) {
+                this.exportDiagram(exportBtn)
+                exportBtn.blur()
+                return
+            }
             const copyBtn = event.target.closest('.ff-code-block--copy') || event.target.closest('.ff-table-block--copy')
             if (!copyBtn) return
 
@@ -262,6 +402,40 @@ export default {
                 white-space: pre;
                 word-break: normal;
             }
+        }
+    }
+
+    // The diagram takes its colours from these variables, so it follows the theme without being re-rendered
+    :deep(.ff-code-block--diagram) {
+        --pele-bg: var(--ff-color-bg-surface);
+        --pele-fg: var(--ff-color-text);
+        --pele-muted: var(--ff-color-text-subtle);
+        --pele-line: var(--ff-color-text-subtle);
+        --pele-surface: var(--ff-color-bg-surface-raised);
+        --pele-surface-alt: var(--ff-color-bg-surface-raised);
+        --pele-border: var(--ff-color-accent);
+        --pele-accent: var(--ff-color-accent);
+
+        padding: 1rem;
+        overflow-x: auto;
+        background: var(--ff-color-bg-surface);
+
+        svg {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            margin: 0 auto;
+        }
+    }
+
+    :deep(.ff-code-block--diagram-actions) {
+        display: inline-flex;
+        gap: 0.5rem;
+        margin: 0 auto 0 0.5rem;
+
+        // .ff-btn sets display, which would override the hidden attribute
+        [hidden] {
+            display: none;
         }
     }
 
