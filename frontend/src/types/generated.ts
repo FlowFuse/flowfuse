@@ -4894,6 +4894,8 @@ export interface paths {
                 content: {
                     "application/json": {
                         snapshot: string;
+                        /** @default false */
+                        mergeEnvVars?: boolean;
                     };
                 };
             };

@@ -71,6 +71,10 @@ p code {
 .ff-description {
     font-size: $ff-funit-sm;
     color: var(--ff-color-text-subtle);
+
+    &.ff-description--multiline {
+        white-space: pre-line;
+    }
 }
 
 hr {
