@@ -8,9 +8,9 @@ meta:
 
 FlowFuse can package a Node-RED [subflow](https://nodered.org/docs/user-guide/editor/workspace/subflows) as an installable Node-RED node and publish it to your Team's Custom Nodes library. This lets you maintain a reusable block of logic or UI in one place and pull it into other instances like any other node, instead of copying flows between projects.
 
-{% warning %}
+::warning
 **Packaging is Hosted Instances only.** You can only *export* a subflow from a **Hosted Instance's** Node-RED editor — not from a Remote Instance (device). Once published, the resulting custom node can be **installed and used on any instance type**, Hosted or Remote.
-{% endwarning %}
+::
 
 ## Requirements
 
