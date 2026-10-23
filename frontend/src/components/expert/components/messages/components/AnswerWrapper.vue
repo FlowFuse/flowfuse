@@ -343,16 +343,20 @@ export default {
         }
     },
     watch: {
-        streamedComponents () {
+        streamedComponents: {
             // when all components finished streaming, we'll mark the answer as streamed
             // so we won't stream it again when re-rendering the same content
-            if (this.componentStreamingOrder.length === this.streamedComponents.length) {
-                this.updateAnswerStreamedState({
-                    messageUuid: this.messageUuid,
-                    answerUuid: this.answer._uuid
-                })
-                this.$emit('streaming-complete')
-            }
+            handler () {
+                if (this.componentStreamingOrder.length === this.streamedComponents.length) {
+                    this.updateAnswerStreamedState({
+                        messageUuid: this.messageUuid,
+                        answerUuid: this.answer._uuid
+                    })
+                    this.$emit('streaming-complete')
+                }
+            },
+            // components are pushed, not replaced
+            deep: true
         }
     },
     beforeUnmount () {

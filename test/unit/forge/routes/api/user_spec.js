@@ -1309,6 +1309,18 @@ describe('User API', async function () {
             updateResponse.statusCode.should.equal(200)
         })
 
+        it('Rejects creating a PAT with a missing, empty or blank name', async function () {
+            for (const payload of [{ scope: '' }, { name: '', scope: '' }, { name: '   ', scope: '' }]) {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload
+                })
+                response.statusCode.should.equal(400)
+            }
+        })
+
         it('PAT-authenticated POST /tokens returns 403', async function () {
             const createResponse = await app.inject({
                 method: 'POST',

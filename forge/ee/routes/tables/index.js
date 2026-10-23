@@ -1,3 +1,37 @@
+// The drivers turn numeric defaults into SQL with parseInt/parseFloat. A value that comes out as
+// NaN or Infinity lands in the query as a bare word, which Postgres rejects with an unrelated error.
+// A bigint outside its range still creates the table, but every insert relying on the default then fails.
+function findInvalidNumericDefault (columns) {
+    return columns.find(col => {
+        if (!col.name || !col.default) {
+            return false
+        }
+        if (col.type === 'bigint') {
+            const value = parseInt(col.default)
+            return isNaN(value) || value >= 2 ** 63 || value <= -(2 ** 63)
+        }
+        if (col.type === 'real' || col.type === 'double precision') {
+            return !Number.isFinite(parseFloat(col.default))
+        }
+        return false
+    })
+}
+
+// Postgres quotes a date it rejects but not the column it was for, so match the value back to it
+const INVALID_DATE = /(?:invalid input syntax for type date|date\/time field value out of range): "(.*)"/
+
+function findInvalidDateDefault (columns, err) {
+    const match = err.message.match(INVALID_DATE)
+    if (!match) {
+        return null
+    }
+    return columns.find(col => col.type === 'date' && col.default === match[1])
+}
+
+function invalidDefaultError (col) {
+    return { code: 'invalid_column_default', error: `Invalid default value "${col.default}" for ${col.type} column "${col.name}"` }
+}
+
 module.exports = async function (app) {
     // All routes are relative to /api/v1/teams/:teamId/databases
 
@@ -327,6 +361,10 @@ module.exports = async function (app) {
         if (tables.tables.filter((t) => t.name === request.body.name && t.schema === request.body.schema).length === 1) {
             return reply.status(409).send({ code: 'table_exists', error: 'Table already exists' })
         }
+        const invalidNumericDefault = findInvalidNumericDefault(request.body.columns)
+        if (invalidNumericDefault) {
+            return reply.status(400).send(invalidDefaultError(invalidNumericDefault))
+        }
         try {
             await app.tables.createTable(request.team, request.params.databaseId, request.body.name, request.body.columns, request.body.schema)
             reply.status(201).send({ name: request.body.name, schema: request.body.schema })
@@ -334,6 +372,10 @@ module.exports = async function (app) {
         } catch (err) {
             if (err.message.includes('Unsupported column type')) {
                 return reply.status(400).send({ code: 'invalid_column_type', error: 'Unsupported column type. Supported types: bigint, bigserial, boolean, date, timestamptz, real, double precision, text' })
+            }
+            const invalidDateDefault = findInvalidDateDefault(request.body.columns, err)
+            if (invalidDateDefault) {
+                return reply.status(400).send(invalidDefaultError(invalidDateDefault))
             }
             app.log.error(`Create FF tables table error ${err.toString()}`)
             reply.status(500).send({ code: 'unexpected_error', error: 'Failed to create table' })
