@@ -4,15 +4,14 @@
             This will overwrite the current instance.
             All changes to the flows and settings made since the last snapshot will be lost.
         </p>
-        <ff-checkbox
-            v-model="keepEnvVars"
-            data-form="keep-env-vars"
-            label="Keep the instance's current environment variables"
+        <ff-radio-group
+            v-model="envVarsMode"
+            data-form="env-vars-mode"
+            label="Environment variables"
+            orientation="vertical"
+            multiline-description
+            :options="envVarsOptions"
         />
-        <p class="text-sm">
-            When ticked, environment variables from the snapshot are only added if the instance does not already have them.
-            When unticked, the instance's environment variables are replaced by the snapshot's.
-        </p>
         <p>Are you sure you want to deploy to this snapshot?</p>
     </div>
 </template>
@@ -20,15 +19,27 @@
 <script>
 export default {
     name: 'RollbackSnapshotDialog',
-    emits: ['keep-env-vars-changed'],
+    emits: ['merge-env-vars-changed'],
     data () {
         return {
-            keepEnvVars: true
+            envVarsMode: 'merge',
+            envVarsOptions: [
+                {
+                    value: 'merge',
+                    label: 'Merge',
+                    description: 'Adds variables from the snapshot that the instance doesn\'t have.\nVariables the instance already has keep their current values, and none are removed.'
+                },
+                {
+                    value: 'replace',
+                    label: 'Replace',
+                    description: 'The instance\'s variables become exactly the snapshot\'s.\nMissing ones are added, existing ones take the snapshot\'s values, and ones not in the snapshot are removed.'
+                }
+            ]
         }
     },
     watch: {
-        keepEnvVars (value) {
-            this.$emit('keep-env-vars-changed', value)
+        envVarsMode (value) {
+            this.$emit('merge-env-vars-changed', value === 'merge')
         }
     }
 }

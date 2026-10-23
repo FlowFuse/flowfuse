@@ -34,7 +34,7 @@ export default {
                     is: {
                         component: markRaw(RollbackSnapshotDialog),
                         on: {
-                            'keep-env-vars-changed' (value) {
+                            'merge-env-vars-changed' (value) {
                                 mergeEnvVars = value
                             }
                         }
