@@ -62,4 +62,21 @@ describe('AnswerWrapper approval card', () => {
         const card = await mountApprovalCard({ messageUuids: ['message-1'], isWaitingForResponse: true })
         expect(card.props('disabled')).toBe(true)
     })
+
+    test('marks the answer streamed once the card has rendered', async () => {
+        const pinia = createTestingPinia({ createSpy: vi.fn, stubActions: true })
+        const expert = useProductExpertStore(pinia)
+        expert.messages = [{ _uuid: 'message-1' }]
+        const wrapper = mount(AnswerWrapper, {
+            props: { answer: approvalAnswer, messageUuid: 'message-1', instant: true },
+            global: {
+                plugins: [pinia],
+                stubs: { 'message-bubble': { template: '<div><slot /></div>' } }
+            }
+        })
+        await flushPromises()
+
+        expect(expert.updateAnswerStreamedState).toHaveBeenCalledWith({ messageUuid: 'message-1', answerUuid: 'answer-1' })
+        expect(wrapper.emitted('streaming-complete')).toHaveLength(1)
+    })
 })

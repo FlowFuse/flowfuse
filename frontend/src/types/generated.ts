@@ -916,7 +916,7 @@ export interface paths {
                     "application/json": {
                         scope?: string;
                         expiresAt?: number;
-                        name?: string;
+                        name: string;
                         readOnly?: boolean;
                         adminOptIn?: boolean;
                         teamIds?: string[];
