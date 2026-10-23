@@ -49,20 +49,24 @@ module.exports = fp(async function (app, opts) {
             })
             const googleUserInfo = userinfo.data
             await googleJWTCache.set(request.query.code, {})
+            if (googleUserInfo.email_verified !== true) {
+                reply.code(403).send({ code: 'unverified_email', error: 'Google account email is not verified' })
+                return
+            }
+            // Any email on a domain with an SSO provider must go through that provider,
+            // whether or not Google reports a Workspace (hd) account
+            const providerId = await app.sso.getProviderForEmail(googleUserInfo.email)
+            if (providerId) {
+                reply.send({
+                    url: `/ee/sso/login?u=${encodeURIComponent(googleUserInfo.email)}`
+                })
+                return
+            }
             if (googleUserInfo.hd) {
-                // This is a Google Workspace account - check if there is an SSO provider configured for this domain
-                const providerId = await app.sso.getProviderForEmail(googleUserInfo.email)
-                if (!providerId) {
-                    // No SSO provider configured for this domain - redirect to home
-                    reply.send({
-                        error: 'SSO not available for this Google Workspace domain'
-                    })
-                } else {
-                    // There is an SSO provider configured for this domain - use it
-                    reply.send({
-                        url: `/ee/sso/login?u=${encodeURIComponent(googleUserInfo.email)}`
-                    })
-                }
+                // Workspace account on a domain with no SSO provider configured
+                reply.send({
+                    error: 'SSO not available for this Google Workspace domain'
+                })
                 return
             }
             const user = await app.db.models.User.byUsernameOrEmail(googleUserInfo.email)
