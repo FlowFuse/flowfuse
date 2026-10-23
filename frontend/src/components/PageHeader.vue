@@ -179,7 +179,9 @@ export default {
                     label: 'Welcome Tour',
                     icon: CursorArrowRaysIcon,
                     tag: 'welcome-tour',
-                    onclick: this.startWelcomeTour
+                    onclick: this.startWelcomeTour,
+                    // The tour walks the classic dashboard, so it has nothing to point at on the Expert home
+                    hidden: !!this.featuresCheck.isExpertAssistantFeatureEnabled
                 },
                 {
                     label: 'Sign Out',
