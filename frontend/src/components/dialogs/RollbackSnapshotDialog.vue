@@ -32,7 +32,7 @@ export default {
                 {
                     value: 'replace',
                     label: 'Replace',
-                    description: 'The instance\'s variables become exactly the snapshot\'s.\nMissing ones are added, existing ones take the snapshot\'s values, and ones not in the snapshot are removed.'
+                    description: 'All instance variables are replaced by those in the snapshot. \nMissing ones are added, existing ones take the snapshot\'s values, and ones not in the snapshot are removed.'
                 }
             ]
         }
