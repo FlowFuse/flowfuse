@@ -12,11 +12,20 @@
 import { mapState } from 'pinia'
 
 import { CODE_BLOCK_ICONS, useMarkdownHelper } from '@/composables/strings/Markdown.js'
-import { sanitizeDiagram, serializeSvg, svgToPngBlob } from '@/composables/strings/Mermaid.js'
+import { THEME_VARIABLES, sanitizeDiagram, serializeSvg, svgToPngBlob } from '@/composables/strings/Mermaid.js'
 import useStreamingWords from '@/composables/strings/StreamingWords.js'
 import { sanitize } from '@/composables/strings/String.js'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
+
+// Sources are compared ignoring whitespace, so a diagram still matches its block if the spacing differs
+function normalizeSource (source) {
+    return source.replace(/\s+/g, ' ').trim()
+}
+
+function diagramButton (label, className, attributes) {
+    return `<button type="button" class="ff-btn ff-btn--tertiary ff-btn-small ${className}" ${attributes}>${label}</button>`
+}
 
 export default {
     name: 'StreamableContent',
@@ -94,6 +103,13 @@ export default {
 
             return rawText
         },
+        // Streaming re-renders the content on every tick, so each diagram is sanitized once up front
+        safeDiagrams () {
+            return this.diagrams.map(diagram => ({
+                source: normalizeSource(diagram.source || ''),
+                svg: sanitizeDiagram(diagram.svg || '')
+            }))
+        },
         text () {
             const text = this.shouldStream ? this.streamedText : this.rawText
 
@@ -149,10 +165,21 @@ export default {
                 }
             }
         },
-        // Streaming collapses runs of whitespace in the code, so sources are compared ignoring whitespace.
         findDiagramSvg (source) {
-            const normalize = text => text.replace(/\s+/g, ' ').trim()
-            return this.diagrams.find(d => normalize(d.source || '') === normalize(source))?.svg
+            const key = normalizeSource(source)
+            return this.safeDiagrams.find(diagram => diagram.source === key)?.svg
+        },
+        // The page theme, so exports look like the diagram on screen
+        diagramTheme (block) {
+            const style = getComputedStyle(block.querySelector('.ff-code-block--diagram'))
+            const theme = {}
+            for (const name of THEME_VARIABLES) {
+                const value = style.getPropertyValue(name).trim()
+                if (value) {
+                    theme[name] = value
+                }
+            }
+            return theme
         },
         // The streamed text is cut mid-block, so count the mermaid blocks whose end has arrived.
         completedMermaidBlocks () {
@@ -162,23 +189,26 @@ export default {
         showDiagram (block, svg) {
             const diagram = document.createElement('div')
             diagram.className = 'ff-code-block--diagram'
-            diagram.innerHTML = sanitizeDiagram(svg)
+            diagram.innerHTML = svg
             block.appendChild(diagram)
             block.querySelector('pre').hidden = true
-            const button = (label, className, exportAs) => `<button type="button" class="ff-btn ff-btn--tertiary ff-btn-small ${className}"${exportAs ? ` data-export="${exportAs}"` : ' aria-pressed="false"'}>${label}</button>`
             const actions = document.createElement('span')
             actions.className = 'ff-code-block--diagram-actions'
-            actions.innerHTML = button('Code', 'ff-code-block--toggle') +
-                button('Copy SVG', 'ff-code-block--export', 'svg') +
-                button('Copy image', 'ff-code-block--export', 'image') +
-                button('Download PNG', 'ff-code-block--export', 'png')
+            actions.innerHTML = [
+                diagramButton('Code', 'ff-code-block--toggle', 'aria-pressed="false"'),
+                diagramButton('Copy SVG', 'ff-code-block--export', 'data-export="svg"'),
+                diagramButton('Copy image', 'ff-code-block--export', 'data-export="image"'),
+                diagramButton('Download PNG', 'ff-code-block--export', 'data-export="png"')
+            ].join('')
             block.querySelector('.ff-code-block--copy').after(actions)
             block.setAttribute('data-mermaid-state', 'rendered')
         },
         async exportDiagram (btn) {
-            const source = btn.closest('.ff-code-block').querySelector('pre code')?.textContent || ''
+            const block = btn.closest('.ff-code-block')
+            const source = block.querySelector('pre code')?.textContent || ''
             const svg = this.findDiagramSvg(source)
             if (!svg) return
+            const theme = this.diagramTheme(block)
             const label = btn.textContent
             const flash = text => {
                 btn.textContent = text
@@ -187,22 +217,23 @@ export default {
             try {
                 switch (btn.dataset.export) {
                 case 'svg':
-                    await navigator.clipboard.writeText(serializeSvg(svg))
+                    await navigator.clipboard.writeText(serializeSvg(svg, theme))
                     flash('Copied')
                     break
                 case 'image': {
-                    const blob = svgToPngBlob(svg)
+                    const blob = svgToPngBlob(svg, { theme })
                     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
                     flash('Copied')
                     break
                 }
                 case 'png': {
-                    const url = URL.createObjectURL(await svgToPngBlob(svg))
+                    const url = URL.createObjectURL(await svgToPngBlob(svg, { theme }))
                     const a = document.createElement('a')
                     a.href = url
                     a.download = 'diagram.png'
                     a.click()
-                    URL.revokeObjectURL(url)
+                    // Revoking straight after the click can cancel the download in Safari and Firefox
+                    setTimeout(() => URL.revokeObjectURL(url), 40 * 1000)
                     break
                 }
                 }

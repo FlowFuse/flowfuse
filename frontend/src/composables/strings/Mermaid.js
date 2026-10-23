@@ -1,8 +1,21 @@
 import DOMPurify from 'dompurify'
 
+// The CSS variables the diagram takes its colours from
+export const THEME_VARIABLES = [
+    '--pele-bg',
+    '--pele-fg',
+    '--pele-muted',
+    '--pele-line',
+    '--pele-surface',
+    '--pele-surface-alt',
+    '--pele-border',
+    '--pele-accent'
+]
+
 // The SVG is rendered by the Expert and arrives with the message, so it is untrusted markup.
+// Ids are dropped because nothing in the SVG refers to them and they repeat across the diagrams on a page.
 export function sanitizeDiagram (svg) {
-    return DOMPurify.sanitize(svg, { USE_PROFILES: { svg: true, svgFilters: true } })
+    return DOMPurify.sanitize(svg, { USE_PROFILES: { svg: true, svgFilters: true }, FORBID_ATTR: ['id'] })
 }
 
 function parseSvg (svg) {
@@ -10,8 +23,9 @@ function parseSvg (svg) {
     return doc.documentElement
 }
 
-// Returns the diagram as standalone SVG markup with explicit pixel dimensions.
-export function serializeSvg (svg) {
+// Returns the diagram as standalone SVG markup with explicit pixel dimensions. The theme
+// variables are written onto the SVG, as outside the page it no longer inherits them.
+export function serializeSvg (svg, theme = {}) {
     const el = parseSvg(svg)
     const [, , width, height] = (el.getAttribute('viewBox') || '').split(/\s+/).map(Number)
     if (width && height) {
@@ -19,12 +33,15 @@ export function serializeSvg (svg) {
         el.setAttribute('height', height)
     }
     el.style.maxWidth = ''
+    for (const [name, value] of Object.entries(theme)) {
+        el.style.setProperty(name, value)
+    }
     el.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
     return new XMLSerializer().serializeToString(el)
 }
 
-export async function svgToPngBlob (svg, { scale = 2, background = '#ffffff' } = {}) {
-    const standalone = serializeSvg(svg)
+export async function svgToPngBlob (svg, { scale = 2, theme = {} } = {}) {
+    const standalone = serializeSvg(svg, theme)
     const el = parseSvg(standalone)
     const width = Number(el.getAttribute('width'))
     const height = Number(el.getAttribute('height'))
@@ -38,7 +55,7 @@ export async function svgToPngBlob (svg, { scale = 2, background = '#ffffff' } =
     canvas.width = Math.ceil(width * scale)
     canvas.height = Math.ceil(height * scale)
     const ctx = canvas.getContext('2d')
-    ctx.fillStyle = background
+    ctx.fillStyle = theme['--pele-bg'] || '#ffffff'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
     ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
     return new Promise((resolve, reject) => {
