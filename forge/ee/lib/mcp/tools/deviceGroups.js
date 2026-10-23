@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { appendQuery, applicationId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, teamId, toolError } = require('../schemas')
+const { pathId, appendQuery, applicationId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, teamId, toolError } = require('../schemas')
 
 module.exports = [
     {
@@ -59,7 +59,7 @@ module.exports = [
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             applicationId,
-            groupId: z.string().describe('Device group hashid to fetch')
+            groupId: pathId.describe('Device group hashid to fetch')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/applications/${args.applicationId}/device-groups/${args.groupId}` })
@@ -78,14 +78,13 @@ module.exports = [
         inputSchema: {
             applicationId: applicationId.describe('The hashid of the application to create the device group in'),
             name: z.string().min(1).describe('Name for the new device group'),
-            description: z.string().optional().describe('Description for the group. Defaults to an empty string rather than being left unset, because a group stored without one breaks the device group listings')
+            description: z.string().optional().describe('Description for the group')
         },
         handler: async (args, { inject }) => {
-            // A group created without a description is stored with a null one, which
-            // fails the route's own response schema: the create answers 500 having
-            // created the group anyway, and every later listing of the application's
-            // and the team's groups then 500s on that row too. Default it instead.
-            const payload = { name: args.name, description: args.description ?? '' }
+            const payload = { name: args.name }
+            if (args.description !== undefined) {
+                payload.description = args.description
+            }
             const response = await inject({ method: 'POST', url: `/api/v1/applications/${args.applicationId}/device-groups`, payload })
             return response
         }
@@ -104,10 +103,10 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             applicationId: applicationId.describe('The hashid of the application the group belongs to'),
-            groupId: z.string().describe('The hashid of the device group to update'),
+            groupId: pathId.describe('The hashid of the device group to update'),
             name: z.string().min(1).optional().describe('New name for the group'),
             description: z.string().optional().describe('New description for the group'),
-            targetSnapshotId: z.string().nullable().optional().describe('The hashid of the snapshot to pin as the group target (deployed to all member devices immediately), or null to clear the pin. The snapshot must belong to the same application')
+            targetSnapshotId: pathId.nullable().optional().describe('The hashid of the snapshot to pin as the group target (deployed to all member devices immediately), or null to clear the pin. The snapshot must belong to the same application')
         },
         handler: async (args, { inject }) => {
             const payload = {}
@@ -139,7 +138,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             applicationId: applicationId.describe('The hashid of the application the group belongs to'),
-            groupId: z.string().describe('The hashid of the device group whose membership to change'),
+            groupId: pathId.describe('The hashid of the device group whose membership to change'),
             add: z.array(z.string()).optional().describe('Hashids of devices to add to the group'),
             remove: z.array(z.string()).optional().describe('Hashids of devices to remove from the group'),
             set: z.array(z.string()).optional().describe('Hashids of devices to set as the exact membership, replacing the current list. Overrides add/remove')
@@ -172,7 +171,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             applicationId: applicationId.describe('The hashid of the application the group belongs to'),
-            groupId: z.string().describe('The hashid of the device group whose settings to update'),
+            groupId: pathId.describe('The hashid of the device group whose settings to update'),
             env: z.array(z.object({
                 name: z.string().describe('Environment variable name: a letter or underscore followed by letters, digits or underscores'),
                 value: z.string().describe('Environment variable value. For an existing hidden variable, pass an empty string (with hidden true) to keep the stored value'),
@@ -181,6 +180,33 @@ module.exports = [
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'PUT', url: `/api/v1/applications/${args.applicationId}/device-groups/${args.groupId}/settings`, payload: { env: args.env } })
+            return response
+        }
+    },
+    {
+        name: 'platform_delete_device_group',
+        title: 'Delete Device Group',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes a device group from an application. This cannot be undone.
+            Its member remote instances (devices) are not deleted: they stay in the application, drop out of the group and keep their current target snapshot, but the group's environment variables and target no longer apply to them.
+            A pipeline stage that deploys to this group is not deleted either. It is left with no deploy target, so edit or remove it afterwards (find it with platform_list_pipelines).
+            Before calling this, confirm with the user and tell them which devices and pipeline stages are affected (use platform_get_application_device_group and platform_list_pipelines).
+            Only team owners can delete device groups. Requires the deviceGroups feature to be enabled for the owning team; if it is not, this returns a not-found error, as does a group that does not belong to the given application.
+            Replies with an empty object on success.`,
+        // destructiveHint: the group and its settings are gone for good.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            applicationId: applicationId.describe('The hashid of the application the group belongs to'),
+            groupId: pathId.describe('The hashid of the device group to delete')
+        },
+        handler: async (args, { inject }) => {
+            // Both ids go into the URL path and inject resolves dot segments, so anything but a plain
+            // hashid could send this DELETE to another route (e.g. groupId "../../<applicationId>").
+            if (!/^[A-Za-z0-9]+$/.test(args.applicationId) || !/^[A-Za-z0-9]+$/.test(args.groupId)) {
+                return toolError(400, 'invalid_request', 'applicationId and groupId must be hashids')
+            }
+            const response = await inject({ method: 'DELETE', url: `/api/v1/applications/${args.applicationId}/device-groups/${args.groupId}` })
             return response
         }
     }

@@ -175,7 +175,7 @@ describe('account store', () => {
 
     describe('actions', () => {
         describe('setTeam', () => {
-            it('refreshes membership but skips full reload when the same team is already active (by id)', async () => {
+            it('refreshes membership and re-applies the analytics group when the same team is already active (by id)', async () => {
                 const store = useAccountStore()
                 const team = { id: 'team-1', slug: 'alpha' }
                 mockContext.team = team
@@ -184,8 +184,19 @@ describe('account store', () => {
 
                 expect(mockContext.refreshTeamMembership).toHaveBeenCalled()
                 expect(mockContext.team).toEqual(team)
-                // no full switch — analytics + store reset are skipped
-                expect(product.setTeam).not.toHaveBeenCalled()
+                // the team survives a reload in sessionStorage, the PostHog group does not
+                expect(product.setTeam).toHaveBeenCalledWith(team)
+            })
+
+            it('re-applies the analytics group when the active team is named by slug', async () => {
+                const store = useAccountStore()
+                const team = { id: 'team-1', slug: 'alpha' }
+                mockContext.team = team
+
+                await store.setTeam('alpha')
+
+                expect(product.setTeam).toHaveBeenCalledWith(team)
+                expect(teamsStore.fetchTeam).not.toHaveBeenCalled()
             })
 
             it('does nothing if both current and new team are null', async () => {

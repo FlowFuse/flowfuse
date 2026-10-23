@@ -2,7 +2,7 @@ const { randomUUID } = require('crypto')
 
 const { z } = require('zod')
 
-const { teamId, applicationId, hostedInstanceId, searchQuery, sortParams, limitParam, pageParam, toolError } = require('../schemas')
+const { pathId, teamId, applicationId, hostedInstanceId, searchQuery, sortParams, limitParam, pageParam, toolError } = require('../schemas')
 
 // Mirrors the runningStates/errorStates/stoppedStates groups in frontend/src/composables/InstanceStates.js,
 // the same grouping the dashboard's own Running/Error/Not Running status filter uses (frontend/src/pages/team/Instances.vue).
@@ -200,7 +200,7 @@ module.exports = [
             projectType: z.string().describe('The ID of the hosted instance type (use platform_list_hosted_instance_types to find valid values)'),
             stack: z.string().describe('The ID of the stack (use platform_list_hosted_instance_types to find valid values)'),
             template: z.string().describe('The ID of the template (use platform_list_templates to find valid values)'),
-            flowBlueprintId: z.string().optional().describe('Optional blueprint ID to initialize the hosted instance with starter flows (use platform_list_blueprints to find valid values)')
+            flowBlueprintId: pathId.optional().describe('Optional blueprint ID to initialize the hosted instance with starter flows (use platform_list_blueprints to find valid values)')
         },
         handler: async (args, { inject }) => {
             const payload = {
@@ -364,7 +364,7 @@ module.exports = [
         name: 'platform_update_hosted_instance_env',
         title: 'Update Hosted Instance Environment Variables',
         description: `FlowFuse platform automation tool:
-            Replaces the full set of environment variables on a hosted instance. Variables missing from the list are removed, so read the current set first (platform_get_hosted_instance_config) and resend everything that should stay.
+            Replaces the full set of environment variables on a hosted instance. Variables missing from the list are removed, so read the current set first from settings.env in platform_get_hosted_instance and resend everything that should stay. Hidden values come back blank there, and the FF_ entries marked platform are set by the platform and ignored when sent back.
             To keep an existing hidden (secret) variable's stored value without knowing it, resend it with hidden true and an empty value. A hidden entry with an empty value that does not already exist on the instance is dropped.
             Settings the instance's template locks are silently dropped rather than rejected, so a locked value can come back unchanged with no error. "settings_validation" is raised for malformed input instead, such as a bad or duplicated env var name.
             The new values take effect when the instance's flows next restart (use platform_instance_action with restart to apply them immediately).
@@ -592,6 +592,55 @@ module.exports = [
                 headers: { 'content-type': `multipart/form-data; boundary=${boundary}` },
                 payload
             })
+            return response
+        }
+    },
+    {
+        name: 'platform_delete_instance_file',
+        title: 'Delete Hosted Instance File',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes a file or a directory from a hosted instance's file store. This cannot be undone.
+            A directory is deleted together with everything inside it, and any public sharing set up on it or on a directory beneath it is removed as well.
+            Flows that read or serve these files will stop finding them. Before calling this, confirm with the user, and use platform_list_hosted_instance_files to check what the path contains.
+            The root of the file store cannot be deleted, and the instance must be running.
+            Replies { status: "okay" } on success. A path that does not exist returns an error.
+            Static file storage is a plan-gated feature: a team without it enabled gets a 404 error.`,
+        // destructiveHint: the file, or a whole directory tree, is gone for good.
+        // idempotentHint: a repeat call has no further effect, it just fails as missing.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            instanceId: hostedInstanceId.describe('The id (UUID) of the hosted instance'),
+            path: z.string().min(1).describe('Path of the file or directory to delete, relative to the file-store root. Use "/" separators, as returned by platform_list_hosted_instance_files')
+        },
+        handler: async (args, { inject }) => {
+            // The launcher's root guard misses a trailing slash, so "//" would delete the whole
+            // file store. Only pass on a path that names something below the root.
+            const segments = args.path.split('/').filter(Boolean)
+            if (segments.length === 0 || segments.some(s => s === '.' || s === '..')) {
+                return toolError(400, 'invalid_request', 'path must name a file or directory below the file-store root, without "." or ".." segments')
+            }
+            return inject({ method: 'DELETE', url: `/api/v1/projects/${args.instanceId}/files/_/${encodeURIComponent(segments.join('/'))}` })
+        }
+    },
+    {
+        name: 'platform_rollback_hosted_instance',
+        title: 'Roll Back Hosted Instance',
+        description: `FlowFuse platform automation tool:
+            Rolls a hosted instance back to one of its own snapshots. This OVERWRITES the instance's current flows, credentials, settings, environment variables and installed node modules with the ones in the snapshot. Environment variables are replaced, not merged, so any added since the snapshot are lost. Settings and environment variables the instance's template does not allow the instance to change are skipped and keep their current value.
+            The current state is not saved automatically. If it might be needed again, take a snapshot first with platform_create_instance_snapshot.
+            If the instance is running, a restart of its flows is triggered, and this replies before the restart finishes, so the instance can still be restarting right after. If it is stopped or suspended, the rolled back version is stored and used the next time it starts.
+            The snapshot must belong to this hosted instance; a snapshot from another instance or a device, or one that does not exist, is rejected. Find snapshot ids with platform_list_instance_snapshots.
+            Confirm with the user before calling this.
+            Team members and owners can roll back. Replies { status: "okay" } on success.`,
+        // destructiveHint: this replaces what the instance is running rather than adding to it.
+        // idempotentHint: rolling back to the same snapshot again restarts the flows each time.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
+        inputSchema: {
+            instanceId: hostedInstanceId.describe('The id (UUID) of the hosted instance to roll back'),
+            snapshotId: pathId.describe('The hashid of the snapshot to roll back to. Must be a snapshot of this hosted instance')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'POST', url: `/api/v1/projects/${args.instanceId}/actions/rollback`, payload: { snapshot: args.snapshotId } })
             return response
         }
     }

@@ -1,5 +1,7 @@
 ---
 navTitle: Logging
+meta:
+   description: Find the Node-RED logs, instance audit log and team audit log in FlowFuse, and see how AI agent and API actions are marked.
 ---
 
 # Logs

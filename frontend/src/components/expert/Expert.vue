@@ -8,7 +8,7 @@
             :class="{ 'has-mode-switcher': isInsightsModeEnabled && isEditorContext }"
             @scroll="handleScroll"
         >
-            <info-banner v-if="!isOnboardingSurface" />
+            <info-banner v-if="!isFullPageSurface" />
 
             <expert-messages @resizing="scrollToBottom" />
 
@@ -21,7 +21,7 @@
         <!-- Updates Available Banner -->
         <update-banner v-if="isEditorContext && isInstanceRunning" />
 
-        <task-list v-if="activeTaskList" :items="activeTaskList.items" :title="activeTaskList.title" />
+        <task-list v-if="showTaskList" :items="activeTaskList.items" :title="activeTaskList.title" />
 
         <expert-chat-input ref="chatInput" @stop="handleStopGeneration" />
     </div>
@@ -29,6 +29,7 @@
 
 <script>
 import { mapActions, mapState } from 'pinia'
+import { unref } from 'vue'
 
 import ExpertChatInput from './components/ExpertChatInput.vue'
 import ExpertMessages from './components/ExpertMessages.vue'
@@ -37,6 +38,7 @@ import InfoBanner from './components/InfoBanner.vue'
 import UpdateBanner from './components/UpdateBanner.vue'
 import TaskList from './components/messages/components/TaskList.vue'
 
+import { isFullPageSurface } from '@/components/expert/surfaces.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
@@ -61,6 +63,10 @@ export default {
         expertSurface: {
             from: 'expert-surface',
             default: 'drawer'
+        },
+        expertChatOpen: {
+            from: 'expert-chat-open',
+            default: true
         }
     },
     props: {
@@ -82,6 +88,9 @@ export default {
         }
     },
     computed: {
+        showTaskList () {
+            return !!this.activeTaskList && unref(this.expertChatOpen)
+        },
         ...mapState(useProductExpertStore, [
             'abortController',
             'agentMode',
@@ -97,10 +106,10 @@ export default {
             // In editor context, the route name includes 'editor'
             return this.$route?.name?.includes('editor') || false
         },
-        isOnboardingSurface () {
-            // In onboarding, the Expert opens the conversation itself, so the
+        isFullPageSurface () {
+            // On a full page surface the Expert opens the conversation itself, so the
             // canned welcome message and the support banner stay out of it.
-            return this.expertSurface === 'onboarding'
+            return isFullPageSurface(this.expertSurface)
         },
         isInsightsModeEnabled () {
             return !!this.featuresCheck?.isExpertInsightsFeatureEnabled
@@ -126,7 +135,7 @@ export default {
                 if (this.isInsightsAgent) {
                     await this.getCapabilities()
                 }
-                if (!this.isOnboardingSurface) {
+                if (!this.isFullPageSurface) {
                     this.addWelcomeMessageIfNeeded()
                 }
             }
@@ -159,14 +168,11 @@ export default {
         if (this.scrollCheckDebounce) {
             clearTimeout(this.scrollCheckDebounce)
         }
-        // Clean up session timer
-        this.resetSessionTimer()
     },
     methods: {
         ...mapActions(useProductExpertStore, [
             'setAgentMode',
             'setAbortController',
-            'resetSessionTimer',
             'addWelcomeMessageIfNeeded',
             'stopInflightChat'
         ]),

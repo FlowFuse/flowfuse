@@ -199,6 +199,56 @@ describe('OAuth', async function () {
             should.exist(m, 'location header format incorrect: ' + response.headers.location)
         })
 
+        it('does not treat a half-logged-in session as logged in', async function () {
+            // An MFA-enabled user who has only supplied their password holds a
+            // session that has not finished logging in. The authorize route reads
+            // the cookie directly, so it must not bounce such a session past the
+            // login page, and calling complete directly must be denied.
+            const mfaUser = await app.factory.createUser({
+                username: 'mfa-editor',
+                name: 'MFA Editor',
+                email: 'mfa-editor@example.com',
+                password: 'mmPassword',
+                mfa_enabled: true
+            })
+            await app.team.addUser(mfaUser, { through: { role: app.factory.Roles.Roles.Member } })
+            await app.db.models.MFAToken.createTokenForUser(mfaUser)
+
+            // Password-only login returns a session cookie but a 403
+            const loginResponse = await app.inject({
+                method: 'POST',
+                url: '/account/login',
+                payload: { username: 'mfa-editor', password: 'mmPassword' }
+            })
+            loginResponse.should.have.property('statusCode', 403)
+            const sid = loginResponse.cookies[0].value
+
+            const instanceCreds = await app.project.refreshAuthTokens()
+            const requestOptions = generateOAuthRequest({ clientID: instanceCreds.clientID })
+
+            // authorize must send the half session to the login page, not complete
+            const authResponse = await app.inject({
+                method: 'GET',
+                url: requestOptions.authURL,
+                cookies: { sid }
+            })
+            authResponse.should.have.property('statusCode', 302)
+            const requestMatch = /\/account\/request\/([^/]+)\/editor$/.exec(authResponse.headers.location)
+            should.exist(requestMatch, 'expected a redirect to the login page, got: ' + authResponse.headers.location)
+
+            // calling complete directly with the half session must be denied
+            const completeResponse = await app.inject({
+                method: 'GET',
+                url: `/account/complete/${requestMatch[1]}`,
+                cookies: { sid }
+            })
+            completeResponse.should.have.property('statusCode', 400)
+            completeResponse.json().should.have.property('error', 'access_denied')
+
+            await app.db.models.MFAToken.deleteTokenForUser(mfaUser)
+            await mfaUser.destroy()
+        })
+
         it('completes oauth flow - team owner - full-access', async function () {
             await app.team.addUser(TestObjects.bob, { through: { role: app.factory.Roles.Roles.Owner } })
             const scope = await runFullLogin(TestObjects.bob)
@@ -322,6 +372,7 @@ describe('OAuth', async function () {
 
     describe('MCP agent auth (DCR + PKCE)', async function () {
         let mcpApp
+        let mcpUser
         let sid
         const redirectURI = 'http://localhost:9876/oauth/callback'
 
@@ -329,6 +380,11 @@ describe('OAuth', async function () {
             const verifier = base64URLEncode(crypto.randomBytes(32))
             const challenge = base64URLEncode(crypto.createHash('sha256').update(verifier).digest())
             return { verifier, challenge }
+        }
+
+        function toolPermissionsPayload (readOnly = false, teams = {}) {
+            const categories = { read: true, write: !readOnly, destructive: false }
+            return { default: { platform: { ...categories }, flow_building: { ...categories } }, teams }
         }
 
         async function register (redirectURIs = [redirectURI]) {
@@ -355,13 +411,13 @@ describe('OAuth', async function () {
             mcpApp = await setup({
                 license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNDIyNDAwLCJleHAiOjc5ODY5MDIzOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwiZGV2Ijp0cnVlLCJpYXQiOjE2NjI0ODI5ODd9.e8Jeppq4aURwWYz-rEpnXs9RY2Y7HF7LJ6rMtMZWdw2Xls6-iyaiKV1TyzQw5sUBAhdUSZxgtiFH5e_cNJgrUg'
             })
-            const user = await mcpApp.factory.createUser({
+            mcpUser = await mcpApp.factory.createUser({
                 username: 'mcpuser',
                 name: 'MCP User',
                 email: 'mcp@example.com',
                 password: 'mmPassword'
             })
-            await mcpApp.team.addUser(user, { through: { role: mcpApp.factory.Roles.Roles.Owner } })
+            await mcpApp.team.addUser(mcpUser, { through: { role: mcpApp.factory.Roles.Roles.Owner } })
             const loginResponse = await mcpApp.inject({
                 method: 'POST',
                 url: '/account/login',
@@ -415,15 +471,15 @@ describe('OAuth', async function () {
             const consentResponse = await mcpApp.inject({
                 method: 'PUT',
                 url: `/account/authorize/${requestId}/consent`,
-                payload: { readOnly: true, teamIds: [mcpApp.team.hashid], expiresAt: grantExpiresAt },
+                payload: { teamIds: [mcpApp.team.hashid], expiresAt: grantExpiresAt, toolPermissions: toolPermissionsPayload(true) },
                 cookies: { sid }
             })
             consentResponse.should.have.property('statusCode', 200)
 
             // complete - issues the authorization code and redirects back to the client
-            const completeResponse = await mcpApp.inject({ method: 'GET', url: `/account/complete/${requestId}`, cookies: { sid } })
-            completeResponse.should.have.property('statusCode', 302)
-            const callback = new URL(completeResponse.headers.location)
+            const completeResponse = await mcpApp.inject({ method: 'PUT', url: `/account/complete/${requestId}`, payload: {}, cookies: { sid } })
+            completeResponse.should.have.property('statusCode', 200)
+            const callback = new URL(completeResponse.json().redirect)
             callback.host.should.equal('localhost:9876')
             const authCode = callback.searchParams.get('code')
             should.exist(authCode)
@@ -451,6 +507,11 @@ describe('OAuth', async function () {
             const issued = await mcpApp.db.models.AccessToken.byRefreshToken(token.refresh_token)
             issued.should.have.property('readOnly', true)
             issued.grantExpiresAt.getTime().should.equal(grantExpiresAt)
+            const issuedGrant = await mcpApp.db.models.MCPGrant.findOne({ where: { AccessTokenId: issued.id } })
+            issuedGrant.permissions.should.eql({
+                platform: { read: true, write: false, destructive: false },
+                flow_building: { read: true, write: false, destructive: false }
+            })
 
             // refresh - a public MCP client refreshes without a client secret
             const refreshResponse = await mcpApp.inject({
@@ -471,9 +532,9 @@ describe('OAuth', async function () {
             const authResponse = await mcpApp.inject({ method: 'GET', url: authorizeURL(clientID, redirectURI, challenge), cookies: { sid } })
             const requestId = /\/account\/request\/([^/]+)\/mcp$/.exec(authResponse.headers.location)[1]
             const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000
-            await mcpApp.inject({ method: 'PUT', url: `/account/authorize/${requestId}/consent`, payload: { readOnly: false, teamIds: [], expiresAt }, cookies: { sid } })
-            const completeResponse = await mcpApp.inject({ method: 'GET', url: `/account/complete/${requestId}`, cookies: { sid } })
-            const authCode = new URL(completeResponse.headers.location).searchParams.get('code')
+            await mcpApp.inject({ method: 'PUT', url: `/account/authorize/${requestId}/consent`, payload: { teamIds: [], expiresAt, toolPermissions: toolPermissionsPayload(false) }, cookies: { sid } })
+            const completeResponse = await mcpApp.inject({ method: 'PUT', url: `/account/complete/${requestId}`, payload: {}, cookies: { sid } })
+            const authCode = new URL(completeResponse.json().redirect).searchParams.get('code')
             const first = (await mcpApp.inject({
                 method: 'POST',
                 url: '/account/token',
@@ -589,23 +650,147 @@ describe('OAuth', async function () {
 
             it('rejects consent without an expiry date', async function () {
                 const requestId = await startConsent()
-                const response = await consent(requestId, { readOnly: true, teamIds: [] })
+                const response = await consent(requestId, { teamIds: [], toolPermissions: toolPermissionsPayload(true) })
                 response.should.have.property('statusCode', 400)
                 response.json().should.have.property('error', 'invalid_request')
             })
 
             it('rejects consent with an expiry in the past', async function () {
                 const requestId = await startConsent()
-                const response = await consent(requestId, { readOnly: true, teamIds: [], expiresAt: Date.now() - 1000 })
+                const response = await consent(requestId, { teamIds: [], expiresAt: Date.now() - 1000, toolPermissions: toolPermissionsPayload(true) })
                 response.should.have.property('statusCode', 400)
                 response.json().should.have.property('error', 'invalid_request')
             })
 
             it('rejects consent with an expiry more than a year away', async function () {
                 const requestId = await startConsent()
-                const response = await consent(requestId, { readOnly: true, teamIds: [], expiresAt: Date.now() + 370 * 24 * 60 * 60 * 1000 })
+                const response = await consent(requestId, { teamIds: [], expiresAt: Date.now() + 370 * 24 * 60 * 60 * 1000, toolPermissions: toolPermissionsPayload(true) })
                 response.should.have.property('statusCode', 400)
                 response.json().should.have.property('error', 'invalid_request')
+            })
+
+            it('rejects a team override for a team the user is not a member of', async function () {
+                const requestId = await startConsent()
+                const response = await consent(requestId, {
+                    teamIds: [],
+                    expiresAt: Date.now() + 1000 * 60 * 60,
+                    toolPermissions: toolPermissionsPayload(false, { 'not-a-real-team': { platform: { write: true } } })
+                })
+                response.should.have.property('statusCode', 400)
+                response.json().should.have.property('error', 'invalid_request')
+            })
+
+            it('rejects a team override for a team outside a non-empty teamIds', async function () {
+                const requestId = await startConsent()
+                const otherTeam = await mcpApp.factory.createTeam({ name: 'Other Team' })
+                await otherTeam.addUser(mcpUser, { through: { role: mcpApp.factory.Roles.Roles.Owner } })
+                const response = await consent(requestId, {
+                    teamIds: [mcpApp.team.hashid],
+                    expiresAt: Date.now() + 1000 * 60 * 60,
+                    toolPermissions: toolPermissionsPayload(false, { [otherTeam.hashid]: { platform: { write: true } } })
+                })
+                response.should.have.property('statusCode', 400)
+                response.json().should.have.property('error', 'invalid_request')
+            })
+        })
+
+        describe('tool permissions', function () {
+            async function fullConsentFlow (payload) {
+                const reg = (await register()).json()
+                const { verifier, challenge } = pkce()
+                const authResponse = await mcpApp.inject({ method: 'GET', url: authorizeURL(reg.client_id, redirectURI, challenge), cookies: { sid } })
+                const requestId = /\/account\/request\/([^/]+)\/mcp$/.exec(authResponse.headers.location)[1]
+                const consentResponse = await mcpApp.inject({
+                    method: 'PUT',
+                    url: `/account/authorize/${requestId}/consent`,
+                    payload,
+                    cookies: { sid }
+                })
+                if (consentResponse.statusCode !== 200) {
+                    return { consentResponse }
+                }
+                const completeResponse = await mcpApp.inject({ method: 'PUT', url: `/account/complete/${requestId}`, payload: {}, cookies: { sid } })
+                const authCode = new URL(completeResponse.json().redirect).searchParams.get('code')
+                const tokenResponse = await mcpApp.inject({
+                    method: 'POST',
+                    url: '/account/token',
+                    payload: { grant_type: 'authorization_code', code: authCode, redirect_uri: redirectURI, client_id: reg.client_id, code_verifier: verifier }
+                })
+                const minted = await mcpApp.db.models.AccessToken.byRefreshToken(tokenResponse.json().refresh_token)
+                const issued = await mcpApp.db.models.AccessToken.findOne({
+                    where: { id: minted.id },
+                    include: [{ model: mcpApp.db.models.MCPGrant, include: [{ model: mcpApp.db.models.MCPGrantTeamPermission }] }]
+                })
+                return { consentResponse, tokenResponse, issued, requestId }
+            }
+
+            it('persists the default and per-team overrides, and derives readOnly false when any group allows write', async function () {
+                const { issued } = await fullConsentFlow({
+                    teamIds: [mcpApp.team.hashid],
+                    expiresAt: Date.now() + 1000 * 60 * 60,
+                    toolPermissions: toolPermissionsPayload(true, { [mcpApp.team.hashid]: { platform: { write: true } } })
+                })
+                issued.readOnly.should.be.false()
+                issued.MCPGrant.permissions.should.eql({
+                    platform: { read: true, write: false, destructive: false },
+                    flow_building: { read: true, write: false, destructive: false }
+                })
+                issued.MCPGrant.MCPGrantTeamPermissions.should.have.length(1)
+                issued.MCPGrant.MCPGrantTeamPermissions[0].permissions.should.eql({
+                    platform: { read: true, write: true, destructive: false },
+                    flow_building: { read: false, write: false, destructive: false }
+                })
+            })
+
+            it('stacks destructive into write into read when persisting', async function () {
+                const { issued } = await fullConsentFlow({
+                    teamIds: [],
+                    expiresAt: Date.now() + 1000 * 60 * 60,
+                    toolPermissions: toolPermissionsPayload(false, { [mcpApp.team.hashid]: { platform: { destructive: true } } })
+                })
+                issued.MCPGrant.MCPGrantTeamPermissions[0].permissions.platform.should.eql({ read: true, write: true, destructive: true })
+            })
+
+            it('drops a team override that matches the default rather than storing it', async function () {
+                const { issued } = await fullConsentFlow({
+                    teamIds: [],
+                    expiresAt: Date.now() + 1000 * 60 * 60,
+                    toolPermissions: toolPermissionsPayload(true, { [mcpApp.team.hashid]: { platform: { read: true }, flow_building: { read: true } } })
+                })
+                issued.MCPGrant.MCPGrantTeamPermissions.should.have.length(0)
+            })
+
+            async function sessionFor (token) {
+                const request = { headers: { authorization: `Bearer ${token}` }, routeOptions: { config: { allowMcpGrant: true } }, requestContext: { set () {} } }
+                await mcpApp.verifySession(request, { code () { return this }, send () {} })
+                return request.session
+            }
+
+            it('sets session.mcpGrant for an MCP token and not for a plain PAT', async function () {
+                const { tokenResponse } = await fullConsentFlow({
+                    teamIds: [],
+                    expiresAt: Date.now() + 1000 * 60 * 60,
+                    toolPermissions: toolPermissionsPayload(true, { [mcpApp.team.hashid]: { platform: { write: true } } })
+                })
+                const mcpToken = tokenResponse.json().access_token
+                const mcpSession = await sessionFor(mcpToken)
+                mcpSession.mcpGrant.default.platform.should.eql({ read: true, write: false, destructive: false })
+                mcpSession.mcpGrant.teams[mcpApp.team.hashid].platform.write.should.be.true()
+                mcpSession.pat.should.not.have.property('toolPermissions')
+
+                const plain = await mcpApp.db.controllers.AccessToken.createPersonalAccessToken(mcpUser, 'ff', null, 'plain')
+                const plainSession = await sessionFor(plain.token)
+                plainSession.should.have.property('isPAT', true)
+                plainSession.should.not.have.property('mcpGrant')
+            })
+
+            it('derives readOnly true when nothing allows write in any group', async function () {
+                const { issued } = await fullConsentFlow({
+                    teamIds: [],
+                    expiresAt: Date.now() + 1000 * 60 * 60,
+                    toolPermissions: toolPermissionsPayload(true)
+                })
+                issued.readOnly.should.be.true()
             })
         })
 
@@ -623,6 +808,199 @@ describe('OAuth', async function () {
             const response = await mcpApp.inject({ method: 'GET', url: authorizeURL(reg.client_id, 'http://127.0.0.1:2222/cb', challenge), cookies: { sid } })
             response.should.have.property('statusCode', 302)
             response.headers.location.should.match(/\/account\/request\/[^/]+\/mcp$/)
+        })
+
+        describe('approval', function () {
+            const pluginRedirectURI = 'https://example.com/flowfuse-nr-tools/auth/callback'
+            let otherSid
+
+            before(async function () {
+                await mcpApp.factory.createUser({
+                    username: 'mcpother',
+                    name: 'MCP Other',
+                    email: 'mcp-other@example.com',
+                    password: 'mmPassword'
+                })
+                const loginResponse = await mcpApp.inject({
+                    method: 'POST',
+                    url: '/account/login',
+                    payload: { username: 'mcpother', password: 'mmPassword', remember: false }
+                })
+                otherSid = loginResponse.cookies[0].value
+            })
+
+            async function startMCPRequest (cookies = {}) {
+                const reg = (await register()).json()
+                const { verifier, challenge } = pkce()
+                const authResponse = await mcpApp.inject({ method: 'GET', url: authorizeURL(reg.client_id, redirectURI, challenge), cookies })
+                const requestId = /\/account\/request\/([^/]+)\/mcp$/.exec(authResponse.headers.location)[1]
+                return { clientID: reg.client_id, verifier, requestId }
+            }
+
+            async function startPluginRequest () {
+                const { challenge } = pkce()
+                const params = new URLSearchParams({
+                    client_id: 'ff-plugin',
+                    scope: 'ff-plugin',
+                    response_type: 'code',
+                    redirect_uri: pluginRedirectURI,
+                    state: 'abc',
+                    code_challenge: challenge,
+                    code_challenge_method: 'S256'
+                })
+                const authResponse = await mcpApp.inject({ method: 'GET', url: `/account/authorize?${params}` })
+                return /\/account\/request\/([^/]+)$/.exec(authResponse.headers.location)[1]
+            }
+
+            function consent (requestId, cookies) {
+                return mcpApp.inject({
+                    method: 'PUT',
+                    url: `/account/authorize/${requestId}/consent`,
+                    payload: { teamIds: [], expiresAt: Date.now() + 1000 * 60 * 60, toolPermissions: toolPermissionsPayload(false) },
+                    cookies
+                })
+            }
+
+            it('rejects a non-http(s) ff-plugin redirect_uri that matches the callback path', async function () {
+                for (const scope of ['ff-plugin', 'ff-assistant']) {
+                    const params = new URLSearchParams({
+                        client_id: 'ff-plugin',
+                        scope,
+                        response_type: 'code',
+                        redirect_uri: `javascript:alert(document.domain)//x/${scope === 'ff-plugin' ? 'flowfuse-nr-tools' : 'nr-assistant'}/auth/callback`,
+                        state: 'abc',
+                        code_challenge: pkce().challenge,
+                        code_challenge_method: 'S256'
+                    })
+                    const response = await mcpApp.inject({ method: 'GET', url: `/account/authorize?${params}`, cookies: { sid } })
+                    response.should.have.property('statusCode', 400)
+                    response.json().should.have.property('error', 'invalid_request')
+                    should.not.exist(response.headers.location)
+                }
+            })
+
+            it('refuses GET complete for an MCP request, even with consent', async function () {
+                const { requestId } = await startMCPRequest({ sid })
+                ;(await consent(requestId, { sid })).should.have.property('statusCode', 200)
+                const response = await mcpApp.inject({ method: 'GET', url: `/account/complete/${requestId}`, cookies: { sid } })
+                response.should.have.property('statusCode', 400)
+                should.not.exist(response.headers.location)
+            })
+
+            it('refuses GET complete and GET reject for an ff-plugin request', async function () {
+                const completeResponse = await mcpApp.inject({ method: 'GET', url: `/account/complete/${await startPluginRequest()}`, cookies: { sid } })
+                completeResponse.should.have.property('statusCode', 400)
+                should.not.exist(completeResponse.headers.location)
+                const rejectResponse = await mcpApp.inject({ method: 'GET', url: `/account/reject/${await startPluginRequest()}`, cookies: { sid } })
+                rejectResponse.should.have.property('statusCode', 400)
+                should.not.exist(rejectResponse.headers.location)
+            })
+
+            it('completes an ff-plugin request via PUT', async function () {
+                const response = await mcpApp.inject({ method: 'PUT', url: `/account/complete/${await startPluginRequest()}`, payload: {}, cookies: { sid } })
+                response.should.have.property('statusCode', 200)
+                const callback = new URL(response.json().redirect)
+                callback.origin.should.equal('https://example.com')
+                should.exist(callback.searchParams.get('code'))
+                callback.searchParams.get('state').should.equal('abc')
+            })
+
+            it('rejects a request via PUT', async function () {
+                const response = await mcpApp.inject({ method: 'PUT', url: `/account/reject/${await startPluginRequest()}`, payload: {}, cookies: { sid } })
+                response.should.have.property('statusCode', 200)
+                const callback = new URL(response.json().redirect)
+                callback.searchParams.get('error').should.equal('access_denied')
+                callback.searchParams.get('state').should.equal('abc')
+            })
+
+            it('refuses PUT reject without a session', async function () {
+                const response = await mcpApp.inject({ method: 'PUT', url: `/account/reject/${await startPluginRequest()}`, payload: {} })
+                response.should.have.property('statusCode', 401)
+            })
+
+            it('refuses the editor auth shortcut for an MCP client', async function () {
+                // A logged-in editor-scope request bounces straight to GET complete,
+                // which must not issue a code for an MCP client
+                const reg = (await register()).json()
+                const params = new URLSearchParams({
+                    client_id: reg.client_id,
+                    scope: 'editor',
+                    response_type: 'code',
+                    redirect_uri: redirectURI,
+                    state: 'abc',
+                    code_challenge: pkce().challenge,
+                    code_challenge_method: 'S256'
+                })
+                const authResponse = await mcpApp.inject({ method: 'GET', url: `/account/authorize?${params}`, cookies: { sid } })
+                authResponse.should.have.property('statusCode', 302)
+                const completePath = new URL(authResponse.headers.location).pathname
+                completePath.should.match(/^\/account\/complete\//)
+                const completeResponse = await mcpApp.inject({ method: 'GET', url: completePath, cookies: { sid } })
+                completeResponse.should.have.property('statusCode', 400)
+                should.not.exist(completeResponse.headers.location)
+            })
+
+            it('refuses PUT complete for an MCP request without consent', async function () {
+                const { requestId } = await startMCPRequest()
+                const response = await mcpApp.inject({ method: 'PUT', url: `/account/complete/${requestId}`, payload: {}, cookies: { sid } })
+                response.should.have.property('statusCode', 400)
+                response.json().should.have.property('error', 'access_denied')
+            })
+
+            it('refuses PUT complete when consent was given by a different user', async function () {
+                // The attacker saves consent with their own session, then has the victim complete it
+                const { requestId } = await startMCPRequest()
+                ;(await consent(requestId, { sid: otherSid })).should.have.property('statusCode', 200)
+                const response = await mcpApp.inject({ method: 'PUT', url: `/account/complete/${requestId}`, payload: {}, cookies: { sid } })
+                response.should.have.property('statusCode', 400)
+                response.json().should.have.property('error', 'access_denied')
+            })
+
+            it('refuses consent and PUT complete authenticated with a bearer token', async function () {
+                const pat = await mcpApp.db.controllers.AccessToken.createPersonalAccessToken(mcpUser, '', null, 'approval-test')
+                const headers = { authorization: `Bearer ${pat.token}` }
+                const { requestId } = await startMCPRequest()
+                const consentResponse = await mcpApp.inject({
+                    method: 'PUT',
+                    url: `/account/authorize/${requestId}/consent`,
+                    payload: { teamIds: [], expiresAt: Date.now() + 1000 * 60 * 60, toolPermissions: toolPermissionsPayload(false) },
+                    headers
+                })
+                consentResponse.should.have.property('statusCode', 401)
+                const completeResponse = await mcpApp.inject({ method: 'PUT', url: `/account/complete/${await startPluginRequest()}`, payload: {}, headers })
+                completeResponse.should.have.property('statusCode', 401)
+            })
+
+            it('refuses to exchange an MCP code that was not approved', async function () {
+                const { clientID, verifier, requestId } = await startMCPRequest()
+                const requestObject = (await mcpApp.db.models.OAuthSession.findOne({ where: { id: requestId } })).value
+                const code = base64URLEncode(crypto.randomBytes(32))
+                await mcpApp.db.models.OAuthSession.create({ id: code, value: { ...requestObject, userId: mcpUser.id, code } })
+                const tokenResponse = await mcpApp.inject({
+                    method: 'POST',
+                    url: '/account/token',
+                    payload: { grant_type: 'authorization_code', code, redirect_uri: redirectURI, client_id: clientID, code_verifier: verifier }
+                })
+                tokenResponse.should.have.property('statusCode', 400)
+                tokenResponse.json().should.have.property('error', 'access_denied')
+            })
+
+            it('refuses to exchange an approved MCP code without tool permissions', async function () {
+                const { clientID, verifier, requestId } = await startMCPRequest()
+                const requestObject = (await mcpApp.db.models.OAuthSession.findOne({ where: { id: requestId } })).value
+                const code = base64URLEncode(crypto.randomBytes(32))
+                await mcpApp.db.models.OAuthSession.create({
+                    id: code,
+                    value: { ...requestObject, userId: mcpUser.id, approvedBy: mcpUser.id, expiresAt: Date.now() + 1000 * 60 * 60, teamIds: [], code }
+                })
+                const tokenResponse = await mcpApp.inject({
+                    method: 'POST',
+                    url: '/account/token',
+                    payload: { grant_type: 'authorization_code', code, redirect_uri: redirectURI, client_id: clientID, code_verifier: verifier }
+                })
+                tokenResponse.should.have.property('statusCode', 400)
+                tokenResponse.json().should.have.property('error', 'access_denied')
+            })
         })
     })
 })

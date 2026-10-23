@@ -24,7 +24,7 @@ create_user() {
       "name": "'"$USERNAME"'",
       "username": "'"$USERNAME"'",
       "password": "'"$PASSWORD"'",
-      "email": "'"$USERNAME@flowfuse.dev"'",
+      "email": "'"$USERNAME@flowfuse.local"'",
       "isAdmin": false,
       "createDefaultTeam": false
     }' "https://$FLOWFUSE_URL/api/v1/users/"
@@ -143,7 +143,7 @@ kubectl run flowfuse-setup-0 \
   --image bitnamilegacy/postgresql:14.10.0-debian-11-r3 \
   -- psql -h flowfuse-pr-$PR_NUMBER-postgresql -U forge -d flowforge -c \
   "INSERT INTO public.\"Users\" (username,name,email,email_verified,sso_enabled,mfa_enabled,\"password\",password_expired,\"admin\",avatar,tcs_accepted,suspended,\"createdAt\",\"updatedAt\",\"defaultTeamId\") \
-    VALUES ('flowfusedeveloper','flowfusedeveloper','noreply@flowfuse.dev',true,false,false,'$INIT_CONFIG_PASSWORD_HASH',false,true,'/avatar/Zmxvd2Z1c2VkZXZlbG9wZXI',NULL,false,'2024-03-15 19:51:49.449+01','2024-03-15 19:51:49.449+01',NULL);"
+    VALUES ('flowfusedeveloper','flowfusedeveloper','noreply@flowfuse.local',true,false,false,'$INIT_CONFIG_PASSWORD_HASH',false,true,'/avatar/Zmxvd2Z1c2VkZXZlbG9wZXI',NULL,false,'2024-03-15 19:51:49.449+01','2024-03-15 19:51:49.449+01',NULL);"
 
 ### Mark platform as configured
 kubectl run flowfuse-setup-1 \

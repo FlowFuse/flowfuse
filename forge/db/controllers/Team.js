@@ -1,5 +1,6 @@
 const crypto = require('crypto')
 
+const { ControllerError } = require('../../lib/errors')
 const { Roles, RoleNames } = require('../../lib/roles')
 
 function provisioningError (message, code) {
@@ -113,7 +114,7 @@ module.exports = {
             if (oldRole === role) {
                 return { user, team, oldRole, role }
             }
-            if (oldRole === Roles.Owner && role === Roles.Member) {
+            if (oldRole === Roles.Owner && role !== Roles.Owner) {
                 const ownerCount = await team.ownerCount(transaction)
                 if (ownerCount === 1) {
                     throw new Error('Cannot remove last owner')
@@ -135,7 +136,7 @@ module.exports = {
             await transaction.commit()
             return { user, team, oldRole, role }
         } catch (err) {
-            transaction.rollback()
+            await transaction.rollback()
             throw err
         }
     },
@@ -193,7 +194,7 @@ module.exports = {
             if (userRole.role === Roles.Owner) {
                 const ownerCount = await team.ownerCount()
                 if (ownerCount === 1) {
-                    throw new Error('Cannot remove last owner')
+                    throw new ControllerError('invalid_request', 'cannot remove only owner', 400)
                 }
             }
             if (user.defaultTeamId === team.id) {

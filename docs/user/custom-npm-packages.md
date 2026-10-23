@@ -1,5 +1,7 @@
 ---
 navTitle: Custom Node Packages
+meta:
+   description: Publish private Node-RED nodes to the FlowFuse Custom Node Registry, or connect an instance to a third-party npm registry and catalogue.
 ---
 
 # Custom Node Packages

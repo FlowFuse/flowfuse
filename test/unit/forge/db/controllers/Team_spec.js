@@ -2,7 +2,7 @@ const should = require('should') // eslint-disable-line
 const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
-const { Roles } = FF_UTIL.require('forge/lib/roles')
+const { Roles, RoleNames, TeamRoles } = FF_UTIL.require('forge/lib/roles')
 
 describe('Team controller', function () {
     // Use standard test data.
@@ -125,6 +125,36 @@ describe('Team controller', function () {
                 return
             }
             throw new Error('Allowed last owner to be removed')
+        })
+
+        const lowerRoles = TeamRoles.filter((role) => role !== Roles.Owner)
+        lowerRoles.forEach((lowerRole) => {
+            const name = RoleNames[lowerRole]
+            it(`does not allow the only owner to be demoted to ${name}`, async function () {
+                const team = await app.db.models.Team.byName('ATeam')
+                const user = await app.db.models.User.byUsername('alice')
+                await should(
+                    app.db.controllers.Team.changeUserRole(team.hashid, user.hashid, lowerRole)
+                ).be.rejectedWith('Cannot remove last owner')
+                const endingRole = await user.getTeamMembership(team.id)
+                endingRole.role.should.equal(Roles.Owner)
+                const ownerCount = await team.ownerCount()
+                ownerCount.should.equal(1)
+            })
+
+            it(`allows an owner to be demoted to ${name} when another owner exists`, async function () {
+                const team = await app.db.models.Team.byName('BTeam')
+                const user = await app.db.models.User.byUsername('bob')
+                const alice = await app.db.models.User.byUsername('alice')
+                const aliceRole = await alice.getTeamMembership(team.id)
+                aliceRole.role = Roles.Owner
+                await aliceRole.save()
+                await app.db.controllers.Team.changeUserRole(team.hashid, user.hashid, lowerRole)
+                const endingRole = await user.getTeamMembership(team.id)
+                endingRole.role.should.equal(lowerRole)
+                const ownerCount = await team.ownerCount()
+                ownerCount.should.equal(1)
+            })
         })
     })
 

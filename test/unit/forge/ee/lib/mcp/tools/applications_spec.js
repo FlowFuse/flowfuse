@@ -201,6 +201,42 @@ describe('MCP Applications Tools', function () {
         })
     })
 
+    describe('platform_delete_application', function () {
+        const tool = getTool('platform_delete_application')
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('deletes through the application route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
+            inject.withArgs({ method: 'DELETE', url: '/api/v1/applications/app1' }).resolves(routeResponse)
+
+            const response = await tool.handler({ applicationId: 'app1' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('passes through the 422 for an application that still has hosted instances', async function () {
+            const errorResponse = { statusCode: 422, json: () => ({ code: 'invalid_application', error: 'Please delete the instances within the application first' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ applicationId: 'app1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+
+        it('refuses an applicationId that would reach another route', async function () {
+            for (const applicationId of ['../teams/team1', 'app1?x=1', '..']) {
+                const response = await tool.handler({ applicationId }, { inject })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            }
+            inject.called.should.be.false()
+        })
+    })
+
     describe('platform_list_application_snapshots', function () {
         const tool = getTool('platform_list_application_snapshots')
 

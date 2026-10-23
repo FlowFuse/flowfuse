@@ -204,9 +204,9 @@ class PlatformAutomationHandler {
                     })
                 }
 
-                const { formatResponse } = require('../ee/lib/mcp/toolLoader')
+                const { formatResponse, invokeTool } = require('../ee/lib/mcp/toolLoader')
                 const args = applyInputDefaults(tool, data?.input || {})
-                const response = await tool.handler(args, { inject, app: this.app, user, mcpSessionId, scope: callerScope })
+                const response = await invokeTool(tool, args, { inject, app: this.app, user, mcpSessionId, scope: callerScope })
                 result = formatResponse(response)
                 break
             }

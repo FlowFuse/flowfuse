@@ -43,9 +43,14 @@ async function completeUserSignup (app, user, { createTeamOverride = false } = {
             } else {
                 teamTypeId = app.db.models.TeamType.decodeHashid(teamTypeId)
             }
+            // Usernames are only unique among users, so a team may already own this slug
+            let slug = user.username.toLowerCase()
+            while (await app.db.models.Team.count({ where: { slug } })) {
+                slug = `${user.username.toLowerCase()}-${crypto.randomBytes(2).toString('hex')}`
+            }
             const teamProperties = {
                 name: `Team ${user.name}`,
-                slug: user.username,
+                slug,
                 TeamTypeId: teamTypeId
             }
             personalTeam = await app.db.controllers.Team.createTeamForUser(teamProperties, user)
@@ -59,10 +64,13 @@ async function completeUserSignup (app, user, { createTeamOverride = false } = {
         }
     }
 
-    // With AI-led onboarding enabled, stop here: the team stays empty and the
-    // default workspace gets provisioned later, on demand.
-    if (app.config.features.enabled('aiOnboarding')) {
-        return
+    // When the new team will be offered AI-led onboarding, stop here: the team stays
+    // empty and the default workspace gets provisioned later, on demand.
+    if (personalTeam) {
+        await personalTeam.ensureTeamTypeExists()
+        if (personalTeam.isAiOnboardingOffered()) {
+            return
+        }
     }
 
     // only create a starting instance if the flag is set and this user and their teams have no instances

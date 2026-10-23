@@ -27,12 +27,12 @@ const accountSettingsStore = reactive({
 })
 
 const uxDrawersStore = reactive({
-    rightDrawer: { state: false, fixed: false, expertState: { pinned: false } }
+    rightDrawer: { state: false, fixed: false, expertSuppressed: false, expertState: { pinned: false } }
 })
 
 const expertStore = reactive({ openAssistantDrawer: vi.fn() })
 
-vi.mock('@/stores/product-mcp.js', () => ({ useProductMcpStore: () => mcpStore }))
+vi.mock('@/stores/product-mcp.js', () => ({ useProductMcpStore: () => mcpStore, MCP_TOAST_DURATION: 30000 }))
 vi.mock('@/stores/context.js', () => ({ useContextStore: () => contextStore }))
 vi.mock('@/stores/account-settings.js', () => ({ useAccountSettingsStore: () => accountSettingsStore }))
 vi.mock('@/stores/ux-drawers.js', () => ({ useUxDrawersStore: () => uxDrawersStore }))
@@ -65,6 +65,7 @@ describe('ExpertButton', () => {
         mcpStore.status = 'off'
         mcpStore.clientCount = 0
         contextStore.team = null
+        uxDrawersStore.rightDrawer.expertSuppressed = false
     })
 
     afterEach(() => {
@@ -108,7 +109,7 @@ describe('ExpertButton', () => {
             await wrapper.vm.$nextTick()
 
             expect(mcpStore.disable).toHaveBeenCalled()
-            expect(emit).toHaveBeenCalledWith('MCP session closed due to team switch.', 'info')
+            expect(emit).toHaveBeenCalledWith('MCP session closed due to team switch.', 'info', 30000)
         })
 
         it('stays out of the way when the tab is not exposed', async () => {
@@ -123,6 +124,19 @@ describe('ExpertButton', () => {
 
             expect(mcpStore.disable).not.toHaveBeenCalled()
             expect(mcpStore.resume).not.toHaveBeenCalled()
+        })
+    })
+
+    describe('suppression', () => {
+        it('hides the Expert button while suppressed, keeping the MCP toggle', async () => {
+            const wrapper = mountButton()
+            expect(wrapper.find('[data-el="expert-button"]').exists()).toBe(true)
+
+            uxDrawersStore.rightDrawer.expertSuppressed = true
+            await wrapper.vm.$nextTick()
+
+            expect(wrapper.find('[data-el="expert-button"]').exists()).toBe(false)
+            expect(wrapper.find('[data-el="mcp-toggle"]').exists()).toBe(true)
         })
     })
 })

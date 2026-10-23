@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { basePaginationKeys, limitParam, appendQuery, hostedInstanceId, snapshotId, snapshotComponents, toolError } = require('../schemas')
+const { pathId, basePaginationKeys, limitParam, appendQuery, hostedInstanceId, remoteInstanceId, snapshotId, snapshotComponents, toolError } = require('../schemas')
 const { blankHiddenEnvValues } = require('../utils')
 
 // Width of ProjectSnapshot.name, a DataTypes.STRING column.
@@ -31,7 +31,7 @@ module.exports = [
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             instanceType: z.enum(['hosted', 'remote']).describe('Which kind of instance instanceId refers to: "hosted" for a hosted instance, "remote" for a remote instance (device)'),
-            instanceId: z.string().describe('The ID of the instance whose snapshots to list (UUID for a hosted instance, hashid for a remote instance)'),
+            instanceId: pathId.describe('The ID of the instance whose snapshots to list (UUID for a hosted instance, hashid for a remote instance)'),
             cursor: z.string().optional().describe('Cursor for pagination (the hashid of the last item from the previous page)'),
             ...limitParam
         },
@@ -52,11 +52,12 @@ module.exports = [
             Think of it as taking a photo of the instance so you can go back to this exact state later or deploy it elsewhere.
             Set instanceType to "hosted" or "remote" to say which kind of instance instanceId refers to.
             When instanceType is "remote", the device must be online and running or this will fail; call platform_get_remote_instance_status first to check.
+            For a remote instance, the new snapshot is not set as its target. If the user asks for that, set it with platform_set_remote_instance_target.
             Use this when the user wants to save the current state of an instance before making changes, or to create a version that can be rolled out elsewhere.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             instanceType: z.enum(['hosted', 'remote']).describe('Which kind of instance instanceId refers to: "hosted" for a hosted instance, "remote" for a remote instance (device)'),
-            instanceId: z.string().describe('The ID of the instance to snapshot (UUID for a hosted instance, hashid for a remote instance)'),
+            instanceId: pathId.describe('The ID of the instance to snapshot (UUID for a hosted instance, hashid for a remote instance)'),
             name: z.string().trim().min(1).max(SNAPSHOT_NAME_MAX_LENGTH).describe('Name for the snapshot'),
             description: z.string().optional().describe('Description of the snapshot')
         },
@@ -155,6 +156,30 @@ module.exports = [
         }
     },
     {
+        name: 'platform_delete_snapshot',
+        title: 'Delete Snapshot',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes a snapshot. This cannot be undone. Works for snapshots owned by a hosted instance or a remote instance (device); the owner is resolved automatically from the snapshot.
+            CAUTION: if the snapshot is deployed anywhere, deleting it also removes it as a target. It is cleared as the device target of its hosted instance, as the target of any device group, and as the target and active snapshot of every device pointing at it. A device that loses its target snapshot stops running Node-RED (unless it is in developer mode) until a new target is set.
+            Before calling this, confirm with the user. Check where the snapshot is deployed first with platform_get_hosted_instance_device_target_snapshot, platform_list_application_device_groups and platform_list_remote_instances, and tell the user which devices will be affected.
+            Only team owners can delete snapshots. Replies { status: "okay" } on success; a snapshot that does not exist, or that the caller cannot see, returns 404.`,
+        // destructiveHint: the snapshot is gone for good, and any device targeting it stops running.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            snapshotId: snapshotId.describe('The hashid of the snapshot to delete')
+        },
+        handler: async (args, { inject }) => {
+            // snapshotId goes into the URL path and inject resolves dot segments, so anything but
+            // a plain hashid could send this DELETE to another route (e.g. "../applications/<id>").
+            if (!/^[A-Za-z0-9]+$/.test(args.snapshotId)) {
+                return toolError(400, 'invalid_request', 'snapshotId must be a hashid')
+            }
+            const response = await inject({ method: 'DELETE', url: `/api/v1/snapshots/${args.snapshotId}` })
+            return response
+        }
+    },
+    {
         name: 'platform_export_snapshot',
         title: 'Export Snapshot',
         description: `FlowFuse platform automation tool:
@@ -199,7 +224,7 @@ module.exports = [
             Use components to import selectively, for example envVars: "keys" to import env var names without their values.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
         inputSchema: {
-            ownerId: z.string().describe('Target owner id: hosted instance (project) UUID when ownerType is "instance", or device hashid when ownerType is "device"'),
+            ownerId: pathId.describe('Target owner id: hosted instance (project) UUID when ownerType is "instance", or device hashid when ownerType is "device"'),
             ownerType: z.enum(['instance', 'device']).describe('Type of resource that will own the imported snapshot'),
             snapshot: z.object({
                 name: z.string().describe('Name for the imported snapshot'),
@@ -309,6 +334,25 @@ module.exports = [
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'POST', url: `/api/v1/projects/${args.hostedInstanceId}/devices/settings`, payload: { targetSnapshot: args.snapshotId } })
+            return response
+        }
+    },
+    {
+        name: 'platform_set_remote_instance_target',
+        title: 'Set Remote Instance Target Snapshot',
+        description: `FlowFuse platform automation tool:
+            Sets the target snapshot of a remote instance (device) assigned to an application, and tells the device to deploy it straight away.
+            CAUTION: the device replaces the flows it is running as soon as the target changes. In developer mode, any changes made in the device editor that are not saved in a snapshot are lost. Confirm with the user before calling this.
+            Only remote instances assigned to an application have their own target. One assigned to a hosted instance follows the target set with platform_set_instance_device_target, and one in a device group is moved to the group's target the next time the group's target changes.
+            A target cannot be cleared, only replaced with another snapshot. If the snapshot is already the target, nothing is deployed and the remote instance is returned unchanged.
+            Use platform_get_remote_instance to see the current target, and platform_list_instance_snapshots to find a snapshot.`,
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            remoteInstanceId,
+            snapshotId: snapshotId.describe('The hashid of the snapshot the remote instance should run. It must belong to the same application as the remote instance')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'PUT', url: `/api/v1/devices/${args.remoteInstanceId}`, payload: { targetSnapshot: args.snapshotId } })
             return response
         }
     },

@@ -1,5 +1,7 @@
 ---
 navTitle: AI in Node-RED
+meta:
+   description: Use FlowFuse Expert's AI inside the Node-RED editor for flow autocomplete, code completion, flow explanations and JSON, CSS and HTML generation.
 ---
 
 # AI in Node-RED

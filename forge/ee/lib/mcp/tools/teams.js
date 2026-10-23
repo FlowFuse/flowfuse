@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { teamId, applicationId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError } = require('../schemas')
+const { pathId, teamId, applicationId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError } = require('../schemas')
 
 // Audit-log routes accept cursor+limit pagination, free-text query, event
 // (single name or array) and username. scope narrows which entity levels are
@@ -51,7 +51,7 @@ module.exports = [
             }
             const url = hasId
                 ? `/api/v1/teams/${args.teamId}`
-                : `/api/v1/teams/slug/${args.teamSlug}`
+                : `/api/v1/teams/slug/${encodeURIComponent(args.teamSlug)}`
             const response = await inject({ method: 'GET', url })
             return response
         }
@@ -177,6 +177,50 @@ module.exports = [
         }
     },
     {
+        name: 'platform_update_git_token',
+        title: 'Update Team Git Token',
+        description: `FlowFuse platform automation tool:
+            Renames a git token configured for a team. The name is the only editable field: this never changes or returns the stored credential, and the reply holds only the token's id, name and type.
+            Renaming a token to the name it already has succeeds without changing anything.
+            Only team owners can update git tokens. Use platform_list_team_git_tokens to find the token id.
+            Git integration is a plan-gated feature. A 404 means the token does not exist in this team, or git integration is not enabled for the team's plan.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            tokenId: pathId.describe('The hashid of the git token, as returned by platform_list_team_git_tokens'),
+            name: z.string().trim().min(1).max(255).describe('New name for the git token')
+        },
+        outputSchema: {
+            id: z.string(),
+            name: z.string(),
+            type: z.string()
+        },
+        handler: async (args, { inject }) => {
+            return inject({ method: 'PUT', url: `/api/v1/teams/${args.teamId}/git/tokens/${args.tokenId}`, payload: { name: args.name } })
+        }
+    },
+    {
+        name: 'platform_delete_git_token',
+        title: 'Delete Team Git Token',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes a team git token. The stored token value is gone and cannot be recovered, so a new token has to be created to restore access.
+            Confirm with the user before calling this. The token itself is not revoked with the git provider.
+            A token that a pipeline stage still uses cannot be deleted: the call fails with 409 token_in_use and names the pipelines, which have to be pointed at another token first.
+            Only team owners can delete git tokens. Replies { status: "okay" } on success; a token that does not exist, or belongs to another team, returns 404, so repeating a call is harmless.`,
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            tokenId: pathId.describe('The hashid of the git token to delete, as returned by platform_list_team_git_tokens')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/git/tokens/${args.tokenId}` })
+            if (response.statusCode >= 400) {
+                return response
+            }
+            return { statusCode: response.statusCode, json: () => ({ status: 'okay' }) }
+        }
+    },
+    {
         name: 'platform_create_team',
         title: 'Create Team',
         description: `FlowFuse platform automation tool:
@@ -250,7 +294,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
-            userId: z.string().describe('The hashid of the team member whose role is changing'),
+            userId: pathId.describe('The hashid of the team member whose role is changing'),
             role: z.union([z.literal(5), z.literal(10), z.literal(30), z.literal(50)]).describe('New team role: 5=Dashboard, 10=Viewer, 30=Member, 50=Owner')
         },
         handler: async (args, { inject }) => {
@@ -267,7 +311,7 @@ module.exports = [
             Read both the status and the body. A fully successful call returns { status: "okay" }. Per-person failures (unknown user, already a member, already invited, email restrictions) come back as HTTP 200 with code "invitation_failed" and error as an object mapping each failed entry to its reason - treat those entries as NOT invited. A call rejected outright, for example because the team's user limit is reached, comes back as HTTP 400, also with code "invitation_failed", but error is a plain string and nobody was invited.
             The route is also rate limited to 5 calls per 30 seconds, which is a second, different 429: "too_many_invites" means more than 5 invitees in one call and retrying unchanged will never work, while a rate-limit 429 clears on its own after a few seconds.
             Email invitations to people without an account depend on the platform allowing external invitations and having email configured.`,
-        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
         inputSchema: {
             teamId,
             user: z.string().describe('Comma-separated list of usernames and/or email addresses to invite (maximum 5 per call after de-duplication)'),
@@ -291,10 +335,56 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
-            invitationId: z.string().describe('The hashid of the invitation to resend, as returned by platform_list_team_invitations')
+            invitationId: pathId.describe('The hashid of the invitation to resend, as returned by platform_list_team_invitations')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'POST', url: `/api/v1/teams/${args.teamId}/invitations/${args.invitationId}` })
+            return response
+        }
+    },
+    {
+        name: 'platform_remove_team_member',
+        title: 'Remove Team Member',
+        description: `FlowFuse platform automation tool:
+            Removes a member from a team, taking away all of their access to it. This cannot be undone; they would have to be invited again.
+            Team owners can remove anyone. Any member can remove themselves (leave the team), but not other people.
+            The team's only owner cannot be removed, and members whose membership is managed through SSO cannot be removed here.
+            Removing someone also deletes any of their personal access tokens that were scoped only to this team. If you are removing the current user, that can include the token this session is using, so later calls may start failing.
+            Before calling this, confirm with the user. Use platform_list_team_members to find the user id and check how many owners the team has.
+            Replies { status: "okay" } on success. A user who is not a member of the team returns a 404.`,
+        // destructiveHint: the member loses all access to the team and has to be re-invited.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            userId: pathId.describe('The hashid of the member to remove, as returned by platform_list_team_members')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/members/${args.userId}` })
+            // The route answers 200 for a user who is not a member, with removed: false in the body.
+            if (response.statusCode === 200 && response.json().removed === false) {
+                return toolError(404, 'not_found', 'That user is not a member of this team. Check platform_list_team_members for the member ids')
+            }
+            return response
+        }
+    },
+    {
+        name: 'platform_revoke_team_invitation',
+        title: 'Revoke Team Invitation',
+        description: `FlowFuse platform automation tool:
+            Revokes a pending team invitation, so it can no longer be accepted. This cannot be undone; to let the person join later, invite them again with platform_invite_team_member.
+            The invitee's in-app notification about the invitation is removed too. No email is sent to tell them it was revoked.
+            Only team owners can revoke invitations. Use platform_list_team_invitations to find the invitation id.
+            Replies { status: "okay" } on success. An invitation that does not exist, or belongs to a different team, returns a 404.`,
+        // destructiveHint: the invitation is gone for good and has to be sent again.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            invitationId: pathId.describe('The hashid of the invitation to revoke, as returned by platform_list_team_invitations')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/invitations/${args.invitationId}` })
             return response
         }
     }

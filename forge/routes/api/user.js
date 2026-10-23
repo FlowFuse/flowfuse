@@ -3,6 +3,7 @@ const UserInvitations = require('./userInvitations')
 const UserNotifications = require('./userNotifications')
 
 const KEY_ONBOARDING_COMPLETED = 'onboardingCompleted'
+const KEY_AI_CONNECTOR_LAST_SHOWN_AT = 'aiConnectorLastShownAt'
 
 /**
  * User api routes
@@ -65,7 +66,8 @@ module.exports = async function (app) {
             body: {
                 type: 'object',
                 properties: {
-                    [KEY_ONBOARDING_COMPLETED]: { type: 'boolean' }
+                    [KEY_ONBOARDING_COMPLETED]: { type: 'boolean' },
+                    [KEY_AI_CONNECTOR_LAST_SHOWN_AT]: { type: 'number' }
                 },
                 additionalProperties: false
             },
@@ -304,10 +306,11 @@ module.exports = async function (app) {
             tags: ['Tokens'],
             body: {
                 type: 'object',
+                required: ['name'],
                 properties: {
                     scope: { type: 'string' },
                     expiresAt: { type: 'number' },
-                    name: { type: 'string' },
+                    name: { type: 'string', minLength: 1, pattern: '\\S' },
                     readOnly: { type: 'boolean' },
                     adminOptIn: { type: 'boolean' },
                     teamIds: { type: 'array', items: { type: 'string' } }
@@ -439,7 +442,12 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const updates = new app.auditLog.formatters.UpdatesCollection()
         try {
-            const oldToken = await app.db.models.AccessToken.byId(request.params.id, 'user', request.session.User.id)
+            const oldToken = await app.db.models.AccessToken.byId(request.params.id, 'user', request.session.User.id, {
+                include: [{
+                    model: app.db.models.MCPGrant,
+                    include: [{ model: app.db.models.MCPGrantTeamPermission }]
+                }]
+            })
             if (oldToken) {
                 const oldSummary = app.db.views.AccessToken.personalAccessTokenSummary(oldToken)
                 const body = request.body

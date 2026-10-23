@@ -136,6 +136,9 @@ module.exports = async function (app) {
 
         await pipeline.destroy()
         await app.auditLog.Team.application.pipeline.deleted(request.session.User, null, team, request.application, pipeline)
+        for (const stage of stages) {
+            await logInstancesUnassigned(request.session.User, pipeline, stage)
+        }
 
         reply.send({ status: 'okay' })
     })
@@ -278,7 +281,8 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const team = await request.teamMembership.getTeam()
+        // Not request.teamMembership: an admin who isn't in the team has none
+        const team = request.application.Team
         const name = request.body.name?.trim() // name of the stage
         const {
             instanceId,
@@ -408,6 +412,8 @@ module.exports = async function (app) {
                 credentialSecret: request.body.credentialSecret
             }
 
+            // Loaded before the update so the audit entry can say what changed
+            const stageBefore = await app.db.models.PipelineStage.byId(request.params.stageId)
             const stage = await app.db.controllers.Pipeline.updatePipelineStage(
                 request.pipeline,
                 request.params.stageId,
@@ -416,6 +422,19 @@ module.exports = async function (app) {
 
             // Controller's stage.reload() drops includes, so re-hydrate for the view.
             const hydratedStage = await app.db.models.PipelineStage.byId(stage.id)
+            const updates = stageUpdates(stageBefore, hydratedStage)
+            if (updates.length > 0) {
+                // Not request.teamMembership: an admin who isn't in the team has none
+                await app.auditLog.Team.application.pipeline.stageUpdated(request.session.User, null, request.application.Team, request.application, request.pipeline, hydratedStage, updates)
+            }
+            const instanceBefore = stageBefore?.Instances?.[0]
+            const instanceAfter = hydratedStage.Instances?.[0]
+            if (instanceBefore?.id !== instanceAfter?.id) {
+                await logInstancesUnassigned(request.session.User, request.pipeline, stageBefore)
+                if (instanceAfter) {
+                    await app.auditLog.Project.project.assignedToPipelineStage(request.session.User, null, instanceAfter, request.pipeline, hydratedStage)
+                }
+            }
             reply.send(await app.db.views.PipelineStage.stage(hydratedStage))
         } catch (error) {
             if (error instanceof ValidationError) {
@@ -468,12 +487,16 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
+            // Loaded before the delete so the audit entry can still say which stage it was
+            const stage = await app.db.models.PipelineStage.byId(request.params.stageId)
             await app.db.controllers.Pipeline.deletePipelineStage(
                 request.pipeline,
                 request.params.stageId
             )
 
-            // TODO - Audit log entry?
+            // Not request.teamMembership: an admin who isn't in the team has none
+            await app.auditLog.Team.application.pipeline.stageDeleted(request.session.User, null, request.application.Team, request.application, request.pipeline, stage)
+            await logInstancesUnassigned(request.session.User, request.pipeline, stage)
 
             reply.send({ status: 'okay' })
         } catch (err) {
@@ -767,5 +790,70 @@ module.exports = async function (app) {
             return true // handled
         }
         return false // not handled
+    }
+
+    /**
+     * Log, on each instance a stage pointed at, that it has been taken off that stage
+     */
+    async function logInstancesUnassigned (user, pipeline, stage) {
+        for (const instance of stage?.Instances || []) {
+            await app.auditLog.Project.project.unassignedFromPipelineStage(user, null, instance, pipeline, stage)
+        }
+    }
+
+    /**
+     * What a stage edit changed, for the audit log. The git credential secret is left out on purpose.
+     */
+    function stageUpdates (before, after) {
+        const updates = new app.auditLog.formatters.UpdatesCollection()
+        for (const key of ['name', 'action']) {
+            if (before[key] !== after[key]) {
+                updates.push(key, before[key], after[key])
+            }
+        }
+        // Stages created before deployToDevices defaulted to false can store null, which means the same as false
+        if (!!before.deployToDevices !== !!after.deployToDevices) {
+            updates.push('deployToDevices', !!before.deployToDevices, !!after.deployToDevices)
+        }
+        if (stageTarget(before) !== stageTarget(after)) {
+            updates.push('target', stageTarget(before), stageTarget(after))
+        }
+        for (const key of ['url', 'branch', 'pullBranch', 'pushPath', 'pullPath']) {
+            const oldValue = before.PipelineStageGitRepo?.[key]
+            const newValue = after.PipelineStageGitRepo?.[key]
+            // A field that is missing (no git repo) and one left empty mean the same
+            if ((oldValue || '') !== (newValue || '')) {
+                if (key === 'url') {
+                    updates.push(key, redactCredentials(oldValue), redactCredentials(newValue))
+                } else {
+                    updates.push(key, oldValue, newValue)
+                }
+            }
+        }
+        return updates
+    }
+
+    /**
+     * Replaces any user:password@ part in a repository URL with [REDACTED] so the
+     * credentials never land in the audit log, while still showing the URL had some
+     */
+    function redactCredentials (url) {
+        return url ? url.replace(/^([a-z][a-z0-9+.-]*:\/\/)[^/@]*@/i, '$1[REDACTED]@') : url
+    }
+
+    function stageTarget (stage) {
+        if (stage.Instances?.length) {
+            return `instance '${stage.Instances[0].name}'`
+        }
+        if (stage.Devices?.length) {
+            return `device '${stage.Devices[0].name}'`
+        }
+        if (stage.DeviceGroups?.length) {
+            return `device group '${stage.DeviceGroups[0].name}'`
+        }
+        if (stage.PipelineStageGitRepo) {
+            return 'git repository'
+        }
+        return null
     }
 }

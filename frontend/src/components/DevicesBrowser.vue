@@ -97,8 +97,10 @@
                             Target Snapshot: <b>{{ instance.targetSnapshot?.name || 'none' }}</b>
                         </span>
                     </ff-button>
+                    <ExpertBuildButton v-if="hasPermission('device:create', applicationContext)" target="device" />
                     <ff-button
                         v-ff-tooltip:left="!hasPermission('device:create', applicationContext) && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
+                        v-ff-track="'ff-device-create-clicked'"
                         class="font-normal ff-btn-icon"
                         data-action="register-device"
                         kind="primary"
@@ -175,8 +177,10 @@
                             </p>
                         </template>
                         <template #actions>
+                            <ExpertBuildButton v-if="hasPermission('device:create', applicationContext)" target="device" />
                             <ff-button
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
+                                v-ff-track="'ff-device-create-clicked'"
                                 class="font-normal ff-btn-icon"
                                 kind="primary"
                                 :disabled="remoteInstancesDisabled || teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
@@ -214,8 +218,10 @@
                             </p>
                         </template>
                         <template #actions>
+                            <ExpertBuildButton v-if="hasPermission('device:create', applicationContext)" target="device" />
                             <ff-button
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
+                                v-ff-track="'ff-device-create-clicked'"
                                 class="font-normal ff-btn-icon"
                                 kind="primary"
                                 :disabled="remoteInstancesDisabled || teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
@@ -253,8 +259,10 @@
                             </p>
                         </template>
                         <template #actions>
+                            <ExpertBuildButton v-if="hasPermission('device:create', applicationContext)" target="device" />
                             <ff-button
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
+                                v-ff-track="'ff-device-create-clicked'"
                                 class="font-normal ff-btn-icon"
                                 kind="primary"
                                 :disabled="remoteInstancesDisabled || teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
@@ -412,6 +420,7 @@ import DevicesStatusBar from './charts/DeviceStatusBar.vue'
 import AddDeviceToGroupDialog from './dialogs/device-group-management/AddDeviceToGroupDialog.vue'
 import RemoveDeviceFromGroupDialog from './dialogs/device-group-management/RemoveDeviceFromGroupDialog.vue'
 
+import ExpertBuildButton from '@/components/expert/ExpertBuildButton.vue'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useLiveStatusStore } from '@/stores/live-status'
@@ -423,6 +432,7 @@ const POLL_TIME = 10000
 export default {
     name: 'DevicesBrowser',
     components: {
+        ExpertBuildButton,
         FfCheckbox,
         PopoverItem,
         FfPopover,

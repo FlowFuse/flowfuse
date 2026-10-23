@@ -676,4 +676,38 @@ describe('ux-drawers store', () => {
             vi.advanceTimersByTime(300)
         })
     })
+
+    describe('expert drawer suppression', () => {
+        it('suppress and release toggle the flag, off by default', () => {
+            const store = useUxDrawersStore()
+            expect(store.rightDrawer.expertSuppressed).toBe(false)
+            store.suppressExpertDrawer()
+            expect(store.rightDrawer.expertSuppressed).toBe(true)
+            store.releaseExpertDrawer()
+            expect(store.rightDrawer.expertSuppressed).toBe(false)
+        })
+
+        it('refuses to open the Expert drawer while suppressed, without touching the saved preference', () => {
+            const store = useUxDrawersStore()
+            store.rightDrawer.expertState.pinned = false
+            store.rightDrawer.expertState.open = false
+            store.suppressExpertDrawer()
+
+            store.openRightDrawer({ component: { name: 'ExpertDrawer' }, fixed: true })
+
+            expect(store.rightDrawer.state).toBe(false)
+            expect(store.rightDrawer.component).toBe(null)
+            expect(store.rightDrawer.expertState).toEqual({ pinned: false, open: false })
+        })
+
+        it('still opens other drawers while the Expert drawer is suppressed', () => {
+            const store = useUxDrawersStore()
+            store.suppressExpertDrawer()
+
+            store.openRightDrawer({ component: FakeComponent })
+
+            expect(store.rightDrawer.state).toBe(true)
+            expect(store.rightDrawer.component.name).toBe('FakeComponent')
+        })
+    })
 })

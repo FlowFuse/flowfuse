@@ -57,6 +57,14 @@
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error">Team settings have been changed.</span>
     </template>
+    <template v-else-if="entry.event === 'team.agent-auto-deploy.enabled'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error">AI agents can now deploy flow changes on this team.</span>
+    </template>
+    <template v-else-if="entry.event === 'team.agent-auto-deploy.disabled'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error">AI agents can no longer deploy flow changes on this team.</span>
+    </template>
 
     <!-- Team Type Events -->
     <template v-else-if="entry.event === 'team.type.changed'">
@@ -170,6 +178,35 @@
     <template v-else-if="entry.event === 'team.database.table.deleted'">
         <label>Table Deleted</label>
         <span v-if="!error && entry.body?.table">Table '{{ entry.body.table.name }}'' deleted in database '{{ entry.body.database.name }}'</span>
+    </template>
+
+    <!-- Team Git Token Events -->
+    <template v-else-if="entry.event === 'team.git.token.created'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.gitToken">Git token '{{ entry.body.gitToken.name }}' created</span>
+    </template>
+    <template v-else-if="entry.event === 'team.git.token.updated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && nameUpdate">Git token renamed from '{{ nameUpdate.old }}' to '{{ nameUpdate.new }}'</span>
+        <span v-else-if="!error && entry.body?.gitToken">Git token '{{ entry.body.gitToken.name }}' updated</span>
+    </template>
+    <template v-else-if="entry.event === 'team.git.token.deleted'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.gitToken">Git token '{{ entry.body.gitToken.name }}' deleted</span>
+    </template>
+
+    <!-- Team Shared Library Events -->
+    <template v-else-if="entry.event === 'team.library.entry.created'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.libraryEntry">Library entry '{{ entry.body.libraryEntry.name }}' created</span>
+    </template>
+    <template v-else-if="entry.event === 'team.library.entry.updated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.libraryEntry">Library entry '{{ entry.body.libraryEntry.name }}' overwritten</span>
+    </template>
+    <template v-else-if="entry.event === 'team.library.entry.deleted'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.libraryEntry">Library path '{{ entry.body.libraryEntry.name }}' deleted, {{ entry.body.libraryEntry.deleteCount }} {{ entry.body.libraryEntry.deleteCount === 1 ? 'entry' : 'entries' }} removed<span v-if="entry.body?.project"> by instance '{{ entry.body.project.name }}'</span><span v-else-if="entry.body?.device"> by device '{{ entry.body.device.name }}'</span></span>
     </template>
 
     <!-- Device Actions Events -->
@@ -446,6 +483,16 @@
         <span v-if="!error && entry.body?.pipeline && entry.body?.pipelineStage">Pipeline Stage '{{ entry.body.pipelineStage?.name }}' was added to the DevOps Pipeline '{{ entry.body.pipeline?.name }}' {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }}</span>
         <span v-else-if="!error">Pipeline data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'application.pipeline.stage-updated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.pipeline && entry.body?.pipelineStage">Pipeline Stage '{{ entry.body.pipelineStage?.name }}' in the DevOps Pipeline '{{ entry.body.pipeline?.name }}' {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }} was updated.</span>
+        <span v-else-if="!error">Pipeline data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'application.pipeline.stage-deleted'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.pipeline && entry.body?.pipelineStage">Pipeline Stage '{{ entry.body.pipelineStage?.name }}' was deleted from the DevOps Pipeline '{{ entry.body.pipeline?.name }}' {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }}</span>
+        <span v-else-if="!error">Pipeline data not found in audit entry.</span>
+    </template>
     <template v-else-if="entry.event === 'application.pipeline.stage-deployed'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.pipeline && entry.body?.pipelineStage && !entry.body?.pipelineStageTarget">Pipeline Stage '{{ entry.body.pipelineStage.name }}' in DevOps Pipeline '{{ entry.body.pipeline.name }}' {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }} was deployed</span>
@@ -580,6 +627,11 @@
     <template v-else-if="entry.event === 'project.assigned-to-pipeline-stage'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.project">Instance '{{ entry.body.project.name }}' was assigned to the '{{ entry.body.pipelineStage.name }}' Stage in the '{{ entry.body.pipeline.name }}' Pipeline</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'project.unassigned-from-pipeline-stage'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.project">Instance '{{ entry.body.project.name }}' was removed from the '{{ entry.body.pipelineStage?.name }}' Stage in the '{{ entry.body.pipeline?.name }}' Pipeline</span>
         <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.protected'">
@@ -718,6 +770,11 @@
         <label>{{ AuditEvents[entry.event] }}</label>
         <span>Nodes have been removed via the "Manage Palette" option inside Node-RED</span>
     </template>
+    <template v-else-if="entry.event === 'nr-assistant.inject'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="entry.body?.inject?.node">A message was injected into {{ entry.body.inject.type || 'a' }} node <template v-if="entry.body.inject.name">'{{ entry.body.inject.name }}' ({{ entry.body.inject.node }})</template><template v-else>{{ entry.body.inject.node }}</template><template v-if="entry.body.inject.flowName"> on flow tab '{{ entry.body.inject.flowName }}'</template><template v-else-if="entry.body.inject.z"> on flow tab {{ entry.body.inject.z }}</template>.</span>
+        <span v-else>A message was injected into a node.</span>
+    </template>
     <template v-else-if="entry.event === 'context.delete'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="entry.body?.context?.scope && entry.body?.context?.store && entry.body?.context?.key">Context key '{{ entry.body.context.scope }}.{{ entry.body.context.key }}' was deleted from context store '{{ entry.body.context.store }}' inside Node-RED.</span>
@@ -788,6 +845,9 @@ export default {
         },
         updates: function () {
             return this.entry.body?.updates && this.entry.body.updates.length ? this.entry.body.updates : null
+        },
+        nameUpdate: function () {
+            return this.updates?.find(update => update.key === 'name')
         }
     },
     setup () {

@@ -19,6 +19,7 @@
             </template>
 
             <router-view
+                v-if="device"
                 :device="device"
                 :instance="device?.instance"
                 @device-updated="refreshDevice"
@@ -71,6 +72,7 @@ import DrawerTrigger from '../../../components/immersive-editor/DrawerTrigger.vu
 import EditorDrawer from '../../../components/immersive-editor/EditorDrawer.vue'
 import EditorWrapper from '../../../components/immersive-editor/RemoteInstanceEditorWrapper.vue'
 import { useDeviceHelper } from '../../../composables/DeviceHelper.js'
+import { useEditorLandingTab } from '../../../composables/EditorLandingTab.js'
 import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import { isInstanceOnNR5Plus } from '../../../utils/instanceVersion'
@@ -97,6 +99,12 @@ export default {
         EditorDrawer,
         EditorWrapper
     },
+    provide () {
+        return {
+            // tells the Expert in the drawer it is running beside the editor
+            'expert-surface': 'immersive'
+        }
+    },
     setup () {
         const { hasPermission } = usePermissions()
 
@@ -115,7 +123,14 @@ export default {
             getDeviceEditorProxy
         } = useDeviceHelper()
 
+        const { syncLandingTab } = useEditorLandingTab({
+            editorRouteName: 'device-editor',
+            expertRouteName: 'device-editor-expert',
+            overviewRouteName: 'device-editor-overview'
+        })
+
         return {
+            syncLandingTab,
             device,
             hasPermission,
             restartDevice,
@@ -303,8 +318,13 @@ export default {
                 }
             }
 
+            // Load the owning team before exposing the device, so the device
+            // watcher and the landing tab check see the right feature checks.
+            await useAccountStore().setTeam(device.team.slug)
             this.device = device
-            await useAccountStore().setTeam(this.device.team.slug)
+            if (this.isEditorAvailable) {
+                this.syncLandingTab()
+            }
         },
         showConfirmDeleteDialog () {
             this.showDeleteDeviceDialog()

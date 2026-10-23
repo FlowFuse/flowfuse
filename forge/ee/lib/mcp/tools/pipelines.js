@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { teamId, applicationId, toolError, gitStageFields, gitStageFieldKeys } = require('../schemas')
+const { pathId, teamId, applicationId, toolError, gitStageFields, gitStageFieldKeys } = require('../schemas')
 
 const stageAction = z.enum(['create_snapshot', 'use_active_snapshot', 'use_latest_snapshot', 'prompt', 'none']).optional()
     .describe('How the stage obtains the snapshot it passes on when deployed FROM: create_snapshot makes a new one (the default), use_active_snapshot and use_latest_snapshot reuse existing ones, prompt requires a sourceSnapshotId at deploy time, none makes deploys from this stage a no-op. Not meaningful for git-repo stages')
@@ -47,8 +47,8 @@ module.exports = [
             Use this once you have a pipeline ID and a stage ID and need to inspect that stage.`,
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            pipelineId: z.string().describe('Pipeline hashid the stage belongs to'),
-            stageId: z.string().describe('Pipeline stage hashid to fetch')
+            pipelineId: pathId.describe('Pipeline hashid the stage belongs to'),
+            stageId: pathId.describe('Pipeline stage hashid to fetch')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/pipelines/${args.pipelineId}/stages/${args.stageId}` })
@@ -78,7 +78,7 @@ module.exports = [
             Renames a pipeline. The name is the only property a pipeline has beyond its stages; use the stage tools to change stages.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            pipelineId: z.string().describe('The hashid of the pipeline to rename'),
+            pipelineId: pathId.describe('The hashid of the pipeline to rename'),
             name: z.string().min(1).describe('New name for the pipeline')
         },
         handler: async (args, { inject }) => {
@@ -96,15 +96,15 @@ module.exports = [
             Ordering rules enforced by the API: a device group cannot be the first stage, and an instance or device cannot be added after a device group.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
         inputSchema: {
-            pipelineId: z.string().describe('The hashid of the pipeline to add the stage to'),
+            pipelineId: pathId.describe('The hashid of the pipeline to add the stage to'),
             name: z.string().min(1).describe('Name for the stage'),
             instanceId: z.string().uuid().optional().describe('UUID of the hosted instance this stage deploys to. Pass exactly one target'),
-            deviceId: z.string().optional().describe('Hashid of the remote instance (device) this stage deploys to. Pass exactly one target'),
-            deviceGroupId: z.string().optional().describe('Hashid of the device group this stage deploys to. Cannot be the first stage. Pass exactly one target'),
+            deviceId: pathId.optional().describe('Hashid of the remote instance (device) this stage deploys to. Pass exactly one target'),
+            deviceGroupId: pathId.optional().describe('Hashid of the device group this stage deploys to. Cannot be the first stage. Pass exactly one target'),
             ...gitStageFields(),
             deployToDevices,
             action: stageAction,
-            source: z.string().optional().describe('Stage ordering is a linked list: this is the hashid of the existing stage the new stage comes after. Required for every stage except a pipeline\'s very first. Omitting it on a pipeline that already has stages does not append the stage, it becomes a second unlinked head and the pipeline then lists only the new stage while the existing ones stop appearing, even though they still exist and can still be fetched by id')
+            source: z.string().optional().describe('Stage ordering is a linked list: this is the hashid of the existing stage the new stage comes after. Required for every stage except a pipeline\'s very first, and it must be the pipeline\'s current last stage: stages can only be appended. Omitting it on a pipeline that already has stages, or naming a stage that is already followed by another, is rejected with invalid_source')
         },
         handler: async (args, { inject }) => {
             const payload = {}
@@ -125,12 +125,12 @@ module.exports = [
             Rebinding the target replaces the previous binding, and the same ordering rules as adding apply: a device group cannot be the first stage, and an instance or device cannot come after a device group.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            pipelineId: z.string().describe('The hashid of the pipeline the stage belongs to'),
-            stageId: z.string().describe('The hashid of the stage to update'),
+            pipelineId: pathId.describe('The hashid of the pipeline the stage belongs to'),
+            stageId: pathId.describe('The hashid of the stage to update'),
             name: z.string().min(1).optional().describe('New name for the stage'),
             instanceId: z.string().uuid().optional().describe('UUID of the hosted instance to rebind this stage to. Pass at most one target'),
-            deviceId: z.string().optional().describe('Hashid of the remote instance (device) to rebind this stage to. Pass at most one target'),
-            deviceGroupId: z.string().optional().describe('Hashid of the device group to rebind this stage to. Pass at most one target'),
+            deviceId: pathId.optional().describe('Hashid of the remote instance (device) to rebind this stage to. Pass at most one target'),
+            deviceGroupId: pathId.optional().describe('Hashid of the device group to rebind this stage to. Pass at most one target'),
             ...gitStageFields({ forUpdate: true }),
             deployToDevices,
             action: stageAction
@@ -167,9 +167,9 @@ module.exports = [
         // platform_set_instance_device_target, so it belongs behind destructive access.
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
         inputSchema: {
-            pipelineId: z.string().describe('The hashid of the pipeline'),
-            stageId: z.string().describe('The hashid of the SOURCE stage to deploy from; the deploy lands on the stage after it'),
-            sourceSnapshotId: z.string().optional().describe('The hashid of the snapshot to deploy. Only used (and required) when the source stage action is prompt')
+            pipelineId: pathId.describe('The hashid of the pipeline'),
+            stageId: pathId.describe('The hashid of the SOURCE stage to deploy from; the deploy lands on the stage after it'),
+            sourceSnapshotId: pathId.optional().describe('The hashid of the snapshot to deploy. Only used (and required) when the source stage action is prompt')
         },
         handler: async (args, { inject }) => {
             const payload = {}
@@ -177,6 +177,48 @@ module.exports = [
                 payload.sourceSnapshotId = args.sourceSnapshotId
             }
             const response = await inject({ method: 'PUT', url: `/api/v1/pipelines/${args.pipelineId}/stages/${args.stageId}/deploy`, payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_delete_pipeline',
+        title: 'Delete Pipeline',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes a pipeline together with all of its stages. This cannot be undone.
+            Only the pipeline definition goes: the hosted instances, remote instances, device groups and snapshots its stages pointed at are left untouched, as are the flows already deployed to them.
+            To remove a single stage and keep the rest of the pipeline, use platform_delete_pipeline_stage instead.
+            Confirm with the user before calling this.
+            Only team owners can delete pipelines. Replies { status: "okay" } on success; a pipeline that does not exist, or that the caller cannot see, returns 404.`,
+        // destructiveHint: the pipeline and every stage in it are gone for good.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            pipelineId: pathId.describe('The hashid of the pipeline to delete')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'DELETE', url: `/api/v1/pipelines/${args.pipelineId}` })
+            return response
+        }
+    },
+    {
+        name: 'platform_delete_pipeline_stage',
+        title: 'Delete Pipeline Stage',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes one stage from a pipeline, leaving the rest of the pipeline intact. This cannot be undone.
+            The stages either side are joined up, so deleting B from A -> B -> C leaves A -> C. What the stage deployed to is left untouched.
+            The remaining stages must still be in a valid order, otherwise the call is rejected with a 400 "invalid_input" and nothing is deleted. The usual ordering rules apply: a device group stage cannot be the first stage, and a hosted or remote instance stage cannot come after a device group stage. So, for example, the first stage cannot be deleted while a device group stage follows it.
+            A stage that does not belong to the given pipeline returns a 404.
+            Confirm with the user before calling this.
+            Only team owners can delete pipeline stages. Replies { status: "okay" } on success.`,
+        // destructiveHint: the stage is gone for good.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            pipelineId: pathId.describe('The hashid of the pipeline the stage belongs to'),
+            stageId: pathId.describe('The hashid of the stage to delete')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'DELETE', url: `/api/v1/pipelines/${args.pipelineId}/stages/${args.stageId}` })
             return response
         }
     }

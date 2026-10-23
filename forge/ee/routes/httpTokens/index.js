@@ -188,7 +188,8 @@ module.exports = async function (app) {
             }
 
             const oldToken = await app.db.models.AccessToken.byId(request.params.id, ownerType, ownerId)
-            if (oldToken) {
+            // Expert MCP tokens are managed by the platform and hidden from the list, so treat them as not found
+            if (oldToken && !isExpertMcpToken(oldToken)) {
                 await oldToken.destroy()
                 if (request.project) {
                     await app.auditLog.Project.project.httpToken.deleted(request.session.User, null, request.project, { name: oldToken.name })

@@ -1,3 +1,8 @@
+---
+meta:
+   description: Keep Node-RED context values across restarts and stack updates by selecting the persistent context store in nodes and in Function node code.
+---
+
 # FlowFuse Persistent Context
 
 Some Node-RED flows require the ability to persist context values between restarts and FlowFuse stack updates. By default, context data in Node-RED is ephemeral, meaning it does not survive restarts or stack updates. With FlowFuse's paid plans, however, you can enable **persistent context storage**, ensuring that your context values persist across restarts, upgrades, and more.

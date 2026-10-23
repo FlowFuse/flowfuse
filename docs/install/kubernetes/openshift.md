@@ -86,7 +86,7 @@ By the end, you will have a fully functioning FlowFuse instance running on a Ope
 Before you begin, ensure you have the following:
 
 1. **Domain Name & DNS:** A domain name that you own and can configure DNS settings for (explained in [DNS](#dns))
-2. **oc:** To manage a OpenShift cluster you will need a copy of the `oc` utility. Instructions on how to install `oc` can be found [here](https://docs.openshift.com/container-platform/4.17/cli_reference/openshift_cli/getting-started-cli.html)
+2. **oc:** To manage a OpenShift cluster you will need a copy of the `oc` utility. Instructions on how to install `oc` can be found [here](https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/cli_tools/openshift-cli-oc)
 3. **Helm:** FlowFuse provides the Helm chart to manage platform deployment. Installation can be done through the instructions on [their website](https://helm.sh)
 4. **OpenShift Cluster:** an OpenShift cluster instance with at least two worker nodes
 5. **Ingress Controller:** [The Traefik](https://doc.traefik.io/traefik/) installed on the cluster.

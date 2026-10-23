@@ -193,7 +193,8 @@ describe('Pipelines API', function () {
                     payload: {
                         name: 'stage-two',
                         instanceId: TestObjects.instanceTwo.id,
-                        action: 'prompt'
+                        action: 'prompt',
+                        source: TestObjects.stageOne.hashid
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -209,6 +210,49 @@ describe('Pipelines API', function () {
                 response.statusCode.should.equal(200)
             })
 
+            it('Lets an admin who is not a team member add a stage and logs it', async function () {
+                await TestObjects.factory.createUser({
+                    admin: true,
+                    username: 'nonmemberadminadd',
+                    name: 'Non Member Admin',
+                    email: 'nonmemberadminadd@example.com',
+                    password: 'nmPassword'
+                })
+                await login('nonmemberadminadd', 'nmPassword')
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages`,
+                    payload: {
+                        name: 'admin-stage',
+                        instanceId: TestObjects.instanceTwo.id,
+                        source: TestObjects.stageOne.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.nonmemberadminadd }
+                })
+                response.statusCode.should.equal(200)
+
+                const logs = await app.db.models.AuditLog.findAll({ where: { event: 'application.pipeline.stage-added' } })
+                logs.filter((log) => JSON.parse(log.body).pipelineStage.hashid === response.json().id).should.have.length(1)
+            })
+
+            it('Stores deploy to devices as false when it is not given', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages`,
+                    payload: {
+                        name: 'stage-two',
+                        instanceId: TestObjects.instanceTwo.id,
+                        source: TestObjects.stageOne.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                const stage = await app.db.models.PipelineStage.byId(response.json().id)
+                stage.deployToDevices.should.equal(false)
+            })
+
             describe('Validates that the pipeline is correct', function () {
                 it('Rejects a pipeline stage if the instance is already in use', async function () {
                     const pipelineId = TestObjects.pipeline.hashid
@@ -218,7 +262,8 @@ describe('Pipelines API', function () {
                         url: `/api/v1/pipelines/${pipelineId}/stages`,
                         payload: {
                             name: 'stage-two',
-                            instanceId: TestObjects.instanceOne.id // in use
+                            instanceId: TestObjects.instanceOne.id, // in use
+                            source: TestObjects.stageOne.hashid
                         },
                         cookies: { sid: TestObjects.tokens.alice }
                     })
@@ -241,7 +286,8 @@ describe('Pipelines API', function () {
                         payload: {
                             name: 'stage-two',
                             instanceId: TestObjects.instanceTwo.id,
-                            action: 'use_active_snapshot'
+                            action: 'use_active_snapshot',
+                            source: TestObjects.stageOne.hashid
                         },
                         cookies: { sid: TestObjects.tokens.alice }
                     })
@@ -295,7 +341,8 @@ describe('Pipelines API', function () {
                     payload: {
                         name: 'stage-two',
                         deviceId: TestObjects.deviceTwo.hashid,
-                        action: 'prompt'
+                        action: 'prompt',
+                        source: TestObjects.pipelineDevicesStageOne.hashid
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -318,7 +365,8 @@ describe('Pipelines API', function () {
                         url: `/api/v1/pipelines/${TestObjects.pipelineDevices.hashid}/stages`,
                         payload: {
                             name: 'stage-two',
-                            deviceId: TestObjects.deviceOne.hashid // in use
+                            deviceId: TestObjects.deviceOne.hashid, // in use
+                            source: TestObjects.pipelineDevicesStageOne.hashid
                         },
                         cookies: { sid: TestObjects.tokens.alice }
                     })
@@ -366,7 +414,8 @@ describe('Pipelines API', function () {
                     payload: {
                         name: 'stage-two',
                         deviceGroupId: TestObjects.deviceGroupTwo.hashid,
-                        action: 'prompt'
+                        action: 'prompt',
+                        source: TestObjects.stageOne.hashid
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -432,7 +481,7 @@ describe('Pipelines API', function () {
                     const s1 = await TestObjects.factory.createPipelineStage({ name: 'stage-one', instanceId: app.instance.id }, newPipeline)
                     // add a device group stage
                     const s2DeviceGroup = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-c' }, app.application)
-                    await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: s2DeviceGroup.hashid, source: s1.hashid, action: 'use_latest_snapshot' }, newPipeline)
+                    const s2 = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: s2DeviceGroup.hashid, source: s1.hashid, action: 'use_latest_snapshot' }, newPipeline)
                     const newDeviceGroup = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-d' }, app.application)
 
                     // try to add another device group stage
@@ -442,7 +491,8 @@ describe('Pipelines API', function () {
                         payload: {
                             name: 'stage-three',
                             deviceGroupId: newDeviceGroup.hashid,
-                            action: 'prompt'
+                            action: 'prompt',
+                            source: s2.hashid
                         },
                         cookies: { sid: TestObjects.tokens.alice }
                     })
@@ -456,7 +506,7 @@ describe('Pipelines API', function () {
                     const s1 = await TestObjects.factory.createPipelineStage({ name: 'stage-one', instanceId: app.instance.id }, newPipeline)
                     // add a device group stage
                     const s2DeviceGroup = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-c' }, app.application)
-                    await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: s2DeviceGroup.hashid, source: s1.hashid, action: 'use_latest_snapshot' }, newPipeline)
+                    const s2 = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: s2DeviceGroup.hashid, source: s1.hashid, action: 'use_latest_snapshot' }, newPipeline)
 
                     // try to add an instance stage
                     const response = await app.inject({
@@ -465,7 +515,8 @@ describe('Pipelines API', function () {
                         payload: {
                             name: 'stage-three',
                             instanceId: TestObjects.instanceTwo.id,
-                            action: 'prompt'
+                            action: 'prompt',
+                            source: s2.hashid
                         },
                         cookies: { sid: TestObjects.tokens.alice }
                     })
@@ -482,7 +533,7 @@ describe('Pipelines API', function () {
                     const s1 = await TestObjects.factory.createPipelineStage({ name: 'stage-one', instanceId: app.instance.id }, newPipeline)
                     // add a device group stage
                     const s2DeviceGroup = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-c' }, app.application)
-                    await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: s2DeviceGroup.hashid, source: s1.hashid, action: 'use_latest_snapshot' }, newPipeline)
+                    const s2 = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: s2DeviceGroup.hashid, source: s1.hashid, action: 'use_latest_snapshot' }, newPipeline)
 
                     // try to add an instance stage
                     const response = await app.inject({
@@ -491,7 +542,8 @@ describe('Pipelines API', function () {
                         payload: {
                             name: 'stage-three',
                             deviceId: TestObjects.deviceTwo.hashid,
-                            action: 'prompt'
+                            action: 'prompt',
+                            source: s2.hashid
                         },
                         cookies: { sid: TestObjects.tokens.alice }
                     })
@@ -569,6 +621,51 @@ describe('Pipelines API', function () {
                     response.statusCode.should.equal(400)
                     body.should.have.property('code', 'invalid_input')
                     body.should.have.property('error').match(/source stage not found/i)
+                })
+                it('Should reject if the previous stage already has a next stage', async function () {
+                    const pipelineId = TestObjects.pipelineDeviceGroups.hashid
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/pipelines/${pipelineId}/stages`,
+                        payload: {
+                            name: 'stage-three',
+                            deviceGroupId: TestObjects.deviceGroupTwo.hashid,
+                            action: 'use_latest_snapshot',
+                            // stage one is already followed by stage two
+                            source: TestObjects.pipelineDeviceGroupsStageOne.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    const body = await response.json()
+                    response.statusCode.should.equal(400)
+                    body.should.have.property('code', 'invalid_source')
+                    body.should.have.property('error').match(/already followed by another stage/i)
+
+                    const stages = await TestObjects.pipelineDeviceGroups.stages()
+                    stages.should.have.length(2)
+                })
+            })
+            describe('When no previous stage is passed', function () {
+                it('Should reject if the pipeline already has stages', async function () {
+                    const pipelineId = TestObjects.pipeline.hashid
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/pipelines/${pipelineId}/stages`,
+                        payload: {
+                            name: 'stage-two',
+                            instanceId: TestObjects.instanceTwo.id
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    const body = await response.json()
+                    response.statusCode.should.equal(400)
+                    body.should.have.property('code', 'invalid_source')
+                    body.should.have.property('error').match(/source stage is required/i)
+
+                    const stages = await TestObjects.pipeline.stages()
+                    stages.should.have.length(1)
                 })
             })
         })
@@ -771,6 +868,102 @@ describe('Pipelines API', function () {
     })
 
     describe('Update Pipeline Stage', function () {
+        describe('Audit log', function () {
+            async function stageUpdatedEntries (stage) {
+                const logs = await app.db.models.AuditLog.findAll({ where: { event: 'application.pipeline.stage-updated' } })
+                return logs.map(log => JSON.parse(log.body)).filter(body => body.pipelineStage.hashid === stage.hashid)
+            }
+
+            it('records the changed name and action', async function () {
+                const stage = TestObjects.stageOne
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                    payload: { name: 'renamed-stage', action: 'prompt' },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                const entries = await stageUpdatedEntries(stage)
+                entries.should.have.length(1)
+                entries[0].pipelineStage.should.have.property('name', 'renamed-stage')
+                entries[0].updates.should.containDeep([
+                    { key: 'name', old: 'stage-one', new: 'renamed-stage' },
+                    { key: 'action', old: 'create_snapshot', new: 'prompt' }
+                ])
+            })
+
+            it('records a change of target', async function () {
+                const stage = TestObjects.stageOne
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                    payload: { instanceId: TestObjects.instanceTwo.id },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                const entries = await stageUpdatedEntries(stage)
+                entries.should.have.length(1)
+                entries[0].updates.should.containDeep([
+                    { key: 'target', old: "instance 'project1'", new: "instance 'instance-two'" }
+                ])
+            })
+
+            it('does not count an unset deploy to devices being saved as false as a change', async function () {
+                // Older stages can still store null for deployToDevices, and the edit form always sends false
+                const stage = TestObjects.stageOne
+                await stage.update({ deployToDevices: null })
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                    payload: { name: 'stage-one', deployToDevices: false },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                const entries = await stageUpdatedEntries(stage)
+                entries.should.have.length(0)
+            })
+
+            it('records the change for an admin who is not a team member', async function () {
+                await TestObjects.factory.createUser({
+                    admin: true,
+                    username: 'nonmemberadminedit',
+                    name: 'Non Member Admin',
+                    email: 'nonmemberadminedit@example.com',
+                    password: 'nmPassword'
+                })
+                await login('nonmemberadminedit', 'nmPassword')
+                const stage = TestObjects.stageOne
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                    payload: { name: 'admin-renamed' },
+                    cookies: { sid: TestObjects.tokens.nonmemberadminedit }
+                })
+                response.statusCode.should.equal(200)
+
+                const entries = await stageUpdatedEntries(stage)
+                entries.should.have.length(1)
+            })
+
+            it('writes nothing when nothing changed', async function () {
+                const stage = TestObjects.stageOne
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                    payload: { name: 'stage-one' },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                const entries = await stageUpdatedEntries(stage)
+                entries.should.have.length(0)
+            })
+        })
+
         describe('With a new name', function () {
             it('Should update a single pipeline stage with a new name', async function () {
                 const pipelineId = TestObjects.pipeline.hashid
@@ -1384,6 +1577,104 @@ describe('Pipelines API', function () {
             })
         })
 
+        describe('Git token in use', function () {
+            let gitToken
+            let gitRepo
+            let originalFeatures
+
+            before(async function () {
+                const properties = app.defaultTeamType.properties
+                originalFeatures = properties.features
+                properties.features = { ...properties.features, gitIntegration: true }
+                app.defaultTeamType.properties = properties
+                await app.defaultTeamType.save()
+            })
+
+            after(async function () {
+                const properties = app.defaultTeamType.properties
+                properties.features = originalFeatures
+                app.defaultTeamType.properties = properties
+                await app.defaultTeamType.save()
+            })
+
+            beforeEach(async function () {
+                gitToken = await app.db.models.GitToken.create({
+                    name: 'in-use-token',
+                    token: 'git-token-secret',
+                    type: 'github',
+                    TeamId: TestObjects.team.id
+                })
+                gitRepo = await app.db.models.PipelineStageGitRepo.create({
+                    url: 'https://example.com/repo.git',
+                    branch: 'main',
+                    GitTokenId: gitToken.id,
+                    PipelineStageId: TestObjects.stageOne.id
+                })
+            })
+
+            afterEach(async function () {
+                await gitRepo.destroy()
+                await app.db.models.GitToken.destroy({ where: { id: gitToken.id } })
+            })
+
+            it('Should refuse to delete a git token used by a pipeline stage', async function () {
+                const response = await app.inject({
+                    method: 'DELETE',
+                    url: `/api/v1/teams/${TestObjects.team.hashid}/git/tokens/${gitToken.hashid}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(409)
+                const body = response.json()
+                body.should.have.property('code', 'token_in_use')
+                body.should.have.property('error').match(new RegExp(TestObjects.pipeline.name))
+                should(await app.db.models.GitToken.byId(gitToken.id)).not.be.null()
+            })
+
+            it('Should delete a git token once no pipeline stage uses it', async function () {
+                await gitRepo.destroy()
+
+                const response = await app.inject({
+                    method: 'DELETE',
+                    url: `/api/v1/teams/${TestObjects.team.hashid}/git/tokens/${gitToken.hashid}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(200)
+                should(await app.db.models.GitToken.byId(gitToken.id)).be.null()
+                gitRepo = await app.db.models.PipelineStageGitRepo.create({
+                    url: 'https://example.com/repo.git',
+                    branch: 'main',
+                    PipelineStageId: TestObjects.stageOne.id
+                })
+            })
+
+            it('Should report a missing git token when pulling', async function () {
+                gitRepo.GitTokenId = null
+                await gitRepo.save()
+
+                const result = await gitRepo.pull({})
+
+                should(result).be.null()
+                await gitRepo.reload()
+                gitRepo.should.have.property('status', 'error')
+                gitRepo.should.have.property('statusMessage', 'No git token is set for this stage')
+            })
+
+            it('Should report a missing git token when deploying', async function () {
+                gitRepo.GitTokenId = null
+                await gitRepo.save()
+
+                await gitRepo.deploy({}, {})
+                await new Promise(resolve => setImmediate(resolve))
+                await new Promise(resolve => setTimeout(resolve, 50))
+
+                await gitRepo.reload()
+                gitRepo.should.have.property('status', 'error')
+                gitRepo.should.have.property('statusMessage', 'No git token is set for this stage')
+            })
+        })
+
         describe('With git settings', function () {
             async function createGitToken () {
                 return app.db.models.GitToken.create({
@@ -1458,6 +1749,36 @@ describe('Pipelines API', function () {
                 body.should.not.have.property('deviceGroups')
             })
 
+            it('Should redact credentials in the repository url in the audit log', async function () {
+                const gitToken = await createGitToken()
+                const stage = TestObjects.stageOne
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                    payload: {
+                        gitTokenId: gitToken.hashid,
+                        url: 'https://someone:secret-token@example.com/repo.git',
+                        branch: 'main'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                const logs = await app.db.models.AuditLog.findAll({ where: { event: 'application.pipeline.stage-updated' } })
+                const entries = logs.map(log => JSON.parse(log.body)).filter(body => body.pipelineStage.hashid === stage.hashid)
+                entries.should.have.length(1)
+                entries[0].updates.should.containDeep([
+                    { key: 'url', new: 'https://[REDACTED]@example.com/repo.git' }
+                ])
+                JSON.stringify(entries[0]).should.not.containEql('secret-token')
+                JSON.stringify(entries[0]).should.not.containEql('someone')
+                // git fields left empty when moving to a git repo are not changes
+                entries[0].updates.map(u => u.key).should.not.containEql('pullBranch')
+                entries[0].updates.map(u => u.key).should.not.containEql('pushPath')
+                entries[0].updates.map(u => u.key).should.not.containEql('pullPath')
+            })
+
             it('Should still rebind to a device group as before when git settings are absent', async function () {
                 const pipelineId = TestObjects.pipelineDeviceGroups.hashid
                 const stageId = TestObjects.pipelineDeviceGroupsStageTwo.hashid
@@ -1481,6 +1802,72 @@ describe('Pipelines API', function () {
         })
     })
 
+    describe('Instance pipeline stage audit log', function () {
+        async function instanceEntries (event, instance, stage) {
+            const logs = await app.db.models.AuditLog.findAll({ where: { event, entityType: 'project', entityId: instance.id } })
+            return logs.map(log => JSON.parse(log.body)).filter(body => body.pipelineStage.hashid === stage.hashid)
+        }
+
+        it('logs the instance being taken off a stage when the stage is deleted', async function () {
+            const stage = TestObjects.stageOne
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+
+            const entries = await instanceEntries('project.unassigned-from-pipeline-stage', TestObjects.instanceOne, stage)
+            entries.should.have.length(1)
+            entries[0].pipeline.should.have.property('name', TestObjects.pipeline.name)
+        })
+
+        it('logs every instance being taken off its stage when the pipeline is deleted', async function () {
+            const stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+
+            const first = await instanceEntries('project.unassigned-from-pipeline-stage', TestObjects.instanceOne, TestObjects.stageOne)
+            first.should.have.length(1)
+            const second = await instanceEntries('project.unassigned-from-pipeline-stage', TestObjects.instanceTwo, stageTwo)
+            second.should.have.length(1)
+        })
+
+        it('logs both instances when a stage is moved to another instance', async function () {
+            const stage = TestObjects.stageOne
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                payload: { instanceId: TestObjects.instanceTwo.id },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+
+            const removed = await instanceEntries('project.unassigned-from-pipeline-stage', TestObjects.instanceOne, stage)
+            removed.should.have.length(1)
+            const added = await instanceEntries('project.assigned-to-pipeline-stage', TestObjects.instanceTwo, stage)
+            added.should.have.length(1)
+        })
+
+        it('logs nothing on the instance when only the stage name changes', async function () {
+            const stage = TestObjects.stageOne
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                payload: { name: 'renamed-stage' },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+
+            const removed = await instanceEntries('project.unassigned-from-pipeline-stage', TestObjects.instanceOne, stage)
+            removed.should.have.length(0)
+        })
+    })
+
     describe('Delete Pipeline Stage', function () {
         it('should destroy the pipeline stage, but not touch the assigned instance', async function () {
             const pipelineId = TestObjects.pipeline.hashid
@@ -1499,6 +1886,49 @@ describe('Pipelines API', function () {
 
             should(await app.db.models.PipelineStage.byId(stageId)).equal(null)
             should(await app.db.models.Project.byId(instanceId)).not.equal(null)
+        })
+
+        it('should let an admin who is not a team member delete a stage and log it', async function () {
+            await TestObjects.factory.createUser({
+                admin: true,
+                username: 'nonmemberadmin',
+                name: 'Non Member Admin',
+                email: 'nonmemberadmin@example.com',
+                password: 'nmPassword'
+            })
+            await login('nonmemberadmin', 'nmPassword')
+            const stage = TestObjects.stageOne
+
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${stage.hashid}`,
+                cookies: { sid: TestObjects.tokens.nonmemberadmin }
+            })
+            response.statusCode.should.equal(200)
+            should(await app.db.models.PipelineStage.byId(stage.hashid)).equal(null)
+
+            const logs = await app.db.models.AuditLog.findAll({ where: { event: 'application.pipeline.stage-deleted' } })
+            logs.filter((log) => JSON.parse(log.body).pipelineStage.hashid === stage.hashid).should.have.length(1)
+        })
+
+        it('should write an audit log entry for the deleted stage', async function () {
+            const pipelineId = TestObjects.pipeline.hashid
+            const stage = TestObjects.stageOne
+
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/pipelines/${pipelineId}/stages/${stage.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+
+            const logs = await app.db.models.AuditLog.findAll({ where: { event: 'application.pipeline.stage-deleted' } })
+            const entries = logs.filter((log) => JSON.parse(log.body).pipelineStage.hashid === stage.hashid)
+            entries.should.have.length(1)
+            const body = JSON.parse(entries[0].body)
+            body.pipelineStage.should.have.property('name', stage.name)
+            body.pipeline.should.have.property('id', TestObjects.pipeline.id)
+            entries[0].UserId.should.equal(TestObjects.user.id)
         })
 
         it('should destroy the pipeline stage, but not touch the assigned device', async function () {
@@ -1932,6 +2362,85 @@ describe('Pipelines API', function () {
 
                 should(foundPipeline).not.equal(null)
             })
+        })
+    })
+
+    describe('Delete Application', function () {
+        it('Destroys the pipelines and stages of the application', async function () {
+            const application = await TestObjects.factory.createApplication({ name: 'application-with-pipelines' }, TestObjects.team)
+            const pipeline = await TestObjects.factory.createPipeline({ name: 'pipeline-to-remove' }, application)
+            const deviceOne = await TestObjects.factory.createDevice({ name: 'delete-app-device-one' }, TestObjects.team, null, application)
+            const deviceTwo = await TestObjects.factory.createDevice({ name: 'delete-app-device-two' }, TestObjects.team, null, application)
+            const stageOne = await TestObjects.factory.createPipelineStage({ name: 'stage-one', deviceId: deviceOne.id, action: 'use_latest_snapshot' }, pipeline)
+            await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceId: deviceTwo.id, action: 'use_latest_snapshot', source: stageOne.hashid }, pipeline)
+            const otherPipeline = await TestObjects.factory.createPipeline({ name: 'pipeline-to-keep' }, TestObjects.application)
+            await TestObjects.factory.createPipelineStage({ name: 'stage-to-keep', instanceId: TestObjects.instanceOne.id }, otherPipeline)
+
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/applications/${application.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            response.statusCode.should.equal(200)
+            should(await app.db.models.Pipeline.findByPk(pipeline.id)).equal(null)
+            const stageCount = await app.db.models.PipelineStage.count({ where: { PipelineId: pipeline.id } })
+            stageCount.should.equal(0)
+            should(await app.db.models.Pipeline.findByPk(otherPipeline.id)).not.equal(null)
+            const otherStageCount = await app.db.models.PipelineStage.count({ where: { PipelineId: otherPipeline.id } })
+            otherStageCount.should.equal(1)
+
+            const logs = await app.db.models.AuditLog.findAll({ where: { event: 'application.pipeline.deleted' } })
+            const removed = logs.filter((log) => JSON.parse(log.body).pipeline.id === pipeline.id)
+            removed.should.have.length(1)
+            // Removed as part of the application delete, not by the requesting user
+            should(removed[0].UserId).equal(null)
+            JSON.parse(removed[0].body).trigger.should.have.property('type', 'system')
+        })
+
+        it('Destroys the pipelines of the applications when a team is deleted', async function () {
+            const team = await TestObjects.factory.createTeam({ name: 'team-to-delete' })
+            const application = await TestObjects.factory.createApplication({ name: 'team-delete-application' }, team)
+            const pipeline = await TestObjects.factory.createPipeline({ name: 'team-delete-pipeline' }, application)
+            const device = await TestObjects.factory.createDevice({ name: 'team-delete-device' }, team, null, application)
+            await TestObjects.factory.createPipelineStage({ name: 'team-delete-stage', deviceId: device.id, action: 'use_latest_snapshot' }, pipeline)
+
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/teams/${team.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            response.statusCode.should.equal(200)
+            should(await app.db.models.Pipeline.findByPk(pipeline.id)).equal(null)
+            const stageCount = await app.db.models.PipelineStage.count({ where: { PipelineId: pipeline.id } })
+            stageCount.should.equal(0)
+            const logs = await app.db.models.AuditLog.findAll({ where: { event: 'application.pipeline.deleted' } })
+            logs.filter((log) => JSON.parse(log.body).pipeline.id === pipeline.id).should.have.length(1)
+        })
+
+        it('Leaves the application and its pipelines in place when the delete fails part way', async function () {
+            const application = await TestObjects.factory.createApplication({ name: 'application-delete-fails' }, TestObjects.team)
+            const pipeline = await TestObjects.factory.createPipeline({ name: 'pipeline-delete-fails' }, application)
+            const device = await TestObjects.factory.createDevice({ name: 'delete-fails-device' }, TestObjects.team, null, application)
+            await TestObjects.factory.createPipelineStage({ name: 'stage-delete-fails', deviceId: device.id, action: 'use_latest_snapshot' }, pipeline)
+
+            const destroyStub = sinon.stub(app.db.models.Pipeline.prototype, 'destroy').rejects(new Error('destroy failed'))
+            try {
+                const response = await app.inject({
+                    method: 'DELETE',
+                    url: `/api/v1/applications/${application.hashid}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(500)
+            } finally {
+                destroyStub.restore()
+            }
+
+            should(await app.db.models.Application.byId(application.hashid)).not.equal(null)
+            should(await app.db.models.Pipeline.findByPk(pipeline.id)).not.equal(null)
+            const stageCount = await app.db.models.PipelineStage.count({ where: { PipelineId: pipeline.id } })
+            stageCount.should.equal(1)
         })
     })
 

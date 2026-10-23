@@ -1,12 +1,14 @@
 ---
 navTitle: FlowFuse Tables
+meta:
+   description: Create a FlowFuse Tables database for an Enterprise team, build tables with the wizard, and query it from Node-RED or any Postgres client.
 ---
 
 # FlowFuse Tables
 
-{% warning %}
+::warning
 This feature is currently in [the beta state](https://flowfuse.com/handbook/engineering/releases/#beta-release).
-{% endwarning %}
+::
 
 From FlowFuse v2.20.0 Teams (Enterprise teams only) can create a relational database to use to store data.
 

@@ -57,7 +57,7 @@ async function ping (app) {
     // - setup:initialised is true - the system has been setup
     // - telemetry:enabled is true - the admin has not disabled the callback
 
-    const PING_ENDPOINT = app.config.telemetry.url || 'https://ping.flowforge.com/ping'
+    const PING_ENDPOINT = app.config.telemetry.url || 'https://ping.flowfuse.com/ping'
 
     const isLicensed = app.license.active()
     const isInitialised = app.settings.get('setup:initialised')

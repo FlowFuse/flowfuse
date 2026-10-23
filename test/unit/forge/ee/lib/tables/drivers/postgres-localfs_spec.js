@@ -17,6 +17,7 @@ describe('Tables: Postgres LocalFS Driver', function () {
         app = {
             log: {
                 error: sinon.stub(),
+                warn: sinon.stub(),
                 info: sinon.stub(),
                 debug: sinon.stub()
             },
@@ -172,6 +173,50 @@ describe('Tables: Postgres LocalFS Driver', function () {
             await driver.init(app, options)
             await driver.createDatabase({ id: 1 }, 'existingdb').should.be.rejectedWith('Database already exists')
         })
+
+        it('should drop what it created and rethrow when a step after CREATE DATABASE fails', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            await driver.init(app, options)
+            const client = { connect: sinon.stub().resolves(), end: sinon.stub().resolves(), query: sinon.stub().rejects(new Error('grant failed')) }
+            pgClients[team.hashid] = client
+            await driver.createDatabase(team, 't1').should.be.rejectedWith('grant failed')
+            driver._adminClient.query.calledWithMatch(`DROP DATABASE IF EXISTS "${team.hashid}"`).should.be.true()
+            driver._adminClient.query.calledWithMatch(`DROP USER IF EXISTS "${team.hashid}"`).should.be.true()
+            driver._adminClient.query.calledWithMatch(`DROP ROLE IF EXISTS "${team.hashid}-role"`).should.be.true()
+            app.db.models.Table.create.called.should.be.false()
+        })
+
+        it('should drop what it created and rethrow when creating the Table record fails', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            app.db.models.Table.create.rejects(new Error('db down'))
+            await driver.init(app, options)
+            await driver.createDatabase(team, 't1').should.be.rejectedWith('db down')
+            driver._adminClient.query.calledWithMatch(`DROP DATABASE IF EXISTS "${team.hashid}"`).should.be.true()
+        })
+
+        it('should rethrow the original error when the cleanup fails too', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            app.db.models.Table.create.rejects(new Error('db down'))
+            await driver.init(app, options)
+            driver._adminClient.query.withArgs(`DROP DATABASE IF EXISTS "${team.hashid}"`).rejects(new Error('drop failed'))
+            await driver.createDatabase(team, 't1').should.be.rejectedWith('db down')
+            app.log.warn.calledWithMatch('Failed to clean up database').should.be.true()
+        })
+
+        it('should not drop anything when CREATE DATABASE itself fails', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            await driver.init(app, options)
+            driver._adminClient.query.withArgs(`CREATE DATABASE "${team.hashid}"`).rejects(new Error('already being created'))
+            await driver.createDatabase(team, 't1').should.be.rejectedWith('already being created')
+            driver._adminClient.query.calledWithMatch('DROP').should.be.false()
+        })
+
+        it('should not drop anything when the database already exists', async function () {
+            await driver.init(app, options)
+            driver._adminClient.query.withArgs('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', ['existingdb']).resolves({ rows: [{ datname: 'existingdb' }] })
+            await driver.createDatabase({ id: 1, hashid: 'existingdb' }, 'existingdb').should.be.rejectedWith('Database already exists')
+            driver._adminClient.query.calledWithMatch('DROP').should.be.false()
+        })
     })
 
     describe('destroyDatabase', function () {
@@ -180,26 +225,36 @@ describe('Tables: Postgres LocalFS Driver', function () {
             const dbObj = { destroy: sinon.stub().resolves() }
             app.db.models.Table.byId.resolves(dbObj)
             await driver.init(app, options)
-            // Simulate database exists in Postgres
-            driver._adminClient.query.withArgs('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid]).resolves({ rows: [{ datname: team.hashid }] })
             await driver.destroyDatabase(team, 1)
             driver._adminClient.query.calledWithMatch(`DROP DATABASE IF EXISTS "${team.hashid}"`).should.be.true()
             driver._adminClient.query.calledWithMatch(`DROP USER IF EXISTS "${team.hashid}"`).should.be.true()
             driver._adminClient.query.calledWithMatch(`DROP ROLE IF EXISTS "${team.hashid}-role"`).should.be.true()
             dbObj.destroy.calledOnce.should.be.true()
         })
+        it('should propagate a drop failure and keep the record', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            const dbObj = { destroy: sinon.stub().resolves() }
+            app.db.models.Table.byId.resolves(dbObj)
+            await driver.init(app, options)
+            driver._adminClient.query.withArgs(`DROP DATABASE IF EXISTS "${team.hashid}"`).rejects(new Error('database is being accessed by other users'))
+            await driver.destroyDatabase(team, 1).should.be.rejectedWith('database is being accessed by other users')
+            dbObj.destroy.called.should.be.false()
+        })
         it('should throw if db does not exist in Table', async function () {
             app.db.models.Table.byId.resolves(null)
             await driver.init(app, options)
             await driver.destroyDatabase({ id: 1, hashid: 't1hash' }, 1).should.be.rejectedWith('Database t1hash does not exist')
         })
-        it('should throw if db does not exist in Postgres', async function () {
+        it('should finish the cleanup on a retry after the database was dropped', async function () {
             const team = { id: 1, hashid: 't1hash' }
             const dbObj = { destroy: sinon.stub().resolves() }
             app.db.models.Table.byId.resolves(dbObj)
             await driver.init(app, options)
-            driver._adminClient.query.withArgs('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid]).resolves({ rows: [] })
-            await driver.destroyDatabase(team, 1).should.be.rejectedWith('Database t1hash does not exist')
+            driver._adminClient.query.withArgs(`DROP USER IF EXISTS "${team.hashid}"`).onFirstCall().rejects(new Error('role is in use'))
+            await driver.destroyDatabase(team, 1).should.be.rejectedWith('role is in use')
+            dbObj.destroy.called.should.be.false()
+            await driver.destroyDatabase(team, 1)
+            dbObj.destroy.calledOnce.should.be.true()
         })
     })
 
@@ -403,6 +458,72 @@ describe('Tables: Postgres LocalFS Driver', function () {
             app.db.models.Table.byId.resolves(null)
             await driver.init(app, options)
             await driver.getTableData({ id: 1, hashid: 't1hash' }, 'dbid', 'table1', 5).should.be.rejectedWith('Database dbid for team t1hash does not exist')
+        })
+    })
+
+    describe('createTable', function () {
+        const columns = [{ name: 'id', type: 'bigserial', nullable: false }]
+        function setup (team) {
+            app.db.models.Table.byId.resolves({ TeamId: 1, credentials: { host: 'localhost', port: 5432, database: 't1hash', user: 't1hash', password: 'secret' } })
+            const query = sinon.stub().resolves({ rows: [] })
+            pgClients[team.hashid] = {
+                connect: sinon.stub().resolves(),
+                query,
+                end: sinon.stub().resolves()
+            }
+            return query
+        }
+        it('should create the table in the public schema by default', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            await driver.init(app, options)
+            const query = setup(team)
+            await driver.createTable(team, team.hashid, 'table1', columns)
+            query.args.map(a => a[0]).should.eql([
+                'BEGIN',
+                'CREATE TABLE IF NOT EXISTS "public"."table1" (\n"id" bigserial NOT NULL \n)',
+                'COMMIT'
+            ])
+        })
+        it('should create the schema if needed and the table inside it', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            await driver.init(app, options)
+            const query = setup(team)
+            await driver.createTable(team, team.hashid, 'table1', columns, 'reports')
+            query.args.map(a => a[0]).should.eql([
+                'BEGIN',
+                'CREATE SCHEMA IF NOT EXISTS "reports"',
+                'CREATE TABLE IF NOT EXISTS "reports"."table1" (\n"id" bigserial NOT NULL \n)',
+                'COMMIT'
+            ])
+        })
+        it('should roll back the new schema if the table cannot be created', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            await driver.init(app, options)
+            const query = setup(team)
+            query.withArgs(sinon.match(/^CREATE TABLE/)).rejects(new Error('boom'))
+            await driver.createTable(team, team.hashid, 'table1', columns, 'reports').should.be.rejectedWith(/boom/)
+            query.lastCall.args[0].should.equal('ROLLBACK')
+        })
+        it('should apply the defaults of real, double precision and boolean columns', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            await driver.init(app, options)
+            const query = setup(team)
+            await driver.createTable(team, team.hashid, 'table1', [
+                { name: 'r', type: 'real', default: '1.5' },
+                { name: 'd', type: 'double precision', default: '2.25' },
+                { name: 'b', type: 'boolean', default: 'true' }
+            ])
+            query.args[1][0].should.equal('CREATE TABLE IF NOT EXISTS "public"."table1" (\n"r" real NOT NULL DEFAULT 1.5,\n"d" double precision NOT NULL DEFAULT 2.25,\n"b" boolean NOT NULL DEFAULT true\n)')
+        })
+        it('should apply the defaults of date columns', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            await driver.init(app, options)
+            const query = setup(team)
+            await driver.createTable(team, team.hashid, 'table1', [
+                { name: 'd', type: 'date', default: '2026-01-01' },
+                { name: 't', type: 'date', default: 'CURRENT_DATE' }
+            ])
+            query.args[1][0].should.equal('CREATE TABLE IF NOT EXISTS "public"."table1" (\n"d" date NOT NULL DEFAULT \'2026-01-01\',\n"t" date NOT NULL DEFAULT CURRENT_DATE\n)')
         })
     })
 

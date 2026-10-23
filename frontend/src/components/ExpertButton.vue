@@ -36,7 +36,7 @@ import alerts from '@/services/alerts.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
-import { useProductMcpStore } from '@/stores/product-mcp.js'
+import { MCP_TOAST_DURATION, useProductMcpStore } from '@/stores/product-mcp.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
@@ -56,7 +56,7 @@ export default {
             return this.featuresCheck.isAiFeatureEnabled
         },
         showExpertButton () {
-            return this.isAiEnabled && !this.isExpertDrawerOpen
+            return this.isAiEnabled && !this.isExpertDrawerOpen && !this.rightDrawer.expertSuppressed
         },
         showMcpToggle () {
             return this.isAiEnabled && this.featuresCheck.isMcpThirdPartyFeatureEnabled
@@ -100,7 +100,7 @@ export default {
             // twice. Only the call that actually closed it speaks, so the second toggle
             // cannot report the same switch again.
             if (await this.disableMcp()) {
-                alerts.emit('MCP session closed due to team switch.', 'info')
+                alerts.emit('MCP session closed due to team switch.', 'info', MCP_TOAST_DURATION)
             }
         }
     },
@@ -124,11 +124,11 @@ export default {
             if (!this.team) return
             this.enableMcp(this.team)
             // Not a confirmation: nothing is targeting it yet, which is what the amber says
-            alerts.emit('MCP session exposed. Third-party agents can now target this tab.', 'info')
+            alerts.emit('MCP session exposed. Third-party agents can now target this tab.', 'info', MCP_TOAST_DURATION)
         },
         async stopMcp () {
             if (await this.disableMcp()) {
-                alerts.emit('MCP session closed.', 'info')
+                alerts.emit('MCP session closed.', 'info', MCP_TOAST_DURATION)
             }
         }
     }
@@ -141,31 +141,14 @@ export default {
     display: none !important;
 }
 
-@property --ff-expert-border-angle {
-    syntax: '<angle>';
-    inherits: false;
-    initial-value: 135deg;
-}
-
 /* Composite wrapper: animated gradient border around both halves */
 .expert-composite {
     display: inline-flex;
     position: relative;
-    background: linear-gradient(var(--ff-color-bg-app), var(--ff-color-bg-app)) padding-box,
-                conic-gradient(from var(--ff-expert-border-angle),
-                    var(--ff-palette-red-600),
-                    var(--ff-palette-purple-600),
-                    var(--ff-palette-indigo-600),
-                    var(--ff-palette-purple-600),
-                    var(--ff-palette-red-600)) border-box;
-    border: 1px solid transparent;
+    /* The swirl is slow on purpose: with the edges gone there is nothing to track, so the
+       rotation only has to be perceptible rather than legible. */
+    @include ff-expert-border;
     border-radius: 6px;
-
-    @media (prefers-reduced-motion: no-preference) {
-        /* Slower than the old sweep: with the edges gone there is nothing to track, so the
-           rotation only has to be perceptible rather than legible. */
-        animation: expert-border-swirl 9s linear infinite;
-    }
 
     &:hover {
         border: 2px solid transparent;
@@ -258,6 +241,11 @@ export default {
     &:hover {
         background-color: var(--ff-color-expert-hover-veil);
         color: var(--ff-color-text-default);
+    }
+
+    &:only-child {
+        border-left: none;
+        border-radius: 5px;
     }
 
     &--waiting {
@@ -357,15 +345,6 @@ export default {
     }
     50% {
         opacity: 0.45;
-    }
-}
-
-@keyframes expert-border-swirl {
-    from {
-        --ff-expert-border-angle: 135deg;
-    }
-    to {
-        --ff-expert-border-angle: 495deg;
     }
 }
 </style>

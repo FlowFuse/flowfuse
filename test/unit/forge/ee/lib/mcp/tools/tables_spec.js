@@ -1,6 +1,8 @@
 const should = require('should') // eslint-disable-line no-unused-vars
 const sinon = require('sinon')
+const { z } = require('zod')
 
+const { formatResponse } = require('../../../../../../../forge/ee/lib/mcp/toolLoader')
 const tools = require('../../../../../../../forge/ee/lib/mcp/tools/tables')
 
 function getTool (name) {
@@ -86,6 +88,34 @@ describe('MCP Tables Tools', function () {
         })
     })
 
+    describe('platform_create_team_database', function () {
+        const tool = getTool('platform_create_team_database')
+
+        it('posts an empty body to the databases endpoint for the team', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ id: 'db1', name: 'team1' }) })
+            await tool.handler({ teamId: 'team1' }, { inject })
+            inject.calledOnce.should.be.true()
+            inject.firstCall.args[0].should.eql({ method: 'POST', url: '/api/v1/teams/team1/databases', payload: {} })
+        })
+
+        it('strips credentials from the created database and wraps it in a database object', async function () {
+            inject.resolves({
+                statusCode: 200,
+                json: () => ({ id: 'db1', name: 'team1', credentials: { password: 'secret1' } })
+            })
+            const response = await tool.handler({ teamId: 'team1' }, { inject })
+            response.statusCode.should.equal(200)
+            response.json().should.eql({ database: { id: 'db1', name: 'team1' } })
+        })
+
+        it('passes through error responses unmodified', async function () {
+            const errorResponse = { statusCode: 409, json: () => ({ code: 'already_exists', error: 'Database already exists' }) }
+            inject.resolves(errorResponse)
+            const response = await tool.handler({ teamId: 'team1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
     describe('platform_list_database_tables', function () {
         const tool = getTool('platform_list_database_tables')
 
@@ -156,6 +186,154 @@ describe('MCP Tables Tools', function () {
                 method: 'GET',
                 url: '/api/v1/teams/team1/databases/db1/tables/table1/data/custom?limit=5'
             })
+        })
+    })
+
+    describe('platform_create_database_table', function () {
+        const tool = getTool('platform_create_database_table')
+
+        it('only offers the column fields the platform applies', function () {
+            Object.keys(tool.inputSchema.columns.element.shape).should.eql(['name', 'type', 'nullable', 'default'])
+        })
+
+        it('posts the name and columns to the tables endpoint and returns the table in the public schema', async function () {
+            const columns = [{ name: 'id', type: 'bigint' }, { name: 'label', type: 'text', nullable: true }]
+            inject.resolves({ statusCode: 201, json: () => ({ name: 'orders', schema: 'public' }) })
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', name: 'orders', columns }, { inject })
+            inject.calledOnce.should.be.true()
+            inject.firstCall.args[0].should.eql({
+                method: 'POST',
+                url: '/api/v1/teams/team1/databases/db1/tables',
+                payload: { name: 'orders', columns }
+            })
+            response.statusCode.should.equal(201)
+            response.json().should.eql({ table: { name: 'orders', schema: 'public' } })
+        })
+
+        it('passes the schema through when one is given and returns it', async function () {
+            const columns = [{ name: 'id', type: 'bigint' }]
+            inject.resolves({ statusCode: 201, json: () => ({ name: 'orders', schema: 'reports' }) })
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', name: 'orders', schema: 'reports', columns }, { inject })
+            inject.firstCall.args[0].payload.should.eql({ name: 'orders', columns, schema: 'reports' })
+            response.json().should.eql({ table: { name: 'orders', schema: 'reports' } })
+        })
+
+        it('returns the table the route reports', async function () {
+            inject.resolves({ statusCode: 201, json: () => ({ name: 'orders', schema: 'reported' }) })
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', name: 'orders', columns: [{ name: 'id', type: 'bigint' }] }, { inject })
+            response.json().should.eql({ table: { name: 'orders', schema: 'reported' } })
+        })
+
+        it('accepts valid schema names and rejects ones Postgres cannot create', function () {
+            const schema = z.object(tool.inputSchema).shape.schema
+            for (const valid of ['public', 'Reports', '_staging', 'a'.repeat(63)]) {
+                schema.safeParse(valid).success.should.be.true(`'${valid}' should be accepted`)
+            }
+            for (const invalid of ['', 'a'.repeat(64), '1reports', 'my-schema', 'pg_reports', 'information_schema']) {
+                schema.safeParse(invalid).success.should.be.false(`'${invalid}' should be rejected`)
+            }
+        })
+
+        it('accepts only the column types the database driver supports', function () {
+            const columns = z.object(tool.inputSchema).shape.columns
+            columns.safeParse([{ name: 'id', type: 'double precision' }]).success.should.be.true()
+            columns.safeParse([{ name: 'id', type: 'varchar' }]).success.should.be.false()
+        })
+
+        it('passes through error responses unmodified', async function () {
+            const errorResponse = { statusCode: 409, json: () => ({ code: 'table_exists', error: 'Table already exists' }) }
+            inject.resolves(errorResponse)
+            const columns = [{ name: 'id', type: 'bigint' }]
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', name: 'orders', columns }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_delete_database_table', function () {
+        const tool = getTool('platform_delete_database_table')
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('deletes the table in the given schema and reports okay for the empty reply', async function () {
+            inject.resolves({ statusCode: 204, body: '', json: () => JSON.parse('') })
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', tableName: 'orders', schemaName: 'reports' }, { inject })
+            inject.calledOnce.should.be.true()
+            inject.firstCall.args[0].should.eql({ method: 'DELETE', url: '/api/v1/teams/team1/databases/db1/tables/orders/reports' })
+            formatResponse(response).should.eql({ status: 'okay' })
+        })
+
+        it('encodes table and schema names that contain reserved characters', async function () {
+            inject.resolves({ statusCode: 204, body: '' })
+            await tool.handler({ teamId: 'team1', databaseId: 'db1', tableName: 'my table/1', schemaName: 'a b' }, { inject })
+            inject.firstCall.args[0].url.should.equal('/api/v1/teams/team1/databases/db1/tables/my%20table%2F1/a%20b')
+        })
+
+        it('rejects empty and dot table or schema names, which would drop out of the URL', async function () {
+            for (const bad of [{ schemaName: '' }, { schemaName: '.' }, { tableName: '..' }, { tableName: '' }]) {
+                const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', tableName: 'orders', schemaName: 'reports', ...bad }, { inject })
+                response.statusCode.should.equal(400)
+            }
+            inject.called.should.be.false()
+        })
+
+        it('requires the schema name', function () {
+            z.object(tool.inputSchema).shape.schemaName.safeParse(undefined).success.should.be.false()
+        })
+
+        it('passes through the descriptive error when FlowFuse Tables is not enabled for the team', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found', error: 'Not Found - FlowFuse Tables is not enabled for this team' }) }
+            inject.resolves(errorResponse)
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', tableName: 'orders', schemaName: 'public' }, { inject })
+            response.should.equal(errorResponse)
+        })
+
+        it('passes through a rejection for a token without write access', async function () {
+            const errorResponse = { statusCode: 403, json: () => ({ code: 'unauthorized', error: 'unauthorized' }) }
+            inject.resolves(errorResponse)
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', tableName: 'orders', schemaName: 'public' }, { inject })
+            response.should.equal(errorResponse)
+        })
+
+        it('passes through a table not found error', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'table_not_found', error: 'Table not found' }) }
+            inject.resolves(errorResponse)
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', tableName: 'orders', schemaName: 'public' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_delete_team_database', function () {
+        const tool = getTool('platform_delete_team_database')
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('deletes the database and reports okay for the empty object reply', async function () {
+            inject.resolves({ statusCode: 200, body: '{}', json: () => ({}) })
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1' }, { inject })
+            inject.calledOnce.should.be.true()
+            inject.firstCall.args[0].should.eql({ method: 'DELETE', url: '/api/v1/teams/team1/databases/db1' })
+            response.statusCode.should.equal(200)
+            response.json().should.eql({ status: 'okay' })
+        })
+
+        it('passes through the descriptive error when FlowFuse Tables is not enabled for the team', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found', error: 'Not Found - FlowFuse Tables is not enabled for this team' }) }
+            inject.resolves(errorResponse)
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+
+        it('passes through a rejection for a token without write access', async function () {
+            const errorResponse = { statusCode: 403, json: () => ({ code: 'unauthorized', error: 'unauthorized' }) }
+            inject.resolves(errorResponse)
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1' }, { inject })
+            response.should.equal(errorResponse)
         })
     })
 })

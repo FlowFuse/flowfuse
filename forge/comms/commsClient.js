@@ -26,6 +26,7 @@ class CommsClient extends EventEmitter {
                 password: await this.app.settings.get('commsToken'),
                 reconnectPeriod: 5000,
                 protocolVersion: 5,
+                reconnectOnConnackError: true,
                 will: {
                     topic: 'ff/v1/platform/leader',
                     payload: JSON.stringify({ id: this.platformId, vote: -1 })

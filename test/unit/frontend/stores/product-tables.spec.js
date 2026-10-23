@@ -44,6 +44,7 @@ describe('product-tables store', () => {
         it('has a newTable with one empty column', () => {
             const store = useProductTablesStore()
             expect(store.newTable.name).toBe('')
+            expect(store.newTable.schema).toBe('public')
             expect(store.newTable.columns).toHaveLength(1)
             expect(store.newTable.columns[0].name).toBe('')
         })
@@ -223,6 +224,41 @@ describe('product-tables store', () => {
     })
 
     describe('createTable', () => {
+        it('sends the schema with the table name', async () => {
+            const store = useProductTablesStore()
+            store.newTable = { name: 'orders', schema: 'reports', columns: [] }
+            tablesApi.createTable.mockResolvedValue({})
+            await store.createTable({ databaseId: 'db-1' })
+            expect(tablesApi.createTable.mock.calls[0][2]).toMatchObject({ name: 'orders', schema: 'reports' })
+        })
+
+        it('resets the draft after a successful create', async () => {
+            const store = useProductTablesStore()
+            store.newTable = { name: 'orders', schema: 'reports', columns: [{ name: 'id', type: 'bigint' }] }
+            tablesApi.createTable.mockResolvedValue({})
+            await store.createTable({ databaseId: 'db-1' })
+            expect(store.newTable.name).toBe('')
+            expect(store.newTable.schema).toBe('public')
+            expect(store.newTable.columns).toHaveLength(1)
+            expect(store.newTable.columns[0].name).toBe('')
+        })
+
+        it('keeps the draft when the create fails', async () => {
+            const store = useProductTablesStore()
+            store.newTable = { name: 'orders', schema: 'reports', columns: [] }
+            tablesApi.createTable.mockRejectedValue(new Error('conflict'))
+            await expect(store.createTable({ databaseId: 'db-1' })).rejects.toThrow('conflict')
+            expect(store.newTable).toMatchObject({ name: 'orders', schema: 'reports' })
+        })
+
+        it('sends the public schema when the draft has none', async () => {
+            const store = useProductTablesStore()
+            store.newTable = { name: 'orders', columns: [] }
+            tablesApi.createTable.mockResolvedValue({})
+            await store.createTable({ databaseId: 'db-1' })
+            expect(tablesApi.createTable.mock.calls[0][2]).toMatchObject({ schema: 'public' })
+        })
+
         it('strips hasDefault and unsigned when not set, then calls API', async () => {
             const store = useProductTablesStore()
             store.newTable = {

@@ -1,6 +1,8 @@
 ---
 navTitle: Bill of Materials
 navOrder: 2
+meta:
+   description: Use the Bill of Materials in an application's Dependencies tab to view and search the dependencies and versions used by all its instances.
 ---
 
 # Bill of Materials

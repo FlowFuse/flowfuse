@@ -67,11 +67,11 @@ module.exports = {
             meta: {}
         }
     },
-    createTable: async function (team, databaseId, tableName, columns) {
-        if (tables[tableName]) {
+    createTable: async function (team, databaseId, tableName, columns, schemaName = 'public') {
+        if (tables[`${schemaName}.${tableName}`]) {
             throw new Error()
         }
-        let query = `CREATE TABLE IF NOT EXISTS "${tableName}" (\n`
+        let query = `CREATE TABLE IF NOT EXISTS "${schemaName}"."${tableName}" (\n`
         for (const [i, col] of columns.entries()) {
             let column = `"${col.name}" `
             if (col.type === 'varchar') {
@@ -95,12 +95,12 @@ module.exports = {
         }
         query += ')'
         this._app.log.info(query)
-        tables[tableName] = columns
+        tables[`${schemaName}.${tableName}`] = columns
         return columns
     },
-    dropTable: async function (team, databaseId, tableName) {
-        if (tables[tableName]) {
-            delete tables[tableName]
+    dropTable: async function (team, databaseId, tableName, schemaName = 'public') {
+        if (tables[`${schemaName}.${tableName}`]) {
+            delete tables[`${schemaName}.${tableName}`]
         } else {
             throw new Error('table not found')
         }

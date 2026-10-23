@@ -1,5 +1,7 @@
 ---
 navTitle: Environment Variables
+meta:
+   description: Set, import and manage environment variables for a Node-RED instance in FlowFuse, and see the standard variables the platform provides.
 ---
 
 # Environment Variables

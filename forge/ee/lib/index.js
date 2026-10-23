@@ -91,7 +91,7 @@ module.exports = fp(async function (app, opts) {
         const tiers = app.license.get('tiers')
         await commonFeatures(app, opts)
 
-        if (tiers.includes('hub')) {
+        if (tiers.includes('hub') || tiers.includes('testing')) {
             // `hub` does not include remote instances so we disable the feature flag for it
             //  - it will get re-enabled below if the license also includes `edge` or `fleet`
             app.config.features.register('remoteInstances', false, true)
@@ -104,7 +104,7 @@ module.exports = fp(async function (app, opts) {
             // Set the Bill of Materials Feature Flag
             app.config.features.register('bom', true, true)
         }
-        if (tiers.includes('edge') || tiers.includes('fleet')) {
+        if (tiers.includes('edge') || tiers.includes('fleet') || tiers.includes('testing')) {
             app.config.features.register('remoteInstances', true, true)
             // Set the Device Groups Feature Flag
             app.config.features.register('deviceGroups', true, true)

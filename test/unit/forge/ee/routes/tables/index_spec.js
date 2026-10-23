@@ -1,4 +1,6 @@
 const should = require('should') // eslint-disable-line
+const sinon = require('sinon')
+
 const setup = require('../../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
@@ -113,6 +115,28 @@ describe('Tables API', function () {
         response.statusCode.should.equal(409)
     })
 
+    it('Fail to create a database when the driver fails, auditing the error', async function () {
+        const stub = sinon.stub(app.tables, 'createDatabase').rejects(new Error('tenant PUT failed'))
+        let response
+        try {
+            response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.team.hashid}/databases`,
+                cookies: { sid: TestObjects.tokens.bob },
+                payload: { name: 'Test Database' }
+            })
+        } finally {
+            stub.restore()
+        }
+        response.statusCode.should.equal(500)
+        response.json().should.have.property('code', 'unexpected_error')
+        response.json().should.have.property('error', 'Failed to create database')
+        const logs = await app.db.models.AuditLog.findAll({ where: { event: 'team.database.created' }, order: [['id', 'DESC']] })
+        const body = typeof logs[0].body === 'string' ? JSON.parse(logs[0].body) : logs[0].body
+        body.should.have.property('error')
+        body.error.should.have.property('message', 'tenant PUT failed')
+    })
+
     it('Get Team database list after creation', async function () {
         const response = await app.inject({
             method: 'GET',
@@ -208,6 +232,196 @@ describe('Tables API', function () {
         tables.tables[1].should.have.property('name', 'table2')
     })
 
+    async function createTable (payload) {
+        const db = (await app.db.models.Table.byTeamId(TestObjects.team.id))[0]
+        return app.inject({
+            method: 'POST',
+            url: `/api/v1/teams/${TestObjects.team.hashid}/databases/${db.hashid}/tables`,
+            cookies: { sid: TestObjects.tokens.bob },
+            payload
+        })
+    }
+    const columns = [{ name: 'id', type: 'bigserial', nullable: false }]
+
+    it('Create a table in the public schema when no schema is given', async function () {
+        const spy = sinon.spy(app.tables, 'createTable')
+        const response = await createTable({ name: 'newtable', columns })
+        spy.restore()
+        response.statusCode.should.equal(201)
+        spy.calledOnce.should.be.true()
+        spy.firstCall.args[2].should.equal('newtable')
+        spy.firstCall.args[4].should.equal('public')
+    })
+
+    it('Returns the created table name and schema', async function () {
+        const response = await createTable({ name: 'returnedtable', columns })
+        response.statusCode.should.equal(201)
+        response.json().should.eql({ name: 'returnedtable', schema: 'public' })
+
+        const inSchema = await createTable({ name: 'returnedtable', schema: 'reports', columns })
+        inSchema.statusCode.should.equal(201)
+        inSchema.json().should.eql({ name: 'returnedtable', schema: 'reports' })
+    })
+
+    it('Declares the 201 response it sends when a table is created', async function () {
+        const responses = app.swagger().paths['/api/v1/teams/{teamId}/databases/{databaseId}/tables'].post.responses
+        responses.should.have.property('201')
+        responses.should.not.have.property('200')
+    })
+
+    it('Create a table in the given schema', async function () {
+        const spy = sinon.spy(app.tables, 'createTable')
+        const response = await createTable({ name: 'table1', schema: 'reports', columns })
+        spy.restore()
+        response.statusCode.should.equal(201)
+        spy.calledOnce.should.be.true()
+        spy.firstCall.args[4].should.equal('reports')
+    })
+
+    it('Fail to create a table that already exists in the same schema', async function () {
+        const spy = sinon.spy(app.tables, 'createTable')
+        const response = await createTable({ name: 'table1', schema: 'public', columns })
+        spy.restore()
+        response.statusCode.should.equal(409)
+        response.json().should.have.property('code', 'table_exists')
+        spy.called.should.be.false()
+    })
+
+    it('Fail to create a table with an invalid schema', async function () {
+        const invalid = ['', 'a'.repeat(64), '1reports', 'my-schema', 'my schema', 'pg_reports', 'information_schema']
+        for (const schema of invalid) {
+            const response = await createTable({ name: 'newtable2', schema, columns })
+            response.statusCode.should.equal(400, `schema '${schema}' should be rejected`)
+        }
+    })
+
+    it('Create a table in a schema at the maximum length', async function () {
+        const response = await createTable({ name: 'newtable3', schema: 'a'.repeat(63), columns })
+        response.statusCode.should.equal(201)
+    })
+
+    it('Fail to create a table without a name', async function () {
+        const response = await createTable({ columns })
+        response.statusCode.should.equal(400)
+    })
+
+    it('Create a table with no columns when columns is omitted', async function () {
+        const spy = sinon.spy(app.tables, 'createTable')
+        const response = await createTable({ name: 'nocolumns' })
+        spy.restore()
+        response.statusCode.should.equal(201)
+        spy.firstCall.args[3].should.eql([])
+    })
+
+    it('Fail to create a table with an empty name', async function () {
+        const response = await createTable({ name: '', columns })
+        response.statusCode.should.equal(400)
+    })
+
+    it('Fail to create a table with a numeric default that is not a number, naming the column', async function () {
+        const cases = [
+            { name: 'count', type: 'bigint', default: 'abc' },
+            { name: 'count', type: 'bigint', default: '99999999999999999999999' },
+            { name: 'count', type: 'bigint', default: '9223372036854775807' },
+            { name: 'count', type: 'bigint', default: '-9223372036854775808' },
+            { name: 'ratio', type: 'real', default: 'abc' },
+            { name: 'ratio', type: 'double precision', default: 'Infinity' }
+        ]
+        for (const column of cases) {
+            const spy = sinon.spy(app.tables, 'createTable')
+            const response = await createTable({ name: 'baddefault', columns: [column] })
+            spy.restore()
+            response.statusCode.should.equal(400, `${column.type} default '${column.default}' should be rejected`)
+            response.json().should.eql({
+                code: 'invalid_column_default',
+                error: `Invalid default value "${column.default}" for ${column.type} column "${column.name}"`
+            })
+            spy.called.should.be.false()
+        }
+    })
+
+    it('Create a table with numeric defaults the driver can already use', async function () {
+        // parseInt/parseFloat accept a leading number, so these work today and must keep working
+        const spy = sinon.spy(app.tables, 'createTable')
+        const response = await createTable({
+            name: 'numericdefaults',
+            columns: [
+                { name: 'count', type: 'bigint', default: '12abc' },
+                { name: 'big', type: 'bigint', default: '9007199254740993' },
+                { name: 'ratio', type: 'real', default: '1.5' }
+            ]
+        })
+        spy.restore()
+        response.statusCode.should.equal(201)
+        spy.calledOnce.should.be.true()
+    })
+
+    it('Fail to create a table with a date default Postgres rejects, naming the column', async function () {
+        const messages = [
+            'invalid input syntax for type date: "not-a-date"',
+            'date/time field value out of range: "not-a-date"'
+        ]
+        for (const message of messages) {
+            const stub = sinon.stub(app.tables, 'createTable').rejects(new Error(`Failed to create table baddate for team ${TestObjects.team.hashid}: ${message}`))
+            const response = await createTable({
+                name: 'baddate',
+                columns: [
+                    { name: 'id', type: 'bigserial' },
+                    { name: 'created', type: 'date', default: 'not-a-date' }
+                ]
+            })
+            stub.restore()
+            response.statusCode.should.equal(400)
+            response.json().should.eql({
+                code: 'invalid_column_default',
+                error: 'Invalid default value "not-a-date" for date column "created"'
+            })
+        }
+    })
+
+    it('Keeps the generic error when a driver failure is not about a column default', async function () {
+        const stub = sinon.stub(app.tables, 'createTable').rejects(new Error('Failed to create table other: connection refused'))
+        const response = await createTable({ name: 'other', columns })
+        stub.restore()
+        response.statusCode.should.equal(500)
+        response.json().should.have.property('error', 'Failed to create table')
+    })
+
+    it('Create a table with an empty columns list', async function () {
+        const response = await createTable({ name: 'emptycolumns', columns: [] })
+        response.statusCode.should.equal(201)
+    })
+
+    it('Fail to create a table with an unsupported column type', async function () {
+        const stub = sinon.stub(app.tables, 'createTable').rejects(new Error('Unsupported column type'))
+        const response = await createTable({ name: 'badtype', columns: [{ name: 'id', type: 'uuid', nullable: false }] })
+        stub.restore()
+        response.statusCode.should.equal(400)
+        response.json().should.have.property('code', 'invalid_column_type')
+        response.json().error.should.containEql('bigserial')
+    })
+
+    it('Does not advertise generated or maxLength for the columns of a new table', async function () {
+        const spec = app.swagger()
+        const resolve = schema => {
+            if (schema?.$ref) {
+                return resolve(spec.components.schemas[schema.$ref.split('/').pop()])
+            }
+            if (schema?.allOf) {
+                return Object.assign({}, ...schema.allOf.map(resolve))
+            }
+            return schema
+        }
+        const body = resolve(spec.paths['/api/v1/teams/{teamId}/databases/{databaseId}/tables'].post.requestBody.content['application/json'].schema)
+        const column = resolve(resolve(body.properties.columns).items)
+        Object.keys(column.properties).should.eql(['name', 'type', 'nullable', 'default'])
+    })
+
+    it('Still accepts columns that carry generated and maxLength, such as a copied table schema', async function () {
+        const response = await createTable({ name: 'copiedschema', columns: [{ name: 'c', type: 'text', nullable: true, default: null, generated: false, maxLength: null }] })
+        response.statusCode.should.equal(201)
+    })
+
     it('Get details for a table', async function () {
         const db = (await app.db.models.Table.byTeamId(TestObjects.team.id))[0]
         const response = await app.inject({
@@ -224,6 +438,66 @@ describe('Tables API', function () {
         columns[1].should.have.property('type', 'text')
     })
 
+    describe('Delete a table', function () {
+        let db
+        const drop = (name, schema) => app.inject({
+            method: 'DELETE',
+            url: `/api/v1/teams/${TestObjects.team.hashid}/databases/${db.hashid}/tables/${name}${schema ? '/' + schema : ''}`,
+            cookies: { sid: TestObjects.tokens.bob }
+        })
+
+        before(async function () {
+            const created = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.team.hashid}/databases`,
+                cookies: { sid: TestObjects.tokens.bob },
+                payload: { }
+            })
+            db = { hashid: created.json().id }
+        })
+
+        beforeEach(function () {
+            sinon.stub(app.tables, 'getTables').resolves({
+                tables: [
+                    { name: 'dup', schema: 'public' },
+                    { name: 'dup', schema: 's2' },
+                    { name: 'solo', schema: 'public' }
+                ]
+            })
+            sinon.stub(app.tables, 'dropTable').resolves()
+        })
+
+        afterEach(function () {
+            sinon.restore()
+        })
+
+        it('Returns 400 schema_required when the name exists in several schemas and no schema is given', async function () {
+            const response = await drop('dup')
+            response.statusCode.should.equal(400)
+            response.json().should.have.property('code', 'schema_required')
+            response.json().error.should.match(/public, s2/)
+            app.tables.dropTable.called.should.be.false()
+        })
+
+        it('Drops the table when the schema disambiguates', async function () {
+            const response = await drop('dup', 's2')
+            response.statusCode.should.equal(204)
+            app.tables.dropTable.calledOnce.should.be.true()
+            app.tables.dropTable.firstCall.args[3].should.equal('s2')
+        })
+
+        it('Drops a uniquely named table without a schema', async function () {
+            const response = await drop('solo')
+            response.statusCode.should.equal(204)
+        })
+
+        it('Returns 404 table_not_found when nothing matches', async function () {
+            const response = await drop('missing')
+            response.statusCode.should.equal(404)
+            response.json().should.have.property('code', 'table_not_found')
+        })
+    })
+
     it('Fail to delete database without permission', async function () {
         const db = (await app.db.models.Table.byTeamId(TestObjects.team.id))[0]
         const response = await app.inject({
@@ -232,6 +506,27 @@ describe('Tables API', function () {
             cookies: { sid: TestObjects.tokens.dave }
         })
         response.statusCode.should.equal(403)
+    })
+
+    it('Fail to delete database when the driver fails, without auditing or removing it', async function () {
+        const db = (await app.db.models.Table.byTeamId(TestObjects.team.id))[0]
+        const stub = sinon.stub(app.tables, 'destroyDatabase').rejects(new Error('database is being accessed by other users'))
+        let response
+        try {
+            response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/teams/${TestObjects.team.hashid}/databases/${db.hashid}`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+        } finally {
+            stub.restore()
+        }
+        response.statusCode.should.equal(500)
+        response.json().should.have.property('code', 'unexpected_error')
+        const logs = await app.db.models.AuditLog.findAll({ where: { event: 'team.database.deleted' } })
+        logs.should.have.length(0)
+        const remaining = await app.db.models.Table.byTeamId(TestObjects.team.id)
+        remaining.should.have.length(1)
     })
 
     it('Delete Team database', async function () {

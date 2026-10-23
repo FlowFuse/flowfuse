@@ -1,5 +1,7 @@
 ---
 navTitle: Role-Based Access Control
+meta:
+   description: Control what team members can create, change, view or delete in FlowFuse with team-level roles and application-level overrides.
 ---
 
 # Role-Based Access Control

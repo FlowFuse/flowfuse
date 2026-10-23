@@ -1,5 +1,7 @@
 ---
 navTitle: User Settings
+meta:
+   description: Change your FlowFuse username, email, theme and password, set up two-factor authentication, and create scoped personal access tokens.
 ---
 
 # User Settings

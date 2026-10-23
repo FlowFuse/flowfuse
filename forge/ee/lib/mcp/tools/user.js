@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { basePagination, basePaginationKeys, appendQuery, teamId, toolError } = require('../schemas')
+const { pathId, basePagination, basePaginationKeys, appendQuery, teamId, toolError } = require('../schemas')
 
 module.exports = [
     {
@@ -40,7 +40,7 @@ module.exports = [
             The single-notification call replies { status: "okay" }; the bulk call replies with the refreshed notification list.`,
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            notificationId: z.string().optional().describe('The hashid of a single notification to change. Provide exactly one of notificationId or ids'),
+            notificationId: pathId.optional().describe('The hashid of a single notification to change. Provide exactly one of notificationId or ids'),
             ids: z.array(z.string()).min(1).optional().describe('Hashids of the notifications to change in bulk, at least one. Provide exactly one of notificationId or ids'),
             read: z.boolean().describe('Read state to set: true marks read, false marks unread')
         },
@@ -59,6 +59,29 @@ module.exports = [
         }
     },
     {
+        name: 'platform_delete_notification',
+        title: 'Delete Notification',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes one of the current user's own notifications. This cannot be undone; to just dismiss it, use platform_set_notification_read_state instead.
+            Only one notification can be deleted per call: there is no bulk or "delete all" option, so list them first with platform_list_notifications and call this once per id.
+            Replies { status: "okay" } on success. A notificationId that does not exist, or belongs to someone else, returns a 404.`,
+        // destructiveHint: the notification is gone for good.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            notificationId: pathId.describe('The hashid of the notification to delete, as returned by platform_list_notifications')
+        },
+        handler: async (args, { inject }) => {
+            // notificationId goes into the URL path and inject resolves dot segments, so anything but
+            // a plain hashid could send this DELETE to another route (e.g. "../../applications/<id>").
+            if (!/^[A-Za-z0-9]+$/.test(args.notificationId)) {
+                return toolError(400, 'invalid_request', 'notificationId must be a hashid')
+            }
+            const response = await inject({ method: 'DELETE', url: `/api/v1/user/notifications/${args.notificationId}` })
+            return response
+        }
+    },
+    {
         name: 'platform_respond_to_team_invitation',
         title: 'Respond to Team Invitation',
         description: `FlowFuse platform automation tool:
@@ -69,7 +92,7 @@ module.exports = [
         // original sender can issue another, so this removes rather than adds.
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
         inputSchema: {
-            invitationId: z.string().describe('The hashid of an invitation the current user received, as returned by platform_list_own_invitations'),
+            invitationId: pathId.describe('The hashid of an invitation the current user received, as returned by platform_list_own_invitations'),
             action: z.enum(['accept', 'reject']).describe('Whether to accept the invitation (join the team) or reject it (decline)')
         },
         handler: async (args, { inject }) => {

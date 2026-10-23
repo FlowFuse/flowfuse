@@ -1,6 +1,8 @@
 const fs = require('fs')
 const path = require('path')
 
+const { validateIdArgs, guardInject } = require('./utils')
+
 const toolsDir = path.join(__dirname, 'tools')
 
 /**
@@ -28,6 +30,12 @@ function formatResponse (response) {
         return response
     }
 
+    // Some routes answer success with an empty body, which response.json() cannot parse.
+    // Tool handlers that build their own { statusCode, json } result have no body at all
+    if (response.statusCode < 400 && response.body === '') {
+        return { status: 'okay' }
+    }
+
     const body = response.json()
     if (response.statusCode >= 400) {
         return {
@@ -39,4 +47,17 @@ function formatResponse (response) {
     return body
 }
 
-module.exports = { formatResponse, loadToolDefinitions }
+/**
+ * Runs a tool handler behind the shared path guard: rejects id arguments that are not a plain
+ * path segment, and hands the handler an inject that refuses dot-segment paths. Every dispatch
+ * of a tool must go through here so individual tools never have to remember the checks.
+ */
+async function invokeTool (tool, args, context) {
+    const invalid = validateIdArgs(args)
+    if (invalid) {
+        return invalid
+    }
+    return tool.handler(args, { ...context, inject: guardInject(context.inject) })
+}
+
+module.exports = { formatResponse, loadToolDefinitions, invokeTool }

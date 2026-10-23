@@ -3,10 +3,10 @@
         <ul class="flex flex-col gap-3">
             <li v-for="entry in renderList" :key="entryKey(entry)" class="flex flex-col gap-3">
                 <collapsed-question-turn v-if="entry.kind === 'folded-turn'" :turn="entry" />
-                <component :is="messageTypes[entry.message._type]" v-else-if="messageTypes[entry.message._type]" v-bind="{...entry.message}" />
+                <component :is="messageTypes[entry.message._type]" v-else-if="messageTypes[entry.message._type]" v-bind="messageProps(entry.message)" />
             </li>
             <li v-if="isWaitingForResponse">
-                <expert-loading-indicator />
+                <expert-loading-indicator :show-messages="!hasStreamedActivity" />
             </li>
         </ul>
     </div>
@@ -27,6 +27,7 @@ import FlowFuseEventCard from './messages/FlowFuseEventCard.vue'
 import HumanMessage from './messages/HumanMessage.vue'
 import SystemMessage from './messages/SystemMessage.vue'
 
+import { isFullPageSurface } from '@/components/expert/surfaces.js'
 import { downloadData } from '@/composables/Download.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 
@@ -47,7 +48,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useProductExpertStore, ['messages', 'isWaitingForResponse']),
+        ...mapState(useProductExpertStore, ['messages', 'isWaitingForResponse', 'hasStreamedActivity', 'feedbackMessageUuids']),
         messageTypes () {
             return {
                 ai: markRaw(AiMessage),
@@ -57,8 +58,8 @@ export default {
             }
         },
         renderList () {
-            // The onboarding surface folds answered question turns into quiet while the drawer renders the transcript as-is.
-            if (this.expertSurface === 'onboarding') {
+            // Full page surfaces fold answered question turns into quiet while the drawer renders the transcript as-is.
+            if (isFullPageSurface(this.expertSurface)) {
                 return buildCollapsedTranscript(this.messages)
             }
             return this.messages.map(message => ({ kind: 'message', message }))
@@ -73,11 +74,17 @@ export default {
         window.removeEventListener('keydown', this.onKeyDown)
     },
     methods: {
+        messageProps (message) {
+            if (message._type !== 'ai') {
+                return { ...message }
+            }
+            return { ...message, feedback: this.feedbackMessageUuids.has(message._uuid) }
+        },
         entryKey (entry) {
             return entry.kind === 'folded-turn' ? entry.questionsMessage._uuid : entry.message._uuid
         },
         onKeyDown (e) {
-            if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'd') {
+            if (e.altKey && e.shiftKey && e.code === 'KeyD') {
                 e.preventDefault()
                 downloadData(this.messages, 'expert-messages.json')
             }

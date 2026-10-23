@@ -14,12 +14,12 @@ meta:
 
 # Ingress Controller Migration
 
-{% note %}
+::note
 This guide should not be treated as a one-size-fits-all solution. Consider it as a blueprint and adapt it to your specific Kubernetes cluster setup.
 Test the migration in a testing/staging environment before applying it to production.
 
 If you have any questions about the migration, please contact [support@flowfuse.com](mailto:support@flowfuse.com).
-{% endnote %}
+::
 
 This document describes how to migrate a FlowFuse Platform Kubernetes deployment from the NGINX Ingress Controller to Traefik.
 

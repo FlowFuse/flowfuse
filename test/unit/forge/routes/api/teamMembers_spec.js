@@ -1,4 +1,6 @@
-const should = require('should') // eslint-disable-line
+const should = require('should')
+const sinon = require('sinon')
+
 const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
@@ -168,6 +170,7 @@ describe('Team Members API', function () {
                     cookies: { sid: TestObjects.tokens.alice }
                 })
                 response.statusCode.should.equal(200)
+                response.json().should.eql({ status: 'okay', removed: true })
 
                 await TestObjects.chris.reload()
                 // Verify Chris' defaultTeam is no longer ATeam
@@ -274,6 +277,44 @@ describe('Team Members API', function () {
                 response.statusCode.should.equal(400)
             })
 
+            it('reports nothing removed for a user who is not a member of the team', async function () {
+                // Bob exists but is not a member of CTeam
+                const before = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.CTeam.hashid}/members`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                const response = await app.inject({
+                    method: 'DELETE',
+                    url: `/api/v1/teams/${TestObjects.CTeam.hashid}/members/${TestObjects.bob.hashid}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                response.json().should.eql({ status: 'okay', removed: false })
+                const after = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.CTeam.hashid}/members`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                after.json().count.should.equal(before.json().count)
+            })
+
+            it('returns 500 when the removal fails unexpectedly', async function () {
+                const stub = sinon.stub(app.db.controllers.Team, 'removeUser').rejects(new Error('database unavailable'))
+                try {
+                    const response = await app.inject({
+                        method: 'DELETE',
+                        url: `/api/v1/teams/${TestObjects.ATeam.hashid}/members/${TestObjects.chris.hashid}`,
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(500)
+                    // the underlying error is not sent back, as it can include database details
+                    response.json().should.eql({ code: 'unexpected_error', error: 'Unexpected error' })
+                } finally {
+                    stub.restore()
+                }
+            })
+
             it('admin cannot remove only owner from team', async function () {
                 // Alice cannot remove Bob from BTeam
                 const response = await app.inject({
@@ -282,6 +323,7 @@ describe('Team Members API', function () {
                     cookies: { sid: TestObjects.tokens.alice }
                 })
                 response.statusCode.should.equal(400)
+                response.json().should.eql({ code: 'invalid_request', error: 'cannot remove only owner' })
             })
         })
 

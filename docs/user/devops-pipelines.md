@@ -1,5 +1,7 @@
 ---
 navTitle: DevOps Pipelines
+meta:
+   description: Set up a DevOps pipeline to move flows and configuration from a development instance to production, and protect instances from direct edits.
 ---
 
 # DevOps Pipelines

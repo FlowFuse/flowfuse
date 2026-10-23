@@ -127,8 +127,14 @@ module.exports = {
         await notifyPinnedClients(app, userId, browserSessionId, mcpSessionIds, teamId)
     },
 
-    async removeSession (app, userId, browserSessionId) {
+    async removeSession (app, userId, browserSessionId, teamId = null) {
         const cache = app.caches.getCache(browserSessionCache)
+        // A tab keeps its session id across a team switch, so a late close or last will from
+        // the previous team's connection must not remove the entry the new team recorded.
+        const session = await cache.get(`${userId}:${browserSessionId}`)
+        if (teamId && session?.teamId && session.teamId !== teamId) {
+            return
+        }
         await cache.del(`${userId}:${browserSessionId}`)
         // Drop any MCP pins referencing this browser session so it stops reporting as active
         const activeCache = app.caches.getCache(activeBrowserSessionCache)

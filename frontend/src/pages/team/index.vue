@@ -57,7 +57,7 @@ export default {
         ...mapState(useContextStore, ['team', 'teamMembership']),
         ...mapState(useAccountSettingsStore, ['requiresBilling', 'featuresCheck']),
         ...mapState(useAccountAuthStore, ['user', 'isAdminUser']),
-        ...mapState(useUxToursStore, ['shouldPresentTour', 'shouldAutoShowAiConnectorModal']),
+        ...mapState(useUxToursStore, ['shouldPresentTour', 'activeTour', 'shouldShowEducationModal', 'shouldAutoShowAiConnectorModal']),
         ...mapState(useProductExpertStore, ['shouldWakeUpAssistant']),
         isVisitingAdmin: function () {
             return (this.teamMembership.role === Roles.Admin)
@@ -74,6 +74,9 @@ export default {
         },
         canAutoShowAiConnector: function () {
             return !!this.team &&
+                !this.shouldPresentTour &&
+                !this.activeTour &&
+                !this.shouldShowEducationModal &&
                 this.featuresCheck.isAiFeatureEnabled &&
                 this.featuresCheck.isMcpThirdPartyFeatureEnabled &&
                 this.shouldAutoShowAiConnectorModal

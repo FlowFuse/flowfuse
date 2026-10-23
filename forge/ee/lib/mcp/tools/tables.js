@@ -1,5 +1,6 @@
 const { z } = require('zod')
 
+const { toolError } = require('../schemas')
 const {
     teamIdSchema,
     databaseIdSchema,
@@ -51,6 +52,31 @@ module.exports = [
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/databases/${args.databaseId}` })
+            if (response.statusCode >= 400) {
+                return response
+            }
+            const database = redactDatabaseCredentials(response.json())
+            return {
+                statusCode: response.statusCode,
+                json: () => ({ database })
+            }
+        }
+    },
+    {
+        name: 'platform_create_team_database',
+        title: 'Create Team Database',
+        description: `FlowFuse platform automation tool:
+            Creates the FlowFuse Tables database for a team. A team has at most one database; fails with 409 if it already exists.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        inputSchema: {
+            teamId: teamIdSchema
+        },
+        outputSchema: {
+            database: databaseSchema
+        },
+        handler: async (args, { inject }) => {
+            // The route rejects a request without a body
+            const response = await inject({ method: 'POST', url: `/api/v1/teams/${args.teamId}/databases`, payload: {} })
             if (response.statusCode >= 400) {
                 return response
             }
@@ -158,6 +184,96 @@ module.exports = [
             const url = `${basePath}${qs ? `?${qs}` : ''}`
             const response = await inject({ method: 'GET', url })
             return response
+        }
+    },
+    {
+        name: 'platform_create_database_table',
+        title: 'Create Database Table',
+        description: `FlowFuse platform automation tool:
+            Creates a new table in a FlowFuse Tables database.
+            Fails with 409 if a table of that name already exists in the same schema.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        inputSchema: {
+            teamId: teamIdSchema,
+            databaseId: databaseIdSchema,
+            name: z.string().min(1).describe('Name for the new table'),
+            schema: z.string().regex(/^(?!pg_)(?!information_schema$)[a-zA-Z_][a-zA-Z0-9_]{0,62}$/).optional().describe('Schema to create the table in. Defaults to public, and is created if it does not exist'),
+            columns: z.array(z.object({
+                name: z.string().min(1).describe('Column name'),
+                type: z.enum(['bigint', 'bigserial', 'boolean', 'date', 'timestamptz', 'real', 'double precision', 'text']).describe('Column data type'),
+                nullable: z.boolean().optional().describe('Whether the column allows NULL. Defaults to NOT NULL when omitted'),
+                default: z.string().nullable().optional().describe('Default value, or null for none. For a date column, a date such as 2026-01-01, or CURRENT_DATE to default to the day each row is inserted')
+            })).min(1).describe('Column definitions for the new table')
+        },
+        outputSchema: {
+            table: z.object({
+                name: z.string(),
+                schema: z.string()
+            })
+        },
+        handler: async (args, { inject }) => {
+            const payload = { name: args.name, columns: args.columns }
+            if (args.schema) {
+                payload.schema = args.schema
+            }
+            const response = await inject({
+                method: 'POST',
+                url: `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables`,
+                payload
+            })
+            if (response.statusCode >= 400) {
+                return response
+            }
+            return {
+                statusCode: response.statusCode,
+                json: () => ({ table: response.json() })
+            }
+        }
+    },
+    {
+        name: 'platform_delete_database_table',
+        title: 'Delete Database Table',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes a table from a FlowFuse Tables database, including every row it holds. This cannot be undone and there is no backup to restore from.
+            CAUTION: any flow that reads or writes the table will start failing as soon as it is gone. Confirm with the user before calling this, and use platform_get_database_table and platform_query_database_table_data first so you can tell them what is being lost.
+            Only the table in the given schema is deleted; a table with the same name in another schema is left alone. Team owners only.
+            Replies { status: "okay" } on success; a table or database that does not exist returns 404, so repeating a call is harmless. A 404 can also mean FlowFuse Tables is not available to the team.`,
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId: teamIdSchema,
+            databaseId: databaseIdSchema,
+            tableName: tableNameSchema,
+            schemaName: schemaNameSchema
+        },
+        handler: async (args, { inject }) => {
+            // An empty or dot segment drops out of the URL, which would delete the table from any schema
+            if ([args.tableName, args.schemaName].some(segment => segment === '' || segment === '.' || segment === '..')) {
+                return toolError(400, 'invalid_request', 'tableName and schemaName must not be empty, "." or ".."')
+            }
+            const url = `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables/${encodeURIComponent(args.tableName)}/${encodeURIComponent(args.schemaName)}`
+            return inject({ method: 'DELETE', url })
+        }
+    },
+    {
+        name: 'platform_delete_team_database',
+        title: 'Delete Team Database',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes a team's FlowFuse Tables database: every table in every schema, all of their rows, and the database login. This cannot be undone and there is no backup to restore from.
+            CAUTION: every flow and device in the team that uses the database will start failing, and the team is left with no database until a new one is created. Confirm with the user before calling this, and list what is in it first with platform_list_database_tables so you can tell them what will be lost.
+            The database does not need to be empty. Team owners only.
+            Replies { status: "okay" } on success; a database that does not exist returns 404, so repeating a call is harmless. A 404 can also mean FlowFuse Tables is not available to the team.
+            The delete fails with 500 while a client is still connected to the database, for example a running flow, and the database is kept. Retrying once nothing is connected finishes the delete.`,
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId: teamIdSchema,
+            databaseId: databaseIdSchema
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/databases/${args.databaseId}` })
+            if (response.statusCode >= 400) {
+                return response
+            }
+            return { statusCode: response.statusCode, json: () => ({ status: 'okay' }) }
         }
     }
 ]

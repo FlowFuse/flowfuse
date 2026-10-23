@@ -1,6 +1,7 @@
 const { requestContext } = require('@fastify/request-context')
 const fp = require('fastify-plugin')
 
+const mcpToolPermissions = require('../../lib/mcpToolPermissions')
 const { Permissions } = require('../../lib/permissions')
 const { Roles } = require('../../lib/roles.js')
 
@@ -132,7 +133,8 @@ module.exports = fp(async function (app, opts) {
             // Gate third-party MCP callers on the resolved team's ai/mcpThirdParty features.
             // The team comes from the route (team/application/instance/device), never from
             // tool arguments; with no team context the request is not gated.
-            if (requestContext.get('sourceContext')?.source === 'mcp') {
+            const sourceContext = requestContext.get('sourceContext')
+            if (sourceContext?.source === 'mcp') {
                 const loadedTeam = request.team || request.application?.Team || request.project?.Team || request.device?.Team
                 const teamId = loadedTeam?.id ?? request.teamMembership?.TeamId
                 if (teamId !== undefined && teamId !== null) {
@@ -151,6 +153,20 @@ module.exports = fp(async function (app, opts) {
                             code: 'unauthorized',
                             error: 'MCP access is disabled for this team. A team owner can re-enable MCP access from Team Settings > Danger.'
                         })
+                        throw new Error()
+                    }
+                }
+
+                const tool = sourceContext.toolName && app.comms?.platformAutomation?.findTool(sourceContext.toolName)
+                if (tool) {
+                    const category = mcpToolPermissions.classOf(tool.annotations)
+                    const teamHashid = resolveRequestTeamHashid(app, request)
+                    const permissions = mcpToolPermissions.forSession(request.session)
+                    const allowed = teamHashid
+                        ? mcpToolPermissions.resolve(permissions, teamHashid, 'platform', category)
+                        : mcpToolPermissions.anyTeamAllows(permissions, 'platform', category)
+                    if (!allowed) {
+                        reply.code(403).send({ code: 'unauthorized', error: `The token's permissions don't allow ${category} access to platform tools` })
                         throw new Error()
                     }
                 }

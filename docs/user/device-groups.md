@@ -1,5 +1,7 @@
 ---
 navTitle: Groups
+meta:
+   description: Create groups of remote instances in an application, manage their membership, and set group-level environment variables for pipeline deployments.
 ---
 
 # Groups

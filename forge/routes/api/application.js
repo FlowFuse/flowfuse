@@ -228,7 +228,12 @@ module.exports = async function (app) {
             const teamHash = request.application.Team?.hashid
             const applicationHash = request.application.hashid
 
-            await request.application.destroy()
+            // The Application model's beforeDestroy hook deletes the application's pipelines,
+            // so everything is removed in one transaction
+            await app.db.sequelize.transaction(async (transaction) => {
+                await request.application.destroy({ transaction })
+            })
+
             await app.auditLog.Team.application.deleted(request.session.User, null, request.application.Team, request.application)
 
             if (teamHash) {

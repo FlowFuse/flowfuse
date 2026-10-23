@@ -10,6 +10,8 @@
         "team.user.invite.rejected": "User Invite Rejected",
         "team.user.role-changed": "User Role Modified",
         "team.settings.updated": "Team Settings Updated",
+        "team.agent-auto-deploy.enabled": "AI Flow Deploy and Inject Enabled",
+        "team.agent-auto-deploy.disabled": "AI Flow Deploy and Inject Disabled",
         "team.type.changed": "Team Type Changed",
         "team.device.created": "New Device Created",
         "team.device.deleted": "Device Deleted",
@@ -28,6 +30,12 @@
         "team.device.remote-access.disabled": "Remote Access Disabled",
         "team.package.published": "Team NPM Package Published",
         "team.package.unpublished": "Team NPM Package Unpublished",
+        "team.git.token.created": "Git Token Created",
+        "team.git.token.updated": "Git Token Updated",
+        "team.git.token.deleted": "Git Token Deleted",
+        "team.library.entry.created": "Shared Library Entry Created",
+        "team.library.entry.updated": "Shared Library Entry Updated",
+        "team.library.entry.deleted": "Shared Library Entry Deleted",
         "application.created": "Application Created",
         "application.updated": "Application Modified",
         "application.deleted": "Application Deleted",
@@ -35,6 +43,8 @@
         "application.pipeline.updated": "DevOps Pipeline Updated",
         "application.pipeline.deleted": "DevOps Pipeline Deleted",
         "application.pipeline.stage-added": "Pipeline Stage Added",
+        "application.pipeline.stage-updated": "Pipeline Stage Updated",
+        "application.pipeline.stage-deleted": "Pipeline Stage Deleted",
         "application.pipeline.stage-deployed": "Pipeline Stage Deployed",
         "project.created": "Instance Created",
         "project.deleted": "Instance Deleted",
@@ -73,6 +83,7 @@
         "project.protected": "Project Protected",
         "project.unprotected": "Project Unprotected",
         "project.assigned-to-pipeline-stage": "Instance Assigned to DevOps Pipeline Stage",
+        "project.unassigned-from-pipeline-stage": "Instance Removed from DevOps Pipeline Stage",
         "project.device.assigned": "Device Assigned to Instance",
         "project.device.unassigned": "Device Unassigned from Instance",
         "project.stack.changed": "Instance Stack Changed",
@@ -102,7 +113,8 @@
         "library.set": "Saved to Library",
         "nodes.install": "Third-Party Nodes Installed",
         "nodes.remove": "Third-Party Nodes Removed",
-        "context.delete": "Context Key Deleted"
+        "context.delete": "Context Key Deleted",
+        "nr-assistant.inject": "Message Injected"
     },
     "platform": {
         "platform.license.applied": "License Applied",
@@ -172,6 +184,7 @@
         "library.set": "Saved to Library",
         "nodes.install": "Third-Party Nodes Installed",
         "nodes.remove": "Third-Party Nodes Removed",
+        "nr-assistant.inject": "Message Injected",
         "safe-mode": "Node-RED has been placed in Safe Mode",
         "settings.update": "Node-RED Settings Updated"
     }

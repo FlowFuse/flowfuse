@@ -726,6 +726,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         onboardingCompleted?: boolean;
+                        aiConnectorLastShownAt?: number;
                     };
                 };
             };
@@ -915,7 +916,7 @@ export interface paths {
                     "application/json": {
                         scope?: string;
                         expiresAt?: number;
-                        name?: string;
+                        name: string;
                         readOnly?: boolean;
                         adminOptIn?: boolean;
                         teamIds?: string[];
@@ -2485,7 +2486,19 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["APIStatus"];
+                        "application/json": {
+                            status: string;
+                            removed?: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
                     };
                 };
                 /** @description Default Response */
@@ -4880,7 +4893,7 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        snapshot?: string;
+                        snapshot: string;
                     };
                 };
             };
@@ -5807,6 +5820,7 @@ export interface paths {
                         type?: string;
                         instance?: string | null;
                         application?: string | null;
+                        targetSnapshot?: string;
                     };
                 };
             };
@@ -8500,19 +8514,30 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        name?: string;
-                        columns?: components["schemas"]["DatabaseTable"];
+                        name: string;
+                        /** @default public */
+                        schema?: string;
+                        /** @default [] */
+                        columns?: {
+                            name: string;
+                            type: string;
+                            nullable?: boolean;
+                            default?: string | null;
+                        }[];
                     };
                 };
             };
             responses: {
                 /** @description Default Response */
-                200: {
+                201: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["DatabaseTable"];
+                        "application/json": {
+                            name: string;
+                            schema: string;
+                        };
                     };
                 };
                 /** @description Default Response */
@@ -9179,12 +9204,12 @@ export interface paths {
                             id?: string;
                             username?: string;
                             acls?: unknown[];
-                            owner?: null | {
+                            owner?: {
                                 /** @enum {string} */
                                 instanceType?: "instance" | "device";
                                 id?: string;
                                 name?: string;
-                            };
+                            } | null;
                         };
                     };
                 };
@@ -10428,6 +10453,34 @@ export interface components {
                 id?: string;
                 name?: string | null;
             }[];
+            toolPermissions?: {
+                default?: {
+                    platform?: {
+                        read?: boolean;
+                        write?: boolean;
+                        destructive?: boolean;
+                    };
+                    flow_building?: {
+                        read?: boolean;
+                        write?: boolean;
+                        destructive?: boolean;
+                    };
+                };
+                teams?: {
+                    [key: string]: {
+                        platform?: {
+                            read?: boolean;
+                            write?: boolean;
+                            destructive?: boolean;
+                        };
+                        flow_building?: {
+                            read?: boolean;
+                            write?: boolean;
+                            destructive?: boolean;
+                        };
+                    };
+                };
+            } | null;
         };
         /** PersonalAccessToken */
         PersonalAccessToken: {
@@ -10952,6 +11005,7 @@ export interface components {
                 [key: string]: unknown;
             };
             billingURL?: string;
+            aiOnboarding?: boolean;
         } & components["schemas"]["TeamSummary"];
         /** UserTeamList */
         UserTeamList: ({

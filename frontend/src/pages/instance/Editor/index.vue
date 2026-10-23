@@ -59,6 +59,7 @@ import DrawerTrigger from '../../../components/immersive-editor/DrawerTrigger.vu
 import EditorDrawer from '../../../components/immersive-editor/EditorDrawer.vue'
 import EditorWrapper from '../../../components/immersive-editor/HostedInstanceEditorWrapper.vue'
 import InstanceActionsButton from '../../../components/instance/ActionButton.vue'
+import { useEditorLandingTab } from '../../../composables/EditorLandingTab.js'
 import usePermissions from '../../../composables/Permissions.js'
 import instanceMixin from '../../../mixins/Instance.js'
 
@@ -83,12 +84,24 @@ export default {
         InstanceStatusPolling
     },
     mixins: [instanceMixin],
+    provide () {
+        return {
+            // tells the Expert in the drawer it is running beside the editor
+            'expert-surface': 'immersive'
+        }
+    },
     setup () {
         const { hasAMinimumTeamRoleOf, isVisitingAdmin } = usePermissions()
+        const { syncLandingTab } = useEditorLandingTab({
+            editorRouteName: 'instance-editor',
+            expertRouteName: 'instance-editor-expert',
+            overviewRouteName: 'instance-editor-overview'
+        })
 
         return {
             isVisitingAdmin,
-            hasAMinimumTeamRoleOf
+            hasAMinimumTeamRoleOf,
+            syncLandingTab
         }
     },
     data () {
@@ -177,6 +190,9 @@ export default {
     watch: {
         instance (instance) {
             this.setInstance(instance)
+        },
+        'instance.id' () {
+            this.syncLandingTab()
         }
     },
     unmounted () {

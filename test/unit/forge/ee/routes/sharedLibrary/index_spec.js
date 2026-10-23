@@ -50,7 +50,7 @@ describe('Library Storage API', function () {
 
     describe('/library', function () {
         async function addToLibrary (libraryURL, name, type, token, contents) {
-            contents = contents || 'contents'
+            contents = contents || (type === 'flows' ? '[]' : 'contents')
             token = token || tokens.token
             return await app.inject({
                 method: 'POST',
@@ -323,6 +323,56 @@ describe('Library Storage API', function () {
             response2.statusCode.should.equal(400)
         })
 
+        describe('POST validation', function () {
+            const post = (path, payload, extra = {}) => app.inject({
+                method: 'POST',
+                url: `/storage/library/${app.team.hashid}/${path}`,
+                payload,
+                headers: { authorization: `Bearer ${tokens.token}` },
+                ...extra
+            })
+
+            it('rejects empty, trailing slash, empty, dot and dot-dot names', async function () {
+                for (const name of ['', 'tr/', 'a//b', 'a%2F..%2Fb', 'a%2F.']) {
+                    const response = await post(name, { type: 'functions', body: 'x' })
+                    response.statusCode.should.equal(400, name)
+                    response.json().should.have.property('code', 'invalid_name')
+                }
+                const count = await app.db.models.StorageSharedLibrary.count()
+                count.should.equal(0)
+            })
+
+            it('accepts nested folder names with dots inside segments', async function () {
+                const response = await post('folder/sub.dir/my..flow', { type: 'functions', body: 'x' })
+                response.statusCode.should.equal(201)
+            })
+
+            it('rejects a flows body that is not valid JSON', async function () {
+                const response = await post('bad', { type: 'flows', body: 'not json' })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            })
+
+            it('accepts flows as an object, array or JSON string', async function () {
+                const libraryURL = `/storage/library/${app.team.hashid}/`
+                for (const [name, body] of [['obj', { a: 1 }], ['arr', [{ id: '1' }]], ['str', '[{"id":"1"}]']]) {
+                    const response = await post(name, { type: 'flows', body })
+                    response.statusCode.should.equal(201)
+                    const get = await getFromLibrary(libraryURL, name, 'flows')
+                    get.statusCode.should.equal(200)
+                }
+            })
+
+            it('rejects a missing or null body', async function () {
+                const none = await post('nobody', undefined)
+                none.statusCode.should.equal(400)
+                none.json().should.have.property('code', 'invalid_request')
+                const nul = await post('nullbody', 'null', { headers: { authorization: `Bearer ${tokens.token}`, 'content-type': 'application/json' } })
+                nul.statusCode.should.equal(400)
+                nul.json().should.have.property('code', 'invalid_request')
+            })
+        })
+
         it('Deletes an individual entry', async function () {
             const libraryURL = `/storage/library/${app.team.hashid}/`
             /*
@@ -421,6 +471,202 @@ describe('Library Storage API', function () {
             ;(await app.db.models.StorageSharedLibrary.count()).should.equal(4)
         })
 
+        it('Delete rejects an empty path', async function () {
+            const libraryURL = `/storage/library/${app.team.hashid}/`
+            await addToLibrary(libraryURL, 'a', 'flows')
+            await addToLibrary(libraryURL, 'b', 'flows')
+
+            const result = await deleteFromLibrary(libraryURL, '')
+            result.should.have.property('code', 'invalid_request')
+            ;(await app.db.models.StorageSharedLibrary.count()).should.equal(2)
+        })
+
+        for (const [label, encoded, decoy] of [
+            ['underscore', 'a_b', ['a/b/c', 'aXb/x']],
+            ['percent', '100%25', ['100abc/p', '100/p']],
+            ['backslash', 'a%5Cb', ['a/b/c', 'aXb/x', 'ab/x']],
+            ['emoji', '%F0%9F%93%A6', ['%F0%9F%93%A6x/p']]
+        ]) {
+            describe(`folder name containing ${label}`, function () {
+                const libraryURL = () => `/storage/library/${app.team.hashid}/`
+
+                async function populate () {
+                    await addToLibrary(libraryURL(), `${encoded}/x`, 'flows')
+                    await addToLibrary(libraryURL(), `${encoded}/y`, 'flows')
+                    for (const name of decoy) {
+                        await addToLibrary(libraryURL(), name, 'flows')
+                    }
+                }
+
+                it('deletes only entries under the exact folder', async function () {
+                    await populate()
+                    const result = await deleteFromLibrary(libraryURL(), encoded)
+                    result.should.have.property('deleteCount', 2)
+                    const remaining = (await app.db.models.StorageSharedLibrary.findAll()).map(e => e.name).sort()
+                    remaining.should.eql(decoy.map(decodeURIComponent).sort())
+                })
+
+                it('lists only entries under the exact folder', async function () {
+                    await populate()
+                    const response = await getFromLibrary(libraryURL(), encoded, 'flows')
+                    response.statusCode.should.equal(200)
+                    response.json().map(e => e.fn).sort().should.eql(['x', 'y'])
+                })
+
+                it('allows creating an entry with the folder name when only look-alike entries exist', async function () {
+                    for (const name of decoy) {
+                        await addToLibrary(libraryURL(), name, 'flows')
+                    }
+                    const response = await addToLibrary(libraryURL(), encoded, 'flows')
+                    response.statusCode.should.equal(201)
+                })
+            })
+        }
+
+        describe('audit log', function () {
+            const libraryURL = () => `/storage/library/${app.team.hashid}/`
+
+            async function auditEntries (event) {
+                const logs = await app.db.models.AuditLog.findAll({ where: { event } })
+                return logs.map(log => JSON.parse(log.body))
+            }
+
+            beforeEach(async function () {
+                await app.db.models.AuditLog.destroy({ where: {} })
+            })
+
+            let userToken
+
+            before(async function () {
+                const user = await app.factory.createUser({ username: 'libaudit', name: 'Lib Audit', email: 'libaudit@example.com', password: 'aaPassword' })
+                await app.team.addUser(user, { through: { role: app.factory.Roles.Roles.Owner } })
+                userToken = (await app.db.controllers.AccessToken.createPersonalAccessToken(user, '', null, 'audit-pat')).token
+            })
+
+            it('logs the creation of an entry by a user', async function () {
+                await addToLibrary(libraryURL(), 'audit/new', 'flows', userToken)
+                const entries = await auditEntries('team.library.entry.created')
+                entries.should.have.length(1)
+                entries[0].libraryEntry.should.only.have.keys('name', 'type')
+                entries[0].libraryEntry.should.have.property('name', 'audit/new')
+                entries[0].libraryEntry.should.have.property('type', 'flows')
+                const updated = await auditEntries('team.library.entry.updated')
+                updated.should.have.length(0)
+            })
+
+            it('logs the overwrite of an entry by a user as an update, not a creation', async function () {
+                await addToLibrary(libraryURL(), 'audit/over', 'flows', userToken)
+                await app.db.models.AuditLog.destroy({ where: {} })
+                await addToLibrary(libraryURL(), 'audit/over', 'flows', userToken, '[{"id":"changed"}]')
+                const updated = await auditEntries('team.library.entry.updated')
+                updated.should.have.length(1)
+                updated[0].libraryEntry.should.have.property('name', 'audit/over')
+                const created = await auditEntries('team.library.entry.created')
+                created.should.have.length(0)
+            })
+
+            it('does not log a rejected entry', async function () {
+                await addToLibrary(libraryURL(), 'audit/file', 'flows', userToken)
+                await app.db.models.AuditLog.destroy({ where: {} })
+                const response = await addToLibrary(libraryURL(), 'audit/file/child', 'flows', userToken)
+                response.statusCode.should.equal(400)
+                const entries = await auditEntries('team.library.entry.created')
+                entries.should.have.length(0)
+            })
+
+            it('logs the deletion of an entry', async function () {
+                await addToLibrary(libraryURL(), 'audit/single', 'flows')
+                await deleteFromLibrary(libraryURL(), 'audit/single', 'flows')
+                const entries = await auditEntries('team.library.entry.deleted')
+                entries.should.have.length(1)
+                entries[0].libraryEntry.should.have.property('name', 'audit/single')
+                entries[0].libraryEntry.should.have.property('deleteCount', 1)
+            })
+
+            it('logs the path and count when a folder is deleted', async function () {
+                await addToLibrary(libraryURL(), 'audit/folder/a', 'flows')
+                await addToLibrary(libraryURL(), 'audit/folder/b', 'flows')
+                await addToLibrary(libraryURL(), 'audit/folder/sub/c', 'flows')
+                await deleteFromLibrary(libraryURL(), 'audit/folder')
+                const entries = await auditEntries('team.library.entry.deleted')
+                entries.should.have.length(1)
+                entries[0].libraryEntry.should.have.property('name', 'audit/folder/')
+                entries[0].libraryEntry.should.have.property('deleteCount', 3)
+            })
+
+            it('does not log a deletion that matches nothing', async function () {
+                await deleteFromLibrary(libraryURL(), 'audit/missing')
+                const entries = await auditEntries('team.library.entry.deleted')
+                entries.should.have.length(0)
+            })
+        })
+
+        describe('with user tokens', function () {
+            let ownerPAT
+            let readOnlyPAT
+            let viewerPAT
+            let outsiderPAT
+            let expertToken
+
+            before(async function () {
+                const owner = await app.factory.createUser({ username: 'libowner', name: 'Lib Owner', email: 'libowner@example.com', password: 'ooPassword' })
+                await team1.addUser(owner, { through: { role: app.factory.Roles.Roles.Owner } })
+                const viewer = await app.factory.createUser({ username: 'libviewer', name: 'Lib Viewer', email: 'libviewer@example.com', password: 'vvPassword' })
+                await team1.addUser(viewer, { through: { role: app.factory.Roles.Roles.Viewer } })
+                const outsider = await app.factory.createUser({ username: 'liboutsider', name: 'Lib Outsider', email: 'liboutsider@example.com', password: 'ooPassword' })
+
+                ownerPAT = (await app.db.controllers.AccessToken.createPersonalAccessToken(owner, '', null, 'owner-pat')).token
+                readOnlyPAT = (await app.db.controllers.AccessToken.createPersonalAccessToken(owner, '', null, 'owner-read-only-pat', { readOnly: true })).token
+                viewerPAT = (await app.db.controllers.AccessToken.createPersonalAccessToken(viewer, '', null, 'viewer-pat')).token
+                outsiderPAT = (await app.db.controllers.AccessToken.createPersonalAccessToken(outsider, '', null, 'outsider-pat')).token
+                expertToken = (await app.db.controllers.AccessToken.createTokenForUser(owner, null, [], false, 'user:expert-mcp')).token
+            })
+
+            function request (method, path, token, payload) {
+                return app.inject({
+                    method,
+                    url: `/storage/library/${team1.hashid}/${path}`,
+                    payload,
+                    headers: { authorization: `Bearer ${token}` }
+                })
+            }
+
+            it('lets a team owner create, read and delete entries with a personal access token', async function () {
+                const created = await request('POST', 'pat/entry', ownerPAT, { type: 'functions', meta: {}, body: 'return msg' })
+                created.statusCode.should.equal(201)
+
+                const read = await request('GET', 'pat/entry', ownerPAT)
+                read.statusCode.should.equal(200)
+                read.payload.should.equal('return msg')
+
+                const deleted = await request('DELETE', 'pat/entry', ownerPAT)
+                deleted.statusCode.should.equal(200)
+                deleted.json().should.have.property('deleteCount', 1)
+            })
+
+            it('accepts a user:expert-mcp token', async function () {
+                const created = await request('POST', 'expert/entry', expertToken, { type: 'functions', meta: {}, body: 'x' })
+                created.statusCode.should.equal(201)
+            })
+
+            it('applies the role and read-only checks to user tokens', async function () {
+                await request('POST', 'existing', ownerPAT, { type: 'functions', meta: {}, body: 'x' })
+
+                ;(await request('GET', 'existing', readOnlyPAT)).statusCode.should.equal(200)
+                ;(await request('GET', 'existing', viewerPAT)).statusCode.should.equal(403)
+                ;(await request('POST', 'viewer/entry', viewerPAT, { type: 'functions', meta: {}, body: 'x' })).statusCode.should.equal(403)
+                ;(await request('DELETE', 'existing', viewerPAT)).statusCode.should.equal(403)
+                ;(await request('POST', 'ro/entry', readOnlyPAT, { type: 'functions', meta: {}, body: 'x' })).statusCode.should.equal(403)
+                ;(await request('DELETE', 'existing', readOnlyPAT)).statusCode.should.equal(403)
+                ;(await app.db.models.StorageSharedLibrary.count()).should.equal(1)
+            })
+
+            it('returns 404 to a user who is not a member of the team', async function () {
+                ;(await request('GET', 'anything', outsiderPAT)).statusCode.should.equal(404)
+                ;(await request('POST', 'outsider/entry', outsiderPAT, { type: 'functions', meta: {}, body: 'x' })).statusCode.should.equal(404)
+            })
+        })
+
         it('Prevents Library access for team type with feature disabled', async function () {
             // Create a teamType without shared-library access
             const teamType = await app.factory.createTeamType({
@@ -436,6 +682,44 @@ describe('Library Storage API', function () {
             const tokens = await project.refreshAuthTokens()
             await shouldRejectGet(`/storage/library/${team.hashid}/`, tokens.token)
             await shouldRejectPost(`/storage/library/${team.hashid}/foo`, tokens.token)
+        })
+
+        it('Names the disabled feature to team members but not to non-members', async function () {
+            const teamType = await app.factory.createTeamType({
+                name: 'no-shared-library-type-2',
+                properties: {
+                    features: { 'shared-library': false }
+                }
+            })
+            const team = await app.factory.createTeam({ name: 'team4', TeamTypeId: teamType.id })
+            const project = await app.db.models.Project.create({ name: generateName('project'), type: '', url: '' })
+            await team.addProject(project)
+            const projectTokens = await project.refreshAuthTokens()
+
+            const member = await app.factory.createUser({ username: 'disabledmember', name: 'Disabled Member', email: 'disabledmember@example.com', password: 'ooPassword' })
+            await team.addUser(member, { through: { role: app.factory.Roles.Roles.Owner } })
+            const memberPAT = (await app.db.controllers.AccessToken.createPersonalAccessToken(member, '', null, 'member-pat')).token
+            const outsider = await app.factory.createUser({ username: 'disabledoutsider', name: 'Disabled Outsider', email: 'disabledoutsider@example.com', password: 'ooPassword' })
+            const outsiderPAT = (await app.db.controllers.AccessToken.createPersonalAccessToken(outsider, '', null, 'disabled-outsider-pat')).token
+
+            const url = `/storage/library/${team.hashid}/foo`
+            const get = (token) => app.inject({ method: 'GET', url, headers: { authorization: `Bearer ${token}` } })
+
+            const projectResponse = await get(projectTokens.token)
+            projectResponse.statusCode.should.equal(404)
+            projectResponse.json().should.have.property('error', 'Not Found - Shared Library is not enabled for this team')
+
+            const memberResponse = await get(memberPAT)
+            memberResponse.statusCode.should.equal(404)
+            memberResponse.json().should.have.property('error', 'Not Found - Shared Library is not enabled for this team')
+
+            const outsiderResponse = await get(outsiderPAT)
+            outsiderResponse.statusCode.should.equal(404)
+            outsiderResponse.json().should.have.property('error', 'Not Found')
+
+            const project1Response = await get(tokens.token)
+            project1Response.statusCode.should.equal(404)
+            project1Response.json().should.have.property('error', 'Not Found')
         })
     })
 })

@@ -220,6 +220,30 @@ describe('Audit Log > Team', async function () {
         logEntry.body.updates[0].should.eql({ key: 'name', old: 'old', new: 'new' })
     })
 
+    it('Provides a logger for when agent auto deploy is enabled for a team', async function () {
+        await teamLogger.team.agentAutoDeploy.enabled(ACTIONED_BY, null, TEAM)
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'team.agent-auto-deploy.enabled')
+        logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('team')
+        logEntry.body.team.id.should.equal(TEAM.hashid)
+    })
+
+    it('Provides a logger for when agent auto deploy is disabled for a team', async function () {
+        await teamLogger.team.agentAutoDeploy.disabled(ACTIONED_BY, null, TEAM)
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'team.agent-auto-deploy.disabled')
+        logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('team')
+        logEntry.body.team.id.should.equal(TEAM.hashid)
+    })
+
     // #endregion
 
     // #region Team - Devices - Developer Mode
@@ -662,6 +686,26 @@ describe('Audit Log > Team', async function () {
                 logEntry.body.should.only.have.keys('application', 'team', 'pipeline', 'pipelineStage')
             })
 
+            it('Provides a logger for updating a stage in a pipeline in an application', async function () {
+                await teamLogger.application.pipeline.stageUpdated(ACTIONED_BY, null, TEAM, APPLICATION, PIPELINE, PIPELINE_STAGE_1, [{ key: 'name', old: 'old', new: 'new' }])
+                // check log stored
+                const logEntry = await getLog()
+                logEntry.should.have.property('event', 'application.pipeline.stage-updated')
+                logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+                logEntry.should.have.property('body').and.be.an.Object()
+                logEntry.body.should.only.have.keys('application', 'team', 'pipeline', 'pipelineStage', 'updates')
+            })
+
+            it('Provides a logger for deleting a stage from a pipeline in an application', async function () {
+                await teamLogger.application.pipeline.stageDeleted(ACTIONED_BY, null, TEAM, APPLICATION, PIPELINE, PIPELINE_STAGE_1)
+                // check log stored
+                const logEntry = await getLog()
+                logEntry.should.have.property('event', 'application.pipeline.stage-deleted')
+                logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+                logEntry.should.have.property('body').and.be.an.Object()
+                logEntry.body.should.only.have.keys('application', 'team', 'pipeline', 'pipelineStage')
+            })
+
             it('Provides a logger for deploying a stage in a pipeline in an application', async function () {
                 await teamLogger.application.pipeline.stageDeployed(ACTIONED_BY, null, TEAM, APPLICATION, PIPELINE, PIPELINE_STAGE_1, PIPELINE_STAGE_2)
                 // check log stored
@@ -712,6 +756,56 @@ describe('Audit Log > Team', async function () {
             logEntry.body.should.only.have.keys('team', 'database', 'table')
             logEntry.body.database.should.only.have.keys('name')
             logEntry.body.table.should.only.have.keys('name')
+        })
+    })
+
+    describe('Team repository token events', function () {
+        const TOKEN = { id: 1, name: 'my token', type: 'github', token: 'secret-value' }
+        it('Create token', async function () {
+            await teamLogger.gitToken.created(ACTIONED_BY, null, TEAM, TOKEN)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.git.token.created')
+            logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+            logEntry.body.should.only.have.keys('team', 'gitToken')
+            logEntry.body.gitToken.should.only.have.keys('id', 'name', 'type')
+        })
+        it('Update token', async function () {
+            const updates = new app.auditLog.formatters.UpdatesCollection()
+            updates.push('name', 'old', 'new')
+            await teamLogger.gitToken.updated(ACTIONED_BY, null, TEAM, TOKEN, updates)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.git.token.updated')
+            logEntry.body.should.only.have.keys('team', 'gitToken', 'updates')
+        })
+        it('Delete token', async function () {
+            await teamLogger.gitToken.deleted(ACTIONED_BY, null, TEAM, TOKEN)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.git.token.deleted')
+            logEntry.body.should.only.have.keys('team', 'gitToken')
+        })
+    })
+
+    describe('Shared library events', function () {
+        const ENTRY = { name: 'folder/entry', type: 'flows', deleteCount: 2 }
+        it('Create entry', async function () {
+            await teamLogger.library.entry.created(ACTIONED_BY, null, TEAM, ENTRY)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.library.entry.created')
+            logEntry.body.should.only.have.keys('team', 'libraryEntry')
+            logEntry.body.libraryEntry.should.only.have.keys('name', 'type', 'deleteCount')
+        })
+        it('Update entry', async function () {
+            await teamLogger.library.entry.updated(ACTIONED_BY, null, TEAM, ENTRY)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.library.entry.updated')
+            logEntry.body.should.only.have.keys('team', 'libraryEntry')
+        })
+        it('Delete entry', async function () {
+            await teamLogger.library.entry.deleted(ACTIONED_BY, null, TEAM, ENTRY)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.library.entry.deleted')
+            logEntry.body.should.only.have.keys('team', 'libraryEntry')
+            logEntry.body.libraryEntry.should.have.property('deleteCount', 2)
         })
     })
 })

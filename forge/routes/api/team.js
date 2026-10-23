@@ -548,7 +548,7 @@ module.exports = async function (app) {
             // preHandler. To do so will require the perms model to know
             // to also check enabled features (and know that admin is allowed to
             // override in this instance)
-            reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
+            return reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
         }
 
         // TODO check license allows multiple teams
@@ -919,14 +919,29 @@ module.exports = async function (app) {
                 currentProperties.features = currentProperties.features || {}
 
                 updates = new app.auditLog.formatters.UpdatesCollection()
+                let agentAutoDeployChanged = false
                 for (const key of allowedFeatures) {
                     if (Object.hasOwn(requestedFeatures, key)) {
-                        updates.push(`features.${key}`, currentProperties.features[key], requestedFeatures[key])
+                        if (key === 'agentAutoDeploy') {
+                            // Toggling agent auto deploy gets its own audit entry instead of a settings diff
+                            agentAutoDeployChanged = !!currentProperties.features[key] !== !!requestedFeatures[key]
+                        } else {
+                            updates.push(`features.${key}`, currentProperties.features[key], requestedFeatures[key])
+                        }
                         currentProperties.features[key] = requestedFeatures[key]
                     }
                 }
                 request.team.properties = currentProperties
                 await request.team.save()
+                if (agentAutoDeployChanged) {
+                    const agentAutoDeployAuditFunc = requestedFeatures.agentAutoDeploy
+                        ? app.auditLog.Team.team.agentAutoDeploy.enabled
+                        : app.auditLog.Team.team.agentAutoDeploy.disabled
+                    await agentAutoDeployAuditFunc(request.session.User, null, request.team)
+                    if (updates.length === 0) {
+                        app.comms?.team?.notify(request.team.hashid, 'updated')
+                    }
+                }
             } else if (Object.hasOwn(request.body, 'properties')) {
                 if (!request.session.User.admin) {
                     reply.code(403).send({ code: 'forbidden', error: 'Team properties can only be updated by admins' })

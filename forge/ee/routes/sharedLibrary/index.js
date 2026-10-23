@@ -9,30 +9,33 @@ module.exports = async function (app) {
         const team = await app.db.models.Team.byId(id)
         if (team) {
             request.team = team
-            // Check this feature is enabled for this team type.
-            if (team.getFeatureProperty('shared-library', true)) {
-                // If this is a session token, verify the project or device is in the team
-                if (request.session.ownerType === 'project') {
-                    const project = await app.db.models.Project.byId(request.session.ownerId)
-                    if (project.Team.hashid === id) {
-                        // Project exists and the auth token is for this team
-                        return
-                    }
-                } else if (request.session.ownerType === 'device') {
-                    const deviceId = +request.session.ownerId
-                    const device = await app.db.models.Device.byId(deviceId)
-                    if (device?.Team.hashid === id) {
-                        // Device exists and the auth token is for this team
-                        return
-                    }
-                } else if (!request.session.ownerType) {
-                    // This is a logged-in user. Get their teamMembership so the needsPermission
-                    // checks in the routes will evaluate properly
-                    request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
-                    if (request.teamMembership) {
-                        return
-                    }
+            let authorised = false
+            // If this is a session token, verify the project or device is in the team
+            if (request.session.ownerType === 'project') {
+                const project = await app.db.models.Project.byId(request.session.ownerId)
+                // Project exists and the auth token is for this team
+                authorised = project.Team.hashid === id
+                request.libraryWriter = { project }
+            } else if (request.session.ownerType === 'device') {
+                const deviceId = +request.session.ownerId
+                const device = await app.db.models.Device.byId(deviceId)
+                // Device exists and the auth token is for this team
+                authorised = device?.Team.hashid === id
+                request.libraryWriter = { device }
+            } else if (request.session.User) {
+                // This is a logged-in user or a user token. Get their teamMembership so the needsPermission
+                // checks in the routes will evaluate properly
+                request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
+                authorised = !!request.teamMembership
+            }
+            if (authorised) {
+                // The feature state is only reported once the caller is known to belong to
+                // the team, so a caller outside the team cannot tell whether the team exists.
+                if (team.getFeatureProperty('shared-library', true)) {
+                    return
                 }
+                response.status(404).send({ code: 'not_found', error: 'Not Found - Shared Library is not enabled for this team' })
+                return
             }
         }
         response.status(404).send({ code: 'not_found', error: 'Not Found' })
@@ -43,6 +46,10 @@ module.exports = async function (app) {
             return app.needsPermission('library:entry:create')(request, reply)
         }
     }, async (request, response) => {
+        if (!request.body || typeof request.body !== 'object') {
+            response.code(400).send({ code: 'invalid_request', error: 'Missing request body' })
+            return
+        }
         const type = request.body.type
         let body = request.body.body
         const name = request.params['*']
@@ -53,8 +60,22 @@ module.exports = async function (app) {
             return
         }
 
+        // The wildcard is decoded after routing, so encoded slashes and dots
+        // can still produce empty, '.' or '..' segments here
+        if (name.split('/').some(part => part === '' || part === '.' || part === '..')) {
+            response.status(400).send({ code: 'invalid_name', error: 'Invalid entry name' })
+            return
+        }
+
         if (typeof body === 'object') {
             body = JSON.stringify(body)
+        } else if (type === 'flows') {
+            try {
+                JSON.parse(body)
+            } catch (err) {
+                response.code(400).send({ code: 'invalid_request', error: 'Flows body is not valid JSON' })
+                return
+            }
         }
 
         const direct = await app.db.models.StorageSharedLibrary.byName(request.team.id, type, name)
@@ -64,6 +85,10 @@ module.exports = async function (app) {
             direct.body = body
             direct.meta = JSON.stringify(meta)
             await direct.save()
+            // Instance and device saves are already logged by Node-RED's own library.set event
+            if (!request.libraryWriter) {
+                await app.auditLog.Team.library.entry.updated(request.session.User, null, request.team, { name, type })
+            }
         } else {
             // Adding a new entry. We need to check each part of the path to ensure
             // none are existing 'files' - otherwise we could end up with a directory
@@ -98,6 +123,9 @@ module.exports = async function (app) {
                 body,
                 TeamId: request.team.id
             })
+            if (!request.libraryWriter) {
+                await app.auditLog.Team.library.entry.created(request.session.User, null, request.team, { name, type })
+            }
         }
 
         response.status(201).send()
@@ -156,6 +184,10 @@ module.exports = async function (app) {
     }, async (request, response) => {
         const type = request.query.type
         let name = request.params['*']
+        if (name.length === 0) {
+            response.status(400).send({ code: 'invalid_request', error: 'Missing path' })
+            return
+        }
 
         let deleteCount = 0
         // Try to get the exact name
@@ -178,6 +210,7 @@ module.exports = async function (app) {
         if (deleteCount === 0) {
             response.status(404).send({ code: 'not_found', error: 'Not Found' })
         } else {
+            await app.auditLog.Team.library.entry.deleted(request.session?.User || 'system', null, request.team, { name, type, deleteCount }, request.libraryWriter)
             response.send({ status: 'okay', deleteCount })
         }
     })

@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-accordion" :class="{open: isOpen, [overflowClass]: overflowsContent}" data-el="accordion">
+    <div class="ff-accordion" :class="[`ff-accordion--${variant}`, {open: isOpen, [overflowClass]: overflowsContent}]" data-el="accordion">
         <button class="ff-accordion--button" :disabled="disabled" @click="toggle()">
             <slot name="label">
                 <label>{{ label }}</label>
@@ -40,6 +40,11 @@ export default {
         overflowsContent: {
             type: Boolean,
             default: false
+        },
+        variant: {
+            type: String,
+            default: 'boxed',
+            validator: value => ['boxed', 'bare'].includes(value)
         }
     },
     emits: ['state-changed'],

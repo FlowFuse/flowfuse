@@ -290,11 +290,19 @@ module.exports = {
                 getAll: async (pagination = {}, where = {}) => {
                     const limit = parseInt(pagination.limit) || 1000
                     if (pagination.cursor) {
-                        pagination.cursor = M.User.decodeHashid(pagination.cursor)
+                        pagination.cursor = M.User.decodeCursor(pagination.cursor)
+                    }
+                    let searchWhere = buildPaginationSearchClause(pagination, where, ['User.username', 'User.name', 'User.email'])
+                    if (pagination.query) {
+                        const queryId = M.User.decodeHashid(pagination.query)
+                        if (queryId && queryId.length === 1) {
+                            // The query term is a valid hashid - go look it up
+                            searchWhere = { id: queryId }
+                        }
                     }
                     const [rows, count] = await Promise.all([
                         this.findAll({
-                            where: buildPaginationSearchClause(pagination, where, ['User.username', 'User.name', 'User.email']),
+                            where: searchWhere,
                             order: [['id', 'ASC']],
                             limit
                         }),

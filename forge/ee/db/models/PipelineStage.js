@@ -43,7 +43,7 @@ module.exports = {
         },
         deployToDevices: {
             type: DataTypes.BOOLEAN,
-            default: false
+            defaultValue: false
         },
         action: {
             type: DataTypes.ENUM(Object.values(SNAPSHOT_ACTIONS)),

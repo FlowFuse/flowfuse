@@ -1,5 +1,7 @@
 ---
 navTitle: Team Broker
+meta:
+   description: Create Team Broker clients and connect MQTT clients or Node-RED to the FlowFuse broker, with the hostname, ports and client ID rules.
 ---
 
 # Getting Started with Team Broker
