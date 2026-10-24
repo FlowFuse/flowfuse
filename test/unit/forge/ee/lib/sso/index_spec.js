@@ -291,6 +291,18 @@ NOY6Z1oJnpttQ9gwyV8euQ3C0Wcjf3+OVQ==
             })
         })
 
+        it('treats missing group assertions as no groups when other teams are allowed', async function () {
+            // An IdP can omit the claim when the user is in no groups (seen with Azure)
+            await app.sso.updateTeamMembership({}, app.user, {
+                groupAssertionName: 'ff-roles',
+                groupTeams: ['ateam', 'bteam'],
+                groupOtherTeams: true
+            })
+            should.not.exist(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id))
+            should.not.exist(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.BTeam.id))
+            ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.DTeam.id)).should.have.property('role', Roles.Viewer)
+        })
+
         it('applies team membership changes - all teams', async function () {
             // Apply changes to all teams
             // Covers:
