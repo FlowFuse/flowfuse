@@ -303,6 +303,25 @@ NOY6Z1oJnpttQ9gwyV8euQ3C0Wcjf3+OVQ==
             ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.DTeam.id)).should.have.property('role', Roles.Viewer)
         })
 
+        it('removes admin when group assertions are missing and groupAdmin is set', async function () {
+            // a second admin, so Alice is not the last one
+            const otherAdmin = await app.factory.createUser({ admin: true, username: 'sso-admin2', name: 'Other Admin', email: 'sso-admin2@example.com', password: 'ccPassword' })
+            try {
+                await app.sso.updateTeamMembership({}, app.user, {
+                    groupAssertionName: 'ff-roles',
+                    groupTeams: ['ateam', 'bteam'],
+                    groupOtherTeams: true,
+                    groupAdmin: true,
+                    groupAdminName: 'ff-admins'
+                })
+                ;(await app.db.models.User.byId(app.user.id)).should.have.property('admin', false)
+            } finally {
+                app.user.admin = true
+                await app.user.save()
+                await otherAdmin.destroy()
+            }
+        })
+
         it('applies team membership changes - all teams', async function () {
             // Apply changes to all teams
             // Covers:
