@@ -1,20 +1,14 @@
 <template>
     <div class="streamable-content" v-on="richContent ? { click: handleClick } : {}">
         <span v-if="!richContent" :key="text">{{ text }}</span>
-        <template v-else>
-            <template v-for="(segment, index) in visibleSegments" :key="index">
-                <diagram-block v-if="segment.diagram" v-bind="segment.diagram" />
-                <!-- eslint-disable-next-line vue/no-v-html -->
-                <div v-else v-html="segment.html" />
-            </template>
-        </template>
+        <markdown-segments v-else :segments="visibleSegments" />
     </div>
 </template>
 
 <script>
 import { mapState } from 'pinia'
 
-import DiagramBlock from './DiagramBlock.vue'
+import MarkdownSegments from './MarkdownSegments.vue'
 
 import { DIAGRAM_TYPES } from '@/composables/strings/Diagram.js'
 import { CODE_BLOCK_ICONS, codeLanguage, useMarkdownHelper } from '@/composables/strings/Markdown.js'
@@ -30,7 +24,7 @@ function normalizeSource (source) {
 
 export default {
     name: 'StreamableContent',
-    components: { DiagramBlock },
+    components: { MarkdownSegments },
     props: {
         modelValue: {
             type: Object,
@@ -109,35 +103,14 @@ export default {
         // is its own component and is not rebuilt while the text after it streams.
         segments () {
             const tokens = this.markedInstance.lexer(this.rawText || '')
-            const segments = []
-            let group = null
-            for (const token of tokens) {
-                const diagram = this.findDiagram(token)
-                if (diagram) {
-                    segments.push({ diagram })
-                    group = null
-                    continue
-                }
-                if (!group) {
-                    group = []
-                    group.links = tokens.links
-                    segments.push({ tokens: group })
-                }
-                group.push(token)
-            }
-            return segments.map(segment => {
-                if (segment.diagram) {
-                    return segment
-                }
-                return { html: this.sanitizeHtml(this.markedInstance.parser(segment.tokens)) }
-            })
+            return this.toSegments(tokens, tokens.links)
         },
         visibleSegments () {
             if (!this.shouldStream) {
                 return this.segments
             }
             return this.segments.slice(0, this.streamIndex + 1).map((segment, index) => {
-                if (index === this.streamIndex && !segment.diagram) {
+                if (index === this.streamIndex && segment.html !== undefined) {
                     return { html: this.sanitizeHtml(this.streamedText) }
                 }
                 return segment
@@ -167,6 +140,61 @@ export default {
                 }
             })
         },
+        // Lists and blockquotes that hold a diagram are split as well, so the diagrams inside them render.
+        // Links are the reference links of the whole message, which the markdown runs need to resolve.
+        toSegments (tokens, links) {
+            const segments = []
+            let group = null
+            for (const token of tokens) {
+                const segment = this.blockSegment(token, links)
+                if (segment) {
+                    segments.push(segment)
+                    group = null
+                    continue
+                }
+                if (!group) {
+                    group = []
+                    group.links = links
+                    segments.push({ tokens: group })
+                }
+                group.push(token)
+            }
+            return segments.map(segment => {
+                if (!segment.tokens) {
+                    return segment
+                }
+                return { html: this.sanitizeHtml(this.markedInstance.parser(segment.tokens)) }
+            })
+        },
+        blockSegment (token, links) {
+            const diagram = this.findDiagram(token)
+            if (diagram) {
+                return { diagram }
+            }
+            if (!this.holdsDiagram(token)) {
+                return null
+            }
+            if (token.type === 'list') {
+                return {
+                    list: {
+                        ordered: token.ordered,
+                        start: token.start,
+                        task: token.items.some(item => item.task),
+                        items: token.items.map(item => this.toSegments(item.tokens, links))
+                    }
+                }
+            }
+            return { blockquote: this.toSegments(token.tokens, links) }
+        },
+        holdsDiagram (token) {
+            let children = []
+            if (token.type === 'list') {
+                children = token.items.flatMap(item => item.tokens)
+            } else if (token.type === 'blockquote') {
+                children = token.tokens
+            }
+            return children.some(child => this.findDiagram(child) || this.holdsDiagram(child))
+        },
         // The diagram for a code block, when the Expert rendered one
         findDiagram (token) {
             if (token.type !== 'code') {
@@ -178,7 +206,7 @@ export default {
             }
             const source = normalizeSource(token.text)
             // Diagrams without a type come from Experts that only render mermaid
-            const diagram = this.diagrams.find(diagram => {
+            const diagram = (this.diagrams || []).find(diagram => {
                 return (diagram.type || 'mermaid') === type && normalizeSource(diagram.source || '') === source
             })
             if (!diagram?.svg) {
@@ -186,12 +214,13 @@ export default {
             }
             return { type, source: token.text, svg: diagram.svg }
         },
-        // Streams each run of markdown in turn. A diagram shows as soon as the text before it has streamed.
+        // Streams each run of markdown in turn. A diagram, or a list holding one, shows in full as soon
+        // as the text before it has streamed.
         async streamContent () {
             const segments = this.richContent ? this.segments : [{ html: this.rawText }]
             for (let index = 0; index < segments.length; index++) {
                 this.streamIndex = index
-                if (!segments[index].diagram) {
+                if (segments[index].html !== undefined) {
                     await this.stream(segments[index].html)
                 }
                 if (this.unmounting) {
