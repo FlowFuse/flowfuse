@@ -226,7 +226,7 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                     snapshot: { type: 'string' },
-                    mergeEnvVars: { type: 'boolean', default: false }
+                    mergeEnvVars: { type: 'boolean', default: false, description: 'If true, keep the instance\'s existing env vars and add only those missing from the snapshot. If false (default), replace them with the snapshot\'s env vars.' }
                 },
                 required: ['snapshot']
             },
