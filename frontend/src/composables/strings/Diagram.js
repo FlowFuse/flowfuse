@@ -1,6 +1,9 @@
 import DOMPurify from 'dompurify'
 
-// The CSS variables the diagram takes its colours from
+// The diagram types the Expert renders, by the language of their code block
+export const DIAGRAM_TYPES = ['mermaid']
+
+// The CSS variables the rendered diagrams take their colours from
 export const THEME_VARIABLES = [
     '--pele-bg',
     '--pele-fg',

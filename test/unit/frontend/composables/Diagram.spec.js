@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'vitest'
 
-import { sanitizeDiagram, serializeSvg } from '../../../../frontend/src/composables/strings/Mermaid.js'
+import { sanitizeDiagram, serializeSvg } from '../../../../frontend/src/composables/strings/Diagram.js'
 
-describe('Mermaid', () => {
+describe('Diagram', () => {
     describe('sanitizeDiagram', () => {
         test('removes scripts and event handlers', () => {
             const svg = sanitizeDiagram('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><script>alert(1)</script><rect onclick="alert(1)" width="10"></rect></svg>')

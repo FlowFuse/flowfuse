@@ -69,22 +69,29 @@ const ICON_CHECK = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox=
 
 export const CODE_BLOCK_ICONS = { ICON_DUPLICATE, ICON_CHECK }
 
+export function codeLanguage (lang) {
+    return lang ? lang.split(/\s/)[0].toLowerCase() : ''
+}
+
+export function highlightCode (text, language) {
+    let highlighted
+    if (language && hljs.getLanguage(language)) {
+        highlighted = hljs.highlight(text, { language }).value
+    } else {
+        highlighted = hljs.highlightAuto(text).value
+    }
+    return highlighted.replace(/\n/g, '&#10;')
+}
+
 export function useMarkdownHelper () {
     const instance = new Marked({ breaks: true, gfm: true })
     instance.use({
         renderer: {
             code ({ text, lang }) {
-                const language = lang ? lang.split(/\s/)[0].toLowerCase() : ''
-                const isMermaid = language === 'mermaid'
-                let highlighted
-                if (language && hljs.getLanguage(language)) {
-                    highlighted = hljs.highlight(text, { language }).value
-                } else {
-                    highlighted = hljs.highlightAuto(text).value
-                }
+                const language = codeLanguage(lang)
+                const highlighted = highlightCode(text, language)
                 const langLabel = language ? `<span class="ff-code-block--lang">${language}</span>` : ''
-                const blockClass = isMermaid ? 'ff-code-block ff-code-block--mermaid' : 'ff-code-block'
-                return `<div class="${blockClass}"><div class="ff-code-block--header"><button class="ff-code-block--copy">${ICON_DUPLICATE}</button>${langLabel}</div><pre><code class="hljs">${highlighted.replace(/\n/g, '&#10;')}</code></pre></div>`
+                return `<div class="ff-code-block"><div class="ff-code-block--header"><button class="ff-code-block--copy">${ICON_DUPLICATE}</button>${langLabel}</div><pre><code class="hljs">${highlighted}</code></pre></div>`
             },
             checkbox ({ checked }) {
                 return `<span class="ff-checkbox${checked ? ' ff-checkbox--checked' : ''}">${checked ? '&#x2611;' : '&#x2610;'}</span>`

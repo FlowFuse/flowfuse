@@ -1,20 +1,22 @@
 import { describe, expect, test } from 'vitest'
 
-import { useMarkdownHelper } from '../../../../frontend/src/composables/strings/Markdown.js'
+import { highlightCode, useMarkdownHelper } from '../../../../frontend/src/composables/strings/Markdown.js'
 
 describe('useMarkdownHelper', () => {
     const { markedInstance } = useMarkdownHelper()
 
-    test('marks mermaid fences so they can be rendered as diagrams', () => {
+    test('highlights mermaid fences', () => {
         const html = markedInstance.parse('```mermaid\nflowchart LR\n A[Inject] --> B[Debug]\n```')
-        expect(html).toContain('ff-code-block ff-code-block--mermaid')
         expect(html).toContain('ff-code-block--copy')
         expect(html).toContain('hljs-keyword">flowchart')
         expect(html).toContain('hljs-operator">--&gt;')
     })
+})
 
-    test('does not mark other fences as mermaid', () => {
-        const html = markedInstance.parse('```js\nconst a = 1\n```')
-        expect(html).not.toContain('ff-code-block--mermaid')
+describe('highlightCode', () => {
+    test('keeps line breaks as character references', () => {
+        const html = highlightCode('const a = 1\nconst b = 2', 'js')
+        expect(html).not.toContain('\n')
+        expect(html).toContain('&#10;')
     })
 })

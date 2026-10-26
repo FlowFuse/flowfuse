@@ -2,112 +2,103 @@ import { createTestingPinia } from '@pinia/testing'
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 
-import * as Mermaid from '../../../../../frontend/src/composables/strings/Mermaid.js'
+import DiagramBlock from '../../../../../frontend/src/components/expert/components/messages/components/resources/DiagramBlock.vue'
+import * as Diagram from '../../../../../frontend/src/composables/strings/Diagram.js'
+import FFUIComponents from '../../../../../frontend/src/ui-components/index.js'
 
-vi.mock('../../../../../frontend/src/composables/strings/Mermaid.js', async (importOriginal) => {
+vi.mock('../../../../../frontend/src/composables/strings/Diagram.js', async (importOriginal) => {
     const original = await importOriginal()
     return {
         ...original,
-        sanitizeDiagram: vi.fn(original.sanitizeDiagram),
-        svgToPngBlob: vi.fn(async () => new Blob(['png'], { type: 'image/png' }))
+        sanitizeDiagram: vi.fn(original.sanitizeDiagram)
     }
 })
 
 const StreamableContent = (await import('../../../../../frontend/src/components/expert/components/messages/components/resources/StreamableContent.vue')).default
 
 const source = 'flowchart LR\n  A[Start] --> B[End]'
-const content = '```mermaid\n' + source + '\n```\n\nDone.'
-const diagrams = [{ source, svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="10" height="10"></rect></svg>' }]
+const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="10" height="10"></rect></svg>'
+const content = 'Here is the flow you asked for.\n\n```mermaid\n' + source + '\n```\n\nIt starts at Start and ends at End, with nothing else in between.'
+const diagrams = [{ type: 'mermaid', source, svg }]
 
-function mountContent ({ shouldStream, diagrams }) {
+function mountContent ({ shouldStream = false, diagrams = [], string = content } = {}) {
     return mount(StreamableContent, {
-        props: { string: content, richContent: true, shouldStream, diagrams },
-        global: { plugins: [createTestingPinia({ createSpy: vi.fn })] }
+        props: { string, richContent: true, shouldStream, diagrams },
+        global: { plugins: [createTestingPinia({ createSpy: vi.fn }), FFUIComponents] }
     })
 }
 
-describe('StreamableContent mermaid diagrams', () => {
+describe('StreamableContent diagrams', () => {
     afterEach(() => {
         vi.useRealTimers()
         vi.clearAllMocks()
-        vi.unstubAllGlobals()
     })
 
-    test('shows the diagram the Expert rendered', async () => {
-        const wrapper = mountContent({ shouldStream: false, diagrams })
+    test('shows the diagram the Expert rendered in place of its code block', async () => {
+        const wrapper = mountContent({ diagrams })
         await flushPromises()
-        const block = wrapper.element.querySelector('.ff-code-block--mermaid')
-        expect(block.getAttribute('data-mermaid-state')).toBe('rendered')
-        expect(block.querySelector('.ff-code-block--diagram svg')).not.toBeNull()
-        expect(block.querySelector('pre').hidden).toBe(true)
-        expect(block.querySelectorAll('.ff-code-block--export')).toHaveLength(3)
+        const diagram = wrapper.findComponent(DiagramBlock)
+        expect(diagram.exists()).toBe(true)
+        expect(diagram.props()).toMatchObject({ type: 'mermaid', source })
+        expect(diagram.find('svg rect').exists()).toBe(true)
+        expect(wrapper.text()).toContain('Here is the flow you asked for.')
+        expect(wrapper.text()).toContain('nothing else in between')
     })
 
-    test('switches between the diagram and its code', async () => {
-        const wrapper = mountContent({ shouldStream: false, diagrams })
+    test('keeps the code block when there is no diagram for it', async () => {
+        const wrapper = mountContent()
         await flushPromises()
-        const block = wrapper.element.querySelector('.ff-code-block--mermaid')
-        block.querySelector('.ff-code-block--toggle').click()
-        expect(block.querySelector('pre').hidden).toBe(false)
-        expect(block.querySelector('.ff-code-block--diagram').hidden).toBe(true)
-        block.querySelector('.ff-code-block--toggle').click()
-        expect(block.querySelector('pre').hidden).toBe(true)
-        expect(block.querySelector('.ff-code-block--diagram').hidden).toBe(false)
+        expect(wrapper.findComponent(DiagramBlock).exists()).toBe(false)
+        expect(wrapper.element.querySelector('.ff-code-block pre code').textContent).toBe(source)
     })
 
-    test('shows the diagram while streaming and keeps the code indentation', async () => {
+    test('matches a diagram by its type as well as its source', async () => {
+        const wrapper = mountContent({ diagrams: [{ type: 'other', source, svg }] })
+        await flushPromises()
+        expect(wrapper.findComponent(DiagramBlock).exists()).toBe(false)
+    })
+
+    test('treats diagrams without a type as mermaid', async () => {
+        const wrapper = mountContent({ diagrams: [{ source, svg }] })
+        await flushPromises()
+        expect(wrapper.findComponent(DiagramBlock).exists()).toBe(true)
+    })
+
+    test('shows the diagram once the text before it has streamed, and keeps it while the rest streams', async () => {
         vi.useFakeTimers()
         const wrapper = mountContent({ shouldStream: true, diagrams })
+        await vi.advanceTimersByTimeAsync(20)
+        expect(wrapper.findComponent(DiagramBlock).exists()).toBe(true)
+        expect(wrapper.text()).not.toContain('nothing else in between')
+        const rendered = wrapper.findComponent(DiagramBlock).element
         await vi.advanceTimersByTimeAsync(5000)
-        await flushPromises()
-        const block = wrapper.element.querySelector('.ff-code-block--mermaid')
-        expect(block.getAttribute('data-mermaid-state')).toBe('rendered')
-        expect(block.querySelector('pre code').textContent).toBe(source)
+        expect(wrapper.text()).toContain('nothing else in between')
+        expect(wrapper.findComponent(DiagramBlock).element).toBe(rendered)
+        expect(wrapper.emitted('streaming-complete')).toHaveLength(1)
+    })
+
+    test('lets the diagram buttons work while the message streams', async () => {
+        vi.useFakeTimers()
+        const wrapper = mountContent({ shouldStream: true, diagrams })
+        await vi.advanceTimersByTimeAsync(20)
+        await wrapper.find('[data-action="toggle-code"]').trigger('click')
+        await vi.advanceTimersByTimeAsync(20)
+        expect(wrapper.text()).not.toContain('nothing else in between')
+        expect(wrapper.find('.ff-diagram-block pre').isVisible()).toBe(true)
     })
 
     test('sanitizes each diagram once while streaming', async () => {
         vi.useFakeTimers()
         mountContent({ shouldStream: true, diagrams })
         await vi.advanceTimersByTimeAsync(5000)
-        await flushPromises()
-        expect(Mermaid.sanitizeDiagram).toHaveBeenCalledTimes(1)
+        expect(Diagram.sanitizeDiagram).toHaveBeenCalledTimes(1)
     })
 
-    test('copies the SVG with the theme colours of the page', async () => {
-        const writeText = vi.fn()
-        vi.stubGlobal('navigator', { clipboard: { writeText } })
-        const wrapper = mountContent({ shouldStream: false, diagrams })
-        await flushPromises()
-        const block = wrapper.element.querySelector('.ff-code-block--mermaid')
-        block.querySelector('.ff-code-block--diagram').style.setProperty('--pele-bg', '#101010')
-        block.querySelector('[data-export="svg"]').click()
-        await flushPromises()
-        expect(writeText).toHaveBeenCalledTimes(1)
-        expect(writeText.mock.calls[0][0]).toContain('--pele-bg: #101010')
-    })
-
-    test('revokes the PNG download URL only after the download has started', async () => {
+    test('keeps the code indentation while streaming', async () => {
         vi.useFakeTimers()
-        const createObjectURL = vi.fn(() => 'blob:diagram')
-        const revokeObjectURL = vi.fn()
-        vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL })
-        const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
-        const wrapper = mountContent({ shouldStream: false, diagrams })
-        await flushPromises()
-        wrapper.element.querySelector('[data-export="png"]').click()
-        await flushPromises()
-        expect(click).toHaveBeenCalledTimes(1)
-        expect(revokeObjectURL).not.toHaveBeenCalled()
-        await vi.advanceTimersByTimeAsync(40 * 1000)
-        expect(revokeObjectURL).toHaveBeenCalledWith('blob:diagram')
-        click.mockRestore()
-    })
-
-    test('keeps the source when there is no diagram for the block', async () => {
-        const wrapper = mountContent({ shouldStream: false, diagrams: [] })
-        await flushPromises()
-        const block = wrapper.element.querySelector('.ff-code-block--mermaid')
-        expect(block.getAttribute('data-mermaid-state')).toBe('failed')
-        expect(block.querySelector('.ff-code-block--toggle')).toBeNull()
+        const yaml = 'root:\n    child:\n        leaf: true'
+        const wrapper = mountContent({ shouldStream: true, string: 'Config:\n\n```yaml\n' + yaml + '\n```' })
+        await vi.advanceTimersByTimeAsync(5000)
+        expect(wrapper.element.querySelector('pre code').textContent).toBe(yaml)
     })
 })
