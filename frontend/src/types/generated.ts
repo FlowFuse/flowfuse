@@ -4894,6 +4894,11 @@ export interface paths {
                 content: {
                     "application/json": {
                         snapshot: string;
+                        /**
+                         * @description If true, keep the instance's existing env vars and add only those missing from the snapshot. If false (default), replace them with the snapshot's env vars.
+                         * @default false
+                         */
+                        mergeEnvVars?: boolean;
                     };
                 };
             };
