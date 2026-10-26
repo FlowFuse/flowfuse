@@ -626,7 +626,7 @@ module.exports = [
         name: 'platform_rollback_hosted_instance',
         title: 'Roll Back Hosted Instance',
         description: `FlowFuse platform automation tool:
-            Rolls a hosted instance back to one of its own snapshots. This OVERWRITES the instance's current flows, credentials, settings, environment variables and installed node modules with the ones in the snapshot. Environment variables are replaced, not merged, so any added since the snapshot are lost. Settings and environment variables the instance's template does not allow the instance to change are skipped and keep their current value.
+            Rolls a hosted instance back to one of its own snapshots. This OVERWRITES the instance's current flows, credentials, settings and installed node modules with the ones in the snapshot. By default, environment variables are merged: the instance keeps its existing variables and their current values, and only the ones missing from the snapshot are added. Set mergeEnvVars to false to replace them with the snapshot's, so any added since the snapshot are lost. Settings and environment variables the instance's template does not allow the instance to change are skipped and keep their current value.
             The current state is not saved automatically. If it might be needed again, take a snapshot first with platform_create_instance_snapshot.
             If the instance is running, a restart of its flows is triggered, and this replies before the restart finishes, so the instance can still be restarting right after. If it is stopped or suspended, the rolled back version is stored and used the next time it starts.
             The snapshot must belong to this hosted instance; a snapshot from another instance or a device, or one that does not exist, is rejected. Find snapshot ids with platform_list_instance_snapshots.
@@ -637,10 +637,15 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             instanceId: hostedInstanceId.describe('The id (UUID) of the hosted instance to roll back'),
-            snapshotId: pathId.describe('The hashid of the snapshot to roll back to. Must be a snapshot of this hosted instance')
+            snapshotId: pathId.describe('The hashid of the snapshot to roll back to. Must be a snapshot of this hosted instance'),
+            mergeEnvVars: z.boolean().optional().describe('If true (default), keep the instance\'s existing environment variables and add only those missing from the snapshot. If false, replace them with the snapshot\'s environment variables')
         },
         handler: async (args, { inject }) => {
-            const response = await inject({ method: 'POST', url: `/api/v1/projects/${args.instanceId}/actions/rollback`, payload: { snapshot: args.snapshotId } })
+            const payload = {
+                snapshot: args.snapshotId,
+                mergeEnvVars: args.mergeEnvVars !== false
+            }
+            const response = await inject({ method: 'POST', url: `/api/v1/projects/${args.instanceId}/actions/rollback`, payload })
             return response
         }
     }
