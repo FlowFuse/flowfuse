@@ -147,7 +147,6 @@ export const useProductExpertStore = defineStore('product-expert', {
             const assistantStore = useProductAssistantStore()
             return !!assistantStore.isImmersiveInstance && !!assistantStore.supportedActions['core:manage-palette']
         },
-        mqttConnectionKey () { return this._agentStore.mqttConnectionKey },
         sessionId () { return this._agentStore.sessionId },
         shouldUseMqtt () {
             const accountSettingsStore = useAccountSettingsStore()
@@ -480,44 +479,13 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // Resume a deferred approval turn (#421): decisions drive the turn, no query.
                 if (toolApprovals) payload.toolApprovals = toolApprovals
 
-                await this._publishChatRequest(payload, transactionId)
+                await this._chatPublisher().request(payload, transactionId)
 
                 return Promise.resolve()
             } catch (e) {
                 this._onMqttError(e)
                 return Promise.reject(e)
             }
-        },
-        _publishChatRequest (payload, transactionId) {
-            const mqttService = getAppOrchestrator().$services.mqtt
-            const mqttTopicHelper = useMqttExpertTopicHelper()
-            const { entityId, entityType } = mqttTopicHelper.getEntityTopicPaths()
-
-            const topic = mqttTopicHelper.buildTopic({
-                entityType,
-                entityId,
-                agentChannel: 'support',
-                topicType: 'chat',
-                topicAction: 'request',
-                sessionId: this.sessionId
-            })
-
-            return mqttService.publishMessage(this.mqttConnectionKey, {
-                topic,
-                qos: 2,
-                payload: {
-                    ...payload,
-                    context: {
-                        ...useContextStore().expert,
-                        agent: this.agentMode
-                    }
-                },
-                correlationData: transactionId,
-                userProperties: {
-                    sessionId: this.sessionId,
-                    origin: window.origin || window.location.origin
-                }
-            })
         },
         // Fire-and-forget: a vote is not a turn, so it skips the send queue, the in-flight
         // registry and the approval cancel that a real request goes through.
@@ -533,7 +501,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
             try {
                 await this._connectChat()
-                await this._publishChatRequest({ vote: { ...stored, ...vote, turnId: message._transactionId } }, uuidv4())
+                await this._chatPublisher().request({ vote: { ...stored, ...vote, turnId: message._transactionId } }, uuidv4())
                 return true
             } catch (e) {
                 console.warn('expert turn vote publish failed:', e)
@@ -584,13 +552,20 @@ export const useProductExpertStore = defineStore('product-expert', {
                 message._feedbackDismissed = true
             }
         },
-        // The support agent's subscriber owns its chat connection. Connecting is a no-op
-        // while it is connected, and disconnecting closes the connection.
-        _connectChat () {
-            return getAppOrchestrator().$subscribers.expertSupportChat.connect(useContextStore().team)
+        _chatPublisher () {
+            return getAppOrchestrator().$publishers.expertSupportChat
         },
-        _disconnectChat () {
-            return getAppOrchestrator().$subscribers.expertSupportChat.disconnect()
+        // The support agent's subscriber and publisher share its chat connection. The
+        // subscriber goes first so replies have somewhere to land. Connecting is a no-op
+        // while connected, and disconnecting both closes the connection.
+        async _connectChat () {
+            const team = useContextStore().team
+            await getAppOrchestrator().$subscribers.expertSupportChat.connect(team)
+            await this._chatPublisher().connect(team)
+        },
+        async _disconnectChat () {
+            await this._chatPublisher().disconnect()
+            await getAppOrchestrator().$subscribers.expertSupportChat.disconnect()
         },
         async fetchToolCatalog () {
             // Fetch the tool catalog for the permissions UI (#421) over HTTP, not MQTT:
@@ -637,7 +612,6 @@ export const useProductExpertStore = defineStore('product-expert', {
             const assistantStore = useProductAssistantStore()
             const topicHelper = useMqttExpertTopicHelper()
 
-            const mqttService = servicesOrchestrator.$services.mqtt
             const parsedTopic = topicHelper.parseTopic(topic)
             const payload = parsedPayload ?? JSON.parse(message.toString())
 
@@ -646,9 +620,6 @@ export const useProductExpertStore = defineStore('product-expert', {
             // channel alone: the gateway still emits third-party requests on `support`
             // until it carries the channel on its UI routing context.
             const isMcpChannel = parsedTopic.agentChannel === 'mcp' || isBrowserSession
-            const connectionKey = isMcpChannel
-                ? teamConnectionKey(useContextStore().team?.id)
-                : agentStore.mqttConnectionKey
 
             // Errors on the MCP path must not post into the chat transcript, there may not
             // be a chat open at all.
@@ -687,18 +658,24 @@ export const useProductExpertStore = defineStore('product-expert', {
                 sessionId: sessionId || agentStore.sessionId
             })
 
-            // Every branch answers on the same envelope; only the body differs.
-            const respond = (body) => mqttService.publishMessage(connectionKey, {
-                qos: 2,
-                topic: responseTopic,
-                payload: JSON.stringify(body),
-                correlationData: transactionId,
-                userProperties: {
-                    sessionId,
-                    transactionId: chatTransactionId,
-                    origin: window.origin || window.location.origin
+            // Every branch answers on the same envelope; only the body differs. MCP answers
+            // go back on the team connection, chat ones through the agent's publisher.
+            const respond = (body) => {
+                if (!isMcpChannel) {
+                    return this._chatPublisher().respond(responseTopic, { body, transactionId, sessionId, chatTransactionId })
                 }
-            })
+                return servicesOrchestrator.$services.mqtt.publishMessage(teamConnectionKey(useContextStore().team?.id), {
+                    qos: 2,
+                    topic: responseTopic,
+                    payload: JSON.stringify(body),
+                    correlationData: transactionId,
+                    userProperties: {
+                        sessionId,
+                        transactionId: chatTransactionId,
+                        origin: window.origin || window.location.origin
+                    }
+                })
+            }
 
             switch (true) {
             case parsedTopic.inflightType === 'expert:status-message':
@@ -1756,7 +1733,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // reply through instead of silently dropping it.
                 this._inFlightRequests.set(transactionId, { query: '', transactionId })
 
-                await this._publishChatRequest({ system }, transactionId)
+                await this._chatPublisher().request({ system }, transactionId)
                 onPublished?.(instance)
                 return true
             } catch (e) {
@@ -1789,43 +1766,11 @@ export const useProductExpertStore = defineStore('product-expert', {
             this.cancelPendingToolApprovals()
             if (this.shouldUseMqtt) {
                 const inFlightRequest = this._inFlightRequests.values().next().value
-                const servicesOrchestrator = getAppOrchestrator()
-                const mqttService = servicesOrchestrator.$services.mqtt
+                const publisher = this._chatPublisher()
 
-                const hasMqttClient = mqttService.hasClient(this.mqttConnectionKey) &&
-                    (mqttService.getManagedClient(this.mqttConnectionKey)).status === 'connected'
-
-                if (inFlightRequest && hasMqttClient) {
-                    const mqttTopicHelper = useMqttExpertTopicHelper()
-
-                    const { entityId, entityType } = mqttTopicHelper.getEntityTopicPaths()
-
-                    const topic = mqttTopicHelper.buildTopic({
-                        entityType,
-                        entityId,
-                        agentChannel: 'support',
-                        topicType: 'chat',
-                        topicAction: 'request',
-                        sessionId: this.sessionId
-                    })
-
+                if (inFlightRequest && publisher.isLinkUp()) {
                     // publishing an abort message to stop the agent
-                    mqttService.publishMessage(this.mqttConnectionKey, {
-                        topic,
-                        qos: 2,
-                        payload: {
-                            abort: true,
-                            context: {
-                                ...useContextStore().expert,
-                                agent: this.agentMode
-                            }
-                        },
-                        correlationData: inFlightRequest.transactionId,
-                        userProperties: {
-                            sessionId: this.sessionId,
-                            origin: window.origin || window.location.origin
-                        }
-                    }).catch(e => {
+                    publisher.abort(inFlightRequest.transactionId).catch(e => {
                         // Nothing awaits this abort, and the connection dropping is the
                         // most common reason we get here in the first place.
                         console.warn('expert abort publish failed:', e)

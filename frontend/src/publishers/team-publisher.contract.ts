@@ -90,7 +90,7 @@ export abstract class TeamPublisher<TTransport extends Transport = Transport> {
 
         const teamId = team.id
         const sessionId = authStore.getSessionId()
-        const key = connectionKey(teamId)
+        const key = this._connectionKey(teamId)
 
         // Set before attaching: when the transport already holds an open client for
         // this key, it invokes onConnect synchronously during attach. _onStarted then
@@ -99,7 +99,7 @@ export abstract class TeamPublisher<TTransport extends Transport = Transport> {
 
         try {
             this.$attachment = await transport.attach(key, {
-                getCredentials: () => teamApi.getTeamCommsCreds(teamId, sessionId),
+                getCredentials: () => this._getCredentials(teamId, sessionId),
                 onMessage: () => {},
                 onConnect: () => this._onConnect(teamId, userId),
                 onClose: () => this._onLinkDown(),
@@ -138,6 +138,18 @@ export abstract class TeamPublisher<TTransport extends Transport = Transport> {
         }
     }
 
+    /**
+     * The connection this publisher rides. Every team publisher shares the team's one,
+     * so a publisher on a connection of its own overrides this and _getCredentials together.
+     */
+    protected _connectionKey (teamId: string): string {
+        return connectionKey(teamId)
+    }
+
+    protected _getCredentials (teamId: string, sessionId: string): Promise<unknown> {
+        return teamApi.getTeamCommsCreds(teamId, sessionId)
+    }
+
     protected _onConnect (teamId: string, userId: string): void {
         this._onStarted(teamId, userId)
     }
@@ -153,7 +165,7 @@ export abstract class TeamPublisher<TTransport extends Transport = Transport> {
         const transport = this.$transport
         const teamId = this.$connectedTeamId
         if (!transport || !teamId) return
-        await transport.publish(connectionKey(teamId), {
+        await transport.publish(this._connectionKey(teamId), {
             topic,
             payload,
             qos: 2,

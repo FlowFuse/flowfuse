@@ -9,17 +9,22 @@ const accountSettingsState = { featuresCheck: { isExpertAssistantFeatureEnabled:
 const contextState = { team: null, expert: {} }
 const uxState = { isOnboarding: false, building: false, stopBuilding: vi.fn(() => { uxState.building = false }) }
 const mqttService = {
-    hasClient: vi.fn(() => false),
-    createClient: vi.fn(() => Promise.resolve()),
-    destroyClient: vi.fn(() => Promise.resolve()),
-    publishMessage: vi.fn(() => Promise.resolve()),
-    subscribe: vi.fn(() => Promise.resolve()),
-    getManagedClient: vi.fn(() => ({ status: 'connected' }))
+    publishMessage: vi.fn(() => Promise.resolve())
 }
 const chatSubscriber = {
     connect: vi.fn(() => Promise.resolve()),
     disconnect: vi.fn(() => Promise.resolve())
 }
+// The real chat publisher runs on this transport, so its messages land on mqttService
+const chatTransport = {
+    attach: vi.fn(async (key, handlers) => {
+        handlers.onConnect({})
+        return { key, id: 1 }
+    }),
+    publish: (key, options) => mqttService.publishMessage(key, options),
+    detach: vi.fn(() => Promise.resolve())
+}
+let chatPublisher = null
 
 vi.mock('@/stores/account-settings.js', () => ({
     useAccountSettingsStore: vi.fn(() => accountSettingsState)
@@ -40,7 +45,8 @@ vi.mock('@/services/product.js', () => ({
 vi.mock('@/services/app.orchestrator', () => {
     const orchestrator = () => ({
         $services: { mqtt: mqttService, automations: { dispatch, getToolDefinitions } },
-        $subscribers: { expertSupportChat: chatSubscriber }
+        $subscribers: { expertSupportChat: chatSubscriber },
+        $publishers: { expertSupportChat: chatPublisher }
     })
     return { default: orchestrator, getAppOrchestrator: orchestrator }
 })
@@ -92,6 +98,7 @@ const { useProductExpertSupportAgentStore } = await import('@/stores/product-exp
 const { useProductExpertInsightsAgentStore } = await import('@/stores/product-expert-insights-agent.js')
 const { default: Product } = await import('@/services/product.js')
 const { useAccountAuthStore } = await import('@/stores/account-auth.js')
+const { createSupportChatPublisher, destroySupportChatPublisher } = await import('@/publishers/expert-chat.publisher.ts')
 
 // Hands a broker message to the store the way the Expert chat subscriber does
 function deliver (store, topic, message, packet = {}) {
@@ -112,10 +119,12 @@ function deliver (store, topic, message, packet = {}) {
     })
 }
 describe('product-expert store', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         setActivePinia(createPinia())
         accountAuthState.user = null
         vi.clearAllMocks()
+        await destroySupportChatPublisher()
+        chatPublisher = createSupportChatPublisher({ app: {}, router: {}, transport: chatTransport })
     })
 
     describe('initial state', () => {
@@ -718,6 +727,8 @@ describe('product-expert store', () => {
             support.sessionId = 'chat-1'
             support.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
             store.agentMode = INSIGHTS_AGENT
+            // the turn went out, so the chat is connected
+            return chatPublisher.connect({ id: 't1' })
         })
 
         it('keeps the reply in its own chat', async () => {
@@ -769,6 +780,8 @@ describe('product-expert store', () => {
             store = useProductExpertStore()
             agent = useProductExpertSupportAgentStore()
             agent.sessionId = 'chat-1'
+            // in-flight requests only arrive over a connected chat
+            return chatPublisher.connect({ id: 't1' })
         })
 
         it('applies and acks a task surface while its turn is live', async () => {
@@ -1007,7 +1020,6 @@ describe('product-expert store', () => {
             uxState.isOnboarding = false
             uxState.building = false
             delete accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled
-            mqttService.hasClient.mockReturnValue(false)
         })
 
         it('does not publish when the instance has no id', async () => {
@@ -1032,7 +1044,6 @@ describe('product-expert store', () => {
             uxState.building = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
-            mqttService.hasClient.mockReturnValue(true)
             useAccountAuthStore().user = { id: 'user-1' }
             useProductExpertSupportAgentStore().sessionId = 'session-xyz'
 
@@ -1045,7 +1056,6 @@ describe('product-expert store', () => {
             uxState.building = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
-            mqttService.hasClient.mockReturnValue(true)
             useAccountAuthStore().user = { id: 'user-1' }
 
             await useProductExpertStore().relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
@@ -1057,7 +1067,6 @@ describe('product-expert store', () => {
             uxState.isOnboarding = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
-            mqttService.hasClient.mockReturnValue(true)
             useAccountAuthStore().user = { id: 'user-1' }
 
             await useProductExpertStore().relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
@@ -1078,7 +1087,6 @@ describe('product-expert store', () => {
             uxState.isOnboarding = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
-            mqttService.hasClient.mockReturnValue(true)
             useAccountAuthStore().user = { id: 'user-1' }
             useProductExpertSupportAgentStore().sessionId = 'session-xyz'
 
@@ -1107,7 +1115,6 @@ describe('product-expert store', () => {
             uxState.isOnboarding = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
-            mqttService.hasClient.mockReturnValue(true)
             useAccountAuthStore().user = { id: 'user-1' }
             const supportAgent = useProductExpertSupportAgentStore()
             supportAgent.sessionId = 'session-xyz'
@@ -1127,7 +1134,6 @@ describe('product-expert store', () => {
             uxState.isOnboarding = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
-            mqttService.hasClient.mockReturnValue(true)
             useAccountAuthStore().user = { id: 'user-1' }
 
             const store = useProductExpertStore()
@@ -1147,7 +1153,6 @@ describe('product-expert store', () => {
             uxState.isOnboarding = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
-            mqttService.hasClient.mockReturnValue(true)
             useAccountAuthStore().user = { id: 'user-1' }
 
             const store = useProductExpertStore()
@@ -1160,7 +1165,6 @@ describe('product-expert store', () => {
             uxState.isOnboarding = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
-            mqttService.hasClient.mockReturnValue(true)
             useAccountAuthStore().user = { id: 'user-1' }
             const supportAgent = useProductExpertSupportAgentStore()
             supportAgent.sessionId = 'session-xyz'
@@ -1201,7 +1205,6 @@ describe('product-expert store', () => {
             uxState.isOnboarding = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
-            mqttService.hasClient.mockReturnValue(true)
             useAccountAuthStore().user = { id: 'user-1' }
 
             await useProductExpertStore().relayInstanceReady({ id: 'inst-1' })
@@ -1214,7 +1217,6 @@ describe('product-expert store', () => {
             uxState.isOnboarding = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
-            mqttService.hasClient.mockReturnValue(true)
             useAccountAuthStore().user = { id: 'user-1' }
 
             const store = useProductExpertStore()
@@ -1228,7 +1230,6 @@ describe('product-expert store', () => {
             uxState.isOnboarding = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
-            mqttService.hasClient.mockReturnValue(true)
             useAccountAuthStore().user = { id: 'user-1' }
 
             const store = useProductExpertStore()
@@ -1245,7 +1246,6 @@ describe('product-expert store', () => {
             uxState.isOnboarding = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
-            mqttService.hasClient.mockReturnValue(true)
             useAccountAuthStore().user = { id: 'user-1' }
 
             const store = useProductExpertStore()
@@ -1262,7 +1262,6 @@ describe('product-expert store', () => {
             contextState.team = null
             uxState.isOnboarding = false
             delete accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled
-            mqttService.hasClient.mockReturnValue(false)
         })
 
         it('does not publish when the instance has no id', async () => {
@@ -1296,7 +1295,6 @@ describe('product-expert store', () => {
             uxState.isOnboarding = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
-            mqttService.hasClient.mockReturnValue(true)
             useAccountAuthStore().user = { id: 'user-1' }
             useProductExpertSupportAgentStore().sessionId = 'session-xyz'
 
@@ -1322,7 +1320,6 @@ describe('product-expert store', () => {
             uxState.isOnboarding = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
-            mqttService.hasClient.mockReturnValue(true)
             useAccountAuthStore().user = { id: 'user-1' }
 
             await useProductExpertStore().relayInstanceStartFailed({ id: 'inst-1', state: 'error' })
@@ -1335,7 +1332,6 @@ describe('product-expert store', () => {
             uxState.isOnboarding = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
-            mqttService.hasClient.mockReturnValue(true)
             useAccountAuthStore().user = { id: 'user-1' }
 
             const store = useProductExpertStore()
@@ -1349,7 +1345,6 @@ describe('product-expert store', () => {
             uxState.isOnboarding = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
-            mqttService.hasClient.mockReturnValue(true)
             useAccountAuthStore().user = { id: 'user-1' }
 
             const store = useProductExpertStore()
@@ -1364,7 +1359,6 @@ describe('product-expert store', () => {
             uxState.isOnboarding = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
-            mqttService.hasClient.mockReturnValue(true)
             useAccountAuthStore().user = { id: 'user-1' }
 
             const store = useProductExpertStore()
@@ -1381,14 +1375,12 @@ describe('product-expert store', () => {
             contextState.team = null
             uxState.building = false
             delete accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled
-            mqttService.hasClient.mockReturnValue(false)
         })
 
         function arrangeMqtt () {
             uxState.building = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
-            mqttService.hasClient.mockReturnValue(true)
             useAccountAuthStore().user = { id: 'user-1' }
         }
 
@@ -1446,6 +1438,7 @@ describe('product-expert store', () => {
             let relay
             beforeEach(async () => {
                 arrangeMqtt()
+                await chatPublisher.connect(contextState.team)
                 store = useProductExpertStore()
                 useProductExpertSupportAgentStore().inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
                 relay = store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
@@ -1620,7 +1613,6 @@ describe('product-expert store', () => {
             contextState.team = null
             uxState.building = false
             delete accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled
-            mqttService.hasClient.mockReturnValue(false)
         })
 
         it('leaves plan mode and sends the approval', async () => {
@@ -1640,7 +1632,6 @@ describe('product-expert store', () => {
             uxState.building = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
-            mqttService.hasClient.mockReturnValue(true)
             useAccountAuthStore().user = { id: 'user-1' }
             const store = useProductExpertStore()
             store.setPlanMode(true)
@@ -1667,7 +1658,6 @@ describe('product-expert store', () => {
             store = useProductExpertStore()
             agent = useProductExpertSupportAgentStore()
             agent.sessionId = 'chat-1'
-            mqttService.hasClient.mockReturnValue(true)
             agent.messages.push(
                 { _type: 'human', content: 'Build it', _timestamp: 1000, _uuid: 'h1' },
                 { _type: 'ai', answer: [{ kind: 'chat', content: 'Done' }], _timestamp: 2000, _uuid: 'a1', _transactionId: 'turn-1' }
@@ -1678,7 +1668,6 @@ describe('product-expert store', () => {
             contextState.team = null
             contextState.expert = {}
             accountSettingsState.featuresCheck = { isExpertAssistantFeatureEnabled: true }
-            mqttService.hasClient.mockReturnValue(false)
         })
 
         it('publishes a vote on the chat request topic against the voted turn', async () => {
