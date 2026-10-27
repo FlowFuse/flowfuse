@@ -412,6 +412,28 @@ describe('product-expert store', () => {
 
             expect(agent.messages[0]).not.toHaveProperty('_transactionId')
         })
+
+        it('ends a turn whose reply has no answer with an error notice', async () => {
+            vi.spyOn(console, 'error').mockImplementation(() => {})
+            const agent = useProductExpertSupportAgentStore()
+            const store = useProductExpertStore()
+
+            await store.handleMessageResponse({ query: 'call the hello tool' }, 'turn-1')
+
+            expect(agent.messages).toHaveLength(1)
+            expect(agent.messages[0]).toMatchObject({ _type: 'ai', error: true, _transactionId: 'turn-1' })
+            expect(agent.messages[0].answer[0].content).toBe('Sorry, I encountered an error. Please try again.')
+        })
+
+        it('puts the error notice on the agent the failed turn belongs to', async () => {
+            vi.spyOn(console, 'error').mockImplementation(() => {})
+            const store = useProductExpertStore()
+
+            await store.handleMessageResponse({}, 'turn-ins', INSIGHTS_AGENT)
+
+            expect(useProductExpertSupportAgentStore().messages).toHaveLength(0)
+            expect(useProductExpertInsightsAgentStore().messages[0].error).toBe(true)
+        })
     })
 
     describe('addPredefinedAiMessage', () => {
@@ -935,11 +957,12 @@ describe('product-expert store', () => {
             })
 
             it('drops an event that arrives after the turn has finished', async () => {
-                await deliver(store, replyTopic, JSON.stringify({}), packet('turn-1', 'turn-1'))
+                await deliver(store, replyTopic, JSON.stringify({ answer: [{ kind: 'chat', content: 'Done' }] }), packet('turn-1', 'turn-1'))
 
                 await send({ kind: 'message', id: 'm1', seq: 1, text: 'late' })
 
-                expect(agent.messages).toHaveLength(0)
+                expect(agent.messages).toHaveLength(1)
+                expect(agent.messages[0].answer.map(a => a.content)).toEqual(['Done'])
                 expect(mqttService.publishMessage).not.toHaveBeenCalled()
             })
 

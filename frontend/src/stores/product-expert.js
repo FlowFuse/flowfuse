@@ -804,6 +804,19 @@ export const useProductExpertStore = defineStore('product-expert', {
                 if (response.kind === 'tool-approval') {
                     this.beginApprovalBatch(response.answer)
                 }
+            } else {
+                // A reply with no answer is the agent reporting a failure: end the turn with
+                // the same notice an HTTP error gets rather than leaving it loading
+                console.error('Expert API error:', response?.error || response)
+                this._closeTurnItems(transactionId, agent)
+                this.addAiMessage({
+                    generated: true,
+                    error: true,
+                    answer: [{ content: 'Sorry, I encountered an error. Please try again.' }]
+                }, transactionId, agent)
+                if (agent === this.agentMode) {
+                    this._clearInFlightUpdates()
+                }
             }
         },
         // Register the approval cards returned by a deferred turn (#421). The agent has
