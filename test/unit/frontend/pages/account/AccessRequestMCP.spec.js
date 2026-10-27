@@ -1,5 +1,5 @@
 import { flushPromises, mount } from '@vue/test-utils'
-import { expect, vi } from 'vitest'
+import { beforeEach, expect, vi } from 'vitest'
 
 vi.mock('@/stores/account-auth.js', () => ({
     useAccountAuthStore: () => ({ user: null })
@@ -14,7 +14,16 @@ vi.mock('@/api/team.ts', () => ({
         })
     }
 }))
-const { mockPut } = vi.hoisted(() => ({ mockPut: vi.fn().mockResolvedValue({}) }))
+// The complete route returns the client callback url. Use a hash change on the
+// current page so jsdom can follow it without attempting a real navigation.
+const { mockPut } = vi.hoisted(() => ({
+    mockPut: vi.fn(async (url) => {
+        if (/^\/account\/(complete|reject)\//.test(url)) {
+            return { data: { redirect: `${window.location.origin}${window.location.pathname}#callback` } }
+        }
+        return {}
+    })
+}))
 vi.mock('@/api/client.ts', () => ({
     default: { put: mockPut }
 }))
@@ -22,6 +31,15 @@ vi.mock('@/api/client.ts', () => ({
 // imported after mocks so vi.mock hoisting resolves correctly
 import AccessRequestMCP from '../../../../../frontend/src/pages/account/AccessRequestMCP.vue'
 import FFUIComponents from '../../../../../frontend/src/ui-components/index.js'
+
+beforeEach(() => {
+    mockPut.mockClear()
+    window.location.hash = ''
+})
+
+function consentBody () {
+    return mockPut.mock.calls.find(([url]) => url.endsWith('/consent'))[1]
+}
 
 async function mountPage () {
     const wrapper = mount(AccessRequestMCP, {
@@ -130,7 +148,7 @@ describe('AccessRequestMCP', () => {
         expect(allowButton(wrapper).attributes('disabled')).toBeUndefined()
     })
 
-    test('sends the default permissions and an empty team override map to /consent', async () => {
+    test('sends the default permissions and an empty team override map to /consent, then completes', async () => {
         const wrapper = await mountPage()
         await findRadio(wrapper, 'All teams').trigger('click')
         await setExpiry(wrapper, futureDate(30))
@@ -138,9 +156,11 @@ describe('AccessRequestMCP', () => {
         await wrapper.find('[data-action="allow-access"]').trigger('click')
         await flushPromises()
 
-        expect(mockPut).toHaveBeenCalledTimes(1)
+        expect(mockPut).toHaveBeenCalledTimes(2)
         const [url, body] = mockPut.mock.calls[0]
         expect(url).toBe('/account/authorize/request-id/consent')
+        expect(mockPut.mock.calls[1][0]).toBe('/account/complete/request-id')
+        expect(window.location.hash).toBe('#callback')
         expect(body.teamIds).toEqual([])
         expect(body.toolPermissions.default).toEqual({
             platform: { read: true, write: true, destructive: false },
@@ -166,11 +186,21 @@ describe('AccessRequestMCP', () => {
 
         await wrapper.find('[data-action="allow-access"]').trigger('click')
         await flushPromises()
-        const [, bodyWithOverride] = mockPut.mock.calls.at(-1)
+        const bodyWithOverride = consentBody()
         expect(bodyWithOverride.toolPermissions.teams['team-1'].platform).toEqual({ read: true, write: true, destructive: true })
 
         await row.find('[data-action="reset-team-default"]').trigger('click')
         expect(row.text()).toContain('Default')
+    })
+
+    test('deny rejects the request and follows the returned redirect', async () => {
+        const wrapper = await mountPage()
+        await wrapper.find('[data-action="deny-access"]').trigger('click')
+        await flushPromises()
+
+        expect(mockPut).toHaveBeenCalledTimes(1)
+        expect(mockPut.mock.calls[0][0]).toBe('/account/reject/request-id')
+        expect(window.location.hash).toBe('#callback')
     })
 
     test('keeps a customised team open until closed, including after a reset', async () => {

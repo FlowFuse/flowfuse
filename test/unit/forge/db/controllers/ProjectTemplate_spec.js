@@ -447,6 +447,54 @@ describe('Project Template controller', function () {
             result.page.should.have.property('title', 'FlowFuse')
         })
 
+        describe('env vars', function () {
+            const cases = [
+                {
+                    name: 'keeps an existing empty value when merging',
+                    existing: [{ name: 'EMPTY', value: '' }],
+                    snapshot: [{ name: 'EMPTY', value: 'x' }],
+                    merge: [{ name: 'EMPTY', value: '' }],
+                    replace: [{ name: 'EMPTY', value: 'x' }]
+                },
+                {
+                    name: 'handles a snapshot with no env vars',
+                    existing: [{ name: 'one', value: 'a' }, { name: 'two', value: 'b' }],
+                    snapshot: [],
+                    merge: [{ name: 'one', value: 'a' }, { name: 'two', value: 'b' }],
+                    replace: []
+                },
+                {
+                    name: 'adds a hidden var that is only in the snapshot',
+                    existing: [],
+                    snapshot: [{ name: 'SECRET', value: 's', hidden: true }],
+                    merge: [{ name: 'SECRET', value: 's', hidden: true }],
+                    replace: [{ name: 'SECRET', value: 's', hidden: true }]
+                },
+                {
+                    name: 'handles a visible instance var that is hidden in the snapshot',
+                    existing: [{ name: 'X', value: 'instance' }],
+                    snapshot: [{ name: 'X', value: 'snapshot', hidden: true }],
+                    merge: [{ name: 'X', value: 'instance' }],
+                    replace: [{ name: 'X', value: 'snapshot', hidden: true }]
+                },
+                {
+                    name: 'handles a hidden instance var that is visible in the snapshot',
+                    existing: [{ name: 'X', value: 'instance', hidden: true }],
+                    snapshot: [{ name: 'X', value: 'snapshot' }],
+                    merge: [{ name: 'X', value: 'instance', hidden: true }],
+                    replace: [{ name: 'X', value: 'snapshot' }]
+                }
+            ]
+            cases.forEach(({ name, existing, snapshot, merge, replace }) => {
+                it(name, function () {
+                    const merged = app.db.controllers.ProjectTemplate.mergeSettings({ env: existing }, { env: snapshot }, { mergeEnvVars: true })
+                    merged.env.should.eql(merge)
+                    const replaced = app.db.controllers.ProjectTemplate.mergeSettings({ env: existing }, { env: snapshot }, { mergeEnvVars: false })
+                    replaced.env.should.eql(replace)
+                })
+            })
+        })
+
         it('it clears httpNodeAuth user/pass if auth type set to not-basic', function () {
             const originalSettings = {
                 httpNodeAuth: {

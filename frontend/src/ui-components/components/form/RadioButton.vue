@@ -3,7 +3,7 @@
         <input type="radio" :value="value">
         <span ref="input" class="checkbox" :checked="checked" tabindex="0" @keydown.space.prevent="select(value)" />
         <label>{{ label }}</label>
-        <p v-if="description && !hideDescription" class="ff-description">{{ description }}</p>
+        <p v-if="description && !hideDescription" class="ff-description" :class="{ 'ff-description--multiline': multilineDescription }">{{ description }}</p>
     </label>
 </template>
 
@@ -32,6 +32,11 @@ export default {
             type: Boolean
         },
         hideDescription: {
+            default: false,
+            type: Boolean
+        },
+        // Render line breaks in the description as new lines
+        multilineDescription: {
             default: false,
             type: Boolean
         },
