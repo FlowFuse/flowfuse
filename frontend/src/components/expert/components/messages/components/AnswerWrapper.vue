@@ -5,6 +5,7 @@
         <rich-content
             v-if="shouldShowRichContent"
             :content="answer.content"
+            :diagrams="answer.diagrams"
             :message-uuid="messageUuid"
             :answer-uuid="answer._uuid"
             :should-stream="shouldStream"
