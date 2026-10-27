@@ -178,7 +178,8 @@ describe('AppOrchestrator', () => {
             applications: null,
             hostedInstances: null,
             mcpInflight: null,
-            mcpSession: null
+            mcpSession: null,
+            expertSupportChat: null
         })
         expect(orchestrator.$publishers).toEqual({ tabPresence: null })
         expect(orchestrator.$app).toBeNull()

@@ -16,6 +16,10 @@ const mqttService = {
     subscribe: vi.fn(() => Promise.resolve()),
     getManagedClient: vi.fn(() => ({ status: 'connected' }))
 }
+const chatSubscriber = {
+    connect: vi.fn(() => Promise.resolve()),
+    disconnect: vi.fn(() => Promise.resolve())
+}
 
 vi.mock('@/stores/account-settings.js', () => ({
     useAccountSettingsStore: vi.fn(() => accountSettingsState)
@@ -34,7 +38,10 @@ vi.mock('@/services/product.js', () => ({
 }))
 
 vi.mock('@/services/app.orchestrator', () => {
-    const orchestrator = () => ({ $services: { mqtt: mqttService, automations: { dispatch, getToolDefinitions } } })
+    const orchestrator = () => ({
+        $services: { mqtt: mqttService, automations: { dispatch, getToolDefinitions } },
+        $subscribers: { expertSupportChat: chatSubscriber }
+    })
     return { default: orchestrator, getAppOrchestrator: orchestrator }
 })
 
@@ -85,6 +92,24 @@ const { useProductExpertSupportAgentStore } = await import('@/stores/product-exp
 const { useProductExpertInsightsAgentStore } = await import('@/stores/product-expert-insights-agent.js')
 const { default: Product } = await import('@/services/product.js')
 const { useAccountAuthStore } = await import('@/stores/account-auth.js')
+
+// Hands a broker message to the store the way the Expert chat subscriber does
+function deliver (store, topic, message, packet = {}) {
+    const payload = JSON.parse(message.toString())
+    const correlationData = packet.properties?.correlationData
+    const transactionId = correlationData ? new TextDecoder().decode(correlationData) : null
+    if (topic.endsWith('/chat/response')) {
+        return store.receiveChatReply({ transactionId, payload })
+    }
+    const userProperties = packet.properties?.userProperties ?? {}
+    return store.receiveChatInflight({
+        topic,
+        payload,
+        transactionId,
+        sessionId: userProperties.sessionId ?? null,
+        chatTransactionId: userProperties.transactionId ?? null
+    })
+}
 describe('product-expert store', () => {
     beforeEach(() => {
         setActivePinia(createPinia())
@@ -672,7 +697,7 @@ describe('product-expert store', () => {
         it('applies and acks a task surface while its turn is live', async () => {
             agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
 
-            await store._onMqttMessage(taskTopic, tasksMessage, packet('srf-1', 'turn-1'))
+            await deliver(store, taskTopic, tasksMessage, packet('srf-1', 'turn-1'))
 
             expect(store.activeTaskList).toEqual({
                 planId: 'p1', title: 'Tasks', items: [{ id: 't1', text: 'Do a thing', status: 'done' }]
@@ -684,16 +709,16 @@ describe('product-expert store', () => {
         it('applies a surface trailing the final reply, then drops one from a turn it never saw', async () => {
             agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
 
-            await store._onMqttMessage(replyTopic, JSON.stringify({}), packet('turn-1', 'turn-1'))
+            await deliver(store, replyTopic, JSON.stringify({}), packet('turn-1', 'turn-1'))
             expect(agent.inFlightRequests.size).toBe(0)
             expect(agent.recentlyCompletedTransactions.has('turn-1')).toBe(true)
 
-            await store._onMqttMessage(taskTopic, tasksMessage, packet('srf-1', 'turn-1'))
+            await deliver(store, taskTopic, tasksMessage, packet('srf-1', 'turn-1'))
             expect(store.activeTaskList).not.toBeNull()
             expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
 
             mqttService.publishMessage.mockClear()
-            await store._onMqttMessage(taskTopic, tasksMessage, packet('srf-2', 'turn-0'))
+            await deliver(store, taskTopic, tasksMessage, packet('srf-2', 'turn-0'))
             expect(mqttService.publishMessage).not.toHaveBeenCalled()
         })
 
@@ -701,11 +726,11 @@ describe('product-expert store', () => {
             agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
             store.stopInflightChat()
 
-            await store._onMqttMessage(taskTopic, tasksMessage, packet('srf-1', 'turn-1'))
+            await deliver(store, taskTopic, tasksMessage, packet('srf-1', 'turn-1'))
             expect(store.activeTaskList).toBeNull()
             expect(mqttService.publishMessage).not.toHaveBeenCalled()
 
-            await store._onMqttMessage(callToolTopic, JSON.stringify({ data: { name: 'open-node', input: {} } }), packet('srf-2', 'turn-1'))
+            await deliver(store, callToolTopic, JSON.stringify({ data: { name: 'open-node', input: {} } }), packet('srf-2', 'turn-1'))
             expect(dispatch).not.toHaveBeenCalled()
             expect(mqttService.publishMessage).not.toHaveBeenCalled()
         })
@@ -713,7 +738,7 @@ describe('product-expert store', () => {
         it('runs an automation and answers with its result while the turn is live', async () => {
             agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
 
-            await store._onMqttMessage(callToolTopic, JSON.stringify({ data: { name: 'open-node', input: { id: 'n1' } } }), packet('srf-1', 'turn-1'))
+            await deliver(store, callToolTopic, JSON.stringify({ data: { name: 'open-node', input: { id: 'n1' } } }), packet('srf-1', 'turn-1'))
 
             expect(dispatch).toHaveBeenCalledWith('open-node', { id: 'n1' })
             expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
@@ -722,7 +747,7 @@ describe('product-expert store', () => {
 
         describe('streamed activity', () => {
             const statusTopic = 'ff/v1/expert/u1/chat-1/team/t1/support/inflight/expert:status-message/request'
-            const send = (payload, srf = 'srf-1', turn = 'turn-1') => store._onMqttMessage(statusTopic, JSON.stringify(payload), packet(srf, turn))
+            const send = (payload, srf = 'srf-1', turn = 'turn-1') => deliver(store, statusTopic, JSON.stringify(payload), packet(srf, turn))
             const bubble = () => agent.messages.find(m => m._transactionId === 'turn-1')
 
             beforeEach(() => {
@@ -749,7 +774,7 @@ describe('product-expert store', () => {
             })
 
             it('does not count a final-answer item whose typewriter finished as streamed activity', async () => {
-                await store._onMqttMessage(replyTopic, JSON.stringify({ answer: [{ kind: 'chat', content: 'Done' }] }), packet('turn-1', 'turn-1'))
+                await deliver(store, replyTopic, JSON.stringify({ answer: [{ kind: 'chat', content: 'Done' }] }), packet('turn-1', 'turn-1'))
                 agent.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
                 const message = agent.messages[0]
                 store.updateAnswerStreamedState({ messageUuid: message._uuid, answerUuid: message.answer[0]._uuid })
@@ -768,7 +793,7 @@ describe('product-expert store', () => {
             it('finishes open items when the final answer lands', async () => {
                 await send({ kind: 'reasoning', id: 'r1', seq: 1, text: 'Looking', done: false }, 'srf-1')
 
-                await store._onMqttMessage(replyTopic, JSON.stringify({ answer: [{ kind: 'chat', content: 'Done' }] }), packet('turn-1', 'turn-1'))
+                await deliver(store, replyTopic, JSON.stringify({ answer: [{ kind: 'chat', content: 'Done' }] }), packet('turn-1', 'turn-1'))
 
                 expect(bubble().answer[0]).toMatchObject({ id: 'r1', done: true })
             })
@@ -796,7 +821,7 @@ describe('product-expert store', () => {
                     { kind: 'mcp_tool', id: 't1', seq: 1, toolName: 'list_flows' },
                     { kind: 'chat', content: 'Done' }
                 ]
-                await store._onMqttMessage(replyTopic, JSON.stringify({ answer }), packet('turn-1', 'turn-1'))
+                await deliver(store, replyTopic, JSON.stringify({ answer }), packet('turn-1', 'turn-1'))
 
                 expect(agent.messages).toHaveLength(3)
                 expect(agent.messages[0].answer[0]).toMatchObject({ id: 't1', toolName: 'list_flows' })
@@ -855,7 +880,7 @@ describe('product-expert store', () => {
             })
 
             it('drops an event that arrives after the turn has finished', async () => {
-                await store._onMqttMessage(replyTopic, JSON.stringify({}), packet('turn-1', 'turn-1'))
+                await deliver(store, replyTopic, JSON.stringify({}), packet('turn-1', 'turn-1'))
 
                 await send({ kind: 'message', id: 'm1', seq: 1, text: 'late' })
 
@@ -871,7 +896,7 @@ describe('product-expert store', () => {
                     { kind: 'chat', content: 'Done' }
                 ]
 
-                await store._onMqttMessage(replyTopic, JSON.stringify({ answer }), packet('turn-1', 'turn-1'))
+                await deliver(store, replyTopic, JSON.stringify({ answer }), packet('turn-1', 'turn-1'))
 
                 expect(agent.messages).toHaveLength(1)
                 expect(bubble().answer.map(a => a.id || a.toolName || a.kind)).toEqual(['t1', 'legacy', 'chat'])
@@ -885,7 +910,7 @@ describe('product-expert store', () => {
             invokeAction.mockRejectedValueOnce(new Error('Node-RED command timed out'))
             const addTabTopic = 'ff/v1/expert/u1/chat-1/team/t1/support/inflight/automation:add-tab/request'
 
-            await store._onMqttMessage(addTabTopic, JSON.stringify({ params: { label: 'Flow 2' } }), packet('srf-1', 'turn-1'))
+            await deliver(store, addTabTopic, JSON.stringify({ params: { label: 'Flow 2' } }), packet('srf-1', 'turn-1'))
 
             expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
             expect(JSON.parse(mqttService.publishMessage.mock.calls[0][1].payload)).toEqual({
@@ -981,7 +1006,6 @@ describe('product-expert store', () => {
 
             await useProductExpertStore().relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
 
-            expect(mqttService.createClient).not.toHaveBeenCalled()
             expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
             const [connectionKey, message] = mqttService.publishMessage.mock.calls[0]
             expect(connectionKey).toBe('expert/support-agent')
@@ -1073,7 +1097,7 @@ describe('product-expert store', () => {
             const responsePayload = { answer: [{ content: 'Your workspace is ready.' }] }
             const packet = { properties: { correlationData: Buffer.from(transactionId) } }
 
-            await store._onMqttMessage(responseTopic, Buffer.from(JSON.stringify(responsePayload)), packet)
+            await deliver(store, responseTopic, Buffer.from(JSON.stringify(responsePayload)), packet)
 
             expect(store.messages).toHaveLength(2)
             expect(store.messages[0]._type).toBe('event')
@@ -1082,17 +1106,17 @@ describe('product-expert store', () => {
             expect(store.isWaitingForResponse).toBe(false)
         })
 
-        it('establishes the mqtt connection first when none exists yet', async () => {
+        it('connects the chat subscriber before publishing', async () => {
             uxState.isOnboarding = true
             accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
             contextState.team = { id: 'team-1' }
-            mqttService.hasClient.mockReturnValue(false)
             useAccountAuthStore().user = { id: 'user-1' }
 
             await useProductExpertStore().relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
 
-            expect(mqttService.createClient).toHaveBeenCalledTimes(1)
-            expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
+            expect(chatSubscriber.connect).toHaveBeenCalledWith({ id: 'team-1' })
+            expect(chatSubscriber.connect.mock.invocationCallOrder[0])
+                .toBeLessThan(mqttService.publishMessage.mock.invocationCallOrder[0])
         })
 
         it('defaults a missing instance name to null', async () => {
@@ -1336,7 +1360,7 @@ describe('product-expert store', () => {
 
         describe('after a stop', () => {
             const replyTopic = 'ff/v1/expert/user-1/chat-1/team/team-1/support/chat/response'
-            const reply = (store, body) => store._onMqttMessage(replyTopic, JSON.stringify(body), {
+            const reply = (store, body) => deliver(store, replyTopic, JSON.stringify(body), {
                 properties: { correlationData: new TextEncoder().encode('turn-1') }
             })
 
@@ -1425,7 +1449,7 @@ describe('product-expert store', () => {
 
             const topic = 'ff/v1/expert/user-1/chat-1/team/team-1/support/chat/response'
             const packet = { properties: { correlationData: new TextEncoder().encode(transactionId) } }
-            await store._onMqttMessage(topic, JSON.stringify({}), packet).catch(() => undefined)
+            await deliver(store, topic, JSON.stringify({}), packet).catch(() => undefined)
             await relay
 
             expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
@@ -1440,7 +1464,7 @@ describe('product-expert store', () => {
             await Promise.resolve()
             expect(mqttService.publishMessage).not.toHaveBeenCalled()
 
-            await store._onMqttConnect({ reasonCode: 0 })
+            await store.onChatConnected()
             await relay
 
             expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
@@ -1455,7 +1479,7 @@ describe('product-expert store', () => {
             await store.relayInstanceReady({ id: 'inst-1', name: 'my-instance' })
             expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
 
-            await store._onMqttConnect({ reasonCode: 0 })
+            await store.onChatConnected()
             await vi.waitFor(() => expect(mqttService.publishMessage).toHaveBeenCalledTimes(2))
             expect(mqttService.publishMessage.mock.calls[1][1].payload.system.kind).toBe('instance-ready')
         })
