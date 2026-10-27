@@ -99,10 +99,11 @@ function deliver (store, topic, message, packet = {}) {
     const correlationData = packet.properties?.correlationData
     const transactionId = correlationData ? new TextDecoder().decode(correlationData) : null
     if (topic.endsWith('/chat/response')) {
-        return store.receiveChatReply({ transactionId, payload })
+        return store.receiveChatReply({ agent: SUPPORT_AGENT, transactionId, payload })
     }
     const userProperties = packet.properties?.userProperties ?? {}
     return store.receiveChatInflight({
+        agent: SUPPORT_AGENT,
         topic,
         payload,
         transactionId,
@@ -669,6 +670,60 @@ describe('product-expert store', () => {
             expect(store.inFlightUpdates).toHaveLength(0)
             expect(agent.inFlightRequests.size).toBe(0)
             expect(agent.recentlyCompletedTransactions.size).toBe(0)
+        })
+    })
+
+    describe('a turn for the agent the user switched away from', () => {
+        const encoder = new TextEncoder()
+        const packet = (transactionId, chatTransactionId) => ({
+            properties: {
+                correlationData: encoder.encode(transactionId),
+                userProperties: { sessionId: 'chat-1', transactionId: chatTransactionId }
+            }
+        })
+        const statusTopic = 'ff/v1/expert/u1/chat-1/team/t1/support/inflight/expert:status-message/request'
+        const taskTopic = 'ff/v1/expert/u1/chat-1/team/t1/support/inflight/expert:tasks/request'
+        const replyTopic = 'ff/v1/expert/u1/chat-1/team/t1/support/chat/response'
+
+        let store
+        let support
+        let insights
+        beforeEach(() => {
+            accountAuthState.user = { id: 'u1' }
+            store = useProductExpertStore()
+            support = useProductExpertSupportAgentStore()
+            insights = useProductExpertInsightsAgentStore()
+            support.sessionId = 'chat-1'
+            support.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+            store.agentMode = INSIGHTS_AGENT
+        })
+
+        it('keeps the reply in its own chat', async () => {
+            await deliver(store, replyTopic, JSON.stringify({ answer: [{ kind: 'chat', content: 'Done' }] }), packet('turn-1', 'turn-1'))
+
+            expect(support.inFlightRequests.size).toBe(0)
+            expect(support.recentlyCompletedTransactions.has('turn-1')).toBe(true)
+            expect(support.messages).toHaveLength(1)
+            expect(support.messages[0].answer[0].content).toBe('Done')
+            expect(insights.messages).toHaveLength(0)
+        })
+
+        it('keeps streamed activity and task surfaces in its own chat', async () => {
+            await deliver(store, statusTopic, JSON.stringify({ kind: 'reasoning', id: 'r1', seq: 1, text: 'Thinking' }), packet('srf-1', 'turn-1'))
+            await deliver(store, taskTopic, JSON.stringify({ items: [{ id: 't1', text: 'Do a thing' }], title: 'Tasks', planId: 'p1' }), packet('srf-2', 'turn-1'))
+
+            expect(support.messages).toHaveLength(1)
+            expect(support.activeTaskList.planId).toBe('p1')
+            expect(insights.messages).toHaveLength(0)
+            expect(insights.activeTaskList).toBeNull()
+        })
+
+        it('leaves the loading line of the agent on screen alone', async () => {
+            store.inFlightUpdates = ['Querying the instance']
+            await deliver(store, 'ff/v1/expert/u1/chat-1/team/t1/support/inflight/automation:get-nodes/request', JSON.stringify({ status: 'Reading nodes' }), packet('srf-1', 'turn-1'))
+            await deliver(store, replyTopic, JSON.stringify({ answer: [] }), packet('turn-1', 'turn-1'))
+
+            expect(store.inFlightUpdates).toEqual(['Querying the instance'])
         })
     })
 

@@ -38,6 +38,13 @@ const DISCONNECT_NOTICE_DELAY = 15000
 // The composer stays locked meanwhile, so this is kept short.
 const STOP_CONFIRM_TIMEOUT_MS = 15000
 
+// A chat message belongs to the agent it came from, which may not be the active one
+function agentStoreFor (agent) {
+    return agent === SUPPORT_AGENT
+        ? useProductExpertSupportAgentStore()
+        : useProductExpertInsightsAgentStore()
+}
+
 export const useProductExpertStore = defineStore('product-expert', {
     state: () => ({
         agentMode: SUPPORT_AGENT, // support-agent or insights-agent
@@ -77,9 +84,7 @@ export const useProductExpertStore = defineStore('product-expert', {
     }),
     getters: {
         _agentStore () {
-            return this.agentMode === SUPPORT_AGENT
-                ? useProductExpertSupportAgentStore()
-                : useProductExpertInsightsAgentStore()
+            return agentStoreFor(this.agentMode)
         },
         /**
          * @return {import('vue').UnwrapRef<Map<unknown, unknown> | Map<any, any>> | import('vue').UnwrapRef<Map<unknown, unknown> | Map<any, any>>}
@@ -604,23 +609,28 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // is unavailable; the settings UI simply shows no tools yet.
             }
         },
-        async handleInFlightRequest ({ topic, message, payload: parsedPayload, transactionId, sessionId, chatTransactionId } = {}) {
+        async handleInFlightRequest ({ agent: messageAgent, topic, message, payload: parsedPayload, transactionId, sessionId, chatTransactionId } = {}) {
+            // A third-party MCP request comes with no agent, so it runs against the active one
+            const agent = messageAgent ?? this.agentMode
+            const agentStore = agentStoreFor(agent)
+
             // A third-party MCP request is addressed to this tab's browser session rather
             // than a chat session, and has no originating chat request to correlate with,
             // so it bypasses the correlation check below. Everything else keeps today's behaviour.
             const isBrowserSession = !!sessionId && sessionId === useAccountAuthStore().getSessionId()
 
             // dismiss messages from a different chat session
-            if (!isBrowserSession && sessionId !== this.sessionId) return
+            if (!isBrowserSession && sessionId !== agentStore.sessionId) return
 
             // Tie the message to its originating chat turn: live means the turn is still
             // running, recently-completed covers a surface that trails the final reply. One
             // we cannot tie to either — a request left on the wire after Stop, or a stale
             // surface from an earlier turn — is dropped here: not applied, not run against
             // the editor, and not acked, so a stopped agent is not nudged to keep producing.
+            const isLive = agentStore.inFlightRequests.has(chatTransactionId)
             const correlated = isBrowserSession ||
-                this._inFlightRequests.has(chatTransactionId) ||
-                this._recentlyCompleted.has(chatTransactionId)
+                isLive ||
+                agentStore.recentlyCompletedTransactions.has(chatTransactionId)
             if (!correlated) return
 
             const servicesOrchestrator = getAppOrchestrator()
@@ -638,7 +648,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             const isMcpChannel = parsedTopic.agentChannel === 'mcp' || isBrowserSession
             const connectionKey = isMcpChannel
                 ? teamConnectionKey(useContextStore().team?.id)
-                : this.mqttConnectionKey
+                : agentStore.mqttConnectionKey
 
             // Errors on the MCP path must not post into the chat transcript, there may not
             // be a chat open at all.
@@ -654,8 +664,8 @@ export const useProductExpertStore = defineStore('product-expert', {
             // turn's reply, so it is neither acked nor shown on the loading line, and a kind
             // this client does not know is ignored whole.
             if (parsedTopic.inflightType === 'expert:status-message' && payload?.kind != null) {
-                if (STREAMED_KINDS.includes(payload.kind) && this._inFlightRequests.has(chatTransactionId)) {
-                    this._appendStreamedActivity(chatTransactionId, payload)
+                if (STREAMED_KINDS.includes(payload.kind) && isLive) {
+                    this._appendStreamedActivity(chatTransactionId, payload, agent)
                 }
                 return
             }
@@ -663,7 +673,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             // expert:tasks has its own panel; its status rides expert:status-message.
             // Every other inflight type feeds the loading line, but only while the turn is
             // still live: a status trailing the final reply must not repaint the next turn.
-            if (parsedTopic.inflightType !== 'expert:tasks' && this._inFlightRequests.has(chatTransactionId)) {
+            if (parsedTopic.inflightType !== 'expert:tasks' && isLive && agent === this.agentMode) {
                 this._addInFlightUpdate(payload.status || payload.toolname || 'Processing request...')
             }
 
@@ -674,7 +684,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 topicType: 'inflight',
                 topicAction: 'response',
                 inflightType: parsedTopic.inflightType,
-                sessionId: sessionId || this.sessionId
+                sessionId: sessionId || agentStore.sessionId
             })
 
             // Every branch answers on the same envelope; only the body differs.
@@ -703,8 +713,8 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // The active plan is agent-owned and arrives on its own field: a plan is
                 // activated before it has any tasks, so hold the id regardless of the item
                 // count rather than losing it whenever the list is empty.
-                this._agentStore.activePlanId = payload.planId ?? null
-                this._agentStore.activeTaskList = items.length
+                agentStore.activePlanId = payload.planId ?? null
+                agentStore.activeTaskList = items.length
                     ? { planId: payload.planId ?? null, title: payload.title || 'Tasks', items }
                     : null
                 try {
@@ -766,7 +776,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // do nothing
             }
         },
-        async handleMessageResponse (response, transactionId) {
+        async handleMessageResponse (response, transactionId, agent = this.agentMode) {
             // ignore aborted messages through mqtt
             if (Object.prototype.hasOwnProperty.call(response, 'aborted') && response.aborted === true) return
 
@@ -780,12 +790,15 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
 
             if (response.answer && Array.isArray(response.answer)) {
-                if (transactionId && this._turnBubbles(transactionId).length > 0) {
-                    this._mergeFinalAnswer(transactionId, response)
+                if (transactionId && this._turnBubbles(transactionId, agent).length > 0) {
+                    this._mergeFinalAnswer(transactionId, response, agent)
                 } else {
-                    this.addAiMessage(response, transactionId)
+                    this.addAiMessage(response, transactionId, agent)
                 }
-                this._clearInFlightUpdates()
+                // The loading line belongs to the agent on screen
+                if (agent === this.agentMode) {
+                    this._clearInFlightUpdates()
+                }
                 // A deferred-approval turn (#421) ends with one card per tool that needs
                 // approval. Track the batch so we can send every decision back at once.
                 if (response.kind === 'tool-approval') {
@@ -1110,11 +1123,11 @@ export const useProductExpertStore = defineStore('product-expert', {
                 })
             }
         },
-        addAiMessage (message, transactionId) {
+        addAiMessage (message, transactionId, agent = this.agentMode) {
             const answer = message.answer
                 ? message.answer.map(a => ({ ...a, _uuid: uuidv4(), _streamed: false }))
                 : []
-            this._agentStore.messages.push({
+            agentStoreFor(agent).messages.push({
                 ...message,
                 answer,
                 _type: 'ai',
@@ -1127,7 +1140,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         // Place one streamed item in the turn's reply bubble, creating the bubble on the
         // first item. An id already in the bubble is replaced in place; otherwise the item
         // goes in seq order, so events arriving out of order still render in order.
-        _appendStreamedActivity (transactionId, event) {
+        _appendStreamedActivity (transactionId, event, agent = this.agentMode) {
             if (!transactionId || !event) return
 
             // A streamed tool record moves its own kind to recordKind, so the card sees the
@@ -1138,7 +1151,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 item = { ...record, kind: recordKind || 'mcp_tool' }
             }
 
-            const found = item.id ? this._findTurnItem(transactionId, a => a.id === item.id) : null
+            const found = item.id ? this._findTurnItem(transactionId, a => a.id === item.id, agent) : null
             if (found) {
                 const { bubble, index } = found
                 const existing = bubble.answer[index]
@@ -1159,13 +1172,13 @@ export const useProductExpertStore = defineStore('product-expert', {
                 })
                 return
             }
-            this._insertBySeq(this._openTurnBubble(transactionId), { ...item, _uuid: uuidv4(), _streamed: true, _live: true })
+            this._insertBySeq(this._openTurnBubble(transactionId, agent), { ...item, _uuid: uuidv4(), _streamed: true, _live: true })
         },
-        _turnBubbles (transactionId) {
-            return this._agentStore.messages.filter(m => m._type === 'ai' && m._transactionId === transactionId)
+        _turnBubbles (transactionId, agent = this.agentMode) {
+            return agentStoreFor(agent).messages.filter(m => m._type === 'ai' && m._transactionId === transactionId)
         },
-        _findTurnItem (transactionId, predicate) {
-            for (const bubble of this._turnBubbles(transactionId)) {
+        _findTurnItem (transactionId, predicate, agent = this.agentMode) {
+            for (const bubble of this._turnBubbles(transactionId, agent)) {
                 const index = bubble.answer.findIndex(predicate)
                 if (index !== -1) return { bubble, index }
             }
@@ -1174,8 +1187,8 @@ export const useProductExpertStore = defineStore('product-expert', {
         // New items go to the turn's last bubble while it is the last message. Once another
         // message has landed below it, they start a new bubble so the chat keeps the order
         // things happened in.
-        _openTurnBubble (transactionId) {
-            const messages = this._agentStore.messages
+        _openTurnBubble (transactionId, agent = this.agentMode) {
+            const messages = agentStoreFor(agent).messages
             const last = messages[messages.length - 1]
             if (last?._type === 'ai' && last._transactionId === transactionId) return last
             const bubble = {
@@ -1203,11 +1216,11 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         // The final reply lands in the bubbles its streamed items built. Tool records it
         // carries upgrade the streamed card with the same id; the rest is appended.
-        _mergeFinalAnswer (transactionId, response) {
+        _mergeFinalAnswer (transactionId, response, agent = this.agentMode) {
             const rest = []
             for (const item of response.answer) {
                 const found = item.id && isToolRecord(item)
-                    ? this._findTurnItem(transactionId, a => a.id === item.id && isToolRecord(a))
+                    ? this._findTurnItem(transactionId, a => a.id === item.id && isToolRecord(a), agent)
                     : null
                 if (found) {
                     const { bubble, index } = found
@@ -1217,18 +1230,18 @@ export const useProductExpertStore = defineStore('product-expert', {
                     rest.push(item)
                 }
             }
-            const bubbles = this._turnBubbles(transactionId)
-            const target = rest.length > 0 ? this._openTurnBubble(transactionId) : bubbles[bubbles.length - 1]
+            const bubbles = this._turnBubbles(transactionId, agent)
+            const target = rest.length > 0 ? this._openTurnBubble(transactionId, agent) : bubbles[bubbles.length - 1]
             for (const item of rest) {
                 this._insertBySeq(target, { ...item, _uuid: uuidv4(), _streamed: false })
             }
             const { answer: _answer, ...fields } = response
             Object.assign(target, fields)
-            this._closeTurnItems(transactionId)
+            this._closeTurnItems(transactionId, agent)
         },
         // A finished or stopped turn leaves no item still running.
-        _closeTurnItems (transactionId) {
-            for (const bubble of this._turnBubbles(transactionId)) {
+        _closeTurnItems (transactionId, agent = this.agentMode) {
+            for (const bubble of this._turnBubbles(transactionId, agent)) {
                 bubble.answer.forEach((item, index) => {
                     if (item.done === false) {
                         bubble.answer.splice(index, 1, { ...item, done: true })
@@ -1299,7 +1312,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             return false
         },
         // The final chat response of a turn, from the chat subscriber
-        async receiveChatReply ({ transactionId, payload }) {
+        async receiveChatReply ({ agent, transactionId, payload }) {
             // Ahead of the duplicate check, which the abort's acknowledgement under the same id
             // already tripped. That acknowledgement only means the abort arrived. Any other
             // reply means the turn has ended: its stop notice, or the answer of a turn that was
@@ -1315,25 +1328,26 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             // no matching in-flight request means the turn was stopped or already
             // resolved; ignore it and record no completion for it
-            if (!this._inFlightRequests.has(transactionId)) return
-            this._inFlightRequests.delete(transactionId)
+            const { inFlightRequests, recentlyCompletedTransactions } = agentStoreFor(agent)
+            if (!inFlightRequests.has(transactionId)) return
+            inFlightRequests.delete(transactionId)
             // remember the finished turn briefly so a surface that trails this reply is
             // still applied, evicting the oldest id to keep the set bounded
-            this._recentlyCompleted.set(transactionId, true)
-            if (this._recentlyCompleted.size > 50) {
-                this._recentlyCompleted.delete(this._recentlyCompleted.keys().next().value)
+            recentlyCompletedTransactions.set(transactionId, true)
+            if (recentlyCompletedTransactions.size > 50) {
+                recentlyCompletedTransactions.delete(recentlyCompletedTransactions.keys().next().value)
             }
             try {
-                await this.handleMessageResponse(payload, transactionId)
+                await this.handleMessageResponse(payload, transactionId, agent)
             } finally {
                 this._drainSendQueue()
             }
         },
         // A request the agent sends while a turn runs (action invocation, status update),
         // from the chat subscriber
-        async receiveChatInflight ({ topic, payload, transactionId, sessionId, chatTransactionId }) {
+        async receiveChatInflight ({ agent, topic, payload, transactionId, sessionId, chatTransactionId }) {
             if (this._isDuplicateDelivery(transactionId)) return
-            await this.handleInFlightRequest({ topic, payload, transactionId, sessionId, chatTransactionId })
+            await this.handleInFlightRequest({ agent, topic, payload, transactionId, sessionId, chatTransactionId })
         },
         _clearDisconnectNotice () {
             if (this._disconnectNoticeTimer) {

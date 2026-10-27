@@ -3,6 +3,7 @@ import { SubscriberPayload, SubscriberRoute, TeamSubscriber } from './team-subsc
 
 import userApi from '@/api/user.js'
 import { useMqttExpertTopicHelper } from '@/composables/services/MqttExpertTopicHelper'
+import { SUPPORT_AGENT } from '@/stores/product-expert-agents.js'
 import { useProductExpertSupportAgentStore } from '@/stores/product-expert-support-agent.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 import { Maybe } from '@/types/common/types'
@@ -10,6 +11,7 @@ import type { CreateSubscriberOptions, TeamRef, TeamSubscriberI } from '@/types/
 import type { TransportError, TransportMessagePacket, TransportReasonPacket, TransportSubscribeOptions } from '@/types/transport/transport.types'
 
 interface ExpertChatChannel {
+    agent: string
     channel: 'support' | 'insights'
     useAgentStore: () => { sessionId: Maybe<string>, mqttConnectionKey: string }
 }
@@ -31,7 +33,8 @@ function userProperty (packet: TransportMessagePacket | undefined, name: string)
  *
  * The subscriber connects when the agent first sends and keeps the session it connected
  * with across reconnects, so the agent's subscriptions survive the user switching to the
- * other agent. A new chat disconnects it first.
+ * other agent. A new chat disconnects it first. Messages reach the store tagged with the
+ * agent, so a reply that lands after the user switched away still goes to its own chat.
  */
 abstract class ExpertChatSubscriber extends TeamSubscriber implements TeamSubscriberI {
     protected $channel: ExpertChatChannel
@@ -129,13 +132,14 @@ abstract class ExpertChatSubscriber extends TeamSubscriber implements TeamSubscr
 
     private _onReply (payload: SubscriberPayload, packet?: TransportMessagePacket): void {
         useProductExpertStore()
-            .receiveChatReply({ transactionId: decodeCorrelation(packet), payload })
+            .receiveChatReply({ agent: this.$channel.agent, transactionId: decodeCorrelation(packet), payload })
             .catch((error: unknown) => console.warn(`[${this.$name}] chat reply failed:`, error))
     }
 
     private _onInflightRequest (payload: SubscriberPayload, topic: string, packet?: TransportMessagePacket): void {
         useProductExpertStore()
             .receiveChatInflight({
+                agent: this.$channel.agent,
                 topic,
                 payload,
                 transactionId: decodeCorrelation(packet),
@@ -149,6 +153,7 @@ abstract class ExpertChatSubscriber extends TeamSubscriber implements TeamSubscr
 class SupportChatSubscriber extends ExpertChatSubscriber {
     constructor (options: CreateSubscriberOptions) {
         super(options, 'expertSupportChat', {
+            agent: SUPPORT_AGENT,
             channel: 'support',
             useAgentStore: useProductExpertSupportAgentStore
         })

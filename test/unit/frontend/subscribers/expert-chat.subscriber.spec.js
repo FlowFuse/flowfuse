@@ -149,7 +149,7 @@ describe('Expert support chat subscriber', async () => {
                 properties: { correlationData: new TextEncoder().encode('turn-1') }
             })
 
-            expect(expertStore.receiveChatReply).toHaveBeenCalledWith({ transactionId: 'turn-1', payload: { answer: [] } })
+            expect(expertStore.receiveChatReply).toHaveBeenCalledWith({ agent: 'support-agent', transactionId: 'turn-1', payload: { answer: [] } })
             expect(expertStore.receiveChatInflight).not.toHaveBeenCalled()
         })
 
@@ -163,6 +163,7 @@ describe('Expert support chat subscriber', async () => {
             })
 
             expect(expertStore.receiveChatInflight).toHaveBeenCalledWith({
+                agent: 'support-agent',
                 topic: INFLIGHT_TOPIC,
                 payload: { params: {} },
                 transactionId: 'srf-1',
