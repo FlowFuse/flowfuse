@@ -163,6 +163,7 @@ export const FEATURE_CONFIGS: FeatureConfig[] = [
     { output: 'isInstanceAutoStackUpdateFeatureEnabled', platformKey: 'autoStackUpdate' },
     { output: 'isDevOpsPipelinesFeatureEnabled', platformKey: 'devops-pipelines' },
     { output: 'isExternalMqttBrokerFeatureEnabled', platformKey: 'externalBroker' },
+    { output: 'isExpertInsightsMqttFeatureEnabled', platformKey: 'expertInsightsMqtt', dependsOnPlatform: 'externalBroker' },
     { output: 'isExpertPlatformAutomationFeatureEnabled', platformKey: 'expertPlatformAutomation' },
 
     // Platform-only, read from the settings response rather than the feature flags object
