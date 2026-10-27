@@ -318,9 +318,19 @@ export default {
         serverSideSearch: {
             type: Boolean,
             default: false
+        },
+        /**
+         * Optional map of `{ [rowKey]: true }` making row selection controlled
+         * by the parent. Needed when a selection has to outlive the rows that
+         * are currently loaded, for example selecting across a paginated list.
+         * Left null, the table keeps owning its own selection as before.
+         */
+        checked: {
+            type: Object,
+            default: null
         }
     },
-    emits: ['update:search', 'load-more', 'row-selected', 'update:sort', 'rows-checked', 'update:page', 'update:page-size'],
+    emits: ['update:search', 'load-more', 'row-selected', 'update:sort', 'rows-checked', 'update:checked', 'update:page', 'update:page-size'],
     setup () {
         return { slugify }
     },
@@ -439,6 +449,26 @@ export default {
         }
     },
     watch: {
+        checked: {
+            handler (value) {
+                // Compare contents, not identity: the parent hands back a new
+                // object every time, so an identity check would always differ
+                // and the two watchers would bounce updates off each other.
+                if (value && !this.sameChecks(value, this.checks)) {
+                    this.checks = { ...value }
+                }
+            },
+            deep: true,
+            immediate: true
+        },
+        checks: {
+            handler (value) {
+                if (this.checked && !this.sameChecks(value, this.checked)) {
+                    this.$emit('update:checked', { ...value })
+                }
+            },
+            deep: true
+        },
         checkedRows: {
             handler (value) {
                 this.$emit('rows-checked', this.checkedRows)
@@ -453,17 +483,35 @@ export default {
         this.sort.order = this.orders.includes(this.initialSortOrder) ? this.initialSortOrder : this.orders[0]
     },
     methods: {
+        /**
+         * Do two check maps select the same rows? Only truthy entries count: an
+         * unchecked box leaves `false` behind rather than removing the key.
+         */
+        sameChecks (a, b) {
+            const keys = (map) => Object.keys(map || {}).filter((key) => map[key]).sort()
+            const aKeys = keys(a)
+            const bKeys = keys(b)
+            return aKeys.length === bKeys.length && aKeys.every((key, i) => key === bKeys[i])
+        },
         toggleAllChecks (pointerEvents) {
             pointerEvents.stopPropagation()
             pointerEvents.preventDefault()
             const isChecked = !this.allChecked
-            if (!isChecked) {
+            if (!isChecked && !this.checked) {
+                // Uncontrolled: the selection cannot outlive the rows on screen,
+                // so clearing the box clears all of it, as it always has
                 this.checks = {}
                 return
             }
+            const checks = { ...this.checks }
             this.filteredRows.forEach((row) => {
-                this.checks[row[this.checkKeyProp]] = true
+                if (isChecked) {
+                    checks[row[this.checkKeyProp]] = true
+                } else {
+                    delete checks[row[this.checkKeyProp]]
+                }
             })
+            this.checks = checks
         },
         extendedRows () {
             if (this.collapsibleRow) {
