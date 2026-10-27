@@ -1171,6 +1171,69 @@ describe('Broker Auth v2 API', async function () {
                 })
             })
 
+            describe('Expert Client (insights)', async function () {
+                before(function () {
+                    app.config.features.register('expertInsights', true, true)
+                })
+                afterEach(function () {
+                    app.config.features.register('expertAssistant', true, true)
+                    app.config.features.register('expertInsights', true, true)
+                })
+
+                it('allows publish to insights chat request topics', async function () {
+                    await allowWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/${TestObjects.ProjectA.id}/insights/chat/request`
+                    })
+                })
+                it('allows subscription to insights chat response topics', async function () {
+                    await allowRead({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/+/+/insights/chat/response`
+                    })
+                })
+                it('allows subscription to insights inflight request topics', async function () {
+                    await allowRead({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/+/+/insights/inflight/+/request`
+                    })
+                })
+                it('denies publish to insights chat response topics', async function () {
+                    await denyWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/${TestObjects.ProjectA.id}/insights/chat/response`
+                    })
+                })
+                it('denies publish to another client\'s insights chat request topics', async function () {
+                    await denyWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.bob.hashid}/session123/p/${TestObjects.ProjectA.id}/insights/chat/request`
+                    })
+                })
+                it('allows insights chat requests when only Expert Insights is enabled', async function () {
+                    app.config.features.register('expertAssistant', false, true)
+                    await allowWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/${TestObjects.ProjectA.id}/insights/chat/request`
+                    })
+                    await denyWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/${TestObjects.ProjectA.id}/support/chat/request`
+                    })
+                })
+                it('denies insights chat requests when Expert Insights is disabled', async function () {
+                    app.config.features.register('expertInsights', false, true)
+                    await denyWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/${TestObjects.ProjectA.id}/insights/chat/request`
+                    })
+                    await allowWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/${TestObjects.ProjectA.id}/support/chat/request`
+                    })
+                })
+            })
+
             describe('Expert Agent', async function () {
                 // basic tests - cannot sub or pub to any topics outside of 'ff/v1/expert/#' e.g. cannot sub or pub to project/device topics
                 it('denies subscription to project topics', async function () {
