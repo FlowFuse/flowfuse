@@ -45,6 +45,7 @@ export interface ExpertChatPublisherI extends TeamPublisherI {
 export type PublisherInstances = {
     tabPresence: TabPresencePublisherI | null
     expertSupportChat: ExpertChatPublisherI | null
+    expertInsightsChat: ExpertChatPublisherI | null
 }
 
 export interface CreatePublisherOptions<TTransport extends Transport = Transport> {

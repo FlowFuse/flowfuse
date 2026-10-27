@@ -4,7 +4,8 @@ import { TeamPublisher } from './team-publisher.contract'
 import userApi from '@/api/user.js'
 import { useMqttExpertTopicHelper } from '@/composables/services/MqttExpertTopicHelper'
 import { useContextStore } from '@/stores/context.js'
-import { SUPPORT_AGENT } from '@/stores/product-expert-agents.js'
+import { INSIGHTS_AGENT, SUPPORT_AGENT } from '@/stores/product-expert-agents.js'
+import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
 import { useProductExpertSupportAgentStore } from '@/stores/product-expert-support-agent.js'
 import { Maybe } from '@/types/common/types'
 import type { CreatePublisherOptions, ExpertChatPublisherI, InflightResponse } from '@/types/publishers/publisher.types'
@@ -134,8 +135,33 @@ class SupportChatPublisher extends ExpertChatPublisher {
     }
 }
 
-const { create: createSupportChatPublisher, destroy: destroySupportChatPublisher } = definePublisherSingleton(SupportChatPublisher)
+class InsightsChatPublisher extends ExpertChatPublisher {
+    constructor (options: CreatePublisherOptions) {
+        super(options, 'expertInsightsChat', {
+            agent: INSIGHTS_AGENT,
+            channel: 'insights',
+            useAgentStore: useProductExpertInsightsAgentStore
+        })
+    }
 
-export { ExpertChatPublisher, createSupportChatPublisher, destroySupportChatPublisher }
+    // Insights answers from the resources the user picked for the chat
+    protected _context (): Record<string, unknown> {
+        return {
+            ...super._context(),
+            selectedCapabilities: useProductExpertInsightsAgentStore().selectedCapabilities
+        }
+    }
+}
+
+const { create: createSupportChatPublisher, destroy: destroySupportChatPublisher } = definePublisherSingleton(SupportChatPublisher)
+const { create: createInsightsChatPublisher, destroy: destroyInsightsChatPublisher } = definePublisherSingleton(InsightsChatPublisher)
+
+export {
+    ExpertChatPublisher,
+    createSupportChatPublisher,
+    destroySupportChatPublisher,
+    createInsightsChatPublisher,
+    destroyInsightsChatPublisher
+}
 
 export default createSupportChatPublisher

@@ -4,6 +4,7 @@ const initiateExpertChat = vi.fn()
 
 const authStore = { user: { id: 'user-1' }, getSessionId: () => 'browser-session-1' }
 const supportAgentStore = { sessionId: 'chat-1', mqttConnectionKey: 'expert/support-agent' }
+const insightsAgentStore = { sessionId: 'insights-1', mqttConnectionKey: 'expert/insights-agent' }
 const expertStore = {
     sessionId: 'active-agent-session',
     receiveChatReply: vi.fn(() => Promise.resolve()),
@@ -23,6 +24,7 @@ vi.mock('@/api/user.js', () => ({
 vi.mock('@/stores/account-auth.js', () => ({ useAccountAuthStore }))
 vi.mock('@/stores/product-expert.js', () => ({ useProductExpertStore }))
 vi.mock('@/stores/product-expert-support-agent.js', () => ({ useProductExpertSupportAgentStore: () => supportAgentStore }))
+vi.mock('@/stores/product-expert-insights-agent.js', () => ({ useProductExpertInsightsAgentStore: () => insightsAgentStore }))
 vi.mock('@/stores/context.js', () => ({ useContextStore }))
 // the topic helper reaches for the stores through the barrel
 vi.mock('@/stores', () => ({ useAccountAuthStore, useProductExpertStore, useContextStore }))
@@ -78,7 +80,7 @@ describe('Expert support chat subscriber', async () => {
                 'ff/v1/expert/user-1/chat-1/+/+/support/chat/response',
                 'ff/v1/expert/user-1/chat-1/+/+/support/inflight/+/request'
             ], { qos: 2 })
-            expect(expertStore.onChatConnected).toHaveBeenCalledTimes(1)
+            expect(expertStore.onChatConnected).toHaveBeenCalledWith('support-agent')
         })
 
         test('keeps the session it connected with across reconnects', async () => {
@@ -110,7 +112,7 @@ describe('Expert support chat subscriber', async () => {
             await subscriber.connect({ id: 'team-1' })
             await handlers(transport).onConnect({ reasonCode: 0x87, properties: { reasonString: 'not authorized' } })
 
-            expect(expertStore.handleMqttError).toHaveBeenCalledWith(0x87, 'not authorized')
+            expect(expertStore.handleMqttError).toHaveBeenCalledWith(0x87, 'not authorized', 'support-agent')
             expect(transport.subscribe).not.toHaveBeenCalled()
             expect(expertStore.onChatConnected).not.toHaveBeenCalled()
         })
@@ -122,7 +124,7 @@ describe('Expert support chat subscriber', async () => {
             await subscriber.connect({ id: 'team-1' })
             await handlers(transport).onConnect({})
 
-            expect(expertStore.handleMqttError).toHaveBeenCalledWith(0x87, 'refused')
+            expect(expertStore.handleMqttError).toHaveBeenCalledWith(0x87, 'refused', 'support-agent')
             expect(expertStore.onChatConnected).not.toHaveBeenCalled()
         })
 
@@ -132,9 +134,9 @@ describe('Expert support chat subscriber', async () => {
             handlers(transport).onDisconnect({ reasonCode: 0x8E, properties: { reasonString: 'taken over' } })
             handlers(transport).onError(Object.assign(new Error('keepalive timeout'), { code: null }))
 
-            expect(expertStore.onChatConnectionClosed).toHaveBeenCalledTimes(1)
-            expect(expertStore.handleMqttError).toHaveBeenCalledWith(0x8E, 'taken over')
-            expect(expertStore.handleMqttError).toHaveBeenCalledWith(null, 'keepalive timeout')
+            expect(expertStore.onChatConnectionClosed).toHaveBeenCalledWith('support-agent')
+            expect(expertStore.handleMqttError).toHaveBeenCalledWith(0x8E, 'taken over', 'support-agent')
+            expect(expertStore.handleMqttError).toHaveBeenCalledWith(null, 'keepalive timeout', 'support-agent')
         })
     })
 
@@ -187,5 +189,37 @@ describe('Expert support chat subscriber', async () => {
             await vi.waitFor(() => expect(warn).toHaveBeenCalledWith('[expertSupportChat] chat reply failed:', expect.any(Error)))
             warn.mockRestore()
         })
+    })
+})
+
+describe('Expert insights chat subscriber', async () => {
+    const { createInsightsChatSubscriber, destroyInsightsChatSubscriber } = await import('../../../../frontend/src/subscribers/expert-chat.subscriber.ts')
+
+    afterEach(async () => {
+        await destroyInsightsChatSubscriber()
+    })
+
+    test('subscribes to the insights topics of its own session on its own connection', async () => {
+        vi.clearAllMocks()
+        const transport = makeTransport()
+        const subscriber = createInsightsChatSubscriber({ app: {}, router: {}, transport })
+        await subscriber.connect({ id: 'team-1' })
+        await transport.attach.mock.calls[0][1].onConnect({})
+
+        expect(transport.subscribe).toHaveBeenCalledWith('expert/insights-agent', [
+            'ff/v1/expert/user-1/insights-1/+/+/insights/chat/response',
+            'ff/v1/expert/user-1/insights-1/+/+/insights/inflight/+/request'
+        ], { qos: 2 })
+        expect(expertStore.onChatConnected).toHaveBeenCalledWith('insights-agent')
+    })
+
+    test('tags its messages with the insights agent', async () => {
+        vi.clearAllMocks()
+        const transport = makeTransport()
+        const subscriber = createInsightsChatSubscriber({ app: {}, router: {}, transport })
+        await subscriber.connect({ id: 'team-1' })
+        transport.attach.mock.calls[0][1].onMessage('ff/v1/expert/user-1/insights-1/t/team-1/insights/chat/response', '{}', {})
+
+        expect(expertStore.receiveChatReply).toHaveBeenCalledWith({ agent: 'insights-agent', transactionId: null, payload: {} })
     })
 })
