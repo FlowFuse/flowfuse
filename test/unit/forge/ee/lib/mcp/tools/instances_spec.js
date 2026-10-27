@@ -983,14 +983,24 @@ describe('MCP Instances Tools', function () {
             tool.annotations.should.have.property('destructiveHint', true)
         })
 
-        it('posts the snapshot to the instance rollback action', async function () {
+        it('posts the snapshot to the instance rollback action, merging env vars by default', async function () {
             const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
-            inject.withArgs({ method: 'POST', url: `/api/v1/projects/${instanceId}/actions/rollback`, payload: { snapshot: 'snapshot1' } }).resolves(routeResponse)
+            inject.withArgs({ method: 'POST', url: `/api/v1/projects/${instanceId}/actions/rollback`, payload: { snapshot: 'snapshot1', mergeEnvVars: true } }).resolves(routeResponse)
 
             const response = await tool.handler({ instanceId, snapshotId: 'snapshot1' }, { inject })
 
             inject.calledOnce.should.be.true()
             response.should.equal(routeResponse)
+        })
+
+        it('passes mergeEnvVars through', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ status: 'okay' }) })
+
+            await tool.handler({ instanceId, snapshotId: 'snapshot1', mergeEnvVars: true }, { inject })
+            await tool.handler({ instanceId, snapshotId: 'snapshot1', mergeEnvVars: false }, { inject })
+
+            inject.firstCall.args[0].payload.should.eql({ snapshot: 'snapshot1', mergeEnvVars: true })
+            inject.secondCall.args[0].payload.should.eql({ snapshot: 'snapshot1', mergeEnvVars: false })
         })
 
         it('passes through the 400 for a snapshot from another instance', async function () {

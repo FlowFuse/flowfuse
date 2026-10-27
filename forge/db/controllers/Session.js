@@ -72,5 +72,30 @@ module.exports = {
             }
         }
         return session
+    },
+
+    /**
+     * Get a session by its id, but only return it if the session belongs to a
+     * user who has fully completed logging in. This applies the same checks the
+     * session middleware (verifySession) enforces: the account must not be
+     * suspended, the password must not be expired, the email must be verified
+     * (when email is in use) and any required MFA step must be complete.
+     *
+     * Routes that read the session cookie directly, rather than going through
+     * verifySession, should use this so a half-logged-in session cannot be
+     * treated as an authenticated user.
+     */
+    getValidSession: async function (app, sid) {
+        const session = await app.db.controllers.Session.getOrExpire(sid)
+        if (!session || !session.User) {
+            return null
+        }
+        const user = session.User
+        const emailVerified = !app.postoffice.enabled() || user.email_verified
+        const mfaComplete = !user.mfa_enabled || session.mfa_verified
+        if (user.suspended || user.password_expired || !emailVerified || !mfaComplete) {
+            return null
+        }
+        return session
     }
 }
