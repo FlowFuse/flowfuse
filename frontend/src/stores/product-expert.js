@@ -493,7 +493,8 @@ export const useProductExpertStore = defineStore('product-expert', {
                 entityId,
                 agentChannel: 'support',
                 topicType: 'chat',
-                topicAction: 'request'
+                topicAction: 'request',
+                sessionId: this.sessionId
             })
 
             return mqttService.publishMessage(this.mqttConnectionKey, {
@@ -1777,7 +1778,8 @@ export const useProductExpertStore = defineStore('product-expert', {
                         entityId,
                         agentChannel: 'support',
                         topicType: 'chat',
-                        topicAction: 'request'
+                        topicAction: 'request',
+                        sessionId: this.sessionId
                     })
 
                     // publishing an abort message to stop the agent
