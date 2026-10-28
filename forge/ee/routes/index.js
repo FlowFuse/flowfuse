@@ -34,6 +34,7 @@ module.exports = async function (app) {
     await app.register(require('./pipeline'), { prefix: '/api/v1', logLevel: app.config.logging.http })
     await app.register(require('./pipeline/teamPipelines.js'), { prefix: '/api/v1/teams/:teamId/pipelines', logLevel: app.config.logging.http })
     await app.register(require('./deviceEditor'), { prefix: '/api/v1/devices/:deviceId/editor', logLevel: app.config.logging.http })
+    await app.register(require('./projectLink'), { prefix: '/api/v1/teams/:teamId/project-link', logLevel: app.config.logging.http })
 
     await app.register(require('./flowBlueprints'), { prefix: '/api/v1/flow-blueprints', logLevel: app.config.logging.http })
 
