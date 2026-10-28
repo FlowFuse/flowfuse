@@ -18,4 +18,10 @@ describe('PageHeader user menu', () => {
         expect(tags).not.toContain('welcome-tour')
         expect(tags).toContain('getting-started')
     })
+
+    test('hides the welcome tour when AI onboarding is on', () => {
+        const tags = menuTags({ isAiOnboardingFeatureEnabled: true })
+        expect(tags).not.toContain('welcome-tour')
+        expect(tags).toContain('getting-started')
+    })
 })
