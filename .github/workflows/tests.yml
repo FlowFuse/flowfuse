@@ -181,7 +181,7 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Run UI E2E (Cypress) Tests - OS
-        uses: cypress-io/github-action@789d836053c5ca389c2905fc0c9f2909da778c46 # v7.4.5
+        uses: cypress-io/github-action@bc982daf1fc26474fa0cf2c355d6c910616ce411 # v7.4.7
         with:
           install: false
           config-file: config/cypress-os.config.js
@@ -227,7 +227,7 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Run UI E2E (Cypress) Tests - EE
-        uses: cypress-io/github-action@789d836053c5ca389c2905fc0c9f2909da778c46 # v7.4.5
+        uses: cypress-io/github-action@bc982daf1fc26474fa0cf2c355d6c910616ce411 # v7.4.7
         with:
             install: false
             config-file: config/cypress-ee.config.js
