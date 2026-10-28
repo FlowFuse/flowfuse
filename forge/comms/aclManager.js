@@ -73,6 +73,9 @@ module.exports = function (app) {
             // check to see if the device is assigned to something?
             const assignedTo = await app.db.models.Device.getOwnerTypeAndId(ids[2])
             if (assignedTo && assignedTo.ownerType && assignedTo.ownerId) {
+                if (acl.deviceOwnerType && acl.deviceOwnerType !== assignedTo.ownerType) {
+                    return false // rule does not apply to this type of device owner
+                }
                 return true
             }
             return false
@@ -131,6 +134,45 @@ module.exports = function (app) {
                 // postgres with throw over, unlike sqlite that returns no results.
                 return false
             }
+        },
+        checkClientInApplication: async function (requestParts, ids, acl) {
+            // requestParts = [ _ , <teamid>, <applicationid>, <sourceid> ]
+            // ids = [ 'project', <teamid>, <projectid> ] or [ 'device', <teamid>, <deviceid> ]
+
+            // Do the simple team id check
+            if (requestParts[1] !== ids[1]) {
+                return false
+            }
+            let applicationId
+            let sourceId
+            try {
+                if (ids[0] === 'project') {
+                    applicationId = await app.db.models.Project.getProjectApplicationId(ids[2])
+                    sourceId = ids[2]
+                } else if (ids[0] === 'device') {
+                    const assignedTo = await app.db.models.Device.getOwnerTypeAndId(ids[2])
+                    if (assignedTo?.ownerType === 'instance') {
+                        // An instance owned device is part of its instance's application
+                        // and broadcasts using its instance id
+                        applicationId = await app.db.models.Project.getProjectApplicationId(assignedTo.ownerId)
+                        sourceId = assignedTo.ownerId
+                    } else if (assignedTo?.ownerType === 'application') {
+                        applicationId = assignedTo.ownerId
+                        sourceId = `dev:${ids[2]}`
+                    }
+                }
+            } catch (err) {
+                // Any error likely means an id isn't a valid uuid - which
+                // postgres with throw over, unlike sqlite that returns no results.
+                return false
+            }
+            if (!applicationId || applicationId !== requestParts[2]) {
+                return false // not a member of this application
+            }
+            if (acl.checkSource && requestParts[3] !== sourceId) {
+                return false // can only publish as itself
+            }
+            return true
         },
         checkTeamUserSession: async function (requestParts, usernameParts) {
             // requestParts = [ fullTopic , <teamHash> [, <userHash>] ] - v1
