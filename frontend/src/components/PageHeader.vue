@@ -179,7 +179,10 @@ export default {
                     label: 'Welcome Tour',
                     icon: CursorArrowRaysIcon,
                     tag: 'welcome-tour',
-                    onclick: this.startWelcomeTour
+                    onclick: this.startWelcomeTour,
+                    // Same rule as dispatchTour on the team page: the tour walks the classic dashboard, which
+                    // the Expert home doesn't have, and AI onboarding covers the same ground by doing
+                    hidden: !!(this.featuresCheck.isAiOnboardingFeatureEnabled || this.featuresCheck.isExpertAssistantFeatureEnabled)
                 },
                 {
                     label: 'Sign Out',
