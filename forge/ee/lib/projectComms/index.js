@@ -53,6 +53,8 @@ module.exports.init = function (app) {
         )
         // Receive application scoped broadcasts from members of this project's application
         // - ff/v1/<team>/a/<application>/p/+/out/+/#
+        //   a = the application the broadcast is scoped to (must be this project's application)
+        //   p = the sender: an instance id, or dev:<deviceid> for an application owned device
         app.comms.aclManager.addACL(
             'project',
             'sub',
@@ -60,6 +62,8 @@ module.exports.init = function (app) {
         )
         // Send application scoped broadcast messages
         // - ff/v1/<team>/a/<application>/p/<project>/out/+/#
+        //   a = this project's application
+        //   p = this project's id (the sender)
         app.comms.aclManager.addACL(
             'project',
             'pub',
@@ -147,6 +151,8 @@ module.exports.init = function (app) {
         )
         // Receive application scoped broadcasts from members of this device's application
         // - ff/v1/<team>/a/<application>/p/+/out/+/#
+        //   a = the application the broadcast is scoped to (must be this device's application)
+        //   p = the sender: an instance id, or dev:<deviceid> for an application owned device
         app.comms.aclManager.addACL(
             'device',
             'sub',
@@ -154,6 +160,9 @@ module.exports.init = function (app) {
         )
         // Send application scoped broadcast messages
         // - ff/v1/<team>/a/<application>/p/<project | dev:deviceid>/out/+/#
+        //   a = this device's application (via its instance, if instance owned)
+        //   p = the sender: the owning instance's id for an instance owned device,
+        //       or dev:<deviceid> for an application owned device
         app.comms.aclManager.addACL(
             'device',
             'pub',
