@@ -20,24 +20,9 @@ meta:
 FlowFuse Cloud is a hosted service allowing users to sign-up and start creating Node-RED instances without having to install and manage their own instance of FlowFuse.
 The [Concepts](/docs/user/concepts/) remain the same, but we run the platform for you.
 
-## 30-day Free Trial
-
-When users sign-up to FlowFuse Cloud they get a 30-day free trial of the platform.
-This is a great way to start using FlowFuse and discover a lot of the value it provides.
-
-The trial ends automatically after 30 days. FlowFuse will reach out during the trial via email. 
-If the user wants to continue on our platform or want to learn more about FlowFuse, a meeting will be set up with sales. 
-
-Otherwise, at the end of the 30-day trial period, any instances created in the team
-will be suspended. This means they will no longer be running and the
-editor will not be accessible. 
-
-We will email users about their trial when it is nearing the end to ensure
-they know what is happening.
-
 ## Billing
 
-Customers will only get billed for teams that aren't in a trial anymore and will need to sign an order form for an annual contract. This will be handled via sales or the CSM. 
+Customers will need to sign an order form for an annual contract. This will be handled via sales or the CSM. 
 
 ## Support
 
@@ -54,7 +39,7 @@ and click the button to resend it.
 
 ## Team Types
 
-FlowFuse Cloud offers a Edge Trial, Edge, Hub and Fleet Team Type, aimed at different sorts of users. 
+FlowFuse Cloud offers a Edge, Hub and Fleet Team Type, aimed at different sorts of users. 
 
 
 ### Changing Team Type

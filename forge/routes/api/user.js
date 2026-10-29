@@ -306,10 +306,11 @@ module.exports = async function (app) {
             tags: ['Tokens'],
             body: {
                 type: 'object',
+                required: ['name'],
                 properties: {
                     scope: { type: 'string' },
                     expiresAt: { type: 'number' },
-                    name: { type: 'string' },
+                    name: { type: 'string', minLength: 1, pattern: '\\S' },
                     readOnly: { type: 'boolean' },
                     adminOptIn: { type: 'boolean' },
                     teamIds: { type: 'array', items: { type: 'string' } }
