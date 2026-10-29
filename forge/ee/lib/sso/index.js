@@ -12,7 +12,8 @@ module.exports.init = async function (app) {
 
     async function getProviderOptions (id) {
         const provider = await app.db.models.SAMLProvider.byId(id)
-        if (provider) {
+        // Only SAML providers have options the SAML strategy can use
+        if (provider && provider.type === 'saml') {
             const result = { ...provider.getOptions() }
             // @node-saml@4 renamed `cert` to `idpCert`
             result.idpCert = result.cert

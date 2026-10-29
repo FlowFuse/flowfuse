@@ -39,64 +39,69 @@ module.exports = fp(async function (app, opts) {
         disableRequestedAuthnContext: true, // Helps make things work with Entra
         wantAssertionsSigned: false, // TODO: allow this to be set per provider
         async getSamlOptions (request, done) {
-            if (request.body?.RelayState) {
-                // This is an in-flight request. We previously stored the SAML provider
-                // id in RelayState - which should get returned to us here.
-                // Use that to get back the right SAML options
-                const state = JSON.parse(request.body.RelayState)
-                const opts = await app.sso.getProviderOptions(state.provider)
-                if (opts) {
-                    done(null, opts)
-                } else {
-                    done(new Error(`Unknown SAML provider: ${state.provider}`))
-                }
-                return
-            }
-            if (request.query.u) {
-                // This is an initial request to start a SAML flow. The user
-                // email is provided as a query parameter 'u'
-                const providerId = await app.sso.getProviderForEmail(request.query.u)
-                const opts = await app.sso.getProviderOptions(providerId)
-                if (opts) {
-                    request.query.RelayState = JSON.stringify({
-                        provider: providerId,
-                        redirectTo: decodeURIComponent(request.query.r || '/')
-                    })
-                    done(null, opts)
-                    return
-                } else {
-                    done(new Error(`No matching SAML provider for email ${request.query.u}`))
-                    return
-                }
-            } else if (request.query.p) {
-                const providerId = request.query.p
-                const opts = await app.sso.getProviderOptions(providerId)
-                if (opts) {
-                    request.query.RelayState = JSON.stringify({
-                        provider: providerId,
-                        redirectTo: decodeURIComponent(request.query.r || '/')
-                    })
-
-                    if (opts.sendIdpHint && request.query.t) {
-                        const target = await app.db.models.OAuthSession.getAndRemoveById(request.query.t, false)
-                        try {
-                            const redirect = new URL(target.redirect_uri)
-                            opts.additionalAuthorizeParams = {
-                                kc_idp_hint: redirect.host
-                            }
-                        } catch (err) {
-                            // ignore error in parsing URL and send no hint
-                        }
+            try {
+                if (request.body?.RelayState) {
+                    // This is an in-flight request. We previously stored the SAML provider
+                    // id in RelayState - which should get returned to us here.
+                    // Use that to get back the right SAML options
+                    const state = JSON.parse(request.body.RelayState)
+                    const opts = await app.sso.getProviderOptions(state.provider)
+                    if (opts) {
+                        done(null, opts)
+                    } else {
+                        done(new Error(`Unknown SAML provider: ${state.provider}`))
                     }
-
-                    done(null, opts)
-                    return
-                } else {
-                    done(new Error(`SAML provider for id ${request.query.p} not found`))
                     return
                 }
+                if (request.query.u) {
+                    // This is an initial request to start a SAML flow. The user
+                    // email is provided as a query parameter 'u'
+                    const providerId = await app.sso.getProviderForEmail(request.query.u)
+                    const opts = await app.sso.getProviderOptions(providerId)
+                    if (opts) {
+                        request.query.RelayState = JSON.stringify({
+                            provider: providerId,
+                            redirectTo: decodeURIComponent(request.query.r || '/')
+                        })
+                        done(null, opts)
+                        return
+                    } else {
+                        done(new Error(`No matching SAML provider for email ${request.query.u}`))
+                        return
+                    }
+                } else if (request.query.p) {
+                    const providerId = request.query.p
+                    const opts = await app.sso.getProviderOptions(providerId)
+                    if (opts) {
+                        request.query.RelayState = JSON.stringify({
+                            provider: providerId,
+                            redirectTo: decodeURIComponent(request.query.r || '/')
+                        })
+
+                        if (opts.sendIdpHint && request.query.t) {
+                            const target = await app.db.models.OAuthSession.getAndRemoveById(request.query.t, false)
+                            try {
+                                const redirect = new URL(target.redirect_uri)
+                                opts.additionalAuthorizeParams = {
+                                    kc_idp_hint: redirect.host
+                                }
+                            } catch (err) {
+                                // ignore error in parsing URL and send no hint
+                            }
+                        }
+
+                        done(null, opts)
+                        return
+                    } else {
+                        done(new Error(`SAML provider for id ${request.query.p} not found`))
+                        return
+                    }
+                }
+                done(new Error('Missing u query parameter'))
+            } catch (err) {
+                // An error thrown after the awaits would otherwise be an unhandled rejection
+                done(err)
             }
-            done(new Error('Missing u query parameter'))
         }
     }, async (request, samlUser, done) => {
         if (samlUser.nameID) {
