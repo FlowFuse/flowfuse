@@ -26,6 +26,20 @@ describe('Google SSO callback', function () {
             }
         })
 
+        await app.db.models.SAMLProvider.create({
+            name: 'ldap.com',
+            domainFilter: '@ldap.com',
+            active: true,
+            type: 'ldap',
+            options: {
+                server: 'ldap://localhost:3893',
+                username: 'cn=search,dc=ldap,dc=com',
+                password: 'secret',
+                baseDN: 'dc=ldap,dc=com',
+                userFilter: '(mail=${email})' // eslint-disable-line no-template-curly-in-string
+            }
+        })
+
         sinon.stub(OAuth2Client.prototype, 'getTokenInfo').resolves({ aud: 'test-client-id' })
         sinon.stub(OAuth2Client.prototype, 'request').callsFake(async () => ({ data: userinfo }))
     })
@@ -54,6 +68,13 @@ describe('Google SSO callback', function () {
         const response = await googleCallback({ email: 'carol@corp.com', email_verified: true, hd: 'corp.com' })
         response.statusCode.should.equal(200)
         response.json().should.have.property('url', `/ee/sso/login?u=${encodeURIComponent('carol@corp.com')}`)
+        response.cookies.should.have.length(0)
+    })
+
+    it('rejects an account on a domain whose SSO provider is LDAP', async function () {
+        const response = await googleCallback({ email: 'erin@ldap.com', email_verified: true })
+        response.statusCode.should.equal(403)
+        response.json().should.have.property('code', 'ldap_sso')
         response.cookies.should.have.length(0)
     })
 

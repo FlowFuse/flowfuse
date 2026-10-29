@@ -55,11 +55,16 @@ module.exports = fp(async function (app, opts) {
             }
             // Any email on a domain with an SSO provider must go through that provider,
             // whether or not Google reports a Workspace (hd) account
-            const providerId = await app.sso.getProviderForEmail(googleUserInfo.email)
-            if (providerId) {
-                reply.send({
-                    url: `/ee/sso/login?u=${encodeURIComponent(googleUserInfo.email)}`
-                })
+            const provider = await app.db.models.SAMLProvider.forEmail(googleUserInfo.email)
+            if (provider) {
+                if (provider.type === 'saml') {
+                    reply.send({
+                        url: `/ee/sso/login?u=${encodeURIComponent(googleUserInfo.email)}`
+                    })
+                } else {
+                    // LDAP sign in needs a username and password, so it cannot be started from Google
+                    reply.code(403).send({ code: 'ldap_sso', error: 'LDAP enabled for this domain' })
+                }
                 return
             }
             if (googleUserInfo.hd) {
