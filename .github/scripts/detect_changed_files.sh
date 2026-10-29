@@ -35,7 +35,8 @@ for file in $changed_files; do
         $file == test/unit/frontend/* || 
         $file == package.json || 
         $file == package-lock.json || 
-        $file == .eslintrc ]]; then
+        $file == .eslintrc ||
+        $file == .github/workflows/tests.yml ]]; then
     backend_changed=true
   fi
 
@@ -43,7 +44,8 @@ for file in $changed_files; do
         $file == test/unit/* || 
         $file == test/system/* || 
         $file == package.json || 
-        $file == package-lock.json ]]; then
+        $file == package-lock.json ||
+        $file == .github/workflows/tests.yml ]]; then
     postgres_changed=true
   fi
 
@@ -55,7 +57,8 @@ for file in $changed_files; do
         $file == test/unit/frontend/* || 
         $file == package.json || 
         $file == package-lock.json || 
-        $file == .eslintrc ]]; then
+        $file == .eslintrc ||
+        $file == .github/workflows/tests.yml ]]; then
     ui_changed=true
   fi
   
