@@ -76,10 +76,13 @@ describe('Team - Instances', () => {
         })
 
         it('are shown a list of dashboards and can open one in the viewer', () => {
+            cy.intercept('GET', '/api/*/teams/*/dashboard-instances').as('getDashboardInstances')
+
             cy.login('dashboard-dave', 'ddPassword')
             cy.visit('/team/ateam')
 
             cy.wait('@getTeam')
+            cy.wait('@getDashboardInstances')
 
             cy.get('[data-el="dashboards-table"]').within(() => {
                 cy.contains('instance-1-1')
