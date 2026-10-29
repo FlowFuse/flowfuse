@@ -26,6 +26,19 @@ const forge = require('./forge')
     // this one flag
     const enableRepl = process.argv.includes('--repl')
     let server
+
+    // A stray error in an async callback should be logged, not take the platform down
+    function logProcessError (type, err) {
+        const message = `${type}: ${err && err.stack ? err.stack : err}`
+        if (server) {
+            server.log.error(message)
+        } else {
+            console.error(message)
+        }
+    }
+    process.on('unhandledRejection', err => logProcessError('Unhandled rejection', err))
+    process.on('uncaughtException', err => logProcessError('Uncaught exception', err))
+
     try {
         server = await forge()
 
