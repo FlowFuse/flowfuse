@@ -346,6 +346,14 @@ describe('Audit Log > Project', async function () {
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
+    it('Records whether env vars were merged when rolling back a snapshot', async function () {
+        await projectLogger.project.snapshot.rolledBack(ACTIONED_BY, null, PROJECT, SNAPSHOT, { mergeEnvVars: true })
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.snapshot.rolled-back')
+        logEntry.body.should.only.have.keys('project', 'snapshot', 'info')
+        logEntry.body.info.should.eql({ mergeEnvVars: true })
+    })
+
     it('Provides a logger for deleteing a snapshot of a project', async function () {
         await projectLogger.project.snapshot.deleted(ACTIONED_BY, null, PROJECT, SNAPSHOT)
         // check log stored

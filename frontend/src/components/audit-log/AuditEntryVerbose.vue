@@ -691,7 +691,7 @@
     </template>
     <template v-else-if="entry.event === 'project.snapshot.rolled-back' || entry.event === 'project.snapshot.rollback'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project && entry.body.snapshot">Instance '{{ entry.body.project?.name }}' has been rolled back to the Snapshot '{{ entry.body.snapshot?.name }}'.</span>
+        <span v-if="!error && entry.body?.project && entry.body.snapshot">Instance '{{ entry.body.project?.name }}' has been rolled back to the Snapshot '{{ entry.body.snapshot?.name }}'<template v-if="entry.body.info"> and its environment variables were {{ entry.body.info.mergeEnvVars ? 'merged' : 'replaced' }}</template>.</span>
         <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.snapshot.deleted'">

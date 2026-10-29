@@ -1077,8 +1077,8 @@ describe('Application Device Groups API', function () {
             // get the group from DB and verify it contains 2 devices (device1, device3)
             const updatedDeviceGroup2 = await app.db.models.DeviceGroup.byId(deviceGroup.hashid)
             updatedDeviceGroup2.should.have.property('Devices').and.have.length(2)
-            updatedDeviceGroup2.Devices[0].should.have.property('id', device1.id)
-            updatedDeviceGroup2.Devices[1].should.have.property('id', device3.id)
+            // DeviceGroup.byId does not order its Devices
+            updatedDeviceGroup2.Devices.map(d => d.id).sort((a, b) => a - b).should.eql([device1.id, device3.id])
         })
 
         it('Owner can set the list of devices in existing group', async function () {
