@@ -831,6 +831,39 @@ describe('Project Snapshots API', function () {
     })
 
     describe('Rollback a snapshot', function () {
+        const setEnv = async (env) => {
+            const result = await addFlowsToProject(app,
+                TestObjects.project1.id,
+                TestObjects.tokens.project,
+                TestObjects.tokens.alice,
+                [{ id: 'node1' }],
+                { testCreds: 'abc' },
+                'key1',
+                { env }
+            )
+            result.updateProjectSettingsResponse.statusCode.should.equal(200)
+        }
+        const getEnv = async () => {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${app.project.id}/settings`,
+                headers: { authorization: `Bearer ${TestObjects.tokens.project}` }
+            })
+            // drop the platform FF_* vars so tests can assert the exact set of user vars
+            const env = Object.entries(response.json().env).filter(([name]) => !name.startsWith('FF_'))
+            return Object.fromEntries(env)
+        }
+        const rollback = (payload) => app.inject({
+            method: 'POST',
+            url: `/api/v1/projects/${app.project.id}/actions/rollback`,
+            payload,
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        const getRollbackLogInfo = async () => {
+            const log = await app.db.models.AuditLog.findOne({ where: { event: 'project.snapshot.rolled-back', entityId: app.project.id }, order: [['id', 'DESC']] })
+            return JSON.parse(log.body).info
+        }
+
         it('Rolls back to a different snapshot', async function () {
             // Setup an initial configuration
             const setupResult = await addFlowsToProject(app,
@@ -935,6 +968,83 @@ describe('Project Snapshots API', function () {
             rolledBackSettings.settings.palette.modules.should.not.have.property('module2', '2.0.0')
             rolledBackSettings.env.should.have.property('one', 'a')
             rolledBackSettings.env.should.have.property('two', 'b')
+        })
+
+        it('keeps the instance env vars when rolling back with mergeEnvVars', async function () {
+            await setEnv([
+                { name: 'one', value: 'a' },
+                { name: 'two', value: 'b' }
+            ])
+            const snapshot = (await createSnapshot(TestObjects.project1.id, 'merge-env-snapshot', TestObjects.tokens.alice)).json()
+
+            // 'one' changed and 'three' added after the snapshot, 'two' removed
+            await setEnv([
+                { name: 'one', value: 'a2' },
+                { name: 'three', value: 'c' }
+            ])
+
+            const mergeResponse = await rollback({ snapshot: snapshot.id, mergeEnvVars: true })
+            mergeResponse.statusCode.should.equal(200)
+            ;(await getRollbackLogInfo()).should.eql({ mergeEnvVars: true })
+            const merged = await getEnv()
+            merged.should.have.keys('one', 'two', 'three')
+            merged.should.have.property('one', 'a2') // existing value kept
+            merged.should.have.property('two', 'b') // added from snapshot
+            merged.should.have.property('three', 'c') // existing key kept
+
+            await setEnv([
+                { name: 'one', value: 'a2' },
+                { name: 'three', value: 'c' }
+            ])
+
+            const replaceResponse = await rollback({ snapshot: snapshot.id, mergeEnvVars: false })
+            replaceResponse.statusCode.should.equal(200)
+            ;(await getRollbackLogInfo()).should.eql({ mergeEnvVars: false })
+            const replaced = await getEnv()
+            replaced.should.have.keys('one', 'two')
+            replaced.should.have.property('one', 'a')
+            replaced.should.have.property('two', 'b')
+        })
+
+        it('replaces the instance env vars when mergeEnvVars is omitted', async function () {
+            await setEnv([{ name: 'one', value: 'a' }])
+            const snapshot = (await createSnapshot(TestObjects.project1.id, 'omitted-flag-snapshot', TestObjects.tokens.alice)).json()
+            await setEnv([
+                { name: 'one', value: 'a2' },
+                { name: 'added', value: 'x' }
+            ])
+
+            const response = await rollback({ snapshot: snapshot.id })
+            response.statusCode.should.equal(200)
+            ;(await getRollbackLogInfo()).should.eql({ mergeEnvVars: false })
+            const env = await getEnv()
+            env.should.have.keys('one')
+            env.should.have.property('one', 'a')
+        })
+
+        it('rolls back to a snapshot with no env vars', async function () {
+            await setEnv([])
+            const snapshot = (await createSnapshot(TestObjects.project1.id, 'no-env-snapshot', TestObjects.tokens.alice)).json()
+            await setEnv([
+                { name: 'one', value: 'a' },
+                { name: 'two', value: 'b' }
+            ])
+
+            const mergeResponse = await rollback({ snapshot: snapshot.id, mergeEnvVars: true })
+            mergeResponse.statusCode.should.equal(200)
+            const merged = await getEnv()
+            merged.should.have.keys('one', 'two')
+
+            const replaceResponse = await rollback({ snapshot: snapshot.id, mergeEnvVars: false })
+            replaceResponse.statusCode.should.equal(200)
+            const replaced = await getEnv()
+            replaced.should.be.empty()
+        })
+
+        it('rejects a non-boolean mergeEnvVars', async function () {
+            const snapshot = (await createSnapshot(TestObjects.project1.id, 'invalid-flag-snapshot', TestObjects.tokens.alice)).json()
+            const response = await rollback({ snapshot: snapshot.id, mergeEnvVars: 'abc' })
+            response.statusCode.should.equal(400)
         })
 
         it('holds a restarting mask through the bounce when rolling back a running instance', async function () {

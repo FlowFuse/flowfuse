@@ -51,7 +51,7 @@ jobs:
       - name: Generate TypeScript types
         run: npm run generate:types
         env:
-          DEV_ENTERPRISE_TIER_LICENSE: ${{ secrets.DEV_ENTERPRISE_TIER_LICENSE }}
+          DEV_ENTERPRISE_TIER_LICENSE: ${{ secrets.DEV_ENTERPRISE_TIER_LICENSE || 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijg1NGZmZmRiLTBhNWYtNDE2NS05NDU3LWZiMGY0YmViZThkOSIsInZlciI6IjIwMjYtMDgtMjAiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNzg4MjIwODAwLCJleHAiOjMyNTAzNjgwMDAwLCJ1c2VycyI6MTUwLCJ0ZWFtcyI6NTAsInByb2plY3RzIjoxMDAsImRldmljZXMiOjEwMCwibXF0dENsaWVudHMiOjIwLCJ0aWVycyI6WyJ0ZXN0aW5nIl0sImRldiI6dHJ1ZSwiaWF0IjoxNzkwMDA4MTc2fQ.dixkJgjh1O304loXZO8fR1XCX63jhfO1CP_UpvWu_iowoxo-B07_PswtBrN7e1nJDpP-r_YeYu4eJUWn-ZlKJw' }}
       - name: Check drift
         run: |
           if ! git diff --exit-code frontend/src/types/generated.ts ; then
@@ -177,7 +177,7 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Run UI E2E (Cypress) Tests - OS
-        uses: cypress-io/github-action@789d836053c5ca389c2905fc0c9f2909da778c46 # v7.4.5
+        uses: cypress-io/github-action@bc982daf1fc26474fa0cf2c355d6c910616ce411 # v7.4.7
         with:
           install: false
           config-file: config/cypress-os.config.js
@@ -222,7 +222,7 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Run UI E2E (Cypress) Tests - EE
-        uses: cypress-io/github-action@789d836053c5ca389c2905fc0c9f2909da778c46 # v7.4.5
+        uses: cypress-io/github-action@bc982daf1fc26474fa0cf2c355d6c910616ce411 # v7.4.7
         with:
             install: false
             config-file: config/cypress-ee.config.js
