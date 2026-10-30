@@ -895,8 +895,8 @@ describe('Broker Auth v2 API', async function () {
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/a/${TestObjects.ApplicationA.hashid}/command`
                         })
                     })
-                    it('can subscribe to project inbox', async function () {
-                        await allowRead({
+                    it('cannot subscribe to project inbox', async function () {
+                        await denyRead({
                             username: deviceUsername,
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectA.id}/in/foo`
                         })
