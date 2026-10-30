@@ -85,12 +85,6 @@ target instance must be running and have a `Project In` node listening on the sa
 topic. Because every call travels through the platform's broker, logic called this
 way is unavailable to a caller whose connection to the platform is down.
 
-**Calls need the target to be up.** The `Project Call` node waits for the default
-timeout of 30 seconds, then logs an error that can be caught with a Catch node. The
-target instance must be running and have a `Project In` node listening on the same
-topic. Because every call travels through the platform's broker, logic called this
-way is unavailable to a caller whose connection to the platform is down.
-
 **Load is shared only in HA mode.** The instance holding the called flows serves every
 caller from a single Node-RED runtime. In [High Availability mode](./high-availability.md)
 the nodes automatically switch to MQTT shared subscriptions, so calls are distributed
