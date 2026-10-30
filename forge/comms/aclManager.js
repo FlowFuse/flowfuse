@@ -422,15 +422,16 @@ module.exports = function (app) {
                         throw ValidationError('user is not a member of the team that owns this project')
                     }
 
-                    // check expert assistant feature is enabled for the team (support agent uses MQTT)
+                    // check the team has the Expert feature for the agent this topic talks to
                     if (acl.isClient) {
                         const team = await app.db.models.Team.byId(teamId)
                         if (team) {
                             await team.ensureTeamTypeExists()
+                            const feature = acl.agent === 'insights' ? 'expertInsights' : 'expertAssistant'
                             const isAiEnabled = !!(app.config.features.enabled('ai') && team.getFeatureProperty('ai', true))
-                            const isExpertAssistantEnabled = !!(app.config.features.enabled('expertAssistant') && team.getFeatureProperty('expertAssistant', true))
-                            if (!isAiEnabled || !isExpertAssistantEnabled) {
-                                throw ValidationError('expert assistant feature is not enabled for this team')
+                            const isAgentEnabled = !!(app.config.features.enabled(feature) && team.getFeatureProperty(feature, true))
+                            if (!isAiEnabled || !isAgentEnabled) {
+                                throw ValidationError(`${feature} feature is not enabled for this team`)
                             }
                         }
                     }
@@ -869,27 +870,35 @@ module.exports = function (app) {
                 // topic captures, 0 = full topic, 1 = userid, 2 = sessionid, 3 = entity type (a|p|d|t), 4 = entity id, 5 = inflight type (only for inflight topics)
                 // example topic: ff/v1/expert/user123/session123/p/abc-123-456-789/support/chat/response
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/response$/, verify: 'checkExpertTopic', channel: 'chat', allowWildcard: { entity: true }, isClient: true, isSub: true },
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { entity: true, inflightType: true }, isClient: true, isSub: true }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/insights\/chat\/response$/, verify: 'checkExpertTopic', channel: 'chat', allowWildcard: { entity: true }, isClient: true, isSub: true, agent: 'insights' },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { entity: true, inflightType: true }, isClient: true, isSub: true },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/insights\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { entity: true, inflightType: true }, isClient: true, isSub: true, agent: 'insights' }
             ],
             pub: [
                 // topic: ff/v1/expert/<userid>/<sessionid>/<a|p|d|t>/<appid|projid|devid|teamid>/support/chat/request
                 // topic captures, 0 = full topic, 1 = userid, 2 = sessionid, 3 = entity type (a|p|d|t), 4 = entity id, 5 = inflight type (only for inflight topics)
                 // example topic: ff/v1/expert/user123/session123/p/abc-111-222-333/support/chat/request
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/support\/chat\/request$/, verify: 'checkExpertTopic', channel: 'chat', isClient: true, isPub: true },
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', isClient: true, isPub: true }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/insights\/chat\/request$/, verify: 'checkExpertTopic', channel: 'chat', isClient: true, isPub: true, agent: 'insights' },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', isClient: true, isPub: true },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/insights\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', isClient: true, isPub: true, agent: 'insights' }
             ]
         },
         // backend client (agent 1st party (no bridge))
         expertAgent: {
             sub: [
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/request$/, verify: 'checkExpertTopic', channel: 'chat', allowWildcard: { user: true, session: true, entity: true }, isAgent: true, isSub: true, agent: 'support' },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/insights\/chat\/request$/, verify: 'checkExpertTopic', channel: 'chat', allowWildcard: { user: true, session: true, entity: true }, isAgent: true, isSub: true, agent: 'insights' },
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { user: true, session: true, entity: true, inflightType: true }, isAgent: true, isSub: true, agent: 'support' },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/insights\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { user: true, session: true, entity: true, inflightType: true }, isAgent: true, isSub: true, agent: 'insights' },
                 // Expert agent can listen for platform responses
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isAgent: true, isSub: true, agent: 'platform' }
             ],
             pub: [
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/response$/, verify: 'checkExpertTopic', channel: 'chat', isAgent: true, isPub: true, agent: 'support' },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/insights\/chat\/response$/, verify: 'checkExpertTopic', channel: 'chat', isAgent: true, isPub: true, agent: 'insights' },
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', isAgent: true, isPub: true, agent: 'support' },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/insights\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', isAgent: true, isPub: true, agent: 'insights' },
                 // Expert agent can respond to platform requests
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', isAgent: true, isPub: true, agent: 'platform' },
             ]
