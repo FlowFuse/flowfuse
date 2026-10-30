@@ -1112,6 +1112,113 @@ describe('product-expert store', () => {
             expect(store._disconnectNoticeTimer).toBeNull()
             expect(useProductExpertInsightsAgentStore().inFlightRequests.size).toBe(1)
         })
+
+        describe('when the user switches agents mid-flight', () => {
+            // Arranges the support agent on screen, then switches to insights once the
+            // connection for the support send has been made
+            function switchWhileConnecting (store) {
+                const connect = store._connectChat.bind(store)
+                vi.spyOn(store, '_connectChat').mockImplementation(async (agent) => {
+                    await connect(agent)
+                    store.setAgentMode(INSIGHTS_AGENT)
+                })
+            }
+
+            function arrangeSupport () {
+                accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+                contextState.team = { id: 'team-1' }
+                useAccountAuthStore().user = { id: 'user-1' }
+                useProductExpertSupportAgentStore().sessionId = 'session-sup'
+                useProductExpertInsightsAgentStore().sessionId = 'session-ins'
+                return useProductExpertStore()
+            }
+
+            afterEach(() => {
+                vi.useRealTimers()
+            })
+
+            it('keeps a question with the agent it was asked in', async () => {
+                const store = arrangeSupport()
+                switchWhileConnecting(store)
+
+                await store.sendMqttQuery({ query: 'how do I deploy?' })
+
+                const [, message] = mqttService.publishMessage.mock.calls[0]
+                expect(message.topic).toBe('ff/v1/expert/user-1/session-sup/t/team-1/support/chat/request')
+                expect(useProductExpertSupportAgentStore().inFlightRequests.size).toBe(1)
+                expect(useProductExpertInsightsAgentStore().inFlightRequests.size).toBe(0)
+            })
+
+            it('keeps a vote with the agent it was cast in', async () => {
+                const store = arrangeSupport()
+                switchWhileConnecting(store)
+
+                await store._publishTurnVote({ _transactionId: 'turn-1' }, { value: 'up' })
+
+                const [, message] = mqttService.publishMessage.mock.calls[0]
+                expect(message.topic).toBe('ff/v1/expert/user-1/session-sup/t/team-1/support/chat/request')
+            })
+
+            it('sends a system notice to the support agent whichever agent is on screen', async () => {
+                const store = arrangeSupport()
+                store.setAgentMode(INSIGHTS_AGENT)
+
+                await store._publishSystemEvent({ id: 'inst-1' }, { kind: 'instance-ready' })
+
+                const [, message] = mqttService.publishMessage.mock.calls[0]
+                expect(message.topic).toBe('ff/v1/expert/user-1/session-sup/t/team-1/support/chat/request')
+                expect(useProductExpertSupportAgentStore().inFlightRequests.size).toBe(1)
+                expect(useProductExpertInsightsAgentStore().inFlightRequests.size).toBe(0)
+            })
+
+            it('drops the disconnect notice when its agent reconnects off screen', async () => {
+                vi.useFakeTimers()
+                const store = arrangeSupport()
+
+                store.onChatConnectionClosed(SUPPORT_AGENT)
+                store.setAgentMode(INSIGHTS_AGENT)
+                store.onChatConnected(SUPPORT_AGENT)
+                await vi.advanceTimersByTimeAsync(60000)
+
+                expect(useProductExpertSupportAgentStore().messages).toHaveLength(0)
+                expect(useProductExpertInsightsAgentStore().messages).toHaveLength(0)
+            })
+
+            it('posts the disconnect notice in the chat it belongs to', async () => {
+                vi.useFakeTimers()
+                const store = arrangeSupport()
+
+                store.onChatConnectionClosed(SUPPORT_AGENT)
+                store.setAgentMode(INSIGHTS_AGENT)
+                await vi.advanceTimersByTimeAsync(15000)
+
+                expect(useProductExpertSupportAgentStore().messages).toHaveLength(1)
+                expect(useProductExpertInsightsAgentStore().messages).toHaveLength(0)
+            })
+
+            it('ends the turn of an agent off screen that hits a fatal error', async () => {
+                const store = arrangeSupport()
+                const support = useProductExpertSupportAgentStore()
+                support.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+                store.setAgentMode(INSIGHTS_AGENT)
+
+                await store.handleMqttError(0x86, 'bad credentials', SUPPORT_AGENT)
+
+                expect(support.inFlightRequests.size).toBe(0)
+                expect(support.messages).toHaveLength(1)
+                expect(support.messages[0].errorCode).toBe('fatal')
+                expect(useProductExpertInsightsAgentStore().messages).toHaveLength(0)
+            })
+
+            it('tells the chat on screen to start over after a fatal error', async () => {
+                const store = arrangeSupport()
+
+                await store.handleMqttError(0x86, 'bad credentials', SUPPORT_AGENT)
+
+                expect(store.messages).toHaveLength(1)
+                expect(store.messages[0].errorCode).toBe('fatal')
+            })
+        })
     })
 
     describe('relayInstanceReady', () => {
