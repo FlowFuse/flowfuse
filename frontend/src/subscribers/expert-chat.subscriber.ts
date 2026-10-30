@@ -8,14 +8,9 @@ import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insi
 import { useProductExpertSupportAgentStore } from '@/stores/product-expert-support-agent.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 import { Maybe } from '@/types/common/types'
+import type { ExpertChatChannel } from '@/types/services/expert-chat.types'
 import type { CreateSubscriberOptions, TeamRef, TeamSubscriberI } from '@/types/subscribers/subscriber.types'
 import type { TransportError, TransportMessagePacket, TransportReasonPacket, TransportSubscribeOptions } from '@/types/transport/transport.types'
-
-interface ExpertChatChannel {
-    agent: string
-    channel: 'support' | 'insights'
-    useAgentStore: () => { sessionId: Maybe<string>, mqttConnectionKey: string }
-}
 
 function decodeCorrelation (packet?: TransportMessagePacket): Maybe<string> {
     const correlationData = packet?.properties?.correlationData

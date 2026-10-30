@@ -9,15 +9,10 @@ import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insi
 import { useProductExpertSupportAgentStore } from '@/stores/product-expert-support-agent.js'
 import { Maybe } from '@/types/common/types'
 import type { CreatePublisherOptions, ExpertChatPublisherI, InflightResponse } from '@/types/publishers/publisher.types'
+import type { ExpertChatChannel } from '@/types/services/expert-chat.types'
 import type { MqttPayload } from '@/types/services/mqtt.types'
 import type { TeamRef } from '@/types/subscribers/subscriber.types'
 import type { TransportPublishOptions } from '@/types/transport/transport.types'
-
-interface ExpertChatChannel {
-    agent: string
-    channel: 'support' | 'insights'
-    useAgentStore: () => { sessionId: Maybe<string>, mqttConnectionKey: string }
-}
 
 /**
  * Sends one agent's chat: requests, aborts, votes and system notices, and the answers to
