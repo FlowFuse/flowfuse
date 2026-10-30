@@ -5,7 +5,7 @@ import teamApi from '@/api/team.js'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { Maybe } from '@/types/common/types'
 import type { CreateSubscriberOptions, SubscriberInstances, TeamRef } from '@/types/subscribers/subscriber.types'
-import type { Transport, TransportAttachmentHandle, TransportMessagePacket, TransportSubscribeOptions } from '@/types/transport/transport.types'
+import type { Transport, TransportAttachmentHandle, TransportError, TransportMessagePacket, TransportReasonPacket, TransportSubscribeOptions } from '@/types/transport/transport.types'
 
 export function connectionKey (teamId: string): string {
     return `team:${teamId}`
@@ -114,17 +114,17 @@ export abstract class TeamSubscriber<TTransport extends Transport = Transport> {
 
         const teamId = team.id
         const sessionId = authStore.getSessionId()
-        const key = connectionKey(teamId)
+        const key = this._connectionKey(teamId)
 
         try {
             this.$attachment = await transport.attach(key, {
-                getCredentials: () => teamApi.getTeamCommsCreds(teamId, sessionId),
+                getCredentials: () => this._getCredentials(teamId, sessionId),
                 onMessage: (topic, message, packet) => this._onMessage(topic, message, packet),
-                onConnect: () => this._onConnect(teamId, userId),
-                onClose: () => {},
-                onOffline: () => {},
-                onDisconnect: () => {},
-                onError: () => {}
+                onConnect: (connack) => this._onConnect(teamId, userId, connack),
+                onClose: () => this._onClose(),
+                onOffline: () => this._onOffline(),
+                onDisconnect: (packet) => this._onDisconnect(packet),
+                onError: (failure) => this._onError(failure)
             })
             this.$connectedTeamId = teamId
         } catch {
@@ -148,11 +148,13 @@ export abstract class TeamSubscriber<TTransport extends Transport = Transport> {
         }
     }
 
-    protected async _onConnect (teamId: string, userId: string): Promise<void> {
+    // `connack` is only read by subscribers that report a refused connection
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected async _onConnect (teamId: string, userId: string, connack?: TransportReasonPacket): Promise<void> {
         const transport = this.$transport
         if (!transport) return
         try {
-            await transport.subscribe(connectionKey(teamId), this._topics(teamId, userId), this._subscribeOptions())
+            await transport.subscribe(this._connectionKey(teamId), this._topics(teamId, userId), this._subscribeOptions())
             this._onSubscribed()
         } catch {
             // non-fatal — the transport replays subscriptions on reconnect
@@ -177,6 +179,30 @@ export abstract class TeamSubscriber<TTransport extends Transport = Transport> {
             }
         }
     }
+
+    /**
+     * The connection this subscriber rides. Every team subscriber shares the team's one,
+     * so a subscriber on a connection of its own overrides this and _getCredentials together.
+     */
+    protected _connectionKey (teamId: string): string {
+        return connectionKey(teamId)
+    }
+
+    protected _getCredentials (teamId: string, sessionId: string): Promise<unknown> {
+        return teamApi.getTeamCommsCreds(teamId, sessionId)
+    }
+
+    // The link going down is a no-op by default: the transport reconnects on its own
+    // and replays the subscriptions.
+    protected _onClose (): void {}
+
+    protected _onOffline (): void {}
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected _onDisconnect (packet?: TransportReasonPacket): void {}
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected _onError (failure: TransportError): void {}
 
     protected _subscribeOptions (): TransportSubscribeOptions {
         return { qos: 1 }

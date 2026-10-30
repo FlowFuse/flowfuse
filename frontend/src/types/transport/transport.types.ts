@@ -9,14 +9,29 @@ export interface TransportMessagePacket {
     }
 }
 
+/**
+ * The broker's answer to a connect, or its reason for a disconnect. Attaching to a link
+ * that is already up reports an empty one.
+ */
+export interface TransportReasonPacket {
+    reasonCode?: number
+    properties?: {
+        reasonString?: string
+    }
+}
+
+export interface TransportError extends Error {
+    code?: number | string | null
+}
+
 export interface TransportConnectOptions {
     getCredentials: () => Promise<unknown>
     onMessage?: (topic: string, message: Buffer | Uint8Array | string, packet?: TransportMessagePacket) => void
-    onConnect?: () => void
+    onConnect?: (connack?: TransportReasonPacket) => void
     onClose?: () => void
     onOffline?: () => void
-    onError?: (err: Error) => void
-    onDisconnect?: () => void
+    onError?: (err: TransportError) => void
+    onDisconnect?: (packet?: TransportReasonPacket) => void
 }
 
 export interface TransportSubscribeOptions {

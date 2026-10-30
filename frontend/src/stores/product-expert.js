@@ -3,7 +3,6 @@ import { v4 as uuidv4 } from 'uuid'
 import { markRaw } from 'vue'
 
 import expertApi from '../api/expert.js'
-import userApi from '../api/user.js'
 import { STREAMED_KINDS, isToolRecord } from '../composables/Components/expert/streamedActivity.js'
 import { getFeedbackMessageUuids, serializeConversation } from '../composables/Components/expert/turnFeedback.js'
 import useTimerHelper from '../composables/TimerHelper.js'
@@ -38,6 +37,13 @@ const DISCONNECT_NOTICE_DELAY = 15000
 // How long a stopped turn holds the next send while waiting for the agent to confirm it ended.
 // The composer stays locked meanwhile, so this is kept short.
 const STOP_CONFIRM_TIMEOUT_MS = 15000
+
+// A chat message belongs to the agent it came from, which may not be the active one
+function agentStoreFor (agent) {
+    return agent === SUPPORT_AGENT
+        ? useProductExpertSupportAgentStore()
+        : useProductExpertInsightsAgentStore()
+}
 
 export const useProductExpertStore = defineStore('product-expert', {
     state: () => ({
@@ -78,9 +84,7 @@ export const useProductExpertStore = defineStore('product-expert', {
     }),
     getters: {
         _agentStore () {
-            return this.agentMode === SUPPORT_AGENT
-                ? useProductExpertSupportAgentStore()
-                : useProductExpertInsightsAgentStore()
+            return agentStoreFor(this.agentMode)
         },
         /**
          * @return {import('vue').UnwrapRef<Map<unknown, unknown> | Map<any, any>> | import('vue').UnwrapRef<Map<unknown, unknown> | Map<any, any>>}
@@ -410,7 +414,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             try {
                 // sendQuery resolves with the HTTP response to render; over MQTT it resolves
-                // with nothing and the reply is rendered by the _onMqttMessage push handler
+                // with nothing and the reply is rendered by receiveChatReply
                 // instead. Rendering the response here — rather than at each call site — means
                 // every entry point (composer, questions/plan cards) shows the reply without
                 // having to remember to chain handleMessageResponse itself.
@@ -464,13 +468,9 @@ export const useProductExpertStore = defineStore('product-expert', {
             return expertApi.chat(payload)
         },
         async sendMqttQuery ({ query, toolApprovals } = {}) {
-            const servicesOrchestrator = getAppOrchestrator()
-            const mqttService = servicesOrchestrator.$services.mqtt
-
             const transactionId = uuidv4()
-            const mqttConnectionKey = this.mqttConnectionKey
 
-            if (!mqttService.hasClient(mqttConnectionKey)) await this.establishMqttComms()
+            await this._connectChat()
 
             // add the query as an inFlight request
             this._inFlightRequests.set(transactionId, { query, transactionId })
@@ -498,7 +498,8 @@ export const useProductExpertStore = defineStore('product-expert', {
                 entityId,
                 agentChannel: 'support',
                 topicType: 'chat',
-                topicAction: 'request'
+                topicAction: 'request',
+                sessionId: this.sessionId
             })
 
             return mqttService.publishMessage(this.mqttConnectionKey, {
@@ -523,7 +524,6 @@ export const useProductExpertStore = defineStore('product-expert', {
         // The stored comment and share flag ride on every vote because the latest submission
         // replaces the earlier one. The conversation itself was already sent with the first share.
         async _publishTurnVote (message, vote) {
-            const mqttService = getAppOrchestrator().$services.mqtt
             const stored = {}
             if (message._comment) {
                 stored.comment = message._comment
@@ -532,7 +532,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 stored.share = true
             }
             try {
-                if (!mqttService.hasClient(this.mqttConnectionKey)) await this.establishMqttComms()
+                await this._connectChat()
                 await this._publishChatRequest({ vote: { ...stored, ...vote, turnId: message._transactionId } }, uuidv4())
                 return true
             } catch (e) {
@@ -584,19 +584,13 @@ export const useProductExpertStore = defineStore('product-expert', {
                 message._feedbackDismissed = true
             }
         },
-        async establishMqttComms () {
-            const servicesOrchestrator = getAppOrchestrator()
-            const mqttService = servicesOrchestrator.$services.mqtt
-
-            await mqttService.createClient(this.mqttConnectionKey, {
-                getCredentials: () => userApi.initiateExpertChat({ sessionId: this.sessionId }),
-                onMessage: this._onMqttMessage,
-                onClose: this._onMqttClose,
-                onConnect: this._onMqttConnect,
-                onOffline: this._onMqttOffline,
-                onError: this._onMqttError,
-                onDisconnect: this._onMqttDisconnect
-            })
+        // The support agent's subscriber owns its chat connection. Connecting is a no-op
+        // while it is connected, and disconnecting closes the connection.
+        _connectChat () {
+            return getAppOrchestrator().$subscribers.expertSupportChat.connect(useContextStore().team)
+        },
+        _disconnectChat () {
+            return getAppOrchestrator().$subscribers.expertSupportChat.disconnect()
         },
         async fetchToolCatalog () {
             // Fetch the tool catalog for the permissions UI (#421) over HTTP, not MQTT:
@@ -615,23 +609,28 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // is unavailable; the settings UI simply shows no tools yet.
             }
         },
-        async handleInFlightRequest ({ topic, message, payload: parsedPayload, transactionId, sessionId, chatTransactionId } = {}) {
+        async handleInFlightRequest ({ agent: messageAgent, topic, message, payload: parsedPayload, transactionId, sessionId, chatTransactionId } = {}) {
+            // A third-party MCP request comes with no agent, so it runs against the active one
+            const agent = messageAgent ?? this.agentMode
+            const agentStore = agentStoreFor(agent)
+
             // A third-party MCP request is addressed to this tab's browser session rather
             // than a chat session, and has no originating chat request to correlate with,
             // so it bypasses the correlation check below. Everything else keeps today's behaviour.
             const isBrowserSession = !!sessionId && sessionId === useAccountAuthStore().getSessionId()
 
             // dismiss messages from a different chat session
-            if (!isBrowserSession && sessionId !== this.sessionId) return
+            if (!isBrowserSession && sessionId !== agentStore.sessionId) return
 
             // Tie the message to its originating chat turn: live means the turn is still
             // running, recently-completed covers a surface that trails the final reply. One
             // we cannot tie to either — a request left on the wire after Stop, or a stale
             // surface from an earlier turn — is dropped here: not applied, not run against
             // the editor, and not acked, so a stopped agent is not nudged to keep producing.
+            const isLive = agentStore.inFlightRequests.has(chatTransactionId)
             const correlated = isBrowserSession ||
-                this._inFlightRequests.has(chatTransactionId) ||
-                this._recentlyCompleted.has(chatTransactionId)
+                isLive ||
+                agentStore.recentlyCompletedTransactions.has(chatTransactionId)
             if (!correlated) return
 
             const servicesOrchestrator = getAppOrchestrator()
@@ -649,7 +648,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             const isMcpChannel = parsedTopic.agentChannel === 'mcp' || isBrowserSession
             const connectionKey = isMcpChannel
                 ? teamConnectionKey(useContextStore().team?.id)
-                : this.mqttConnectionKey
+                : agentStore.mqttConnectionKey
 
             // Errors on the MCP path must not post into the chat transcript, there may not
             // be a chat open at all.
@@ -665,8 +664,8 @@ export const useProductExpertStore = defineStore('product-expert', {
             // turn's reply, so it is neither acked nor shown on the loading line, and a kind
             // this client does not know is ignored whole.
             if (parsedTopic.inflightType === 'expert:status-message' && payload?.kind != null) {
-                if (STREAMED_KINDS.includes(payload.kind) && this._inFlightRequests.has(chatTransactionId)) {
-                    this._appendStreamedActivity(chatTransactionId, payload)
+                if (STREAMED_KINDS.includes(payload.kind) && isLive) {
+                    this._appendStreamedActivity(chatTransactionId, payload, agent)
                 }
                 return
             }
@@ -674,7 +673,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             // expert:tasks has its own panel; its status rides expert:status-message.
             // Every other inflight type feeds the loading line, but only while the turn is
             // still live: a status trailing the final reply must not repaint the next turn.
-            if (parsedTopic.inflightType !== 'expert:tasks' && this._inFlightRequests.has(chatTransactionId)) {
+            if (parsedTopic.inflightType !== 'expert:tasks' && isLive && agent === this.agentMode) {
                 this._addInFlightUpdate(payload.status || payload.toolname || 'Processing request...')
             }
 
@@ -685,7 +684,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 topicType: 'inflight',
                 topicAction: 'response',
                 inflightType: parsedTopic.inflightType,
-                sessionId: sessionId || this.sessionId
+                sessionId: sessionId || agentStore.sessionId
             })
 
             // Every branch answers on the same envelope; only the body differs.
@@ -714,8 +713,8 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // The active plan is agent-owned and arrives on its own field: a plan is
                 // activated before it has any tasks, so hold the id regardless of the item
                 // count rather than losing it whenever the list is empty.
-                this._agentStore.activePlanId = payload.planId ?? null
-                this._agentStore.activeTaskList = items.length
+                agentStore.activePlanId = payload.planId ?? null
+                agentStore.activeTaskList = items.length
                     ? { planId: payload.planId ?? null, title: payload.title || 'Tasks', items }
                     : null
                 try {
@@ -777,7 +776,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // do nothing
             }
         },
-        async handleMessageResponse (response, transactionId) {
+        async handleMessageResponse (response, transactionId, agent = this.agentMode) {
             // ignore aborted messages through mqtt
             if (Object.prototype.hasOwnProperty.call(response, 'aborted') && response.aborted === true) return
 
@@ -791,16 +790,32 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
 
             if (response.answer && Array.isArray(response.answer)) {
-                if (transactionId && this._turnBubbles(transactionId).length > 0) {
-                    this._mergeFinalAnswer(transactionId, response)
+                if (transactionId && this._turnBubbles(transactionId, agent).length > 0) {
+                    this._mergeFinalAnswer(transactionId, response, agent)
                 } else {
-                    this.addAiMessage(response, transactionId)
+                    this.addAiMessage(response, transactionId, agent)
                 }
-                this._clearInFlightUpdates()
+                // The loading line belongs to the agent on screen
+                if (agent === this.agentMode) {
+                    this._clearInFlightUpdates()
+                }
                 // A deferred-approval turn (#421) ends with one card per tool that needs
                 // approval. Track the batch so we can send every decision back at once.
                 if (response.kind === 'tool-approval') {
                     this.beginApprovalBatch(response.answer)
+                }
+            } else {
+                // A reply with no answer is the agent reporting a failure: end the turn with
+                // the same notice an HTTP error gets rather than leaving it loading
+                console.error('Expert API error:', response?.error || response)
+                this._closeTurnItems(transactionId, agent)
+                this.addAiMessage({
+                    generated: true,
+                    error: true,
+                    answer: [{ content: 'Sorry, I encountered an error. Please try again.' }]
+                }, transactionId, agent)
+                if (agent === this.agentMode) {
+                    this._clearInFlightUpdates()
                 }
             }
         },
@@ -919,10 +934,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             permStore.clearToolApprovalStatuses()
 
             if (this.shouldUseMqtt) {
-                const servicesOrchestrator = getAppOrchestrator()
-                const mqttService = servicesOrchestrator.$services.mqtt
-
-                await mqttService.destroyClient(this.mqttConnectionKey)
+                await this._disconnectChat()
             }
 
             // Reset session timing
@@ -1124,11 +1136,11 @@ export const useProductExpertStore = defineStore('product-expert', {
                 })
             }
         },
-        addAiMessage (message, transactionId) {
+        addAiMessage (message, transactionId, agent = this.agentMode) {
             const answer = message.answer
                 ? message.answer.map(a => ({ ...a, _uuid: uuidv4(), _streamed: false }))
                 : []
-            this._agentStore.messages.push({
+            agentStoreFor(agent).messages.push({
                 ...message,
                 answer,
                 _type: 'ai',
@@ -1141,7 +1153,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         // Place one streamed item in the turn's reply bubble, creating the bubble on the
         // first item. An id already in the bubble is replaced in place; otherwise the item
         // goes in seq order, so events arriving out of order still render in order.
-        _appendStreamedActivity (transactionId, event) {
+        _appendStreamedActivity (transactionId, event, agent = this.agentMode) {
             if (!transactionId || !event) return
 
             // A streamed tool record moves its own kind to recordKind, so the card sees the
@@ -1152,7 +1164,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 item = { ...record, kind: recordKind || 'mcp_tool' }
             }
 
-            const found = item.id ? this._findTurnItem(transactionId, a => a.id === item.id) : null
+            const found = item.id ? this._findTurnItem(transactionId, a => a.id === item.id, agent) : null
             if (found) {
                 const { bubble, index } = found
                 const existing = bubble.answer[index]
@@ -1173,13 +1185,13 @@ export const useProductExpertStore = defineStore('product-expert', {
                 })
                 return
             }
-            this._insertBySeq(this._openTurnBubble(transactionId), { ...item, _uuid: uuidv4(), _streamed: true, _live: true })
+            this._insertBySeq(this._openTurnBubble(transactionId, agent), { ...item, _uuid: uuidv4(), _streamed: true, _live: true })
         },
-        _turnBubbles (transactionId) {
-            return this._agentStore.messages.filter(m => m._type === 'ai' && m._transactionId === transactionId)
+        _turnBubbles (transactionId, agent = this.agentMode) {
+            return agentStoreFor(agent).messages.filter(m => m._type === 'ai' && m._transactionId === transactionId)
         },
-        _findTurnItem (transactionId, predicate) {
-            for (const bubble of this._turnBubbles(transactionId)) {
+        _findTurnItem (transactionId, predicate, agent = this.agentMode) {
+            for (const bubble of this._turnBubbles(transactionId, agent)) {
                 const index = bubble.answer.findIndex(predicate)
                 if (index !== -1) return { bubble, index }
             }
@@ -1188,8 +1200,8 @@ export const useProductExpertStore = defineStore('product-expert', {
         // New items go to the turn's last bubble while it is the last message. Once another
         // message has landed below it, they start a new bubble so the chat keeps the order
         // things happened in.
-        _openTurnBubble (transactionId) {
-            const messages = this._agentStore.messages
+        _openTurnBubble (transactionId, agent = this.agentMode) {
+            const messages = agentStoreFor(agent).messages
             const last = messages[messages.length - 1]
             if (last?._type === 'ai' && last._transactionId === transactionId) return last
             const bubble = {
@@ -1217,11 +1229,11 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         // The final reply lands in the bubbles its streamed items built. Tool records it
         // carries upgrade the streamed card with the same id; the rest is appended.
-        _mergeFinalAnswer (transactionId, response) {
+        _mergeFinalAnswer (transactionId, response, agent = this.agentMode) {
             const rest = []
             for (const item of response.answer) {
                 const found = item.id && isToolRecord(item)
-                    ? this._findTurnItem(transactionId, a => a.id === item.id && isToolRecord(a))
+                    ? this._findTurnItem(transactionId, a => a.id === item.id && isToolRecord(a), agent)
                     : null
                 if (found) {
                     const { bubble, index } = found
@@ -1231,18 +1243,18 @@ export const useProductExpertStore = defineStore('product-expert', {
                     rest.push(item)
                 }
             }
-            const bubbles = this._turnBubbles(transactionId)
-            const target = rest.length > 0 ? this._openTurnBubble(transactionId) : bubbles[bubbles.length - 1]
+            const bubbles = this._turnBubbles(transactionId, agent)
+            const target = rest.length > 0 ? this._openTurnBubble(transactionId, agent) : bubbles[bubbles.length - 1]
             for (const item of rest) {
                 this._insertBySeq(target, { ...item, _uuid: uuidv4(), _streamed: false })
             }
             const { answer: _answer, ...fields } = response
             Object.assign(target, fields)
-            this._closeTurnItems(transactionId)
+            this._closeTurnItems(transactionId, agent)
         },
         // A finished or stopped turn leaves no item still running.
-        _closeTurnItems (transactionId) {
-            for (const bubble of this._turnBubbles(transactionId)) {
+        _closeTurnItems (transactionId, agent = this.agentMode) {
+            for (const bubble of this._turnBubbles(transactionId, agent)) {
                 bubble.answer.forEach((item, index) => {
                     if (item.done === false) {
                         bubble.answer.splice(index, 1, { ...item, done: true })
@@ -1300,68 +1312,55 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
             })
         },
-        async _onMqttMessage  (topic, message, packet) {
-            const topicHelper = useMqttExpertTopicHelper()
-            const parsedTopic = topicHelper.parseTopic(topic)
-            const transactionId = packet.properties?.correlationData ? new TextDecoder().decode(packet.properties.correlationData) : null
-            const sessionId = packet.properties?.userProperties?.sessionId // chat session
-            const chatTransactionId = packet.properties?.userProperties?.transactionId // passed through for integrity
-
+        // A reply that is a repeat delivery (QoS 1 retries, bridge re-fires, redundant
+        // resubscribes) is dropped. Runs synchronously before any await so a second
+        // delivery can't race past the check.
+        _isDuplicateDelivery (transactionId) {
+            if (!transactionId) return false
+            if (this._seenTransactionIds.has(transactionId)) return true
+            this._seenTransactionIds.set(transactionId, true)
+            if (this._seenTransactionIds.size > 200) {
+                this._seenTransactionIds.delete(this._seenTransactionIds.keys().next().value)
+            }
+            return false
+        },
+        // The final chat response of a turn, from the chat subscriber
+        async receiveChatReply ({ agent, transactionId, payload }) {
             // Ahead of the duplicate check, which the abort's acknowledgement under the same id
             // already tripped. That acknowledgement only means the abort arrived. Any other
             // reply means the turn has ended: its stop notice, or the answer of a turn that was
             // already past its last abort check.
-            if (parsedTopic.isReply && useProductExpertSupportAgentStore().stoppingTransactions.has(transactionId)) {
-                const reply = JSON.parse(message.toString())
-                if (!reply.aborted || reply.turnStopped) {
+            if (useProductExpertSupportAgentStore().stoppingTransactions.has(transactionId)) {
+                if (!payload.aborted || payload.turnStopped) {
                     this._turnStopped(transactionId)
                 }
                 return
             }
 
-            // Drop duplicates (QoS 1 retries, bridge re-fires, redundant resubscribes).
-            // Must run synchronously before any await so a second delivery can't race past the check.
-            if (transactionId) {
-                if (this._seenTransactionIds.has(transactionId)) {
-                    return // already processed this message
-                }
-                this._seenTransactionIds.set(transactionId, true)
-                if (this._seenTransactionIds.size > 200) {
-                    this._seenTransactionIds.delete(this._seenTransactionIds.keys().next().value)
-                }
-            }
+            if (this._isDuplicateDelivery(transactionId)) return
 
-            switch (true) {
-            case parsedTopic.isReply: // final chat response
-                // no matching in-flight request means the turn was stopped or already
-                // resolved; ignore it and record no completion for it
-                if (!this._inFlightRequests.has(transactionId)) return
-                this._inFlightRequests.delete(transactionId)
-                // remember the finished turn briefly so a surface that trails this reply is
-                // still applied, evicting the oldest id to keep the set bounded
-                this._recentlyCompleted.set(transactionId, true)
-                if (this._recentlyCompleted.size > 50) {
-                    this._recentlyCompleted.delete(this._recentlyCompleted.keys().next().value)
-                }
-                try {
-                    await this.handleMessageResponse(JSON.parse(message.toString()), transactionId)
-                } finally {
-                    this._drainSendQueue()
-                }
-                break
-            case parsedTopic.isInflightRequest: // in-flight request from the agent (e.g., action invocation, status update)
-                await this.handleInFlightRequest({
-                    topic,
-                    message,
-                    packet,
-                    transactionId,
-                    sessionId,
-                    chatTransactionId
-                })
-                break
-            default:
-                // do nothing
+            // no matching in-flight request means the turn was stopped or already
+            // resolved; ignore it and record no completion for it
+            const { inFlightRequests, recentlyCompletedTransactions } = agentStoreFor(agent)
+            if (!inFlightRequests.has(transactionId)) return
+            inFlightRequests.delete(transactionId)
+            // remember the finished turn briefly so a surface that trails this reply is
+            // still applied, evicting the oldest id to keep the set bounded
+            recentlyCompletedTransactions.set(transactionId, true)
+            if (recentlyCompletedTransactions.size > 50) {
+                recentlyCompletedTransactions.delete(recentlyCompletedTransactions.keys().next().value)
             }
+            try {
+                await this.handleMessageResponse(payload, transactionId, agent)
+            } finally {
+                this._drainSendQueue()
+            }
+        },
+        // A request the agent sends while a turn runs (action invocation, status update),
+        // from the chat subscriber
+        async receiveChatInflight ({ agent, topic, payload, transactionId, sessionId, chatTransactionId }) {
+            if (this._isDuplicateDelivery(transactionId)) return
+            await this.handleInFlightRequest({ agent, topic, payload, transactionId, sessionId, chatTransactionId })
         },
         _clearDisconnectNotice () {
             if (this._disconnectNoticeTimer) {
@@ -1369,7 +1368,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 this._disconnectNoticeTimer = null
             }
         },
-        _onMqttClose  () {
+        onChatConnectionClosed () {
             // A drop that recovers on its own is not worth a message, so hold the notice
             // back and let the reconnect cancel it. Close can fire more than once for the
             // same outage, so an already pending notice keeps its original deadline.
@@ -1396,18 +1395,10 @@ export const useProductExpertStore = defineStore('product-expert', {
                 { isError: true, code: 'con_close' }
             )
         },
-        async _onMqttConnect (connack) {
-            // We heard back from the broker, so whatever the outcome the pending notice is
-            // stale: either we are connected, or handleMqttError posts its own message below.
+        // The chat connection is up and subscribed, on first connect and every reconnect
+        onChatConnected () {
+            // We heard back from the broker, so the pending disconnect notice is stale
             this._clearDisconnectNotice()
-
-            if (connack.reasonCode && connack.reasonCode >= 0x80) {
-                // mqtt.js usually emits 'error' instead, but guard anyway
-                return this.handleMqttError(connack.reasonCode, connack.properties?.reasonString)
-            }
-
-            const servicesOrchestrator = getAppOrchestrator()
-            const mqttService = servicesOrchestrator.$services.mqtt
 
             // if the last message was an error, it means we just reconnected after a failure
             // letting users know that everything is all right
@@ -1427,48 +1418,8 @@ export const useProductExpertStore = defineStore('product-expert', {
                 ][rand])
             }
 
-            const mqttTopicHelper = useMqttExpertTopicHelper()
-
-            try {
-                await Promise.all([
-                    mqttService.subscribe(
-                        this.mqttConnectionKey,
-                        mqttTopicHelper.buildTopic({
-                            entityType: '+',
-                            entityId: '+',
-                            agentChannel: 'support',
-                            topicType: 'chat',
-                            topicAction: 'response'
-                        }),
-                        { qos: 2 }
-                    ),
-                    mqttService.subscribe(
-                        this.mqttConnectionKey,
-                        mqttTopicHelper.buildTopic({
-                            entityType: '+',
-                            entityId: '+',
-                            agentChannel: 'support',
-                            topicType: 'inflight',
-                            topicAction: 'request',
-                            inflightType: '+'
-                        }),
-                        { qos: 2 }
-                    )
-                ])
-            } catch (error) {
-                this._onMqttError(error instanceof Error ? error : new Error(String(error)))
-                return
-            }
-
             this._systemSendsHeld = false
             this._drainSendQueue()
-        },
-        _onMqttDisconnect (packet) {
-            this.handleMqttError(packet.reasonCode, packet.properties?.reasonString)
-        },
-        _onMqttOffline () {
-            console.warn('#################### mqtt offline')
-            // TODO add error message, handle reconnect, notify user
         },
         _onMqttError (err) {
             this.handleMqttError(err.code, err.message)
@@ -1491,9 +1442,6 @@ export const useProductExpertStore = defineStore('product-expert', {
             // stopping inFlight chat requests to ignore any in flight messages if any and also clear the loader
             this.stopInflightChat()
             this._clearInFlightUpdates()
-
-            const servicesOrchestrator = getAppOrchestrator()
-            const mqttService = servicesOrchestrator.$services.mqtt
 
             const rand = Math.floor(Math.random() * 3)
             let payload = {
@@ -1632,8 +1580,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             // Permanent config errors
             if (FATAL_ERROR_CODES.has(code) || PROTOCOL_BUG_ERROR_CODES.has(code)) {
-                await mqttService.endConnection()
-                await mqttService.destroyClient(this.mqttConnectionKey)
+                await this._disconnectChat()
                 payload = {
                     code: 'fatal',
                     message: [
@@ -1803,11 +1750,9 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // cancels the abandoned calls and asks again if it still needs them.
                 this.cancelPendingToolApprovals('cancelled')
 
-                const mqttService = getAppOrchestrator().$services.mqtt
+                await this._connectChat()
 
-                if (!mqttService.hasClient(this.mqttConnectionKey)) await this.establishMqttComms()
-
-                // Register like a real request so _onMqttMessage's in-flight guard lets the
+                // Register like a real request so receiveChatReply's in-flight guard lets the
                 // reply through instead of silently dropping it.
                 this._inFlightRequests.set(transactionId, { query: '', transactionId })
 
@@ -1860,7 +1805,8 @@ export const useProductExpertStore = defineStore('product-expert', {
                         entityId,
                         agentChannel: 'support',
                         topicType: 'chat',
-                        topicAction: 'request'
+                        topicAction: 'request',
+                        sessionId: this.sessionId
                     })
 
                     // publishing an abort message to stop the agent
