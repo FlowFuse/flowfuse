@@ -24,8 +24,27 @@ export interface TabPresencePublisherI extends TeamPublisherI {
     announcePresence(): void
 }
 
+/**
+ * The answer to one in-flight request, echoing its correlation id and the chat turn
+ * it belongs to.
+ */
+export interface InflightResponse {
+    body: unknown
+    transactionId: string | null
+    sessionId: string | null
+    chatTransactionId: string | null
+}
+
+export interface ExpertChatPublisherI extends TeamPublisherI {
+    isLinkUp(): boolean
+    request(body: Record<string, unknown>, transactionId: string): Promise<void>
+    abort(transactionId: string): Promise<void>
+    respond(topic: string, response: InflightResponse): Promise<void>
+}
+
 export type PublisherInstances = {
     tabPresence: TabPresencePublisherI | null
+    expertSupportChat: ExpertChatPublisherI | null
 }
 
 export interface CreatePublisherOptions<TTransport extends Transport = Transport> {
