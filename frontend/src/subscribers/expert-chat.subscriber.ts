@@ -3,7 +3,8 @@ import { SubscriberPayload, SubscriberRoute, TeamSubscriber } from './team-subsc
 
 import userApi from '@/api/user.js'
 import { useMqttExpertTopicHelper } from '@/composables/services/MqttExpertTopicHelper'
-import { SUPPORT_AGENT } from '@/stores/product-expert-agents.js'
+import { INSIGHTS_AGENT, SUPPORT_AGENT } from '@/stores/product-expert-agents.js'
+import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
 import { useProductExpertSupportAgentStore } from '@/stores/product-expert-support-agent.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 import { Maybe } from '@/types/common/types'
@@ -93,7 +94,7 @@ abstract class ExpertChatSubscriber extends TeamSubscriber implements TeamSubscr
     protected async _onConnect (teamId: string, userId: string, connack?: TransportReasonPacket): Promise<void> {
         // mqtt.js usually reports a refused connection as an error instead, but guard anyway
         if (connack?.reasonCode && connack.reasonCode >= 0x80) {
-            useProductExpertStore().handleMqttError(connack.reasonCode, connack.properties?.reasonString)
+            useProductExpertStore().handleMqttError(connack.reasonCode, connack.properties?.reasonString, this.$channel.agent)
             return
         }
 
@@ -106,11 +107,11 @@ abstract class ExpertChatSubscriber extends TeamSubscriber implements TeamSubscr
             return
         }
 
-        useProductExpertStore().onChatConnected()
+        useProductExpertStore().onChatConnected(this.$channel.agent)
     }
 
     protected _onClose (): void {
-        useProductExpertStore().onChatConnectionClosed()
+        useProductExpertStore().onChatConnectionClosed(this.$channel.agent)
     }
 
     protected _onOffline (): void {
@@ -118,11 +119,11 @@ abstract class ExpertChatSubscriber extends TeamSubscriber implements TeamSubscr
     }
 
     protected _onDisconnect (packet?: TransportReasonPacket): void {
-        useProductExpertStore().handleMqttError(packet?.reasonCode, packet?.properties?.reasonString)
+        useProductExpertStore().handleMqttError(packet?.reasonCode, packet?.properties?.reasonString, this.$channel.agent)
     }
 
     protected _onError (failure: TransportError): void {
-        useProductExpertStore().handleMqttError(failure.code, failure.message)
+        useProductExpertStore().handleMqttError(failure.code, failure.message, this.$channel.agent)
     }
 
     private _onReply (payload: SubscriberPayload, packet?: TransportMessagePacket): void {
@@ -155,8 +156,25 @@ class SupportChatSubscriber extends ExpertChatSubscriber {
     }
 }
 
-const { create: createSupportChatSubscriber, destroy: destroySupportChatSubscriber } = defineSubscriberSingleton(SupportChatSubscriber)
+class InsightsChatSubscriber extends ExpertChatSubscriber {
+    constructor (options: CreateSubscriberOptions) {
+        super(options, 'expertInsightsChat', {
+            agent: INSIGHTS_AGENT,
+            channel: 'insights',
+            useAgentStore: useProductExpertInsightsAgentStore
+        })
+    }
+}
 
-export { ExpertChatSubscriber, createSupportChatSubscriber, destroySupportChatSubscriber }
+const { create: createSupportChatSubscriber, destroy: destroySupportChatSubscriber } = defineSubscriberSingleton(SupportChatSubscriber)
+const { create: createInsightsChatSubscriber, destroy: destroyInsightsChatSubscriber } = defineSubscriberSingleton(InsightsChatSubscriber)
+
+export {
+    ExpertChatSubscriber,
+    createSupportChatSubscriber,
+    destroySupportChatSubscriber,
+    createInsightsChatSubscriber,
+    destroyInsightsChatSubscriber
+}
 
 export default createSupportChatSubscriber

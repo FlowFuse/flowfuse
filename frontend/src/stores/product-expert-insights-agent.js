@@ -25,7 +25,10 @@ export const useProductExpertInsightsAgentStore = defineStore('product-expert-in
         inFlightRequests: new Map(),
         // Chat transaction ids whose reply already landed, kept briefly so a surface that
         // trails the final reply is still applied. A stopped turn never enters this set.
-        recentlyCompletedTransactions: new Map()
+        recentlyCompletedTransactions: new Map(),
+        // Stopped turns the agent hasn't confirmed as ended, keyed by transaction id with
+        // the fallback timer that gives up waiting. Sends wait while any are listed.
+        stoppingTransactions: new Map()
     }),
     getters: {
         capabilities: (state) => state.capabilityServers.map(c => ({
@@ -36,6 +39,7 @@ export const useProductExpertInsightsAgentStore = defineStore('product-expert-in
     actions: {
         reset () {
             if (this.sessionCheckTimer) clearInterval(this.sessionCheckTimer)
+            this.stoppingTransactions.forEach(timer => clearTimeout(timer))
             this.$reset()
         },
         setSelectedCapabilities (caps) { this.selectedCapabilities = caps },
