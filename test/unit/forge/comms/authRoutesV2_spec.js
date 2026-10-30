@@ -866,6 +866,17 @@ describe('Broker Auth v2 API', async function () {
                 })
                 describe('assigned to application', async function () {
                     before(async function () {
+                        // Remove device from the instance it was assigned to above. Assigning
+                        // to an application does not clear the instance, so the device would
+                        // otherwise remain instance owned
+                        await app.inject({
+                            method: 'PUT',
+                            url: `/api/v1/devices/${TestObjects.DeviceA.hashid}`,
+                            body: {
+                                instance: null
+                            },
+                            cookies: { sid: TestObjects.tokens.alice }
+                        })
                         // Assign device to application
                         await app.inject({
                             method: 'PUT',
@@ -875,6 +886,8 @@ describe('Broker Auth v2 API', async function () {
                             },
                             cookies: { sid: TestObjects.tokens.alice }
                         })
+                        const owner = await app.db.models.Device.getOwnerTypeAndId(TestObjects.DeviceA.hashid)
+                        owner.should.have.property('ownerType', 'application')
                     })
                     it('can subscribe to application command', async function () {
                         await allowRead({
