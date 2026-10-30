@@ -860,6 +860,10 @@ describe('Team API', function () {
             const result = response.json()
             result.should.have.property('projects').and.be.an.Array()
             result.projects.should.have.a.property('length', 4)
+            // Only the minimal information is returned to a device
+            result.projects.forEach(project => {
+                Object.keys(project).should.eql(['id', 'name'])
+            })
         })
 
         it('Device can not get a list of team projects without a valid token', async function () {
