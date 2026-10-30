@@ -81,10 +81,11 @@ module.exports.init = function (app) {
         )
         // Receive messages sent to this device (instance owned)
         // - ff/v1/<team>/p/<project>/in/+/#
+        //   project = the instance the device is assigned to
         app.comms.aclManager.addACL(
             'device',
             'sub',
-            { topic: /^ff\/v1\/([^/]+)\/p\/(?!dev:)([^/]+)\/in\/[^/]+($|\/.*$)$/, verify: 'checkDeviceCanAccessProject' }
+            { topic: /^ff\/v1\/([^/]+)\/p\/(?!dev:)([^/]+)\/in\/[^/]+($|\/.*$)$/, verify: 'checkDeviceAssignedToProject' }
         )
         // Receive messages sent to this device (app owned)
         // - ff/v1/<team>/p/dev:<deviceid>/in/+/#
@@ -95,10 +96,11 @@ module.exports.init = function (app) {
         )
         // Receive link-call response messages sent to this device (instance owned)
         // - ff/v1/<team>/p/<project>/res/+/#
+        //   project = the instance the device is assigned to
         app.comms.aclManager.addACL(
             'device',
             'sub',
-            { topic: /^ff\/v1\/([^/]+)\/p\/(?!dev:)([^/]+)\/res\/[^/]+($|\/.*$)$/, verify: 'checkDeviceCanAccessProject', deviceOwnerType: 'instance' }
+            { topic: /^ff\/v1\/([^/]+)\/p\/(?!dev:)([^/]+)\/res\/[^/]+($|\/.*$)$/, verify: 'checkDeviceAssignedToProject' }
         )
         // Receive link-call response messages sent to this device (app owned)
         // - ff/v1/<team>/p/dev:<deviceid>/res/+/#
@@ -121,12 +123,12 @@ module.exports.init = function (app) {
             'pub',
             { topic: /^ff\/v1\/([^/]+)\/p\/dev:([^/]+)\/in\/[^/]+($|\/.*$)/, verify: 'checkDeviceIsAssigned' }
         )
-        // Send broadcast messages (from instance owned devices in the team)
+        // Send broadcast messages (from instance owned devices, as the instance they are assigned to)
         // - ff/v1/<team>/p/<project>/out/+/#
         app.comms.aclManager.addACL(
             'device',
             'pub',
-            { topic: /^ff\/v1\/([^/]+)\/p\/(?!dev:)([^/]+)\/out\/[^/]+($|\/.*$)/, verify: 'checkDeviceCanAccessProject', deviceOwnerType: 'instance' }
+            { topic: /^ff\/v1\/([^/]+)\/p\/(?!dev:)([^/]+)\/out\/[^/]+($|\/.*$)/, verify: 'checkDeviceAssignedToProject' }
         )
         // Send broadcast messages (from app owned devices in the team)
         // - ff/v1/<team>/p/dev:<deviceid>/out/+/#
