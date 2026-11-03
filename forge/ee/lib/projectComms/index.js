@@ -51,6 +51,24 @@ module.exports.init = function (app) {
             'pub',
             { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/out\/[^/]+($|\/.*$)/, verify: 'checkTeamAndObjectIds' }
         )
+        // Receive application scoped broadcasts from members of this project's application
+        // - ff/v1/<team>/a/<application>/p/+/out/+/#
+        //   a = the application the broadcast is scoped to (must be this project's application)
+        //   p = the sender: an instance id, or dev:<deviceid> for an application owned device
+        app.comms.aclManager.addACL(
+            'project',
+            'sub',
+            { topic: /^ff\/v1\/([^/]+)\/a\/([^/]+)\/p\/([^/]+)\/out\/[^/]+($|\/.*$)/, verify: 'checkClientInApplication', shared: true }
+        )
+        // Send application scoped broadcast messages
+        // - ff/v1/<team>/a/<application>/p/<project>/out/+/#
+        //   a = this project's application
+        //   p = this project's id (the sender)
+        app.comms.aclManager.addACL(
+            'project',
+            'pub',
+            { topic: /^ff\/v1\/([^/]+)\/a\/([^/]+)\/p\/([^/]+)\/out\/[^/]+($|\/.*$)/, verify: 'checkClientInApplication', checkSource: true }
+        )
 
         // Device ACL
 
@@ -61,12 +79,19 @@ module.exports.init = function (app) {
             'sub',
             { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/out\/[^/]+($|\/.*$)/, verify: 'checkDeviceIsAssigned' }
         )
-        // Receive messages sent to this device
+        // Receive messages sent to this device (instance owned)
         // - ff/v1/<team>/p/<project>/in/+/#
         app.comms.aclManager.addACL(
             'device',
             'sub',
-            { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/in\/[^/]+($|\/.*$)$/, verify: 'checkDeviceCanAccessProject' }
+            { topic: /^ff\/v1\/([^/]+)\/p\/(?!dev:)([^/]+)\/in\/[^/]+($|\/.*$)$/, verify: 'checkDeviceCanAccessProject' }
+        )
+        // Receive messages sent to this device (app owned)
+        // - ff/v1/<team>/p/dev:<deviceid>/in/+/#
+        app.comms.aclManager.addACL(
+            'device',
+            'sub',
+            { topic: /^ff\/v1\/([^/]+)\/p\/dev:([^/]+)\/in\/[^/]+($|\/.*$)$/, verify: 'checkDeviceIsAssigned', deviceOwnerType: 'application' }
         )
         // Receive link-call response messages sent to this device (instance owned)
         // - ff/v1/<team>/p/<project>/res/+/#
@@ -89,6 +114,13 @@ module.exports.init = function (app) {
             'pub',
             { topic: /^ff\/v1\/([^/]+)\/p\/(?!dev:)([^/]+)\/in\/[^/]+($|\/.*$)/, verify: 'checkDeviceCanAccessProject', deviceOwnerType: 'instance' }
         )
+        // Send message to specific app owned device
+        // - ff/v1/<team>/p/dev:<deviceid>/in/+/#
+        app.comms.aclManager.addACL(
+            'device',
+            'pub',
+            { topic: /^ff\/v1\/([^/]+)\/p\/dev:([^/]+)\/in\/[^/]+($|\/.*$)/, verify: 'checkDeviceIsAssigned' }
+        )
         // Send broadcast messages (from instance owned devices in the team)
         // - ff/v1/<team>/p/<project>/out/+/#
         app.comms.aclManager.addACL(
@@ -104,11 +136,37 @@ module.exports.init = function (app) {
             { topic: /^ff\/v1\/([^/]+)\/p\/dev:([^/]+)\/out\/[^/]+($|\/.*$)/, verify: 'checkDeviceIsAssigned', deviceOwnerType: 'application' }
         )
         // Send link-call response messages back to source instance
-        // - ff/v1/<team>/p/+/res/+/#
+        // - ff/v1/<team>/p/+/res[-id]/+/#
         app.comms.aclManager.addACL(
             'device',
             'pub',
-            { topic: /^ff\/v1\/([^/]+)\/p\/(?!dev:)([^/]+)\/res\/[^/]+($|\/.*$)/, verify: 'checkDeviceCanAccessProject', deviceOwnerType: 'instance' }
+            { topic: /^ff\/v1\/([^/]+)\/p\/(?!dev:)([^/]+)\/res(?:-[^/]+)?\/[^/]+($|\/.*$)/, verify: 'checkDeviceCanAccessProject', deviceOwnerType: 'instance' }
+        )
+        // Send link-call response messages back to source app owned device
+        // - ff/v1/<team>/p/dev:<deviceid>/res/+/#
+        app.comms.aclManager.addACL(
+            'device',
+            'pub',
+            { topic: /^ff\/v1\/([^/]+)\/p\/dev:([^/]+)\/res\/[^/]+($|\/.*$)/, verify: 'checkDeviceIsAssigned' }
+        )
+        // Receive application scoped broadcasts from members of this device's application
+        // - ff/v1/<team>/a/<application>/p/+/out/+/#
+        //   a = the application the broadcast is scoped to (must be this device's application)
+        //   p = the sender: an instance id, or dev:<deviceid> for an application owned device
+        app.comms.aclManager.addACL(
+            'device',
+            'sub',
+            { topic: /^ff\/v1\/([^/]+)\/a\/([^/]+)\/p\/([^/]+)\/out\/[^/]+($|\/.*$)/, verify: 'checkClientInApplication' }
+        )
+        // Send application scoped broadcast messages
+        // - ff/v1/<team>/a/<application>/p/<project | dev:deviceid>/out/+/#
+        //   a = this device's application (via its instance, if instance owned)
+        //   p = the sender: the owning instance's id for an instance owned device,
+        //       or dev:<deviceid> for an application owned device
+        app.comms.aclManager.addACL(
+            'device',
+            'pub',
+            { topic: /^ff\/v1\/([^/]+)\/a\/([^/]+)\/p\/([^/]+)\/out\/[^/]+($|\/.*$)/, verify: 'checkClientInApplication', checkSource: true }
         )
 
         // Team Broker ACLS - pub/sub to common topic space
