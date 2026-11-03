@@ -54,20 +54,29 @@ node.
 
 ### Applications
 
-The list of targets and sources offered by the nodes is grouped by application,
-and can be filtered to a single application. It contains the hosted instances in
-your team and the remote instances assigned to an application.
+The application features need FlowFuse v3.3 or later (already available on FlowFuse
+Cloud) and `@flowfuse/nr-project-nodes` v0.8.0 or later on every instance that uses
+them, remote instances included. Older versions of the nodes keep working with team
+broadcasts and hosted instance targets.
 
-Broadcast messages are sent on one of two channels:
+The list of targets and sources offered by the nodes is grouped by application.
+Use the **Application** filter above the list to show a single application. The list
+contains the hosted instances in your team and the remote instances assigned to an
+application. `Project Out` and `Project Call` can target either, including remote
+instances assigned to an application.
 
- - **Team broadcast** - received by any instance or remote instance in the team
-   whose `Project In` node listens for team broadcasts. This is the default.
- - **Application broadcast** - only received by instances and remote instances in
-   the same application whose `Project In` node listens for application broadcasts.
-   Instances outside the application cannot send or receive these messages.
+Broadcast messages are sent on one of two channels. Choose the channel with the
+**Channel** option on the `Project In` and `Project Out` nodes:
 
-The channels are separate. A `Project In` node listening for team broadcasts does
-not receive application broadcasts, even from an instance in the same application.
+ - **Team** - received by any instance or remote instance in the team whose
+   `Project In` node listens on the Team channel. This is the default.
+ - **Application** - only received by instances and remote instances in the same
+   application whose `Project In` node listens on the Application channel. Instances
+   outside the application cannot send or receive these messages.
+
+The channels are separate. A `Project In` node listening on the Team channel does
+not receive Application channel broadcasts, even from an instance in the same
+application.
 
 Received messages include `msg.projectLink.applicationId`, the application of the
 sender, and for broadcasts `msg.projectLink.scope`, the channel it was sent on.
