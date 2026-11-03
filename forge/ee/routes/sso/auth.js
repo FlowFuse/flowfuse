@@ -218,7 +218,7 @@ module.exports = fp(async function (app, opts) {
                 const provider = await app.db.models.SAMLProvider.byId(app.settings.get('platform:sso:only:provider'))
                 options = provider.options
             } else {
-                const provider = await app.db.models.SAMLProvider.forEmail(request.user.email).options
+                const provider = await app.db.models.SAMLProvider.forEmail(request.user.email)
                 options = provider.options
             }
             const result = await completeSSOSignIn(app, request.user, options.sessionExpiry, options.sessionIdle)
