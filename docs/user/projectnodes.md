@@ -62,8 +62,7 @@ broadcasts and hosted instance targets.
 The list of targets and sources offered by the nodes is grouped by application.
 Use the **Application** filter above the list to show a single application. The list
 contains the hosted instances in your team and the remote instances assigned to an
-application. `Project Out` and `Project Call` can target either, including remote
-instances assigned to an application.
+application. `Project Out` and `Project Call` can target either.
 
 Broadcast messages are sent on one of two channels. Choose the channel with the
 **Channel** option on the `Project In` and `Project Out` nodes:
