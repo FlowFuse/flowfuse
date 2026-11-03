@@ -418,8 +418,8 @@ module.exports = async function (app) {
                 includeSettings: true,
                 includeMeta
             })
-            if (request.session.ownerType === 'project') {
-                // This request is from a project token. Filter the list to return
+            if (request.session.ownerType === 'project' || request.session.ownerType === 'device') {
+                // This request is from a project or device token. Filter the list to return
                 // the minimal information needed
                 result = result.map(e => {
                     return { id: e.id, name: e.name }
