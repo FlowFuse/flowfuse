@@ -46,6 +46,12 @@ function agentStoreFor (agent) {
         : useProductExpertInsightsAgentStore()
 }
 
+// Each agent's chat subscriber and publisher, as registered with the orchestrator
+const CHAT_CHANNEL_KEYS = {
+    [SUPPORT_AGENT]: 'expertSupportChat',
+    [INSIGHTS_AGENT]: 'expertInsightsChat'
+}
+
 export const useProductExpertStore = defineStore('product-expert', {
     state: () => ({
         agentMode: SUPPORT_AGENT, // support-agent or insights-agent
@@ -81,7 +87,9 @@ export const useProductExpertStore = defineStore('product-expert', {
         _approvalBatch: null,
         // Pending "we got disconnected" notice, held back until the drop has lasted
         // long enough to be worth mentioning. Deliberately not persisted.
-        _disconnectNoticeTimer: null
+        _disconnectNoticeTimer: null,
+        // The agent whose drop the pending notice is about
+        _disconnectNoticeAgent: null
     }),
     getters: {
         _agentStore () {
@@ -107,7 +115,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         // indicator drops its status lines and keeps only the dots. Agents that do not stream
         // keep both.
         hasStreamedActivity () {
-            const stopping = this.isSupportAgent ? useProductExpertSupportAgentStore().stoppingTransactions : new Map()
+            const stopping = this._agentStore.stoppingTransactions
             return this._agentStore.messages.some(m =>
                 m._type === 'ai' &&
                 (this._inFlightRequests.has(m._transactionId) || stopping.has(m._transactionId)) &&
@@ -117,7 +125,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         // A stopped turn runs on until the agent's next abort check. Until the agent says it
         // has ended, the session's next message would start a second turn alongside it.
         isStoppingTurn () {
-            return this.isSupportAgent && useProductExpertSupportAgentStore().stoppingTransactions.size > 0
+            return this._agentStore.stoppingTransactions.size > 0
         },
         isSupportAgent: (state) => state.agentMode === SUPPORT_AGENT,
         isInsightsAgent: (state) => state.agentMode === INSIGHTS_AGENT,
@@ -146,8 +154,10 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         sessionId () { return this._agentStore.sessionId },
         shouldUseMqtt () {
-            const accountSettingsStore = useAccountSettingsStore()
-            return accountSettingsStore.featuresCheck?.isExternalMqttBrokerFeatureEnabled && this.isSupportAgent
+            const featuresCheck = useAccountSettingsStore().featuresCheck
+            return this.isInsightsAgent
+                ? !!featuresCheck?.isExpertInsightsMqttFeatureEnabled
+                : !!featuresCheck?.isExternalMqttBrokerFeatureEnabled
         },
         // Ratings feed the Expert's product analytics, so they only exist where telemetry is
         // not anonymized, and only over MQTT where the vote can be published.
@@ -159,7 +169,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             if (!this.canRateTurns) {
                 return new Set()
             }
-            const stopping = useProductExpertSupportAgentStore().stoppingTransactions
+            const stopping = this._agentStore.stoppingTransactions
             const messages = this._agentStore.messages
             const uuids = getFeedbackMessageUuids(messages, {
                 isOpen: (message) => this._inFlightRequests.has(message._transactionId) || stopping.has(message._transactionId)
@@ -465,12 +475,15 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         async sendMqttQuery ({ query, toolApprovals } = {}) {
             const transactionId = uuidv4()
+            // The user can switch agents while the connection is made, but the question
+            // belongs to the agent it was asked in
+            const agent = this.agentMode
 
             try {
-                await this._connectChat()
+                await this._connectChat(agent)
 
                 // add the query as an inFlight request
-                this._inFlightRequests.set(transactionId, { query, transactionId })
+                agentStoreFor(agent).inFlightRequests.set(transactionId, { query, transactionId })
                 // statuses left over from a turn that ended off screen must not open this one
                 this._clearInFlightUpdates()
 
@@ -478,11 +491,11 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // Resume a deferred approval turn (#421): decisions drive the turn, no query.
                 if (toolApprovals) payload.toolApprovals = toolApprovals
 
-                await this._chatPublisher().request(payload, transactionId)
+                await this._chatPublisher(agent).request(payload, transactionId)
 
                 return Promise.resolve()
             } catch (e) {
-                this._onMqttError(e)
+                this._onMqttError(e, agent)
                 return Promise.reject(e)
             }
         },
@@ -498,9 +511,11 @@ export const useProductExpertStore = defineStore('product-expert', {
             if (message._shared) {
                 stored.share = true
             }
+            // The vote is for a turn of the agent on screen when it was cast
+            const agent = this.agentMode
             try {
-                await this._connectChat()
-                await this._chatPublisher().request({ vote: { ...stored, ...vote, turnId: message._transactionId } }, uuidv4())
+                await this._connectChat(agent)
+                await this._chatPublisher(agent).request({ vote: { ...stored, ...vote, turnId: message._transactionId } }, uuidv4())
                 return true
             } catch (e) {
                 console.warn('expert turn vote publish failed:', e)
@@ -551,27 +566,29 @@ export const useProductExpertStore = defineStore('product-expert', {
                 message._feedbackDismissed = true
             }
         },
-        _chatPublisher () {
-            return getAppOrchestrator().$publishers.expertSupportChat
+        _chatPublisher (agent = this.agentMode) {
+            return getAppOrchestrator().$publishers[CHAT_CHANNEL_KEYS[agent]]
         },
-        // The support agent's subscriber and publisher share its chat connection. The
-        // subscriber goes first so replies have somewhere to land. Connecting is a no-op
-        // while connected under the agent's session, and disconnecting both closes the
-        // connection.
-        async _connectChat () {
+        _chatSubscriber (agent = this.agentMode) {
+            return getAppOrchestrator().$subscribers[CHAT_CHANNEL_KEYS[agent]]
+        },
+        // An agent's subscriber and publisher share its chat connection. The subscriber
+        // goes first so replies have somewhere to land. Connecting is a no-op while
+        // connected under the agent's session, and disconnecting both closes the connection.
+        async _connectChat (agent = this.agentMode) {
             const team = useContextStore().team
             // The two share one client, so both let go of a connection made under another
             // session before either reconnects under the current one
-            const connectedSessionId = this._chatPublisher().connectedSessionId()
-            if (connectedSessionId && connectedSessionId !== this.sessionId) {
-                await this._disconnectChat()
+            const connectedSessionId = this._chatPublisher(agent).connectedSessionId()
+            if (connectedSessionId && connectedSessionId !== agentStoreFor(agent).sessionId) {
+                await this._disconnectChat(agent)
             }
-            await getAppOrchestrator().$subscribers.expertSupportChat.connect(team)
-            await this._chatPublisher().connect(team)
+            await this._chatSubscriber(agent).connect(team)
+            await this._chatPublisher(agent).connect(team)
         },
-        async _disconnectChat () {
-            await this._chatPublisher().disconnect()
-            await getAppOrchestrator().$subscribers.expertSupportChat.disconnect()
+        async _disconnectChat (agent = this.agentMode) {
+            await this._chatPublisher(agent).disconnect()
+            await this._chatSubscriber(agent).disconnect()
         },
         async fetchToolCatalog () {
             // Fetch the tool catalog for the permissions UI (#421) over HTTP, not MQTT:
@@ -667,7 +684,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             // go back on the team connection, chat ones through the agent's publisher.
             const respond = (body) => {
                 if (!isMcpChannel) {
-                    return this._chatPublisher().respond(responseTopic, { body, transactionId, sessionId, chatTransactionId })
+                    return this._chatPublisher(agent).respond(responseTopic, { body, transactionId, sessionId, chatTransactionId })
                 }
                 return servicesOrchestrator.$services.mqtt.publishMessage(teamConnectionKey(useContextStore().team?.id), {
                     qos: 2,
@@ -1000,7 +1017,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                     this.addSystemMessage({
                         message: 'Your conversation history will expire soon. You can start a new conversation when this one expires.',
                         type: 'warning'
-                    })
+                    }, agentStore)
                 }
 
                 if (elapsed >= expirationThreshold && !agentStore.sessionExpiredShown) {
@@ -1008,7 +1025,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                     this.addSystemMessage({
                         message: 'Your conversation history has expired. Chat is now disabled. Click "Start Over" to begin a new conversation.',
                         type: 'expired'
-                    })
+                    }, agentStore)
                 }
             }, 30000)
 
@@ -1081,10 +1098,11 @@ export const useProductExpertStore = defineStore('product-expert', {
          * @param {Object} payload - An object containing the message details.
          * @param {string} [payload.message=''] - The content of the system message.
          * @param {string} [payload.type='warning'] - The type of system message (e.g., 'warning', 'info', or 'error').
+         * @param {Object} [agentStore] - The agent whose chat gets the message; defaults to the active agent.
          */
-        addSystemMessage ({ message = '', type = 'warning' }) {
+        addSystemMessage ({ message = '', type = 'warning' }, agentStore = this._agentStore) {
             if (!['warning', 'expired'].includes(type) || !message.length) return
-            this._agentStore.messages.push({
+            agentStore.messages.push({
                 _type: 'system',
                 _variant: type,
                 message,
@@ -1102,14 +1120,15 @@ export const useProductExpertStore = defineStore('product-expert', {
                 _uuid: uuidv4()
             })
         },
-        addPredefinedAiMessage (message, { isError = false, code = null } = {}) {
-            const lastThree = this._agentStore.messages.slice(-3)
+        addPredefinedAiMessage (message, { isError = false, code = null, agent = this.agentMode } = {}) {
+            const { messages } = agentStoreFor(agent)
+            const lastThree = messages.slice(-3)
             const recentErrorCodes = lastThree.map(msg => msg.errorCode).filter(Boolean)
 
             // When using MQTT, ignore duplicate error messages (e.g., during connection loss or reconnection attempts)
             // to prevent repetition in the message history
             if (!this.shouldUseMqtt || !recentErrorCodes.includes(code)) {
-                this._agentStore.messages.push({
+                messages.push({
                     _type: 'ai',
                     generated: true,
                     error: isError,
@@ -1315,9 +1334,9 @@ export const useProductExpertStore = defineStore('product-expert', {
             // already tripped. That acknowledgement only means the abort arrived. Any other
             // reply means the turn has ended: its stop notice, or the answer of a turn that was
             // already past its last abort check.
-            if (useProductExpertSupportAgentStore().stoppingTransactions.has(transactionId)) {
+            if (agentStoreFor(agent).stoppingTransactions.has(transactionId)) {
                 if (!payload.aborted || payload.turnStopped) {
-                    this._turnStopped(transactionId)
+                    this._turnStopped(transactionId, agent)
                 }
                 return
             }
@@ -1358,19 +1377,29 @@ export const useProductExpertStore = defineStore('product-expert', {
                 clearTimeout(this._disconnectNoticeTimer)
                 this._disconnectNoticeTimer = null
             }
+            this._disconnectNoticeAgent = null
         },
-        onChatConnectionClosed () {
+        onChatConnectionClosed (agent = this.agentMode) {
+            // The notice talks to the chat on screen, so a drop of the other agent's
+            // connection waits for the reconnect quietly
+            if (agent !== this.agentMode) return
+
             // A drop that recovers on its own is not worth a message, so hold the notice
             // back and let the reconnect cancel it. Close can fire more than once for the
             // same outage, so an already pending notice keeps its original deadline.
-            if (this._disconnectNoticeTimer) return
+            if (this._disconnectNoticeTimer) {
+                if (this._disconnectNoticeAgent === agent) return
+                // The pending notice is for the agent the user has since left
+                this._clearDisconnectNotice()
+            }
 
+            this._disconnectNoticeAgent = agent
             this._disconnectNoticeTimer = setTimeout(() => {
-                this._disconnectNoticeTimer = null
-                this._postDisconnectNotice()
+                this._clearDisconnectNotice()
+                this._postDisconnectNotice(agent)
             }, DISCONNECT_NOTICE_DELAY)
         },
-        _postDisconnectNotice () {
+        _postDisconnectNotice (agent = this.agentMode) {
             const rand = Math.floor(Math.random() * 6)
             const message = [
                 'Looks like we got disconnected. Send another message to pick up where we left off, or start a fresh session.',
@@ -1383,13 +1412,26 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             this.addPredefinedAiMessage(
                 message,
-                { isError: true, code: 'con_close' }
+                { isError: true, code: 'con_close', agent }
             )
         },
         // The chat connection is up and subscribed, on first connect and every reconnect
-        onChatConnected () {
-            // We heard back from the broker, so the pending disconnect notice is stale
-            this._clearDisconnectNotice()
+        onChatConnected (agent = this.agentMode) {
+            // Only the support agent takes system notices
+            if (agent === SUPPORT_AGENT) {
+                this._systemSendsHeld = false
+            }
+
+            // We heard back from the broker, so the pending disconnect notice is stale,
+            // whether or not the agent is the one on screen
+            if (this._disconnectNoticeAgent === agent) {
+                this._clearDisconnectNotice()
+            }
+
+            if (agent !== this.agentMode) {
+                this._drainSendQueue()
+                return
+            }
 
             // if the last message was an error, it means we just reconnected after a failure
             // letting users know that everything is all right
@@ -1409,11 +1451,27 @@ export const useProductExpertStore = defineStore('product-expert', {
                 ][rand])
             }
 
-            this._systemSendsHeld = false
             this._drainSendQueue()
         },
-        _onMqttError (err) {
-            this.handleMqttError(err.code, err.message)
+        _fatalErrorMessage () {
+            const rand = Math.floor(Math.random() * 3)
+            return [
+                "Something went seriously wrong and I can't fix it by trying again. Please start over.",
+                "I've hit a wall I can't climb over. Starting over should get things moving again.",
+                "That's a hard stop — this one's beyond my self-repair skills. Try starting over."
+            ][rand]
+        },
+        // Ends an agent's open turns once the agent can no longer answer them
+        _endTurns (agent) {
+            const agentStore = agentStoreFor(agent)
+            for (const transactionId of agentStore.inFlightRequests.keys()) {
+                this._closeTurnItems(transactionId, agent)
+            }
+            agentStore.inFlightRequests.clear()
+            agentStore.activeTaskList = null
+        },
+        _onMqttError (err, agent) {
+            this.handleMqttError(err.code, err.message, agent)
         },
         _addInFlightUpdate (status) {
             this.inFlightUpdates.push(status)
@@ -1421,14 +1479,35 @@ export const useProductExpertStore = defineStore('product-expert', {
         _clearInFlightUpdates () {
             this.inFlightUpdates = []
         },
-        async handleMqttError (code, reason) {
-            // This path always posts a message of its own, so drop any notice still waiting
-            // on the close timer rather than letting a second one land on top of it.
-            this._clearDisconnectNotice()
+        async handleMqttError (code, reason, agent = this.agentMode) {
+            // Permanent config errors, and a connection the transport gave up on, such as
+            // chat credentials the platform refused
+            const isFatal = FATAL_ERROR_CODES.has(code) ||
+                PROTOCOL_BUG_ERROR_CODES.has(code) ||
+                code === TERMINAL_CONNECTION_ERROR_CODE
 
             // Queued system notices wait for the reconnect. The user's own sends are not
             // held, so they never sit silently behind a connection that may not come back.
-            this._systemSendsHeld = true
+            if (agent === SUPPORT_AGENT) {
+                this._systemSendsHeld = true
+            }
+
+            // The messages below talk to the chat on screen. The other agent's connection
+            // reconnects on its own, and only a permanent failure needs closing. That one
+            // ends the agent's turn and tells its chat to start over, so switching back
+            // doesn't find a loader that never stops.
+            if (agent !== this.agentMode) {
+                if (isFatal) {
+                    await this._disconnectChat(agent)
+                    this._endTurns(agent)
+                    this.addPredefinedAiMessage(this._fatalErrorMessage(), { isError: true, code: 'fatal', agent })
+                }
+                return
+            }
+
+            // This path always posts a message of its own, so drop any notice still waiting
+            // on the close timer rather than letting a second one land on top of it.
+            this._clearDisconnectNotice()
 
             // stopping inFlight chat requests to ignore any in flight messages if any and also clear the loader
             this.stopInflightChat()
@@ -1569,20 +1648,10 @@ export const useProductExpertStore = defineStore('product-expert', {
                 return this.addPredefinedAiMessage(payload.message, { isError: true, code: payload.code })
             }
 
-            // Permanent config errors, and a connection the transport gave up on, such as
-            // chat credentials the platform refused
-            if (FATAL_ERROR_CODES.has(code) || PROTOCOL_BUG_ERROR_CODES.has(code) || code === TERMINAL_CONNECTION_ERROR_CODE) {
+            if (isFatal) {
                 console.error('Expert chat connection failed:', reason)
-                await this._disconnectChat()
-                payload = {
-                    code: 'fatal',
-                    message: [
-                        "Something went seriously wrong and I can't fix it by trying again. Please start over.",
-                        "I've hit a wall I can't climb over. Starting over should get things moving again.",
-                        "That's a hard stop — this one's beyond my self-repair skills. Try starting over."
-                    ][rand]
-                }
-                return this.addPredefinedAiMessage(payload.message, { isError: true, code: payload.code })
+                await this._disconnectChat(agent)
+                return this.addPredefinedAiMessage(this._fatalErrorMessage(), { isError: true, code: 'fatal' })
             }
 
             switch (code) {
@@ -1718,7 +1787,8 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         async _relayInstanceEvent (instance, { seen, buildSystem, showCard = false, onPublished }) {
             const uxStore = useUxStore()
-            if (!instance?.id || !(uxStore.isOnboarding || uxStore.building) || !this.shouldUseMqtt) return
+            // Only the support agent builds, so only it is told about the instances it made.
+            if (!instance?.id || !(uxStore.isOnboarding || uxStore.building) || !this.isSupportAgent || !this.shouldUseMqtt) return
             if (seen.has(instance.id)) return
             seen.add(instance.id)
 
@@ -1738,25 +1808,28 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         async _publishSystemEvent (instance, system, onPublished) {
             const transactionId = uuidv4()
+            // Only the support agent takes system notices, whichever agent is on screen
+            const agent = SUPPORT_AGENT
+            const { inFlightRequests } = agentStoreFor(agent)
             try {
                 // Like a user message, a notice supersedes open approval cards: the agent
                 // cancels the abandoned calls and asks again if it still needs them.
                 this.cancelPendingToolApprovals('cancelled')
 
-                await this._connectChat()
+                await this._connectChat(agent)
 
                 // Register like a real request so receiveChatReply's in-flight guard lets the
                 // reply through instead of silently dropping it.
-                this._inFlightRequests.set(transactionId, { query: '', transactionId, system: true })
+                inFlightRequests.set(transactionId, { query: '', transactionId, system: true })
                 this._clearInFlightUpdates()
 
-                await this._chatPublisher().request({ system }, transactionId)
+                await this._chatPublisher(agent).request({ system }, transactionId)
                 onPublished?.(instance)
                 return true
             } catch (e) {
                 // Never sent, so there is no turn to wait on or abort.
-                this._inFlightRequests.delete(transactionId)
-                this._onMqttError(e)
+                inFlightRequests.delete(transactionId)
+                this._onMqttError(e, agent)
                 return false
             }
         },
@@ -1807,18 +1880,19 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         _awaitTurnStopped (transactionId) {
             // The fallback covers a notice that never comes, such as from an agent that doesn't send one.
-            const timer = setTimeout(() => this._turnStopped(transactionId), STOP_CONFIRM_TIMEOUT_MS)
-            useProductExpertSupportAgentStore().stoppingTransactions.set(transactionId, timer)
+            const agent = this.agentMode
+            const timer = setTimeout(() => this._turnStopped(transactionId, agent), STOP_CONFIRM_TIMEOUT_MS)
+            this._agentStore.stoppingTransactions.set(transactionId, timer)
         },
-        _turnStopped (transactionId) {
-            const stopping = useProductExpertSupportAgentStore().stoppingTransactions
+        _turnStopped (transactionId, agent = this.agentMode) {
+            const stopping = agentStoreFor(agent).stoppingTransactions
             if (!stopping.has(transactionId)) return
             clearTimeout(stopping.get(transactionId))
             stopping.delete(transactionId)
             this._drainSendQueue()
         },
         _clearStoppingTurns () {
-            const stopping = useProductExpertSupportAgentStore().stoppingTransactions
+            const stopping = this._agentStore.stoppingTransactions
             stopping.forEach(timer => clearTimeout(timer))
             stopping.clear()
         }
