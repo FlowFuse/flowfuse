@@ -1263,6 +1263,20 @@ describe('product-expert store', () => {
                 expect(useProductExpertInsightsAgentStore().messages).toHaveLength(0)
             })
 
+            it('ends the turn of an agent off screen whose connection the transport gave up on', async () => {
+                vi.spyOn(console, 'error').mockImplementation(() => {})
+                const store = arrangeSupport()
+                const support = useProductExpertSupportAgentStore()
+                support.inFlightRequests.set('turn-1', { query: 'x', transactionId: 'turn-1' })
+                store.setAgentMode(INSIGHTS_AGENT)
+
+                await store.handleMqttError('MQTT_TERMINAL_CONNECTION_ERROR', 'Request failed with status code 403', SUPPORT_AGENT)
+
+                expect(support.inFlightRequests.size).toBe(0)
+                expect(support.messages[0].errorCode).toBe('fatal')
+                expect(useProductExpertInsightsAgentStore().messages).toHaveLength(0)
+            })
+
             it('tells the chat on screen to start over after a fatal error', async () => {
                 const store = arrangeSupport()
 

@@ -1480,6 +1480,12 @@ export const useProductExpertStore = defineStore('product-expert', {
             this.inFlightUpdates = []
         },
         async handleMqttError (code, reason, agent = this.agentMode) {
+            // Permanent config errors, and a connection the transport gave up on, such as
+            // chat credentials the platform refused
+            const isFatal = FATAL_ERROR_CODES.has(code) ||
+                PROTOCOL_BUG_ERROR_CODES.has(code) ||
+                code === TERMINAL_CONNECTION_ERROR_CODE
+
             // Queued system notices wait for the reconnect. The user's own sends are not
             // held, so they never sit silently behind a connection that may not come back.
             if (agent === SUPPORT_AGENT) {
@@ -1491,7 +1497,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             // ends the agent's turn and tells its chat to start over, so switching back
             // doesn't find a loader that never stops.
             if (agent !== this.agentMode) {
-                if (FATAL_ERROR_CODES.has(code) || PROTOCOL_BUG_ERROR_CODES.has(code)) {
+                if (isFatal) {
                     await this._disconnectChat(agent)
                     this._endTurns(agent)
                     this.addPredefinedAiMessage(this._fatalErrorMessage(), { isError: true, code: 'fatal', agent })
@@ -1642,11 +1648,9 @@ export const useProductExpertStore = defineStore('product-expert', {
                 return this.addPredefinedAiMessage(payload.message, { isError: true, code: payload.code })
             }
 
-            // Permanent config errors, and a connection the transport gave up on, such as
-            // chat credentials the platform refused
-            if (FATAL_ERROR_CODES.has(code) || PROTOCOL_BUG_ERROR_CODES.has(code) || code === TERMINAL_CONNECTION_ERROR_CODE) {
+            if (isFatal) {
                 console.error('Expert chat connection failed:', reason)
-                await this._disconnectChat()
+                await this._disconnectChat(agent)
                 return this.addPredefinedAiMessage(this._fatalErrorMessage(), { isError: true, code: 'fatal' })
             }
 
