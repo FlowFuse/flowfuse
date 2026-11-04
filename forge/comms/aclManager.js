@@ -73,6 +73,9 @@ module.exports = function (app) {
             // check to see if the device is assigned to something?
             const assignedTo = await app.db.models.Device.getOwnerTypeAndId(ids[2])
             if (assignedTo && assignedTo.ownerType && assignedTo.ownerId) {
+                if (acl.deviceOwnerType && acl.deviceOwnerType !== assignedTo.ownerType) {
+                    return false // rule does not apply to this type of device owner
+                }
                 return true
             }
             return false
@@ -131,6 +134,63 @@ module.exports = function (app) {
                 // postgres with throw over, unlike sqlite that returns no results.
                 return false
             }
+        },
+        checkClientInApplication: async function (requestParts, usernameParts, acl) {
+            // requestParts = [ _ , <teamid>, <applicationid>, <sourceid> ]
+            //   the regex match of the requested topic (ff/v1/<team>/a/<application>/p/<source>/out/...),
+            //   i.e. what the client is asking to sub/pub to
+            // usernameParts = [ 'project', <teamid>, <projectid> ] or [ 'device', <teamid>, <deviceid> ]
+            //   the connecting client's broker username split on ':'
+            //
+            // Used by 4 ACLs (2 project, 2 device), all on the topic ff/v1/<team>/a/<application>/p/<source>/out/+/#
+            //   a = the application the broadcast is scoped to
+            //   p = the sender: an instance id, or dev:<deviceid> for an application owned device
+            //
+            // Receive application scoped broadcasts (project sub, device sub - ff/v1/<team>/a/<application>/p/+/out/+/#):
+            // A project node in application A may only receive broadcasts scoped to application A, i.e. the
+            // client (instance, or device via its owner) must belong to <application>. Any sender in A is allowed.
+            //
+            // Send application scoped broadcasts (project pub, device pub - ff/v1/<team>/a/<application>/p/<source>/out/+/#):
+            // As above, the client must belong to <application>, and acl.checkSource also requires <source>
+            // to be the client itself so it cannot publish as another member:
+            //   - instance: <source> = its instance id
+            //   - instance owned device: <source> = its owning instance's id (it broadcasts as its instance)
+            //   - application owned device: <source> = dev:<deviceid>
+
+            // Do the simple team id check
+            if (requestParts[1] !== usernameParts[1]) {
+                return false
+            }
+            let applicationId
+            let sourceId
+            try {
+                if (usernameParts[0] === 'project') {
+                    applicationId = await app.db.models.Project.getProjectApplicationId(usernameParts[2])
+                    sourceId = usernameParts[2]
+                } else if (usernameParts[0] === 'device') {
+                    const assignedTo = await app.db.models.Device.getOwnerTypeAndId(usernameParts[2])
+                    if (assignedTo?.ownerType === 'instance') {
+                        // An instance owned device is part of its instance's application
+                        // and broadcasts using its instance id
+                        applicationId = await app.db.models.Project.getProjectApplicationId(assignedTo.ownerId)
+                        sourceId = assignedTo.ownerId
+                    } else if (assignedTo?.ownerType === 'application') {
+                        applicationId = assignedTo.ownerId
+                        sourceId = `dev:${usernameParts[2]}`
+                    }
+                }
+            } catch (err) {
+                // Any error likely means an id isn't a valid uuid - which
+                // postgres with throw over, unlike sqlite that returns no results.
+                return false
+            }
+            if (!applicationId || applicationId !== requestParts[2]) {
+                return false // not a member of this application
+            }
+            if (acl.checkSource && requestParts[3] !== sourceId) {
+                return false // can only publish as itself
+            }
+            return true
         },
         checkTeamUserSession: async function (requestParts, usernameParts) {
             // requestParts = [ fullTopic , <teamHash> [, <userHash>] ] - v1
