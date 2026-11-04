@@ -205,6 +205,9 @@ module.exports = {
         user.suspended = true
         // log suspended user out of all projects they have access to
         await user.save()
+        // Destroy the user's access tokens (editor/MCP sessions) so a suspended
+        // user cannot refresh into a new access token.
+        await app.db.models.AccessToken.destroy({ where: { ownerType: 'user', ownerId: '' + user.id } })
         await app.db.controllers.User.logout(user)
     },
 

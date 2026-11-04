@@ -762,7 +762,10 @@ module.exports = async function (app) {
                     context = { applicationId }
                 }
 
-                const user = await app.db.models.User.findOne({ where: { id: parseInt(existingToken.ownerId) }, attributes: ['admin'] })
+                const user = await app.db.models.User.findOne({ where: { id: parseInt(existingToken.ownerId) }, attributes: ['admin', 'suspended'] })
+                if (!user || user.suspended) {
+                    return badRequest(reply, 'access_denied', 'Access Denied')
+                }
                 const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: owner.TeamId, UserId: parseInt(existingToken.ownerId) } })
                 const canReadFlows = user.admin || app.hasPermission(teamMembership, 'project:flows:view', context)
                 const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit', context)
