@@ -58,3 +58,43 @@ describe('gitops cloneRepository', function () {
             .should.be.rejectedWith('Failed to clone repository: something broke')
     })
 })
+
+describe('gitops resolveRepoFile', function () {
+    const os = require('node:os')
+    const realFs = require('node:fs/promises')
+    const nodePath = require('node:path')
+    const { resolveRepoFile } = require('../../../../../../../forge/ee/lib/gitops/backends/utils')
+    let dir
+
+    beforeEach(async function () {
+        dir = await realFs.mkdtemp(nodePath.join(os.tmpdir(), 'ff-gitops-test-'))
+        await realFs.writeFile(nodePath.join(dir, 'snapshot.json'), '{}')
+    })
+
+    afterEach(async function () {
+        await realFs.rm(dir, { recursive: true, force: true })
+    })
+
+    it('resolves a file inside the working dir', async function () {
+        const resolved = await resolveRepoFile(dir, 'snapshot.json')
+        resolved.should.equal(await realFs.realpath(nodePath.join(dir, 'snapshot.json')))
+    })
+
+    it('rejects an absolute path', async function () {
+        await resolveRepoFile(dir, '/etc/passwd').should.be.rejectedWith('Invalid repository path')
+    })
+
+    it('rejects a traversal path', async function () {
+        await resolveRepoFile(dir, '../../etc/passwd').should.be.rejectedWith('Invalid repository path')
+    })
+
+    it('rejects a symlinked leaf', async function () {
+        await realFs.symlink('/etc/passwd', nodePath.join(dir, 'link.json'))
+        await resolveRepoFile(dir, 'link.json').should.be.rejectedWith('Invalid repository path')
+    })
+
+    it('rejects a path through a symlinked directory', async function () {
+        await realFs.symlink(os.tmpdir(), nodePath.join(dir, 'out'))
+        await resolveRepoFile(dir, nodePath.join('out', 'snapshot.json')).should.be.rejectedWith('Invalid repository path')
+    })
+})

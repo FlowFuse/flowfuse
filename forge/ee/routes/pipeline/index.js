@@ -265,8 +265,8 @@ module.exports = async function (app) {
                     url: { type: 'string' },
                     branch: { type: 'string' },
                     pullBranch: { type: 'string' },
-                    pushPath: { type: 'string' },
-                    pullPath: { type: 'string' },
+                    pushPath: { type: 'string', pattern: '^(?:(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+)?$' },
+                    pullPath: { type: 'string', pattern: '^(?:(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+)?$' },
                     credentialSecret: { type: 'string' },
                     source: { type: 'string' }
                 }
@@ -379,8 +379,8 @@ module.exports = async function (app) {
                     url: { type: 'string' },
                     branch: { type: 'string' },
                     pullBranch: { type: 'string' },
-                    pushPath: { type: 'string' },
-                    pullPath: { type: 'string' },
+                    pushPath: { type: 'string', pattern: '^(?:(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+)?$' },
+                    pullPath: { type: 'string', pattern: '^(?:(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+)?$' },
                     credentialSecret: { type: 'string' },
                     source: { type: 'string' }
                 }
