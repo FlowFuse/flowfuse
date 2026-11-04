@@ -181,7 +181,7 @@ describe('AppOrchestrator', () => {
             mcpSession: null,
             expertSupportChat: null
         })
-        expect(orchestrator.$publishers).toEqual({ tabPresence: null })
+        expect(orchestrator.$publishers).toEqual({ tabPresence: null, expertSupportChat: null })
         expect(orchestrator.$app).toBeNull()
         expect(orchestrator.$router).toBeNull()
         expect(orchestrator.$cleanupRegistered).toBe(false)
