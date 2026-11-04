@@ -20,6 +20,9 @@ For container based deployment models, this covers three things:
  - `cpu` - a value between 1 and 100 that is the % of a CPU core the container should be allowed to consume.
  - `container location` - this is the fully qualified name of the container to use. The default container built when following the install instructions is named `flowfuse/node-red:latest`
 
+As of FlowFuse v3.2.0 both `memory` and `cpu` allow you to set both min and max values. This allows for over commiting of Instance pods to nodes. If you are unsure, set min and max to the same values
+to ensure they always get a dedicated allocation.s
+
 If you wish to use different Node-RED version, you need to specify the name of the container and the version you want to use. For example, if you want to use Node-RED v3.1.x, you should enter `flowfuse/node-red:latest-3.1.x` in the `container location` section of the Stack configuration.
 Full list of available pre-built containers can be found on [Docker Hub](https://hub.docker.com/r/flowfuse/node-red/tags).
 
