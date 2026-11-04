@@ -90,6 +90,7 @@ export function useMqttExpertTopicHelper () {
 
         if (!entityType) throw new Error('Topic "entityType" is mandatory')
         if (!entityId) throw new Error('Topic "entityId" is mandatory')
+        if (!sessionId) throw new Error('Topic "sessionId" is mandatory')
         if (!agentChannel || !['support', 'insights', 'mcp'].includes(agentChannel)) {
             throw new Error(`"agentChannel" must be one of "support", "insights" or "mcp", "${agentChannel}" given`)
         }

@@ -33,8 +33,10 @@ function userProperty (packet: TransportMessagePacket | undefined, name: string)
  *
  * The subscriber connects when the agent first sends and keeps the session it connected
  * with across reconnects, so the agent's subscriptions survive the user switching to the
- * other agent. A new chat disconnects it first. Messages reach the store tagged with the
- * agent, so a reply that lands after the user switched away still goes to its own chat.
+ * other agent. A new chat disconnects it first, and a send under a session other than the
+ * one it connected with reconnects it under that session. Messages reach the store tagged
+ * with the agent, so a reply that lands after the user switched away still goes to its own
+ * chat.
  */
 abstract class ExpertChatSubscriber extends TeamSubscriber implements TeamSubscriberI {
     protected $channel: ExpertChatChannel
@@ -47,9 +49,18 @@ abstract class ExpertChatSubscriber extends TeamSubscriber implements TeamSubscr
     }
 
     protected async _connect (team: Maybe<TeamRef>): Promise<void> {
-        if (this.isConnected()) return
-        this.$sessionId = this.$channel.useAgentStore().sessionId
+        const sessionId = this.$channel.useAgentStore().sessionId
+        if (this.isConnected()) {
+            if (sessionId === this.$sessionId) return
+            await this._disconnect()
+        }
+        this.$sessionId = sessionId
         await super._connect(team)
+    }
+
+    // The send waiting on this connection reports why it could not be made
+    protected _onAttachFailed (failure: unknown): void {
+        throw failure
     }
 
     protected _connectionKey (): string {
