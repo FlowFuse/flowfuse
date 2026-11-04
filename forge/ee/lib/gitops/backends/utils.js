@@ -2,6 +2,42 @@ const { execFile } = require('node:child_process')
 const { promisify } = require('node:util')
 const execFilePromised = promisify(execFile)
 
+/**
+ * Parse a repository URL and confirm it is safe to send a token to.
+ *
+ * Requires https, forbids any embedded userinfo (so `user@host` cannot
+ * redirect the credential), and, when allowedHosts is given, requires an
+ * exact hostname match (so a lookalike like `github.com.example` is rejected).
+ *
+ * @param {String} rawUrl the configured repository URL
+ * @param {Object} [options]
+ * @param {String[]} [options.allowedHosts] lowercase hostnames the URL must match exactly
+ * @returns {URL} the parsed URL
+ * @throws {Error} if the URL is not valid for use
+ */
+function validateRepoUrl (rawUrl, { allowedHosts } = {}) {
+    let url
+    try {
+        url = new URL(rawUrl)
+    } catch (err) {
+        const error = new Error('Invalid repository URL')
+        error.code = 'invalid_url'
+        error.cause = err
+        throw error
+    }
+    if (url.protocol !== 'https:' || url.username || url.password) {
+        const error = new Error('Invalid repository URL')
+        error.code = 'invalid_url'
+        throw error
+    }
+    if (allowedHosts && !allowedHosts.includes(url.hostname.toLowerCase())) {
+        const error = new Error('Invalid repository URL')
+        error.code = 'invalid_host'
+        throw error
+    }
+    return url
+}
+
 async function cloneRepository (url, branch, workingDir, env) {
     try {
         await execFilePromised('git', ['clone', '-b', branch, '--depth', '1', '--single-branch', url.toString(), '.'], { cwd: workingDir, env })
@@ -34,5 +70,6 @@ async function cloneRepository (url, branch, workingDir, env) {
 }
 
 module.exports = {
-    cloneRepository
+    cloneRepository,
+    validateRepoUrl
 }
