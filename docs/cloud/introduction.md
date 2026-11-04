@@ -42,19 +42,6 @@ and click the button to resend it.
 FlowFuse Cloud offers a Edge, Hub and Fleet Team Type, aimed at different sorts of users. 
 
 
-### Changing Team Type
-
-You can change Team Type by selecting the "Team Settings" option from the left hand
-menu, then clicking on the "Change Team Type" button
-
-![Change Team Type](images/change-team-type.png)
-
-From here you will be presented with a choice of Team Types. You will not be able
-to downgrade to a lower Team Type if you already have more resources than allowed at 
-that level. Please Suspend or Delete any no longer required Instances or Devices.
-
-![Available Team Types](images/availble-team-types.png)
-
 ## Node-RED on FlowFuse Cloud
 
 FlowFuse currently offers Node-RED 4.x, 3.x and 2.x to customers. When creating a
@@ -77,11 +64,9 @@ table shows what is currently allocated by instance size.
 
 | Size | Memory (RAM) |
 |--------|--------|
-| Small | 256MB |
 | Medium | 768MB |
 | Large | 3840MB |
 
-Medium and Large instance types require Edge, Hub or Fleet.
 
 ## Use of the File System
 
@@ -126,14 +111,14 @@ Node-RED inside the FlowFuse Cloud platform.
 
 MQTT Connections to an external broker using the standard MQTT nodes will work fine as the connection is initiated by Node-RED.
 
-FlowFuse provides an MQTT broker for EDge, Hub and Fleet Node-RED instances. See the following section.
+FlowFuse provides an MQTT broker for Hub and Fleet Node-RED instances. See the following section.
 
 Also the Project Nodes can be used to easily pass messages between Node-RED instances running in the
 platform.
 
 #### Enterprise Team Broker
 
-Edge and Fleet teams come with their own MQTT broker. You can provision clients from the broker tab in the left hand menu.
+Hub and Fleet teams come with their own MQTT broker. You can provision clients from the broker tab in the left hand menu.
 
 Teams can register up to 20 clients as part of their plan. The ability to purchase additional packs of clients will come in a near future release.
 

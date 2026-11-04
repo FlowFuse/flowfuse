@@ -16,8 +16,10 @@ async function init (forge) {
             factory.createStack({ name: 'stack2', label: 'stack 2' }, projectType),
             factory.createStack({ name: 'stack1-for-type2', label: 'stack 1 for type2' }, spareProjectType)
         ])
+        // Not used by any instance, so admin/stacks.spec.js can replace it without affecting other specs
+        const stackToReplace = await factory.createStack({ name: 'stack-to-replace', label: 'stack to replace' }, projectType)
         _projectStacks = {
-            stack1, stack2, stack3
+            stack1, stack2, stack3, stackToReplace
         }
         return _projectStacks
     })()

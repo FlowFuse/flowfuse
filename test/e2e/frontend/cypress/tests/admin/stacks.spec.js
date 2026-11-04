@@ -13,7 +13,7 @@ describe('FlowFuse - Stacks', () => {
     })
 
     it('loads stacks into relevant tables', () => {
-        cy.get('[data-el="active-stacks"] tbody').find('tr').should('have.length', 3)
+        cy.get('[data-el="active-stacks"] tbody').find('tr').should('have.length', 4)
         cy.get('[data-el="active-stacks"] tbody').contains('td', 'stack1')
 
         cy.get('[data-el="inactive-stacks"] tbody').find('tr').should('have.length', 1)
@@ -23,7 +23,7 @@ describe('FlowFuse - Stacks', () => {
     it('can create a new version of a stack, and deactivate the replaced stack', () => {
         cy.intercept('POST', '/api/*/stacks').as('createStack')
 
-        cy.get('[data-el="active-stacks"] tbody tr:first .ff-kebab-menu').click()
+        cy.get('[data-el="active-stacks"] tbody').contains('tr', 'stack-to-replace').find('.ff-kebab-menu').click()
         cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-kebab-item').eq(0).click()
 
         cy.get('.ff-dialog-box').should('be.visible')
@@ -35,12 +35,12 @@ describe('FlowFuse - Stacks', () => {
         cy.wait('@createStack')
 
         // check it has been created
-        cy.get('[data-el="active-stacks"] tbody').find('tr').should('have.length', 3)
-        cy.get('[data-el="active-stacks"] tbody').contains('td', 'stack1-copy')
+        cy.get('[data-el="active-stacks"] tbody').find('tr').should('have.length', 4)
+        cy.get('[data-el="active-stacks"] tbody').contains('td', 'stack-to-replace-copy')
 
         // and that old stack has been moved
         cy.get('[data-el="inactive-stacks"] tbody').find('tr').should('have.length', 1)
-        cy.get('[data-el="inactive-stacks"] tbody').contains('td', 'stack1')
+        cy.get('[data-el="inactive-stacks"] tbody').contains('td', 'stack-to-replace')
     })
 
     it('can load multiple pages of stacks when the API paginates', function () {

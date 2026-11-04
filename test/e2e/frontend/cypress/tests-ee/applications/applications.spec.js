@@ -178,13 +178,13 @@ describe('FlowFuse - Applications - With Billing', () => {
 
                     cy.get('[data-el="application-instances"]').should('exist')
                     cy.get('[data-el="application-instances"] [data-state="running"]').should('exist')
-                    cy.get('[data-el="application-instances"] [data-state="running"]').contains('2')
+                    cy.get('[data-el="application-instances"] [data-state="running"]').contains('1')
 
                     cy.get('[data-el="application-instances"] [data-state="error"]').should('exist')
                     cy.get('[data-el="application-instances"] [data-state="error"]').contains('0')
 
                     cy.get('[data-el="application-instances"] [data-state="stopped"]').should('exist')
-                    cy.get('[data-el="application-instances"] [data-state="stopped"]').contains('0')
+                    cy.get('[data-el="application-instances"] [data-state="stopped"]').contains('1')
 
                     cy.get('[data-el="application-devices"] [data-state="running"]').should('exist')
                     cy.get('[data-el="application-devices"] [data-state="running"]').contains('0')

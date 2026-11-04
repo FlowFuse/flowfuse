@@ -4,17 +4,13 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 const mocks = vi.hoisted(() => {
     return {
         authStore: { user: { username: 'alice' } },
-        settingsStore: { featuresCheck: {} },
-        toursStore: { presentTour: vi.fn(), withdrawTour: vi.fn() },
+        toursStore: { presentTour: vi.fn() },
         uxStore: { setNewlyCreatedUser: vi.fn() }
     }
 })
 
 vi.mock('@/stores/account-auth.js', () => ({
     useAccountAuthStore: () => mocks.authStore
-}))
-vi.mock('@/stores/account-settings.js', () => ({
-    useAccountSettingsStore: () => mocks.settingsStore
 }))
 vi.mock('@/stores/ux-tours.js', () => ({
     useUxToursStore: () => mocks.toursStore
@@ -49,9 +45,7 @@ function mountPage () {
 
 describe('UnverifiedEmail', () => {
     beforeEach(() => {
-        mocks.settingsStore.featuresCheck = {}
         mocks.toursStore.presentTour.mockClear()
-        mocks.toursStore.withdrawTour.mockClear()
         mocks.uxStore.setNewlyCreatedUser.mockClear()
         userApi.verifyEmailToken.mockClear()
         userApi.verifyEmailToken.mockResolvedValue({})
@@ -64,26 +58,14 @@ describe('UnverifiedEmail', () => {
         await flushPromises()
     }
 
-    test('queues the welcome tour on the classic path', async () => {
+    // No team is loaded for an unverified user, so the team page decides whether the tour fits
+    test('queues the welcome tour once verified', async () => {
         const wrapper = mountPage()
         await verify(wrapper)
         expect(mocks.toursStore.presentTour).toHaveBeenCalledTimes(1)
-        expect(mocks.toursStore.withdrawTour).not.toHaveBeenCalled()
     })
 
-    // The tour and the education modal it opens on close both explain concepts
-    // the onboarding conversation covers by doing. A tour queued on an earlier
-    // visit persists in localStorage, so it gets actively withdrawn too
-    test('withdraws the welcome tour when AI onboarding is enabled', async () => {
-        mocks.settingsStore.featuresCheck = { isAiOnboardingFeatureEnabled: true }
-        const wrapper = mountPage()
-        await verify(wrapper)
-        expect(mocks.toursStore.presentTour).not.toHaveBeenCalled()
-        expect(mocks.toursStore.withdrawTour).toHaveBeenCalledTimes(1)
-    })
-
-    test('still marks the user as newly created either way', async () => {
-        mocks.settingsStore.featuresCheck = { isAiOnboardingFeatureEnabled: true }
+    test('marks the user as newly created', async () => {
         const wrapper = mountPage()
         await verify(wrapper)
         expect(mocks.uxStore.setNewlyCreatedUser).toHaveBeenCalledTimes(1)
@@ -96,7 +78,6 @@ describe('UnverifiedEmail', () => {
         const wrapper = mountPage()
         await verify(wrapper)
         expect(mocks.toursStore.presentTour).not.toHaveBeenCalled()
-        expect(mocks.toursStore.withdrawTour).not.toHaveBeenCalled()
         expect(mocks.uxStore.setNewlyCreatedUser).not.toHaveBeenCalled()
     })
 })
