@@ -1087,6 +1087,21 @@ describe('product-expert store', () => {
             expect(useProductExpertSupportAgentStore().inFlightRequests.size).toBe(0)
         })
 
+        it('drops a chat connection made under another session before sending', async () => {
+            const store = useProductExpertStore()
+            const agent = useProductExpertSupportAgentStore()
+            await store.handleQuery({ query: 'hello' })
+            agent.inFlightRequests.clear()
+            agent.sessionId = 'session-2'
+
+            await store.handleQuery({ query: 'again' })
+
+            expect(chatSubscriber.disconnect).toHaveBeenCalledTimes(1)
+            expect(chatTransport.detach).toHaveBeenCalledTimes(1)
+            expect(chatPublisher.connectedSessionId()).toBe('session-2')
+            expect(mqttService.publishMessage.mock.calls.at(-1)[1].topic).toContain('/session-2/')
+        })
+
         it('starts a turn without the statuses another turn left behind', async () => {
             const store = useProductExpertStore()
             store.inFlightUpdates = ['Requesting platform tool definitions...']

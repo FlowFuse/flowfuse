@@ -39,7 +39,18 @@ abstract class ExpertChatPublisher extends TeamPublisher implements ExpertChatPu
         return this.$linkUp
     }
 
+    /**
+     * The session this publisher connected with, which its topics and credentials carry
+     * until it disconnects.
+     */
+    connectedSessionId (): Maybe<string> {
+        return this.isConnected() ? this.$sessionId : null
+    }
+
     async request (body: Record<string, unknown>, transactionId: string): Promise<void> {
+        // the topic carries the session, which only exists once connected
+        this._assertConnected()
+
         const topicHelper = useMqttExpertTopicHelper()
         const { entityId, entityType } = topicHelper.getEntityTopicPaths()
 
@@ -112,10 +123,14 @@ abstract class ExpertChatPublisher extends TeamPublisher implements ExpertChatPu
     // _publish drops a message quietly when there is no connection, but a chat send has to
     // fail so the turn is not left waiting on a reply that cannot come
     private async _send (topic: string, payload: MqttPayload, options: Partial<TransportPublishOptions>): Promise<void> {
+        this._assertConnected()
+        await this._publish(topic, payload, options)
+    }
+
+    private _assertConnected (): void {
         if (!this.isConnected()) {
             throw new Error(`[${this.$name}] not connected`)
         }
-        await this._publish(topic, payload, options)
     }
 }
 

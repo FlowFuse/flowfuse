@@ -556,9 +556,16 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         // The support agent's subscriber and publisher share its chat connection. The
         // subscriber goes first so replies have somewhere to land. Connecting is a no-op
-        // while connected, and disconnecting both closes the connection.
+        // while connected under the agent's session, and disconnecting both closes the
+        // connection.
         async _connectChat () {
             const team = useContextStore().team
+            // The two share one client, so both let go of a connection made under another
+            // session before either reconnects under the current one
+            const connectedSessionId = this._chatPublisher().connectedSessionId()
+            if (connectedSessionId && connectedSessionId !== this.sessionId) {
+                await this._disconnectChat()
+            }
             await getAppOrchestrator().$subscribers.expertSupportChat.connect(team)
             await this._chatPublisher().connect(team)
         },

@@ -1,6 +1,7 @@
 import type { App } from 'vue'
 import type { Router } from 'vue-router'
 
+import type { Maybe } from '@/types/common/types'
 import type { TeamRef } from '@/types/subscribers/subscriber.types'
 import type { Transport } from '@/types/transport/transport.types'
 
@@ -37,6 +38,7 @@ export interface InflightResponse {
 
 export interface ExpertChatPublisherI extends TeamPublisherI {
     isLinkUp(): boolean
+    connectedSessionId(): Maybe<string>
     request(body: Record<string, unknown>, transactionId: string): Promise<void>
     abort(transactionId: string): Promise<void>
     respond(topic: string, response: InflightResponse): Promise<void>
