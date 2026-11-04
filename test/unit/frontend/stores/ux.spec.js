@@ -2,6 +2,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import userApi from '@/api/user.js'
+import { EXPERT_SESSION_EXPIRY_MS } from '@/stores/product-expert-agents.js'
 import { useUxStore } from '@/stores/ux.js'
 
 vi.mock('@/api/user.js', () => ({
@@ -249,60 +250,80 @@ describe('ux store', () => {
     describe('arriving with a stale onboarding stage', () => {
         const provisioned = { aiOnboarding: true, instanceCount: 1 }
 
-        it('ends onboarding when the workspace has an instance and no conversation is left', () => {
+        it('ends onboarding when the workspace has an instance and no conversation was ever sent', () => {
             const store = useUxStore()
             store.setNewlyCreatedUser()
-            store.checkOnboardingOnArrival(provisioned, { hasConversation: false })
+            store.checkOnboardingOnArrival(provisioned)
             expect(store.isOnboarding).toBe(false)
             expect(store.shouldEnterOnboarding).toBe(false)
+            expect(store.onboardingEndedOnArrival).toBe(true)
             expect(userApi.updateUserSettings).toHaveBeenCalledWith({ onboardingCompleted: true })
+        })
+
+        it('ends onboarding when the last conversation has expired', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.onboardingActiveAt = Date.now() - EXPERT_SESSION_EXPIRY_MS - 1000
+            store.checkOnboardingOnArrival(provisioned)
+            expect(store.isOnboarding).toBe(false)
         })
 
         it('ends a stale building stage too', () => {
             const store = useUxStore()
             store.setNewlyCreatedUser()
             store.startOnboardingBuild()
-            store.checkOnboardingOnArrival(provisioned, { hasConversation: false })
+            store.checkOnboardingOnArrival(provisioned)
             expect(store.isOnboarding).toBe(false)
         })
 
-        it('keeps onboarding while the conversation is still in this tab', () => {
+        it('keeps onboarding while a conversation is alive, even one in another tab', () => {
             const store = useUxStore()
             store.setNewlyCreatedUser()
-            store.checkOnboardingOnArrival(provisioned, { hasConversation: true })
+            store.markOnboardingActive()
+            store.checkOnboardingOnArrival(provisioned)
             expect(store.isOnboardingIntake).toBe(true)
+            expect(store.onboardingEndedOnArrival).toBe(false)
             expect(userApi.updateUserSettings).not.toHaveBeenCalled()
         })
 
         it('keeps onboarding for an empty workspace', () => {
             const store = useUxStore()
             store.setNewlyCreatedUser()
-            store.checkOnboardingOnArrival({ aiOnboarding: true, instanceCount: 0 }, { hasConversation: false })
+            store.checkOnboardingOnArrival({ aiOnboarding: true, instanceCount: 0 })
             expect(store.isOnboardingIntake).toBe(true)
         })
 
         it('leaves a team without AI onboarding alone', () => {
             const store = useUxStore()
             store.setNewlyCreatedUser()
-            store.checkOnboardingOnArrival({ aiOnboarding: false, instanceCount: 1 }, { hasConversation: false })
+            store.checkOnboardingOnArrival({ aiOnboarding: false, instanceCount: 1 })
             expect(store.isOnboardingIntake).toBe(true)
         })
 
         it('runs only once per page load, so an instance created later in intake does not end it', () => {
             const store = useUxStore()
             store.setNewlyCreatedUser()
-            store.checkOnboardingOnArrival({ aiOnboarding: true, instanceCount: 0 }, { hasConversation: false })
-            store.checkOnboardingOnArrival(provisioned, { hasConversation: false })
+            store.checkOnboardingOnArrival({ aiOnboarding: true, instanceCount: 0 })
+            store.checkOnboardingOnArrival(provisioned)
             expect(store.isOnboardingIntake).toBe(true)
         })
 
         it('waits for a team that carries the instance count', () => {
             const store = useUxStore()
             store.setNewlyCreatedUser()
-            store.checkOnboardingOnArrival({ aiOnboarding: true }, { hasConversation: false })
+            store.checkOnboardingOnArrival({ aiOnboarding: true })
             expect(store.onboardingArrivalChecked).toBe(false)
-            store.checkOnboardingOnArrival(provisioned, { hasConversation: false })
+            store.checkOnboardingOnArrival(provisioned)
             expect(store.isOnboarding).toBe(false)
+        })
+
+        it('records activity only while onboarding', () => {
+            const store = useUxStore()
+            store.markOnboardingActive()
+            expect(store.onboardingActiveAt).toBe(null)
+            store.setNewlyCreatedUser()
+            store.markOnboardingActive()
+            expect(store.onboardingActiveAt).toBeTypeOf('number')
         })
     })
 

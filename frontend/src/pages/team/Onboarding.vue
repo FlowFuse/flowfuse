@@ -82,7 +82,7 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
-        ...mapState(useUxStore, ['isOnboardingIntake']),
+        ...mapState(useUxStore, ['isOnboardingIntake', 'onboardingEndedOnArrival']),
         ...mapState(useProductExpertStore, ['messages']),
         ...mapState(useAccountAuthStore, ['user']),
         signOutIcon () {
@@ -138,7 +138,7 @@ export default {
                     return
                 }
                 // Replace rather than push: onboarding is not somewhere the user should be able to go Back to.
-                if (this.wasAvailable) {
+                if (this.wasAvailable || this.onboardingEndedOnArrival) {
                     this.$router.replace({ name: 'team-home', params: { team_slug: this.team.slug } })
                     return
                 }

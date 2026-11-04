@@ -12,7 +12,7 @@ import { useAccountAuthStore } from './account-auth.js'
 import { useAccountSettingsStore } from './account-settings.js'
 import { useContextStore } from './context.js'
 import { useProductAssistantStore } from './product-assistant.js'
-import { INSIGHTS_AGENT, SUPPORT_AGENT } from './product-expert-agents.js'
+import { EXPERT_SESSION_EXPIRY_MS, INSIGHTS_AGENT, SUPPORT_AGENT } from './product-expert-agents.js'
 import { useProductExpertInsightsAgentStore } from './product-expert-insights-agent.js'
 import { useProductExpertSupportAgentStore } from './product-expert-support-agent.js'
 import { useUxDrawersStore } from './ux-drawers.js'
@@ -388,6 +388,8 @@ export const useProductExpertStore = defineStore('product-expert', {
             if (!agentStore.sessionId) {
                 agentStore.sessionId = uuidv4()
             }
+
+            useUxStore().markOnboardingActive()
 
             // Start session timing on first message, or reset the clock on subsequent
             // messages so the session stays alive while the user is actively chatting
@@ -996,7 +998,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             const timer = setInterval(() => {
                 const elapsed = Date.now() - agentStore.sessionStartTime
                 const warningThreshold = 25 * 60 * 1000 // 25 minutes
-                const expirationThreshold = 28 * 60 * 1000 // 28 minutes
+                const expirationThreshold = EXPERT_SESSION_EXPIRY_MS
 
                 if (elapsed >= warningThreshold && !agentStore.sessionWarningShown) {
                     agentStore.sessionWarningShown = true

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 
 import userApi from '@/api/user.js'
+import { EXPERT_SESSION_EXPIRY_MS } from '@/stores/product-expert-agents.js'
 
 // Where a user is in the AI-led onboarding process.
 //   null       undecided, nothing has resolved it yet
@@ -23,9 +24,14 @@ export const useUxStore = defineStore('ux', {
         isNewlyCreatedUser: false,
         onboardingStage: null,
         shouldEnterOnboarding: false,
+        // When the user last sent the Expert a message while onboarding. Kept in
+        // localStorage so every tab sees a conversation running in another one.
+        onboardingActiveAt: null,
         // Whether checkOnboardingOnArrival has run for this page load. Left out of
         // persist.pick on purpose, so it runs again on every load.
         onboardingArrivalChecked: false,
+        // Whether checkOnboardingOnArrival ended a stale stage on this page load.
+        onboardingEndedOnArrival: false,
         // A build conversation started from a Build button. It stays on past plan
         // approval, since the instance is only created after that. Not meant to
         // outlive the page load, so it is left out of persist.pick on purpose.
@@ -83,20 +89,28 @@ export const useUxStore = defineStore('ux', {
                 this.shouldEnterOnboarding = true
             }
         },
+        markOnboardingActive () {
+            if (this.isOnboarding) {
+                this.onboardingActiveAt = Date.now()
+            }
+        },
         // Only the Expert moves the stage forward, so a conversation that ends without
         // doing so (it errored, or never set the stage) would leave the user onboarding
         // indefinitely. Run once per page load on the first full team: an instance
-        // already in the workspace with no onboarding conversation left in this tab to
-        // pick it back up means there is nothing left to resume.
-        checkOnboardingOnArrival (team, { hasConversation }) {
+        // already in the workspace and no onboarding conversation still alive in any
+        // tab means there is nothing left to resume.
+        checkOnboardingOnArrival (team) {
             if (this.onboardingArrivalChecked || !team || team.instanceCount === undefined) {
                 return
             }
             this.onboardingArrivalChecked = true
-            if (!this.isOnboarding || !team.aiOnboarding) {
+            if (!this.isOnboarding || !team.aiOnboarding || team.instanceCount === 0) {
                 return
             }
-            if (team.instanceCount > 0 && !hasConversation) {
+            const conversationAlive = this.onboardingActiveAt !== null &&
+                Date.now() - this.onboardingActiveAt < EXPERT_SESSION_EXPIRY_MS
+            if (!conversationAlive) {
+                this.onboardingEndedOnArrival = true
                 this.endOnboarding()
             }
         },
@@ -122,7 +136,7 @@ export const useUxStore = defineStore('ux', {
         closeOverlay () { this.overlay = false }
     },
     persist: {
-        pick: ['isNewlyCreatedUser', 'onboardingStage', 'shouldEnterOnboarding', 'userActions'],
+        pick: ['isNewlyCreatedUser', 'onboardingStage', 'shouldEnterOnboarding', 'onboardingActiveAt', 'userActions'],
         storage: localStorage
     }
 })

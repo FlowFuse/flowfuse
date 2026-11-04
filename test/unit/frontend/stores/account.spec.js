@@ -241,16 +241,27 @@ describe('account store', () => {
                 expect(ux.isOnboarding).toBe(false)
             })
 
-            it('keeps onboarding when the conversation is still in this tab', async () => {
+            it('keeps onboarding while a conversation is alive', async () => {
                 const { useUxStore } = await import('@/stores/ux.js')
-                const { useProductExpertSupportAgentStore } = await import('@/stores/product-expert-support-agent.js')
                 const ux = useUxStore()
                 ux.setNewlyCreatedUser()
-                useProductExpertSupportAgentStore().messages = [{ _type: 'human' }]
+                ux.markOnboardingActive()
 
                 await useAccountStore().setTeam({ id: 'team-5', slug: 'epsilon', aiOnboarding: true, instanceCount: 1 })
 
                 expect(ux.isOnboardingIntake).toBe(true)
+            })
+
+            it('checks a stale stage on a reload, where the active team is restored from sessionStorage', async () => {
+                const { useUxStore } = await import('@/stores/ux.js')
+                const ux = useUxStore()
+                ux.setNewlyCreatedUser()
+                const team = { id: 'team-6', slug: 'zeta', aiOnboarding: true, instanceCount: 1 }
+                mockContext.team = team
+
+                await useAccountStore().setTeam(team)
+
+                expect(ux.isOnboarding).toBe(false)
             })
         })
 
