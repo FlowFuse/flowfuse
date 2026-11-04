@@ -6,9 +6,12 @@ const FF_UTIL = require('flowforge-test-utils')
 // heartbeat.js does `const { syncBridge } = require('../emxq-bridge/setup.js')` at require-time,
 // so the module's export must be stubbed *before* heartbeat.js is first required here - otherwise
 // the destructured reference inside heartbeat.js would still point at the real implementation.
+// Mocha's parallel workers share the require cache across spec files, and an app started with the
+// Expert bridge configured loads heartbeat.js, so drop any cached copy first.
 const bridgeSetup = FF_UTIL.require('forge/ee/lib/expert/emxq-bridge/setup.js')
 const syncBridgeStub = sinon.stub(bridgeSetup, 'syncBridge')
 
+delete require.cache[FF_UTIL.resolve('forge/ee/lib/expert/tasks/heartbeat.js')]
 const heartbeatTaskFactory = FF_UTIL.require('forge/ee/lib/expert/tasks/heartbeat.js')
 
 describe('Expert Agent bridge heartbeat task', function () {
