@@ -140,8 +140,10 @@ class InstanceCommsHandler {
                 const teamType = await instance.Team.getTeamType()
                 const teamHttpSecurityFeature = !!teamType.properties.features?.teamHttpSecurity
                 const endpoint = {
-                    mcpEndpoint: mcpServer.mcpEndpoint,
-                    headers: mcpServer.headers || {},
+                    // The endpoint comes from the trusted registration, never from the caller, which
+                    // over MQTT is the browser.
+                    mcpEndpoint: registration.endpointRoute,
+                    headers: {},
                     accessToken: await app.expert.mcp.getOrCreateToken(instance, mcpServer.instanceType, instanceId, teamHttpSecurityFeature) || null
                 }
 
