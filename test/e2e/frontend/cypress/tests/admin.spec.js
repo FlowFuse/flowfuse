@@ -68,6 +68,8 @@ describe('FlowFuse platform admin users', () => {
         // check that we're on the admin/teams page
         cy.url().should('match', /\/admin\/teams(\/[^/]+)?/)
 
+        cy.intercept('GET', '/api/*/teams/*/projects*').as('getBTeamHomeInstances')
+
         // Not a member of BTeam
         cy.get('[data-el="teams-table"]').contains('BTeam').click()
 
@@ -75,6 +77,8 @@ describe('FlowFuse platform admin users', () => {
         cy.url().should('match', /\/overview(\/[^/]+)?/)
 
         cy.get('[data-el="banner-team-as-admin"]').should('exist')
+        // A nav click made before the overview has loaded can be lost
+        cy.wait('@getBTeamHomeInstances')
 
         // Unique alias to avoid colliding with cy.home()'s getTeamApplications
         cy.intercept('GET', '/api/*/teams/*/applications*').as('getBTeamApplications')
@@ -105,12 +109,16 @@ describe('FlowFuse platform admin users', () => {
         cy.intercept('GET', '/api/*/teams/*/devices*').as('getDevices')
         cy.intercept('GET', '/api/*/devices/*').as('getDevice')
 
+        cy.intercept('GET', '/api/*/teams/*/projects*').as('getBTeamHomeInstances')
+
         cy.visit('/admin/overview')
 
         cy.get('[data-nav="admin-teams"]').click()
 
         // Not a member of BTeam
         cy.get('[data-el="teams-table"]').contains('BTeam').click()
+        // A nav click made before the overview has loaded can be lost
+        cy.wait('@getBTeamHomeInstances')
 
         cy.get('[data-nav="team-applications"]').click()
 

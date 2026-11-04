@@ -605,6 +605,146 @@ describe('Broker Auth API', async function () {
                         topic: 'ff/v1/abc/p/another-project/res-random/foo/bar'
                     })
                 })
+                it('allows project to publish to an app owned device inbox', async function () {
+                    await allowWrite({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/dev:some-device/in/foo'
+                    })
+                })
+                it('allows project to publish to an app owned device response topic', async function () {
+                    await allowWrite({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/dev:some-device/res/foo'
+                    })
+                })
+                it('prevents project from subscribing to another projects response topic', async function () {
+                    await denyRead({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/another-project/res/foo'
+                    })
+                    await denyRead({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/another-project/res-random/foo'
+                    })
+                })
+                it('prevents project from subscribing to inbox or response topics with a wildcard', async function () {
+                    await denyRead({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/+/in/foo'
+                    })
+                    await denyRead({
+                        username: 'project:abc:xyz',
+                        topic: '$share/xyz/ff/v1/abc/p/+/in/foo'
+                    })
+                    await denyRead({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/+/res/foo'
+                    })
+                    await denyRead({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/+/res-random/foo'
+                    })
+                })
+                it('prevents project from publishing broadcast as an app owned device', async function () {
+                    await denyWrite({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/abc/p/dev:some-device/out/foo'
+                    })
+                })
+                it('prevents project from using another teams project link topics', async function () {
+                    await denyRead({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/other-team/p/another-project/out/foo'
+                    })
+                    await denyRead({
+                        username: 'project:abc:xyz',
+                        topic: '$share/xyz/ff/v1/other-team/p/+/out/foo'
+                    })
+                    await denyRead({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/other-team/p/xyz/in/foo'
+                    })
+                    await denyRead({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/other-team/p/xyz/res/foo'
+                    })
+                    await denyWrite({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/other-team/p/xyz/out/foo'
+                    })
+                    await denyWrite({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/other-team/p/another-project/in/foo'
+                    })
+                    await denyWrite({
+                        username: 'project:abc:xyz',
+                        topic: 'ff/v1/other-team/p/another-project/res/foo'
+                    })
+                })
+                describe('application scoped broadcast', async function () {
+                    let projectUsername
+                    let appTopicPrefix
+                    before(async function () {
+                        projectUsername = `project:${TestObjects.ATeam.hashid}:${TestObjects.ProjectA.id}`
+                        appTopicPrefix = `ff/v1/${TestObjects.ATeam.hashid}/a/${TestObjects.ApplicationA.hashid}/p`
+                    })
+                    it('allows project to publish to own application broadcast topic', async function () {
+                        await allowWrite({
+                            username: projectUsername,
+                            topic: `${appTopicPrefix}/${TestObjects.ProjectA.id}/out/foo`
+                        })
+                        await allowWrite({
+                            username: projectUsername,
+                            topic: `${appTopicPrefix}/${TestObjects.ProjectA.id}/out/foo/bar`
+                        })
+                    })
+                    it('prevents project from publishing as another source', async function () {
+                        await denyWrite({
+                            username: projectUsername,
+                            topic: `${appTopicPrefix}/another-project/out/foo`
+                        })
+                        await denyWrite({
+                            username: projectUsername,
+                            topic: `${appTopicPrefix}/dev:some-device/out/foo`
+                        })
+                    })
+                    it('prevents project from publishing to another application broadcast topic', async function () {
+                        await denyWrite({
+                            username: projectUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/a/another-application/p/${TestObjects.ProjectA.id}/out/foo`
+                        })
+                    })
+                    it('allows project to subscribe to own application broadcasts', async function () {
+                        await allowRead({
+                            username: projectUsername,
+                            topic: `${appTopicPrefix}/+/out/foo`
+                        })
+                        await allowRead({
+                            username: projectUsername,
+                            topic: `${appTopicPrefix}/dev:some-device/out/foo`
+                        })
+                        await allowRead({
+                            username: projectUsername,
+                            topic: `$share/${TestObjects.ProjectA.id}/${appTopicPrefix}/+/out/foo`
+                        })
+                    })
+                    it('prevents project from subscribing to another application broadcasts', async function () {
+                        await denyRead({
+                            username: projectUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/a/another-application/p/+/out/foo`
+                        })
+                        await denyRead({
+                            username: projectUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/a/+/p/+/out/foo`
+                        })
+                    })
+                    it('prevents project in another team subscribing to application broadcasts', async function () {
+                        await denyRead({
+                            username: `project:another-team:${TestObjects.ProjectA.id}`,
+                            topic: `${appTopicPrefix}/+/out/foo`
+                        })
+                    })
+                })
             })
         })
 
@@ -758,6 +898,28 @@ describe('Broker Auth API', async function () {
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/res/foo`
                         })
                     })
+                    it('cannot subscribe to own inbox if unassigned', async function () {
+                        await denyRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:${TestObjects.DeviceA.hashid}/in/foo`
+                        })
+                    })
+                    it('cannot publish to app owned device inbox if unassigned', async function () {
+                        await denyWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:${TestObjects.DeviceB.hashid}/in/foo`
+                        })
+                    })
+                    it('cannot use application scoped broadcast if unassigned', async function () {
+                        await denyRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/a/${TestObjects.ApplicationA.hashid}/p/+/out/foo`
+                        })
+                        await denyWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/a/${TestObjects.ApplicationA.hashid}/p/dev:${TestObjects.DeviceA.hashid}/out/foo`
+                        })
+                    })
                 })
                 describe('assigned to instance', async function () {
                     before(async function () {
@@ -780,6 +942,24 @@ describe('Broker Auth API', async function () {
                         await allowRead({
                             username: deviceUsername,
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectA.id}/in/foo`
+                        })
+                    })
+                    it('cannot subscribe to another project inbox', async function () {
+                        await denyRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/in/foo`
+                        })
+                    })
+                    it('can subscribe to project response if assigned', async function () {
+                        await allowRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectA.id}/res/foo`
+                        })
+                    })
+                    it('cannot subscribe to another project response', async function () {
+                        await denyRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/res/foo`
                         })
                     })
                     it('can subscribe to project broadcast if assigned', async function () {
@@ -806,15 +986,111 @@ describe('Broker Auth API', async function () {
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectA.id}/out/foo`
                         })
                     })
+                    it('cannot publish to another project output', async function () {
+                        await denyWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/out/foo`
+                        })
+                    })
                     it('can publish to project response if assigned', async function () {
                         await allowWrite({
                             username: deviceUsername,
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/res/foo`
                         })
                     })
+                    it('can publish to HA project response if assigned', async function () {
+                        await allowWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/res-abcd1234/foo`
+                        })
+                    })
+                    it('can publish to app owned device inbox and response if assigned', async function () {
+                        await allowWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:${TestObjects.DeviceB.hashid}/in/foo`
+                        })
+                        await allowWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:${TestObjects.DeviceB.hashid}/res/foo`
+                        })
+                    })
+                    it('cannot subscribe to app owned device inbox', async function () {
+                        await denyRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:${TestObjects.DeviceA.hashid}/in/foo`
+                        })
+                    })
+                    it('can use application scoped broadcast of its instance application', async function () {
+                        await allowRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/a/${TestObjects.ApplicationA.hashid}/p/+/out/foo`
+                        })
+                        await allowWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/a/${TestObjects.ApplicationA.hashid}/p/${TestObjects.ProjectA.id}/out/foo`
+                        })
+                    })
+                    it('cannot publish application scoped broadcast as another source', async function () {
+                        await denyWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/a/${TestObjects.ApplicationA.hashid}/p/dev:${TestObjects.DeviceA.hashid}/out/foo`
+                        })
+                        await denyWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/a/${TestObjects.ApplicationA.hashid}/p/${TestObjects.ProjectB.id}/out/foo`
+                        })
+                    })
+                    it('can subscribe to app owned device broadcast', async function () {
+                        await allowRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:${TestObjects.DeviceB.hashid}/out/foo`
+                        })
+                    })
+                    it('cannot subscribe to inbox or response topics with a wildcard', async function () {
+                        await denyRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/in/foo`
+                        })
+                        await denyRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/res/foo`
+                        })
+                    })
+                    it('cannot subscribe to app owned device response topic', async function () {
+                        await denyRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:${TestObjects.DeviceA.hashid}/res/foo`
+                        })
+                    })
+                    it('cannot publish broadcast as an app owned device', async function () {
+                        await denyWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:${TestObjects.DeviceA.hashid}/out/foo`
+                        })
+                    })
+                    it('cannot publish to project inbox in another team', async function () {
+                        const otherTeam = await factory.createTeam({ name: 'other-team' })
+                        const otherProject = await app.db.models.Project.create({ name: 'other-team-project', type: '', url: '' })
+                        await otherTeam.addProject(otherProject)
+                        await denyWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${otherProject.id}/in/foo`
+                        })
+                    })
                 })
                 describe('assigned to application', async function () {
                     before(async function () {
+                        // Remove device from the instance it was assigned to above. Assigning
+                        // to an application does not clear the instance, so the device would
+                        // otherwise remain instance owned
+                        await app.inject({
+                            method: 'PUT',
+                            url: `/api/v1/devices/${TestObjects.DeviceA.hashid}`,
+                            body: {
+                                instance: null
+                            },
+                            cookies: { sid: TestObjects.tokens.alice }
+                        })
                         // Assign device to application
                         await app.inject({
                             method: 'PUT',
@@ -824,6 +1100,8 @@ describe('Broker Auth API', async function () {
                             },
                             cookies: { sid: TestObjects.tokens.alice }
                         })
+                        const owner = await app.db.models.Device.getOwnerTypeAndId(TestObjects.DeviceA.hashid)
+                        owner.should.have.property('ownerType', 'application')
                     })
                     it('can subscribe to application command', async function () {
                         await allowRead({
@@ -831,10 +1109,16 @@ describe('Broker Auth API', async function () {
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/a/${TestObjects.ApplicationA.hashid}/command`
                         })
                     })
-                    it('can subscribe to project inbox', async function () {
-                        await allowRead({
+                    it('cannot subscribe to project inbox', async function () {
+                        await denyRead({
                             username: deviceUsername,
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectA.id}/in/foo`
+                        })
+                    })
+                    it('cannot subscribe to project response', async function () {
+                        await denyRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectA.id}/res/foo`
                         })
                     })
                     it('can subscribe to project broadcast', async function () {
@@ -873,6 +1157,12 @@ describe('Broker Auth API', async function () {
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:invalid dev id/out/foo`
                         })
                     })
+                    it('cannot publish broadcast as a project', async function () {
+                        await denyWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectA.id}/out/foo`
+                        })
+                    })
                     it('can publish broadcast with `dev:` topic prefix', async function () {
                         await allowWrite({
                             username: deviceUsername,
@@ -883,6 +1173,106 @@ describe('Broker Auth API', async function () {
                         await allowWrite({
                             username: deviceUsername,
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/res/foo`
+                        })
+                        await allowWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/res-abcd1234/foo`
+                        })
+                    })
+                    it('can subscribe to own inbox', async function () {
+                        await allowRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:${TestObjects.DeviceA.hashid}/in/foo`
+                        })
+                    })
+                    it('cannot subscribe to another device inbox', async function () {
+                        await denyRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:${TestObjects.DeviceB.hashid}/in/foo`
+                        })
+                    })
+                    it('can publish to another device inbox and response', async function () {
+                        await allowWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:${TestObjects.DeviceB.hashid}/in/foo`
+                        })
+                        await allowWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:${TestObjects.DeviceB.hashid}/res/foo`
+                        })
+                    })
+                    it('can use own application scoped broadcast', async function () {
+                        await allowRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/a/${TestObjects.ApplicationA.hashid}/p/+/out/foo`
+                        })
+                        await allowWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/a/${TestObjects.ApplicationA.hashid}/p/dev:${TestObjects.DeviceA.hashid}/out/foo`
+                        })
+                    })
+                    it('cannot use another application scoped broadcast', async function () {
+                        const otherApplication = await TestObjects.DeviceB.getApplication()
+                        await denyRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/a/${otherApplication.hashid}/p/+/out/foo`
+                        })
+                        await denyWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/a/${otherApplication.hashid}/p/dev:${TestObjects.DeviceA.hashid}/out/foo`
+                        })
+                    })
+                    it('cannot publish application scoped broadcast as another source', async function () {
+                        await denyWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/a/${TestObjects.ApplicationA.hashid}/p/dev:${TestObjects.DeviceB.hashid}/out/foo`
+                        })
+                        await denyWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/a/${TestObjects.ApplicationA.hashid}/p/${TestObjects.ProjectA.id}/out/foo`
+                        })
+                    })
+                    it('can subscribe to own response topic', async function () {
+                        await allowRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:${TestObjects.DeviceA.hashid}/res/foo`
+                        })
+                    })
+                    it('cannot subscribe to another device response topic', async function () {
+                        await denyRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:${TestObjects.DeviceB.hashid}/res/foo`
+                        })
+                    })
+                    it('can subscribe to app owned device broadcast', async function () {
+                        await allowRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:${TestObjects.DeviceB.hashid}/out/foo`
+                        })
+                    })
+                    it('cannot subscribe to inbox or response topics with a wildcard', async function () {
+                        await denyRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/in/foo`
+                        })
+                        await denyRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/res/foo`
+                        })
+                    })
+                    it('cannot publish broadcast as another device', async function () {
+                        await denyWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:${TestObjects.DeviceB.hashid}/out/foo`
+                        })
+                    })
+                    it('cannot publish to project inbox in another team', async function () {
+                        const otherTeam = await factory.createTeam({ name: 'other-team-2' })
+                        const otherProject = await app.db.models.Project.create({ name: 'other-team-project-2', type: '', url: '' })
+                        await otherTeam.addProject(otherProject)
+                        await denyWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${otherProject.id}/in/foo`
                         })
                     })
                 })

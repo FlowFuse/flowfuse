@@ -160,7 +160,7 @@ if (fs.existsSync(configPath)) {
     const deviceB = flowforge.applicationDevices.find((device) => device.name === 'application-device-b')
     await factory.createDeviceSnapshot({ name: 'application-device-b snapshot 1', lastSeenAt: Date.now() }, deviceB, userTerry)
 
-    rbacTeamFactory(flowforge)
+    await rbacTeamFactory(flowforge)
 
     flowforge.listen({ port: PORT }, function (err, address) {
         console.info(`EE Environment running at http://localhost:${PORT}`)

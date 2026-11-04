@@ -638,7 +638,7 @@ module.exports = [
         inputSchema: {
             instanceId: hostedInstanceId.describe('The id (UUID) of the hosted instance to roll back'),
             snapshotId: pathId.describe('The hashid of the snapshot to roll back to. Must be a snapshot of this hosted instance'),
-            mergeEnvVars: z.boolean().optional().describe('If true (default), keep the instance\'s existing environment variables and add only those missing from the snapshot. If false, replace them with the snapshot\'s environment variables')
+            mergeEnvVars: z.boolean().default(true).optional().describe('If true (default), keep the instance\'s existing environment variables and add only those missing from the snapshot. If false, replace them with the snapshot\'s environment variables')
         },
         handler: async (args, { inject }) => {
             const payload = {
