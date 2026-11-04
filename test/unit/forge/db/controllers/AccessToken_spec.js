@@ -1,4 +1,6 @@
-const should = require('should') // eslint-disable-line
+const should = require('should')
+const sinon = require('sinon')
+
 const { sha256 } = require('../../../../../forge/db/utils')
 const mcpToolPermissions = require('../../../../../forge/lib/mcpToolPermissions')
 const setup = require('../setup')
@@ -635,6 +637,47 @@ describe('AccessToken controller', function () {
             // so the loser can leave the winner's access token dead. Accepted limitation for
             // single-client MCP (see refreshToken grace branch), hence aboveOrEqual not equal.
             live.length.should.be.aboveOrEqual(1)
+        })
+
+        it('re-mints an access token when another refresh already claimed the rotation', async function () {
+            const original = await createToken()
+            await setRowExpiry(original.refreshToken, { accessMs: -5000 })
+            const row = await app.db.models.AccessToken.byRefreshToken(original.refreshToken)
+            // Record the claim as a concurrent refresh would, between the lookup and the rotation.
+            await app.db.models.AccessTokenRefreshRotation.create({
+                tokenHash: sha256(original.refreshToken),
+                rotatedAt: new Date(),
+                AccessTokenId: row.id
+            })
+
+            const result = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+            should.exist(result)
+            result.should.not.have.property('replay')
+            should.not.exist(result.refreshToken)
+            should.exist(await app.db.controllers.AccessToken.getOrExpire(result.token))
+        })
+
+        it('returns null and releases the claim when the grant is revoked mid-refresh', async function () {
+            const original = await createToken()
+            await setRowExpiry(original.refreshToken, { accessMs: -5000 })
+            sinon.stub(app.db.models.AccessToken, 'update').resolves([0])
+            try {
+                should.not.exist(await app.db.controllers.AccessToken.refreshToken(original.refreshToken))
+            } finally {
+                app.db.models.AccessToken.update.restore()
+            }
+            ;(await app.db.models.AccessTokenRefreshRotation.count({ where: { tokenHash: sha256(original.refreshToken) } })).should.equal(0)
+        })
+
+        it('rethrows errors other than a lost claim', async function () {
+            const original = await createToken()
+            await setRowExpiry(original.refreshToken, { accessMs: -5000 })
+            sinon.stub(app.db.models.AccessTokenRefreshRotation, 'create').rejects(new Error('db down'))
+            try {
+                await app.db.controllers.AccessToken.refreshToken(original.refreshToken).should.be.rejectedWith('db down')
+            } finally {
+                app.db.models.AccessTokenRefreshRotation.create.restore()
+            }
         })
 
         describe('with a grant expiry', function () {

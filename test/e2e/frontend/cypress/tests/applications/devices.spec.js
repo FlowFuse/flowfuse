@@ -30,7 +30,12 @@ describe('FlowFuse - Application - Devices', () => {
         cy.visit(`/team/${team.slug}/applications/${application.id}/devices`)
         cy.url().should('include', `/applications/${application.id}/devices`)
 
-        cy.get('[data-el="devices-browser"] tbody').find('tr').should('have.length', 3)
+        // devices/bulk.spec.js deletes application-device-c-bulk-test-3, so compare against the API
+        cy.request('GET', `/api/v1/applications/${application.id}/devices`).then((response) => {
+            cy.get('[data-el="devices-browser"] tbody').find('tr').should('have.length', response.body.devices.length)
+        })
+        cy.get('[data-el="devices-browser"] tbody').contains('application-device-a')
+        cy.get('[data-el="devices-browser"] tbody').contains('application-device-b')
     })
 
     it('is presented with a dialog confirmation when choosing "Remove from Application"', () => {
