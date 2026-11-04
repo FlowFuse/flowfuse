@@ -61,6 +61,15 @@ module.exports = async function (settings = {}, config = {}) {
 
     const factory = new TestModelFactory(forge)
 
+    // The stub driver reports an instance that was never started as 'unknown', and the first
+    // live status request stores that. Store it up front so the state does not depend on
+    // whether an earlier spec has loaded the instance.
+    async function createUnstartedInstance (details, application, stack, template, projectType, options = {}) {
+        const instance = await factory.createInstance(details, application, stack, template, projectType, { ...options, start: false })
+        await instance.update({ state: 'unknown' })
+        return instance
+    }
+
     // Create users
     // full platform & team1 admin
     const userAlice = await factory.createUser({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
@@ -161,8 +170,7 @@ module.exports = async function (settings = {}, config = {}) {
             }
         }
     })
-    await factory.createInstance({ name: 'instance-1-2' }, application1, stack2, template, projectType, {
-        start: false,
+    await createUnstartedInstance({ name: 'instance-1-2' }, application1, stack2, template, projectType, {
         settings: {
             palette: {
                 modules: [
@@ -199,7 +207,7 @@ module.exports = async function (settings = {}, config = {}) {
     const application2 = await factory.createApplication({ name: 'application-2' }, team2, stack, template, projectType)
     await factory.createInstance({ name: 'instance-2-1' }, application2, stack, template, projectType)
 
-    const instanceWithDevices = await factory.createInstance({ name: 'instance-2-with-devices' }, application2, stack, template, projectType, { start: false })
+    const instanceWithDevices = await createUnstartedInstance({ name: 'instance-2-with-devices' }, application2, stack, template, projectType)
     await factory.createDevice({ name: 'assigned-device-a', type: 'type2', lastSeenAt: Date.now() }, team2, instanceWithDevices)
     await factory.createDevice({ name: 'assigned-device-b', type: 'type2', lastSeenAt: Date.now() }, team2, instanceWithDevices)
     await factory.createDevice({ name: 'assigned-device-c', type: 'type2', lastSeenAt: Date.now() }, team2, instanceWithDevices)
