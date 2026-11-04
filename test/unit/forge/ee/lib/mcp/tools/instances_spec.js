@@ -1,5 +1,6 @@
 const should = require('should') // eslint-disable-line no-unused-vars
 const sinon = require('sinon')
+const { default: z } = require('zod')
 
 const { formatResponse } = require('../../../../../../../forge/ee/lib/mcp/toolLoader')
 const tools = require('../../../../../../../forge/ee/lib/mcp/tools/instances')
@@ -981,6 +982,12 @@ describe('MCP Instances Tools', function () {
         it('is annotated as destructive so it is served as a delete tool', function () {
             tool.annotations.should.have.property('readOnlyHint', false)
             tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('publishes merge as the default for mergeEnvVars', function () {
+            const schema = z.toJSONSchema(z.object(tool.inputSchema))
+            schema.properties.mergeEnvVars.should.have.property('default', true)
+            schema.required.should.not.containEql('mergeEnvVars')
         })
 
         it('posts the snapshot to the instance rollback action, merging env vars by default', async function () {

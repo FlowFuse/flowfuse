@@ -12,7 +12,8 @@ module.exports.init = async function (app) {
 
     async function getProviderOptions (id) {
         const provider = await app.db.models.SAMLProvider.byId(id)
-        if (provider) {
+        // Only SAML providers have options the SAML strategy can use
+        if (provider && provider.type === 'saml') {
             const result = { ...provider.getOptions() }
             // @node-saml@4 renamed `cert` to `idpCert`
             result.idpCert = result.cert
@@ -454,6 +455,11 @@ module.exports.init = async function (app) {
         // This is an array of groups the user belongs to. We expect them to be
         // of the form 'ff-SLUG-ROLE' - anything else is ignored
         let groupAssertions = samlUser[providerOpts.groupAssertionName]
+        if (!groupAssertions && providerOpts.groupOtherTeams) {
+            // Some IdPs (e.g. Azure) omit the claim when the user is in no groups
+            app.log.info(`SAML response missing ${providerOpts.groupAssertionName} assertion for ${user.username}, treating as no groups`)
+            groupAssertions = []
+        }
         if (groupAssertions) {
             const promises = []
             if (!Array.isArray(groupAssertions)) {
