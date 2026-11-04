@@ -1,4 +1,5 @@
 import { createApplicationsSubscriber } from './applications.subscriber'
+import { createSupportChatSubscriber } from './expert-chat.subscriber'
 import { createHostedInstancesSubscriber } from './hosted-instances.subscriber'
 import { createLiveStatusSubscriber } from './live-status.subscriber'
 import { createMcpInflightSubscriber } from './mcp-inflight.subscriber'
@@ -22,5 +23,7 @@ export default [
     { key: 'hostedInstances' as const, create: createHostedInstancesSubscriber, requiredLifecycle: ['destroy'] as const, autoConnect: true },
     // Exposing this tab to MCP clients is the user's call, never a side effect of loading a team
     { key: 'mcpInflight' as const, create: createMcpInflightSubscriber, requiredLifecycle: ['destroy'] as const, autoConnect: false },
-    { key: 'mcpSession' as const, create: createMcpSessionSubscriber, requiredLifecycle: ['destroy'] as const, autoConnect: false }
+    { key: 'mcpSession' as const, create: createMcpSessionSubscriber, requiredLifecycle: ['destroy'] as const, autoConnect: false },
+    // Connects when the user first sends to the agent, on a connection of its own
+    { key: 'expertSupportChat' as const, create: createSupportChatSubscriber, requiredLifecycle: ['destroy'] as const, autoConnect: false }
 ]
