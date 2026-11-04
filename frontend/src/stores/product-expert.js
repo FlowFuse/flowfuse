@@ -23,6 +23,7 @@ import {
     ERRORS_WITHOUT_CODES,
     FATAL_ERROR_CODES,
     PROTOCOL_BUG_ERROR_CODES,
+    TERMINAL_CONNECTION_ERROR_CODE,
     THROTTLED_ERROR_CODES,
     TRANSIENT_ERROR_CODES
 } from '@/services/mqtt.service'
@@ -99,14 +100,10 @@ export const useProductExpertStore = defineStore('product-expert', {
          * @private
          */
         _inFlightRequests () {
-            return this.agentMode === SUPPORT_AGENT
-                ? useProductExpertSupportAgentStore().inFlightRequests
-                : useProductExpertInsightsAgentStore().inFlightRequests
+            return this._agentStore.inFlightRequests
         },
         _recentlyCompleted () {
-            return this.agentMode === SUPPORT_AGENT
-                ? useProductExpertSupportAgentStore().recentlyCompletedTransactions
-                : useProductExpertInsightsAgentStore().recentlyCompletedTransactions
+            return this._agentStore.recentlyCompletedTransactions
         },
         abortController () { return this._agentStore.abortController },
         messages () { return this._agentStore.messages },
@@ -482,12 +479,14 @@ export const useProductExpertStore = defineStore('product-expert', {
             // belongs to the agent it was asked in
             const agent = this.agentMode
 
-            await this._connectChat(agent)
-
-            // add the query as an inFlight request
-            agentStoreFor(agent).inFlightRequests.set(transactionId, { query, transactionId })
-
             try {
+                await this._connectChat(agent)
+
+                // add the query as an inFlight request
+                agentStoreFor(agent).inFlightRequests.set(transactionId, { query, transactionId })
+                // statuses left over from a turn that ended off screen must not open this one
+                this._clearInFlightUpdates()
+
                 const payload = { query }
                 // Resume a deferred approval turn (#421): decisions drive the turn, no query.
                 if (toolApprovals) payload.toolApprovals = toolApprovals
@@ -575,9 +574,15 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         // An agent's subscriber and publisher share its chat connection. The subscriber
         // goes first so replies have somewhere to land. Connecting is a no-op while
-        // connected, and disconnecting both closes the connection.
+        // connected under the agent's session, and disconnecting both closes the connection.
         async _connectChat (agent = this.agentMode) {
             const team = useContextStore().team
+            // The two share one client, so both let go of a connection made under another
+            // session before either reconnects under the current one
+            const connectedSessionId = this._chatPublisher(agent).connectedSessionId()
+            if (connectedSessionId && connectedSessionId !== agentStoreFor(agent).sessionId) {
+                await this._disconnectChat(agent)
+            }
             await this._chatSubscriber(agent).connect(team)
             await this._chatPublisher(agent).connect(team)
         },
@@ -602,7 +607,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // is unavailable; the settings UI simply shows no tools yet.
             }
         },
-        async handleInFlightRequest ({ agent: messageAgent, topic, message, payload: parsedPayload, transactionId, sessionId, chatTransactionId } = {}) {
+        async handleInFlightRequest ({ agent: messageAgent, topic, payload, transactionId, sessionId, chatTransactionId } = {}) {
             // A third-party MCP request comes with no agent, so it runs against the active one
             const agent = messageAgent ?? this.agentMode
             const agentStore = agentStoreFor(agent)
@@ -631,7 +636,6 @@ export const useProductExpertStore = defineStore('product-expert', {
             const topicHelper = useMqttExpertTopicHelper()
 
             const parsedTopic = topicHelper.parseTopic(topic)
-            const payload = parsedPayload ?? JSON.parse(message.toString())
 
             // MCP traffic rides the team connection - the expert client only exists once
             // the user has opened a chat. Keyed on the browser session rather than the
@@ -799,20 +803,23 @@ export const useProductExpertStore = defineStore('product-expert', {
                 if (response.kind === 'tool-approval') {
                     this.beginApprovalBatch(response.answer)
                 }
-            } else {
-                // A reply with no answer is the agent reporting a failure: end the turn with
-                // the same notice an HTTP error gets rather than leaving it loading
-                console.error('Expert API error:', response?.error || response)
-                this._closeTurnItems(transactionId, agent)
-                this.addAiMessage({
-                    generated: true,
-                    error: true,
-                    answer: [{ content: 'Sorry, I encountered an error. Please try again.' }]
-                }, transactionId, agent)
-                if (agent === this.agentMode) {
-                    this._clearInFlightUpdates()
-                }
             }
+        },
+        // A chat reply with no answer is the agent reporting a failure. The turn ends rather
+        // than staying on loading, and a turn the user started gets the same notice an HTTP
+        // error does. A system notice has nobody waiting on it, so its failure stays quiet.
+        _endFailedTurn (transactionId, agent, { notify }) {
+            this._closeTurnItems(transactionId, agent)
+            if (agent === this.agentMode) {
+                this._clearInFlightUpdates()
+            }
+            if (!notify) return
+
+            this.addAiMessage({
+                generated: true,
+                error: true,
+                answer: [{ content: 'Sorry, I encountered an error. Please try again.' }]
+            }, transactionId, agent)
         },
         // Register the approval cards returned by a deferred turn (#421). The agent has
         // ended the turn and left memory; we collect the user's decisions here until every
@@ -1339,7 +1346,8 @@ export const useProductExpertStore = defineStore('product-expert', {
             // no matching in-flight request means the turn was stopped or already
             // resolved; ignore it and record no completion for it
             const { inFlightRequests, recentlyCompletedTransactions } = agentStoreFor(agent)
-            if (!inFlightRequests.has(transactionId)) return
+            const request = inFlightRequests.get(transactionId)
+            if (!request) return
             inFlightRequests.delete(transactionId)
             // remember the finished turn briefly so a surface that trails this reply is
             // still applied, evicting the oldest id to keep the set bounded
@@ -1348,7 +1356,12 @@ export const useProductExpertStore = defineStore('product-expert', {
                 recentlyCompletedTransactions.delete(recentlyCompletedTransactions.keys().next().value)
             }
             try {
-                await this.handleMessageResponse(payload, transactionId, agent)
+                if (Array.isArray(payload.answer) || payload.aborted === true) {
+                    await this.handleMessageResponse(payload, transactionId, agent)
+                } else {
+                    console.error('Expert API error:', payload.error || payload)
+                    this._endFailedTurn(transactionId, agent, { notify: !request.system })
+                }
             } finally {
                 this._drainSendQueue()
             }
@@ -1629,8 +1642,10 @@ export const useProductExpertStore = defineStore('product-expert', {
                 return this.addPredefinedAiMessage(payload.message, { isError: true, code: payload.code })
             }
 
-            // Permanent config errors
-            if (FATAL_ERROR_CODES.has(code) || PROTOCOL_BUG_ERROR_CODES.has(code)) {
+            // Permanent config errors, and a connection the transport gave up on, such as
+            // chat credentials the platform refused
+            if (FATAL_ERROR_CODES.has(code) || PROTOCOL_BUG_ERROR_CODES.has(code) || code === TERMINAL_CONNECTION_ERROR_CODE) {
+                console.error('Expert chat connection failed:', reason)
                 await this._disconnectChat()
                 return this.addPredefinedAiMessage(this._fatalErrorMessage(), { isError: true, code: 'fatal' })
             }
@@ -1801,7 +1816,8 @@ export const useProductExpertStore = defineStore('product-expert', {
 
                 // Register like a real request so receiveChatReply's in-flight guard lets the
                 // reply through instead of silently dropping it.
-                inFlightRequests.set(transactionId, { query: '', transactionId })
+                inFlightRequests.set(transactionId, { query: '', transactionId, system: true })
+                this._clearInFlightUpdates()
 
                 await this._chatPublisher(agent).request({ system }, transactionId)
                 onPublished?.(instance)

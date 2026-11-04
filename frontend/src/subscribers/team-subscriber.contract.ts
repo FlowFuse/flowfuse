@@ -127,9 +127,10 @@ export abstract class TeamSubscriber<TTransport extends Transport = Transport> {
                 onError: (failure) => this._onError(failure)
             })
             this.$connectedTeamId = teamId
-        } catch {
+        } catch (error) {
             this.$connectedTeamId = null
             this.$attachment = null
+            this._onAttachFailed(error)
         }
     }
 
@@ -203,6 +204,11 @@ export abstract class TeamSubscriber<TTransport extends Transport = Transport> {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected _onError (failure: TransportError): void {}
+
+    // A team subscriber that fails to attach stays disconnected until the next connect,
+    // so the failure is dropped by default. A subscriber whose caller has to know rethrows it.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected _onAttachFailed (failure: unknown): void {}
 
     protected _subscribeOptions (): TransportSubscribeOptions {
         return { qos: 1 }

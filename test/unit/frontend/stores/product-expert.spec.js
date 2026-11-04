@@ -430,26 +430,52 @@ describe('product-expert store', () => {
             expect(agent.messages[0]).not.toHaveProperty('_transactionId')
         })
 
-        it('ends a turn whose reply has no answer with an error notice', async () => {
-            vi.spyOn(console, 'error').mockImplementation(() => {})
-            const agent = useProductExpertSupportAgentStore()
+        it('leaves a response with no answer alone', async () => {
             const store = useProductExpertStore()
 
-            await store.handleMessageResponse({ query: 'call the hello tool' }, 'turn-1')
+            await store.handleMessageResponse({ success: true }, 'turn-1')
 
+            expect(useProductExpertSupportAgentStore().messages).toHaveLength(0)
+        })
+    })
+
+    describe('receiveChatReply', () => {
+        beforeEach(() => {
+            vi.spyOn(console, 'error').mockImplementation(() => {})
+        })
+
+        it('ends a turn whose reply has no answer with an error notice', async () => {
+            const agent = useProductExpertSupportAgentStore()
+            const store = useProductExpertStore()
+            agent.inFlightRequests.set('turn-1', { query: 'call the hello tool', transactionId: 'turn-1' })
+
+            await store.receiveChatReply({ agent: SUPPORT_AGENT, transactionId: 'turn-1', payload: { error: 'boom' } })
+
+            expect(agent.inFlightRequests.size).toBe(0)
             expect(agent.messages).toHaveLength(1)
             expect(agent.messages[0]).toMatchObject({ _type: 'ai', error: true, _transactionId: 'turn-1' })
             expect(agent.messages[0].answer[0].content).toBe('Sorry, I encountered an error. Please try again.')
         })
 
         it('puts the error notice on the agent the failed turn belongs to', async () => {
-            vi.spyOn(console, 'error').mockImplementation(() => {})
             const store = useProductExpertStore()
+            useProductExpertInsightsAgentStore().inFlightRequests.set('turn-ins', { query: 'q', transactionId: 'turn-ins' })
 
-            await store.handleMessageResponse({}, 'turn-ins', INSIGHTS_AGENT)
+            await store.receiveChatReply({ agent: INSIGHTS_AGENT, transactionId: 'turn-ins', payload: {} })
 
             expect(useProductExpertSupportAgentStore().messages).toHaveLength(0)
             expect(useProductExpertInsightsAgentStore().messages[0].error).toBe(true)
+        })
+
+        it('ends a failed system notice turn without a notice', async () => {
+            const agent = useProductExpertSupportAgentStore()
+            const store = useProductExpertStore()
+            agent.inFlightRequests.set('notice-1', { query: '', transactionId: 'notice-1', system: true })
+
+            await store.receiveChatReply({ agent: SUPPORT_AGENT, transactionId: 'notice-1', payload: { error: "data must contain a 'query' or abort signal" } })
+
+            expect(agent.inFlightRequests.size).toBe(0)
+            expect(agent.messages).toHaveLength(0)
         })
     })
 
@@ -1248,7 +1274,84 @@ describe('product-expert store', () => {
         })
     })
 
+    describe('chat connection failures', () => {
+        beforeEach(() => {
+            vi.spyOn(console, 'error').mockImplementation(() => {})
+            accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled = true
+            contextState.team = { id: 'team-1' }
+            useAccountAuthStore().user = { id: 'user-1' }
+            useProductExpertSupportAgentStore().sessionId = 'session-1'
+        })
+
+        afterEach(() => {
+            contextState.team = null
+            delete accountSettingsState.featuresCheck.isExternalMqttBrokerFeatureEnabled
+            chatSubscriber.connect.mockReset()
+            chatSubscriber.connect.mockImplementation(() => Promise.resolve())
+        })
+
+        it('tells the user to start over after a fatal error', async () => {
+            const store = useProductExpertStore()
+
+            await store.handleMqttError(0x8A, 'banned')
+
+            expect(chatSubscriber.disconnect).toHaveBeenCalledTimes(1)
+            const messages = useProductExpertSupportAgentStore().messages
+            expect(messages).toHaveLength(1)
+            expect(messages[0]).toMatchObject({ error: true, errorCode: 'fatal' })
+        })
+
+        it('treats a connection the transport gave up on as fatal', async () => {
+            const store = useProductExpertStore()
+
+            await store.handleMqttError('MQTT_TERMINAL_CONNECTION_ERROR', 'Request failed with status code 403')
+
+            expect(useProductExpertSupportAgentStore().messages[0]).toMatchObject({ error: true, errorCode: 'fatal' })
+        })
+
+        it('reports a chat connection that could not be made instead of publishing', async () => {
+            const store = useProductExpertStore()
+            chatSubscriber.connect.mockRejectedValueOnce(Object.assign(new Error('Request failed with status code 403'), { code: 'MQTT_TERMINAL_CONNECTION_ERROR' }))
+
+            await store.handleQuery({ query: 'hello' })
+
+            expect(mqttService.publishMessage).not.toHaveBeenCalled()
+            const messages = useProductExpertSupportAgentStore().messages
+            expect(messages[messages.length - 1]).toMatchObject({ error: true, errorCode: 'fatal' })
+            expect(useProductExpertSupportAgentStore().inFlightRequests.size).toBe(0)
+        })
+
+        it('drops a chat connection made under another session before sending', async () => {
+            const store = useProductExpertStore()
+            const agent = useProductExpertSupportAgentStore()
+            await store.handleQuery({ query: 'hello' })
+            agent.inFlightRequests.clear()
+            agent.sessionId = 'session-2'
+
+            await store.handleQuery({ query: 'again' })
+
+            expect(chatSubscriber.disconnect).toHaveBeenCalledTimes(1)
+            expect(chatTransport.detach).toHaveBeenCalledTimes(1)
+            expect(chatPublisher.connectedSessionId()).toBe('session-2')
+            expect(mqttService.publishMessage.mock.calls.at(-1)[1].topic).toContain('/session-2/')
+        })
+
+        it('starts a turn without the statuses another turn left behind', async () => {
+            const store = useProductExpertStore()
+            store.inFlightUpdates = ['Requesting platform tool definitions...']
+
+            await store.handleQuery({ query: 'hello' })
+
+            expect(store.inFlightUpdates).toEqual([])
+        })
+    })
+
     describe('relayInstanceReady', () => {
+        // a chat topic carries the session, so the conversation has one before anything goes out
+        beforeEach(() => {
+            useProductExpertSupportAgentStore().sessionId = 'session-1'
+        })
+
         afterEach(() => {
             contextState.team = null
             uxState.isOnboarding = false
@@ -1360,7 +1463,8 @@ describe('product-expert store', () => {
             expect(supportAgent.inFlightRequests.size).toBe(1)
             expect(supportAgent.inFlightRequests.get(message.correlationData)).toEqual({
                 query: '',
-                transactionId: message.correlationData
+                transactionId: message.correlationData,
+                system: true
             })
         })
 
@@ -1492,6 +1596,11 @@ describe('product-expert store', () => {
     })
 
     describe('relayInstanceStartFailed', () => {
+        // a chat topic carries the session, so the conversation has one before anything goes out
+        beforeEach(() => {
+            useProductExpertSupportAgentStore().sessionId = 'session-1'
+        })
+
         afterEach(() => {
             contextState.team = null
             uxState.isOnboarding = false
@@ -1605,6 +1714,11 @@ describe('product-expert store', () => {
     })
 
     describe('send queue', () => {
+        // a chat topic carries the session, so the conversation has one before anything goes out
+        beforeEach(() => {
+            useProductExpertSupportAgentStore().sessionId = 'session-1'
+        })
+
         afterEach(() => {
             contextState.team = null
             uxState.building = false
@@ -1754,7 +1868,7 @@ describe('product-expert store', () => {
 
             const topic = 'ff/v1/expert/user-1/chat-1/team/team-1/support/chat/response'
             const packet = { properties: { correlationData: new TextEncoder().encode(transactionId) } }
-            await deliver(store, topic, JSON.stringify({}), packet).catch(() => undefined)
+            await deliver(store, topic, JSON.stringify({ answer: [] }), packet).catch(() => undefined)
             await relay
 
             expect(mqttService.publishMessage).toHaveBeenCalledTimes(1)
@@ -1843,6 +1957,11 @@ describe('product-expert store', () => {
     })
 
     describe('approvePlan', () => {
+        // a chat topic carries the session, so the conversation has one before anything goes out
+        beforeEach(() => {
+            useProductExpertSupportAgentStore().sessionId = 'session-1'
+        })
+
         afterEach(() => {
             contextState.team = null
             uxState.building = false

@@ -821,18 +821,18 @@ class MqttService extends BaseService implements MqttServiceI {
 
     private _createTerminalConnectionError (message: string): TerminalConnectionError {
         const error: TerminalConnectionError = new Error(message)
-        error.code = 'MQTT_TERMINAL_CONNECTION_ERROR'
+        error.code = TERMINAL_CONNECTION_ERROR_CODE
         return error
     }
 
     private _asTerminalConnectionError (error: unknown, fallbackMessage: string): TerminalConnectionError {
         const normalized: TerminalConnectionError = error instanceof Error ? error : new Error(fallbackMessage)
-        normalized.code = 'MQTT_TERMINAL_CONNECTION_ERROR'
+        normalized.code = TERMINAL_CONNECTION_ERROR_CODE
         return normalized
     }
 
     private _isTerminalConnectionError (error: unknown): error is TerminalConnectionError {
-        return error instanceof Error && (error as TerminalConnectionError).code === 'MQTT_TERMINAL_CONNECTION_ERROR'
+        return error instanceof Error && (error as TerminalConnectionError).code === TERMINAL_CONNECTION_ERROR_CODE
     }
 
     private async _destroyClientUnlocked (clientKey: string): Promise<void> {
@@ -1123,6 +1123,9 @@ export async function destroyMqttService (): Promise<void> {
     await MqttServiceInstance.destroy()
     MqttServiceInstance = null
 }
+
+// A connection the service gave up on, such as a credential provider that failed
+export const TERMINAL_CONNECTION_ERROR_CODE = 'MQTT_TERMINAL_CONNECTION_ERROR'
 
 export const FATAL_ERROR_CODES = new Set([
     0x84, // Unsupported Protocol Version

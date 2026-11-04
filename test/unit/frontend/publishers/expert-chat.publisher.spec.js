@@ -52,6 +52,15 @@ describe('Expert support chat publisher', async () => {
     })
 
     describe('connection', () => {
+        test('reports the session it connected with until it disconnects', async () => {
+            const { publisher } = await connected()
+            supportAgentStore.sessionId = 'chat-2'
+            expect(publisher.connectedSessionId()).toBe('chat-1')
+
+            await publisher.disconnect()
+            expect(publisher.connectedSessionId()).toBeNull()
+        })
+
         test('rides the agent connection with chat credentials for the agent session', async () => {
             const { transport } = await connected()
             expect(transport.attach.mock.calls[0][0]).toBe('expert/support-agent')
