@@ -23,6 +23,9 @@ export const useUxStore = defineStore('ux', {
         isNewlyCreatedUser: false,
         onboardingStage: null,
         shouldEnterOnboarding: false,
+        // Whether checkOnboardingOnArrival has run for this page load. Left out of
+        // persist.pick on purpose, so it runs again on every load.
+        onboardingArrivalChecked: false,
         // A build conversation started from a Build button. It stays on past plan
         // approval, since the instance is only created after that. Not meant to
         // outlive the page load, so it is left out of persist.pick on purpose.
@@ -78,6 +81,23 @@ export const useUxStore = defineStore('ux', {
                 // hook: it only happens when the platform is set up to require
                 // it, and a user who is verified already never sees it.
                 this.shouldEnterOnboarding = true
+            }
+        },
+        // Only the Expert moves the stage forward, so a conversation that ends without
+        // doing so (it errored, or never set the stage) would leave the user onboarding
+        // indefinitely. Run once per page load on the first full team: an instance
+        // already in the workspace with no onboarding conversation left in this tab to
+        // pick it back up means there is nothing left to resume.
+        checkOnboardingOnArrival (team, { hasConversation }) {
+            if (this.onboardingArrivalChecked || !team || team.instanceCount === undefined) {
+                return
+            }
+            this.onboardingArrivalChecked = true
+            if (!this.isOnboarding || !team.aiOnboarding) {
+                return
+            }
+            if (team.instanceCount > 0 && !hasConversation) {
+                this.endOnboarding()
             }
         },
         startOnboardingBuild () { this.onboardingStage = ONBOARDING_STAGES.BUILDING },

@@ -246,6 +246,66 @@ describe('ux store', () => {
         })
     })
 
+    describe('arriving with a stale onboarding stage', () => {
+        const provisioned = { aiOnboarding: true, instanceCount: 1 }
+
+        it('ends onboarding when the workspace has an instance and no conversation is left', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.checkOnboardingOnArrival(provisioned, { hasConversation: false })
+            expect(store.isOnboarding).toBe(false)
+            expect(store.shouldEnterOnboarding).toBe(false)
+            expect(userApi.updateUserSettings).toHaveBeenCalledWith({ onboardingCompleted: true })
+        })
+
+        it('ends a stale building stage too', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.startOnboardingBuild()
+            store.checkOnboardingOnArrival(provisioned, { hasConversation: false })
+            expect(store.isOnboarding).toBe(false)
+        })
+
+        it('keeps onboarding while the conversation is still in this tab', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.checkOnboardingOnArrival(provisioned, { hasConversation: true })
+            expect(store.isOnboardingIntake).toBe(true)
+            expect(userApi.updateUserSettings).not.toHaveBeenCalled()
+        })
+
+        it('keeps onboarding for an empty workspace', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.checkOnboardingOnArrival({ aiOnboarding: true, instanceCount: 0 }, { hasConversation: false })
+            expect(store.isOnboardingIntake).toBe(true)
+        })
+
+        it('leaves a team without AI onboarding alone', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.checkOnboardingOnArrival({ aiOnboarding: false, instanceCount: 1 }, { hasConversation: false })
+            expect(store.isOnboardingIntake).toBe(true)
+        })
+
+        it('runs only once per page load, so an instance created later in intake does not end it', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.checkOnboardingOnArrival({ aiOnboarding: true, instanceCount: 0 }, { hasConversation: false })
+            store.checkOnboardingOnArrival(provisioned, { hasConversation: false })
+            expect(store.isOnboardingIntake).toBe(true)
+        })
+
+        it('waits for a team that carries the instance count', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.checkOnboardingOnArrival({ aiOnboarding: true }, { hasConversation: false })
+            expect(store.onboardingArrivalChecked).toBe(false)
+            store.checkOnboardingOnArrival(provisioned, { hasConversation: false })
+            expect(store.isOnboarding).toBe(false)
+        })
+    })
+
     it('validateUserAction only updates known keys', () => {
         const store = useUxStore()
         store.validateUserAction('hasOpenedDeviceEditor')

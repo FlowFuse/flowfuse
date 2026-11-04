@@ -17,7 +17,8 @@ vi.mock('@/api/flowBlueprints.js', () => ({
 vi.mock('@/api/user.js', () => ({
     default: {
         getNotifications: vi.fn(),
-        getTeamInvitations: vi.fn()
+        getTeamInvitations: vi.fn(),
+        updateUserSettings: vi.fn().mockResolvedValue()
     }
 }))
 
@@ -228,6 +229,28 @@ describe('account store', () => {
                 expect(teamsStore.fetchTeam).toHaveBeenCalledWith({ slug: 'gamma' })
                 expect(mockContext.team).toEqual(fetchedTeam)
                 expect(product.setTeam).toHaveBeenCalledWith(fetchedTeam)
+            })
+
+            it('ends a stale onboarding stage when the first team loads with an instance and no conversation', async () => {
+                const { useUxStore } = await import('@/stores/ux.js')
+                const ux = useUxStore()
+                ux.setNewlyCreatedUser()
+
+                await useAccountStore().setTeam({ id: 'team-4', slug: 'delta', aiOnboarding: true, instanceCount: 1 })
+
+                expect(ux.isOnboarding).toBe(false)
+            })
+
+            it('keeps onboarding when the conversation is still in this tab', async () => {
+                const { useUxStore } = await import('@/stores/ux.js')
+                const { useProductExpertSupportAgentStore } = await import('@/stores/product-expert-support-agent.js')
+                const ux = useUxStore()
+                ux.setNewlyCreatedUser()
+                useProductExpertSupportAgentStore().messages = [{ _type: 'human' }]
+
+                await useAccountStore().setTeam({ id: 'team-5', slug: 'epsilon', aiOnboarding: true, instanceCount: 1 })
+
+                expect(ux.isOnboardingIntake).toBe(true)
             })
         })
 
