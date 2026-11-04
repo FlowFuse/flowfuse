@@ -90,8 +90,8 @@ describe('FlowFuse - Team Membership', () => {
         // check we now have 4 members (charlie was added in previous test)
         cy.get('[data-el="members-table"] tbody tr:not(.collapsible)').should('have.length', 4)
 
-        // open click kebab menu of 3rd member (charlie)
-        cy.get('[data-el="members-table"] tbody').find('.ff-kebab-menu').eq(2).click()
+        // open kebab menu of charlie (added in previous test)
+        cy.get('[data-el="members-table"] tbody tr:not(.collapsible)').contains('tr', 'charlie').find('.ff-kebab-menu').click()
 
         // click "member-remove-from-team"
         cy.get('[data-el="kebab-options"].ff-kebab-options').find('[data-action="member-remove-from-team"]').click()
