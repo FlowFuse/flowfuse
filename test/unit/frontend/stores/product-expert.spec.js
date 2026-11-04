@@ -494,6 +494,33 @@ describe('product-expert store', () => {
         })
     })
 
+    describe('session expiry', () => {
+        beforeEach(() => {
+            vi.useFakeTimers()
+        })
+
+        afterEach(() => {
+            vi.clearAllTimers()
+            vi.useRealTimers()
+        })
+
+        it('expires the chat whose session ran out, not the one on screen', () => {
+            const store = useProductExpertStore()
+            store.setAgentMode(SUPPORT_AGENT)
+            store.startSessionTimer()
+            store.setAgentMode(INSIGHTS_AGENT)
+
+            vi.advanceTimersByTime(29 * 60 * 1000)
+
+            const support = useProductExpertSupportAgentStore()
+            const insights = useProductExpertInsightsAgentStore()
+            expect(support.sessionExpiredShown).toBe(true)
+            expect(support.messages.map(m => m._variant)).toEqual(['warning', 'expired'])
+            expect(insights.sessionExpiredShown).toBe(false)
+            expect(insights.messages).toHaveLength(0)
+        })
+    })
+
     describe('addEventMessage', () => {
         it('pushes an event message carrying the envelope as-is', () => {
             const store = useProductExpertStore()

@@ -1010,7 +1010,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                     this.addSystemMessage({
                         message: 'Your conversation history will expire soon. You can start a new conversation when this one expires.',
                         type: 'warning'
-                    })
+                    }, agentStore)
                 }
 
                 if (elapsed >= expirationThreshold && !agentStore.sessionExpiredShown) {
@@ -1018,7 +1018,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                     this.addSystemMessage({
                         message: 'Your conversation history has expired. Chat is now disabled. Click "Start Over" to begin a new conversation.',
                         type: 'expired'
-                    })
+                    }, agentStore)
                 }
             }, 30000)
 
@@ -1091,10 +1091,11 @@ export const useProductExpertStore = defineStore('product-expert', {
          * @param {Object} payload - An object containing the message details.
          * @param {string} [payload.message=''] - The content of the system message.
          * @param {string} [payload.type='warning'] - The type of system message (e.g., 'warning', 'info', or 'error').
+         * @param {Object} [agentStore] - The agent whose chat gets the message; defaults to the active agent.
          */
-        addSystemMessage ({ message = '', type = 'warning' }) {
+        addSystemMessage ({ message = '', type = 'warning' }, agentStore = this._agentStore) {
             if (!['warning', 'expired'].includes(type) || !message.length) return
-            this._agentStore.messages.push({
+            agentStore.messages.push({
                 _type: 'system',
                 _variant: type,
                 message,
