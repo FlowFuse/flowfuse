@@ -9,12 +9,12 @@ import { useContextStore } from '@/stores/context.js'
 /**
  * Determines if a user is visiting as an admin based on their team membership role.
  *
- * @param {Object} teamMembership - An object representing the user's team membership details.
+ * @param {Object|null} teamMembership - An object representing the user's team membership details. Null while it is still loading.
  * @param {string} teamMembership.role - The role assigned to the user within the team.
  * @returns {boolean} True if the user has an admin role, otherwise false.
  */
 export const isVisitingAdmin = (teamMembership) => {
-    return teamMembership.role === Roles.Admin
+    return teamMembership?.role === Roles.Admin
 }
 
 /**

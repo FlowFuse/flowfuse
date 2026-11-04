@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 
 import { Roles } from '../../../../forge/lib/roles.js'
-import { hasPermissionInAnyApplication } from '../../../../frontend/src/composables/Permissions.js'
+import { hasAMinimumTeamRoleOf, hasPermissionInAnyApplication, isVisitingAdmin } from '../../../../frontend/src/composables/Permissions.js'
 
 describe('hasPermissionInAnyApplication', () => {
     test('allows a team Owner', () => {
@@ -30,5 +30,15 @@ describe('hasPermissionInAnyApplication', () => {
 
     test('denies when there is no team membership', () => {
         expect(hasPermissionInAnyApplication('project:create', null)).toBe(false)
+    })
+})
+
+describe('team membership not loaded yet', () => {
+    test('isVisitingAdmin is false when there is no team membership', () => {
+        expect(isVisitingAdmin(null)).toBe(false)
+    })
+
+    test('hasAMinimumTeamRoleOf is false when there is no team membership', () => {
+        expect(hasAMinimumTeamRoleOf(Roles.Member, null)).toBe(false)
     })
 })
