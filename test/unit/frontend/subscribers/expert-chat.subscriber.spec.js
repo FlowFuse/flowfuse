@@ -83,7 +83,6 @@ describe('Expert support chat subscriber', async () => {
 
         test('keeps the session it connected with across reconnects', async () => {
             const { subscriber, transport } = await connected()
-            supportAgentStore.sessionId = 'chat-2'
             await subscriber.connect({ id: 'team-2' })
             await handlers(transport).onConnect({})
             await handlers(transport).getCredentials()
@@ -91,6 +90,27 @@ describe('Expert support chat subscriber', async () => {
             expect(transport.attach).toHaveBeenCalledTimes(1)
             expect(transport.subscribe.mock.calls[1][1][0]).toContain('/chat-1/')
             expect(initiateExpertChat).toHaveBeenCalledWith({ sessionId: 'chat-1' })
+        })
+
+        test('reconnects under the agent session once it changes', async () => {
+            const { subscriber, transport } = await connected()
+            supportAgentStore.sessionId = 'chat-2'
+            await subscriber.connect({ id: 'team-1' })
+
+            expect(transport.detach).toHaveBeenCalledTimes(1)
+            expect(transport.attach).toHaveBeenCalledTimes(2)
+            await transport.attach.mock.calls[1][1].getCredentials()
+            expect(initiateExpertChat).toHaveBeenCalledWith({ sessionId: 'chat-2' })
+        })
+
+        test('rejects the connect when the transport cannot attach', async () => {
+            const transport = makeTransport()
+            const failure = Object.assign(new Error('Request failed with status code 403'), { code: 'MQTT_TERMINAL_CONNECTION_ERROR' })
+            transport.attach.mockRejectedValueOnce(failure)
+            const subscriber = createSupportChatSubscriber({ app: {}, router: {}, transport })
+
+            await expect(subscriber.connect({ id: 'team-1' })).rejects.toBe(failure)
+            expect(subscriber.isConnected()).toBe(false)
         })
 
         test('takes the new session after a disconnect', async () => {
