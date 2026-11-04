@@ -60,7 +60,7 @@ export default {
         ...mapState(useUxToursStore, ['shouldPresentTour', 'activeTour', 'shouldShowEducationModal', 'shouldAutoShowAiConnectorModal']),
         ...mapState(useProductExpertStore, ['shouldWakeUpAssistant']),
         isVisitingAdmin: function () {
-            return (this.teamMembership.role === Roles.Admin)
+            return (this.teamMembership?.role === Roles.Admin)
         },
         isTrialEnded: function () {
             if (this.team.billing?.trialEndsAt) {
