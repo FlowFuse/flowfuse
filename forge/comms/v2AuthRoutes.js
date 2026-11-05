@@ -203,7 +203,8 @@ module.exports = async function (app) {
                         } else {
                             if (mqttMatch(acl.pattern, request.body.topic)) {
                                 if (acl.action === 'both' || acl.action === 'publish') {
-                                    app.teamBroker.addUsedTopic(request.body.topic, teamId).catch(err => app.log.warn(`Failed to record used topic: ${err.message}`))
+                                    app.teamBroker.addUsedTopic(request.body.topic, teamId)
+                                        .catch(err => app.log.warn(`Failed to record used topic: ${err.message}`))
                                     reply.logProperties = { username, topic, action, result: 'allow' }
                                     reply.send({ result: 'allow' })
                                     return
