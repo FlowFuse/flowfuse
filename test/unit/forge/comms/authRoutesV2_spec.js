@@ -611,6 +611,20 @@ describe('Broker Auth v2 API', async function () {
                         topic: 'ff/v1/abc/p/another-project/res-random/foo/bar'
                     })
                 })
+                it('does not leave an unhandled rejection when recording a topic for an unknown team', async function () {
+                    const unhandled = sinon.spy()
+                    process.on('unhandledRejection', unhandled)
+                    try {
+                        await allowWrite({
+                            username: 'project:zz:x',
+                            topic: 'ff/v1/zz/c/a'
+                        })
+                        await new Promise(resolve => setTimeout(resolve, 200))
+                        unhandled.called.should.be.false()
+                    } finally {
+                        process.off('unhandledRejection', unhandled)
+                    }
+                })
                 describe('Team Broker Topic Update Cache', async function () {
                     async function sleep (seconds) {
                         return new Promise((resolve) => {
