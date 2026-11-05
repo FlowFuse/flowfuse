@@ -112,7 +112,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const result = app.db.views.Device.device(request.device)
+        const result = app.db.views.Device.device(request.device, { includeEditorUrl: app.canAccessDeviceEditor(request, request.applicationId) })
         const securitySettings = await request.device.getSetting('security')
         result.localLoginEnabled = securitySettings?.localAuth?.enabled || false
 
@@ -828,7 +828,8 @@ module.exports = async function (app) {
             await app.auditLog.Team.team.device.updated(request.session.User, null, device.Team, device, updates)
         }
 
-        reply.send(app.db.views.Device.device(updatedDevice))
+        const updatedApplicationId = updatedDevice.ApplicationId ? app.db.models.Application.encodeHashid(updatedDevice.ApplicationId) : updatedDevice.Project?.Application?.hashid
+        reply.send(app.db.views.Device.device(updatedDevice, { includeEditorUrl: app.canAccessDeviceEditor(request, updatedApplicationId) }))
     })
 
     app.post('/:deviceId/generate_credentials', {

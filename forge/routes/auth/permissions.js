@@ -276,7 +276,12 @@ module.exports = fp(async function (app, opts) {
         }
     }
 
+    function canAccessDeviceEditor (request, applicationId) {
+        return hasPermission(request.teamMembership, 'device:editor', { applicationId })
+    }
+
     app.decorate('hasPermission', hasPermission)
+    app.decorate('canAccessDeviceEditor', canAccessDeviceEditor)
     app.decorate('needsPermission', needsPermission)
     app.decorate('patTeamScopeFilter', patTeamScopeFilter)
 }, { name: 'app.routes.auth.permissions' })

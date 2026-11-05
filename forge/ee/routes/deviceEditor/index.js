@@ -43,6 +43,8 @@ module.exports = async function (app) {
                         }
                         if (request.device.ApplicationId) {
                             request.applicationId = app.db.models.Application.encodeHashid(request.device.ApplicationId)
+                        } else if (request.device.Project?.Application) {
+                            request.applicationId = request.device.Project.Application.hashid
                         }
                     }
                 } catch (err) {
@@ -233,6 +235,8 @@ module.exports = async function (app) {
             } else if (!request.session?.User) {
                 // Failed authentication. Redirect to the device overview page
                 reply.redirect(`/device/${request.params.deviceId}/overview`, 303)
+            } else if (!app.hasPermission(request.teamMembership, 'device:editor', { applicationId: request.applicationId })) {
+                reply.code(403).send('Forbidden')
             } else {
                 // For a websocket comms request
                 if (/\/comms$/.test(request.url)) {
@@ -290,6 +294,8 @@ module.exports = async function (app) {
             } else if (!request.session?.User) {
                 // Failed authentication. Redirect to the device overview page
                 reply.redirect(`/device/${request.params.deviceId}/overview`, 303)
+            } else if (!app.hasPermission(request.teamMembership, 'device:editor', { applicationId: request.applicationId })) {
+                reply.code(403).send('Forbidden')
             } else {
                 // For a websocket comms request
                 if (/\/comms$/.test(request.url)) {
