@@ -971,7 +971,8 @@ describe('MqttService', async () => {
         const second = createMqttService({ app: { a: 2 }, services: {}, router: {} })
         expect(first).toBe(second)
 
-        const fresh = new first.constructor({ app: {}, services: {}, router: {} })
+        const Ctor = first.constructor
+        const fresh = new Ctor({ app: {}, services: {}, router: {} })
         expect(fresh.$services).toEqual({})
         await expect(fresh.createClient('missing-options', { getCredentials: async () => ({ url: 'mqtt://example.com', username: '', password: 'pass' }) })).rejects.toThrow('MQTT credential provider for connection "missing-options" must return a non-empty username')
         await expect(fresh.publishMessage('missing-key', { topic: 'a', payload: 'x' })).rejects.toThrow('MQTT connection "missing-key" does not exist')

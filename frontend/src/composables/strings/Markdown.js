@@ -19,6 +19,48 @@ hljs.registerLanguage('typescript', typescript)
 hljs.registerLanguage('ts', typescript)
 hljs.registerLanguage('xml', xml)
 hljs.registerLanguage('html', xml)
+// highlight.js ships no mermaid grammar
+hljs.registerLanguage('mermaid', () => ({
+    name: 'Mermaid',
+    keywords: {
+        keyword: [
+            // diagram types, the ones with a dash are matched by their own mode below
+            'graph', 'flowchart', 'sequenceDiagram', 'classDiagram', 'stateDiagram', 'erDiagram', 'journey', 'gantt',
+            'pie', 'quadrantChart', 'requirementDiagram', 'gitGraph', 'mindmap', 'timeline', 'sankey', 'xychart',
+            'block', 'C4Context', 'C4Container', 'C4Component', 'C4Dynamic', 'C4Deployment', 'packet', 'kanban',
+            'treemap', 'ishikawa', 'info',
+            // statements
+            'subgraph', 'end', 'direction', 'participant', 'actor', 'autonumber', 'activate', 'deactivate', 'create',
+            'destroy', 'box', 'loop', 'alt', 'else', 'opt', 'par', 'critical', 'option', 'break', 'rect', 'note',
+            'links', 'link', 'class', 'classDef', 'cssClass', 'style', 'linkStyle',
+            'click', 'call', 'href', 'callback', 'namespace', 'state', 'section', 'title', 'accTitle', 'accDescr',
+            'dateFormat', 'axisFormat', 'tickInterval', 'excludes', 'includes', 'todayMarker', 'weekday', 'showData',
+            'commit', 'branch', 'checkout', 'merge', 'requirement', 'functionalRequirement', 'interfaceRequirement', 'performanceRequirement',
+            'physicalRequirement', 'designConstraint', 'verifymethod', 'satisfies', 'traces', 'copies', 'derives',
+            'refines', 'verifies', 'columns', 'service', 'junction',
+            'Person', 'Person_Ext', 'System', 'System_Ext', 'SystemDb', 'SystemQueue', 'Container', 'ContainerDb',
+            'ContainerQueue', 'Component', 'ComponentDb', 'Boundary', 'System_Boundary', 'Container_Boundary',
+            'Enterprise_Boundary', 'Deployment_Node', 'Rel', 'BiRel', 'Rel_U', 'Rel_D', 'Rel_L', 'Rel_R',
+            'Rel_Back', 'UpdateLayoutConfig', 'UpdateRelStyle', 'UpdateElementStyle'
+        ],
+        literal: ['TB', 'TD', 'BT', 'RL', 'LR', 'true', 'false']
+    },
+    contains: [
+        hljs.COMMENT('%%', '$'),
+        // keywords with a dash, which would otherwise read as a name followed by an arrow
+        { className: 'keyword', begin: /\b(?:[A-Za-z]+-(?:beta|v2)|[xy]-axis|cherry-pick)\b/ },
+        hljs.QUOTE_STRING_MODE,
+        hljs.NUMBER_MODE,
+        // entity relationship cardinalities such as ||--o{ and }|..|{, before the |label| mode takes the pipes
+        { className: 'operator', begin: /[|}][|o](?:--|\.\.)[|o][|{]/ },
+        // flowchart, sequence, class and state arrows such as -->, -.->, ==>, --o, <-->, ->>, -x, -), <|--, *--, ..|>
+        { className: 'operator', begin: /(?:<\||[<*ox])?(?:[-=.~]{2,}(?:\|>|[>ox)]{1,2})?|-(?:>>?|x|\)))(?=[\s\w"[({|:]|$)/ },
+        { className: 'meta', begin: /:::\w+|\[\*\]/ },
+        // edge labels and node text
+        { className: 'string', begin: /\|/, end: /\|/ },
+        { className: 'string', begin: /\[/, end: /\]/ }
+    ]
+}))
 
 // Inline SVGs are intentional here — the copy button lives inside v-html rendered
 // content where Vue components cannot be used.
@@ -27,20 +69,29 @@ const ICON_CHECK = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox=
 
 export const CODE_BLOCK_ICONS = { ICON_DUPLICATE, ICON_CHECK }
 
+export function codeLanguage (lang) {
+    return lang ? lang.split(/\s/)[0].toLowerCase() : ''
+}
+
+export function highlightCode (text, language) {
+    let highlighted
+    if (language && hljs.getLanguage(language)) {
+        highlighted = hljs.highlight(text, { language }).value
+    } else {
+        highlighted = hljs.highlightAuto(text).value
+    }
+    return highlighted.replace(/\n/g, '&#10;')
+}
+
 export function useMarkdownHelper () {
     const instance = new Marked({ breaks: true, gfm: true })
     instance.use({
         renderer: {
             code ({ text, lang }) {
-                const language = lang ? lang.split(/\s/)[0].toLowerCase() : ''
-                let highlighted
-                if (language && hljs.getLanguage(language)) {
-                    highlighted = hljs.highlight(text, { language }).value
-                } else {
-                    highlighted = hljs.highlightAuto(text).value
-                }
+                const language = codeLanguage(lang)
+                const highlighted = highlightCode(text, language)
                 const langLabel = language ? `<span class="ff-code-block--lang">${language}</span>` : ''
-                return `<div class="ff-code-block"><div class="ff-code-block--header"><button class="ff-code-block--copy">${ICON_DUPLICATE}</button>${langLabel}</div><pre><code class="hljs">${highlighted.replace(/\n/g, '&#10;')}</code></pre></div>`
+                return `<div class="ff-code-block"><div class="ff-code-block--header"><button class="ff-code-block--copy">${ICON_DUPLICATE}</button>${langLabel}</div><pre><code class="hljs">${highlighted}</code></pre></div>`
             },
             checkbox ({ checked }) {
                 return `<span class="ff-checkbox${checked ? ' ff-checkbox--checked' : ''}">${checked ? '&#x2611;' : '&#x2610;'}</span>`

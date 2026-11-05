@@ -1105,4 +1105,60 @@ describe('Snapshots API', function () {
             tests('device')
         })
     })
+
+    describe('Application-level RBAC', function () {
+        let bobMembership
+        before(async function () {
+            app.config.features.register('rbacApplication', true, false)
+            // bob is a team Member, but an Owner of application1
+            bobMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: TestObjects.ATeam.id, UserId: TestObjects.bob.id } })
+            bobMembership.permissions = { applications: { [TestObjects.application1.hashid]: Roles.Owner } }
+            await bobMembership.save()
+        })
+        after(async function () {
+            bobMembership.permissions = {}
+            await bobMembership.save()
+            app.config.features.register('rbacApplication', false, false)
+        })
+        afterEach(async function () {
+            await app.db.models.ProjectSnapshot.destroy({ where: {} })
+        })
+
+        /**
+         * @param {'instance' | 'device'} kind - 'instance' or 'device'
+         */
+        function tests (kind) {
+            const getOwnerId = () => kind === 'instance' ? TestObjects.project1.id : TestObjects.device1.hashid
+            const createSnapshot = kind === 'instance' ? createInstanceSnapshot : createAppDeviceSnapshot
+
+            it('Application Owner can import snapshot', async function () {
+                const snapshot = { name: 'app-owner-import', flows: { flows: [] }, settings: {} }
+                const response = await importSnapshot(getOwnerId(), kind, snapshot, null, TestObjects.tokens.bob)
+                response.statusCode.should.equal(200)
+            })
+
+            it('Application Owner can edit snapshot', async function () {
+                const result = (await createSnapshot()).json()
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/snapshots/${result.id}`,
+                    payload: { name: 'renamed by app owner' },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+            })
+
+            it('Application Owner can delete snapshot', async function () {
+                const result = (await createSnapshot()).json()
+                const response = await deleteSnapshot(result.id, TestObjects.tokens.bob)
+                response.statusCode.should.equal(200)
+            })
+        }
+        describe('instance', function () {
+            tests('instance')
+        })
+        describe('device', function () {
+            tests('device')
+        })
+    })
 })

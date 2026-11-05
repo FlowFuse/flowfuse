@@ -6,25 +6,31 @@ const templates = require('../../../../../../../../forge/ee/lib/expert/emxq-brid
 
 const { syncBridge } = bridge
 const {
-    addBridge, removeBridge, validateBridge, discoverResources,
+    clientIdPrefix, addBridge, removeBridge, validateBridge, discoverResources,
     getConfig, getList, makeClient, del, post
 } = bridge._internal
 
-const { connector, actionOut, sourceChat, sourceInflight, sourcePlatform, sourceMcpRes, ruleIn, ruleOut } = templates
+const { connector, actionOut, sourceChat, sourceInsightsChat, sourceInflight, sourcePlatform, sourceMcpRes, ruleIn, ruleOut } = templates
 
 // #region helpers
+
+const TEST_INSTANCE_ID = '0a1b2c3d-4e5f-6789-abcd-ef0123456789'
 
 // A stub Fastify `app` with overrides for config and license
 function makeApp (overrides = {}) {
     const cfg = overrides.config || {}
     return {
         config: {
+            base_url: cfg.base_url || 'https://forge.test',
             broker: cfg.broker !== undefined
                 ? cfg.broker
                 : { teamBroker: { enabled: true, api: { url: 'http://broker.test/api/v5', key: 'k', secret: 's' } } },
             expert: cfg.expert !== undefined
                 ? cfg.expert
                 : { enabled: true, centralBroker: { server: 'expert.test:1884' } }
+        },
+        settings: {
+            get: sinon.stub().withArgs('instanceId').returns(overrides.instanceId || TEST_INSTANCE_ID)
         },
         license: {
             active: sinon.stub().returns(overrides.licenseActive !== false),
@@ -84,12 +90,12 @@ function fullDiscovery (client) {
 
 // Set up all mocks needed for validateBridge to return true. Individual tests then
 // override specific endpoints to exercise each failure branch.
-function passingValidate (client, { licenceId = 'test-licence-id', server = 'expert.test:1884' } = {}) {
+function passingValidate (client, { licenceId = 'test-licence-id', server = 'expert.test:1884', prefix = clientIdPrefix(TEST_INSTANCE_ID, 'https://forge.test') } = {}) {
     client.get.withArgs('/connectors').resolves({
         status: 200, data: [{ name: connector.name, type: 'mqtt' }]
     })
     client.get.withArgs(`/connectors/mqtt:${connector.name}`).resolves({
-        status: 200, data: { username: licenceId, server }
+        status: 200, data: { username: licenceId, server, clientid_prefix: prefix }
     })
     client.get.withArgs('/actions').resolves({
         status: 200, data: [{ name: actionOut.name, type: 'mqtt' }]
@@ -98,6 +104,7 @@ function passingValidate (client, { licenceId = 'test-licence-id', server = 'exp
         status: 200,
         data: [
             { name: sourceChat.name, type: 'mqtt' },
+            { name: sourceInsightsChat.name, type: 'mqtt' },
             { name: sourceInflight.name, type: 'mqtt' },
             { name: sourcePlatform.name, type: 'mqtt' },
             { name: sourceMcpRes.name, type: 'mqtt' }
@@ -113,6 +120,17 @@ function passingValidate (client, { licenceId = 'test-licence-id', server = 'exp
 describe('EMQX bridge-setup', function () {
     afterEach(function () {
         sinon.restore()
+    })
+
+    // The Expert Broker only accepts subscription filters it knows verbatim, so these must not change shape.
+    describe('templates', function () {
+        it('subscribes to each agent\'s chat responses with its own exact filter', function () {
+            sourceChat.parameters.topic.should.equal('$share/expert/ff/v1/expert/+/+/+/+/support/chat/response')
+            sourceInsightsChat.parameters.topic.should.equal('$share/expert/ff/v1/expert/+/+/+/+/insights/chat/response')
+        })
+        it('republishes the insights chat source', function () {
+            ruleIn.sql.should.containEql(`"$bridges/mqtt:${sourceInsightsChat.name}"`)
+        })
     })
 
     describe('getConfig', function () {
@@ -152,9 +170,36 @@ describe('EMQX bridge-setup', function () {
             cfg.licenceJwt.should.equal('jwt-token')
         })
 
+        it('derives the client id prefix from the platform instance id and base url', function () {
+            const cfg = getConfig(makeApp({ instanceId: '12345678-9abc-def0-1234-56789abcdef0', config: { base_url: 'https://a.example' } }))
+            cfg.clientIdPrefix.should.equal(clientIdPrefix('12345678-9abc-def0-1234-56789abcdef0', 'https://a.example'))
+        })
+
         it('does not throw when config sections are entirely missing', function () {
             const app = { config: {}, license: { active: () => false, status: () => ({ expired: false }), get: () => null, raw: () => null } }
             should(() => getConfig(app)).not.throw()
+        })
+    })
+
+    describe('clientIdPrefix', function () {
+        it('leaves room in the 23 byte client id for the per-node hash', function () {
+            clientIdPrefix(TEST_INSTANCE_ID, 'https://forge.test').should.match(/^ff[0-9a-f]{12}$/)
+        })
+
+        it('is stable for the same instance id and base url', function () {
+            clientIdPrefix(TEST_INSTANCE_ID, 'https://forge.test').should.equal(clientIdPrefix(TEST_INSTANCE_ID, 'https://forge.test'))
+        })
+
+        it('differs between instances', function () {
+            clientIdPrefix(TEST_INSTANCE_ID, 'https://forge.test').should.not.equal(clientIdPrefix('ffffffff-4e5f-6789-abcd-ef0123456789', 'https://forge.test'))
+        })
+
+        it('differs for the same instance id under another base url', function () {
+            clientIdPrefix(TEST_INSTANCE_ID, 'https://forge.test').should.not.equal(clientIdPrefix(TEST_INSTANCE_ID, 'https://staging.forge.test'))
+        })
+
+        it('returns undefined without an instance id', function () {
+            should(clientIdPrefix(undefined)).be.undefined()
         })
     })
 
@@ -336,6 +381,16 @@ describe('EMQX bridge-setup', function () {
             app.log.info.calledWithMatch(/server does not match/).should.be.true()
         })
 
+        it('returns false when the connector client id prefix does not match this platform', async function () {
+            const app = makeApp()
+            const client = makeFakeClient()
+            passingValidate(client, { prefix: '' }) // connector created before prefixes existed
+
+            const result = await validateBridge(app, { client })
+            result.should.be.false()
+            app.log.info.calledWithMatch(/client id prefix does not match/).should.be.true()
+        })
+
         it('returns false when our action is missing', async function () {
             const app = makeApp()
             const client = makeFakeClient()
@@ -404,20 +459,22 @@ describe('EMQX bridge-setup', function () {
 
             await addBridge(app, { cfg, client })
 
-            client.post.callCount.should.equal(8) // 1 connector + 1 action + 4 sources + 2 rules
+            client.post.callCount.should.equal(9) // 1 connector + 1 action + 5 sources + 2 rules
             client.post.getCall(0).args[0].should.equal('/connectors')
             client.post.getCall(1).args[0].should.equal('/actions')
             client.post.getCall(2).args[0].should.equal('/sources')
             client.post.getCall(3).args[0].should.equal('/sources')
             client.post.getCall(4).args[0].should.equal('/sources')
             client.post.getCall(5).args[0].should.equal('/sources')
-            client.post.getCall(6).args[0].should.equal('/rules')
+            client.post.getCall(6).args[0].should.equal('/sources')
             client.post.getCall(7).args[0].should.equal('/rules')
+            client.post.getCall(8).args[0].should.equal('/rules')
 
             const connectorPayload = client.post.getCall(0).args[1]
             connectorPayload.server.should.equal('expert.test:1884')
             connectorPayload.username.should.equal('lic-1')
             connectorPayload.password.should.equal('jwt-1')
+            connectorPayload.clientid_prefix.should.equal(clientIdPrefix(TEST_INSTANCE_ID, 'https://forge.test'))
             connectorPayload.name.should.equal(connector.name)
         })
 
@@ -561,7 +618,7 @@ describe('EMQX bridge-setup', function () {
             result.should.be.true()
             // 1 connector delete + 8 creates (1 connector + 1 action + 4 sources + 2 rules)
             client.delete.callCount.should.equal(1)
-            client.post.callCount.should.equal(8)
+            client.post.callCount.should.equal(9)
             // didn't bother validating
             client.get.calledWith('/connectors').should.be.false()
         })
@@ -591,7 +648,7 @@ describe('EMQX bridge-setup', function () {
             const result = await syncBridge(app, { client })
             result.should.be.true()
             client.delete.called.should.be.true()
-            client.post.callCount.should.equal(8) // 1 connector + 1 action + 4 sources + 2 rules
+            client.post.callCount.should.equal(9) // 1 connector + 1 action + 5 sources + 2 rules
         })
 
         it('returns false when an underlying call throws. (force=true) (logs error)', async function () {

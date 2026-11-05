@@ -45,7 +45,8 @@ module.exports = function (app) {
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' },
             billing: { type: 'object', additionalProperties: true },
-            billingURL: { type: 'string' }
+            billingURL: { type: 'string' },
+            aiOnboarding: { type: 'boolean' }
         },
         required: ['type', 'properties', 'instanceCount', 'memberCount', 'deviceCount', 'brokerCount', 'teamBrokerClientsCount', 'createdAt', 'updatedAt']
     })
@@ -69,6 +70,9 @@ module.exports = function (app) {
                 createdAt: result.createdAt,
                 updatedAt: result.updatedAt,
                 links: result.links
+            }
+            if (team.TeamType) {
+                filtered.aiOnboarding = team.isAiOnboardingOffered()
             }
             if (team.Subscription) {
                 filtered.billing = {}

@@ -47,6 +47,12 @@ async function commonFeatures (app, opts) {
 
     app.config.features.register('expertInsights', isInsightsEnabled ?? false, true)
 
+    // Send insights chats over the external broker instead of HTTP whenever the Expert bridge is
+    // configured, as support chats do. expert.insights.mqtt: false keeps insights on HTTP.
+    const hasExpertBridge = typeof app.config?.expert?.centralBroker?.server === 'string' && app.config.expert.centralBroker.server.length > 0
+    const isInsightsMqtt = app.config?.expert?.insights?.mqtt ?? hasExpertBridge
+    app.config.features.register('expertInsightsMqtt', isInsightsEnabled && isInsightsMqtt === true, true)
+
     // Set the MCP third-party agent access flag. Defaults to true when AI
     // and expert are both enabled, so it activates automatically unless
     // explicitly disabled in the config.

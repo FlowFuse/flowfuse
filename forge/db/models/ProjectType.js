@@ -80,7 +80,7 @@ module.exports = {
                     const limit = parseInt(pagination.limit) || 1000
 
                     if (pagination.cursor) {
-                        pagination.cursor = M.ProjectType.decodeHashid(pagination.cursor)
+                        pagination.cursor = M.ProjectType.decodeCursor(pagination.cursor)
                     }
                     const [rows, count] = await Promise.all([
                         this.findAll({

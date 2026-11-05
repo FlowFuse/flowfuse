@@ -1,6 +1,9 @@
+import { markRaw } from 'vue'
+
 import InstanceApi from '../api/instances.js'
 import SnapshotApi from '../api/projectSnapshots.js'
 import SnapshotsApi from '../api/snapshots.js'
+import RollbackSnapshotDialog from '../components/dialogs/RollbackSnapshotDialog.vue'
 import { downloadData } from '../composables/Download.js'
 import Alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
@@ -23,17 +26,23 @@ export default {
         },
         // snapshot actions - rollback
         showRollbackDialog (snapshot, alterLoadingState = false) {
+            let mergeEnvVars = true
             return new Promise((resolve) => {
                 Dialog.show({
                     header: 'Restore Snapshot',
                     kind: 'danger',
-                    text: `This will overwrite the current instance.
-                       All changes to the flows, settings and environment variables made since the last snapshot will be lost.
-                       Are you sure you want to deploy to this snapshot?`,
+                    is: {
+                        component: markRaw(RollbackSnapshotDialog),
+                        on: {
+                            'merge-env-vars-changed' (value) {
+                                mergeEnvVars = value
+                            }
+                        }
+                    },
                     confirmLabel: 'Confirm'
                 }, async () => {
                     if (alterLoadingState) this.loading = true
-                    return SnapshotApi.rollbackSnapshot(this.instance.id, snapshot.id)
+                    return SnapshotApi.rollbackSnapshot(this.instance.id, snapshot.id, { mergeEnvVars })
                         .then(() => {
                             Alerts.emit('Successfully deployed snapshot.', 'confirmation')
                             resolve()

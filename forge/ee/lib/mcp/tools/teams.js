@@ -1,8 +1,6 @@
 const { z } = require('zod')
 
-const { teamId, applicationId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError } = require('../schemas')
-
-const isHashid = (id) => /^[A-Za-z0-9]+$/.test(id)
+const { pathId, teamId, applicationId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError } = require('../schemas')
 
 // Audit-log routes accept cursor+limit pagination, free-text query, event
 // (single name or array) and username. scope narrows which entity levels are
@@ -53,7 +51,7 @@ module.exports = [
             }
             const url = hasId
                 ? `/api/v1/teams/${args.teamId}`
-                : `/api/v1/teams/slug/${args.teamSlug}`
+                : `/api/v1/teams/slug/${encodeURIComponent(args.teamSlug)}`
             const response = await inject({ method: 'GET', url })
             return response
         }
@@ -179,6 +177,50 @@ module.exports = [
         }
     },
     {
+        name: 'platform_update_git_token',
+        title: 'Update Team Git Token',
+        description: `FlowFuse platform automation tool:
+            Renames a git token configured for a team. The name is the only editable field: this never changes or returns the stored credential, and the reply holds only the token's id, name and type.
+            Renaming a token to the name it already has succeeds without changing anything.
+            Only team owners can update git tokens. Use platform_list_team_git_tokens to find the token id.
+            Git integration is a plan-gated feature. A 404 means the token does not exist in this team, or git integration is not enabled for the team's plan.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            tokenId: pathId.describe('The hashid of the git token, as returned by platform_list_team_git_tokens'),
+            name: z.string().trim().min(1).max(255).describe('New name for the git token')
+        },
+        outputSchema: {
+            id: z.string(),
+            name: z.string(),
+            type: z.string()
+        },
+        handler: async (args, { inject }) => {
+            return inject({ method: 'PUT', url: `/api/v1/teams/${args.teamId}/git/tokens/${args.tokenId}`, payload: { name: args.name } })
+        }
+    },
+    {
+        name: 'platform_delete_git_token',
+        title: 'Delete Team Git Token',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes a team git token. The stored token value is gone and cannot be recovered, so a new token has to be created to restore access.
+            Confirm with the user before calling this. The token itself is not revoked with the git provider.
+            A token that a pipeline stage still uses cannot be deleted: the call fails with 409 token_in_use and names the pipelines, which have to be pointed at another token first.
+            Only team owners can delete git tokens. Replies { status: "okay" } on success; a token that does not exist, or belongs to another team, returns 404, so repeating a call is harmless.`,
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            tokenId: pathId.describe('The hashid of the git token to delete, as returned by platform_list_team_git_tokens')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/git/tokens/${args.tokenId}` })
+            if (response.statusCode >= 400) {
+                return response
+            }
+            return { statusCode: response.statusCode, json: () => ({ status: 'okay' }) }
+        }
+    },
+    {
         name: 'platform_create_team',
         title: 'Create Team',
         description: `FlowFuse platform automation tool:
@@ -252,7 +294,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
-            userId: z.string().describe('The hashid of the team member whose role is changing'),
+            userId: pathId.describe('The hashid of the team member whose role is changing'),
             role: z.union([z.literal(5), z.literal(10), z.literal(30), z.literal(50)]).describe('New team role: 5=Dashboard, 10=Viewer, 30=Member, 50=Owner')
         },
         handler: async (args, { inject }) => {
@@ -293,7 +335,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
-            invitationId: z.string().describe('The hashid of the invitation to resend, as returned by platform_list_team_invitations')
+            invitationId: pathId.describe('The hashid of the invitation to resend, as returned by platform_list_team_invitations')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'POST', url: `/api/v1/teams/${args.teamId}/invitations/${args.invitationId}` })
@@ -315,15 +357,9 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
-            userId: z.string().describe('The hashid of the member to remove, as returned by platform_list_team_members')
+            userId: pathId.describe('The hashid of the member to remove, as returned by platform_list_team_members')
         },
         handler: async (args, { inject }) => {
-            // Both ids go into the URL path and inject resolves dot segments, so anything but
-            // a plain hashid could send this DELETE to another route (e.g. teamId "../applications"
-            // with userId "../<id>" deletes an application).
-            if (!isHashid(args.teamId) || !isHashid(args.userId)) {
-                return toolError(400, 'invalid_request', 'teamId and userId must be hashids')
-            }
             const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/members/${args.userId}` })
             // The route answers 200 for a user who is not a member, with removed: false in the body.
             if (response.statusCode === 200 && response.json().removed === false) {
@@ -345,13 +381,9 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
-            invitationId: z.string().describe('The hashid of the invitation to revoke, as returned by platform_list_team_invitations')
+            invitationId: pathId.describe('The hashid of the invitation to revoke, as returned by platform_list_team_invitations')
         },
         handler: async (args, { inject }) => {
-            // Same as above: a crafted invitationId like "../../../applications/<id>" reaches another route.
-            if (!isHashid(args.teamId) || !isHashid(args.invitationId)) {
-                return toolError(400, 'invalid_request', 'teamId and invitationId must be hashids')
-            }
             const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/invitations/${args.invitationId}` })
             return response
         }

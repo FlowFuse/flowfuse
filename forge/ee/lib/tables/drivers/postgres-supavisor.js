@@ -61,9 +61,11 @@ module.exports = {
             throw new Error('Database already exists')
         } else {
             const password = generatePassword(16)
+            let databaseCreated = false
             try {
                 const escapedDatabaseName = libPg.pg.escapeIdentifier(team.hashid)
                 await this._adminClient.query(`CREATE DATABASE ${escapedDatabaseName}`)
+                databaseCreated = true
                 await this._adminClient.query(`REVOKE connect ON DATABASE ${escapedDatabaseName} FROM PUBLIC;`)
                 await this._adminClient.query(`ALTER DATABASE ${escapedDatabaseName} SET statement_timeout='30s';`)
                 const teamClient = libPg.newClient({ ...this._options.backend, database: team.hashid })
@@ -148,16 +150,28 @@ module.exports = {
                     throw new Error(`Failed to create database for team ${team.hashid}: ${response.statusText}`)
                 }
             } catch (err) {
-                // console.log(err)
                 this._app.log.error(`Failed to create database\n${this._options.supavisor.url}/api/tenants/${team.hashid}\n${err.toString()}`)
+                if (databaseCreated) {
+                    await this._rollbackCreate(team)
+                }
+                throw err
             }
         }
     },
-    destroyDatabase: async function (team, databaseId) {
-        const db = await this._app.db.models.Table.byId(team.id, databaseId)
-        if (!db) {
-            throw new Error(`Database ${databaseId} for team ${team.hashid} does not exist`)
+    _rollbackCreate: async function (team) {
+        // Only called once CREATE DATABASE succeeded, so everything removed here was created by this call
+        try {
+            await this._deleteTenant(team)
+        } catch (err) {
+            this._app.log.warn(`Failed to clean up tenant for team ${team.hashid}: ${err.toString()}`)
         }
+        try {
+            await libPg.dropTeamDatabase(this._adminClient, team.hashid)
+        } catch (err) {
+            this._app.log.warn(`Failed to clean up database for team ${team.hashid}: ${err.toString()}`)
+        }
+    },
+    _deleteTenant: async function (team) {
         try {
             await axios.delete(`${this._options.supavisor.url}/api/tenants/${team.hashid}`, {
                 headers: {
@@ -166,21 +180,20 @@ module.exports = {
                 }
             })
         } catch (err) {
-            // console.log(err)
-        }
-        const res = await this._adminClient.query('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid])
-        if (res.rows.length === 1) {
-            try {
-                await this._adminClient.query(`DROP DATABASE IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid)}`)
-                await this._adminClient.query(`DROP USER IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid)}`)
-                await this._adminClient.query(`DROP ROLE IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid + '-role')}`)
-                await db.destroy()
-            } catch (err) {
-                // console.log(err)
+            // A tenant that is already gone (e.g. from an earlier partial delete) is not a failure
+            if (err.response?.status !== 404) {
+                throw err
             }
-        } else {
-            throw new Error(`Database ${team.hashid} does not exist`)
         }
+    },
+    destroyDatabase: async function (team, databaseId) {
+        const db = await this._app.db.models.Table.byId(team.id, databaseId)
+        if (!db) {
+            throw new Error(`Database ${databaseId} for team ${team.hashid} does not exist`)
+        }
+        await this._deleteTenant(team)
+        await libPg.dropTeamDatabase(this._adminClient, team.hashid)
+        await db.destroy()
     },
     getTables: async function (team, databaseId, paginationOptions) {
         // SELECT * FROM pg_catalog.pg_tables;
@@ -377,6 +390,9 @@ module.exports = {
                             column += `DEFAULT ${col.default === 'true'}`
                         } else if (col.type === 'timestamptz') {
                             column += 'DEFAULT NOW()'
+                        } else if (col.type === 'date') {
+                            // CURRENT_DATE defaults to the day each row is inserted, anything else is a literal date
+                            column += col.default === 'CURRENT_DATE' ? 'DEFAULT CURRENT_DATE' : `DEFAULT ${libPg.pg.escapeLiteral(col.default)}`
                         }
                     }
                     if (i + 1 !== columns.length) {

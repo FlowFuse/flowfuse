@@ -1,11 +1,16 @@
 const { z } = require('zod')
 
+// Ids are interpolated into the URL path handed to app.inject(), which resolves dot segments, so
+// an id must be one plain path segment: hashid, UUID, or the 'team-broker' literal.
+const PATH_ID_PATTERN = /^[A-Za-z0-9_-]+$/
+const pathId = z.string().regex(PATH_ID_PATTERN, 'must contain only letters, digits, hyphen and underscore')
+
 // Hosted instances are Projects (UUID primary key); the other entities use hashids.
-const teamId = z.string().describe('The hashid of the team')
-const applicationId = z.string().describe('The hashid of the application')
+const teamId = pathId.describe('The hashid of the team')
+const applicationId = pathId.describe('The hashid of the application')
 const hostedInstanceId = z.string().uuid().describe('The id (UUID) of the hosted instance')
-const remoteInstanceId = z.string().describe('The hashid of the remote instance')
-const snapshotId = z.string().describe('The hashid of the snapshot')
+const remoteInstanceId = pathId.describe('The hashid of the remote instance')
+const snapshotId = pathId.describe('The hashid of the snapshot')
 
 // Shared by the pipeline stage add and update tools: both routes take the same
 // git-repo fields. forUpdate carries the one real difference between them, that
@@ -14,7 +19,7 @@ const snapshotId = z.string().describe('The hashid of the snapshot')
 const gitStageFields = ({ forUpdate = false } = {}) => {
     const resendNote = forUpdate ? '. Resent on every git update; reset to empty when omitted' : ''
     return {
-        gitTokenId: z.string().optional().describe(forUpdate
+        gitTokenId: pathId.optional().describe(forUpdate
             ? 'Hashid of a team git token. Required on every update of a git-repo stage, together with the full git settings, since the git settings are only applied when it is present and are applied as a set'
             : 'Hashid of a team git token, making this a git-repository stage. Pass exactly one target, and include url'),
         url: z.string().optional().describe(`Git repository URL for a git-repo stage${resendNote}`),
@@ -111,6 +116,8 @@ function appendQuery (url, args, keys) {
 }
 
 module.exports = {
+    PATH_ID_PATTERN,
+    pathId,
     teamId,
     applicationId,
     hostedInstanceId,

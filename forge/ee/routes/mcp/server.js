@@ -55,9 +55,54 @@ module.exports = async function (app) {
         return app.db.controllers.BrowserSession.getActiveBrowserSession(userId, mcpSessionId)
     }
 
+    // The versions that decide whether the tab's instance or device can run flow building.
+    // The snapshot is client-supplied, so an entity outside the tab's team, which the token scope
+    // was checked against, is ignored.
+    async function entityVersions (topicParts, teamId) {
+        const versions = {}
+        if (!topicParts?.entityId || !teamId) {
+            return versions
+        }
+        const teamHashid = toTeamHashid(teamId)
+        const inTeam = (entity) => !!entity && app.db.models.Team.encodeHashid(entity.TeamId) === teamHashid
+        if (topicParts.entityType === 'p') {
+            let instance = null
+            try {
+                instance = await app.db.models.Project.byId(topicParts.entityId, { barebone: true })
+            } catch (err) {
+                // Not a valid instance id
+            }
+            if (inTeam(instance)) {
+                const nodeRed = instance.versions?.['node-red']?.current
+                const launcher = instance.versions?.launcher?.current
+                if (nodeRed) {
+                    versions.nodeRedVersion = String(nodeRed)
+                }
+                if (launcher) {
+                    versions.launcherVersion = String(launcher)
+                }
+            }
+        } else if (topicParts.entityType === 'd') {
+            let device = null
+            try {
+                device = await app.db.models.Device.byId(topicParts.entityId, { includeAssociations: false })
+            } catch (err) {
+                // Not a valid device hashid
+            }
+            if (inTeam(device)) {
+                if (device.agentVersion) {
+                    versions.deviceAgentVersion = device.agentVersion
+                }
+                versions.deviceAgentLite = device.agentType === 'lite' ? 'true' : 'false'
+            }
+        }
+        return versions
+    }
+
     // Resolves the caller's identity and scope, or sends an error reply and returns null.
     async function resolveCaller (request, reply) {
-        if (!request.session?.User) {
+        // This endpoint is for token-backed callers only.
+        if (!request.session?.User || !request.session.isPAT) {
             // RFC 9728 §5.1: point unauthenticated callers at the resource metadata.
             reply.header('WWW-Authenticate', `Bearer resource_metadata="${app.config.base_url}/.well-known/oauth-protected-resource/mcp"`)
             reply.code(401).send({ code: 'unauthorized', error: 'Unauthorized' })
@@ -84,7 +129,7 @@ module.exports = async function (app) {
     // POST serves the MCP Streamable HTTP protocol in JSON mode: each request is
     // forwarded to the gateway and its response returned. Notifications (no id)
     // are acknowledged; the gateway populates its session on the first request.
-    app.post('/', { config: { allowAnonymous: true } }, async (request, reply) => {
+    app.post('/', { config: { allowAnonymous: true, allowMcpGrant: true } }, async (request, reply) => {
         const caller = await resolveCaller(request, reply)
         if (!caller) {
             return
@@ -165,6 +210,16 @@ module.exports = async function (app) {
                 if (topicParts?.entityId) {
                     userProperties.entityId = topicParts.entityId
                 }
+                // The gateway refuses a flow-building call up front when the tab cannot serve it,
+                // and holds the version minimums itself, so these are sent raw.
+                userProperties.tabCapabilities = (activeBrowserSession.capabilities || []).join(',')
+                if (context?.scope) {
+                    userProperties.tabScope = String(context.scope)
+                }
+                if (context?.assistantVersion) {
+                    userProperties.assistantVersion = String(context.assistantVersion)
+                }
+                Object.assign(userProperties, await entityVersions(topicParts, context?.teamId))
                 if (context?.teamId) {
                     userProperties.teamId = context.teamId
                     userProperties.browserSessionTeamId = toTeamHashid(context.teamId)
@@ -210,12 +265,12 @@ module.exports = async function (app) {
 
     // The gateway is the MCP server; this proxy does not hold a server-initiated
     // stream, so it does not offer the optional GET SSE channel.
-    app.get('/', async (request, reply) => {
+    app.get('/', { config: { allowMcpGrant: true } }, async (request, reply) => {
         reply.code(405).send({ code: 'method_not_allowed', error: 'MCP HTTP streaming is not available.' })
     })
 
     // Session teardown: nothing is held server-side in JSON mode, so acknowledge.
-    app.delete('/', async (request, reply) => {
+    app.delete('/', { config: { allowMcpGrant: true } }, async (request, reply) => {
         reply.code(204).send()
     })
 }

@@ -3,6 +3,7 @@
         :string="content"
         :should-stream="shouldStream"
         :rich-content="true"
+        :diagrams="diagrams"
         @streaming-complete="onStreamComplete"
     />
 </template>
@@ -24,6 +25,11 @@ export default {
         content: {
             required: true,
             type: String
+        },
+        diagrams: {
+            type: Array,
+            required: false,
+            default: () => []
         },
         messageUuid: {
             required: true,

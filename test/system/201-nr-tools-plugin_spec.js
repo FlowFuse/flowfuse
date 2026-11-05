@@ -148,16 +148,16 @@ describe('Node-RED Tools Plugin', function () {
         const token = parts[parts.length - 1]
 
         const response2 = await app.inject({
-            method: 'GET',
+            method: 'PUT',
             url: `/account/complete/${token}`,
+            payload: {},
             cookies: {
                 sid: TestObjects.accessToken
             }
         })
-        response2.statusCode.should.equal(302)
-        response2.headers.should.have.property('location')
+        response2.statusCode.should.equal(200)
         // http://example.com/flowfuse-nr-tools/auth/callback?code=eANs21GUv7OqN99S2QxJ4tS1BD5RYEzOEfb-lhLUciw&state=YMbFnV1E_2aPwz_Ktca1DQ
-        const callbackURL = new URL(response2.headers.location)
+        const callbackURL = new URL(response2.json().redirect)
         callbackURL.pathname.should.equal('/flowfuse-nr-tools/auth/callback')
         callbackURL.host.should.equal('example.com')
         should.exist(callbackURL.searchParams.get('code'))

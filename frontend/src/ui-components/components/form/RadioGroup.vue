@@ -8,6 +8,7 @@
                 :description="option.description"
                 :disabled="option.disabled"
                 :hide-description="orientation === 'horizontal'"
+                :multiline-description="multilineDescription"
                 :tile="tile"
                 @select="select"
             />
@@ -38,6 +39,11 @@ export default {
         options: {
             default: null,
             type: Array
+        },
+        // Render line breaks in the option descriptions as new lines
+        multilineDescription: {
+            default: false,
+            type: Boolean
         },
         // Full-width tappable tile layout, with each label stacked above its description
         tile: {

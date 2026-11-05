@@ -119,6 +119,9 @@ export const useContextStore = defineStore('context', {
                     isTrialAccount: this.isTrialAccount,
                     trialRuntimesLimit: this.trialRuntimesLimit,
                     nodeRedVersion: assistantStore.nodeRedVersion,
+                    launcherVersion: null,
+                    deviceAgentVersion: null,
+                    deviceAgentLite: false,
                     pageName: null,
                     rawRoute: {},
                     selectedNodes: null,
@@ -126,7 +129,8 @@ export const useContextStore = defineStore('context', {
                     questionCadence: useProductExpertStore().questionCadence,
                     planMode: useProductExpertStore().planMode,
                     onboarding: useUxStore().isOnboarding,
-                    onboardingStage: useUxStore().onboardingStage
+                    onboardingStage: useUxStore().onboardingStage,
+                    building: useUxStore().building
                 }
             }
 
@@ -164,7 +168,15 @@ export const useContextStore = defineStore('context', {
                 isTrialAccount: this.isTrialAccount,
                 trialRuntimesLimit: this.trialRuntimesLimit,
                 pageName: state.route.name,
-                nodeRedVersion: assistantStore.nodeRedVersion,
+                // Outside the editor the assistant's report may belong to an editor opened earlier, so the
+                // instance's stored versions are used. A device page also sets the instance that owns the
+                // device, whose versions are not the device's.
+                nodeRedVersion: this.isImmersive
+                    ? assistantStore.nodeRedVersion
+                    : (state.device ? null : (state.instance?.meta?.versions?.['node-red'] ?? null)),
+                launcherVersion: state.device ? null : (state.instance?.meta?.versions?.launcher ?? null),
+                deviceAgentVersion: state.device?.agentVersion ?? null,
+                deviceAgentLite: state.device?.agentType === 'lite',
                 rawRoute,
                 selectedNodes,
                 scope: this.isImmersive ? 'immersive' : 'ff-app',
@@ -174,6 +186,7 @@ export const useContextStore = defineStore('context', {
                 planMode: useProductExpertStore().planMode,
                 onboarding: useUxStore().isOnboarding,
                 onboardingStage: useUxStore().onboardingStage,
+                building: useUxStore().building,
                 // Capability flags: signal that this version can render the question,
                 // plan, and approval cards. Older instances omit them and the agent drops
                 // the matching tool / runs in backward-compatible mode.
@@ -181,13 +194,18 @@ export const useContextStore = defineStore('context', {
                 supportsPlanMode: true,
                 supportsHITL: true,
                 supportsPlansAndTasks: true,
+                // Tool calls, reasoning and progress messages streamed into the reply.
+                supportsStreamedActivity: true,
                 toolPermissions: assistantStore.resolvedToolPermissions,
                 canUseWriteTools: hasAMinimumTeamRoleOf(Roles.Member, this.teamMembership)
             }
         }
     },
     actions: {
-        updateRoute (route) { this.route = route },
+        updateRoute (route) {
+            this.route = route
+            product.setRoute(route?.name)
+        },
         setInstance (instance) {
             this.instance = instance ?? null
             this.setApplication(instance?.application ?? null)

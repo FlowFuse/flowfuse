@@ -73,6 +73,9 @@ module.exports = function (app) {
             // check to see if the device is assigned to something?
             const assignedTo = await app.db.models.Device.getOwnerTypeAndId(ids[2])
             if (assignedTo && assignedTo.ownerType && assignedTo.ownerId) {
+                if (acl.deviceOwnerType && acl.deviceOwnerType !== assignedTo.ownerType) {
+                    return false // rule does not apply to this type of device owner
+                }
                 return true
             }
             return false
@@ -131,6 +134,63 @@ module.exports = function (app) {
                 // postgres with throw over, unlike sqlite that returns no results.
                 return false
             }
+        },
+        checkClientInApplication: async function (requestParts, usernameParts, acl) {
+            // requestParts = [ _ , <teamid>, <applicationid>, <sourceid> ]
+            //   the regex match of the requested topic (ff/v1/<team>/a/<application>/p/<source>/out/...),
+            //   i.e. what the client is asking to sub/pub to
+            // usernameParts = [ 'project', <teamid>, <projectid> ] or [ 'device', <teamid>, <deviceid> ]
+            //   the connecting client's broker username split on ':'
+            //
+            // Used by 4 ACLs (2 project, 2 device), all on the topic ff/v1/<team>/a/<application>/p/<source>/out/+/#
+            //   a = the application the broadcast is scoped to
+            //   p = the sender: an instance id, or dev:<deviceid> for an application owned device
+            //
+            // Receive application scoped broadcasts (project sub, device sub - ff/v1/<team>/a/<application>/p/+/out/+/#):
+            // A project node in application A may only receive broadcasts scoped to application A, i.e. the
+            // client (instance, or device via its owner) must belong to <application>. Any sender in A is allowed.
+            //
+            // Send application scoped broadcasts (project pub, device pub - ff/v1/<team>/a/<application>/p/<source>/out/+/#):
+            // As above, the client must belong to <application>, and acl.checkSource also requires <source>
+            // to be the client itself so it cannot publish as another member:
+            //   - instance: <source> = its instance id
+            //   - instance owned device: <source> = its owning instance's id (it broadcasts as its instance)
+            //   - application owned device: <source> = dev:<deviceid>
+
+            // Do the simple team id check
+            if (requestParts[1] !== usernameParts[1]) {
+                return false
+            }
+            let applicationId
+            let sourceId
+            try {
+                if (usernameParts[0] === 'project') {
+                    applicationId = await app.db.models.Project.getProjectApplicationId(usernameParts[2])
+                    sourceId = usernameParts[2]
+                } else if (usernameParts[0] === 'device') {
+                    const assignedTo = await app.db.models.Device.getOwnerTypeAndId(usernameParts[2])
+                    if (assignedTo?.ownerType === 'instance') {
+                        // An instance owned device is part of its instance's application
+                        // and broadcasts using its instance id
+                        applicationId = await app.db.models.Project.getProjectApplicationId(assignedTo.ownerId)
+                        sourceId = assignedTo.ownerId
+                    } else if (assignedTo?.ownerType === 'application') {
+                        applicationId = assignedTo.ownerId
+                        sourceId = `dev:${usernameParts[2]}`
+                    }
+                }
+            } catch (err) {
+                // Any error likely means an id isn't a valid uuid - which
+                // postgres with throw over, unlike sqlite that returns no results.
+                return false
+            }
+            if (!applicationId || applicationId !== requestParts[2]) {
+                return false // not a member of this application
+            }
+            if (acl.checkSource && requestParts[3] !== sourceId) {
+                return false // can only publish as itself
+            }
+            return true
         },
         checkTeamUserSession: async function (requestParts, usernameParts) {
             // requestParts = [ fullTopic , <teamHash> [, <userHash>] ] - v1
@@ -422,15 +482,16 @@ module.exports = function (app) {
                         throw ValidationError('user is not a member of the team that owns this project')
                     }
 
-                    // check expert assistant feature is enabled for the team (support agent uses MQTT)
+                    // check the team has the Expert feature for the agent this topic talks to
                     if (acl.isClient) {
                         const team = await app.db.models.Team.byId(teamId)
                         if (team) {
                             await team.ensureTeamTypeExists()
+                            const feature = acl.agent === 'insights' ? 'expertInsights' : 'expertAssistant'
                             const isAiEnabled = !!(app.config.features.enabled('ai') && team.getFeatureProperty('ai', true))
-                            const isExpertAssistantEnabled = !!(app.config.features.enabled('expertAssistant') && team.getFeatureProperty('expertAssistant', true))
-                            if (!isAiEnabled || !isExpertAssistantEnabled) {
-                                throw ValidationError('expert assistant feature is not enabled for this team')
+                            const isAgentEnabled = !!(app.config.features.enabled(feature) && team.getFeatureProperty(feature, true))
+                            if (!isAiEnabled || !isAgentEnabled) {
+                                throw ValidationError(`${feature} feature is not enabled for this team`)
                             }
                         }
                     }
@@ -869,27 +930,35 @@ module.exports = function (app) {
                 // topic captures, 0 = full topic, 1 = userid, 2 = sessionid, 3 = entity type (a|p|d|t), 4 = entity id, 5 = inflight type (only for inflight topics)
                 // example topic: ff/v1/expert/user123/session123/p/abc-123-456-789/support/chat/response
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/response$/, verify: 'checkExpertTopic', channel: 'chat', allowWildcard: { entity: true }, isClient: true, isSub: true },
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { entity: true, inflightType: true }, isClient: true, isSub: true }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/insights\/chat\/response$/, verify: 'checkExpertTopic', channel: 'chat', allowWildcard: { entity: true }, isClient: true, isSub: true, agent: 'insights' },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { entity: true, inflightType: true }, isClient: true, isSub: true },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/insights\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { entity: true, inflightType: true }, isClient: true, isSub: true, agent: 'insights' }
             ],
             pub: [
                 // topic: ff/v1/expert/<userid>/<sessionid>/<a|p|d|t>/<appid|projid|devid|teamid>/support/chat/request
                 // topic captures, 0 = full topic, 1 = userid, 2 = sessionid, 3 = entity type (a|p|d|t), 4 = entity id, 5 = inflight type (only for inflight topics)
                 // example topic: ff/v1/expert/user123/session123/p/abc-111-222-333/support/chat/request
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/support\/chat\/request$/, verify: 'checkExpertTopic', channel: 'chat', isClient: true, isPub: true },
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', isClient: true, isPub: true }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/insights\/chat\/request$/, verify: 'checkExpertTopic', channel: 'chat', isClient: true, isPub: true, agent: 'insights' },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', isClient: true, isPub: true },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/insights\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', isClient: true, isPub: true, agent: 'insights' }
             ]
         },
         // backend client (agent 1st party (no bridge))
         expertAgent: {
             sub: [
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/request$/, verify: 'checkExpertTopic', channel: 'chat', allowWildcard: { user: true, session: true, entity: true }, isAgent: true, isSub: true, agent: 'support' },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/insights\/chat\/request$/, verify: 'checkExpertTopic', channel: 'chat', allowWildcard: { user: true, session: true, entity: true }, isAgent: true, isSub: true, agent: 'insights' },
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { user: true, session: true, entity: true, inflightType: true }, isAgent: true, isSub: true, agent: 'support' },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/insights\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { user: true, session: true, entity: true, inflightType: true }, isAgent: true, isSub: true, agent: 'insights' },
                 // Expert agent can listen for platform responses
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isAgent: true, isSub: true, agent: 'platform' }
             ],
             pub: [
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/response$/, verify: 'checkExpertTopic', channel: 'chat', isAgent: true, isPub: true, agent: 'support' },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/insights\/chat\/response$/, verify: 'checkExpertTopic', channel: 'chat', isAgent: true, isPub: true, agent: 'insights' },
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', isAgent: true, isPub: true, agent: 'support' },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/insights\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', isAgent: true, isPub: true, agent: 'insights' },
                 // Expert agent can respond to platform requests
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', isAgent: true, isPub: true, agent: 'platform' },
             ]

@@ -55,6 +55,10 @@ module.exports = async function (app) {
                     return reply.code(400).send({ code: 'bad_request', error: 'Invalid ownerType' })
                 }
             }
+            if (request.owner?.ApplicationId) {
+                // Lets needsPermission apply the user's application-level role
+                request.applicationId = app.db.models.Application.encodeHashid(request.owner.ApplicationId)
+            }
             if (request.session.User) {
                 request.teamMembership = await request.session.User.getTeamMembership(request.owner.TeamId)
                 if (!request.teamMembership && !request.session.User.admin) {

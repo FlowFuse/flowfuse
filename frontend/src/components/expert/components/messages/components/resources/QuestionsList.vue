@@ -53,6 +53,8 @@
 </template>
 
 <script>
+import { isFullPageSurface } from '@/components/expert/surfaces.js'
+
 export default {
     name: 'QuestionsList',
     inject: {
@@ -108,9 +110,9 @@ export default {
                 return hasSelection || hasFreeText
             })
         },
-        // Onboarding renders question cards as full-width tappable tiles; the drawer keeps the compact layout
+        // Full page surfaces render question cards as full-width tappable tiles; the drawer keeps the compact layout
         tileLayout () {
-            return this.expertSurface === 'onboarding'
+            return isFullPageSurface(this.expertSurface)
         }
     },
     watch: {

@@ -727,6 +727,17 @@ module.exports = {
                         return project.TeamId
                     }
                 },
+                getProjectApplicationId: async (id) => {
+                    const project = await this.findOne({
+                        where: { id },
+                        attributes: [
+                            'ApplicationId'
+                        ]
+                    })
+                    if (project && project.ApplicationId) {
+                        return M.Application.encodeHashid(project.ApplicationId)
+                    }
+                },
                 generateCredentialSecret () {
                     return crypto.randomBytes(32).toString('hex')
                 },

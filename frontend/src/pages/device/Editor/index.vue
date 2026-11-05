@@ -19,6 +19,7 @@
             </template>
 
             <router-view
+                v-if="device"
                 :device="device"
                 :instance="device?.instance"
                 @device-updated="refreshDevice"

@@ -43,6 +43,13 @@
 // Array of keys that are allowed to have extra details shown
 const ALLOW_DETAILS = ['name', 'type', 'slug', 'autoSnapshot', /.+\.enabled$/, /.+\.name$/, /.+\.version$/i]
 
+// Keys that are allowed to have extra details shown for one event only, as the same
+// key can mean something else (or hold something sensitive) on other events
+const ALLOW_EVENT_DETAILS = {
+    // the git url is logged with any credentials stripped
+    'application.pipeline.stage-updated': ['action', 'target', 'url', 'branch', 'pullBranch', 'pushPath', 'pullPath']
+}
+
 export default {
     name: 'AuditEntryUpdates',
     props: {
@@ -67,6 +74,9 @@ export default {
                 return true // allow boolean value changes to be shown by default
             }
             if (ALLOW_DETAILS.includes(updateItem.key)) {
+                return true
+            }
+            if (ALLOW_EVENT_DETAILS[this.entry.event]?.includes(updateItem.key)) {
                 return true
             }
             const regexTests = ALLOW_DETAILS.filter((allowDetail) => allowDetail instanceof RegExp)

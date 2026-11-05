@@ -111,9 +111,9 @@ describe('Snapshots Service', function () {
             pipeline = await FACTORY.createPipeline({ name: 'pipeline-1' }, application)
 
             stageOne = await FACTORY.createPipelineStage({ name: 's1', instanceId: instance.id }, pipeline)
-            stageTwo = await FACTORY.createPipelineStage({ name: 's2', instanceId: instanceTwo.id }, pipeline)
-            stageThree = await FACTORY.createPipelineStage({ name: 's3', instanceId: instanceThree.id }, pipeline)
-            stageFour = await FACTORY.createPipelineStage({ name: 's4', instanceId: instanceFlour.id }, pipeline)
+            stageTwo = await FACTORY.createPipelineStage({ name: 's2', instanceId: instanceTwo.id, source: stageOne.hashid }, pipeline)
+            stageThree = await FACTORY.createPipelineStage({ name: 's3', instanceId: instanceThree.id, source: stageTwo.hashid }, pipeline)
+            stageFour = await FACTORY.createPipelineStage({ name: 's4', instanceId: instanceFlour.id, source: stageThree.hashid }, pipeline)
         })
 
         it('Generates a description for a snapshot to be deployed', async function () {

@@ -145,6 +145,19 @@ describe('FlowFuse - Application - Devices - Create', () => {
         cy.login('bob', 'bbPassword')
     })
 
+    after(() => {
+        // Remove the devices created in this spec, so later specs see only the fixture devices
+        cy.login('bob', 'bbPassword')
+        cy.request('GET', '/api/v1/user/teams').then((response) => {
+            const team = response.body.teams.find((team) => team.name === 'BTeam')
+            return cy.request('GET', `/api/v1/teams/${team.id}/devices?limit=100`)
+        }).then((response) => {
+            response.body.devices
+                .filter((device) => device.name.startsWith('new-device-'))
+                .forEach((device) => cy.request('DELETE', `/api/v1/devices/${device.id}`))
+        })
+    })
+
     it('creates the Device and assigned it to the current application', () => {
         navigateToApplicationDevices('BTeam', 'application-2')
         const deviceName = 'new-device-auto-assigned--' + Date.now()
@@ -215,6 +228,8 @@ describe('FlowFuse - Devices - Assign', () => {
 
         cy.get('[data-el="assignment-dialog-instance"] [data-form="application"] .ff-listbox').click()
         cy.get('[data-el="listbox-options"] > .ff-option').eq(0).click()
+        // The closing application options stay in the DOM during their leave transition
+        cy.get('[data-el="listbox-options"]').should('not.exist')
 
         cy.get('[data-el="assignment-dialog-instance"] [data-form="instance"] .ff-listbox').click()
         cy.get('[data-el="listbox-options"] > .ff-option').eq(0).click()

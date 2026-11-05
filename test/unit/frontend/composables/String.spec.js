@@ -1,6 +1,22 @@
 import { describe, expect, test } from 'vitest'
 
-import { safeStringify } from '../../../../frontend/src/composables/strings/String.js'
+import { escapeHtml, safeStringify } from '../../../../frontend/src/composables/strings/String.js'
+
+describe('escapeHtml', () => {
+    test('escapes HTML-significant characters', () => {
+        expect(escapeHtml('<img src=x onerror=alert(1)>')).toBe('&lt;img src=x onerror=alert(1)&gt;')
+        expect(escapeHtml('a & b "c" \'d\'')).toBe('a &amp; b &quot;c&quot; &#39;d&#39;')
+    })
+
+    test('leaves an ordinary string unchanged', () => {
+        expect(escapeHtml('my-device')).toBe('my-device')
+    })
+
+    test('coerces non-string values', () => {
+        expect(escapeHtml(42)).toBe('42')
+        expect(escapeHtml(null)).toBe('null')
+    })
+})
 
 describe('safeStringify', () => {
     test('prettifies objects with two-space indentation', () => {

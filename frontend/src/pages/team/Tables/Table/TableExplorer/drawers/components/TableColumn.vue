@@ -147,6 +147,17 @@ export default defineComponent({
                 }
             },
             predefinedDefaultValues: {
+                date: {
+                    // Pick Today, or type a specific date
+                    allowFreeForm: true,
+                    values: [
+                        {
+                            label: 'CURRENT_DATE',
+                            value: 'CURRENT_DATE',
+                            title: 'Today'
+                        }
+                    ]
+                },
                 timestamptz: {
                     allowFreeForm: false,
                     values: [

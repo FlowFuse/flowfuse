@@ -113,12 +113,12 @@ describe('MCP Device Groups Tools', function () {
             response.should.equal(routeResponse)
         })
 
-        it('defaults description to an empty string, since a null one breaks the listings', async function () {
+        it('leaves description out when none is given', async function () {
             inject.resolves({ statusCode: 201, json: () => ({ id: 'group1' }) })
 
             await tool.handler({ applicationId: 'app1', name: 'Factory floor' }, { inject })
 
-            inject.firstCall.args[0].payload.should.eql({ name: 'Factory floor', description: '' })
+            inject.firstCall.args[0].payload.should.eql({ name: 'Factory floor' })
         })
 
         it('passes through an error response', async function () {

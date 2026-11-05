@@ -66,6 +66,21 @@ module.exports = {
                         }
                     }
                     return null
+                },
+                getApplicationId: async function () {
+                    if (this.ownerType === 'instance') {
+                        const project = await this.getProject()
+                        return project?.ApplicationId || null
+                    } else if (this.ownerType === 'device') {
+                        const device = await this.getDevice()
+                        if (device?.ApplicationId) {
+                            return device.ApplicationId
+                        }
+                        if (device?.ProjectId) {
+                            return (await device.getProject())?.ApplicationId || null
+                        }
+                    }
+                    return null
                 }
             },
             static: {

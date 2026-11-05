@@ -85,7 +85,7 @@ module.exports = {
                 getAll: async (pagination = {}, where = {}) => {
                     const limit = parseInt(pagination.limit) || 1000
                     if (pagination.cursor) {
-                        pagination.cursor = M.ProjectTemplate.decodeHashid(pagination.cursor)
+                        pagination.cursor = M.ProjectTemplate.decodeCursor(pagination.cursor)
                     }
 
                     const [rows, count] = await Promise.all([

@@ -319,7 +319,7 @@ module.exports = {
         }
     },
     getBrokerAgentState: async (broker) => {
-        if (this._driver.stopBrokerAgent) {
+        if (this._driver.getBrokerAgentState) {
             return this._driver.getBrokerAgentState(broker)
         } else {
             throw new Error('Driver does not implement Broker API ')

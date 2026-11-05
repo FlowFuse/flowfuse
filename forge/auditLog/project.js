@@ -37,6 +37,9 @@ module.exports = {
             async assignedToPipelineStage (actionedBy, error, project, pipeline, pipelineStage) {
                 await log('project.assigned-to-pipeline-stage', actionedBy, project?.id, generateBody({ error, project, pipeline, pipelineStage }))
             },
+            async unassignedFromPipelineStage (actionedBy, error, project, pipeline, pipelineStage) {
+                await log('project.unassigned-from-pipeline-stage', actionedBy, project?.id, generateBody({ error, project, pipeline, pipelineStage }))
+            },
             async protected (actionedBy, error, project) {
                 await log('project.protected', actionedBy, project?.id, generateBody({ error, project }))
             },
@@ -81,8 +84,8 @@ module.exports = {
                 async updated (actionedBy, error, project, snapshot, updates) {
                     await log('project.snapshot.updated', actionedBy, project?.id, generateBody({ error, project, snapshot, updates }))
                 },
-                async rolledBack (actionedBy, error, project, snapshot) {
-                    await log('project.snapshot.rolled-back', actionedBy, project?.id, generateBody({ error, project, snapshot }))
+                async rolledBack (actionedBy, error, project, snapshot, info) {
+                    await log('project.snapshot.rolled-back', actionedBy, project?.id, generateBody({ error, project, snapshot, info }))
                 },
                 async deleted (actionedBy, error, project, snapshot) {
                     await log('project.snapshot.deleted', actionedBy, project?.id, generateBody({ error, project, snapshot }))

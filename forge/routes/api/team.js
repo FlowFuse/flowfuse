@@ -418,8 +418,8 @@ module.exports = async function (app) {
                 includeSettings: true,
                 includeMeta
             })
-            if (request.session.ownerType === 'project') {
-                // This request is from a project token. Filter the list to return
+            if (request.session.ownerType === 'project' || request.session.ownerType === 'device') {
+                // This request is from a project or device token. Filter the list to return
                 // the minimal information needed
                 result = result.map(e => {
                     return { id: e.id, name: e.name }
@@ -919,14 +919,29 @@ module.exports = async function (app) {
                 currentProperties.features = currentProperties.features || {}
 
                 updates = new app.auditLog.formatters.UpdatesCollection()
+                let agentAutoDeployChanged = false
                 for (const key of allowedFeatures) {
                     if (Object.hasOwn(requestedFeatures, key)) {
-                        updates.push(`features.${key}`, currentProperties.features[key], requestedFeatures[key])
+                        if (key === 'agentAutoDeploy') {
+                            // Toggling agent auto deploy gets its own audit entry instead of a settings diff
+                            agentAutoDeployChanged = !!currentProperties.features[key] !== !!requestedFeatures[key]
+                        } else {
+                            updates.push(`features.${key}`, currentProperties.features[key], requestedFeatures[key])
+                        }
                         currentProperties.features[key] = requestedFeatures[key]
                     }
                 }
                 request.team.properties = currentProperties
                 await request.team.save()
+                if (agentAutoDeployChanged) {
+                    const agentAutoDeployAuditFunc = requestedFeatures.agentAutoDeploy
+                        ? app.auditLog.Team.team.agentAutoDeploy.enabled
+                        : app.auditLog.Team.team.agentAutoDeploy.disabled
+                    await agentAutoDeployAuditFunc(request.session.User, null, request.team)
+                    if (updates.length === 0) {
+                        app.comms?.team?.notify(request.team.hashid, 'updated')
+                    }
+                }
             } else if (Object.hasOwn(request.body, 'properties')) {
                 if (!request.session.User.admin) {
                     reply.code(403).send({ code: 'forbidden', error: 'Team properties can only be updated by admins' })

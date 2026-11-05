@@ -1,7 +1,7 @@
 const extractNameRegex =
-  /(?:(?<name>.*) - )?Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/
+    /(?:(?<name>.*) - )?Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/
 const extractDescriptionRegex =
-  /Snapshot created for pipeline deployment from .* to .* as part of pipeline .*/
+    /Snapshot created for pipeline deployment from .* to .* as part of pipeline .*/
 
 async function setSnapShotAsTarget (app, snapshot, instance, user) {
     await snapshot.reload()

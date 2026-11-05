@@ -726,6 +726,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         onboardingCompleted?: boolean;
+                        aiConnectorLastShownAt?: number;
                     };
                 };
             };
@@ -915,7 +916,7 @@ export interface paths {
                     "application/json": {
                         scope?: string;
                         expiresAt?: number;
-                        name?: string;
+                        name: string;
                         readOnly?: boolean;
                         adminOptIn?: boolean;
                         teamIds?: string[];
@@ -4892,7 +4893,12 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        snapshot?: string;
+                        snapshot: string;
+                        /**
+                         * @description If true, keep the instance's existing env vars and add only those missing from the snapshot. If false (default), replace them with the snapshot's env vars.
+                         * @default false
+                         */
+                        mergeEnvVars?: boolean;
                     };
                 };
             };
@@ -5819,6 +5825,7 @@ export interface paths {
                         type?: string;
                         instance?: string | null;
                         application?: string | null;
+                        targetSnapshot?: string;
                     };
                 };
             };
@@ -8516,18 +8523,26 @@ export interface paths {
                         /** @default public */
                         schema?: string;
                         /** @default [] */
-                        columns?: unknown[] & components["schemas"]["DatabaseTable"];
+                        columns?: {
+                            name: string;
+                            type: string;
+                            nullable?: boolean;
+                            default?: string | null;
+                        }[];
                     };
                 };
             };
             responses: {
                 /** @description Default Response */
-                200: {
+                201: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["DatabaseTable"];
+                        "application/json": {
+                            name: string;
+                            schema: string;
+                        };
                     };
                 };
                 /** @description Default Response */
@@ -9026,6 +9041,100 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/applications/{applicationId}/bom": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get application BOM */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    applicationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApplicationBom"];
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{teamId}/bom": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get team BOM */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    teamId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApplicationBom"][];
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teams/{teamId}/broker/clients": {
         parameters: {
             query?: never;
@@ -9194,12 +9303,12 @@ export interface paths {
                             id?: string;
                             username?: string;
                             acls?: unknown[];
-                            owner?: null | {
+                            owner?: {
                                 /** @enum {string} */
                                 instanceType?: "instance" | "device";
                                 id?: string;
                                 name?: string;
-                            };
+                            } | null;
                         };
                     };
                 };
@@ -10315,100 +10424,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/applications/{applicationId}/bom": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get application BOM */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    applicationId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ApplicationBom"];
-                    };
-                };
-                /** @description Default Response */
-                "4XX": {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/teams/{teamId}/bom": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get team BOM */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    teamId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ApplicationBom"][];
-                    };
-                };
-                /** @description Default Response */
-                "4XX": {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -10995,6 +11010,7 @@ export interface components {
                 [key: string]: unknown;
             };
             billingURL?: string;
+            aiOnboarding?: boolean;
         } & components["schemas"]["TeamSummary"];
         /** UserTeamList */
         UserTeamList: ({

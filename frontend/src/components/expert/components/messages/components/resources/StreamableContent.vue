@@ -1,24 +1,30 @@
 <template>
     <div class="streamable-content" v-on="richContent ? { click: handleClick } : {}">
         <span v-if="!richContent" :key="text">{{ text }}</span>
-        <template v-else>
-            <!-- eslint-disable-next-line vue/no-v-html -->
-            <div :key="text" v-html="text" />
-        </template>
+        <markdown-segments v-else :segments="visibleSegments" />
     </div>
 </template>
 
 <script>
 import { mapState } from 'pinia'
 
-import { CODE_BLOCK_ICONS, useMarkdownHelper } from '@/composables/strings/Markdown.js'
+import MarkdownSegments from './MarkdownSegments.vue'
+
+import { DIAGRAM_TYPES } from '@/composables/strings/Diagram.js'
+import { CODE_BLOCK_ICONS, codeLanguage, useMarkdownHelper } from '@/composables/strings/Markdown.js'
 import useStreamingWords from '@/composables/strings/StreamingWords.js'
 import { sanitize } from '@/composables/strings/String.js'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
+// Sources are compared ignoring whitespace, so a diagram still matches its block if the spacing differs
+function normalizeSource (source) {
+    return source.replace(/\s+/g, ' ').trim()
+}
+
 export default {
     name: 'StreamableContent',
+    components: { MarkdownSegments },
     props: {
         modelValue: {
             type: Object,
@@ -64,32 +70,67 @@ export default {
             type: Boolean,
             required: false,
             default: false
+        },
+        // SVGs rendered by the Expert, matched to code blocks by their type and source
+        diagrams: {
+            type: Array,
+            required: false,
+            default: () => []
         }
     },
     emits: ['streaming-complete', 'update:modelValue'],
     setup () {
-        const { stream, text, isStreaming } = useStreamingWords({
-            delayMs: 30
+        const { stream, text } = useStreamingWords({
+            delayMs: 10,
+            wordsPerTick: 4
         })
         const { markedInstance } = useMarkdownHelper()
 
-        return { stream, streamedText: text, isStreaming, sanitize, markedInstance }
+        return { stream, streamedText: text, sanitize, markedInstance }
+    },
+    data () {
+        return {
+            // The segment being streamed. The ones before it are shown in full and the ones after it are not shown yet.
+            streamIndex: 0
+        }
     },
     computed: {
         ...mapState(useProductAssistantStore, ['supportedActions']),
         rawText () {
-            const rawText = this.modelValue ? this.modelValue.streamable : this.string
-
-            if (this.richContent) {
-                return this.markedInstance.parse(rawText || '')
+            return this.modelValue ? this.modelValue.streamable : this.string
+        },
+        // The content split into runs of markdown and the diagrams between them, so each diagram
+        // is its own component and is not rebuilt while the text after it streams.
+        segments () {
+            const tokens = this.markedInstance.lexer(this.rawText || '')
+            return this.toSegments(tokens, tokens.links)
+        },
+        visibleSegments () {
+            if (!this.shouldStream) {
+                return this.segments
             }
-
-            return rawText
+            return this.segments.slice(0, this.streamIndex + 1).map((segment, index) => {
+                if (index === this.streamIndex && segment.html !== undefined) {
+                    return { html: this.sanitizeHtml(this.streamedText) }
+                }
+                return segment
+            })
         },
         text () {
-            const text = this.shouldStream ? this.streamedText : this.rawText
-
-            return this.sanitize(text, {
+            return this.sanitizeHtml(this.shouldStream ? this.streamedText : this.rawText)
+        }
+    },
+    mounted () {
+        if (this.shouldStream) {
+            this.streamContent()
+        }
+    },
+    beforeUnmount () {
+        this.unmounting = true
+    },
+    methods: {
+        sanitizeHtml (html) {
+            return this.sanitize(html, {
                 supportedActions: this.supportedActions,
                 targetBlank: true,
                 appendQueryParameters: {
@@ -98,27 +139,103 @@ export default {
                     utm_campaign: 'expert-chat'
                 }
             })
-        }
-    },
-    watch: {
-        isStreaming (isStreaming) {
-            if (!isStreaming) {
-                this.$emit('streaming-complete')
-                if (this.modelValue) {
-                    this.$emit('update:modelValue', {
-                        ...this.modelValue,
-                        streamed: true
-                    })
+        },
+        // Lists and blockquotes that hold a diagram are split as well, so the diagrams inside them render.
+        // Links are the reference links of the whole message, which the markdown runs need to resolve.
+        toSegments (tokens, links) {
+            const segments = []
+            let group = null
+            for (const token of tokens) {
+                const segment = this.blockSegment(token, links)
+                if (segment) {
+                    segments.push(segment)
+                    group = null
+                    continue
+                }
+                if (!group) {
+                    group = []
+                    group.links = links
+                    segments.push({ tokens: group })
+                }
+                group.push(token)
+            }
+            return segments.map(segment => {
+                if (!segment.tokens) {
+                    return segment
+                }
+                return { html: this.sanitizeHtml(this.markedInstance.parser(segment.tokens)) }
+            })
+        },
+        blockSegment (token, links) {
+            const diagram = this.findDiagram(token)
+            if (diagram) {
+                return { diagram }
+            }
+            if (!this.holdsDiagram(token)) {
+                return null
+            }
+            if (token.type === 'list') {
+                return {
+                    list: {
+                        ordered: token.ordered,
+                        start: token.start,
+                        task: token.items.some(item => item.task),
+                        items: token.items.map(item => this.toSegments(item.tokens, links))
+                    }
                 }
             }
-        }
-    },
-    mounted () {
-        if (this.shouldStream) {
-            this.stream(this.rawText)
-        }
-    },
-    methods: {
+            return { blockquote: this.toSegments(token.tokens, links) }
+        },
+        holdsDiagram (token) {
+            let children = []
+            if (token.type === 'list') {
+                children = token.items.flatMap(item => item.tokens)
+            } else if (token.type === 'blockquote') {
+                children = token.tokens
+            }
+            return children.some(child => this.findDiagram(child) || this.holdsDiagram(child))
+        },
+        // The diagram for a code block, when the Expert rendered one
+        findDiagram (token) {
+            if (token.type !== 'code') {
+                return null
+            }
+            const type = codeLanguage(token.lang)
+            if (!DIAGRAM_TYPES.includes(type)) {
+                return null
+            }
+            const source = normalizeSource(token.text)
+            // Diagrams without a type come from Experts that only render mermaid
+            const diagram = (this.diagrams || []).find(diagram => {
+                return (diagram.type || 'mermaid') === type && normalizeSource(diagram.source || '') === source
+            })
+            if (!diagram?.svg) {
+                return null
+            }
+            return { type, source: token.text, svg: diagram.svg }
+        },
+        // Streams each run of markdown in turn. A diagram, or a list holding one, shows in full as soon
+        // as the text before it has streamed.
+        async streamContent () {
+            const segments = this.richContent ? this.segments : [{ html: this.rawText }]
+            for (let index = 0; index < segments.length; index++) {
+                this.streamIndex = index
+                if (segments[index].html !== undefined) {
+                    await this.stream(segments[index].html)
+                }
+                if (this.unmounting) {
+                    return
+                }
+            }
+            this.streamIndex = segments.length
+            this.$emit('streaming-complete')
+            if (this.modelValue) {
+                this.$emit('update:modelValue', {
+                    ...this.modelValue,
+                    streamed: true
+                })
+            }
+        },
         handleClick (event) {
             const copyBtn = event.target.closest('.ff-code-block--copy') || event.target.closest('.ff-table-block--copy')
             if (!copyBtn) return

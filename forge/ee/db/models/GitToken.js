@@ -33,7 +33,17 @@ module.exports = {
             static: {
                 byId: async function (id, teamId) {
                     if (typeof id === 'string') {
-                        id = M.GitToken.decodeHashid(id)
+                        try {
+                            id = M.GitToken.decodeHashid(id)
+                        } catch (err) {
+                            return null
+                        }
+                        if (Array.isArray(id)) {
+                            id = id[0]
+                        }
+                        if (id === undefined || id === null) {
+                            return null
+                        }
                     }
                     const where = { id }
                     if (teamId) {

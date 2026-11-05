@@ -545,5 +545,35 @@ describe('Audit Log > Formatters', async function () {
             entry.body.flowsSet.should.only.have.keys('type')
             entry.body.flowsSet.type.should.equal('full')
         })
+        it('Includes the target node for `nr-assistant.inject` event', async function () {
+            const entry = Formatters.formatLogEntry({
+                hashid: '<hashid>',
+                UserId: {},
+                User: {},
+                event: 'nr-assistant.inject',
+                createdAt: '<datetime>',
+                entityId: '<entityId>',
+                entityType: '<entityType>',
+                body: {
+                    node: 'node-1',
+                    type: 'function',
+                    name: 'double payload',
+                    z: 'tab-1',
+                    flowName: 'API',
+                    msgid: 'msg-1',
+                    msgSummary: { properties: { payload: 'number' }, size: 30 }
+                }
+            })
+
+            entry.body.should.have.property('inject')
+            entry.body.inject.should.eql({
+                node: 'node-1',
+                type: 'function',
+                name: 'double payload',
+                z: 'tab-1',
+                flowName: 'API',
+                msgid: 'msg-1'
+            })
+        })
     })
 })

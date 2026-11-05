@@ -225,8 +225,10 @@ module.exports = async function (app) {
             body: {
                 type: 'object',
                 properties: {
-                    snapshot: { type: 'string' }
-                }
+                    snapshot: { type: 'string' },
+                    mergeEnvVars: { type: 'boolean', default: false, description: 'If true, keep the instance\'s existing env vars and add only those missing from the snapshot. If false (default), replace them with the snapshot\'s env vars.' }
+                },
+                required: ['snapshot']
             },
             response: {
                 200: {
@@ -257,8 +259,8 @@ module.exports = async function (app) {
                 restartProject = true
             }
             await app.db.controllers.Project.setInflightState(request.project, 'rollback')
-            await app.db.controllers.Project.importProjectSnapshot(request.project, snapshot)
-            await app.auditLog.Project.project.snapshot.rolledBack(request.session.User, null, request.project, snapshot)
+            await app.db.controllers.Project.importProjectSnapshot(request.project, snapshot, { mergeEnvVars: request.body.mergeEnvVars })
+            await app.auditLog.Project.project.snapshot.rolledBack(request.session.User, null, request.project, snapshot, { mergeEnvVars: request.body.mergeEnvVars })
             if (restartProject) {
                 await app.db.controllers.Project.setInflightState(request.project, 'restarting')
                 await app.containers.restartFlows(request.project)

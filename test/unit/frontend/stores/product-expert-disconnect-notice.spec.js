@@ -39,11 +39,11 @@ describe('product-expert disconnect notice', () => {
     test('stays quiet when the connection comes back before the delay elapses', async () => {
         const store = useProductExpertStore()
 
-        store._onMqttClose()
+        store.onChatConnectionClosed()
         await vi.advanceTimersByTimeAsync(14000)
         expect(store.messages).toHaveLength(0)
 
-        await store._onMqttConnect({})
+        store.onChatConnected()
         await vi.advanceTimersByTimeAsync(60000)
 
         // No disconnect notice, and therefore no "I'm back" either.
@@ -53,7 +53,7 @@ describe('product-expert disconnect notice', () => {
     test('posts the notice once the delay elapses with no reconnect', async () => {
         const store = useProductExpertStore()
 
-        store._onMqttClose()
+        store.onChatConnectionClosed()
         await vi.advanceTimersByTimeAsync(14900)
         expect(store.messages).toHaveLength(0)
 
@@ -66,9 +66,9 @@ describe('product-expert disconnect notice', () => {
     test('does not stack notices when close fires repeatedly', async () => {
         const store = useProductExpertStore()
 
-        store._onMqttClose()
-        store._onMqttClose()
-        store._onMqttClose()
+        store.onChatConnectionClosed()
+        store.onChatConnectionClosed()
+        store.onChatConnectionClosed()
 
         await vi.advanceTimersByTimeAsync(15000)
         expect(store.messages).toHaveLength(1)
@@ -77,11 +77,11 @@ describe('product-expert disconnect notice', () => {
     test('still greets on reconnect when the outage lasted long enough to be announced', async () => {
         const store = useProductExpertStore()
 
-        store._onMqttClose()
+        store.onChatConnectionClosed()
         await vi.advanceTimersByTimeAsync(15000)
         expect(store.messages).toHaveLength(1)
 
-        await store._onMqttConnect({})
+        store.onChatConnected()
         expect(store.messages).toHaveLength(2)
         expect(store.messages[1].error).toBe(false)
     })
@@ -89,7 +89,7 @@ describe('product-expert disconnect notice', () => {
     test('drops a pending notice when the chat is torn down', async () => {
         const store = useProductExpertStore()
 
-        store._onMqttClose()
+        store.onChatConnectionClosed()
         store._clearDisconnectNotice()
 
         await vi.advanceTimersByTimeAsync(60000)

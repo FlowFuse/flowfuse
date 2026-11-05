@@ -28,3 +28,20 @@ $ff-funit-xl: 2rem;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+// The Expert's animated gradient border. Needs the --ff-expert-border-angle
+// property and the expert-border-swirl keyframes from ff-components.scss.
+@mixin ff-expert-border ($fill: var(--ff-color-bg-app)) {
+  background: linear-gradient($fill, $fill) padding-box,
+              conic-gradient(from var(--ff-expert-border-angle),
+                  var(--ff-palette-red-600),
+                  var(--ff-palette-purple-600),
+                  var(--ff-palette-indigo-600),
+                  var(--ff-palette-purple-600),
+                  var(--ff-palette-red-600)) border-box;
+  border: 1px solid transparent;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: expert-border-swirl 9s linear infinite;
+  }
+}

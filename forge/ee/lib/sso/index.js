@@ -12,7 +12,8 @@ module.exports.init = async function (app) {
 
     async function getProviderOptions (id) {
         const provider = await app.db.models.SAMLProvider.byId(id)
-        if (provider) {
+        // Only SAML providers have options the SAML strategy can use
+        if (provider && provider.type === 'saml') {
             const result = { ...provider.getOptions() }
             // @node-saml@4 renamed `cert` to `idpCert`
             result.idpCert = result.cert
@@ -121,11 +122,13 @@ module.exports.init = async function (app) {
                         email: request.body.username
                     }
                     const userInfo = app.auditLog.formatters.userObject(request.body)
-                    if (verifyLDAPUser(providerConfig, tempUser, request.body.password)) {
+                    if (await verifyLDAPUser(providerConfig, tempUser, request.body.password)) {
                         // TODO create user
                         const newUserProperties = await lookupLDAPUser(providerConfig, request.body.username)
                         if (newUserProperties) {
                             const newUser = await app.db.models.User.create(newUserProperties)
+                            // verifyLDAPUser again to apply group membership to real user
+                            await verifyLDAPUser(providerConfig, newUser, request.body.password)
                             const sessionInfo = await app.createSessionCookie(newUser.username, providerConfig.options.sessionExpiry, providerConfig.options.sessionIdle)
                             if (sessionInfo) {
                                 userInfo.id = sessionInfo.session.UserId
@@ -261,8 +264,8 @@ module.exports.init = async function (app) {
                 userClient = new Client(clientOptions)
                 try {
                     await userClient.bind(userDN, password)
-                    // if ldap group support enabled
-                    if (providerConfig.options.groupMapping) {
+                    // if ldap group support enabled and it's not the tempUser used for provisioning
+                    if (providerConfig.options.groupMapping && (user instanceof app.db.models.User)) {
                         await updateTeamMembershipLDAP(adminClient, user, userDN, providerConfig.options)
                     }
                     return true
@@ -452,6 +455,11 @@ module.exports.init = async function (app) {
         // This is an array of groups the user belongs to. We expect them to be
         // of the form 'ff-SLUG-ROLE' - anything else is ignored
         let groupAssertions = samlUser[providerOpts.groupAssertionName]
+        if (!groupAssertions && providerOpts.groupOtherTeams) {
+            // Some IdPs (e.g. Azure) omit the claim when the user is in no groups
+            app.log.info(`SAML response missing ${providerOpts.groupAssertionName} assertion for ${user.username}, treating as no groups`)
+            groupAssertions = []
+        }
         if (groupAssertions) {
             const promises = []
             if (!Array.isArray(groupAssertions)) {

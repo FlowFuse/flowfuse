@@ -273,20 +273,6 @@ describe('MCP Broker Tools', function () {
             response.should.equal(errorResponse)
         })
 
-        it('refuses ids that would reach another route', async function () {
-            for (const [teamId, brokerId, topicId] of [
-                ['team1', 'team-broker', '../../../../../applications/app1'],
-                ['team1', '../../applications/app1', 'topic1'],
-                ['../applications', 'team-broker', 'topic1'],
-                ['team1', 'team-broker', 'topic1?x=1']
-            ]) {
-                const response = await tool.handler({ teamId, brokerId, topicId }, { inject })
-                response.statusCode.should.equal(400)
-                response.json().should.have.property('code', 'invalid_request')
-            }
-            inject.called.should.be.false()
-        })
-
         it('accepts a 3rd-party broker hashid', async function () {
             inject.resolves({ statusCode: 201, json: () => ({}) })
 
@@ -326,15 +312,6 @@ describe('MCP Broker Tools', function () {
 
             await tool.handler({ teamId: 'team1', username: 'rv:client/2' }, { inject })
             inject.firstCall.args[0].url.should.equal(`/api/v1/teams/team1/broker/client/${encodeURIComponent('rv:client/2')}`)
-        })
-
-        it('refuses ids that would reach another route', async function () {
-            for (const [teamId, username] of [['team1', '..'], ['team1', '.'], ['../applications', 'alice']]) {
-                const response = await tool.handler({ teamId, username }, { inject })
-                response.statusCode.should.equal(400)
-                response.json().should.have.property('code', 'invalid_request')
-            }
-            inject.called.should.be.false()
         })
     })
 })

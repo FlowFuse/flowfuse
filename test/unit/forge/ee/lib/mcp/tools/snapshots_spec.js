@@ -510,4 +510,26 @@ describe('MCP Snapshots Tools', function () {
             response.should.equal(errorResponse)
         })
     })
+
+    describe('platform_set_remote_instance_target', function () {
+        const tool = getTool('platform_set_remote_instance_target')
+
+        it('puts the target snapshot onto the device route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ id: 'device1' }) }
+            inject.resolves(routeResponse)
+
+            const response = await tool.handler({ remoteInstanceId: 'device1', snapshotId: 'snapshot1' }, { inject })
+
+            inject.calledOnceWith({ method: 'PUT', url: '/api/v1/devices/device1', payload: { targetSnapshot: 'snapshot1' } }).should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 400, json: () => ({ code: 'invalid_snapshot' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ remoteInstanceId: 'device1', snapshotId: 'other' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
 })

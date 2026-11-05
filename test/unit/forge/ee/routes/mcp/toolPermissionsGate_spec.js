@@ -131,21 +131,30 @@ describe('MCP third-party tool permissions gate', function () {
     })
 
     describe('other call sources', function () {
-        it('does not gate a first-party Expert call even when permissions would deny it', async function () {
-            const token = await tokenWith({ default: { platform: { read: true } } })
-            const response = await listTeamDevices(token, WRITE_TOOL, 'mcp:expert')
-            response.statusCode.should.equal(200)
-        })
-
-        it('does not gate a plain API PAT call even when permissions would deny it', async function () {
-            const token = await tokenWith({ default: { platform: { read: true } } })
-            const response = await listTeamDevices(token, WRITE_TOOL, null)
-            response.statusCode.should.equal(200)
-        })
-
         it('does not gate on an unrecognised tool name', async function () {
             const token = await tokenWith({ default: { platform: { read: true } } })
             const response = await listTeamDevices(token, 'not-a-real-tool')
+            response.statusCode.should.equal(200)
+        })
+    })
+
+    describe('direct REST access', function () {
+        it('refuses an MCP token on the REST API without the MCP door nonce', async function () {
+            const token = await tokenWith({ default: { platform: { write: true, destructive: true } } })
+            const response = await listTeamDevices(token, WRITE_TOOL, null)
+            response.statusCode.should.equal(403)
+            response.json().should.have.property('code', 'unauthorized')
+        })
+
+        it('refuses an MCP token carrying a non-MCP source nonce', async function () {
+            const token = await tokenWith({ default: { platform: { write: true } } })
+            const response = await listTeamDevices(token, WRITE_TOOL, 'mcp:expert')
+            response.statusCode.should.equal(403)
+        })
+
+        it('still allows a plain PAT on the REST API', async function () {
+            const pat = await app.db.controllers.AccessToken.createPersonalAccessToken(app.user, '', null, 'Plain PAT')
+            const response = await listTeamDevices(pat.token, WRITE_TOOL, null)
             response.statusCode.should.equal(200)
         })
     })

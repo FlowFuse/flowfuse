@@ -2,8 +2,7 @@ const { randomUUID } = require('crypto')
 
 const { z } = require('zod')
 
-const { teamId, applicationId, hostedInstanceId, searchQuery, sortParams, limitParam, pageParam, toolError } = require('../schemas')
-const { emptySuccessAsOkay } = require('../utils')
+const { pathId, teamId, applicationId, hostedInstanceId, searchQuery, sortParams, limitParam, pageParam, toolError } = require('../schemas')
 
 // Mirrors the runningStates/errorStates/stoppedStates groups in frontend/src/composables/InstanceStates.js,
 // the same grouping the dashboard's own Running/Error/Not Running status filter uses (frontend/src/pages/team/Instances.vue).
@@ -201,7 +200,7 @@ module.exports = [
             projectType: z.string().describe('The ID of the hosted instance type (use platform_list_hosted_instance_types to find valid values)'),
             stack: z.string().describe('The ID of the stack (use platform_list_hosted_instance_types to find valid values)'),
             template: z.string().describe('The ID of the template (use platform_list_templates to find valid values)'),
-            flowBlueprintId: z.string().optional().describe('Optional blueprint ID to initialize the hosted instance with starter flows (use platform_list_blueprints to find valid values)')
+            flowBlueprintId: pathId.optional().describe('Optional blueprint ID to initialize the hosted instance with starter flows (use platform_list_blueprints to find valid values)')
         },
         handler: async (args, { inject }) => {
             const payload = {
@@ -365,7 +364,7 @@ module.exports = [
         name: 'platform_update_hosted_instance_env',
         title: 'Update Hosted Instance Environment Variables',
         description: `FlowFuse platform automation tool:
-            Replaces the full set of environment variables on a hosted instance. Variables missing from the list are removed, so read the current set first (platform_get_hosted_instance_config) and resend everything that should stay.
+            Replaces the full set of environment variables on a hosted instance. Variables missing from the list are removed, so read the current set first from settings.env in platform_get_hosted_instance and resend everything that should stay. Hidden values come back blank there, and the FF_ entries marked platform are set by the platform and ignored when sent back.
             To keep an existing hidden (secret) variable's stored value without knowing it, resend it with hidden true and an empty value. A hidden entry with an empty value that does not already exist on the instance is dropped.
             Settings the instance's template locks are silently dropped rather than rejected, so a locked value can come back unchanged with no error. "settings_validation" is raised for malformed input instead, such as a bad or duplicated env var name.
             The new values take effect when the instance's flows next restart (use platform_instance_action with restart to apply them immediately).
@@ -620,15 +619,14 @@ module.exports = [
             if (segments.length === 0 || segments.some(s => s === '.' || s === '..')) {
                 return toolError(400, 'invalid_request', 'path must name a file or directory below the file-store root, without "." or ".." segments')
             }
-            const response = await inject({ method: 'DELETE', url: `/api/v1/projects/${args.instanceId}/files/_/${encodeURIComponent(segments.join('/'))}` })
-            return emptySuccessAsOkay(response)
+            return inject({ method: 'DELETE', url: `/api/v1/projects/${args.instanceId}/files/_/${encodeURIComponent(segments.join('/'))}` })
         }
     },
     {
         name: 'platform_rollback_hosted_instance',
         title: 'Roll Back Hosted Instance',
         description: `FlowFuse platform automation tool:
-            Rolls a hosted instance back to one of its own snapshots. This OVERWRITES the instance's current flows, credentials, settings, environment variables and installed node modules with the ones in the snapshot. Environment variables are replaced, not merged, so any added since the snapshot are lost. Settings and environment variables the instance's template does not allow the instance to change are skipped and keep their current value.
+            Rolls a hosted instance back to one of its own snapshots. This OVERWRITES the instance's current flows, credentials, settings and installed node modules with the ones in the snapshot. By default, environment variables are merged: the instance keeps its existing variables and their current values, and only the ones missing from the snapshot are added. Set mergeEnvVars to false to replace them with the snapshot's, so any added since the snapshot are lost. Settings and environment variables the instance's template does not allow the instance to change are skipped and keep their current value.
             The current state is not saved automatically. If it might be needed again, take a snapshot first with platform_create_instance_snapshot.
             If the instance is running, a restart of its flows is triggered, and this replies before the restart finishes, so the instance can still be restarting right after. If it is stopped or suspended, the rolled back version is stored and used the next time it starts.
             The snapshot must belong to this hosted instance; a snapshot from another instance or a device, or one that does not exist, is rejected. Find snapshot ids with platform_list_instance_snapshots.
@@ -639,10 +637,15 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             instanceId: hostedInstanceId.describe('The id (UUID) of the hosted instance to roll back'),
-            snapshotId: z.string().describe('The hashid of the snapshot to roll back to. Must be a snapshot of this hosted instance')
+            snapshotId: pathId.describe('The hashid of the snapshot to roll back to. Must be a snapshot of this hosted instance'),
+            mergeEnvVars: z.boolean().default(true).optional().describe('If true (default), keep the instance\'s existing environment variables and add only those missing from the snapshot. If false, replace them with the snapshot\'s environment variables')
         },
         handler: async (args, { inject }) => {
-            const response = await inject({ method: 'POST', url: `/api/v1/projects/${args.instanceId}/actions/rollback`, payload: { snapshot: args.snapshotId } })
+            const payload = {
+                snapshot: args.snapshotId,
+                mergeEnvVars: args.mergeEnvVars !== false
+            }
+            const response = await inject({ method: 'POST', url: `/api/v1/projects/${args.instanceId}/actions/rollback`, payload })
             return response
         }
     }

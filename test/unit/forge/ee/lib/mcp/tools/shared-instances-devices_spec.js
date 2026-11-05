@@ -1,6 +1,7 @@
 const should = require('should') // eslint-disable-line no-unused-vars
 const sinon = require('sinon')
 
+const { formatResponse } = require('../../../../../../../forge/ee/lib/mcp/toolLoader')
 const tools = require('../../../../../../../forge/ee/lib/mcp/tools/shared-instances-devices')
 
 function getTool (name) {
@@ -223,21 +224,21 @@ describe('MCP Shared Instance/Device Tools', function () {
         })
 
         it('deletes a hosted instance token through the projects route', async function () {
-            inject.withArgs({ method: 'DELETE', url: `/api/v1/projects/${hostedId}/httpTokens/token1` }).resolves({ statusCode: 201, body: '' })
+            inject.withArgs({ method: 'DELETE', url: `/api/v1/projects/${hostedId}/httpTokens/token1` }).resolves({ statusCode: 201, body: '', json: () => JSON.parse('') })
 
             const response = await tool.handler({ instanceId: hostedId, instanceType: 'hosted', tokenId: 'token1' }, { inject })
 
             inject.calledOnce.should.be.true()
-            response.json().should.eql({ status: 'okay' })
+            formatResponse(response).should.eql({ status: 'okay' })
         })
 
         it('deletes a remote instance token through the devices route', async function () {
-            inject.withArgs({ method: 'DELETE', url: '/api/v1/devices/device1/httpTokens/token1' }).resolves({ statusCode: 201, body: '' })
+            inject.withArgs({ method: 'DELETE', url: '/api/v1/devices/device1/httpTokens/token1' }).resolves({ statusCode: 201, body: '', json: () => JSON.parse('') })
 
             const response = await tool.handler({ instanceId: 'device1', instanceType: 'remote', tokenId: 'token1' }, { inject })
 
             inject.calledOnce.should.be.true()
-            response.json().should.eql({ status: 'okay' })
+            formatResponse(response).should.eql({ status: 'okay' })
         })
 
         it('passes through an error response', async function () {

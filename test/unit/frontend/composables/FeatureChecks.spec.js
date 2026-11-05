@@ -6,8 +6,19 @@ function platformState ({ features = {}, settingsFeatures = {}, posthogFlags = {
     return { features, settings: { features: settingsFeatures }, posthogFlags }
 }
 
-function team ({ features = {}, enableAllFeatures = false } = {}) {
-    return { type: { properties: { features, enableAllFeatures } } }
+function team ({ features = {}, enableAllFeatures = false, teamFeatures } = {}) {
+    const result = { type: { properties: { features, enableAllFeatures } } }
+    if (teamFeatures) {
+        result.properties = { features: teamFeatures }
+    }
+    return result
+}
+
+function apiTeam ({ features = {}, enableAllFeatures = false, teamFeatures = {} } = {}) {
+    return {
+        properties: { features: { ...teamFeatures } },
+        type: { properties: { features: { ...features, ...teamFeatures }, enableAllFeatures } }
+    }
 }
 
 describe('buildFeatureChecks', () => {
@@ -107,6 +118,83 @@ describe('buildFeatureChecks', () => {
         })
     })
 
+    describe('per-team feature overrides', () => {
+        test('a per-team false disables an opt-out feature the team type allows', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { ai: true } }),
+                team({ teamFeatures: { ai: false } })
+            )
+            expect(checks.isAiFeatureEnabled).toBe(false)
+            expect(checks.isAiFeatureEnabledForTeam).toBe(false)
+        })
+
+        test('a per-team false wins over enableAllFeatures', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { npm: true } }),
+                team({ enableAllFeatures: true, teamFeatures: { npm: false } })
+            )
+            expect(checks.isPrivateRegistryFeatureEnabled).toBe(false)
+        })
+
+        test('a per-team true enables a feature the team type does not grant', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { npm: true } }),
+                team({ features: { npm: false }, teamFeatures: { npm: true } })
+            )
+            expect(checks.isPrivateRegistryFeatureEnabled).toBe(true)
+        })
+
+        test('an unrelated per-team key leaves the team type in charge', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { npm: true } }),
+                team({ features: { npm: true }, teamFeatures: { ai: false } })
+            )
+            expect(checks.isPrivateRegistryFeatureEnabled).toBe(true)
+        })
+
+        test('a per-team false on a dependency gates the dependent feature', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { ai: true, expertAssistant: true } }),
+                team({ teamFeatures: { ai: false } })
+            )
+            expect(checks.isExpertAssistantFeatureEnabled).toBe(false)
+            expect(checks.isExpertInsightsFeatureEnabled).toBe(false)
+        })
+
+        test('enableAllFeatures no longer overrides a flattened per-team false', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { ai: true, expertAssistant: true } }),
+                apiTeam({ enableAllFeatures: true, teamFeatures: { ai: false } })
+            )
+            expect(checks.isAiFeatureEnabled).toBe(false)
+            expect(checks.isExpertAssistantFeatureEnabled).toBe(false)
+        })
+
+        test('enableAllFeatures still applies when the team sets no override', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { npm: true } }),
+                apiTeam({ enableAllFeatures: true })
+            )
+            expect(checks.isPrivateRegistryFeatureEnabled).toBe(true)
+        })
+
+        test('a flattened per-team true stays enabled', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { npm: true } }),
+                apiTeam({ features: { npm: false }, teamFeatures: { npm: true } })
+            )
+            expect(checks.isPrivateRegistryFeatureEnabled).toBe(true)
+        })
+
+        test('the platform flag still gates a per-team true', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { npm: false } }),
+                team({ teamFeatures: { npm: true } })
+            )
+            expect(checks.isPrivateRegistryFeatureEnabled).toBe(false)
+        })
+    })
+
     describe('platformSource: settings', () => {
         // isHTTPBearerTokensFeatureEnabled -> platformKey 'httpBearerTokens' from settings.features
         test('reads the platform flag from settings.features', () => {
@@ -189,43 +277,22 @@ describe('buildFeatureChecks', () => {
     })
 
     describe('ai onboarding', () => {
-        // isAiOnboardingFeatureEnabled -> platformKey 'aiOnboarding',
-        // dependsOn 'isExpertAssistantFeatureEnabled', dependsOnPlatform 'externalBroker', dependsOnTeam 'teamBroker'
-        const enabledPlatform = platformState({ features: { aiOnboarding: true, expertAssistant: true, ai: true, externalBroker: true } })
-        const enabledTeam = team({ features: { teamBroker: true } })
+        // Decided by the server and sent on the team, so the frontend doesn't rebuild the rule
+        const allFlagsOn = platformState({ features: { aiOnboarding: true, expertAssistant: true, ai: true, externalBroker: true } })
 
-        test('enabled when the flag and all dependencies are enabled', () => {
-            const checks = buildFeatureChecks(enabledPlatform, enabledTeam)
+        test('enabled when the server says the team is offered AI onboarding', () => {
+            const checks = buildFeatureChecks(platformState(), { ...team(), aiOnboarding: true })
             expect(checks.isAiOnboardingFeatureEnabled).toBe(true)
         })
 
-        test('disabled when the platform flag is missing', () => {
-            const checks = buildFeatureChecks(
-                platformState({ features: { expertAssistant: true, ai: true, externalBroker: true } }),
-                enabledTeam
-            )
+        test('disabled when the server says it is not, whatever the platform flags', () => {
+            const checks = buildFeatureChecks(allFlagsOn, { ...team({ features: { teamBroker: true } }), aiOnboarding: false })
             expect(checks.isAiOnboardingFeatureEnabled).toBe(false)
         })
 
-        test('forced false when the expert assistant dependency is disabled', () => {
-            const checks = buildFeatureChecks(
-                platformState({ features: { aiOnboarding: true, expertAssistant: true, ai: false, externalBroker: true } }),
-                enabledTeam
-            )
-            expect(checks.isAiOnboardingFeatureEnabled).toBe(false)
-        })
-
-        test('forced false when the platform external broker dependency is missing', () => {
-            const checks = buildFeatureChecks(
-                platformState({ features: { aiOnboarding: true, expertAssistant: true, ai: true } }),
-                enabledTeam
-            )
-            expect(checks.isAiOnboardingFeatureEnabled).toBe(false)
-        })
-
-        test('forced false when the team broker dependency is missing', () => {
-            const checks = buildFeatureChecks(enabledPlatform, team())
-            expect(checks.isAiOnboardingFeatureEnabled).toBe(false)
+        test('disabled when the team has no answer yet', () => {
+            expect(buildFeatureChecks(allFlagsOn, team({ features: { teamBroker: true } })).isAiOnboardingFeatureEnabled).toBe(false)
+            expect(buildFeatureChecks(allFlagsOn, null).isAiOnboardingFeatureEnabled).toBe(false)
         })
     })
 

@@ -1,5 +1,6 @@
 const should = require('should') // eslint-disable-line no-unused-vars
 const sinon = require('sinon')
+const { z } = require('zod')
 
 const tools = require('../../../../../../../forge/ee/lib/mcp/tools/teams')
 
@@ -354,16 +355,6 @@ describe('MCP Teams Tools', function () {
             response.json().should.have.property('code', 'not_found')
         })
 
-        it('refuses ids that would reach another route', async function () {
-            // "../applications" + "../app1" resolves the DELETE to /api/v1/applications/app1
-            for (const [teamId, userId] of [['../applications', '../app1'], ['team1', '../../../applications/app1'], ['team1', 'user1?x=1']]) {
-                const response = await tool.handler({ teamId, userId }, { inject })
-                response.statusCode.should.equal(400)
-                response.json().should.have.property('code', 'invalid_request')
-            }
-            inject.called.should.be.false()
-        })
-
         it('passes through the 400 for the only owner', async function () {
             const errorResponse = { statusCode: 400, json: () => ({ code: 'invalid_request', error: 'cannot remove only owner' }) }
             inject.withArgs({ method: 'DELETE', url: '/api/v1/teams/team1/members/user1' }).resolves(errorResponse)
@@ -398,14 +389,55 @@ describe('MCP Teams Tools', function () {
             const response = await tool.handler({ teamId: 'team1', invitationId: 'invite1' }, { inject })
             response.should.equal(errorResponse)
         })
+    })
 
-        it('refuses ids that would reach another route', async function () {
-            for (const [teamId, invitationId] of [['team1', '../../../applications/app1'], ['../applications', 'app1'], ['team1', 'invite1?x=1']]) {
-                const response = await tool.handler({ teamId, invitationId }, { inject })
-                response.statusCode.should.equal(400)
-                response.json().should.have.property('code', 'invalid_request')
-            }
-            inject.called.should.be.false()
+    describe('platform_update_git_token', function () {
+        const tool = getTool('platform_update_git_token')
+        const args = { teamId: 'team1', tokenId: 'tok1', name: 'renamed' }
+
+        it('is a non-destructive, idempotent write', function () {
+            tool.annotations.should.containEql({ readOnlyHint: false, destructiveHint: false, idempotentHint: true })
+        })
+
+        it('puts only the name to the token route and returns the response', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ id: 'tok1', name: 'renamed', type: 'github' }) }
+            inject.resolves(routeResponse)
+            const response = await tool.handler(args, { inject })
+            inject.calledOnce.should.be.true()
+            inject.firstCall.args[0].should.eql({ method: 'PUT', url: '/api/v1/teams/team1/git/tokens/tok1', payload: { name: 'renamed' } })
+            response.should.equal(routeResponse)
+        })
+
+        it('requires a non-empty name', function () {
+            const schema = z.object(tool.inputSchema)
+            schema.safeParse(args).success.should.be.true()
+            schema.safeParse({ ...args, name: '' }).success.should.be.false()
+            schema.safeParse({ ...args, name: '   ' }).success.should.be.false()
+        })
+    })
+
+    describe('platform_delete_git_token', function () {
+        const tool = getTool('platform_delete_git_token')
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('deletes the token and reports okay for the empty object reply', async function () {
+            inject.resolves({ statusCode: 200, body: '{}', json: () => ({}) })
+            const response = await tool.handler({ teamId: 'team1', tokenId: 'token1' }, { inject })
+            inject.calledOnce.should.be.true()
+            inject.firstCall.args[0].should.eql({ method: 'DELETE', url: '/api/v1/teams/team1/git/tokens/token1' })
+            response.statusCode.should.equal(200)
+            response.json().should.eql({ status: 'okay' })
+        })
+
+        it('passes through a rejection for a token without write access', async function () {
+            const errorResponse = { statusCode: 403, json: () => ({ code: 'unauthorized', error: 'unauthorized' }) }
+            inject.resolves(errorResponse)
+            const response = await tool.handler({ teamId: 'team1', tokenId: 'token1' }, { inject })
+            response.should.equal(errorResponse)
         })
     })
 })

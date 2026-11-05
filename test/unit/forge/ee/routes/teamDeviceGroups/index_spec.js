@@ -176,6 +176,27 @@ describe('Team Device Groups API', function () {
             result.groups[1].should.have.property('name', 'dev-group-2')
         })
 
+        it('should list a device group stored without a description', async () => {
+            const sid = await login('bob', 'bbPassword')
+            const application = await factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
+            const deviceGroup = await factory.createApplicationDeviceGroup({ name: 'dev-group-no-description', description: null }, application)
+
+            try {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.BTeam.hashid}/device-groups`,
+                    cookies: { sid }
+                })
+
+                response.statusCode.should.equal(200)
+                const group = response.json().groups.find(g => g.id === deviceGroup.hashid)
+                group.should.have.property('description', '')
+            } finally {
+                // BTeam is shared with the other listing tests, which count its groups
+                await deviceGroup.destroy()
+            }
+        })
+
         it('should return device groups from multiple applications belonging to the same team', async () => {
             const sid = await login('alice', 'aaPassword')
             const application1 = await factory.createApplication({ name: generateName('app') }, TestObjects.ATeam)

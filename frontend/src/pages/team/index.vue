@@ -33,6 +33,7 @@ import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
+import { useUxStore } from '@/stores/ux.js'
 
 export default {
     name: 'TeamPage',
@@ -57,10 +58,11 @@ export default {
         ...mapState(useContextStore, ['team', 'teamMembership']),
         ...mapState(useAccountSettingsStore, ['requiresBilling', 'featuresCheck']),
         ...mapState(useAccountAuthStore, ['user', 'isAdminUser']),
-        ...mapState(useUxToursStore, ['shouldPresentTour', 'shouldAutoShowAiConnectorModal']),
+        ...mapState(useUxToursStore, ['shouldPresentTour', 'activeTour', 'shouldShowEducationModal', 'shouldAutoShowAiConnectorModal']),
         ...mapState(useProductExpertStore, ['shouldWakeUpAssistant']),
+        ...mapState(useUxStore, ['isOnboarding']),
         isVisitingAdmin: function () {
-            return (this.teamMembership.role === Roles.Admin)
+            return (this.teamMembership?.role === Roles.Admin)
         },
         isTrialEnded: function () {
             if (this.team.billing?.trialEndsAt) {
@@ -74,6 +76,12 @@ export default {
         },
         canAutoShowAiConnector: function () {
             return !!this.team &&
+                !this.shouldPresentTour &&
+                !this.activeTour &&
+                !this.shouldShowEducationModal &&
+                // Every new user starts in the onboarding stage, but it only means something on a team
+                // that gets AI onboarding, where the dialog waits until onboarding is complete
+                !(this.featuresCheck.isAiOnboardingFeatureEnabled && this.isOnboarding) &&
                 this.featuresCheck.isAiFeatureEnabled &&
                 this.featuresCheck.isMcpThirdPartyFeatureEnabled &&
                 this.shouldAutoShowAiConnectorModal
@@ -123,7 +131,7 @@ export default {
     },
     methods: {
         ...mapActions(useProductExpertStore, ['wakeUpAssistant']),
-        ...mapActions(useUxToursStore, ['setWelcomeTour', 'openModal']),
+        ...mapActions(useUxToursStore, ['setWelcomeTour', 'withdrawTour', 'openModal']),
         checkRoute: async function (route) {
             const allowedRoutes = []
 
@@ -154,6 +162,15 @@ export default {
             this.$nextTick(() => useAiConnectorModal().open())
         },
         dispatchTour () {
+            // The welcome tour and the getting started modal walk the classic dashboard, which the
+            // Expert home doesn't have, and AI onboarding covers the same ground by doing
+            if (this.featuresCheck.isAiOnboardingFeatureEnabled || this.featuresCheck.isExpertAssistantFeatureEnabled) {
+                this.withdrawTour()
+                if (this.shouldWakeUpAssistant) {
+                    this.wakeUpAssistant({ shouldHydrateMessages: true })
+                }
+                return
+            }
             return this.setWelcomeTour(() => {
                 if (this.shouldWakeUpAssistant) {
                     this.wakeUpAssistant({ shouldHydrateMessages: true })

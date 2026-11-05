@@ -56,10 +56,10 @@
                     <ff-toggle-switch v-model="aiEnabled" data-el="team-ai-toggle" @change="showConfirmAiToggleDialog" />
                 </div>
             </div>
-            <FormHeading>AI Flow Deploy</FormHeading>
+            <FormHeading>AI Flow Deploy and Inject</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="grow">
-                    <div class="max-w-sm pr-2">Allow AI agents to deploy flow changes they make on this team's instances, without waiting for a person to click Deploy.</div>
+                    <div class="max-w-sm pr-2">Allow AI agents to deploy flow changes they make on this team's instances without waiting for a person to click Deploy, and to inject test messages into deployed flows to check their work. Injected messages run the real flow, so downstream nodes act on them as usual.</div>
                     <div v-if="!aiEnabled" class="max-w-sm pr-2 text-gray-400 italic">Enable AI Features above to use this.</div>
                 </div>
                 <div class="min-w-fit shrink-0">
@@ -226,19 +226,19 @@ export default {
         showConfirmAgentAutoDeployToggleDialog () {
             const enabling = this.agentAutoDeploy
             Dialog.show({
-                header: enabling ? 'Enable AI Flow Deploy' : 'Disable AI Flow Deploy',
+                header: enabling ? 'Enable AI Flow Deploy and Inject' : 'Disable AI Flow Deploy and Inject',
                 kind: enabling ? 'danger' : 'primary',
                 text: enabling
-                    ? 'Are you sure you want to allow AI agents to deploy flows on this team\'s instances?'
-                    : 'Are you sure you want to disable AI agents deploying flow changes automatically?',
+                    ? 'Are you sure you want to allow AI agents to deploy flows and inject messages into running flows on this team\'s instances?'
+                    : 'Are you sure you want to stop AI agents from deploying flow changes and injecting messages?',
                 confirmLabel: enabling ? 'Enable' : 'Disable'
             }, () => {
                 teamApi.updateTeam(this.team.id, { features: { agentAutoDeploy: enabling } }).then(() => {
-                    alerts.emit(`AI Flow Deploy ${enabling ? 'enabled' : 'disabled'}`, 'confirmation')
+                    alerts.emit(`AI Flow Deploy and Inject ${enabling ? 'enabled' : 'disabled'}`, 'confirmation')
                     this.agentAutoDeployOverride = null
                     useContextStore().refreshTeam()
                 }).catch(err => {
-                    alerts.emit('Problem updating AI Flow Deploy settings', 'warning')
+                    alerts.emit('Problem updating AI Flow Deploy and Inject settings', 'warning')
                     this.agentAutoDeployOverride = null
                     console.warn(err)
                 })

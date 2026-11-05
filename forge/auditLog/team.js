@@ -59,6 +59,14 @@ module.exports = {
                     await log('team.settings.updated', actionedBy, team?.id, generateBody({ error, team, updates }))
                 }
             },
+            agentAutoDeploy: {
+                async enabled (actionedBy, error, team) {
+                    await log('team.agent-auto-deploy.enabled', actionedBy, team?.id, generateBody({ error, team }))
+                },
+                async disabled (actionedBy, error, team) {
+                    await log('team.agent-auto-deploy.disabled', actionedBy, team?.id, generateBody({ error, team }))
+                }
+            },
             device: {
                 async created (actionedBy, error, team, device) {
                     await log('team.device.created', actionedBy, team?.id, generateBody({ error, device }))
@@ -172,6 +180,12 @@ module.exports = {
                 async stageAdded (actionedBy, error, team, application, pipeline, pipelineStage) {
                     await log('application.pipeline.stage-added', actionedBy, team?.id, generateBody({ error, team, application, pipeline, pipelineStage }))
                 },
+                async stageUpdated (actionedBy, error, team, application, pipeline, pipelineStage, updates) {
+                    await log('application.pipeline.stage-updated', actionedBy, team?.id, generateBody({ error, team, application, pipeline, pipelineStage, updates }))
+                },
+                async stageDeleted (actionedBy, error, team, application, pipeline, pipelineStage) {
+                    await log('application.pipeline.stage-deleted', actionedBy, team?.id, generateBody({ error, team, application, pipeline, pipelineStage }))
+                },
                 async stageDeployed (actionedBy, error, team, application, pipeline, sourcePipelineStage, targetPipelineStage) {
                     await log('application.pipeline.stage-deployed', actionedBy, team?.id, generateBody({ error, team, application, pipeline, pipelineStage: sourcePipelineStage, pipelineStageTarget: targetPipelineStage }))
                 }
@@ -229,6 +243,38 @@ module.exports = {
             }
         }
 
+        const gitToken = {
+            async created (actionedBy, error, team, token) {
+                const body = generateBody({ error, team, gitToken: token })
+                await log('team.git.token.created', actionedBy, team?.id, body)
+            },
+            async updated (actionedBy, error, team, token, updates) {
+                const body = generateBody({ error, team, gitToken: token, updates })
+                await log('team.git.token.updated', actionedBy, team?.id, body)
+            },
+            async deleted (actionedBy, error, team, token) {
+                const body = generateBody({ error, team, gitToken: token })
+                await log('team.git.token.deleted', actionedBy, team?.id, body)
+            }
+        }
+
+        const library = {
+            entry: {
+                async created (actionedBy, error, team, libraryEntry) {
+                    const body = generateBody({ error, team, libraryEntry })
+                    await log('team.library.entry.created', actionedBy, team?.id, body)
+                },
+                async updated (actionedBy, error, team, libraryEntry) {
+                    const body = generateBody({ error, team, libraryEntry })
+                    await log('team.library.entry.updated', actionedBy, team?.id, body)
+                },
+                async deleted (actionedBy, error, team, libraryEntry, { project, device } = {}) {
+                    const body = generateBody({ error, team, project, device, libraryEntry })
+                    await log('team.library.entry.deleted', actionedBy, team?.id, body)
+                }
+            }
+        }
+
         const log = async (event, actionedBy, teamId, body) => {
             try {
                 const trigger = triggerObject(actionedBy)
@@ -247,7 +293,9 @@ module.exports = {
             application,
             project,
             billing,
-            tables
+            tables,
+            gitToken,
+            library
         }
     }
 }

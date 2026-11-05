@@ -1,4 +1,4 @@
-import { useAccountAuthStore, useContextStore, useProductExpertStore } from '@/stores'
+import { useAccountAuthStore, useContextStore } from '@/stores'
 
 interface EntityWithId {
     id: string
@@ -86,10 +86,11 @@ export function useMqttExpertTopicHelper () {
     }
 
     function buildTopic (options?: BuildTopicOptions): string {
-        const { entityType, entityId, agentChannel, topicType, topicAction, inflightType, sessionId: sessionIdOverride } = options ?? {}
+        const { entityType, entityId, agentChannel, topicType, topicAction, inflightType, sessionId } = options ?? {}
 
         if (!entityType) throw new Error('Topic "entityType" is mandatory')
         if (!entityId) throw new Error('Topic "entityId" is mandatory')
+        if (!sessionId) throw new Error('Topic "sessionId" is mandatory')
         if (!agentChannel || !['support', 'insights', 'mcp'].includes(agentChannel)) {
             throw new Error(`"agentChannel" must be one of "support", "insights" or "mcp", "${agentChannel}" given`)
         }
@@ -101,9 +102,6 @@ export function useMqttExpertTopicHelper () {
         }
 
         const authStore = useAccountAuthStore()
-        const expertStore = useProductExpertStore()
-
-        const sessionId = sessionIdOverride ?? expertStore.sessionId
 
         return [
             'ff',

@@ -183,6 +183,24 @@ describe('User API', async function () {
             })
             secondGetResponse.json().settings.should.have.property('onboardingCompleted', true)
         })
+        it('persists when the AI connector modal was last shown', async function () {
+            await login('elvis', 'eePassword')
+            const putResponse = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/settings',
+                cookies: { sid: TestObjects.tokens.elvis },
+                payload: { aiConnectorLastShownAt: 1700000000000 }
+            })
+            putResponse.statusCode.should.equal(200)
+            putResponse.json().should.have.property('aiConnectorLastShownAt', 1700000000000)
+
+            const getResponse = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.elvis }
+            })
+            getResponse.json().settings.should.have.property('aiConnectorLastShownAt', 1700000000000)
+        })
         it('strips settings keys that are not on the allow-list', async function () {
             await login('elvis', 'eePassword')
             const putResponse = await app.inject({
@@ -1289,6 +1307,18 @@ describe('User API', async function () {
                 payload: { scope: '' }
             })
             updateResponse.statusCode.should.equal(200)
+        })
+
+        it('Rejects creating a PAT with a missing, empty or blank name', async function () {
+            for (const payload of [{ scope: '' }, { name: '', scope: '' }, { name: '   ', scope: '' }]) {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload
+                })
+                response.statusCode.should.equal(400)
+            }
         })
 
         it('PAT-authenticated POST /tokens returns 403', async function () {

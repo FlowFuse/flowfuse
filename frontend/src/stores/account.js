@@ -68,6 +68,7 @@ export const useAccountStore = defineStore('account', {
                 if (!currentTeam || currentTeam.slug !== team) {
                     team = await teams.fetchTeam({ slug: team })
                 } else {
+                    product.setTeam(currentTeam)
                     ensureTeamChannelConnected(currentTeam)
                     this.pendingTeamChange = false
                     return
@@ -81,6 +82,7 @@ export const useAccountStore = defineStore('account', {
                     // Same team — update team data and refresh membership
                     // without clearing other stores
                     if (team?.id) {
+                        product.setTeam(team)
                         context.setTeam(team)
                         await context.refreshTeamMembership()
                     }

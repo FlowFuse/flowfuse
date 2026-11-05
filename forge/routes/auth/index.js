@@ -99,6 +99,9 @@ async function init (app, opts) {
                     return
                 }
                 if (request.routeOptions.config.allowAnonymous) {
+                    // The cookie session failed validation. Treat the request
+                    // as anonymous rather than exposing the half-authenticated user
+                    request.session = null
                     return
                 }
                 await request.session.destroy()
@@ -141,7 +144,7 @@ async function init (app, opts) {
                             return
                         }
                         Sentry.setUser({ id: request.session.User.hashid, username: request.session.User.username, email: request.session.User.email, name: request.session.User.name })
-                        if (accessToken.name) {
+                        if (accessToken.name !== null && accessToken.name !== undefined) {
                             const scopes = accessToken.AccessTokenTeamScopes ?? []
                             let teamScopes = null
 
@@ -238,6 +241,12 @@ async function init (app, opts) {
                         delete request.session.scope
                     }
                     resolveSourceContext(request)
+                    // An MCP token's tool permissions are only enforced for calls made through
+                    // the MCP door, so it must not reach the REST API directly
+                    if (request.session.mcpGrant && !request.routeOptions.config.allowMcpGrant && request.requestContext.get('sourceContext')?.source !== 'mcp') {
+                        reply.code(403).send({ code: 'unauthorized', error: 'MCP tokens can only be used through the MCP endpoint' })
+                        return
+                    }
                     return
                 }
                 reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })

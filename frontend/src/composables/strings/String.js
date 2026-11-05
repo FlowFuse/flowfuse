@@ -100,6 +100,18 @@ export const slugify = (str) => {
         .replace(/^-+|-+$/g, '')
 }
 
+/**
+ * Escape the HTML-significant characters in a string so it is safe to insert
+ * into markup as text. Use this for user-controlled values that end up inside
+ * a v-html binding, where they must be treated as data rather than markup.
+ * @param {*} value - The value to escape (coerced to a string)
+ * @returns {String} - The escaped string
+ */
+export const escapeHtml = (value) => {
+    const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
+    return String(value).replace(/[&<>"']/g, char => entities[char])
+}
+
 export const sanitize = (str, { targetBlank = false, appendQueryParameters = null, supportedActions = null } = {}) => {
     if (!targetBlank && !appendQueryParameters && !supportedActions) {
         return DOMPurify.sanitize(str)

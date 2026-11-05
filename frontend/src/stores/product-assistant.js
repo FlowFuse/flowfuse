@@ -11,10 +11,19 @@ const MAX_DEBUG_LOG_ENTRIES = 100 // maximum number of debug log entries to keep
 const TOOL_POLICIES = ['allow', 'ask', 'deny']
 const isToolPolicy = (p) => TOOL_POLICIES.includes(p)
 const TOOL_CLASSES = ['read', 'write', 'destructive']
-// Fail-safe default when a class has no configured default: read allows, the rest ask.
-const fallbackForToolClass = (cls) => (cls === 'read' ? 'allow' : 'ask')
+// Flow-building changes only touch the editor and nothing runs until the user deploys,
+// so every class starts allowed there. Platform actions act on the account straight
+// away: read allows, the rest ask.
+const fallbackForToolClass = (cls, group = TOOL_GROUPS.FLOW_BUILDING) => {
+    if (group === TOOL_GROUPS.FLOW_BUILDING || cls === 'read') return 'allow'
+    return 'ask'
+}
 // The class defaults a team starts with before the user changes anything.
-const defaultToolDefaults = () => ({ read: 'allow', write: 'ask', destructive: 'ask' })
+const defaultToolDefaults = (group = TOOL_GROUPS.FLOW_BUILDING) => ({
+    read: fallbackForToolClass('read', group),
+    write: fallbackForToolClass('write', group),
+    destructive: fallbackForToolClass('destructive', group)
+})
 // The team whose saved permissions are in effect. Permissions are per team, so every
 // read/write of defaults or preferences is scoped by this id.
 const currentTeamId = () => useContextStore().team?.id || null
@@ -336,7 +345,7 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             const migrated = saved.destructive === undefined && legacyDelete !== undefined
                 ? { ...saved, destructive: legacyDelete }
                 : saved
-            return { ...defaultToolDefaults(), ...migrated }
+            return { ...defaultToolDefaults(group), ...migrated }
         },
         /** The current team's saved per-tool preferences ({ [key]: policy }). */
         teamToolPreferences: (state) => {
@@ -346,7 +355,7 @@ export const useProductAssistantStore = defineStore('product-assistant', {
         defaultForToolClass () {
             return (cls, group = TOOL_GROUPS.FLOW_BUILDING) => {
                 const d = this.teamGroupDefaults(group)[cls]
-                return isToolPolicy(d) ? d : fallbackForToolClass(cls)
+                return isToolPolicy(d) ? d : fallbackForToolClass(cls, group)
             }
         },
         /** This chat session's grant for a tool key, or null if none ('allow'|'deny'). */
@@ -719,7 +728,7 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             const teamId = currentTeamId()
             if (!teamId) return
             const teamDefaults = this.toolDefaultsByTeam[teamId] || {}
-            const groupDefaults = { ...defaultToolDefaults(), ...(teamDefaults[group] || {}), [cls]: policy }
+            const groupDefaults = { ...defaultToolDefaults(group), ...(teamDefaults[group] || {}), [cls]: policy }
             this.toolDefaultsByTeam = {
                 ...this.toolDefaultsByTeam,
                 [teamId]: { ...teamDefaults, [group]: groupDefaults }

@@ -266,6 +266,25 @@ describe('PlatformAutomationHandler', function () {
         })
     })
 
+    describe('empty success reply', function () {
+        it('reports a route that answers success with an empty body as okay', async function () {
+            const tool = handler.findTool('platform_instance_action')
+            // The test instance was never started, so skip the stop part of restartStack
+            await app.project.update({ state: 'suspended' })
+
+            // The restartStack route replies with a bare reply.send()
+            const res = await invokeToolCall({
+                userId: app.adminUser.hashid,
+                toolName: 'platform_instance_action',
+                args: { instanceId: app.project.id, instanceType: 'hosted', action: 'restartStack' },
+                meta: { toolDefinition: { annotations: tool.annotations } }
+            })
+
+            res.ok.should.be.true()
+            res.result.should.eql({ status: 'okay' })
+        })
+    })
+
     describe('unknown user', function () {
         it('errors instead of reporting a silent empty success', async function () {
             const tool = handler.findTool('platform_get_active_user')

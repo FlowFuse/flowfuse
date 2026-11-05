@@ -1,7 +1,7 @@
 ---
 navTitle: FlowFuse Project Nodes
 meta:
-   description: Send messages and call flows between Node-RED instances in a team with the Project In, Out and Call nodes, and the limits for remote instances.
+   description: Send messages and call flows between Node-RED instances and remote instances in a team or application with the Project In, Out and Call nodes.
 ---
 
 # FlowFuse Project Nodes
@@ -12,8 +12,7 @@ instances in a team.
 
 The nodes act in a similar way to the Node-RED Link nodes, but by allowing the
 links to extend between different instances, they open up a wide range of
-possibilities. Remote instances can take part too, with the limitations described
-below.
+possibilities. Remote instances can take part too.
 
 For example, a single Node-RED instance may contain a set of utility flows that
 you want to reuse in other instances. Rather than copy the flows around, the
@@ -53,18 +52,40 @@ and then wait for a response, with a built-in timeout if it doesn't arrive.
 The response is sent back using a Project Out node configured to respond to the call
 node.
 
+### Applications
+
+The application features need FlowFuse v3.3 or later (already available on FlowFuse
+Cloud) and `@flowfuse/nr-project-nodes` v0.8.0 or later on every instance that uses
+them, remote instances included. Older versions of the nodes keep working with team
+broadcasts and hosted instance targets.
+
+The list of targets and sources offered by the nodes is grouped by application.
+Use the **Application** filter above the list to show a single application. The list
+contains the hosted instances in your team and the remote instances assigned to an
+application. `Project Out` and `Project Call` can target either.
+
+Broadcast messages are sent on one of two channels. Choose the channel with the
+**Channel** option on the `Project In` and `Project Out` nodes:
+
+ - **Team** - received by any instance or remote instance in the team whose
+   `Project In` node listens on the Team channel. This is the default.
+ - **Application** - only received by instances and remote instances in the same
+   application whose `Project In` node listens on the Application channel. Instances
+   outside the application cannot send or receive these messages.
+
+The channels are separate. A `Project In` node listening on the Team channel does
+not receive Application channel broadcasts, even from an instance in the same
+application.
+
+Received messages include `msg.projectLink.applicationId`, the application of the
+sender, and for broadcasts `msg.projectLink.scope`, the channel it was sent on.
+
 ### Limitations
 
-**Only hosted instances can be addressed directly.** The list of targets and sources
-offered by the nodes is the hosted instances in your team. This applies to the
-`Project Out` node when sending to a specific instance, the `Project In` node when
-listening to a specific source, and the `Project Call` node's target.
-
-**A remote instance can send, but cannot be sent to.** Flows on a remote instance can
-use `Project Out` and `Project Call` to reach a hosted instance, and can receive
-broadcasts. They cannot be named as a target, so shared logic being called by others
-has to live on a hosted instance. A remote instance assigned to an application cannot
-receive direct messages at all, and can only listen for broadcasts.
+**Remote instances assigned to an instance are reached through that instance.** They
+share the identity of the instance they are assigned to, so they are not listed
+separately. A message or call sent to the instance is also received by its remote
+instances that are listening on the same topic.
 
 **Calls need the target to be up.** The `Project Call` node waits for the default
 timeout of 30 seconds, then logs an error that can be caught with a Catch node. The

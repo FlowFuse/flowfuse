@@ -31,7 +31,7 @@ export default [
     // register eslint-plugin-import-x explicitly below. Original `import/*` rules map to
     // `import-x/*` (the eslint-plugin-import-x fork neostandard historically used).
     js.configs.recommended,
-    ...neostandard(),
+    ...neostandard({ files: ['**/*.vue', '**/*.ts'] }),
     // plugin:import/recommended — registers the `import-x` plugin globally and enables
     // no-unresolved, named, namespace, default, export, no-duplicates, etc.
     importXConfigs.recommended,
