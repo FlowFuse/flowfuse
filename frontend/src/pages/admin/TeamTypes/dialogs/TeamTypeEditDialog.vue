@@ -179,9 +179,9 @@
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
                 </div>
-                <FormRow v-model="input.properties.extraCatalogues" :error="errors.extraCatalogues" data-form="extraCatalogues" containerClass="w-full">
-                    Extra Node Catalogue URLs
-                    <template #input><textarea v-model="input.properties.extraCatalogues" class="w-full" rows="3" /></template>
+                <FormRow v-model="input.properties.extraCatalogues" :error="errors.extraCatalogues" :disabled="!input.properties.features.certifiedNodes" data-form="extraCatalogues" containerClass="w-full">
+                    Extra Certified Nodes Catalogue URLs
+                    <template #input><textarea v-model="input.properties.extraCatalogues" class="w-full" rows="3" :disabled="!input.properties.features.certifiedNodes" /></template>
                 </FormRow>
             </form>
         </template>
@@ -564,7 +564,7 @@ export default {
                 opts.properties.extraCatalogues = []
                 const extraCataloguesArray = this.input.properties.extraCatalogues.split('\n').filter(cat => cat.trim().length > 0)
                 for (const cat of extraCataloguesArray) {
-                    const u = URL.parse(cat)
+                    const u = new URL(cat)
                     if (u !== null) {
                         opts.properties.extraCatalogues.push(cat)
                     }

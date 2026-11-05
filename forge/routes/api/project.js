@@ -1000,7 +1000,7 @@ module.exports = async function (app) {
                         updateSettingsForCatalogue('@flowfuse-certified-nodes', cat)
                     }
                 }
-                if (team.TeamType?.properties?.extraCatalogues) {
+                if (team.getProperty('extraCatalogues', null)) {
                     for (const cat of team.TeamType.properties.extraCatalogues) {
                         if (settings.settings.palette.catalogue.indexOf(cat) === -1) {
                             settings.settings.palette.catalogue.push(cat)
