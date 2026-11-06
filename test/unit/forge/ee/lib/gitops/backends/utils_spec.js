@@ -76,9 +76,13 @@ describe('gitops validateRepoUrl', function () {
         (() => validateRepoUrl('https://github.com.evil.test/o/r.git', { allowedHosts: ['github.com'] })).should.throw()
     })
 
-    it('rejects a userinfo host that redirects the credential', function () {
+    it('rejects a userinfo host that redirects the credential on a pinned-host backend', function () {
         (() => validateRepoUrl('https://github.com@evil.test/o/r.git', { allowedHosts: ['github.com'] })).should.throw()
-        ;(() => validateRepoUrl('https://x@evil.test/o/r.git')).should.throw()
+    })
+
+    it('allows embedded userinfo for a generic repo (the backend overwrites it)', function () {
+        const url = validateRepoUrl('https://user@bitbucket.org/o/r.git')
+        url.hostname.should.equal('bitbucket.org')
     })
 
     it('rejects a non-https URL', function () {

@@ -5,9 +5,12 @@ const execFilePromised = promisify(execFile)
 /**
  * Parse a repository URL and confirm it is safe to send a token to.
  *
- * Requires https, forbids any embedded userinfo (so `user@host` cannot
- * redirect the credential), and, when allowedHosts is given, requires an
- * exact hostname match (so a lookalike like `github.com.example` is rejected).
+ * Requires https for every backend. When allowedHosts is given (the github and
+ * azure backends pin a fixed host), it also forbids embedded userinfo so a
+ * lookalike like `github.com@evil.example` cannot capture the token, and
+ * requires an exact hostname match. Generic repos are user-chosen and the
+ * backend overwrites any userinfo with the configured credential, so neither
+ * check would add protection there.
  *
  * @param {String} rawUrl the configured repository URL
  * @param {Object} [options]
@@ -25,15 +28,22 @@ function validateRepoUrl (rawUrl, { allowedHosts } = {}) {
         error.cause = err
         throw error
     }
-    if (url.protocol !== 'https:' || url.username || url.password) {
+    if (url.protocol !== 'https:') {
         const error = new Error('Invalid repository URL')
         error.code = 'invalid_url'
         throw error
     }
-    if (allowedHosts && !allowedHosts.includes(url.hostname.toLowerCase())) {
-        const error = new Error('Invalid repository URL')
-        error.code = 'invalid_host'
-        throw error
+    if (allowedHosts) {
+        if (url.username || url.password) {
+            const error = new Error('Invalid repository URL')
+            error.code = 'invalid_url'
+            throw error
+        }
+        if (!allowedHosts.includes(url.hostname.toLowerCase())) {
+            const error = new Error('Invalid repository URL')
+            error.code = 'invalid_host'
+            throw error
+        }
     }
     return url
 }
