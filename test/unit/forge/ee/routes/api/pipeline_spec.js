@@ -1722,6 +1722,59 @@ describe('Pipelines API', function () {
                 body.gitRepo.should.have.property('pullPath', 'pull')
             })
 
+            it('Rejects a pushPath that escapes the clone directory', async function () {
+                const gitToken = await createGitToken()
+                const pipelineId = TestObjects.pipeline.hashid
+                const stageId = TestObjects.stageOne.hashid
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                    payload: {
+                        gitTokenId: gitToken.hashid,
+                        url: 'https://example.com/repo.git',
+                        branch: 'main',
+                        pullBranch: 'main',
+                        pushPath: '../../etc/passwd',
+                        pullPath: 'pull'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(400)
+                const body = await response.json()
+                body.should.have.property('code', 'invalid_input')
+            })
+
+            it('Accepts an ordinary file name with a space', async function () {
+                const gitToken = await createGitToken()
+                const pipelineId = TestObjects.pipeline.hashid
+                const stageId = TestObjects.stageOne.hashid
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                    payload: {
+                        gitTokenId: gitToken.hashid,
+                        url: 'https://example.com/repo.git',
+                        branch: 'main',
+                        pullBranch: 'main',
+                        pushPath: 'My Flows/snapshot.json',
+                        pullPath: 'pull'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(200)
+                const getResponse = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                const body = await getResponse.json()
+                body.gitRepo.should.have.property('pushPath', 'My Flows/snapshot.json')
+            })
+
             it('Should apply git settings without rebinding when deviceGroupId is blank', async function () {
                 // Mirrors the frontend, which always sends deviceGroupId, blank when unused
                 const gitToken = await createGitToken()

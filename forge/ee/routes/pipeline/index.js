@@ -8,6 +8,16 @@ const { Roles } = require('../../../lib/roles.js')
 /** @type {import('../../../../forge/auditLog/team').getLoggers} */
 const getTeamLogger = (app) => { return app.auditLog.Team }
 
+// resolveRepoFile enforces containment at push/pull time; this is only an
+// early, readable 400 for the two shapes that can never be valid:
+// - an absolute path (leading separator or Windows drive)
+// - a '..' segment
+// Anything else (spaces, '+', accents) is a legal file name and is left alone.
+function invalidRepoPath (p) {
+    return typeof p === 'string' && p !== '' &&
+        (/^[\\/]/.test(p) || /^[a-zA-Z]:/.test(p) || p.split(/[\\/]/).includes('..'))
+}
+
 module.exports = async function (app) {
     const teamLogger = getTeamLogger(app)
 
@@ -265,8 +275,8 @@ module.exports = async function (app) {
                     url: { type: 'string' },
                     branch: { type: 'string' },
                     pullBranch: { type: 'string' },
-                    pushPath: { type: 'string', pattern: '^(?:(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+)?$' },
-                    pullPath: { type: 'string', pattern: '^(?:(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+)?$' },
+                    pushPath: { type: 'string' },
+                    pullPath: { type: 'string' },
                     credentialSecret: { type: 'string' },
                     source: { type: 'string' }
                 }
@@ -299,6 +309,11 @@ module.exports = async function (app) {
             pullPath,
             credentialSecret
         } = request.body
+        for (const [field, value] of [['pushPath', pushPath], ['pullPath', pullPath]]) {
+            if (invalidRepoPath(value)) {
+                return reply.status(400).send({ code: 'invalid_input', error: `${field} must be a relative path inside the repository` })
+            }
+        }
         let stage
         try {
             const options = {
@@ -379,8 +394,8 @@ module.exports = async function (app) {
                     url: { type: 'string' },
                     branch: { type: 'string' },
                     pullBranch: { type: 'string' },
-                    pushPath: { type: 'string', pattern: '^(?:(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+)?$' },
-                    pullPath: { type: 'string', pattern: '^(?:(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+)?$' },
+                    pushPath: { type: 'string' },
+                    pullPath: { type: 'string' },
                     credentialSecret: { type: 'string' },
                     source: { type: 'string' }
                 }
@@ -395,6 +410,11 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        for (const field of ['pushPath', 'pullPath']) {
+            if (invalidRepoPath(request.body[field])) {
+                return reply.status(400).send({ code: 'invalid_input', error: `${field} must be a relative path inside the repository` })
+            }
+        }
         try {
             const options = {
                 name: request.body.name,
