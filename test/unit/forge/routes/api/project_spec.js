@@ -1710,7 +1710,7 @@ describe('Project API', function () {
                     method: 'PUT',
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     payload: {
-                        name: 'new project name'
+                        name: 'new-project-name'
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -1721,7 +1721,7 @@ describe('Project API', function () {
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     cookies: { sid: TestObjects.tokens.alice }
                 })
-                JSON.parse(newResponse.payload).should.have.property('name', 'new project name')
+                JSON.parse(newResponse.payload).should.have.property('name', 'new-project-name')
             })
 
             it('Updates the name fail for running instance', async function () {
@@ -1746,12 +1746,12 @@ describe('Project API', function () {
                     method: 'PUT',
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     payload: {
-                        name: 'new project name'
+                        name: 'new-project-name'
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
                 response.statusCode.should.equal(200)
-                JSON.parse(response.payload).should.have.property('name', 'new project name')
+                JSON.parse(response.payload).should.have.property('name', 'new-project-name')
             })
 
             it('Non-owner cannot change project name', async function () {
@@ -1760,11 +1760,28 @@ describe('Project API', function () {
                     method: 'PUT',
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     payload: {
-                        name: 'new project name'
+                        name: 'new-project-name'
                     },
                     cookies: { sid: TestObjects.tokens.bob }
                 })
                 response.statusCode.should.equal(403)
+            })
+
+            it('Rejects a name that fails the create-time pattern', async function () {
+                await TestObjects.project1.reload()
+                const originalName = TestObjects.project1.name
+                for (const name of ['victim.flowforge:2880/flowforge/files/_/x?', 'Bad/Name!!<x>', '1starts-with-digit', 'has space']) {
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/projects/${TestObjects.project1.id}`,
+                        payload: { name },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(409)
+                    response.json().should.have.property('code', 'invalid_project_name')
+                }
+                await TestObjects.project1.reload()
+                TestObjects.project1.name.should.equal(originalName)
             })
         })
 
