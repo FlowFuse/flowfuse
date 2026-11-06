@@ -25,6 +25,7 @@ import { defineComponent, markRaw } from 'vue'
 
 import TextCell from './table-cells/text-cell.vue'
 
+import { escapeHtml } from '@/composables/strings/String.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 
@@ -37,7 +38,7 @@ export default defineComponent({
             return (this.selectedTable?.schema ?? []).map((row) => {
                 return {
                     key: row.safeName,
-                    html: `<span >${row.name}</span> <span class="text-gray-400">${row.type}</span>`,
+                    html: `<span >${escapeHtml(row.name)}</span> <span class="text-gray-400">${escapeHtml(row.type)}</span>`,
                     sortable: true,
                     component: {
                         is: this.getTableComponent(row.type),
