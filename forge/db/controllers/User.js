@@ -205,8 +205,8 @@ module.exports = {
         user.suspended = true
         // log suspended user out of all projects they have access to
         await user.save()
-        // Destroy the user's access tokens (editor/MCP sessions) so a suspended
-        // user cannot refresh into a new access token.
+        // Destroy all of the user's access tokens (editor, MCP, PAT). The refresh
+        // token is on the same row and the MCP grant/scope rows cascade.
         await app.db.models.AccessToken.destroy({ where: { ownerType: 'user', ownerId: '' + user.id } })
         await app.db.controllers.User.logout(user)
     },
