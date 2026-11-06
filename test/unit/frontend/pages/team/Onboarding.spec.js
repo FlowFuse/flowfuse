@@ -14,7 +14,7 @@ const mocks = vi.hoisted(() => {
         accountAuthStore: { user: { username: 'alice', avatar: 'alice.png' } },
         expertStore: { messages: [], openConversation: vi.fn() },
         supportAgentStore: { reset: vi.fn() },
-        uxStore: { isOnboardingIntake: true, endOnboarding: vi.fn() }
+        uxStore: { isOnboardingIntake: true, onboardingEndedOnArrival: false, endOnboarding: vi.fn() }
     }
 })
 
@@ -102,6 +102,7 @@ describe('Onboarding page', () => {
         mocks.settingsStore.featuresCheck = { isAiOnboardingFeatureEnabled: true }
         mocks.accountStore.setTeam.mockClear()
         mocks.uxStore.isOnboardingIntake = true
+        mocks.uxStore.onboardingEndedOnArrival = false
         mocks.uxStore.endOnboarding.mockClear()
         routerReplace.mockClear()
     })
@@ -131,6 +132,14 @@ describe('Onboarding page', () => {
         expect(routerReplace).toHaveBeenCalledTimes(1)
         expect(routerReplace).toHaveBeenCalledWith(expect.objectContaining({ name: 'page-not-found' }))
         expect(wrapper.find('[data-stub="expert-panel"]').exists()).toBe(false)
+    })
+
+    test('goes to the team home when this page load ended a stale onboarding stage', async () => {
+        mocks.uxStore.isOnboardingIntake = false
+        mocks.uxStore.onboardingEndedOnArrival = true
+        await mountPage()
+        expect(routerReplace).toHaveBeenCalledTimes(1)
+        expect(routerReplace).toHaveBeenCalledWith({ name: 'team-home', params: { team_slug: 'ateam' } })
     })
 
     // The Expert moves the phase with ui_set_onboarding_phase while the user may
