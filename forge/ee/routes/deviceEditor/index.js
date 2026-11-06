@@ -261,6 +261,11 @@ module.exports = async function (app) {
             // tunnel does not exist
             reply.code(503).send('The editor is not currently enabled for this device') // Service Unavailable
         },
+        /**
+         * Handle an editor websocket connection (the browser's Node-RED `/comms` socket)
+         * @param {import('ws').WebSocket} connection - with @fastify/websocket v11 this is the `ws` WebSocket itself (no `.socket` wrapper)
+         * @param {import('fastify').FastifyRequest & { params: { deviceId: string } }} request
+         */
         wsHandler: (connection, request) => {
             // Handle WS connection from the device
             const tunnelManager = getTunnelManager()
@@ -268,7 +273,7 @@ module.exports = async function (app) {
                 return // handled
             }
             // not handled
-            connection.socket.close(4000, 'No tunnel established')
+            connection.close(4000, 'No tunnel established')
         }
     })
 
