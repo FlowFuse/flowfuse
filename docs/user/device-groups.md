@@ -29,7 +29,7 @@ Groups help you organize and manage multiple devices that run the same [snapshot
 ### Requirements
 
 - FlowFuse Cloud: the Edge and Fleet products
-- Self-hosted: FlowFuse 1.15+ with an Enterprise license
+- Self-hosted: FlowFuse 3.0+ with an Edge or Fleet license, or FlowFuse 1.15+ with an older Enterprise license
 - FlowFuse 2.10+ for Group Environment Variables
 
 ## Creating a Group
