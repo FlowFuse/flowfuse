@@ -368,6 +368,74 @@ describe('OAuth', async function () {
             const scope = await runFullLogin(TestObjects.bob)
             scope.should.equal('read')
         })
+
+        async function mintEditorToken (user) {
+            const instanceCreds = await app.project.refreshAuthTokens()
+            const clientID = instanceCreds.clientID
+            const requestOptions = generateOAuthRequest({ clientID })
+            const response = await app.inject({ method: 'GET', url: requestOptions.authURL, cookies: { sid: TestObjects.tokens[user.username] } })
+            const m = /(\/account\/complete\/[^/]+)$/.exec(response.headers.location)
+            const response2 = await app.inject({ method: 'GET', url: m[1], cookies: { sid: TestObjects.tokens[user.username] } })
+            const callbackUrl = new URL(response2.headers.location)
+            const response3 = await app.inject({
+                url: tokenURL,
+                method: 'POST',
+                payload: {
+                    grant_type: 'authorization_code',
+                    code: callbackUrl.searchParams.get('code'),
+                    redirect_uri: callbackURL,
+                    client_id: clientID,
+                    code_verifier: requestOptions.verifier
+                }
+            })
+            response3.should.have.property('statusCode', 200)
+            return { clientID, ...response3.json() }
+        }
+
+        function refreshGrant (clientID, refreshToken) {
+            return app.inject({
+                url: tokenURL,
+                method: 'POST',
+                payload: { grant_type: 'refresh_token', client_id: clientID, refresh_token: refreshToken }
+            })
+        }
+
+        it('rejects the refresh grant for a suspended user', async function () {
+            await app.team.addUser(TestObjects.bob, { through: { role: app.factory.Roles.Roles.Owner } })
+            const minted = await mintEditorToken(TestObjects.bob)
+            minted.should.have.property('refresh_token')
+
+            const active = await refreshGrant(minted.clientID, minted.refresh_token)
+            active.should.have.property('statusCode', 200)
+            const rotated = active.json().refresh_token || minted.refresh_token
+
+            // Suspend without destroying tokens so the grant guard is exercised directly
+            TestObjects.bob.suspended = true
+            await TestObjects.bob.save()
+            try {
+                const denied = await refreshGrant(minted.clientID, rotated)
+                denied.should.have.property('statusCode', 400)
+                denied.json().should.have.property('error', 'access_denied')
+            } finally {
+                TestObjects.bob.suspended = false
+                await TestObjects.bob.save()
+            }
+        })
+
+        it('destroys the user access tokens when the user is suspended', async function () {
+            await app.team.addUser(TestObjects.bob, { through: { role: app.factory.Roles.Roles.Owner } })
+            await mintEditorToken(TestObjects.bob)
+            const before = await app.db.models.AccessToken.count({ where: { ownerType: 'user', ownerId: '' + TestObjects.bob.id } })
+            before.should.be.greaterThan(0)
+            try {
+                await app.db.controllers.User.suspend(TestObjects.bob)
+                const after = await app.db.models.AccessToken.count({ where: { ownerType: 'user', ownerId: '' + TestObjects.bob.id } })
+                after.should.equal(0)
+            } finally {
+                TestObjects.bob.suspended = false
+                await TestObjects.bob.save()
+            }
+        })
     })
 
     describe('MCP agent auth (DCR + PKCE)', async function () {
