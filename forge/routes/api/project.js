@@ -407,6 +407,10 @@ module.exports = async function (app) {
                 reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name not allowed' })
                 return
             }
+            if (/^[a-zA-Z][a-zA-Z0-9-]*$/.test(reqSafeName) === false) {
+                reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name not allowed' })
+                return
+            }
             if (await app.db.models.Project.isNameUsed(reqSafeName)) {
                 reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name in use' })
                 return
