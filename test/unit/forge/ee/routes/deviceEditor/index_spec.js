@@ -235,21 +235,13 @@ describe('Device Editor API', function () {
                 editorConnected: true
             }, app.team, app.instance)
 
-            const ws = new WebSocket(`ws://localhost:${app.server.address().port}/api/v1/devices/${device.hashid}/editor/proxy/comms`, {
-                headers: { Cookie: `sid=${TestObjects.tokens.alice}` }
+            const ws = await app.injectWS(`/api/v1/devices/${device.hashid}/editor/proxy/comms`, {
+                headers: { cookie: `sid=${TestObjects.tokens.alice}` }
+            })
+            const [closeCode, closeReason] = await new Promise(resolve => {
+                ws.on('close', (code, reason) => resolve([code, reason.toString()]))
             })
 
-            let closeReason, closeCode
-
-            ws.on('error', function () { })
-            ws.on('close', function (code, reason) {
-                closeCode = code
-                closeReason = reason?.toString() || ''
-            })
-
-            await sleep(200)
-
-            ws.readyState.should.equal(WebSocket.CLOSED)
             closeCode.should.equal(4000)
             closeReason.should.equal('No tunnel established')
         })
