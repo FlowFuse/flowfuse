@@ -10,7 +10,7 @@ const axios = require('axios')
 
 const { encryptValue, decryptValue } = require('../../../../db/utils')
 
-const { cloneRepository } = require('./utils')
+const { cloneRepository, resolveRepoFile, writeRepoFile } = require('./utils')
 
 module.exports.init = async function (app) {
     /**
@@ -82,8 +82,8 @@ module.exports.init = async function (app) {
                 const enc = encryptValue(repoOptions.credentialSecret, snapshotExport.settings.settings?.palette?.npmrc)
                 snapshotExport.settings.settings.palette.npmrc = { $: enc }
             }
-            const snapshotFile = path.join(workingDir, repoOptions.path || 'snapshot.json').replace(/"/g, '')
-            await fs.writeFile(snapshotFile, JSON.stringify(snapshotExport, null, 4))
+            const snapshotFile = await resolveRepoFile(workingDir, repoOptions.path || 'snapshot.json')
+            await writeRepoFile(snapshotFile, JSON.stringify(snapshotExport, null, 4))
 
             // 6. stage file
             await execFilePromised('git', ['add', snapshotFile], { cwd: workingDir })
@@ -146,7 +146,7 @@ module.exports.init = async function (app) {
             // 3. clone repo
             await cloneRepository(url, branch, workingDir)
 
-            const snapshotFile = path.join(workingDir, repoOptions.path || 'snapshot.json').replace(/"/g, '')
+            const snapshotFile = await resolveRepoFile(workingDir, repoOptions.path || 'snapshot.json')
 
             if (!existsSync(snapshotFile)) {
                 throw new Error('Snapshot file not found in repository')
