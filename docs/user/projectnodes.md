@@ -20,7 +20,7 @@ Project Nodes allow you to easily call those flows and get the result back. The
 flows stay in one place, so a change to them applies to every caller at once,
 with the trade-offs covered in [Limitations](#limitations).
 
-The project nodes are only available in the Enterprise tier of FlowFuse.
+The project nodes are included in every FlowFuse product: Edge, Hub and Fleet.
 
 ### Nodes
 

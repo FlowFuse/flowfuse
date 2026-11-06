@@ -72,7 +72,7 @@ Some prompts that work well:
 
 The more specific your prompt, the closer the result will be to what you need. Include node names, topic paths, endpoints, or field names where you have them. Expert will use them directly rather than substituting placeholders.
 
-> **Availability:** This feature is available on **FlowFuse Cloud** for all tiers, and from v2.32, to Self-Hosted Enterprise tiers. For Self-Hosted Enterprise tiers it requires a configuration for your instance. [Contact us](https://flowfuse.com/contact-us/?subject=FlowFuse%20Expert%20Application%20Building) to get access.
+> **Availability:** This feature is available in every FlowFuse product on **FlowFuse Cloud**, and from v2.32 on self-hosted installations with any FlowFuse license: Hub, Edge, Fleet or an older Enterprise license. Self-hosted installations need extra configuration for your instance. [Contact us](https://flowfuse.com/contact-us/?subject=FlowFuse%20Expert%20Application%20Building) to get access.
 
 #### Staying in Control of What Expert Does
 

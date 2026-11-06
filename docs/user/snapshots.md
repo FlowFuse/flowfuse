@@ -237,7 +237,7 @@ A limit of 10 auto snapshots will be kept, with the oldest being deleted when a 
 Devices can optionally disable auto snapshots, in the developer mode tab. This can be helpful to
 avoid excessive data usage when a device is in the field or on a cellular connection.
 
-NOTE: This feature is only available to Enterprise tier teams
+NOTE: This feature is included in every FlowFuse product: Edge, Hub and Fleet.
 
 ### Previewing Snapshots
 
