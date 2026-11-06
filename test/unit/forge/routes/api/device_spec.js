@@ -1907,6 +1907,23 @@ describe('Device API', async function () {
 `)
                 })
             })
+            describe('Extra Catalogues from TeamType', function () {
+                async function setTeamTypeCatalogues (cats) {
+                    const defaultTeamTypeProperties = app.defaultTeamType.properties
+                    defaultTeamTypeProperties.extraCatalogues = cats
+                    app.defaultTeamType.properties = defaultTeamTypeProperties
+                    await app.defaultTeamType.save()
+                }
+                it('should include catalogues from TeamType', async function () {
+                    await setTeamTypeCatalogues([
+                        'https://example.com/cat-from-team-type.json'
+                    ])
+                    const device = await createDevice({ name: 'CertifiedNodes', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                    const liveSettings = await getLiveSettings(device)
+                    liveSettings.palette.should.have.property('catalogues')
+                    liveSettings.palette.catalogues.should.containEql('https://example.com/cat-from-team-type.json')
+                })
+            })
         })
 
         describe('device remote editor (unlicensed)', function () {
