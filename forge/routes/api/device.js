@@ -30,11 +30,7 @@ module.exports = async function (app) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return
                     }
-                    if (request.device.ApplicationId) {
-                        request.applicationId = app.db.models.Application.encodeHashid(request.device.ApplicationId)
-                    } else if (request.device.Project?.Application) {
-                        request.applicationId = request.device.Project.Application.hashid
-                    }
+                    request.applicationId = request.device.getApplicationHashid()
                     if (request.session.User) {
                         request.teamMembership = await request.session.User.getTeamMembership(request.device.Team.id)
                     }
@@ -828,8 +824,7 @@ module.exports = async function (app) {
             await app.auditLog.Team.team.device.updated(request.session.User, null, device.Team, device, updates)
         }
 
-        const updatedApplicationId = updatedDevice.ApplicationId ? app.db.models.Application.encodeHashid(updatedDevice.ApplicationId) : updatedDevice.Project?.Application?.hashid
-        reply.send(app.db.views.Device.device(updatedDevice, { includeEditorUrl: app.canAccessDeviceEditor(request, updatedApplicationId) }))
+        reply.send(app.db.views.Device.device(updatedDevice, { includeEditorUrl: app.canAccessDeviceEditor(request, updatedDevice.getApplicationHashid()) }))
     })
 
     app.post('/:deviceId/generate_credentials', {

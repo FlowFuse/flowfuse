@@ -41,11 +41,7 @@ module.exports = async function (app) {
                             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                             return
                         }
-                        if (request.device.ApplicationId) {
-                            request.applicationId = app.db.models.Application.encodeHashid(request.device.ApplicationId)
-                        } else if (request.device.Project?.Application) {
-                            request.applicationId = request.device.Project.Application.hashid
-                        }
+                        request.applicationId = request.device.getApplicationHashid()
                     }
                 } catch (err) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })

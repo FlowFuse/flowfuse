@@ -330,6 +330,23 @@ describe('Device Editor API', function () {
                 }
             })
 
+            it('Proxy websocket comms - forbidden for Viewer and Dashboard roles', async function () {
+                for (const user of ['chris', 'dave']) {
+                    const statusCode = await new Promise((resolve, reject) => {
+                        const ws = new WebSocket(`ws://localhost:${app.server.address().port}/api/v1/devices/${app.device.hashid}/editor/proxy/comms`, {
+                            headers: { cookie: `sid=${TestObjects.tokens[user]}` }
+                        })
+                        ws.on('unexpected-response', (req, res) => resolve(res.statusCode))
+                        ws.on('open', () => {
+                            ws.close()
+                            reject(new Error(`websocket opened for ${user}`))
+                        })
+                        ws.on('error', () => {})
+                    })
+                    statusCode.should.equal(403)
+                }
+            })
+
             it('Proxy HTTP GET - succeeds', async function () {
                 const response = await app.inject({
                     method: 'GET',
@@ -439,6 +456,20 @@ describe('Device Editor API', function () {
             owner.editor.should.have.property('url')
         })
 
+        it('routes that return the url are forbidden to a Dashboard user', async function () {
+            const urls = [
+                `/api/v1/devices/${app.device.hashid}`,
+                `/api/v1/teams/${app.team.hashid}/devices`,
+                `/api/v1/applications/${app.application.hashid}/devices`,
+                `/api/v1/projects/${app.instance.id}/devices`,
+                `/api/v1/teams/${app.team.hashid}/applications/status`
+            ]
+            for (const url of urls) {
+                const response = await app.inject({ method: 'GET', url, cookies: { sid: TestObjects.tokens.dave } })
+                response.statusCode.should.equal(403, url)
+            }
+        })
+
         it('GET /devices/:id hides the url from an admin outside the team', async function () {
             const admin = await get(`/api/v1/devices/${app.device.hashid}`, 'erin')
             admin.editor.should.have.property('enabled', true)
@@ -533,6 +564,22 @@ describe('Device Editor API', function () {
                     cookies: { sid: TestObjects.tokens.oscar }
                 })
                 response.statusCode.should.equal(502)
+            })
+
+            it('GET /teams/:id/devices uses the instance\'s application role for an instance-owned device', async function () {
+                const editorFor = async (user) => {
+                    const devices = (await get(`/api/v1/teams/${app.team.hashid}/devices`, user)).devices
+                    const device = devices.find(d => d.id === app.device.hashid)
+                    device.should.have.property('instance')
+                    return device.editor
+                }
+
+                const downgraded = await editorFor('nina')
+                downgraded.should.have.property('enabled', true)
+                downgraded.should.not.have.property('url')
+
+                const upgraded = await editorFor('oscar')
+                upgraded.should.have.property('url')
             })
         })
     })

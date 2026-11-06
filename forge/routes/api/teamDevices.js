@@ -94,10 +94,7 @@ module.exports = async function (app) {
             }
         }
         const devices = await app.db.models.Device.getAll(paginationOptions, where, options)
-        devices.devices = devices.devices.map(d => {
-            const applicationId = d.ApplicationId ? app.db.models.Application.encodeHashid(d.ApplicationId) : d.Project?.Application?.hashid
-            return app.db.views.Device.device(d, { statusOnly: paginationOptions.statusOnly, includeEditorUrl: app.canAccessDeviceEditor(request, applicationId) })
-        })
+        devices.devices = devices.devices.map(d => app.db.views.Device.device(d, { statusOnly: paginationOptions.statusOnly, includeEditorUrl: app.canAccessDeviceEditor(request, d.getApplicationHashid()) }))
         reply.send(devices)
     })
 
