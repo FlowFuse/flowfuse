@@ -24,7 +24,7 @@ FlowFuse Cloud administrators.
 
 When a customer requests SSO to be setup for their users, we require the following information:
 
-1. Confirm the customer's entitlement for SSO enablement. It is only available to *Enterprise* tier customers.
+1. Confirm the customer's entitlement for SSO enablement. It is included in every FlowFuse product: Edge, Hub and Fleet.
 1. The email domain that will be covered by the configuration. Note that each SSO configuration can only be applied to a single domain. If a customer has multiple domains, each one will require its own SSO configuration. [Issue #5011](https://github.com/FlowFuse/flowfuse/issues/5011) has been raised to make this more flexible in the future.
 2. Whether it is SAML or LDAP based SSO
 3. What Identify Provider they are using for their SSO.

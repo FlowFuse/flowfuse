@@ -234,6 +234,25 @@ describe('Device Editor API', function () {
             })
             response.statusCode.should.equal(502)
         })
+        it('Proxy WS - closes the editor websocket if there is no local tunnel', async function () {
+            // editorConnected is persisted, but this forge process has no tunnel for the device
+            const device = await app.factory.createDevice({
+                name: 'device-no-local-tunnel',
+                mode: 'developer',
+                editorToken: 'editor-token',
+                editorConnected: true
+            }, app.team, app.instance)
+
+            const ws = await app.injectWS(`/api/v1/devices/${device.hashid}/editor/proxy/comms`, {
+                headers: { cookie: `sid=${TestObjects.tokens.alice}` }
+            })
+            const [closeCode, closeReason] = await new Promise(resolve => {
+                ws.on('close', (code, reason) => resolve([code, reason.toString()]))
+            })
+
+            closeCode.should.equal(4000)
+            closeReason.should.equal('No tunnel established')
+        })
 
         describe('device websocket can connect with correct token', async function () {
             let ws

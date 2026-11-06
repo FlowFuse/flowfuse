@@ -10,10 +10,10 @@
 /**
  * A DeviceTunnel object keeps track of connections to a device.
  * @typedef {Object} DeviceTunnel
- * @property {numner} id - A unique identifier for this tunnel instance
+ * @property {number} id - A unique identifier for this tunnel instance
  * @property {string} deviceId - Device ID
  * @property {number} nextRequestId - Next available request id
- * @property {SocketStream} socket - Socket connection to device
+ * @property {WebSocket} socket - Socket connection to device
  * @property {Array<FastifyRequest>} requests - List of pending requests
  * @property {Object} forwardedWS - List of forwarded websocket connections
  * @property {string} token - Token used to authenticate device
@@ -24,7 +24,7 @@
 // Type definition (imports)
 /**
  * @typedef {import('@fastify/websocket')} fastifyWebsocket
- * @typedef {import('@fastify/websocket').SocketStream} SocketStream
+ * @typedef {import('@fastify/websocket').WebSocket} WebSocket - the `ws` WebSocket passed to @fastify/websocket v11 handlers
  * @typedef {import('../../../forge').ForgeApplication} ForgeApplication
  * @typedef {import('../../../forge').FastifyRequest} FastifyRequest
  * @typedef {import('../../../forge').FastifyReply} FastifyReply
@@ -154,7 +154,7 @@ class DeviceTunnelManager {
     /**
      * setup the tunnel socket properties and event handlers for the specified device
      * @param {Device} device The device
-     * @param {SocketStream} inboundDeviceConnection The websocket connection from the device
+     * @param {WebSocket} inboundDeviceConnection The websocket connection from the device
      * @returns {Boolean} True if the tunnel was started successfully
      */
     async initTunnel (device, inboundDeviceConnection) {
