@@ -41,7 +41,7 @@ module.exports = function (app) {
         required: ['id', 'lastSeenAt', 'lastSeenMs', 'status', 'onlineStatus', 'mode', 'isDeploying']
     })
 
-    function device (device, { statusOnly = false } = {}) {
+    function device (device, { statusOnly = false, includeEditorUrl = false } = {}) {
         if (!device) {
             return null
         }
@@ -96,6 +96,9 @@ module.exports = function (app) {
             /** @type {import("../../ee/lib/deviceEditor/DeviceTunnelManager").DeviceTunnelManager} */
             const tunnelManager = app.comms.devices.tunnelManager
             filtered.editor = tunnelManager.getTunnelStatus(device) || {}
+            if (!includeEditorUrl) {
+                delete filtered.editor.url
+            }
         }
 
         return filtered
@@ -187,7 +190,7 @@ module.exports = function (app) {
             $ref: 'DeviceStatus'
         }
     })
-    async function deviceStatusList (devicesArray, { includeEditor = false } = {}) {
+    async function deviceStatusList (devicesArray, { includeEditor = false, includeEditorUrl = false } = {}) {
         return devicesArray.map((device) => {
             const summary = deviceSummary(device)
 
@@ -205,6 +208,9 @@ module.exports = function (app) {
                 /** @type {import("../../ee/lib/deviceEditor/DeviceTunnelManager").DeviceTunnelManager} */
                 const tunnelManager = app.comms.devices.tunnelManager
                 filtered.editor = tunnelManager.getTunnelStatus(device) || {}
+                if (!includeEditorUrl) {
+                    delete filtered.editor.url
+                }
             }
 
             return filtered

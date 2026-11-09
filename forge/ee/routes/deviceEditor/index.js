@@ -41,9 +41,7 @@ module.exports = async function (app) {
                             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                             return
                         }
-                        if (request.device.ApplicationId) {
-                            request.applicationId = app.db.models.Application.encodeHashid(request.device.ApplicationId)
-                        }
+                        request.applicationId = request.device.getApplicationHashid()
                     }
                 } catch (err) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })
@@ -233,6 +231,8 @@ module.exports = async function (app) {
             } else if (!request.session?.User) {
                 // Failed authentication. Redirect to the device overview page
                 reply.redirect(`/device/${request.params.deviceId}/overview`, 303)
+            } else if (!app.hasPermission(request.teamMembership, 'device:editor', { applicationId: request.applicationId })) {
+                reply.code(403).send('Forbidden')
             } else {
                 // For a websocket comms request
                 if (/\/comms$/.test(request.url)) {
@@ -295,6 +295,8 @@ module.exports = async function (app) {
             } else if (!request.session?.User) {
                 // Failed authentication. Redirect to the device overview page
                 reply.redirect(`/device/${request.params.deviceId}/overview`, 303)
+            } else if (!app.hasPermission(request.teamMembership, 'device:editor', { applicationId: request.applicationId })) {
+                reply.code(403).send('Forbidden')
             } else {
                 // For a websocket comms request
                 if (/\/comms$/.test(request.url)) {
