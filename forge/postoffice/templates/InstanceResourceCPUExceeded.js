@@ -3,7 +3,7 @@ module.exports = {
     text:
 `Hello {{{ safeName.text }}},
 
-Your FlowFuse Instance "{{{ name }}}" in Team "{{{ teamName.text }}}" is using more than 75% of its CPU.
+Your FlowFuse Instance "{{ name }}" in Team "{{{ teamName.text }}}" is using more than 75% of its CPU.
 This can cause degraded performance, errors, and crashes.
 
 This can occur for a number of reasons including:
@@ -43,7 +43,7 @@ You can access the instance and its logs here:
     html:
 `<p>Hello {{{ safeName.html }}},</p>
 <p>
-Your FlowFuse Instance "{{{ name }}}" in Team "{{{ teamName.html }}}" is using more than 75% of its CPU.
+Your FlowFuse Instance "{{ name }}" in Team "{{{ teamName.html }}}" is using more than 75% of its CPU.
 This can cause degraded performance, errors, and crashes.
 </p>
 
