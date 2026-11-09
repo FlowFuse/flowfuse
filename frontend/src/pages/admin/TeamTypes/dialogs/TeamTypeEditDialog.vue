@@ -454,6 +454,7 @@ export default {
             const extraCataloguesArray = this.input.properties.extraCatalogues.split('\n').filter(cat => cat.trim().length > 0)
             for (const cat of extraCataloguesArray) {
                 try {
+                    // eslint-disable-next-line no-unused-vars
                     const u = new URL(cat)
                 } catch (err) {
                     return false
@@ -566,6 +567,7 @@ export default {
                 const extraCataloguesArray = this.input.properties.extraCatalogues.split('\n').filter(cat => cat.trim().length > 0)
                 for (const cat of extraCataloguesArray) {
                     try {
+                        // eslint-disable-next-line no-unused-vars
                         const u = new URL(cat)
                         opts.properties.extraCatalogues.push(cat)
                     } catch (err) {
