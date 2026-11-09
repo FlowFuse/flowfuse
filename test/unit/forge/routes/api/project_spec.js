@@ -1770,7 +1770,7 @@ describe('Project API', function () {
             it('Rejects a name that fails the create-time pattern', async function () {
                 await TestObjects.project1.reload()
                 const originalName = TestObjects.project1.name
-                for (const name of ['victim.flowforge:2880/flowforge/files/_/x?', 'Bad/Name!!<x>', '1starts-with-digit', 'has space']) {
+                for (const name of ['bad.name:1/x', 'Bad/Name!!<x>', '1starts-with-digit', 'has space']) {
                     const response = await app.inject({
                         method: 'PUT',
                         url: `/api/v1/projects/${TestObjects.project1.id}`,
