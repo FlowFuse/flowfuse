@@ -8,8 +8,8 @@ const execFilePromised = promisify(execFile)
 /**
  * Resolve a snapshot file path inside the cloned working directory.
  *
- * Rejects absolute paths and `..` segments, confines the result to the clone
- * root, and rejects a symlink at the leaf or any parent component so a
+ * Strips a leading separator, rejects drive paths and `..` segments, confines
+ * the result to a file inside the clone root, and rejects a symlink at the leaf or any parent component so a
  * committed symlink cannot redirect the read/write outside the clone.
  *
  * @param {String} workingDir the clone working directory
@@ -18,12 +18,16 @@ const execFilePromised = promisify(execFile)
  * @throws {Error} if the path is not a safe file inside the clone
  */
 async function resolveRepoFile (workingDir, p) {
-    if (!p || path.isAbsolute(p) || p.split(/[\\/]/).includes('..')) {
+    // A leading separator means the repository root, so it is stripped and the
+    // path is treated as relative to the clone.
+    const relative = String(p ?? '').replace(/^[\\/]+/, '')
+    if (!relative || path.isAbsolute(relative) || relative.split(/[\\/]/).includes('..')) {
         throw new Error('Invalid repository path')
     }
     const root = await fs.realpath(workingDir)
-    const target = path.resolve(root, p)
-    if (target !== root && !target.startsWith(root + path.sep)) {
+    const target = path.resolve(root, relative)
+    // The path must name a file inside the clone, not the clone root itself.
+    if (!target.startsWith(root + path.sep)) {
         throw new Error('Invalid repository path')
     }
     let current = root

@@ -80,8 +80,21 @@ describe('gitops resolveRepoFile', function () {
         resolved.should.equal(await realFs.realpath(nodePath.join(dir, 'snapshot.json')))
     })
 
-    it('rejects an absolute path', async function () {
-        await resolveRepoFile(dir, '/etc/passwd').should.be.rejectedWith('Invalid repository path')
+    it('treats a leading separator as the repository root', async function () {
+        const expected = await realFs.realpath(nodePath.join(dir, 'snapshot.json'))
+        ;(await resolveRepoFile(dir, '/snapshot.json')).should.equal(expected)
+        ;(await resolveRepoFile(dir, '//snapshot.json')).should.equal(expected)
+        ;(await resolveRepoFile(dir, '/flows/snapshot.json')).should.equal(nodePath.join(await realFs.realpath(dir), 'flows', 'snapshot.json'))
+    })
+
+    it('rejects a path that resolves to the clone root', async function () {
+        for (const p of ['', '/', '.', './']) {
+            await resolveRepoFile(dir, p).should.be.rejectedWith('Invalid repository path')
+        }
+    })
+
+    it('rejects a traversal after a leading separator', async function () {
+        await resolveRepoFile(dir, '/../etc/passwd').should.be.rejectedWith('Invalid repository path')
     })
 
     it('rejects a traversal path', async function () {

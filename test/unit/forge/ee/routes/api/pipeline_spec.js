@@ -1746,6 +1746,28 @@ describe('Pipelines API', function () {
                 body.should.have.property('code', 'invalid_input')
             })
 
+            it('Accepts a path with a leading separator', async function () {
+                const gitToken = await createGitToken()
+                const pipelineId = TestObjects.pipeline.hashid
+                const stageId = TestObjects.stageOne.hashid
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                    payload: {
+                        gitTokenId: gitToken.hashid,
+                        url: 'https://example.com/repo.git',
+                        branch: 'main',
+                        pullBranch: 'main',
+                        pushPath: '/flows/snapshot.json',
+                        pullPath: '/flows/snapshot.json'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(200)
+            })
+
             it('Accepts an ordinary file name with a space', async function () {
                 const gitToken = await createGitToken()
                 const pipelineId = TestObjects.pipeline.hashid

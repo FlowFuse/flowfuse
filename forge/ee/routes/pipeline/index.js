@@ -10,12 +10,13 @@ const getTeamLogger = (app) => { return app.auditLog.Team }
 
 // resolveRepoFile enforces containment at push/pull time; this is only an
 // early, readable 400 for the two shapes that can never be valid:
-// - an absolute path (leading separator or Windows drive)
+// - a Windows drive path
 // - a '..' segment
-// Anything else (spaces, '+', accents) is a legal file name and is left alone.
+// A leading separator is allowed: it means the repository root and is stripped
+// at push/pull time. Anything else (spaces, '+', accents) is a legal file name.
 function invalidRepoPath (p) {
     return typeof p === 'string' && p !== '' &&
-        (/^[\\/]/.test(p) || /^[a-zA-Z]:/.test(p) || p.split(/[\\/]/).includes('..'))
+        (/^[a-zA-Z]:/.test(p) || p.split(/[\\/]/).includes('..'))
 }
 
 module.exports = async function (app) {
