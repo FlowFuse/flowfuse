@@ -155,7 +155,7 @@ console.info('------------------------------')
                 default: DEFAULT_PROD_KEY_FILENAME,
                 message: 'Production license private key filename',
                 validate (input) {
-                    if (!fs.existsSync(input)) {
+                    if (fs.existsSync(input)) {
                         return true
                     }
                     return false
