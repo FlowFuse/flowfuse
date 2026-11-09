@@ -8,7 +8,7 @@ const execFilePromised = promisify(execFile)
 
 const { encryptValue, decryptValue } = require('../../../../db/utils')
 
-const { cloneRepository } = require('./utils')
+const { cloneRepository, validateRepoUrl } = require('./utils')
 
 module.exports.init = async function (app) {
     /**
@@ -29,10 +29,12 @@ module.exports.init = async function (app) {
         let caFile
         try {
             const branch = repoOptions.branch || 'main'
-            if (!/^https:\/\//i.test(repoOptions.url)) {
+            let url
+            try {
+                url = validateRepoUrl(repoOptions.url)
+            } catch (err) {
                 throw new Error('Only HTTPS git URLs are supported')
             }
-            const url = new URL(repoOptions.url)
             url.username = repoOptions.username ? repoOptions.username : 'x-access-token'
             url.password = repoOptions.token
 
@@ -126,10 +128,12 @@ module.exports.init = async function (app) {
         let caFile
         try {
             const branch = repoOptions.branch || 'main'
-            if (!/^https:\/\//i.test(repoOptions.url)) {
+            let url
+            try {
+                url = validateRepoUrl(repoOptions.url)
+            } catch (err) {
                 throw new Error('Only HTTPS git URLs are supported')
             }
-            const url = new URL(repoOptions.url)
             url.username = repoOptions.username ? repoOptions.username : 'x-access-token'
             url.password = repoOptions.token
 
