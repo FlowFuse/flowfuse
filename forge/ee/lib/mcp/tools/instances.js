@@ -631,7 +631,7 @@ module.exports = [
             If the instance is running, a restart of its flows is triggered, and this replies before the restart finishes, so the instance can still be restarting right after. If it is stopped or suspended, the rolled back version is stored and used the next time it starts.
             The snapshot must belong to this hosted instance; a snapshot from another instance or a device, or one that does not exist, is rejected. Find snapshot ids with platform_list_instance_snapshots.
             Confirm with the user before calling this.
-            Team members and owners can roll back. Replies { status: "okay" } on success.`,
+            Team members and owners can roll back. Only a team Owner can roll back a protected instance; other roles get a 403 protected_instance. Replies { status: "okay" } on success.`,
         // destructiveHint: this replaces what the instance is running rather than adding to it.
         // idempotentHint: rolling back to the same snapshot again restarts the flows each time.
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
