@@ -38,6 +38,8 @@ const BANNED_NAME_LIST = [
     'registry'
 ]
 
+const NAME_PATTERN = /^[a-zA-Z][a-zA-Z0-9-]*$/
+
 /** @type {FFModel} */
 module.exports = {
     name: 'Project',
@@ -429,6 +431,7 @@ module.exports = {
             },
             static: {
                 BANNED_NAME_LIST,
+                NAME_PATTERN,
                 isNameUsed: async (name) => {
                     const safeName = name?.toLowerCase()
                     const count = await this.count({
