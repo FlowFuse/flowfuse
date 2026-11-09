@@ -453,8 +453,9 @@ export default {
         formValid () {
             const extraCataloguesArray = this.input.properties.extraCatalogues.split('\n').filter(cat => cat.trim().length > 0)
             for (const cat of extraCataloguesArray) {
-                const u = URL.parse(cat)
-                if (u === null) {
+                try {
+                    const u = new URL(cat)
+                } catch (err) {
                     return false
                 }
             }
@@ -564,9 +565,11 @@ export default {
                 opts.properties.extraCatalogues = []
                 const extraCataloguesArray = this.input.properties.extraCatalogues.split('\n').filter(cat => cat.trim().length > 0)
                 for (const cat of extraCataloguesArray) {
-                    const u = new URL(cat)
-                    if (u !== null) {
+                    try {
+                        const u = new URL(cat)
                         opts.properties.extraCatalogues.push(cat)
+                    } catch (err) {
+                        // Ignore invalid URL
                     }
                 }
 
