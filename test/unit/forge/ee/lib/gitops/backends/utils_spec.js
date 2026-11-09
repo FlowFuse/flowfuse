@@ -58,3 +58,38 @@ describe('gitops cloneRepository', function () {
             .should.be.rejectedWith('Failed to clone repository: something broke')
     })
 })
+
+describe('gitops validateRepoUrl', function () {
+    const { validateRepoUrl } = require('../../../../../../../forge/ee/lib/gitops/backends/utils')
+
+    it('accepts an exact allowed host', function () {
+        const url = validateRepoUrl('https://github.com/o/r.git', { allowedHosts: ['github.com'] })
+        url.hostname.should.equal('github.com')
+    })
+
+    it('accepts any https host when no allow-list is given', function () {
+        const url = validateRepoUrl('https://git.example.com/o/r.git')
+        url.hostname.should.equal('git.example.com')
+    })
+
+    it('rejects a lookalike host that only shares a prefix', function () {
+        (() => validateRepoUrl('https://github.com.evil.test/o/r.git', { allowedHosts: ['github.com'] })).should.throw()
+    })
+
+    it('rejects a userinfo host that redirects the credential on a pinned-host backend', function () {
+        (() => validateRepoUrl('https://github.com@evil.test/o/r.git', { allowedHosts: ['github.com'] })).should.throw()
+    })
+
+    it('allows embedded userinfo for a generic repo (the backend overwrites it)', function () {
+        const url = validateRepoUrl('https://user@bitbucket.org/o/r.git')
+        url.hostname.should.equal('bitbucket.org')
+    })
+
+    it('rejects a non-https URL', function () {
+        (() => validateRepoUrl('http://git.example.com/o/r.git')).should.throw()
+    })
+
+    it('rejects a malformed URL', function () {
+        (() => validateRepoUrl('not a url')).should.throw()
+    })
+})
