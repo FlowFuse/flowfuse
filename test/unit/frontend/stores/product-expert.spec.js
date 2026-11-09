@@ -7,7 +7,7 @@ import { INSIGHTS_AGENT, SUPPORT_AGENT } from '@/stores/product-expert-agents.js
 // (e.g. isExternalMqttBrokerFeatureEnabled, isOnboarding) without redefining the mock.
 const accountSettingsState = { featuresCheck: { isExpertAssistantFeatureEnabled: true } }
 const contextState = { team: null, expert: {} }
-const uxState = { isOnboarding: false, building: false, stopBuilding: vi.fn(() => { uxState.building = false }) }
+const uxState = { isOnboarding: false, building: false, stopBuilding: vi.fn(() => { uxState.building = false }), markOnboardingActive: vi.fn() }
 const mqttService = {
     publishMessage: vi.fn(() => Promise.resolve())
 }
