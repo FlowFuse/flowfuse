@@ -165,7 +165,7 @@
         "globals": "17.14.0",
         "html-link-extractor": "^1.0.5",
         "html-webpack-plugin": "^5.5.3",
-        "jsdom": "^30.0.1",
+        "jsdom": "^31.0.0",
         "mini-css-extract-plugin": "^2.7.6",
         "mocha": "^12.0.3",
         "mocha-cli": "^1.0.1",
