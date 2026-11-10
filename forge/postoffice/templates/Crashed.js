@@ -3,7 +3,7 @@ module.exports = {
     text:
 `Hello {{{ safeName.text }}},
 
-Your FlowFuse Instance "{{{ name }}}"{{#if teamName.text}} in Team "{{{ teamName.text }}}"{{/if}} has crashed.
+Your FlowFuse Instance "{{ name }}"{{#if teamName.text}} in Team "{{{ teamName.text }}}"{{/if}} has crashed.
 
 This can occur for a number of reasons including:
 - Needing a larger instance size for your workload
@@ -41,7 +41,7 @@ You can access the instance and its logs here:
 `,
     html:
 `<p>Hello {{{ safeName.html }}},</p>
-<p>Your FlowFuse Instance "{{{ name }}}" in Team "{{{ teamName.html }}}" has crashed.</p>
+<p>Your FlowFuse Instance "{{ name }}" in Team "{{{ teamName.html }}}" has crashed.</p>
 
 <p>
 This can occur for a number of reasons including:
