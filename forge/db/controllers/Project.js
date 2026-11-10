@@ -472,7 +472,7 @@ module.exports = {
             throw new ControllerError('invalid_project_name', 'name not allowed', 409)
         }
 
-        if (/^[a-zA-Z][a-zA-Z0-9-]*$/.test(safeName) === false) {
+        if (app.db.models.Project.NAME_PATTERN.test(safeName) === false) {
             throw new ControllerError('invalid_project_name', 'name not allowed', 409)
         }
 

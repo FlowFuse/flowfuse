@@ -10,7 +10,7 @@ const axios = require('axios')
 
 const { encryptValue, decryptValue } = require('../../../../db/utils')
 
-const { cloneRepository, resolveRepoFile, writeRepoFile } = require('./utils')
+const { cloneRepository, resolveRepoFile, validateRepoUrl, writeRepoFile } = require('./utils')
 
 module.exports.init = async function (app) {
     /**
@@ -30,10 +30,12 @@ module.exports.init = async function (app) {
         try {
             const token = repoOptions.token
             const branch = repoOptions.branch || 'main'
-            if (!/^https:\/\/github.com/i.test(repoOptions.url)) {
+            let url
+            try {
+                url = validateRepoUrl(repoOptions.url, { allowedHosts: ['github.com'] })
+            } catch (err) {
                 throw new Error('Only GitHub repositories are supported')
             }
-            const url = new URL(repoOptions.url)
             url.username = 'x-access-token'
             url.password = token
 
@@ -134,10 +136,12 @@ module.exports.init = async function (app) {
         try {
             const token = repoOptions.token
             const branch = repoOptions.branch || 'main'
-            if (!/^https:\/\/github.com/i.test(repoOptions.url)) {
+            let url
+            try {
+                url = validateRepoUrl(repoOptions.url, { allowedHosts: ['github.com'] })
+            } catch (err) {
                 throw new Error('Only GitHub repositories are supported')
             }
-            const url = new URL(repoOptions.url)
             url.username = 'x-access-token'
             url.password = token
 
