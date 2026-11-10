@@ -288,6 +288,9 @@ module.exports = {
     finders: function (M, app) {
         return {
             instance: {
+                getApplicationHashid () {
+                    return this.ApplicationId ? M.Application.encodeHashid(this.ApplicationId) : this.Project?.Application?.hashid
+                },
                 async refreshAuthTokens ({ refreshOTC = false } = {}) {
                     const accessToken = await Controllers.AccessToken.createTokenForDevice(this)
                     const credentialSecret = crypto.randomBytes(32).toString('hex')

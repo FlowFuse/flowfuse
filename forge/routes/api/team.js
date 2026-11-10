@@ -345,7 +345,9 @@ module.exports = async function (app) {
                 return app.hasPermission(request.teamMembership, 'project:read', { application })
             })
         }
-        const applicationsWithAssociationsStatuses = await app.db.views.Application.applicationAssociationsStatusList(applications)
+        const applicationsWithAssociationsStatuses = await app.db.views.Application.applicationAssociationsStatusList(applications, {
+            includeEditorUrl: (application) => app.canAccessDeviceEditor(request, application.hashid)
+        })
         reply.send({
             count: applicationsWithAssociationsStatuses.length,
             applications: applicationsWithAssociationsStatuses
