@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 
-const should = require('should')
+const should = require('should') // eslint-disable-line no-unused-vars
 
 const ROOT = path.join(__dirname, '../../../../../..')
 
