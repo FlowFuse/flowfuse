@@ -9,6 +9,8 @@
  * @memberof forge.routes.api
  */
 
+const { KEY_PROTECTED } = require('../../db/models/ProjectSettings')
+
 module.exports = async function (app) {
     app.post('/start', {
         preHandler: app.needsPermission('project:change-status'),
@@ -243,6 +245,10 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        const protectedInstance = await request.project.getSetting(KEY_PROTECTED)
+        if (protectedInstance?.enabled && !request.session.User?.admin && !app.hasPermission(request.teamMembership, 'project:edit', { applicationId: request.applicationId })) {
+            return reply.code(403).send({ code: 'protected_instance', error: 'Only an Owner can roll back a protected instance' })
+        }
         let restartProject = false
         try {
             // get (and check) snapshot is valid / owned by project before any actions
