@@ -120,6 +120,10 @@ export default defineComponent({
     }
 
     .list {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+
         .item {
             display: flex;
             gap: 5px;
