@@ -35,6 +35,8 @@ export default {
                     is: {
                         component: markRaw(RollbackSnapshotDialog),
                         payload: {
+                            // The platform dialog keeps its body mounted between opens, so a new key gives each open a fresh preview
+                            key: `${snapshot.id}-${Date.now()}`,
                             instanceId: this.instance.id,
                             snapshotId: snapshot.id
                         },
@@ -44,7 +46,8 @@ export default {
                             }
                         }
                     },
-                    confirmLabel: 'Confirm'
+                    confirmLabel: 'Confirm',
+                    disablePrimary: true
                 }, async () => {
                     if (alterLoadingState) this.loading = true
                     return SnapshotApi.rollbackSnapshot(this.instance.id, snapshot.id, { mergeEnvVars })

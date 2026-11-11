@@ -684,6 +684,9 @@ describe('FlowFuse - Instance Snapshots', () => {
         // (NOTE: this is not testing the full mechanics of the rollback feature, only to prevent repeat regression. See #2032)
         // The response is stubbed so the instance keeps its settings for later specs
         cy.intercept('POST', '/api/*/projects/*/actions/rollback', { statusCode: 200, body: {} }).as('rollbackSnapshot')
+        cy.intercept('GET', '/api/*/projects/*/snapshots/*/rollback-preview', (req) => {
+            req.on('response', (res) => res.setDelay(500))
+        }).as('rollbackPreview')
 
         cy.get('[data-el="snapshots"] tbody').find('tr').first().click()
 
@@ -696,6 +699,11 @@ describe('FlowFuse - Instance Snapshots', () => {
         cy.get('[data-el="platform-dialog"] .ff-dialog-header').contains('Restore Snapshot')
         cy.get('[data-el="platform-dialog"] [data-form="env-vars-mode"]').should('exist')
 
+        // Confirm stays disabled until the env var preview has loaded
+        cy.contains('[data-el="platform-dialog"] .ff-btn--danger', 'Confirm').should('be.disabled')
+        cy.wait('@rollbackPreview')
+        cy.contains('[data-el="platform-dialog"] .ff-btn--danger', 'Confirm').should('not.be.disabled')
+
         // find .ff-btn--danger with text "Confirm" and click it
         cy.get('[data-el="platform-dialog"] .ff-btn--danger').contains('Confirm').click()
 
@@ -706,6 +714,15 @@ describe('FlowFuse - Instance Snapshots', () => {
             expect(body.snapshot).to.be.a('string')
             expect(body.mergeEnvVars).to.equal(true)
         })
+
+        // Opening Restore again fetches a fresh preview
+        cy.get('[data-el="right-drawer"]').within(() => {
+            cy.get('[data-action="restore"]').click()
+        })
+        cy.get('[data-el="platform-dialog"]').should('be.visible')
+        cy.contains('[data-el="platform-dialog"] .ff-btn--danger', 'Confirm').should('be.disabled')
+        cy.wait('@rollbackPreview')
+        cy.contains('[data-el="platform-dialog"] .ff-btn--danger', 'Confirm').should('not.be.disabled')
     })
 })
 

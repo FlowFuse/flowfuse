@@ -29,12 +29,15 @@
 </template>
 
 <script>
+import { mapActions } from 'pinia'
 import { markRaw } from 'vue'
 
 import SnapshotApi from '../../api/projectSnapshots.js'
 import DiffTypeBadge from '../diff/DiffTypeBadge.vue'
 
 import EnvVarChangeValueCell from './rollback-snapshot/EnvVarChangeValueCell.vue'
+
+import { useUxDialogStore } from '@/stores/ux-dialog.js'
 
 export default {
     name: 'RollbackSnapshotDialog',
@@ -96,7 +99,12 @@ export default {
             this.error = true
         } finally {
             this.loading = false
+            // Confirm is disabled until the preview has loaded. A failed preview still allows the restore.
+            this.setDisablePrimary(false)
         }
+    },
+    methods: {
+        ...mapActions(useUxDialogStore, ['setDisablePrimary'])
     }
 }
 </script>
