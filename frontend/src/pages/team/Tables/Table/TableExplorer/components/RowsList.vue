@@ -22,8 +22,11 @@
             <ff-data-table
                 :loading="isLoading"
                 :columns="columns" :rows="rows"
+                :pagination="pagination"
                 class="h-full overflow-auto"
                 tableClass="table-auto overflow-auto"
+                @update:page="onPageChange"
+                @update:page-size="onPageSizeChange"
             />
         </div>
 
@@ -53,14 +56,13 @@ export default defineComponent({
     name: 'RowsList',
     components: { EmptyState, PlusIcon },
     computed: {
-        ...mapState(useProductTablesStore, ['tables', 'tableSelection', 'isLoading', 'selectedTable']),
+        ...mapState(useProductTablesStore, ['tables', 'tableSelection', 'isLoading', 'selectedTable', 'page', 'pageSize']),
         ...mapState(useContextStore, ['team']),
         columns () {
             return (this.selectedTable?.schema ?? []).map((row) => {
                 return {
                     key: row.safeName,
                     html: `<span >${escapeHtml(row.name)}</span> <span class="text-gray-400">${escapeHtml(row.type)}</span>`,
-                    sortable: true,
                     component: {
                         is: this.getTableComponent(row.type),
                         extraProps: {},
@@ -80,6 +82,13 @@ export default defineComponent({
         },
         rows () {
             return (this.selectedTable?.payload?.safe ?? [])
+        },
+        pagination () {
+            return {
+                page: this.page,
+                pageSize: this.pageSize,
+                total: this.selectedTable?.payload?.total ?? 0
+            }
         }
     },
     watch: {
@@ -104,7 +113,7 @@ export default defineComponent({
         this.updateTableSelection(null)
     },
     methods: {
-        ...mapActions(useProductTablesStore, ['getTableSchema', 'getTableData', 'updateTableSelection']),
+        ...mapActions(useProductTablesStore, ['getTableSchema', 'getTableData', 'updateTableSelection', 'setPage', 'setPageSize', 'setTableLoadingState']),
         ...mapActions(useUxDrawersStore, ['openRightDrawer']),
         onCreateTable () {
             this.openRightDrawer({
@@ -112,6 +121,25 @@ export default defineComponent({
                 wider: true,
                 overlay: true
             })
+        },
+        onPageChange (page) {
+            this.setPage(page)
+            this.loadPage()
+        },
+        onPageSizeChange (pageSize) {
+            this.setPageSize(pageSize)
+            this.loadPage()
+        },
+        loadPage () {
+            this.setTableLoadingState(true)
+            return this.getTableData({
+                teamId: this.team.id,
+                databaseId: this.$route.params.id,
+                tableName: this.tableSelection.name,
+                schemaName: this.tableSelection.dbSchema
+            })
+                .catch(e => e)
+                .finally(() => this.setTableLoadingState(false))
         },
         getTableComponent (type) {
             const componentMap = {

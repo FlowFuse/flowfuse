@@ -193,24 +193,62 @@ describe('product-tables store', () => {
     })
 
     describe('getTableData', () => {
-        it('stores data and safe-keyed data on the table', async () => {
+        it('stores data, safe-keyed data and the table total on the table', async () => {
             const store = useProductTablesStore()
             store.tables = { 'db-1': [{ name: 'users' }] }
-            tablesApi.getTableData.mockResolvedValue([{ id: 1, name: 'Alice' }])
+            tablesApi.getTableData.mockResolvedValue({ count: 42, rows: [{ id: 1, name: 'Alice' }] })
             await store.getTableData({ databaseId: 'db-1', tableName: 'users', teamId: 'team-1' })
             const table = store.tables['db-1'][0]
             expect(table.payload.data).toEqual([{ id: 1, name: 'Alice' }])
             expect(table.payload.safe[0].safe_id).toBe(1)
+            expect(table.payload.total).toBe(42)
+        })
+
+        it('asks for the first page of 25 rows by default', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            tablesApi.getTableData.mockResolvedValue({ count: 0, rows: [] })
+            await store.getTableData({ databaseId: 'db-1', tableName: 'users', teamId: 'team-1' })
+            expect(tablesApi.getTableData).toHaveBeenCalledWith('team-1', 'db-1', 'users', undefined, { page: 1, limit: 25 })
+        })
+
+        it('asks for the current page at the current page size', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            tablesApi.getTableData.mockResolvedValue({ count: 0, rows: [] })
+            store.setPageSize(50)
+            store.setPage(3)
+            await store.getTableData({ databaseId: 'db-1', tableName: 'users', teamId: 'team-1' })
+            expect(tablesApi.getTableData).toHaveBeenCalledWith('team-1', 'db-1', 'users', undefined, { page: 3, limit: 50 })
         })
 
         it('only updates the table matching both name and schemaName when schemaName is given', async () => {
             const store = useProductTablesStore()
             store.tables = { 'db-1': [{ name: 'users', dbSchema: 'public' }, { name: 'users', dbSchema: 'reports' }] }
-            tablesApi.getTableData.mockResolvedValue([{ id: 1, name: 'Alice' }])
+            tablesApi.getTableData.mockResolvedValue({ count: 1, rows: [{ id: 1, name: 'Alice' }] })
             await store.getTableData({ databaseId: 'db-1', tableName: 'users', teamId: 'team-1', schemaName: 'reports' })
-            expect(tablesApi.getTableData).toHaveBeenCalledWith('team-1', 'db-1', 'users', 'reports')
+            expect(tablesApi.getTableData).toHaveBeenCalledWith('team-1', 'db-1', 'users', 'reports', { page: 1, limit: 25 })
             expect(store.tables['db-1'][0].payload).toBeUndefined()
             expect(store.tables['db-1'][1].payload.data).toEqual([{ id: 1, name: 'Alice' }])
+        })
+    })
+
+    describe('paging', () => {
+        it('goes back to the first page when the page size changes', () => {
+            const store = useProductTablesStore()
+            store.setPage(4)
+            store.setPageSize(100)
+            expect(store.pageSize).toBe(100)
+            expect(store.page).toBe(1)
+        })
+
+        it('goes back to the first page when another table is selected, keeping the page size', () => {
+            const store = useProductTablesStore()
+            store.setPageSize(50)
+            store.setPage(4)
+            store.updateTableSelection({ name: 'orders', dbSchema: 'public' })
+            expect(store.page).toBe(1)
+            expect(store.pageSize).toBe(50)
         })
     })
 
