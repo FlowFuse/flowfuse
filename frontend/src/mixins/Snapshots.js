@@ -31,8 +31,13 @@ export default {
                 Dialog.show({
                     header: 'Restore Snapshot',
                     kind: 'danger',
+                    boxClass: 'max-w-[56rem]! w-full!',
                     is: {
                         component: markRaw(RollbackSnapshotDialog),
+                        payload: {
+                            instanceId: this.instance.id,
+                            snapshotId: snapshot.id
+                        },
                         on: {
                             'merge-env-vars-changed' (value) {
                                 mergeEnvVars = value

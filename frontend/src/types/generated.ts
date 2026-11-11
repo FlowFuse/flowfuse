@@ -5175,6 +5175,100 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{instanceId}/snapshots/{snapshotId}/rollback-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Preview the environment variable changes a rollback to a snapshot would make
+         * @description Returns the changes for both rollback options: merge (mergeEnvVars: true) and replace (mergeEnvVars: false). Values of hidden environment variables are never returned.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    instanceId: string;
+                    snapshotId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            env?: {
+                                merge?: {
+                                    added?: {
+                                        name?: string;
+                                        hidden?: boolean;
+                                        from?: string;
+                                        to?: string;
+                                    }[];
+                                    changed?: {
+                                        name?: string;
+                                        hidden?: boolean;
+                                        from?: string;
+                                        to?: string;
+                                    }[];
+                                    removed?: {
+                                        name?: string;
+                                        hidden?: boolean;
+                                        from?: string;
+                                        to?: string;
+                                    }[];
+                                };
+                                replace?: {
+                                    added?: {
+                                        name?: string;
+                                        hidden?: boolean;
+                                        from?: string;
+                                        to?: string;
+                                    }[];
+                                    changed?: {
+                                        name?: string;
+                                        hidden?: boolean;
+                                        from?: string;
+                                        to?: string;
+                                    }[];
+                                    removed?: {
+                                        name?: string;
+                                        hidden?: boolean;
+                                        from?: string;
+                                        to?: string;
+                                    }[];
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects/{instanceId}/snapshots/{snapshotId}/export": {
         parameters: {
             query?: never;
