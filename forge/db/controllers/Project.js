@@ -412,14 +412,11 @@ module.exports = {
      * Describe how rolling an instance back to a snapshot changes its env vars, for both the merge and replace options.
      * Values of hidden env vars are never included.
      * @param {*} app - The application instance
-     * @param {Object} project - The instance
+     * @param {Object} project - The instance, loaded via `byId` so it has its template attached
      * @param {Object} snapshot - The snapshot
      * @returns {Promise<{merge: EnvVarChanges, replace: EnvVarChanges}>}
      */
     previewSnapshotEnvVarChanges: async function (app, project, snapshot) {
-        if (!project.ProjectTemplate) {
-            project = await app.db.models.Project.byId(project.id)
-        }
         // Compare what the instance actually runs with: template env vars overlaid by the instance's own, without platform FF_* vars
         const templateEnv = project.ProjectTemplate?.settings?.env || []
         const effectiveEnv = (env) => overlayEnvVars(templateEnv, app.db.controllers.Project.removePlatformSpecificEnvVars(env))
