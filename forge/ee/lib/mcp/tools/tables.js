@@ -158,7 +158,8 @@ module.exports = [
         title: 'Query Database Table Data',
         description: `FlowFuse platform automation tool:
             Reads the row data of a table in a FlowFuse Tables database. There are no column-filter parameters; this returns rows as stored.
-            At most 10 rows are returned per call (the limit is capped at 10 by the platform).
+            Rows come back one page at a time, ordered by the primary key (or by physical row order when the table has none). Use page and limit to move through the table.
+            count and meta.total are the total number of rows in the table, not the number returned; meta.pageCount is the number of pages at the current limit.
             schemaName is required, since the same table name can exist in more than one schema; get it from platform_list_database_tables.
             Use platform_get_database_table first if you need to know the column names and types.`,
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
@@ -167,7 +168,8 @@ module.exports = [
             databaseId: databaseIdSchema,
             tableName: tableNameSchema,
             schemaName: schemaNameSchema,
-            limit: z.number().int().min(1).max(10).default(10).optional().describe('Maximum number of rows to return (1-10, default 10)')
+            page: z.number().int().min(1).default(1).optional().describe('1 based page number to return (default 1)'),
+            limit: z.number().int().min(1).max(100).default(10).optional().describe('Number of rows per page (1-100, default 10)')
         },
         outputSchema: {
             count: countSchema,
@@ -177,6 +179,9 @@ module.exports = [
         handler: async (args, { inject }) => {
             const basePath = `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables/${encodeURIComponent(args.tableName)}/data/${encodeURIComponent(args.schemaName)}`
             const params = new URLSearchParams()
+            if (args.page !== undefined) {
+                params.set('page', String(args.page))
+            }
             if (args.limit !== undefined) {
                 params.set('limit', String(args.limit))
             }

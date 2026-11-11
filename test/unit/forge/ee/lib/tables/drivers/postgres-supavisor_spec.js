@@ -443,100 +443,100 @@ describe('Tables: Postgres Supavisor Driver', function () {
     })
 
     describe('getTableData', function () {
-        it('should return rows if found', async function () {
-            const team = { id: 1, hashid: 't1hash' }
-            const dbObj = { TeamId: 1 }
-            app.db.models.Table.byId.resolves(dbObj)
-            await driver.init(app, options)
+        const team = { id: 1, hashid: 't1hash' }
+        const pkQuery = sinon.match(/indisprimary/)
+        const countQuery = sinon.match(/^SELECT count\(\*\)/)
+        const rowsQuery = sinon.match(/^SELECT \* FROM/)
+
+        // stubs the team client with a table of `total` rows, keyed by `primaryKey` columns
+        function setup ({ schema = 'public', primaryKey = ['id'], total = 1, rows = [{ id: 1, name: 'foo' }] } = {}) {
+            app.db.models.Table.byId.resolves({ TeamId: 1 })
             const query = sinon.stub()
-            query.onFirstCall().resolves({ rows: [{ schemaname: 'public' }] })
-            query.onSecondCall().resolves({ rows: [{ id: 1, name: 'foo' }] })
+            query.withArgs(sinon.match(/pg_tables/)).resolves({ rows: schema ? [{ schemaname: schema }] : [] })
+            query.withArgs(pkQuery).resolves({ rows: primaryKey.map(attname => ({ attname })) })
+            query.withArgs(countQuery).resolves({ rows: [{ total: String(total) }] })
+            query.withArgs(rowsQuery).resolves({ rows })
             pgClients[team.hashid] = {
                 connect: sinon.stub().resolves(),
                 query,
                 end: sinon.stub().resolves()
             }
-            const client = pgClients[team.hashid] // Use the team hashid as key
+            return query
+        }
+
+        it('should return the first page ordered by the primary key, with the table total', async function () {
+            const query = setup({ total: 42 })
+            await driver.init(app, options)
             const result = await driver.getTableData(team, team.hashid, 'table1', { limit: 5 })
             result.rows.should.eql([{ id: 1, name: 'foo' }])
-            client.connect.calledOnce.should.be.true()
-            query.secondCall.calledWith('SELECT * FROM "public"."table1" LIMIT $1', [5]).should.be.true()
-            client.end.calledOnce.should.be.true()
+            result.count.should.equal(42)
+            result.meta.should.eql({ page: 1, pageSize: 5, total: 42, pageCount: 9 })
+            query.calledWith(pkQuery, ['"public"."table1"']).should.be.true()
+            query.calledWith('SELECT count(*) AS total FROM "public"."table1"').should.be.true()
+            query.calledWith('SELECT * FROM "public"."table1" ORDER BY "id" LIMIT $1 OFFSET $2', [5, 0]).should.be.true()
+            pgClients[team.hashid].connect.calledOnce.should.be.true()
+            pgClients[team.hashid].end.calledOnce.should.be.true()
         })
-        it('should return empty array if no rows', async function () {
-            const team = { id: 1, hashid: 't1hash' }
-            const dbObj = { TeamId: 1 }
-            app.db.models.Table.byId.resolves(dbObj)
+        it('should offset by the requested page', async function () {
+            const query = setup({ total: 42 })
             await driver.init(app, options)
-            const query = sinon.stub()
-            query.onFirstCall().resolves({ rows: [{ schemaname: 'public' }] })
-            query.onSecondCall().resolves({ rows: [] })
-            pgClients[team.hashid] = {
-                connect: sinon.stub().resolves(),
-                query,
-                end: sinon.stub().resolves()
-            }
-            const client = pgClients[team.hashid] // Use the team hashid as key
+            const result = await driver.getTableData(team, team.hashid, 'table1', { page: 3, limit: 5 })
+            result.meta.should.eql({ page: 3, pageSize: 5, total: 42, pageCount: 9 })
+            query.calledWith('SELECT * FROM "public"."table1" ORDER BY "id" LIMIT $1 OFFSET $2', [5, 10]).should.be.true()
+        })
+        it('should order by every column of a composite primary key', async function () {
+            const query = setup({ primaryKey: ['line', 'machine'] })
+            await driver.init(app, options)
+            await driver.getTableData(team, team.hashid, 'table1', { limit: 5 })
+            query.calledWith('SELECT * FROM "public"."table1" ORDER BY "line", "machine" LIMIT $1 OFFSET $2', [5, 0]).should.be.true()
+        })
+        it('should order by physical row position when the table has no primary key', async function () {
+            const query = setup({ primaryKey: [] })
+            await driver.init(app, options)
+            await driver.getTableData(team, team.hashid, 'table1', { limit: 5 })
+            query.calledWith('SELECT * FROM "public"."table1" ORDER BY ctid LIMIT $1 OFFSET $2', [5, 0]).should.be.true()
+        })
+        it('should default to 10 rows and cap the page size at 100', async function () {
+            const query = setup({ total: 1000 })
+            await driver.init(app, options)
+            const defaulted = await driver.getTableData(team, team.hashid, 'table1', {})
+            defaulted.meta.should.eql({ page: 1, pageSize: 10, total: 1000, pageCount: 100 })
+            const capped = await driver.getTableData(team, team.hashid, 'table1', { limit: 5000 })
+            capped.meta.should.eql({ page: 1, pageSize: 100, total: 1000, pageCount: 10 })
+            query.calledWith(rowsQuery, [100, 0]).should.be.true()
+        })
+        it('should return an empty single page for an empty table', async function () {
+            setup({ total: 0, rows: [] })
+            await driver.init(app, options)
             const result = await driver.getTableData(team, team.hashid, 'table1', { limit: 5 })
-            result.rows.should.eql([])
-            client.connect.calledOnce.should.be.true()
-            query.secondCall.calledWith('SELECT * FROM "public"."table1" LIMIT $1', [5]).should.be.true()
-            client.end.calledOnce.should.be.true()
+            result.should.eql({ count: 0, rows: [], meta: { page: 1, pageSize: 5, total: 0, pageCount: 1 } })
         })
         it('should look up and use the table\'s actual schema when it is not in public', async function () {
-            const team = { id: 1, hashid: 't1hash' }
-            const dbObj = { TeamId: 1 }
-            app.db.models.Table.byId.resolves(dbObj)
+            const query = setup({ schema: 'other_schema' })
             await driver.init(app, options)
-            const query = sinon.stub()
-            query.onFirstCall().resolves({ rows: [{ schemaname: 'other_schema' }] })
-            query.onSecondCall().resolves({ rows: [{ id: 1, name: 'foo' }] })
-            pgClients[team.hashid] = {
-                connect: sinon.stub().resolves(),
-                query,
-                end: sinon.stub().resolves()
-            }
             const result = await driver.getTableData(team, team.hashid, 'table1', { limit: 5 })
             result.rows.should.eql([{ id: 1, name: 'foo' }])
-            query.secondCall.calledWith('SELECT * FROM "other_schema"."table1" LIMIT $1', [5]).should.be.true()
+            query.calledWith('SELECT * FROM "other_schema"."table1" ORDER BY "id" LIMIT $1 OFFSET $2', [5, 0]).should.be.true()
         })
         it('should not run the schema lookup and use the given schema when schemaName is provided', async function () {
-            const team = { id: 1, hashid: 't1hash' }
-            const dbObj = { TeamId: 1 }
-            app.db.models.Table.byId.resolves(dbObj)
+            const query = setup()
             await driver.init(app, options)
-            const query = sinon.stub().resolves({ rows: [{ id: 1, name: 'foo' }] })
-            pgClients[team.hashid] = {
-                connect: sinon.stub().resolves(),
-                query,
-                end: sinon.stub().resolves()
-            }
             const result = await driver.getTableData(team, team.hashid, 'table1', { limit: 5 }, 'reports')
             result.rows.should.eql([{ id: 1, name: 'foo' }])
-            query.calledOnce.should.be.true()
-            query.calledWith('SELECT * FROM "reports"."table1" LIMIT $1', [5]).should.be.true()
+            query.calledWith(sinon.match(/pg_tables/)).should.be.false()
+            query.calledWith('SELECT * FROM "reports"."table1" ORDER BY "id" LIMIT $1 OFFSET $2', [5, 0]).should.be.true()
         })
         it('should query without a schema qualifier when the table\'s schema cannot be resolved', async function () {
-            const team = { id: 1, hashid: 't1hash' }
-            const dbObj = { TeamId: 1 }
-            app.db.models.Table.byId.resolves(dbObj)
+            const query = setup({ schema: null })
             await driver.init(app, options)
-            const query = sinon.stub()
-            query.onFirstCall().resolves({ rows: [] })
-            query.onSecondCall().resolves({ rows: [{ id: 1, name: 'foo' }] })
-            pgClients[team.hashid] = {
-                connect: sinon.stub().resolves(),
-                query,
-                end: sinon.stub().resolves()
-            }
             const result = await driver.getTableData(team, team.hashid, 'table1', { limit: 5 })
             result.rows.should.eql([{ id: 1, name: 'foo' }])
-            query.secondCall.calledWith('SELECT * FROM "table1" LIMIT $1', [5]).should.be.true()
+            query.calledWith('SELECT * FROM "table1" ORDER BY "id" LIMIT $1 OFFSET $2', [5, 0]).should.be.true()
         })
         it('should throw if db does not exist', async function () {
             app.db.models.Table.byId.resolves(null)
             await driver.init(app, options)
-            await driver.getTableData({ id: 1, hashid: 't1hash' }, 'dbid', 'table1', 5).should.be.rejectedWith('Database dbid for team t1hash does not exist')
+            await driver.getTableData({ id: 1, hashid: 't1hash' }, 'dbid', 'table1', {}).should.be.rejectedWith('Database dbid for team t1hash does not exist')
         })
     })
 

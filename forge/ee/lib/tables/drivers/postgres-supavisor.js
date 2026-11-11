@@ -283,7 +283,6 @@ module.exports = {
         }
     },
     getTableData: async function (team, database, table, pagination, schemaName) {
-        const rows = Math.min(parseInt(pagination.limit) || 10, 10)
         const databaseExists = await this._app.db.models.Table.byId(team.id, database)
         if (!databaseExists || databaseExists.TeamId !== team.id) {
             throw new Error(`Database ${database} for team ${team.hashid} does not exist`)
@@ -299,21 +298,7 @@ module.exports = {
                 }
                 const escapedTable = libPg.pg.escapeIdentifier(table)
                 const qualifiedTable = resolvedSchema ? `${libPg.pg.escapeIdentifier(resolvedSchema)}.${escapedTable}` : escapedTable
-                const query = `SELECT * FROM ${qualifiedTable} LIMIT $1`
-                const res = await teamClient.query(query, [rows || 10])
-                if (res.rows && res.rows.length > 0) {
-                    return {
-                        count: res.rows.length,
-                        rows: res.rows,
-                        meta: {}
-                    }
-                } else {
-                    return {
-                        count: 0,
-                        rows: [],
-                        meta: {}
-                    }
-                }
+                return await libPg.getTableDataPage(teamClient, qualifiedTable, pagination)
             } finally {
                 teamClient.end()
             }
