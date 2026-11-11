@@ -90,12 +90,12 @@ describe('Node-RED Editor Login', function () {
         return app.close()
     })
 
-    async function doEditorLogin (userToken, scope, dashboardOnly = false, clientID) {
+    async function doEditorLogin (userToken, scope, dashboardOnly = false, client = TestObjects.tokens.Instance1) {
         const state = base64URLEncode(crypto.randomBytes(16))
         const verifier = base64URLEncode(crypto.randomBytes(32))
         const redirectCallback = 'http://example.com/auth/strategy/callback'
         const params = {}
-        clientID = clientID || TestObjects.tokens.Instance1.clientID
+        const clientID = client.clientID
         params.client_id = clientID
         params.scope = scope
         params.response_type = 'code'
@@ -146,6 +146,7 @@ describe('Node-RED Editor Login', function () {
         params2.code = callbackURL.searchParams.get('code')
         params2.redirect_uri = redirectCallback
         params2.client_id = clientID
+        params2.client_secret = client.clientSecret
         params2.code_verifier = verifier
 
         const response3 = await app.inject({
@@ -239,7 +240,7 @@ describe('Node-RED Editor Login', function () {
     })
 
     it('httpAuth login via oauth flow for device', async function () {
-        const tokens = await doEditorLogin(TestObjects.tokens.alice, 'httpAuth-0.18', false, TestObjects.device1AuthClient.clientID)
+        const tokens = await doEditorLogin(TestObjects.tokens.alice, 'httpAuth-0.18', false, TestObjects.device1AuthClient)
         const response = await app.inject({
             url: '/api/v1/user',
             method: 'GET',

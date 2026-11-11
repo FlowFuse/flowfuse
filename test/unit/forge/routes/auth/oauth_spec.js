@@ -73,7 +73,7 @@ describe('OAuth', async function () {
 
         async function runFullLogin (user) {
             const instanceCreds = await app.project.refreshAuthTokens()
-            const clientID = instanceCreds.clientID
+            const { clientID, clientSecret } = instanceCreds
 
             // 1. Initial request
             const requestOptions = generateOAuthRequest({ clientID })
@@ -112,6 +112,7 @@ describe('OAuth', async function () {
                     code: callbackUrl.searchParams.get('code'),
                     redirect_uri: callbackURL,
                     client_id: clientID,
+                    client_secret: clientSecret,
                     code_verifier: requestOptions.verifier
                 }
             })
@@ -369,34 +370,43 @@ describe('OAuth', async function () {
             scope.should.equal('read')
         })
 
-        async function mintEditorToken (user) {
-            const instanceCreds = await app.project.refreshAuthTokens()
-            const clientID = instanceCreds.clientID
+        async function issueEditorCode (user) {
+            const { clientID, clientSecret } = await app.project.refreshAuthTokens()
             const requestOptions = generateOAuthRequest({ clientID })
             const response = await app.inject({ method: 'GET', url: requestOptions.authURL, cookies: { sid: TestObjects.tokens[user.username] } })
             const m = /(\/account\/complete\/[^/]+)$/.exec(response.headers.location)
             const response2 = await app.inject({ method: 'GET', url: m[1], cookies: { sid: TestObjects.tokens[user.username] } })
-            const callbackUrl = new URL(response2.headers.location)
-            const response3 = await app.inject({
+            const code = new URL(response2.headers.location).searchParams.get('code')
+            return { clientID, clientSecret, code, verifier: requestOptions.verifier }
+        }
+
+        function exchangeCode ({ clientID, code, verifier }, clientSecret) {
+            return app.inject({
                 url: tokenURL,
                 method: 'POST',
                 payload: {
                     grant_type: 'authorization_code',
-                    code: callbackUrl.searchParams.get('code'),
+                    code,
                     redirect_uri: callbackURL,
                     client_id: clientID,
-                    code_verifier: requestOptions.verifier
+                    client_secret: clientSecret,
+                    code_verifier: verifier
                 }
             })
-            response3.should.have.property('statusCode', 200)
-            return { clientID, ...response3.json() }
         }
 
-        function refreshGrant (clientID, refreshToken) {
+        async function mintEditorToken (user) {
+            const issued = await issueEditorCode(user)
+            const response = await exchangeCode(issued, issued.clientSecret)
+            response.should.have.property('statusCode', 200)
+            return { clientID: issued.clientID, clientSecret: issued.clientSecret, ...response.json() }
+        }
+
+        function refreshGrant (clientID, refreshToken, clientSecret) {
             return app.inject({
                 url: tokenURL,
                 method: 'POST',
-                payload: { grant_type: 'refresh_token', client_id: clientID, refresh_token: refreshToken }
+                payload: { grant_type: 'refresh_token', client_id: clientID, client_secret: clientSecret, refresh_token: refreshToken }
             })
         }
 
@@ -405,7 +415,7 @@ describe('OAuth', async function () {
             const minted = await mintEditorToken(TestObjects.bob)
             minted.should.have.property('refresh_token')
 
-            const active = await refreshGrant(minted.clientID, minted.refresh_token)
+            const active = await refreshGrant(minted.clientID, minted.refresh_token, minted.clientSecret)
             active.should.have.property('statusCode', 200)
             const rotated = active.json().refresh_token || minted.refresh_token
 
@@ -413,7 +423,7 @@ describe('OAuth', async function () {
             TestObjects.bob.suspended = true
             await TestObjects.bob.save()
             try {
-                const denied = await refreshGrant(minted.clientID, rotated)
+                const denied = await refreshGrant(minted.clientID, rotated, minted.clientSecret)
                 denied.should.have.property('statusCode', 400)
                 denied.json().should.have.property('error', 'access_denied')
             } finally {
@@ -435,6 +445,49 @@ describe('OAuth', async function () {
                 TestObjects.bob.suspended = false
                 await TestObjects.bob.save()
             }
+        })
+
+        describe('token client validation', function () {
+            beforeEach(async function () {
+                await app.team.addUser(TestObjects.bob, { through: { role: app.factory.Roles.Roles.Owner } })
+            })
+
+            it('rejects the code exchange with incomplete client credentials', async function () {
+                const issued = await issueEditorCode(TestObjects.bob)
+                const response = await exchangeCode(issued)
+                response.should.have.property('statusCode', 400)
+                response.json().should.have.property('error', 'invalid_request')
+                response.json().should.not.have.property('access_token')
+            })
+
+            it('rejects the code exchange with invalid client credentials', async function () {
+                const issued = await issueEditorCode(TestObjects.bob)
+                const response = await exchangeCode(issued, 'wrong-secret')
+                response.should.have.property('statusCode', 400)
+                response.json().should.have.property('error', 'invalid_request')
+                response.json().should.not.have.property('access_token')
+            })
+
+            it('rejects the refresh grant with incomplete client credentials', async function () {
+                const minted = await mintEditorToken(TestObjects.bob)
+                const response = await refreshGrant(minted.clientID, minted.refresh_token)
+                response.should.have.property('statusCode', 400)
+                response.json().should.have.property('error', 'invalid_request')
+                response.json().should.not.have.property('access_token')
+            })
+
+            it('rejects the refresh grant for a device client with incomplete client credentials', async function () {
+                const device = await app.factory.createDevice({ name: 'secret-device' }, app.team)
+                try {
+                    const { clientID } = await app.db.controllers.AuthClient.createClientForDevice(device)
+                    const response = await refreshGrant(clientID, 'any-refresh-token')
+                    response.should.have.property('statusCode', 400)
+                    response.json().should.have.property('error', 'invalid_request')
+                } finally {
+                    await app.db.controllers.AuthClient.removeClientForDevice(device)
+                    await device.destroy()
+                }
+            })
         })
     })
 
