@@ -17,7 +17,7 @@
 
                 <EmptyState>
                     <template #img>
-                        <img alt="empty-state-logo" src="../../../images/empty-states/application-instances.png">
+                        <img alt="empty-state-logo" src="../../../images/empty-states/team-tables-unavailable.png">
                     </template>
                     <template #header>Tables are not available!</template>
                     <template #message>
