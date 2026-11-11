@@ -32,8 +32,8 @@
 import { markRaw } from 'vue'
 
 import SnapshotApi from '../../api/projectSnapshots.js'
+import DiffTypeBadge from '../diff/DiffTypeBadge.vue'
 
-import EnvVarChangeKindCell from './rollback-snapshot/EnvVarChangeKindCell.vue'
 import EnvVarChangeValueCell from './rollback-snapshot/EnvVarChangeValueCell.vue'
 
 export default {
@@ -65,7 +65,7 @@ export default {
                 }
             ],
             columns: [
-                { label: 'Change', key: 'kind', class: ['w-28'], component: { is: markRaw(EnvVarChangeKindCell), bind: { kind: 'kind' } } },
+                { label: 'Change', key: 'kind', class: ['w-28'], component: { is: markRaw(DiffTypeBadge), bind: { type: 'kind' } } },
                 { label: 'Name', key: 'name', class: ['w-1/3', 'break-all'] },
                 { label: 'Value', key: 'to', component: { is: markRaw(EnvVarChangeValueCell), bind: { kind: 'kind', hidden: 'hidden', from: 'from', to: 'to' } } }
             ],
