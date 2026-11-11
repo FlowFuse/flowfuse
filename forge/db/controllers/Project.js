@@ -32,6 +32,17 @@ const publishLocks = new Map()
  */
 
 /**
+ * The env vars an instance runs with: its template's env vars, with the instance's own replacing any of the same name
+ * @param {Array} templateEnv - template env vars ([{ name, value, hidden }])
+ * @param {Array} instanceEnv - instance env vars ([{ name, value, hidden }])
+ * @returns {Array} env vars in the same format
+ */
+function overlayEnvVars (templateEnv = [], instanceEnv = []) {
+    const instanceNames = new Set(instanceEnv.map(envVar => envVar.name))
+    return [...templateEnv.filter(envVar => !instanceNames.has(envVar.name)), ...instanceEnv]
+}
+
+/**
  * Compare two env var lists in instance settings format ([{ name, value, hidden }])
  * @returns {EnvVarChanges}
  */
@@ -195,14 +206,12 @@ module.exports = {
         // This assumes the project has been loaded via `byId` so that
         // it has the template and ProjectSettings attached
         let result = {}
-        const env = {}
+        let templateEnv = []
+        let instanceEnv = []
         if (project.ProjectTemplate) {
             result = project.ProjectTemplate.settings
-            if (result.env) {
-                result.env.forEach(envVar => {
-                    env[envVar.name] = envVar.value
-                })
-            }
+            // template env vars are passed as plain values, without the hidden flag
+            templateEnv = (result.env || []).map(({ name, value }) => ({ name, value }))
             // special case for palette.modules - we don't want to inherit
             // the template's list of modules. We want to use the list that
             // is stored in the project's own settings.
@@ -214,20 +223,19 @@ module.exports = {
         if (projectSettingsRow) {
             const projectSettings = projectSettingsRow.value
             result = app.db.controllers.ProjectTemplate.mergeSettings(result, projectSettings)
-            const envVars = app.db.controllers.Project.insertPlatformSpecificEnvVars(project, result.env)
-            // envVars is an array of env var objects. Need to convert to an env var object and merge into
-            // the existing env object
-            // convert  [{name: 'a', value: '1'}, {name: 'b', value: '2'}]  >> to >>  { a: 1, b: 2 }
-            envVars.forEach(envVar => {
-                if (envVar.hidden) {
-                    // Maintain the hidden flag
-                    // TODO: handle encrypted values
-                    env[envVar.name] = { value: envVar.value, hidden: true }
-                } else {
-                    env[envVar.name] = envVar.value
-                }
-            })
+            instanceEnv = app.db.controllers.Project.insertPlatformSpecificEnvVars(project, result.env)
         }
+        // convert  [{name: 'a', value: '1'}, {name: 'b', value: '2'}]  >> to >>  { a: 1, b: 2 }
+        const env = {}
+        overlayEnvVars(templateEnv, instanceEnv).forEach(envVar => {
+            if (envVar.hidden) {
+                // Maintain the hidden flag
+                // TODO: handle encrypted values
+                env[envVar.name] = { value: envVar.value, hidden: true }
+            } else {
+                env[envVar.name] = envVar.value
+            }
+        })
         // If we don't have any modules listed in project settings. We should
         // look them up from StorageSettings in case this is a pre-existing project
         // that has nodes installed from before we started tracking them ourselves
@@ -414,11 +422,7 @@ module.exports = {
         }
         // Compare what the instance actually runs with: template env vars overlaid by the instance's own, without platform FF_* vars
         const templateEnv = project.ProjectTemplate?.settings?.env || []
-        const effectiveEnv = (env) => {
-            const instanceEnv = app.db.controllers.Project.removePlatformSpecificEnvVars(env)
-            const instanceNames = new Set(instanceEnv.map(envVar => envVar.name))
-            return [...templateEnv.filter(envVar => !instanceNames.has(envVar.name)), ...instanceEnv]
-        }
+        const effectiveEnv = (env) => overlayEnvVars(templateEnv, app.db.controllers.Project.removePlatformSpecificEnvVars(env))
         const currentSettings = await project.getSetting('settings') || {}
         const currentEnv = effectiveEnv(currentSettings.env)
         const result = {}
