@@ -696,6 +696,8 @@ describe('FlowFuse - Instance Snapshots', () => {
         cy.get('[data-el="platform-dialog"] .ff-dialog-header').contains('Restore Snapshot')
         cy.get('[data-el="platform-dialog"] [data-form="env-vars-mode"]').should('exist')
 
+        cy.intercept('GET', '/api/*/projects/*').as('reloadInstance')
+
         // find .ff-btn--danger with text "Confirm" and click it
         cy.get('[data-el="platform-dialog"] .ff-btn--danger').contains('Confirm').click()
 
@@ -706,6 +708,9 @@ describe('FlowFuse - Instance Snapshots', () => {
             expect(body.snapshot).to.be.a('string')
             expect(body.mergeEnvVars).to.equal(true)
         })
+
+        // the instance is reloaded so its settings, such as env vars, reflect the restore
+        cy.wait('@reloadInstance')
     })
 })
 
