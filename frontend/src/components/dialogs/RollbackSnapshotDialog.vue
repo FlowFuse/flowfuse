@@ -13,7 +13,10 @@
             :options="envVarsOptions"
         />
         <div data-el="env-vars-preview">
-            <ff-loading v-if="loading" scale="tiny" message="Checking environment variable changes..." />
+            <div v-if="loading" class="flex items-center gap-2 rounded border border-gray-200 bg-gray-50 px-4 py-3 text-gray-500" data-el="env-vars-preview-loading">
+                <ff-spinner />
+                <span>Checking environment variable changes...</span>
+            </div>
             <p v-else-if="error" class="text-gray-500">Could not check which environment variables will change.</p>
             <ff-data-table
                 v-else
@@ -74,7 +77,8 @@ export default {
             ],
             loading: true,
             error: false,
-            preview: null
+            preview: null,
+            unmounted: false
         }
     },
     computed: {
@@ -99,9 +103,15 @@ export default {
             this.error = true
         } finally {
             this.loading = false
-            // Confirm is disabled until the preview has loaded. A failed preview still allows the restore.
+        }
+        // Confirm is disabled until the preview has loaded. A failed preview still allows the restore.
+        // A dialog closed before its preview loaded must not enable Confirm on the dialog opened after it.
+        if (!this.unmounted) {
             this.setDisablePrimary(false)
         }
+    },
+    beforeUnmount () {
+        this.unmounted = true
     },
     methods: {
         ...mapActions(useUxDialogStore, ['setDisablePrimary'])

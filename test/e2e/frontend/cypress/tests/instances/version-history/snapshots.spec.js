@@ -724,6 +724,28 @@ describe('FlowFuse - Instance Snapshots', () => {
         cy.wait('@rollbackPreview')
         cy.contains('[data-el="platform-dialog"] .ff-btn--danger', 'Confirm').should('not.be.disabled')
     })
+
+    it('Does not enable Confirm when the preview of a cancelled restore loads', () => {
+        // The first preview loads quickly, the second one slowly
+        let previewRequests = 0
+        cy.intercept('GET', '/api/*/projects/*/snapshots/*/rollback-preview', (req) => {
+            previewRequests += 1
+            const delay = previewRequests === 1 ? 500 : 5000
+            req.on('response', (res) => res.setDelay(delay))
+        }).as('rollbackPreview')
+
+        cy.get('[data-el="snapshots"] tbody').find('tr').first().click()
+        cy.get('[data-el="right-drawer"] [data-action="restore"]').click()
+        cy.get('[data-el="platform-dialog"] [data-el="env-vars-preview-loading"]').should('be.visible')
+        cy.get('[data-el="platform-dialog"] [data-action="dialog-cancel"]').click()
+
+        cy.get('[data-el="right-drawer"] [data-action="restore"]').click()
+        cy.wait('@rollbackPreview')
+
+        // The first preview has loaded, the second is still loading
+        cy.get('[data-el="platform-dialog"] [data-el="env-vars-preview-loading"]').should('be.visible')
+        cy.contains('[data-el="platform-dialog"] .ff-btn--danger', 'Confirm').should('be.disabled')
+    })
 })
 
 describe('FlowFuse shows audit logs', () => {
