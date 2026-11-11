@@ -78,4 +78,51 @@ describe('Users API - MFA', async function () {
             })
         })
     })
+
+    describe('MFA routes with a Personal Access Token', async function () {
+        let user
+        let headers
+
+        beforeEach(async function () {
+            user = await app.factory.createUser({
+                username: 'patuser',
+                name: 'PAT User',
+                email: 'pat@example.com',
+                password: 'ppPassword'
+            })
+            const pat = await app.db.controllers.AccessToken.createPersonalAccessToken(user, '', null, 'mfa-pat')
+            headers = { authorization: `Bearer ${pat.token}` }
+        })
+        afterEach(async function () {
+            await app.db.models.MFAToken.deleteTokenForUser(user)
+            await user.destroy()
+        })
+
+        it('cannot start MFA enrolment', async function () {
+            const response = await app.inject({ method: 'PUT', url: '/api/v1/user/mfa', headers })
+            response.statusCode.should.equal(403)
+            should.not.exist(await app.db.models.MFAToken.forUser(user))
+        })
+
+        it('cannot complete MFA enrolment or mint a session cookie', async function () {
+            const mfaToken = await app.db.models.MFAToken.createTokenForUser(user)
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/mfa/verify',
+                headers,
+                payload: { token: mfaToken.generateToken() }
+            })
+            response.statusCode.should.equal(403)
+            response.cookies.should.have.length(0)
+            await user.reload()
+            user.mfa_enabled.should.be.false()
+        })
+
+        it('cannot disable MFA', async function () {
+            await app.db.models.MFAToken.createTokenForUser(user)
+            const response = await app.inject({ method: 'DELETE', url: '/api/v1/user/mfa', headers })
+            response.statusCode.should.equal(403)
+            should.exist(await app.db.models.MFAToken.forUser(user))
+        })
+    })
 })
