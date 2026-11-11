@@ -8798,13 +8798,12 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
+                            /** @description Total number of rows in the table */
                             count?: number;
                             rows?: {
                                 [key: string]: unknown;
                             }[];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
+                            meta?: components["schemas"]["PaginationMeta"];
                         };
                     };
                 };
