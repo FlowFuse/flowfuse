@@ -5,7 +5,7 @@
             <!-- eslint-disable-next-line vue/no-v-html -->
             <span v-html="html" />
         </span>
-        <XMarkIcon class="ff-icon cursor-pointer shrink-0" data-action="dismiss-team-banner" @click="dismiss" />
+        <XMarkIcon v-if="dismissible" class="ff-icon cursor-pointer shrink-0" @click="dismiss" />
     </div>
 </template>
 
@@ -16,13 +16,14 @@ import { computed } from 'vue'
 import { sanitize } from '@/composables/strings/String.js'
 import { useUxStore } from '@/stores/ux.js'
 
-const props = defineProps<{ team: { id: string, type: { properties: { teamBanner?: string } } } }>()
+const props = defineProps<{ team: { id: string, type: { properties: { teamBanner?: string, teamBannerDismissible?: boolean } } } }>()
 
 const uxStore = useUxStore()
 
 const banner = computed(() => props.team.type.properties.teamBanner)
+const dismissible = computed(() => props.team.type.properties.teamBannerDismissible !== false)
 const html = computed(() => banner.value ? sanitize(banner.value, { targetBlank: true }) : '')
-const visible = computed(() => !!html.value && uxStore.dismissedTeamBanners[props.team.id] !== banner.value)
+const visible = computed(() => !!html.value && !(dismissible.value && uxStore.dismissedTeamBanners[props.team.id] === banner.value))
 
 function dismiss () {
     uxStore.dismissTeamBanner(props.team.id, banner.value)
