@@ -92,7 +92,14 @@ export const useProductTablesStore = defineStore('product-tables', {
             })
         },
         async getTableData ({ databaseId, tableName, teamId, schemaName }) {
-            const { rows: data, count: total } = await tablesApi.getTableData(teamId, databaseId, tableName, schemaName, { page: this.page, limit: this.pageSize })
+            const fetchPage = () => tablesApi.getTableData(teamId, databaseId, tableName, schemaName, { page: this.page, limit: this.pageSize })
+            let res = await fetchPage()
+            const lastPage = Math.max(1, Math.ceil(res.count / this.pageSize))
+            if (this.page > lastPage) {
+                this.page = lastPage
+                res = await fetchPage()
+            }
+            const { rows: data, count: total } = res
             const payload = {
                 data,
                 safe: data.map(row => Object.fromEntries(Object.entries(row).map(([k, v]) => [hashString(k), v]))),
