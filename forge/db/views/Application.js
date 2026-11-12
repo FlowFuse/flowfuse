@@ -148,12 +148,12 @@ module.exports = function (app) {
             additionalProperties: false
         }
     })
-    async function applicationAssociationsStatusList (applicationsArray) {
+    async function applicationAssociationsStatusList (applicationsArray, { includeEditorUrl = () => false } = {}) {
         return Promise.all(applicationsArray.map(async (application) => {
             return {
                 id: application.hashid,
                 instances: await app.db.views.Project.instanceStatusList(application.Instances),
-                devices: await app.db.views.Device.deviceStatusList(application.Devices, { includeEditor: true })
+                devices: await app.db.views.Device.deviceStatusList(application.Devices, { includeEditor: true, includeEditorUrl: includeEditorUrl(application) })
             }
         }))
     }

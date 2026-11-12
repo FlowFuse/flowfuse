@@ -121,6 +121,7 @@ import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.v
 import alerts from '../../../services/alerts.js'
 import SnapshotCreateDialog from '../dialogs/SnapshotCreateDialog.vue'
 
+import usePermissions from '@/composables/Permissions.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
@@ -148,6 +149,10 @@ export default {
         }
     },
     emits: ['close-tunnel', 'open-tunnel'],
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         return {
             agentSupportsDeviceAccess: false,
@@ -172,7 +177,7 @@ export default {
             return !!this.device?.editor?.connected
         },
         editorCanBeEnabled: function () {
-            return this.developerMode && this.device.status === 'running'
+            return this.developerMode && this.device.status === 'running' && this.hasPermission('device:editor', { application: this.device.application })
         },
         createSnapshotDisabled () {
             return this.device.ownerType !== 'application' && this.device.ownerType !== 'instance'

@@ -38,6 +38,14 @@ describe('Device Editor API', function () {
         const team2 = await app.factory.createTeam({ name: 'BTeam' })
         await team2.addUser(userBob, { through: { role: Roles.Owner } })
 
+        const userChris = await app.factory.createUser({ username: 'chris', name: 'Chris', email: 'chris@example.com', password: 'ccPassword' })
+        await app.team.addUser(userChris, { through: { role: Roles.Viewer } })
+        await login('chris', 'ccPassword')
+
+        const userDave = await app.factory.createUser({ username: 'dave', name: 'Dave', email: 'dave@example.com', password: 'ddPassword' })
+        await app.team.addUser(userDave, { through: { role: Roles.Dashboard } })
+        await login('dave', 'ddPassword')
+
         sinon.stub(app.comms.devices, 'enableEditor').callsFake(async function (teamId, deviceId, accessToken) {
             if (deviceId === app.failingDevice.hashid) {
                 return {
@@ -304,6 +312,41 @@ describe('Device Editor API', function () {
                 wrongTeamResponse.statusCode.should.equal(303)
             })
 
+            it('Proxy HTTP GET and POST - forbidden for Viewer and Dashboard roles', async function () {
+                for (const user of ['chris', 'dave']) {
+                    const getResponse = await app.inject({
+                        method: 'GET',
+                        url: `/api/v1/devices/${app.device.hashid}/editor/proxy/GET`,
+                        cookies: { sid: TestObjects.tokens[user] }
+                    })
+                    getResponse.statusCode.should.equal(403)
+                    const postResponse = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/devices/${app.device.hashid}/editor/proxy/POST`,
+                        payload: { a: 1 },
+                        cookies: { sid: TestObjects.tokens[user] }
+                    })
+                    postResponse.statusCode.should.equal(403)
+                }
+            })
+
+            it('Proxy websocket comms - forbidden for Viewer and Dashboard roles', async function () {
+                for (const user of ['chris', 'dave']) {
+                    const statusCode = await new Promise((resolve, reject) => {
+                        const ws = new WebSocket(`ws://localhost:${app.server.address().port}/api/v1/devices/${app.device.hashid}/editor/proxy/comms`, {
+                            headers: { cookie: `sid=${TestObjects.tokens[user]}` }
+                        })
+                        ws.on('unexpected-response', (req, res) => resolve(res.statusCode))
+                        ws.on('open', () => {
+                            ws.close()
+                            reject(new Error(`websocket opened for ${user}`))
+                        })
+                        ws.on('error', () => {})
+                    })
+                    statusCode.should.equal(403)
+                }
+            })
+
             it('Proxy HTTP GET - succeeds', async function () {
                 const response = await app.inject({
                     method: 'GET',
@@ -367,5 +410,177 @@ describe('Device Editor API', function () {
             it.skip('editor websocket handling')
         })
         it.skip('GET /api/v1/devices/:deviceId/editor/token')
+    })
+
+    describe('editor url visibility', function () {
+        let appDevice
+
+        before(async function () {
+            appDevice = await app.factory.createDevice({ name: 'appDevice', mode: 'developer' }, app.team, null, app.application)
+            await setDeviceEditorStatus(app.device.hashid, TestObjects.tokens.alice, true)
+            await setDeviceEditorStatus(appDevice.hashid, TestObjects.tokens.alice, true)
+            await app.device.reload()
+            await app.device.update({ state: 'running' })
+            await appDevice.reload()
+            await appDevice.update({ state: 'running' })
+
+            await app.factory.createUser({ username: 'erin', name: 'Erin', email: 'erin@example.com', password: 'eePassword', admin: true })
+            await login('erin', 'eePassword')
+
+            const userMia = await app.factory.createUser({ username: 'mia', name: 'Mia', email: 'mia@example.com', password: 'mmPassword' })
+            await app.team.addUser(userMia, { through: { role: Roles.Member } })
+            await login('mia', 'mmPassword')
+        })
+
+        after(async function () {
+            await setDeviceEditorStatus(app.device.hashid, TestObjects.tokens.alice, false)
+            await setDeviceEditorStatus(appDevice.hashid, TestObjects.tokens.alice, false)
+        })
+
+        async function get (url, user) {
+            const response = await app.inject({ method: 'GET', url, cookies: { sid: TestObjects.tokens[user] } })
+            response.statusCode.should.equal(200)
+            return response.json()
+        }
+
+        function editorsOf (devices) {
+            return devices.filter(d => d.editor?.enabled).map(d => d.editor)
+        }
+
+        it('GET /devices/:id hides the url from a Viewer', async function () {
+            const viewer = await get(`/api/v1/devices/${app.device.hashid}`, 'chris')
+            viewer.editor.should.have.property('enabled', true)
+            viewer.editor.should.not.have.property('url')
+
+            const owner = await get(`/api/v1/devices/${app.device.hashid}`, 'alice')
+            owner.editor.should.have.property('url')
+        })
+
+        it('routes that return the url are forbidden to a Dashboard user', async function () {
+            const urls = [
+                `/api/v1/devices/${app.device.hashid}`,
+                `/api/v1/teams/${app.team.hashid}/devices`,
+                `/api/v1/applications/${app.application.hashid}/devices`,
+                `/api/v1/projects/${app.instance.id}/devices`,
+                `/api/v1/teams/${app.team.hashid}/applications/status`
+            ]
+            for (const url of urls) {
+                const response = await app.inject({ method: 'GET', url, cookies: { sid: TestObjects.tokens.dave } })
+                response.statusCode.should.equal(403, url)
+            }
+        })
+
+        it('GET /devices/:id hides the url from an admin outside the team', async function () {
+            const admin = await get(`/api/v1/devices/${app.device.hashid}`, 'erin')
+            admin.editor.should.have.property('enabled', true)
+            admin.editor.should.not.have.property('url')
+        })
+
+        it('PUT /devices/:id returns the url to an Owner', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/devices/${app.device.hashid}`,
+                payload: { name: 'device1' },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            response.json().editor.should.have.property('url')
+        })
+
+        it('GET /teams/:id/devices hides the url from a Viewer', async function () {
+            const viewer = editorsOf((await get(`/api/v1/teams/${app.team.hashid}/devices`, 'chris')).devices)
+            viewer.length.should.be.above(0)
+            viewer.forEach(editor => editor.should.not.have.property('url'))
+
+            const member = editorsOf((await get(`/api/v1/teams/${app.team.hashid}/devices`, 'mia')).devices)
+            member.length.should.be.above(0)
+            member.forEach(editor => editor.should.have.property('url'))
+        })
+
+        it('GET /applications/:id/devices hides the url from a Viewer', async function () {
+            const viewer = editorsOf((await get(`/api/v1/applications/${app.application.hashid}/devices`, 'chris')).devices)
+            viewer.length.should.be.above(0)
+            viewer.forEach(editor => editor.should.not.have.property('url'))
+
+            const member = editorsOf((await get(`/api/v1/applications/${app.application.hashid}/devices`, 'mia')).devices)
+            member.length.should.be.above(0)
+            member.forEach(editor => editor.should.have.property('url'))
+        })
+
+        it('GET /projects/:id/devices hides the url from a Viewer', async function () {
+            const viewer = editorsOf((await get(`/api/v1/projects/${app.instance.id}/devices`, 'chris')).devices)
+            viewer.length.should.be.above(0)
+            viewer.forEach(editor => editor.should.not.have.property('url'))
+
+            const member = editorsOf((await get(`/api/v1/projects/${app.instance.id}/devices`, 'mia')).devices)
+            member.length.should.be.above(0)
+            member.forEach(editor => editor.should.have.property('url'))
+        })
+
+        it('GET /teams/:id/applications/status hides the url from a Viewer', async function () {
+            const viewerApps = (await get(`/api/v1/teams/${app.team.hashid}/applications/status`, 'chris')).applications
+            const viewer = editorsOf(viewerApps.flatMap(a => a.devices))
+            viewer.length.should.be.above(0)
+            viewer.forEach(editor => editor.should.not.have.property('url'))
+
+            const memberApps = (await get(`/api/v1/teams/${app.team.hashid}/applications/status`, 'mia')).applications
+            const member = editorsOf(memberApps.flatMap(a => a.devices))
+            member.length.should.be.above(0)
+            member.forEach(editor => editor.should.have.property('url'))
+        })
+
+        describe('application role overrides', function () {
+            before(async function () {
+                app.config.features.register('rbacApplication', true, false)
+
+                const userNina = await app.factory.createUser({ username: 'nina', name: 'Nina', email: 'nina@example.com', password: 'nnPassword' })
+                await app.team.addUser(userNina, { through: { role: Roles.Member } })
+                const ninaMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: app.team.id, UserId: userNina.id } })
+                ninaMembership.permissions = { applications: { [app.application.hashid]: Roles.Viewer } }
+                await ninaMembership.save()
+                await login('nina', 'nnPassword')
+
+                const userOscar = await app.factory.createUser({ username: 'oscar', name: 'Oscar', email: 'oscar@example.com', password: 'ooPassword' })
+                await app.team.addUser(userOscar, { through: { role: Roles.Viewer } })
+                const oscarMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: app.team.id, UserId: userOscar.id } })
+                oscarMembership.permissions = { applications: { [app.application.hashid]: Roles.Member } }
+                await oscarMembership.save()
+                await login('oscar', 'ooPassword')
+            })
+
+            it('proxy forbids a Member downgraded to Viewer on the instance\'s application', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${app.device.hashid}/editor/proxy/GET`,
+                    cookies: { sid: TestObjects.tokens.nina }
+                })
+                response.statusCode.should.equal(403)
+            })
+
+            it('proxy allows a Viewer upgraded to Member on the instance\'s application', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${app.device.hashid}/editor/proxy/GET`,
+                    cookies: { sid: TestObjects.tokens.oscar }
+                })
+                response.statusCode.should.equal(502)
+            })
+
+            it('GET /teams/:id/devices uses the instance\'s application role for an instance-owned device', async function () {
+                const editorFor = async (user) => {
+                    const devices = (await get(`/api/v1/teams/${app.team.hashid}/devices`, user)).devices
+                    const device = devices.find(d => d.id === app.device.hashid)
+                    device.should.have.property('instance')
+                    return device.editor
+                }
+
+                const downgraded = await editorFor('nina')
+                downgraded.should.have.property('enabled', true)
+                downgraded.should.not.have.property('url')
+
+                const upgraded = await editorFor('oscar')
+                upgraded.should.have.property('url')
+            })
+        })
     })
 })

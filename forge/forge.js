@@ -164,6 +164,16 @@ module.exports = async (options = {}) => {
 
     if (runtimeConfig.telemetry.backend?.sentry?.dsn) {
         Sentry.setupFastifyErrorHandler(server)
+        // Sentry only isolates scopes for HTTP 'request' events. Without this,
+        // Sentry.setUser on a WebSocket upgrade writes to the global scope and
+        // tags later unrelated errors with that user.
+        server.addHook('onRequest', (request, reply, done) => {
+            if (request.raw.headers.upgrade) {
+                Sentry.withIsolationScope(() => done())
+            } else {
+                done()
+            }
+        })
     }
 
     if (runtimeConfig.telemetry.backend?.prometheus?.enabled) {

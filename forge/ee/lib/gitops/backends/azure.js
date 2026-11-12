@@ -10,7 +10,7 @@ const axios = require('axios')
 
 const { encryptValue, decryptValue } = require('../../../../db/utils')
 
-const { cloneRepository } = require('./utils')
+const { cloneRepository, resolveRepoFile, validateRepoUrl, writeRepoFile } = require('./utils')
 
 module.exports.init = async function (app) {
     /**
@@ -30,10 +30,12 @@ module.exports.init = async function (app) {
         try {
             const token = repoOptions.token
             const branch = repoOptions.branch || 'main'
-            if (!/^https:\/\/dev.azure.com/i.test(repoOptions.url)) {
+            let url
+            try {
+                url = validateRepoUrl(repoOptions.url, { allowedHosts: ['dev.azure.com'] })
+            } catch (err) {
                 throw new Error('Only Azure repositories are supported')
             }
-            const url = new URL(repoOptions.url)
             url.username = token
 
             const match = /^https:\/\/dev.azure.com\/(?<org>[^/]+)(\/(?<project>[^/]+))?\/_git\/.+$/.exec(repoOptions.url)
@@ -86,8 +88,8 @@ module.exports.init = async function (app) {
                 const enc = encryptValue(repoOptions.credentialSecret, snapshotExport.settings.settings?.palette?.npmrc)
                 snapshotExport.settings.settings.palette.npmrc = { $: enc }
             }
-            const snapshotFile = path.join(workingDir, repoOptions.path || 'snapshot.json').replace(/"/g, '')
-            await fs.writeFile(snapshotFile, JSON.stringify(snapshotExport, null, 4))
+            const snapshotFile = await resolveRepoFile(workingDir, repoOptions.path || 'snapshot.json')
+            await writeRepoFile(snapshotFile, JSON.stringify(snapshotExport, null, 4))
 
             // 6. stage file
             await execFilePromised('git', ['add', snapshotFile], { cwd: workingDir })
@@ -138,10 +140,12 @@ module.exports.init = async function (app) {
         try {
             const token = repoOptions.token
             const branch = repoOptions.branch || 'main'
-            if (!/^https:\/\/dev.azure.com/i.test(repoOptions.url)) {
+            let url
+            try {
+                url = validateRepoUrl(repoOptions.url, { allowedHosts: ['dev.azure.com'] })
+            } catch (err) {
                 throw new Error('Only Azure repositories are supported')
             }
-            const url = new URL(repoOptions.url)
             url.username = token
 
             workingDir = await fs.mkdtemp(path.join(os.tmpdir(), 'flowfuse-git-repo-'))
@@ -149,7 +153,7 @@ module.exports.init = async function (app) {
             // 3. clone repo
             await cloneRepository(url, branch, workingDir)
 
-            const snapshotFile = path.join(workingDir, repoOptions.path || 'snapshot.json').replace(/"/g, '')
+            const snapshotFile = await resolveRepoFile(workingDir, repoOptions.path || 'snapshot.json')
 
             if (!existsSync(snapshotFile)) {
                 throw new Error('Snapshot file not found in repository')

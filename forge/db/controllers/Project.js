@@ -18,6 +18,68 @@ const lastPublishedProjectState = 'project-lastPublishedProjectState'
 
 const publishLocks = new Map()
 
+/**
+ * @typedef {Object} EnvVarChange
+ * @property {string} name
+ * @property {boolean} hidden - true when the env var is hidden before or after the change; its values are then omitted
+ * @property {string} [from] - current value, for plain env vars that are changed or removed
+ * @property {string} [to] - new value, for plain env vars that are added or changed
+ *
+ * @typedef {Object} EnvVarChanges
+ * @property {EnvVarChange[]} added
+ * @property {EnvVarChange[]} changed
+ * @property {EnvVarChange[]} removed
+ */
+
+/**
+ * The env vars an instance runs with: its template's env vars, with the instance's own replacing any of the same name
+ * @param {Array} templateEnv - template env vars ([{ name, value, hidden }])
+ * @param {Array} instanceEnv - instance env vars ([{ name, value, hidden }])
+ * @returns {Array} env vars in the same format
+ */
+function overlayEnvVars (templateEnv = [], instanceEnv = []) {
+    const instanceNames = new Set(instanceEnv.map(envVar => envVar.name))
+    return [...templateEnv.filter(envVar => !instanceNames.has(envVar.name)), ...instanceEnv]
+}
+
+/**
+ * Compare two env var lists in instance settings format ([{ name, value, hidden }])
+ * @returns {EnvVarChanges}
+ */
+function diffEnvVars (currentEnv, updatedEnv) {
+    const current = new Map(currentEnv.map(envVar => [envVar.name, envVar]))
+    const updated = new Map(updatedEnv.map(envVar => [envVar.name, envVar]))
+    const changes = { added: [], changed: [], removed: [] }
+    for (const [name, envVar] of updated) {
+        const previous = current.get(name)
+        if (!previous) {
+            changes.added.push(describeEnvVarChange(name, undefined, envVar))
+        } else if (previous.value !== envVar.value || !!previous.hidden !== !!envVar.hidden) {
+            changes.changed.push(describeEnvVarChange(name, previous, envVar))
+        }
+    }
+    for (const [name, envVar] of current) {
+        if (!updated.has(name)) {
+            changes.removed.push(describeEnvVarChange(name, envVar, undefined))
+        }
+    }
+    return changes
+}
+
+function describeEnvVarChange (name, previous, next) {
+    const hidden = !!(previous?.hidden || next?.hidden)
+    const change = { name, hidden }
+    if (!hidden) {
+        if (previous) {
+            change.from = previous.value
+        }
+        if (next) {
+            change.to = next.value
+        }
+    }
+    return change
+}
+
 module.exports = {
 
     init (app) {
@@ -144,14 +206,12 @@ module.exports = {
         // This assumes the project has been loaded via `byId` so that
         // it has the template and ProjectSettings attached
         let result = {}
-        const env = {}
+        let templateEnv = []
+        let instanceEnv = []
         if (project.ProjectTemplate) {
             result = project.ProjectTemplate.settings
-            if (result.env) {
-                result.env.forEach(envVar => {
-                    env[envVar.name] = envVar.value
-                })
-            }
+            // template env vars are passed as plain values, without the hidden flag
+            templateEnv = (result.env || []).map(({ name, value }) => ({ name, value }))
             // special case for palette.modules - we don't want to inherit
             // the template's list of modules. We want to use the list that
             // is stored in the project's own settings.
@@ -163,20 +223,19 @@ module.exports = {
         if (projectSettingsRow) {
             const projectSettings = projectSettingsRow.value
             result = app.db.controllers.ProjectTemplate.mergeSettings(result, projectSettings)
-            const envVars = app.db.controllers.Project.insertPlatformSpecificEnvVars(project, result.env)
-            // envVars is an array of env var objects. Need to convert to an env var object and merge into
-            // the existing env object
-            // convert  [{name: 'a', value: '1'}, {name: 'b', value: '2'}]  >> to >>  { a: 1, b: 2 }
-            envVars.forEach(envVar => {
-                if (envVar.hidden) {
-                    // Maintain the hidden flag
-                    // TODO: handle encrypted values
-                    env[envVar.name] = { value: envVar.value, hidden: true }
-                } else {
-                    env[envVar.name] = envVar.value
-                }
-            })
+            instanceEnv = app.db.controllers.Project.insertPlatformSpecificEnvVars(project, result.env)
         }
+        // convert  [{name: 'a', value: '1'}, {name: 'b', value: '2'}]  >> to >>  { a: 1, b: 2 }
+        const env = {}
+        overlayEnvVars(templateEnv, instanceEnv).forEach(envVar => {
+            if (envVar.hidden) {
+                // Maintain the hidden flag
+                // TODO: handle encrypted values
+                env[envVar.name] = { value: envVar.value, hidden: true }
+            } else {
+                env[envVar.name] = envVar.value
+            }
+        })
         // If we don't have any modules listed in project settings. We should
         // look them up from StorageSettings in case this is a pre-existing project
         // that has nodes installed from before we started tracking them ourselves
@@ -275,6 +334,58 @@ module.exports = {
         return projectExport
     },
 
+    /**
+     * Build the instance settings that result from applying a snapshot's settings.
+     * Returns null when the snapshot carries no settings, in which case the instance settings are left unchanged.
+     * @param {*} app - The application instance
+     * @param {Object} project - The instance the snapshot is applied to
+     * @param {Object} snapshot - The snapshot
+     * @param {Object} options
+     * @param {boolean} options.mergeEnvVars - Keep the instance's env vars and add only those missing from the snapshot
+     * @param {boolean} options.mergeEditorSettings - Keep the instance's editor settings
+     */
+    buildSnapshotSettings: async function (app, project, snapshot, { mergeEnvVars = false, mergeEditorSettings = false } = {}) {
+        if (!snapshot?.settings?.settings && !snapshot?.settings?.env) {
+            return null
+        }
+        const snapshotSettings = JSON.parse(JSON.stringify(snapshot.settings.settings || {}))
+        snapshotSettings.env = []
+        const envVarKeys = Object.keys(snapshot.settings.env || {})
+        if (envVarKeys?.length) {
+            envVarKeys.forEach(key => {
+                const value = snapshot.settings.env[key]
+                if (typeof value === 'object' && value !== null && Object.hasOwn(value, 'hidden')) {
+                    snapshotSettings.env.push({
+                        name: key,
+                        value: snapshot.settings.env[key].value,
+                        hidden: snapshot.settings.env[key].hidden
+                    })
+                } else {
+                    snapshotSettings.env.push({
+                        name: key,
+                        value
+                    })
+                }
+            })
+        }
+        if (snapshotSettings.palette?.modules) {
+            const moduleList = []
+            for (const [name, version] of Object.entries(snapshotSettings.palette.modules)) {
+                moduleList.push({ name, version, local: true })
+            }
+            snapshotSettings.palette.modules = moduleList
+        } else {
+            snapshotSettings.palette = snapshotSettings.palette || {}
+            snapshotSettings.palette.modules = []
+        }
+        if (!project.ProjectTemplate) {
+            project = await app.db.models.Project.byId(project.id)
+        }
+        const newSettings = app.db.controllers.ProjectTemplate.validateSettings(snapshotSettings, project.ProjectTemplate, true)
+        const currentProjectSettings = await project.getSetting('settings') || {}
+        return app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings, { mergeEnvVars, mergeEditorSettings, targetTemplate: project.ProjectTemplate })
+    },
+
     importProjectSnapshot: async function restoreSnapshot (app, project, snapshot, { mergeEnvVars, mergeEditorSettings } = { mergeEnvVars: false, mergeEditorSettings: false }) {
         const t = await app.db.sequelize.transaction() // start a transaction
         try {
@@ -286,50 +397,37 @@ module.exports = {
                     await app.db.controllers.StorageCredentials.updateOrCreateForProject(project, snapshot.flows.credentials, { transaction: t })
                 }
             }
-            if (snapshot?.settings?.settings || snapshot?.settings?.env) {
-                const snapshotSettings = JSON.parse(JSON.stringify(snapshot.settings.settings || {}))
-                snapshotSettings.env = []
-                const envVarKeys = Object.keys(snapshot.settings.env || {})
-                if (envVarKeys?.length) {
-                    envVarKeys.forEach(key => {
-                        const value = snapshot.settings.env[key]
-                        if (typeof value === 'object' && value !== null && Object.hasOwn(value, 'hidden')) {
-                            snapshotSettings.env.push({
-                                name: key,
-                                value: snapshot.settings.env[key].value,
-                                hidden: snapshot.settings.env[key].hidden
-                            })
-                        } else {
-                            snapshotSettings.env.push({
-                                name: key,
-                                value
-                            })
-                        }
-                    })
-                }
-                if (snapshotSettings.palette?.modules) {
-                    const moduleList = []
-                    for (const [name, version] of Object.entries(snapshotSettings.palette.modules)) {
-                        moduleList.push({ name, version, local: true })
-                    }
-                    snapshotSettings.palette.modules = moduleList
-                } else {
-                    snapshotSettings.palette = snapshotSettings.palette || {}
-                    snapshotSettings.palette.modules = []
-                }
-                if (!project.ProjectTemplate) {
-                    project = await app.db.models.Project.byId(project.id)
-                }
-                const newSettings = app.db.controllers.ProjectTemplate.validateSettings(snapshotSettings, project.ProjectTemplate, true)
-                const currentProjectSettings = await project.getSetting('settings') || {} // necessary?
-                const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings, { mergeEnvVars, mergeEditorSettings, targetTemplate: project.ProjectTemplate })
-                await project.updateSetting('settings', updatedSettings, { transaction: t }) // necessary?
+            const updatedSettings = await app.db.controllers.Project.buildSnapshotSettings(project, snapshot, { mergeEnvVars, mergeEditorSettings })
+            if (updatedSettings) {
+                await project.updateSetting('settings', updatedSettings, { transaction: t })
             }
             await t.commit() // all good, commit the transaction
         } catch (error) {
             await t.rollback() // rollback the transaction.
             throw error
         }
+    },
+
+    /**
+     * Describe how rolling an instance back to a snapshot changes its env vars, for both the merge and replace options.
+     * Values of hidden env vars are never included.
+     * @param {*} app - The application instance
+     * @param {Object} project - The instance, loaded via `byId` so it has its template attached
+     * @param {Object} snapshot - The snapshot
+     * @returns {Promise<{merge: EnvVarChanges, replace: EnvVarChanges}>}
+     */
+    previewSnapshotEnvVarChanges: async function (app, project, snapshot) {
+        // Compare what the instance actually runs with: template env vars overlaid by the instance's own, without platform FF_* vars
+        const templateEnv = project.ProjectTemplate?.settings?.env || []
+        const effectiveEnv = (env) => overlayEnvVars(templateEnv, app.db.controllers.Project.removePlatformSpecificEnvVars(env))
+        const currentSettings = await project.getSetting('settings') || {}
+        const currentEnv = effectiveEnv(currentSettings.env)
+        const result = {}
+        for (const mode of ['merge', 'replace']) {
+            const updatedSettings = await app.db.controllers.Project.buildSnapshotSettings(project, snapshot, { mergeEnvVars: mode === 'merge' })
+            result[mode] = diffEnvVars(currentEnv, updatedSettings ? effectiveEnv(updatedSettings.env) : currentEnv)
+        }
+        return result
     },
 
     /**
@@ -472,7 +570,7 @@ module.exports = {
             throw new ControllerError('invalid_project_name', 'name not allowed', 409)
         }
 
-        if (/^[a-zA-Z][a-zA-Z0-9-]*$/.test(safeName) === false) {
+        if (app.db.models.Project.NAME_PATTERN.test(safeName) === false) {
             throw new ControllerError('invalid_project_name', 'name not allowed', 409)
         }
 
