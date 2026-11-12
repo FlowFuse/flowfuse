@@ -1,8 +1,22 @@
 <template>
     <section id="rows-list" data-el="rows-list">
-        <div v-if="!selectedTable" class="no-content w-full h-full flex justify-center items-center text-gray-400">
-            <p>Select a table to get going!</p>
-        </div>
+        <EmptyState v-if="hasNoTables" class="no-tables" data-el="no-tables">
+            <template #img>
+                <img alt="No tables" src="../../../../../../images/empty-states/team-tables.png">
+            </template>
+            <template #header>No tables yet</template>
+            <template #message>
+                <p>Create your first table and its rows will show up here, ready to browse.</p>
+            </template>
+            <template #actions>
+                <ff-button data-action="create-table" @click="onCreateTable">
+                    <template #icon-left><PlusIcon /></template>
+                    Create Table
+                </ff-button>
+            </template>
+        </EmptyState>
+
+        <div v-else-if="!selectedTable" class="no-content w-full h-full" />
 
         <div v-else-if="selectedTable && selectedTable.schema" class="content overflow-auto h-full">
             <ff-data-table
@@ -20,19 +34,26 @@
 </template>
 
 <script>
+import { PlusIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 import { defineComponent, markRaw } from 'vue'
 
+import CreateTable from '../drawers/CreateTable.vue'
+
 import TextCell from './table-cells/text-cell.vue'
+
+import EmptyState from '@/components/EmptyState.vue'
 
 import { escapeHtml } from '@/composables/strings/String.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default defineComponent({
     name: 'RowsList',
+    components: { EmptyState, PlusIcon },
     computed: {
-        ...mapState(useProductTablesStore, ['tableSelection', 'isLoading', 'selectedTable']),
+        ...mapState(useProductTablesStore, ['tables', 'tableSelection', 'isLoading', 'selectedTable']),
         ...mapState(useContextStore, ['team']),
         columns () {
             return (this.selectedTable?.schema ?? []).map((row) => {
@@ -52,6 +73,10 @@ export default defineComponent({
                     headerClass: 'sticky top-0'
                 }
             })
+        },
+        // only once the tables have been loaded, so the empty state does not flash while they are
+        hasNoTables () {
+            return this.tables[this.$route.params.id]?.length === 0
         },
         rows () {
             return (this.selectedTable?.payload?.safe ?? [])
@@ -80,6 +105,14 @@ export default defineComponent({
     },
     methods: {
         ...mapActions(useProductTablesStore, ['getTableSchema', 'getTableData', 'updateTableSelection']),
+        ...mapActions(useUxDrawersStore, ['openRightDrawer']),
+        onCreateTable () {
+            this.openRightDrawer({
+                component: markRaw(CreateTable),
+                wider: true,
+                overlay: true
+            })
+        },
         getTableComponent (type) {
             const componentMap = {
                 text: TextCell
@@ -103,6 +136,19 @@ export default defineComponent({
     height: 100%;
     width: 100%;
     overflow: auto;
+
+    // fill the pane, so the empty state lines up with the tables list next to it
+    .no-tables {
+        height: 100%;
+
+        // the content centres itself (margin: auto), and scrolls if the pane is too short for it
+        :deep(.ff-empty-state) {
+            height: 100%;
+            display: flex;
+            padding: 24px;
+            overflow-y: auto;
+        }
+    }
 
     .header {
         border-bottom: 1px solid var(--ff-color-border);
