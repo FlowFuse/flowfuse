@@ -1041,6 +1041,106 @@ describe('Project Snapshots API', function () {
             replaced.should.be.empty()
         })
 
+        describe('Preview env var changes', function () {
+            const preview = (snapshotId, { instanceId = app.project.id, sid = TestObjects.tokens.alice } = {}) => app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${instanceId}/snapshots/${snapshotId}/rollback-preview`,
+                cookies: { sid }
+            })
+            const byName = (changes) => Object.fromEntries(changes.map(change => [change.name, change]))
+            const getStoredEnv = async () => {
+                const settings = await app.db.models.ProjectSettings.findOne({ where: { ProjectId: app.project.id, key: 'settings' } })
+                return Object.fromEntries(settings.value.env.map(envVar => [envVar.name, envVar.value]))
+            }
+
+            it('lists plain env var changes for merge and replace, and matches the rollback result', async function () {
+                await setEnv([
+                    { name: 'one', value: 'a' },
+                    { name: 'two', value: 'b' }
+                ])
+                const snapshot = (await createSnapshot(TestObjects.project1.id, 'preview-plain-snapshot', TestObjects.tokens.alice)).json()
+                await setEnv([
+                    { name: 'one', value: 'a2' },
+                    { name: 'three', value: 'c' }
+                ])
+
+                const response = await preview(snapshot.id)
+                response.statusCode.should.equal(200)
+                const { env } = response.json()
+
+                env.merge.should.eql({
+                    added: [{ name: 'two', hidden: false, to: 'b' }],
+                    changed: [],
+                    removed: []
+                })
+                env.replace.added.should.eql([{ name: 'two', hidden: false, to: 'b' }])
+                env.replace.changed.should.eql([{ name: 'one', hidden: false, from: 'a2', to: 'a' }])
+                env.replace.removed.should.eql([{ name: 'three', hidden: false, from: 'c' }])
+
+                // previewing does not change the instance
+                ;(await getStoredEnv()).should.eql({ one: 'a2', three: 'c' })
+
+                ;(await rollback({ snapshot: snapshot.id, mergeEnvVars: false })).statusCode.should.equal(200)
+                ;(await getStoredEnv()).should.eql({ one: 'a', two: 'b' })
+            })
+
+            it('never returns hidden env var values', async function () {
+                const secrets = ['hidden-kept-value', 'hidden-snapshot-value', 'hidden-new-value', 'hidden-added-value', 'hidden-flip-value', 'hidden-only-snapshot-value']
+                await setEnv([
+                    { name: 'kept', value: secrets[0], hidden: true },
+                    { name: 'secret', value: secrets[1], hidden: true },
+                    { name: 'flip', value: secrets[4], hidden: true },
+                    { name: 'snapOnly', value: secrets[5], hidden: true }
+                ])
+                const snapshot = (await createSnapshot(TestObjects.project1.id, 'preview-hidden-snapshot', TestObjects.tokens.alice)).json()
+                await setEnv([
+                    { name: 'kept', value: secrets[0], hidden: true },
+                    { name: 'secret', value: secrets[2], hidden: true },
+                    { name: 'flip', value: 'now-plain' },
+                    { name: 'instOnly', value: secrets[3], hidden: true }
+                ])
+
+                const response = await preview(snapshot.id)
+                response.statusCode.should.equal(200)
+                for (const secret of secrets) {
+                    response.body.should.not.containEql(secret)
+                }
+                const { env } = response.json()
+
+                env.merge.should.eql({
+                    added: [{ name: 'snapOnly', hidden: true }],
+                    changed: [],
+                    removed: []
+                })
+
+                byName(env.replace.added).should.eql({ snapOnly: { name: 'snapOnly', hidden: true } })
+                byName(env.replace.changed).should.eql({
+                    secret: { name: 'secret', hidden: true },
+                    flip: { name: 'flip', hidden: true }
+                })
+                byName(env.replace.removed).should.eql({ instOnly: { name: 'instOnly', hidden: true } })
+            })
+
+            it('returns empty changes when the env vars match the snapshot', async function () {
+                await setEnv([
+                    { name: 'one', value: 'a' },
+                    { name: 'secret', value: 'hidden-value', hidden: true }
+                ])
+                const snapshot = (await createSnapshot(TestObjects.project1.id, 'preview-same-snapshot', TestObjects.tokens.alice)).json()
+
+                const response = await preview(snapshot.id)
+                response.statusCode.should.equal(200)
+                const empty = { added: [], changed: [], removed: [] }
+                response.json().env.should.eql({ merge: empty, replace: empty })
+            })
+
+            it('cannot be previewed by a non-member or for a snapshot of another instance', async function () {
+                const snapshot = (await createSnapshot(TestObjects.project1.id, 'preview-access-snapshot', TestObjects.tokens.alice)).json()
+                ;(await preview(snapshot.id, { sid: TestObjects.tokens.chris })).statusCode.should.equal(404)
+                ;(await preview(snapshot.id, { instanceId: TestObjects.project2.id })).statusCode.should.equal(404)
+            })
+        })
+
         it('rejects a non-boolean mergeEnvVars', async function () {
             const snapshot = (await createSnapshot(TestObjects.project1.id, 'invalid-flag-snapshot', TestObjects.tokens.alice)).json()
             const response = await rollback({ snapshot: snapshot.id, mergeEnvVars: 'abc' })

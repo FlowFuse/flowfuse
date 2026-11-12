@@ -35,6 +35,15 @@ const rollbackSnapshot = async (instanceId, snapshotId, options) => {
 }
 
 /**
+ * Get the environment variable changes a rollback to a snapshot would make, for both the merge and replace options
+ * @param {String} instanceId - instance id
+ * @param {String} snapshotId - snapshot id
+ */
+const getRollbackPreview = (instanceId, snapshotId) => {
+    return client.get(`/api/v1/projects/${instanceId}/snapshots/${snapshotId}/rollback-preview`).then(res => res.data)
+}
+
+/**
  * TODO: Currently hits project API
  */
 const deleteSnapshot = async (instanceId, snapshotId) => {
@@ -98,5 +107,6 @@ export default {
     rollbackSnapshot,
     getSnapshot,
     getInstanceSnapshots,
+    getRollbackPreview,
     exportInstanceSnapshot
 }
