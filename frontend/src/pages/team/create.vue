@@ -50,6 +50,8 @@
                         </template>
                     </FormRow>
 
+                    <p v-if="errors.create" role="alert" class="text-red-500">{{ errors.create }}</p>
+
                     <template v-if="billingEnabled">
                         <div class="mb-8 text-sm text-gray-500 space-y-2">
                             <p v-if="(!presetTeamType && isBillingRequired) || (presetTeamType && !isSelectionTrial && !presetTeamType.isFree)">To create the team we need to setup payment details via Stripe, our secure payment provider.</p>
@@ -238,6 +240,7 @@ export default {
     methods: {
         createTeam () {
             this.loading = true
+            this.errors.create = ''
 
             const opts = {
                 name: this.input.name,
@@ -271,6 +274,8 @@ export default {
                 if (err.response.data) {
                     if (/slug/.test(err.response.data.error)) {
                         this.input.slugError = 'Slug already in use'
+                    } else {
+                        this.errors.create = err.response.data.error
                     }
                 }
             }).finally(() => {
