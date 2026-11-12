@@ -860,6 +860,10 @@ module.exports = async function (app) {
                         reply.code(400).send({ code: 'invalid_team_type', error: 'Invalid team type' })
                         return
                     }
+                    if (app.billing && targetTeamType.id !== request.team.TeamTypeId && targetTeamType.getProperty('billing.requireContact', false) && !request.session.User?.admin) {
+                        reply.code(403).send({ code: 'contact_required', error: 'Contact required for this team type' })
+                        return
+                    }
                     updates = {
                         old: { id: request.team.TeamType.hashid, name: request.team.TeamType.name },
                         new: { id: targetTeamType.hashid, name: targetTeamType.name }
