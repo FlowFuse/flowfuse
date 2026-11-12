@@ -2,6 +2,7 @@ const { Authenticator } = require('@fastify/passport')
 const { MultiSamlStrategy } = require('@node-saml/passport-saml')
 const fp = require('fastify-plugin')
 
+const { localPath } = require('../../../lib/redirect')
 const { generateUsernameFromEmail, generatePassword, completeSSOSignIn, completeUserSignup } = require('../../../lib/userTeam')
 
 module.exports = fp(async function (app, opts) {
@@ -228,7 +229,7 @@ module.exports = fp(async function (app, opts) {
                 let redirectTo = '/'
                 if (request.body?.RelayState) {
                     const state = JSON.parse(request.body.RelayState)
-                    redirectTo = /^\/.*/.test(state.redirectTo) ? state.redirectTo : '/'
+                    redirectTo = localPath(state.redirectTo)
                 }
                 if (request.session.newSSOUser) {
                     delete request.session.newSSOUser
