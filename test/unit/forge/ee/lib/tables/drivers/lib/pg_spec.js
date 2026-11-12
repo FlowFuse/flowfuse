@@ -88,6 +88,18 @@ describe('Tables: helper lib for pg', function () {
             parse(1022, '{NaN,1.5}').should.eql(['NaN', 1.5])
             parse(1001, '{"\\\\xdead"}').should.eql([{ bytes: 2, hex: 'dead' }])
         })
+        it('should keep the items of a numeric array as exact as a single numeric value', function () {
+            parse(1700, '12345678901234567890.123').should.equal('12345678901234567890.123')
+            parse(1231, '{12345678901234567890.123,NaN,NULL}').should.eql(['12345678901234567890.123', 'NaN', null])
+        })
+        it('should keep a timestamp with a time zone holding infinity as text rather than null', function () {
+            parse(1184, 'infinity').should.equal('infinity')
+            parse(1184, '-infinity').should.equal('-infinity')
+            const [infinity, moment] = parse(1185, '{infinity,"2025-08-01 11:20:05+00"}')
+            infinity.should.equal('infinity')
+            moment.toISOString().should.equal('2025-08-01T11:20:05.000Z')
+            JSON.parse(JSON.stringify({ value: parse(1184, 'infinity') })).should.eql({ value: 'infinity' })
+        })
         it('should leave every other type to the default parser', function () {
             parse(23, '42').should.equal(42) // int4
             parse(16, 't').should.equal(true) // bool

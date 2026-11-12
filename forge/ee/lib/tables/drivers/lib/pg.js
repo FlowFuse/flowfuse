@@ -40,7 +40,12 @@ const parseFloatValue = value => {
     const number = parseFloat(value)
     return Number.isFinite(number) ? number : value
 }
-// A timestamp with a time zone stays an ISO UTC string, but infinity has no date form and would otherwise turn into null
+// Postgres sends bytea as `\x` followed by hex. Send its size and the first bytes, not every byte
+const parseBinaryValue = value => {
+    const hex = value.startsWith('\\x') ? value.slice(2) : Buffer.from(value, 'binary').toString('hex')
+    return { bytes: hex.length / 2, hex: hex.slice(0, BINARY_PREVIEW_BYTES * 2) }
+}
+// A timestamp with a time zone stays a Date, but infinity has no date form and would otherwise turn into null
 const defaultTimestamptzParser = pg.types.getTypeParser(1184)
 const parseTimestamptzValue = value => {
     if (value === 'infinity' || value === '-infinity') {
@@ -48,35 +53,23 @@ const parseTimestamptzValue = value => {
     }
     return defaultTimestamptzParser(value)
 }
-// Postgres sends bytea as `\x` followed by hex. Send its size and the first bytes, not every byte
-const parseBinaryValue = value => {
-    const hex = value.startsWith('\\x') ? value.slice(2) : Buffer.from(value, 'binary').toString('hex')
-    return { bytes: hex.length / 2, hex: hex.slice(0, BINARY_PREVIEW_BYTES * 2) }
-}
 const arrayOf = parser => value => pg.types.arrayParser.create(value, parser).parse()
 
-// Postgres type OIDs, see pg_type
-const tableDataParsers = {
-    17: parseBinaryValue, // bytea
-    1001: arrayOf(parseBinaryValue),
-    700: parseFloatValue, // float4
-    1021: arrayOf(parseFloatValue),
-    701: parseFloatValue, // float8
-    1022: arrayOf(parseFloatValue),
-    1082: asStored, // date
-    1182: arrayOf(asStored),
-    1114: asStored, // timestamp without time zone
-    1115: arrayOf(asStored),
-    1186: asStored, // interval
-    1187: arrayOf(asStored),
-    600: asStored, // point
-    1017: arrayOf(asStored),
-    718: asStored, // circle
-    719: arrayOf(asStored),
-    1184: parseTimestamptzValue, // timestamp with time zone
-    1185: arrayOf(parseTimestamptzValue),
-    1231: arrayOf(asStored) // numeric[], the default parses its items as floats
-}
+// Each type that needs its own parser, as [type OID, OID of its array type, parser]. See pg_type for the OIDs.
+// A type and its array sit side by side so one is not covered without the other.
+const tableDataParsers = Object.fromEntries([
+    [17, 1001, parseBinaryValue], // bytea
+    [700, 1021, parseFloatValue], // float4
+    [701, 1022, parseFloatValue], // float8
+    [1082, 1182, asStored], // date
+    [1114, 1115, asStored], // timestamp without time zone
+    [1184, 1185, parseTimestamptzValue], // timestamp with time zone
+    [1186, 1187, asStored], // interval
+    [600, 1017, asStored], // point
+    [718, 719, asStored], // circle
+    // numeric is text by default, but the default parser for its array turns the items into floats
+    [1700, 1231, asStored]
+].flatMap(([oid, arrayOid, parser]) => [[oid, parser], [arrayOid, arrayOf(parser)]]))
 
 /**
  * Type parsers for a client that reads table rows to show them to someone, rather than to compute with them.
@@ -84,8 +77,9 @@ const tableDataParsers = {
  * By default the pg client turns some types into JS values that do not survive being sent as JSON:
  * a date or a timestamp without a time zone becomes a Date in the server's time zone (so it shifts),
  * NaN and Infinity become null, bytea becomes an array with a number per byte, and intervals, points and
- * circles become objects. These parsers hand those back as Postgres wrote them. Every other type keeps
- * its default parser, so integers, booleans, JSON and timestamps with a time zone are unchanged.
+ * circles become objects, the items of a numeric array become floats, and a timestamp with a time zone holding
+ * infinity becomes null. These parsers hand those back as Postgres wrote them. Every other type keeps its
+ * default parser, so integers, booleans, JSON and every other timestamp with a time zone are unchanged.
  */
 const tableDataTypes = {
     getTypeParser: (oid, format) => tableDataParsers[oid] ?? pg.types.getTypeParser(oid, format)
