@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
+import deviceApi from '@/api/devices.js'
 import { useInstanceStates } from '@/composables/InstanceStates.js'
 
 type InstanceMetadata = { status: string, versions?: Record<string, string> }
@@ -27,6 +28,12 @@ export const useLiveStatusStore = defineStore('live-status', () => {
         deviceMetadata.value[id] = { status: state, onlineStatus: onlineStatus ?? existing?.onlineStatus }
     }
 
+    function updateDeviceInfo (id: string): void {
+        deviceApi.getDevice(id)
+            .then(() => {})
+            .catch(() => {})
+    }
+
     function setLive (value: boolean): void {
         live.value = value
     }
@@ -37,5 +44,5 @@ export const useLiveStatusStore = defineStore('live-status', () => {
         live.value = false
     }
 
-    return { instanceMetadata, deviceMetadata, live, setDeviceStatus, setInstanceStatus, setLive, clear }
+    return { instanceMetadata, deviceMetadata, live, setDeviceStatus, setInstanceStatus, updateDeviceInfo, setLive, clear }
 })
