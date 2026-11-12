@@ -92,12 +92,19 @@ export const useProductTablesStore = defineStore('product-tables', {
             })
         },
         async getTableData ({ databaseId, tableName, teamId, schemaName }) {
-            const fetchPage = () => tablesApi.getTableData(teamId, databaseId, tableName, schemaName, { page: this.page, limit: this.pageSize })
+            const pageSize = this.pageSize
+            let page = this.page
+            // another page or page size picked while this one was loading makes its rows out of date
+            const isStale = () => this.page !== page || this.pageSize !== pageSize
+            const fetchPage = () => tablesApi.getTableData(teamId, databaseId, tableName, schemaName, { page, limit: pageSize })
             let res = await fetchPage()
-            const lastPage = Math.max(1, Math.ceil(res.count / this.pageSize))
-            if (this.page > lastPage) {
-                this.page = lastPage
+            if (isStale()) return
+            const lastPage = Math.max(1, Math.ceil(res.count / pageSize))
+            if (page > lastPage) {
+                // the table shrank and this page is gone, so fall back to the last one
+                page = this.page = lastPage
                 res = await fetchPage()
+                if (isStale()) return
             }
             const { rows: data, count: total } = res
             const payload = {

@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 import RowsList from '../../../../../../frontend/src/pages/team/Tables/Table/TableExplorer/components/RowsList.vue'
@@ -114,6 +114,24 @@ describe('RowsList', () => {
             await wrapper.find('[data-action="page-next"]').trigger('click')
             expect(mocks.tablesStore.setPage).toHaveBeenCalledWith(3)
             expect(mocks.tablesStore.getTableData).toHaveBeenCalledWith({ teamId: 't1', databaseId: 'db1', tableName: 'readings', schemaName: 'public' })
+        })
+
+        test('keeps showing the loading state until the most recently chosen page has loaded', async () => {
+            const loads = []
+            const pendingLoad = () => new Promise(resolve => loads.push(resolve))
+            mocks.tablesStore.getTableData.mockImplementationOnce(pendingLoad).mockImplementationOnce(pendingLoad)
+            const wrapper = mountRowsList()
+            await wrapper.find('[data-action="page-next"]').trigger('click')
+            await wrapper.find('[data-action="page-next"]').trigger('click')
+            expect(loads).toHaveLength(2)
+
+            loads[0]()
+            await flushPromises()
+            expect(mocks.tablesStore.setTableLoadingState).not.toHaveBeenCalledWith(false)
+
+            loads[1]()
+            await flushPromises()
+            expect(mocks.tablesStore.setTableLoadingState).toHaveBeenLastCalledWith(false)
         })
 
         test('does not offer to sort by column, since only the current page is loaded', () => {

@@ -131,6 +131,7 @@ export default defineComponent({
             this.loadPage()
         },
         loadPage () {
+            const load = this.latestPageLoad = {}
             this.setTableLoadingState(true)
             return this.getTableData({
                 teamId: this.team.id,
@@ -139,7 +140,10 @@ export default defineComponent({
                 schemaName: this.tableSelection.dbSchema
             })
                 .catch(e => e)
-                .finally(() => this.setTableLoadingState(false))
+                .finally(() => {
+                    // a page picked in the meantime is still loading, so leave the state to it
+                    if (this.latestPageLoad === load) this.setTableLoadingState(false)
+                })
         },
         getTableComponent (type) {
             const componentMap = {
