@@ -8,7 +8,8 @@ async function createClient (app, { username, ownerId, ownerType, prefix, where,
         await existingClient.destroy()
     }
     const password = generateToken(32, prefix)
-    await app.db.models.BrokerClient.create({ username, password, ownerId, ownerType })
+    // Upsert, as a concurrent request for the same username can recreate it after the destroy above
+    await app.db.models.BrokerClient.upsert({ username, password, ownerId, ownerType })
     const url = usePublicUrl
         ? (app.config.broker.public_url || app.config.broker.url || null)
         : (app.config.broker.url || null)
