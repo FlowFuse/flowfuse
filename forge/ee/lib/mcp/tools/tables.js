@@ -158,7 +158,7 @@ module.exports = [
         title: 'Query Database Table Data',
         description: `FlowFuse platform automation tool:
             Reads the row data of a table in a FlowFuse Tables database. There are no column-filter parameters; this returns rows as stored.
-            Rows come back one page at a time, ordered by the primary key (or by physical row order when the table has none). Use page and limit to move through the table.
+            Rows come back one page at a time, ordered by the primary key (or by physical row order when the table has none). Use page and limit to move through the table. Without a primary key, rows updated while you page can show up twice or be missed.
             count and meta.total are the total number of rows in the table, not the number returned; meta.pageCount is the number of pages at the current limit.
             schemaName is required, since the same table name can exist in more than one schema; get it from platform_list_database_tables.
             Use platform_get_database_table first if you need to know the column names and types.`,
