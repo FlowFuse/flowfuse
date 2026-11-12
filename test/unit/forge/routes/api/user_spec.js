@@ -1993,6 +1993,26 @@ describe('User API', async function () {
             ;(await getUserNotifications(TestObjects.tokens.grace)).should.have.length(0)
         })
 
+        it('user cannot accept an expired invite', async function () {
+            await login('grace', 'ggPassword')
+
+            const invitor = TestObjects.alice
+            const team = await app.db.models.Team.byName('ATeam')
+            const result = await app.db.controllers.Invitation.createInvitations(invitor, team, ['grace'])
+            const invite = result.grace
+            await app.db.models.Invitation.update({ expiresAt: Date.now() - 1000 }, { where: { id: invite.id } })
+
+            const response = await app.inject({
+                method: 'PATCH',
+                url: '/api/v1/user/invitations/' + invite.hashid,
+                cookies: { sid: TestObjects.tokens.grace }
+            })
+            response.statusCode.should.equal(400)
+            response.json().should.have.property('code', 'invitation_expired')
+            ;(await getUserTeams(TestObjects.tokens.grace)).should.have.length(1)
+            ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(1)
+        })
+
         it('user can reject an invite to a team', async function () {
             await login('grace', 'ggPassword')
             ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(0)
