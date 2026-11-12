@@ -22,6 +22,7 @@ export const useProductTablesStore = defineStore('product-tables', {
         tableSelection: null,
         page: 1,
         pageSize: 25,
+        showOriginalValues: false,
         newTable: { name: '', schema: 'public', columns: [{ ...emptyColumn }] },
         isLoading: false
     }),
@@ -72,6 +73,9 @@ export const useProductTablesStore = defineStore('product-tables', {
         updateTableSelection (table) {
             this.tableSelection = table
             this.page = 1
+        },
+        setShowOriginalValues (showOriginalValues) {
+            this.showOriginalValues = showOriginalValues
         },
         setPage (page) {
             this.page = page

@@ -15,6 +15,10 @@
             {{ selectedTable.dbSchema }}.{{ selectedTable.name }}
         </span>
         <TextCopier v-if="selectedTable" :text="qualifiedTableName" :show-text="false" />
+        <label v-if="selectedTable" class="show-original" data-el="show-original-values">
+            <ff-toggle-switch size="small" :model-value="showOriginalValues" @update:model-value="setShowOriginalValues" />
+            Show original values
+        </label>
     </section>
 </template>
 
@@ -41,13 +45,13 @@ export default {
     emits: ['toggle-collapse'],
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapState(useProductTablesStore, ['tableSelection', 'selectedTable']),
+        ...mapState(useProductTablesStore, ['tableSelection', 'selectedTable', 'showOriginalValues']),
         qualifiedTableName () {
             return `"${this.selectedTable.dbSchema}"."${this.selectedTable.name}"`
         }
     },
     methods: {
-        ...mapActions(useProductTablesStore, ['getTableData', 'setTableLoadingState']),
+        ...mapActions(useProductTablesStore, ['getTableData', 'setShowOriginalValues', 'setTableLoadingState']),
         refreshTable () {
             this.setTableLoadingState(true)
             return this.getTableData({
@@ -75,6 +79,16 @@ export default {
     .table-title {
         font-weight: bold;
         color: var(--ff-color-text-deep);
+    }
+
+    .show-original {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
+        white-space: nowrap;
+        color: var(--ff-color-text-muted);
+        cursor: pointer;
     }
 }
 </style>
