@@ -31,6 +31,55 @@ async function dropTeamDatabase (adminClient, hashid) {
     await adminClient.query(`DROP USER IF EXISTS ${pg.escapeIdentifier(hashid)}`)
     await adminClient.query(`DROP ROLE IF EXISTS ${pg.escapeIdentifier(hashid + '-role')}`)
 }
+// How many bytes of a binary value are sent as its preview
+const BINARY_PREVIEW_BYTES = 32
+
+const asStored = value => value
+// Numbers stay numbers, but NaN and Infinity have no JSON form and would otherwise turn into null
+const parseFloatValue = value => {
+    const number = parseFloat(value)
+    return Number.isFinite(number) ? number : value
+}
+// Postgres sends bytea as `\x` followed by hex. Send its size and the first bytes, not every byte
+const parseBinaryValue = value => {
+    const hex = value.startsWith('\\x') ? value.slice(2) : Buffer.from(value, 'binary').toString('hex')
+    return { bytes: hex.length / 2, hex: hex.slice(0, BINARY_PREVIEW_BYTES * 2) }
+}
+const arrayOf = parser => value => pg.types.arrayParser.create(value, parser).parse()
+
+// Postgres type OIDs, see pg_type
+const tableDataParsers = {
+    17: parseBinaryValue, // bytea
+    1001: arrayOf(parseBinaryValue),
+    700: parseFloatValue, // float4
+    1021: arrayOf(parseFloatValue),
+    701: parseFloatValue, // float8
+    1022: arrayOf(parseFloatValue),
+    1082: asStored, // date
+    1182: arrayOf(asStored),
+    1114: asStored, // timestamp without time zone
+    1115: arrayOf(asStored),
+    1186: asStored, // interval
+    1187: arrayOf(asStored),
+    600: asStored, // point
+    1017: arrayOf(asStored),
+    718: asStored, // circle
+    719: arrayOf(asStored)
+}
+
+/**
+ * Type parsers for a client that reads table rows to show them to someone, rather than to compute with them.
+ *
+ * By default the pg client turns some types into JS values that do not survive being sent as JSON:
+ * a date or a timestamp without a time zone becomes a Date in the server's time zone (so it shifts),
+ * NaN and Infinity become null, bytea becomes an array with a number per byte, and intervals, points and
+ * circles become objects. These parsers hand those back as Postgres wrote them. Every other type keeps
+ * its default parser, so integers, booleans, JSON and timestamps with a time zone are unchanged.
+ */
+const tableDataTypes = {
+    getTypeParser: (oid, format) => tableDataParsers[oid] ?? pg.types.getTypeParser(oid, format)
+}
+
 const DEFAULT_PAGE_SIZE = 10
 const MAX_PAGE_SIZE = 100
 
@@ -78,5 +127,6 @@ module.exports = {
     newClient,
     dropTeamDatabase,
     getTableDataPage,
+    tableDataTypes,
     pg
 }
