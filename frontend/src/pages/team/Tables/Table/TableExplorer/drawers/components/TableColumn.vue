@@ -71,6 +71,8 @@
 import { XMarkIcon } from '@heroicons/vue/20/solid'
 import { defineComponent } from 'vue'
 
+import { getColumnTypeLabel } from '../../../../columnTypes.js'
+
 export default defineComponent({
     name: 'TableColumn',
     components: { XMarkIcon },
@@ -85,49 +87,49 @@ export default defineComponent({
         return {
             typeOptions: [
                 {
-                    label: 'Big Number',
+                    label: getColumnTypeLabel('int8'),
                     type: 'int8',
                     value: 'bigint',
                     title: '[int8] signed eight-byte integer'
                 },
                 {
-                    label: 'Auto-increment Big Number',
+                    label: `Auto-increment ${getColumnTypeLabel('int8')}`,
                     type: 'serial8',
                     value: 'bigserial',
                     title: '[serial8] autoincrementing eight-byte integer'
                 },
                 {
-                    label: 'True/False',
+                    label: getColumnTypeLabel('bool'),
                     type: 'boolean',
                     value: 'boolean',
                     title: 'logical Boolean (true/false)'
                 },
                 {
-                    label: 'Date',
+                    label: getColumnTypeLabel('date'),
                     type: 'date',
                     value: 'date',
                     title: 'calendar date (year, month, day)'
                 },
                 {
-                    label: 'Date & Time with Timezone',
+                    label: getColumnTypeLabel('timestamptz'),
                     type: 'timestamptz',
                     value: 'timestamptz',
                     title: 'date and time, including time zone'
                 },
                 {
-                    label: 'Number',
+                    label: getColumnTypeLabel('float4'),
                     type: 'float4',
                     value: 'real',
                     title: '[float4] single precision floating-point number (4 bytes)'
                 },
                 {
-                    label: 'Number – Double Precision',
+                    label: getColumnTypeLabel('float8'),
                     type: 'float8',
                     value: 'double precision',
                     title: '[double precision] double precision floating-point number (8 bytes)'
                 },
                 {
-                    label: 'Text',
+                    label: getColumnTypeLabel('text'),
                     type: 'text',
                     value: 'text',
                     title: 'variable-length character string'

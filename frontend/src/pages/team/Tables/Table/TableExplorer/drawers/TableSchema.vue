@@ -13,7 +13,7 @@
                 <li v-for="(col, $key) in table.schema" :key="$key">
                     <div class="grid grid-cols-10 gap-1 mb-1">
                         <span class="col-span-2 value truncate cursor-default" :title="col.name">{{ col.name }}</span>
-                        <span class="col-span-2 value truncate cursor-default" :title="col.type">{{ col.type }}</span>
+                        <span class="col-span-2 value truncate cursor-default" :title="col.type">{{ getColumnTypeLabel(col.type) }}</span>
                         <span class="col-span-2 value truncate cursor-default" :title="col.nullable">{{ col.nullable }}</span>
                         <span class="col-span-2 value truncate cursor-default" :title="col.default">{{ col.default }}</span>
                         <span class="col-span-2 value truncate cursor-default" :title="col.generated">{{ col.generated }}</span>
@@ -30,6 +30,7 @@ import { defineComponent } from 'vue'
 
 import Alerts from '../../../../../../services/alerts.js'
 import Dialog from '../../../../../../services/dialog.js'
+import { getColumnTypeLabel } from '../../../columnTypes.js'
 
 import { useContextStore } from '@/stores/context.js'
 
@@ -53,6 +54,7 @@ export default defineComponent({
     methods: {
         ...mapActions(useUxDrawersStore, ['closeRightDrawer', 'setRightDrawerHeader']),
         ...mapActions(useProductTablesStore, ['deleteTable', 'getTables']),
+        getColumnTypeLabel,
         submit () {
             Dialog.show({
                 header: 'Delete Table',

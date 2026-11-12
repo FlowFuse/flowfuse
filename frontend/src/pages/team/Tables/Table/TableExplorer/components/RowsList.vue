@@ -43,6 +43,7 @@ import { PlusIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 import { defineComponent, markRaw } from 'vue'
 
+import { getColumnTypeLabel } from '../../../columnTypes.js'
 import CreateTable from '../drawers/CreateTable.vue'
 
 import TextCell from './table-cells/text-cell.vue'
@@ -64,7 +65,7 @@ export default defineComponent({
             return (this.selectedTable?.schema ?? []).map((row) => {
                 return {
                     key: row.safeName,
-                    html: `<span >${escapeHtml(row.name)}</span> <span class="text-gray-400">${escapeHtml(row.type)}</span>`,
+                    html: `<span class="column-name">${escapeHtml(row.name)}</span><span class="column-type" title="${escapeHtml(row.type)}">${escapeHtml(getColumnTypeLabel(row.type))}</span>`,
                     component: {
                         is: this.getTableComponent(row.type),
                         extraProps: {},
@@ -199,6 +200,19 @@ export default defineComponent({
         display: flex;
         align-items: center;
         height: 50px;
+    }
+
+    // the column headers are rendered from html, so they sit outside this component's scope
+    :deep(thead) {
+        .column-name, .column-type {
+            display: block;
+        }
+
+        .column-type {
+            color: var(--ff-color-text-muted);
+            font-size: 0.75rem;
+            font-weight: normal;
+        }
     }
 }
 </style>

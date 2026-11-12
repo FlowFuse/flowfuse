@@ -86,6 +86,22 @@ describe('RowsList', () => {
         })
     })
 
+    test('labels each column with its friendly type name, keeping the database name on hover', () => {
+        mocks.tablesStore.selectedTable = {
+            schema: [
+                { name: 'id', safeName: 'a', type: 'int8' },
+                { name: 'tags', safeName: 'b', type: '_text' },
+                { name: 'search', safeName: 'c', type: 'tsvector' }
+            ],
+            payload: { safe: [] }
+        }
+
+        const types = mountRowsList().findAll('thead .column-type')
+
+        expect(types.map(type => type.text())).toEqual(['Big Number', 'List of Text', 'tsvector'])
+        expect(types.map(type => type.attributes('title'))).toEqual(['int8', '_text', 'tsvector'])
+    })
+
     describe('paging', () => {
         const schema = [{ name: 'id', safeName: 'col', type: 'bigint' }]
 
