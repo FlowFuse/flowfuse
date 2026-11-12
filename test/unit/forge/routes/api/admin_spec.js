@@ -360,5 +360,250 @@ describe('Admin API', async function () {
             ;(notifications[1].UserId === TestObjects.notificationUser1.id).should.be.true()
             ;(notifications[2].UserId === TestObjects.notificationUser5.id).should.be.true()
         })
+
+        it('send to an explicit list of teams', async function () {
+            const payload = {
+                message: 'targeted message',
+                title: 'targeted title',
+                filter: {
+                    roles: [app.factory.Roles.Roles.Owner, app.factory.Roles.Roles.Member, app.factory.Roles.Roles.Viewer, app.factory.Roles.Roles.Dashboard],
+                    teams: [TestObjects.CTeam.hashid]
+                },
+                mock: true
+            }
+            let response = await sendNotification(payload)
+            response.should.have.property('statusCode', 200)
+            let result = response.json()
+            result.should.have.property('recipientCount', 2)
+
+            delete payload.mock
+            response = await sendNotification(payload)
+            response.should.have.property('statusCode', 200)
+            result = response.json()
+            result.should.have.property('recipientCount', 2)
+
+            const notifications = await app.db.models.Notification.findAll()
+            notifications.should.have.length(2)
+            const recipients = notifications.map(n => n.UserId)
+            recipients.should.containEql(TestObjects.notificationUser3.id)
+            recipients.should.containEql(TestObjects.notificationUser4.id)
+        })
+
+        it('ignores the team type filter when explicit teams are given', async function () {
+            // BTeam is on the default team type, CTeam is on secondTeamType. Asking
+            // for CTeam explicitly must not be narrowed by an unrelated team type.
+            const payload = {
+                message: 'targeted message',
+                title: 'targeted title',
+                filter: {
+                    roles: [app.factory.Roles.Roles.Dashboard],
+                    teams: [TestObjects.CTeam.hashid],
+                    teamTypes: [TestObjects.secondTeamType.hashid]
+                },
+                mock: true
+            }
+            const response = await sendNotification(payload)
+            response.should.have.property('statusCode', 200)
+            response.json().should.have.property('recipientCount', 1)
+        })
+
+        it('rejects an unknown team', async function () {
+            const response = await sendNotification({
+                message: 'targeted message',
+                title: 'targeted title',
+                filter: {
+                    roles: [app.factory.Roles.Roles.Owner],
+                    teams: ['not-a-hashid']
+                }
+            })
+            response.should.have.property('statusCode', 400)
+            response.json().should.have.property('code', 'bad_request')
+        })
+
+        it('stores a markdown announcement with a video and a button', async function () {
+            const response = await sendNotification({
+                message: 'Read the [release notes](https://flowfuse.com/blog/).',
+                title: 'rich announcement',
+                format: 'markdown',
+                video: 'https://www.youtube.com/watch?v=6l1ymjo80Vo',
+                cta: { label: 'Talk to sales', url: 'https://flowfuse.com/contact/' },
+                filter: {
+                    roles: [app.factory.Roles.Roles.Owner],
+                    teams: [TestObjects.BTeam.hashid]
+                }
+            })
+            response.should.have.property('statusCode', 200)
+
+            const notifications = await app.db.models.Notification.findAll()
+            notifications.should.have.length(1)
+            const data = notifications[0].data
+            data.should.have.property('format', 'markdown')
+            data.should.have.property('video')
+            data.video.should.eql({ provider: 'youtube', id: '6l1ymjo80Vo' })
+            data.should.have.property('cta')
+            data.cta.should.eql({ label: 'Talk to sales', url: 'https://flowfuse.com/contact/' })
+        })
+
+        it('rejects an unsupported video link', async function () {
+            const response = await sendNotification({
+                message: 'message',
+                title: 'title',
+                video: 'https://vimeo.com/123456789',
+                filter: { roles: [app.factory.Roles.Roles.Owner] }
+            })
+            response.should.have.property('statusCode', 400)
+            response.json().error.should.match(/YouTube/)
+        })
+
+        it('rejects a card link that could execute', async function () {
+            const response = await sendNotification({
+                message: 'message',
+                title: 'title',
+                url: 'javascript:alert(document.cookie)',
+                filter: { roles: [app.factory.Roles.Roles.Owner] }
+            })
+            response.should.have.property('statusCode', 400)
+            response.json().should.have.property('code', 'bad_request')
+        })
+
+        it('rejects a card link that leaves the platform while looking in-app', async function () {
+            const response = await sendNotification({
+                message: 'message',
+                title: 'title',
+                url: '//evil.example.com/phish',
+                filter: { roles: [app.factory.Roles.Roles.Owner] }
+            })
+            response.should.have.property('statusCode', 400)
+        })
+
+        it('rejects a card link that hides an off-platform host behind a tab', async function () {
+            const response = await sendNotification({
+                message: 'message',
+                title: 'title',
+                url: '/\t/evil.example.com/phish',
+                filter: { roles: [app.factory.Roles.Roles.Owner] }
+            })
+            response.should.have.property('statusCode', 400)
+        })
+
+        it('rejects a `to` link that could execute', async function () {
+            // `to` is preferred over `url` by the front-end, so it is the same sink
+            const response = await sendNotification({
+                message: 'message',
+                title: 'title',
+                to: { url: 'javascript:alert(document.cookie)' },
+                filter: { roles: [app.factory.Roles.Roles.Owner] }
+            })
+            response.should.have.property('statusCode', 400)
+        })
+
+        it('still accepts a `to` route object', async function () {
+            const response = await sendNotification({
+                message: 'message',
+                title: 'title',
+                to: { name: 'instance-overview', params: { id: 'abc' } },
+                filter: {
+                    roles: [app.factory.Roles.Roles.Owner],
+                    teams: [TestObjects.BTeam.hashid]
+                }
+            })
+            response.should.have.property('statusCode', 200)
+        })
+
+        it('rejects a button that could execute', async function () {
+            const response = await sendNotification({
+                message: 'message',
+                title: 'title',
+                cta: { label: 'Click', url: 'javascript:alert(1)' },
+                filter: { roles: [app.factory.Roles.Roles.Owner] }
+            })
+            response.should.have.property('statusCode', 400)
+        })
+
+        it('rejects a button without a url', async function () {
+            const response = await sendNotification({
+                message: 'message',
+                title: 'title',
+                cta: { label: 'Talk to sales' },
+                filter: { roles: [app.factory.Roles.Roles.Owner] }
+            })
+            response.should.have.property('statusCode', 400)
+        })
+
+        describe('team ids for an audience', function () {
+            async function getTeamIds (query = '') {
+                return app.inject({
+                    method: 'GET',
+                    url: '/api/v1/admin/teams/ids' + query,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+            }
+
+            it('returns every team id by default, including suspended teams', async function () {
+                const response = await getTeamIds()
+                response.should.have.property('statusCode', 200)
+                const result = response.json()
+                result.should.have.property('truncated', false)
+                result.ids.should.containEql(TestObjects.ATeam.hashid)
+                result.ids.should.containEql(TestObjects.CTeam.hashid)
+                result.ids.should.containEql(TestObjects.DTeam.hashid)
+                result.count.should.equal(result.ids.length)
+            })
+
+            it('excludes suspended teams when asked for active only', async function () {
+                // How the audience picker asks: a suspended team can never
+                // receive an announcement, so it must not be selectable
+                const response = await getTeamIds('?state=active')
+                response.should.have.property('statusCode', 200)
+                const result = response.json()
+                result.ids.should.containEql(TestObjects.CTeam.hashid)
+                result.ids.should.not.containEql(TestObjects.DTeam.hashid)
+            })
+
+            it('filters by team type', async function () {
+                const response = await getTeamIds(`?teamType=${TestObjects.secondTeamType.hashid}`)
+                response.should.have.property('statusCode', 200)
+                const result = response.json()
+                result.ids.should.containEql(TestObjects.CTeam.hashid)
+                result.ids.should.containEql(TestObjects.DTeam.hashid)
+                result.ids.should.not.containEql(TestObjects.ATeam.hashid)
+            })
+
+            it('filters by suspended state', async function () {
+                const response = await getTeamIds('?state=suspended')
+                response.should.have.property('statusCode', 200)
+                const result = response.json()
+                result.ids.should.eql([TestObjects.DTeam.hashid])
+            })
+
+            it('filters by name search', async function () {
+                const response = await getTeamIds('?query=DTeAbCam')
+                response.should.have.property('statusCode', 200)
+                response.json().ids.should.eql([TestObjects.DTeam.hashid])
+            })
+
+            it('returns the same set the teams list is showing', async function () {
+                const listResponse = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams?teamType=${TestObjects.secondTeamType.hashid}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                listResponse.should.have.property('statusCode', 200)
+                const listed = listResponse.json().teams.map(team => team.id).sort()
+
+                const idsResponse = await getTeamIds(`?teamType=${TestObjects.secondTeamType.hashid}`)
+                idsResponse.json().ids.slice().sort().should.eql(listed)
+            })
+
+            it('is admin-only', async function () {
+                await login('nu1', 'nu1;oaihegk.jeigaegioh')
+                const response = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/admin/teams/ids',
+                    cookies: { sid: TestObjects.tokens.nu1 }
+                })
+                response.statusCode.should.be.greaterThanOrEqual(400)
+            })
+        })
     })
 })
