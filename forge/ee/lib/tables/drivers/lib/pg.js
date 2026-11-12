@@ -40,6 +40,14 @@ const parseFloatValue = value => {
     const number = parseFloat(value)
     return Number.isFinite(number) ? number : value
 }
+// A timestamp with a time zone stays an ISO UTC string, but infinity has no date form and would otherwise turn into null
+const defaultTimestamptzParser = pg.types.getTypeParser(1184)
+const parseTimestamptzValue = value => {
+    if (value === 'infinity' || value === '-infinity') {
+        return value
+    }
+    return defaultTimestamptzParser(value)
+}
 // Postgres sends bytea as `\x` followed by hex. Send its size and the first bytes, not every byte
 const parseBinaryValue = value => {
     const hex = value.startsWith('\\x') ? value.slice(2) : Buffer.from(value, 'binary').toString('hex')
@@ -64,7 +72,10 @@ const tableDataParsers = {
     600: asStored, // point
     1017: arrayOf(asStored),
     718: asStored, // circle
-    719: arrayOf(asStored)
+    719: arrayOf(asStored),
+    1184: parseTimestamptzValue, // timestamp with time zone
+    1185: arrayOf(parseTimestamptzValue),
+    1231: arrayOf(asStored) // numeric[], the default parses its items as floats
 }
 
 /**
