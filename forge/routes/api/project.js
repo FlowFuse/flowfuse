@@ -1004,6 +1004,13 @@ module.exports = async function (app) {
                         updateSettingsForCatalogue('@flowfuse-certified-nodes', cat)
                     }
                 }
+                if (team.getProperty('extraCatalogues', null)) {
+                    for (const cat of team.TeamType.properties.extraCatalogues) {
+                        if (settings.settings.palette.catalogue.indexOf(cat) === -1) {
+                            settings.settings.palette.catalogue.push(cat)
+                        }
+                    }
+                }
             } catch (err) {
                 app.log.error('Failed to configure platform npm registry for project', err)
             }
