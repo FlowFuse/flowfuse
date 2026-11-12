@@ -30,6 +30,16 @@
             <template v-else>
                 <ff-loading v-if="loading || pendingTeamChange" message="Loading Databases..." />
 
+                <EmptyState v-else-if="needsOwnerToSetUp" data-el="no-database">
+                    <template #img>
+                        <img alt="No database" src="../../../images/empty-states/team-tables.png">
+                    </template>
+                    <template #header>No database yet</template>
+                    <template #message>
+                        <p>This team doesn't have a database yet. Once a team owner sets one up, its tables will show up here.</p>
+                    </template>
+                </EmptyState>
+
                 <router-view v-else v-slot="{ Component }">
                     <transition name="page-fade" mode="out-in">
                         <component
@@ -52,6 +62,7 @@ import EmptyState from '../../../components/EmptyState.vue'
 import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 
+import usePermissions from '@/composables/Permissions.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
@@ -63,6 +74,10 @@ export default defineComponent({
         FeatureUnavailableToTeam,
         EmptyState
     },
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         return {
             loading: true,
@@ -72,7 +87,11 @@ export default defineComponent({
     computed: {
         ...mapState(useAccountStore, ['pendingTeamChange']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
-        ...mapState(useProductTablesStore, ['databases'])
+        ...mapState(useProductTablesStore, ['databases']),
+        // there is no database and this person is not allowed to create one
+        needsOwnerToSetUp () {
+            return Object.keys(this.databases).length === 0 && !this.hasPermission('team:database:create')
+        }
     },
     watch: {
         '$route.params.id': {
@@ -85,7 +104,7 @@ export default defineComponent({
         }
     },
     updated () {
-        if (!this.$route.params.id) {
+        if (!this.$route.params.id && !this.needsOwnerToSetUp) {
             // if the route we hit doesn't contain a specific database id and the user already has a table, it means
             // he was redirected from somewhere to the generic tables page
             return this.$router.push({ name: 'team-tables-table', params: { id: this.databases[Object.keys(this.databases)[0]].id } })
@@ -112,6 +131,9 @@ export default defineComponent({
     methods: {
         ...mapActions(useProductTablesStore, ['getDatabases', 'updateDatabaseSelection']),
         redirectIfNeeded () {
+            if (this.needsOwnerToSetUp) {
+                return
+            }
             if (Object.keys(this.databases).length === 0) {
                 // if the user doesn't have any tables, we'll redirect him to the offering page
                 return this.$router.replace({ name: 'team-tables-add' })

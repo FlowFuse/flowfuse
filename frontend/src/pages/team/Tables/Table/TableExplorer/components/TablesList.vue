@@ -9,7 +9,7 @@
             >
                 <template #icon><MagnifyingGlassIcon /></template>
             </ff-text-input>
-            <button class="ff-btn ff-btn--secondary transition-fade--color" type="button" @click.stop="onCreateTable">
+            <button v-if="canManageTables" class="ff-btn ff-btn--secondary transition-fade--color" type="button" data-action="create-table" @click.stop="onCreateTable">
                 <span class="ff-btn--icon">
                     <PlusIcon />
                 </span>
@@ -39,7 +39,7 @@
 
         <div v-else class="empty-state flex gap-5">
             <p>Get started by creating your first table using the <code>@flowfuse/nr-tables-nodes</code> node in a Node-RED Instance.</p>
-            <p>or <span class="cta" @click="onCreateTable">create</span> your first table now.</p>
+            <p v-if="canManageTables">or <span class="cta" @click="onCreateTable">create</span> your first table now.</p>
         </div>
     </section>
 </template>
@@ -52,6 +52,7 @@ import { defineComponent, markRaw } from 'vue'
 import CreateTable from '../drawers/CreateTable.vue'
 import TableSchema from '../drawers/TableSchema.vue'
 
+import usePermissions from '@/composables/Permissions.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
@@ -59,6 +60,10 @@ export default defineComponent({
     name: 'TablesList',
     components: { MagnifyingGlassIcon, TableCellsIcon, PlusIcon, PencilSquareIcon },
     emits: ['select-table'],
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         return {
             filterTerm: '',
@@ -68,6 +73,9 @@ export default defineComponent({
     computed: {
         ...mapState(useUxDrawersStore, ['rightDrawer']),
         ...mapState(useProductTablesStore, { tablesState: 'tables', tableSelection: 'tableSelection' }),
+        canManageTables () {
+            return this.hasPermission('team:database:create')
+        },
         filteredTables () {
             return this.tables.filter(t => (t.name ?? '').toLowerCase().includes(this.filterTerm.toLowerCase()))
         }
