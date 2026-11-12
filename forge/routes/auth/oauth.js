@@ -645,7 +645,7 @@ module.exports = async function (app) {
                 reply.send(response)
             } else {
                 const authClient = await app.db.controllers.AuthClient.getAuthClient(client_id, client_secret)
-                if (!authClient) {
+                if (!authClient || (authClient.clientSecret && !client_secret)) {
                     return badRequest(reply, 'invalid_request', 'Invalid client_id')
                 }
 
@@ -713,7 +713,7 @@ module.exports = async function (app) {
             let refreshAuthClient = null
             if (client_id !== 'ff-plugin') {
                 refreshAuthClient = await app.db.controllers.AuthClient.getAuthClient(client_id, client_secret)
-                if (!refreshAuthClient) {
+                if (!refreshAuthClient || (refreshAuthClient.clientSecret && !client_secret)) {
                     return badRequest(reply, 'invalid_request', 'Invalid client_id')
                 }
             }

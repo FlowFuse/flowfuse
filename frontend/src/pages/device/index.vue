@@ -62,7 +62,7 @@
                             />
                             <device-editor-link
                                 :device="device"
-                                :title="!editorAvailable ? 'You can edit flows directly when Developer Mode is enabled, and your Edge Instance is connected.' : 'Open Edge Instance Editor'"
+                                :title="editorLinkTitle"
                                 :disabled="!editorAvailable"
                                 :primary="editorAvailable"
                                 data-action="open-editor"
@@ -284,7 +284,14 @@ export default {
                 this.agentSupportsDeviceAccess &&
                 this.developerMode &&
                 this.device.status === 'running' &&
-                !this.isLiteDevice
+                !this.isLiteDevice &&
+                this.hasPermission('device:editor', this.permissionContext)
+        },
+        editorLinkTitle: function () {
+            if (!this.hasPermission('device:editor', this.permissionContext)) {
+                return 'Only an Owner or Member can open the Device Editor'
+            }
+            return !this.editorAvailable ? 'You can edit flows directly when Developer Mode is enabled, and your Edge Instance is connected.' : 'Open Edge Instance Editor'
         },
         deviceEditorURL: function () {
             return this.device.editor?.url || ''
