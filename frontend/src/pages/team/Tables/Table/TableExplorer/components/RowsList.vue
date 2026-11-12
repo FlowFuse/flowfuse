@@ -68,7 +68,7 @@ export default defineComponent({
                     html: `<span class="column-name">${escapeHtml(row.name)}</span><span class="column-type" title="${escapeHtml(row.type)}">${escapeHtml(getColumnTypeLabel(row.type))}</span>`,
                     component: {
                         is: markRaw(TableCell),
-                        extraProps: { type: row.type, showOriginal: this.showOriginalValues },
+                        extraProps: { name: row.name, type: row.type, showOriginal: this.showOriginalValues },
                         bind: { value: row.safeName }
                     },
                     tableCellClass: 'truncate',
