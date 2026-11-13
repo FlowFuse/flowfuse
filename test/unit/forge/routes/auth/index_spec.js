@@ -1152,6 +1152,11 @@ describe('Accounts API', async function () {
             temp.should.have.property('name', 'sid')
             const secondLoginSessionId = secondLoginSession.cookies[0].value
 
+            const editorSession = await app.db.models.StorageSession.create({
+                sessions: JSON.stringify({ token1: { user: 'testUser', client: 'node-red-editor', scope: ['*'], accessToken: 'token1', expires: Date.now() + 60000 } }),
+                ProjectId: app.project.id
+            })
+
             // Submit the reset request
             const response = await app.inject({
                 method: 'POST',
@@ -1189,6 +1194,11 @@ describe('Accounts API', async function () {
                 cookies: { sid: secondLoginSessionId }
             })
             checkSecondToken.statusCode.should.equal(401)
+
+            // Node-RED editor sessions should be removed
+            await editorSession.reload()
+            JSON.parse(editorSession.sessions).should.not.have.property('token1')
+            await editorSession.destroy()
 
             // The reset token cannot be reused
             const resetResponse2 = await app.inject({
