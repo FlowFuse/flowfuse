@@ -1,7 +1,7 @@
 <template>
     <div id="table-explorer" data-el="table-explorer" :class="{collapsed: menuCollapsed}">
         <TablesList />
-        <div class="flex-1 flex flex-col overflow-auto">
+        <div class="flex-1 flex flex-col min-w-0 min-h-0">
             <rows-header :menu-collapsed="menuCollapsed" @toggle-collapse="menuCollapsed = !menuCollapsed" />
             <RowsList />
         </div>
@@ -46,7 +46,7 @@ export default defineComponent({
     gap: 15px;
     height: 100%;
     width: 100%;
-    overflow: auto;
+    overflow: hidden;
 
     &.collapsed {
         gap: 0;
