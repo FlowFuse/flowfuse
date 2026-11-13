@@ -2,21 +2,21 @@
     <div id="table-schema" class="p-4">
         <div class="content-wrapper">
             <h3>Columns</h3>
-            <div class="header grid grid-cols-10 gap-1 mb-1">
-                <span class="col-span-2 title">Name</span>
-                <span class="col-span-2 title">Type</span>
-                <span class="col-span-2 title">Allow null</span>
-                <span class="col-span-2 title">Default</span>
-                <span class="col-span-2 title">Generated</span>
+            <div class="header columns mb-1">
+                <span class="title">Name</span>
+                <span class="title">Type</span>
+                <span class="title">Allow null</span>
+                <span class="title">Default</span>
+                <span class="title">Generated</span>
             </div>
             <ul>
                 <li v-for="(col, $key) in table.schema" :key="$key">
-                    <div class="grid grid-cols-10 gap-1 mb-1">
-                        <span class="col-span-2 value truncate cursor-default" :title="col.name">{{ col.name }}</span>
-                        <span class="col-span-2 value truncate cursor-default" :title="col.type">{{ getColumnTypeLabel(col.type) }}</span>
-                        <span class="col-span-2 value truncate cursor-default" :title="col.nullable">{{ col.nullable }}</span>
-                        <span class="col-span-2 value truncate cursor-default" :title="col.default">{{ col.default }}</span>
-                        <span class="col-span-2 value truncate cursor-default" :title="col.generated">{{ col.generated }}</span>
+                    <div class="columns mb-1">
+                        <span class="value truncate cursor-default" :title="col.name">{{ col.name }}</span>
+                        <span class="value cursor-default" :title="col.type">{{ getColumnTypeLabel(col.type) }}</span>
+                        <span class="value truncate cursor-default" :title="col.nullable">{{ col.nullable }}</span>
+                        <span class="value truncate cursor-default" :title="col.default">{{ col.default }}</span>
+                        <span class="value truncate cursor-default" :title="col.generated">{{ col.generated }}</span>
                     </div>
                 </li>
             </ul>
@@ -119,6 +119,13 @@ export default defineComponent({
         width: 100%;
         background-color: var(--ff-color-bg-surface);
         overflow: auto;
+
+        // the type gets the most room, and wraps when its name is still too long, so it can always be read in full
+        .columns {
+            display: grid;
+            grid-template-columns: 4fr 6fr 3fr 4fr 3fr;
+            gap: 4px;
+        }
 
         .header {
             .title {
