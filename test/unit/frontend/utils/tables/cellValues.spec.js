@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { formatCellValue } from '../../../../../frontend/src/utils/tables/cellValues.ts'
+import { formatCellDetail, formatCellValue } from '../../../../../frontend/src/utils/tables/cellValues.ts'
 
 // what the viewer's browser would print for a moment in time, read as UTC so nothing shifts
 const inUtc = (iso, style) => new Intl.DateTimeFormat(undefined, { ...style, timeZone: 'UTC' }).format(new Date(iso))
@@ -165,5 +165,36 @@ describe('formatCellValue', () => {
         test('still says empty when there is no value', () => {
             expect(formatCellValue(null, 'date', { original: true })).toMatchObject({ kind: 'empty', text: 'empty' })
         })
+    })
+})
+
+describe('formatCellDetail', () => {
+    test('has nothing to copy for an empty value', () => {
+        expect(formatCellDetail(null, 'text')).toEqual({ kind: 'empty', text: 'empty', copy: null })
+    })
+
+    test('shows a value as the grid does, and copies it as stored', () => {
+        const detail = formatCellDetail('2025-08-01', 'date')
+        expect(detail.text).toBe(formatCellValue('2025-08-01', 'date').text)
+        expect(detail.copy).toBe('2025-08-01')
+    })
+
+    test('lays JSON out over several lines, also when asked for original values', () => {
+        const text = '{\n  "a": 1\n}'
+        expect(formatCellDetail({ a: 1 }, 'jsonb')).toEqual({ kind: 'json', text, copy: text })
+        expect(formatCellDetail({ a: 1 }, 'jsonb', { original: true })).toEqual({ kind: 'json', text, copy: text })
+    })
+
+    test('puts each item of a list on its own line', () => {
+        expect(formatCellDetail(['a', null, 'c'], '_text')).toEqual({ kind: 'list', text: 'a\nnull\nc', copy: '["a",null,"c"]' })
+    })
+
+    test('shows a list with nothing in it as the grid does', () => {
+        expect(formatCellDetail([], '_text')).toEqual({ kind: 'list', text: '[]', copy: '[]' })
+    })
+
+    test('copies the bytes of a binary value, and says when there are more of them', () => {
+        expect(formatCellDetail({ bytes: 2, hex: 'abcd' }, 'bytea')).toEqual({ kind: 'binary', text: '2 bytes · abcd', copy: 'abcd' })
+        expect(formatCellDetail({ bytes: 400, hex: 'ab'.repeat(32) }, 'bytea')).toMatchObject({ copy: 'ab'.repeat(32), note: 'Only the first 32 bytes are shown' })
     })
 })
