@@ -19,6 +19,12 @@
                     <template #description>Use markdown for formatting</template>
                     <template #input><textarea v-model="input.description" class="w-full" rows="6" /></template>
                 </FormRow>
+                <FormRow v-model="input.properties.teamBanner" data-form="teamBanner" containerClass="w-full">
+                    Banner
+                    <template #description>Shown on all pages of teams of this type. Supports limited HTML, e.g. links. Leave blank to hide.</template>
+                    <template #input><textarea v-model="input.properties.teamBanner" class="w-full" rows="3" /></template>
+                </FormRow>
+                <FormRow v-model="input.properties.teamBannerDismissible" type="checkbox" data-form="teamBannerDismissible">Users can dismiss the banner</FormRow>
                 <template v-if="billingEnabled">
                     <FormHeading>Billing</FormHeading>
                     <div class="space-y-2">
@@ -255,6 +261,8 @@ export default {
                     this.input.properties.billing = teamType.properties?.billing || {}
                     this.input.properties.trial = teamType.properties?.trial || {}
                     this.input.properties.enableAllFeatures = teamType.properties?.enableAllFeatures || false
+                    this.input.properties.teamBanner = teamType.properties?.teamBanner || ''
+                    this.input.properties.teamBannerDismissible = teamType.properties?.teamBannerDismissible ?? true
                     this.input.properties.autoStackUpdate = teamType.properties?.autoStackUpdate || { enabled: false, days: [], hours: [] }
                     if (this.input.properties.trial.active && !this.input.properties.trial.instanceType) {
                         this.input.properties.trial.instanceType = '_'
@@ -344,6 +352,8 @@ export default {
                         description: '',
                         order: '0',
                         properties: {
+                            teamBanner: '',
+                            teamBannerDismissible: true,
                             billing: {},
                             trial: {},
                             users: {},
@@ -479,7 +489,9 @@ export default {
                         features: { ...this.input.properties.features },
                         teamBroker: { ...this.input.properties.teamBroker },
                         autoStackUpdate: { ...this.input.properties.autoStackUpdate },
-                        enableAllFeatures: this.input.properties.enableAllFeatures
+                        enableAllFeatures: this.input.properties.enableAllFeatures,
+                        teamBanner: this.input.properties.teamBanner?.trim() || undefined,
+                        teamBannerDismissible: this.input.properties.teamBannerDismissible
                     }
                 }
                 // Utility function that ensures the specific property is

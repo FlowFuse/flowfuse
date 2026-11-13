@@ -123,6 +123,7 @@ module.exports = {
                         where: {
                             [Op.and]: [
                                 { external: true },
+                                { [Op.or]: [{ expiresAt: null }, { expiresAt: { [Op.gte]: Date.now() } }] },
                                 where(
                                     fn('lower', col('Invitation.email')),
                                     email.toLowerCase()

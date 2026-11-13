@@ -12,6 +12,11 @@ export const setupSentry = (app) => {
         dsn,
         sendClientReports: true,
 
+        // Don't send the user's IP address to Sentry
+        dataCollection: {
+            userInfo: false
+        },
+
         // Current build info
         release: window.sentryConfig.version,
         environment: window.sentryConfig.environment,
