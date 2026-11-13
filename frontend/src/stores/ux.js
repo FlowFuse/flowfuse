@@ -22,6 +22,7 @@ export const useUxStore = defineStore('ux', {
             hasOpenedDeviceEditor: false
         },
         isNewlyCreatedUser: false,
+        dismissedTeamBanners: {},
         onboardingStage: null,
         shouldEnterOnboarding: false,
         // When the user last sent the Expert a message while onboarding. Kept in
@@ -133,10 +134,13 @@ export const useUxStore = defineStore('ux', {
         startBuilding () { this.building = true },
         stopBuilding () { this.building = false },
         openOverlay () { this.overlay = true },
-        closeOverlay () { this.overlay = false }
+        closeOverlay () { this.overlay = false },
+        dismissTeamBanner (teamId, banner) {
+            this.dismissedTeamBanners[teamId] = banner
+        }
     },
     persist: {
-        pick: ['isNewlyCreatedUser', 'onboardingStage', 'shouldEnterOnboarding', 'onboardingActiveAt', 'userActions'],
+        pick: ['isNewlyCreatedUser', 'onboardingStage', 'shouldEnterOnboarding', 'onboardingActiveAt', 'userActions', 'dismissedTeamBanners'],
         storage: localStorage
     }
 })
