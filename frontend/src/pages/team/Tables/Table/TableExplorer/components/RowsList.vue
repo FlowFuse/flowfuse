@@ -43,7 +43,6 @@ import { PlusIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 import { defineComponent, markRaw } from 'vue'
 
-import { getColumnTypeLabel } from '../../../columnTypes.js'
 import CreateTable from '../drawers/CreateTable.vue'
 
 import TextCell from './table-cells/text-cell.vue'
@@ -54,6 +53,7 @@ import { escapeHtml } from '@/composables/strings/String.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+import { getColumnTypeLabel } from '@/utils/tables/columnTypes.ts'
 
 export default defineComponent({
     name: 'RowsList',

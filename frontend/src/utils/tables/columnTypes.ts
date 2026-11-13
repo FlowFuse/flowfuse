@@ -3,7 +3,7 @@
  * column (its udt_name). This is the one place those names live, so a column is called
  * the same thing in the data grid, the table schema and the create table form.
  */
-const columnTypeLabels = {
+const columnTypeLabels: Record<string, string> = {
     text: 'Text',
     varchar: 'Text',
     bpchar: 'Text',
@@ -27,10 +27,10 @@ const columnTypeLabels = {
 }
 
 /**
- * @param {string} type - The column's type as Postgres reports it, e.g. 'int8' or '_text'
- * @returns {string} The friendly name, or the type itself when it has none
+ * @param type - The column's type as Postgres reports it, e.g. 'int8' or '_text'
+ * @returns The friendly name, or the type itself when it has none
  */
-export function getColumnTypeLabel (type) {
+export function getColumnTypeLabel (type: string): string {
     // Postgres names an array type after its element type, with a leading underscore
     if (type?.startsWith('_')) {
         return `List of ${getColumnTypeLabel(type.slice(1))}`

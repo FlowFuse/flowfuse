@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { getColumnTypeLabel } from '../../../../../../frontend/src/pages/team/Tables/columnTypes.js'
+import { getColumnTypeLabel } from '../../../../../frontend/src/utils/tables/columnTypes.ts'
 
 describe('getColumnTypeLabel', () => {
     test.each([

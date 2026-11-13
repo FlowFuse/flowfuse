@@ -30,12 +30,12 @@ import { defineComponent } from 'vue'
 
 import Alerts from '../../../../../../services/alerts.js'
 import Dialog from '../../../../../../services/dialog.js'
-import { getColumnTypeLabel } from '../../../columnTypes.js'
 
 import { useContextStore } from '@/stores/context.js'
 
 import { useProductTablesStore } from '@/stores/product-tables.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+import { getColumnTypeLabel } from '@/utils/tables/columnTypes.ts'
 
 export default defineComponent({
     name: 'TableSchema',

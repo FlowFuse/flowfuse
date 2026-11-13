@@ -71,7 +71,7 @@
 import { XMarkIcon } from '@heroicons/vue/20/solid'
 import { defineComponent } from 'vue'
 
-import { getColumnTypeLabel } from '../../../../columnTypes.js'
+import { getColumnTypeLabel } from '@/utils/tables/columnTypes.ts'
 
 export default defineComponent({
     name: 'TableColumn',
