@@ -143,10 +143,17 @@ module.exports = [
             teamId: teamId.describe('The hashid of the team that owns the remote instance. You can get this from platform_get_remote_instance or ui_get_context.'),
             remoteInstanceId
         },
-        handler: async (args, { app }) => {
+        handler: async (args, { app, inject }) => {
             if (!app.comms?.devices) {
                 return toolError(503, 'unexpected_error', 'Device communications are not available on this platform.')
             }
+            // Resolve the device through the API so the caller's access to it is checked,
+            // and address the command to the team the device actually belongs to
+            const deviceResponse = await inject({ method: 'GET', url: `/api/v1/devices/${args.remoteInstanceId}` })
+            if (deviceResponse.statusCode >= 400) {
+                return deviceResponse
+            }
+            const deviceTeamId = deviceResponse.json().team?.id
             try {
                 const liveCachedState = await app.db.controllers.Device.getLiveCachedState(args.remoteInstanceId)
                 if (liveCachedState) {
@@ -162,7 +169,7 @@ module.exports = [
                     }
                 }
 
-                const response = await app.comms.devices.sendCommandAwaitReply(args.teamId, args.remoteInstanceId, 'get-liveState', {}, { timeout: 3000 })
+                const response = await app.comms.devices.sendCommandAwaitReply(deviceTeamId, args.remoteInstanceId, 'get-liveState', {}, { timeout: 3000 })
                 return {
                     state: response?.state || 'unknown',
                     health: response?.health ?? null,
