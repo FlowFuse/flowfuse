@@ -4,6 +4,7 @@ const pg = require('pg')
 const should = require('should')
 const sinon = require('sinon')
 
+const libPg = require('../../../../../../../forge/ee/lib/tables/drivers/lib/pg.js')
 const driver = require('../../../../../../../forge/ee/lib/tables/drivers/postgres-supavisor.js')
 
 describe('Tables: Postgres Supavisor Driver', function () {
@@ -476,6 +477,13 @@ describe('Tables: Postgres Supavisor Driver', function () {
             query.calledWith('SELECT * FROM "public"."table1" ORDER BY "id" LIMIT $1 OFFSET $2', [5, 0]).should.be.true()
             pgClients[team.hashid].connect.calledOnce.should.be.true()
             pgClients[team.hashid].end.calledOnce.should.be.true()
+        })
+        it('should read with the parsers that keep values as they are stored', async function () {
+            setup()
+            await driver.init(app, options)
+            await driver.getTableData(team, team.hashid, 'table1', {})
+            const clientOptions = pg.Client.args.find(([opts]) => opts.database === team.hashid)[0]
+            clientOptions.should.have.property('types', libPg.tableDataTypes)
         })
         it('should offset by the requested page', async function () {
             const query = setup({ total: 42 })

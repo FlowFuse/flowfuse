@@ -160,6 +160,8 @@ module.exports = [
             Reads the row data of a table in a FlowFuse Tables database. There are no column-filter parameters; this returns rows as stored.
             Rows come back one page at a time, ordered by the primary key (or by physical row order when the table has none). Use page and limit to move through the table. Without a primary key, rows updated while you page can show up twice or be missed.
             count and meta.total are the total number of rows in the table, not the number returned; meta.pageCount is the number of pages at the current limit.
+            Values are as stored: a date is YYYY-MM-DD, a timestamp without a time zone is Postgres text starting 'YYYY-MM-DD HH:MM:SS' with no zone applied (it can carry fractional seconds or a BC suffix), a timestamp with a time zone is an ISO 8601 UTC string, and intervals and geometric types are Postgres text.
+            Large integers and numeric values are strings so no precision is lost, NaN and Infinity are the strings 'NaN', 'Infinity' and '-Infinity', a date or timestamp of infinity is the string 'infinity' or '-infinity', and a bytea value is { bytes, hex } with its size and the hex of its first 32 bytes, not its full content.
             schemaName is required, since the same table name can exist in more than one schema; get it from platform_list_database_tables.
             Use platform_get_database_table first if you need to know the column names and types.`,
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },

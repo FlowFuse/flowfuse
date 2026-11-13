@@ -211,7 +211,7 @@ module.exports = {
             throw new Error(`Database ${database} for team ${team.hashid} does not exist`)
         }
         try {
-            const teamClient = libPg.newClient({ ...this._options.database, database: team.hashid })
+            const teamClient = libPg.newClient({ ...this._options.database, database: team.hashid, types: libPg.tableDataTypes })
             try {
                 await teamClient.connect()
                 let resolvedSchema = schemaName
