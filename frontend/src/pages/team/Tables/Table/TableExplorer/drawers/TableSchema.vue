@@ -31,6 +31,7 @@ import { defineComponent } from 'vue'
 import Alerts from '../../../../../../services/alerts.js'
 import Dialog from '../../../../../../services/dialog.js'
 
+import usePermissions from '@/composables/Permissions.js'
 import { useContextStore } from '@/stores/context.js'
 
 import { useProductTablesStore } from '@/stores/product-tables.js'
@@ -43,6 +44,10 @@ export default defineComponent({
             type: Object,
             required: true
         }
+    },
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
     },
     computed: {
         ...mapState(useContextStore, ['team'])
@@ -75,7 +80,8 @@ export default defineComponent({
                 title: `${this.table.name} schema`,
                 actions: [
                     { handler: this.closeRightDrawer, label: 'Close', kind: 'secondary' },
-                    { handler: this.submit, label: 'Delete', kind: 'danger' }
+                    // deleting a table needs the same permission as creating one
+                    { handler: this.submit, label: 'Delete', kind: 'danger', hidden: !this.hasPermission('team:database:create') }
                 ]
             })
         }

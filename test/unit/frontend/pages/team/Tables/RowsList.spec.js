@@ -1,12 +1,12 @@
 import { mount } from '@vue/test-utils'
-import { describe, expect, test, vi } from 'vitest'
+import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 import RowsList from '../../../../../../frontend/src/pages/team/Tables/Table/TableExplorer/components/RowsList.vue'
 import ForgeUIComponents from '../../../../../../frontend/src/ui-components/index.js'
 
 const mocks = vi.hoisted(() => ({
     tablesStore: { tables: {}, tableSelection: null, isLoading: false, selectedTable: null },
-    contextStore: { team: { id: 't1' } },
+    contextStore: { team: { id: 't1' }, teamMembership: { role: 50 } },
     drawersStore: { openRightDrawer: vi.fn() }
 }))
 
@@ -44,6 +44,22 @@ describe('RowsList', () => {
     })
 
     describe('when the database has no tables', () => {
+        beforeEach(() => {
+            mocks.contextStore.teamMembership = { role: 50 }
+        })
+
+        test('does not offer a member a way to create the first table', () => {
+            mocks.contextStore.teamMembership = { role: 30 }
+            mocks.tablesStore.selectedTable = null
+            mocks.tablesStore.tables = { db1: [] }
+
+            const emptyState = mountRowsList().find('[data-el="no-tables"]')
+
+            expect(emptyState.text()).toContain('No tables yet')
+            expect(emptyState.text()).toContain('Once a team owner creates a table')
+            expect(emptyState.find('[data-action="create-table"]').exists()).toBe(false)
+        })
+
         test('shows the empty state with a way to create the first table', async () => {
             mocks.tablesStore.selectedTable = null
             mocks.tablesStore.tables = { db1: [] }
