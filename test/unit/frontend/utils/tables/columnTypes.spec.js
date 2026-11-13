@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { getColumnTypeLabel } from '../../../../../frontend/src/utils/tables/columnTypes.ts'
+import { getColumnTypeKind, getColumnTypeLabel } from '../../../../../frontend/src/utils/tables/columnTypes.ts'
 
 describe('getColumnTypeLabel', () => {
     test.each([
@@ -40,5 +40,34 @@ describe('getColumnTypeLabel', () => {
 
     test('copes with a column that reports no type', () => {
         expect(getColumnTypeLabel(undefined)).toBeUndefined()
+    })
+})
+
+describe('getColumnTypeKind', () => {
+    test.each([
+        ['text', 'text'],
+        ['varchar', 'text'],
+        ['int8', 'number'],
+        ['int2', 'number'],
+        ['numeric', 'number'],
+        ['float8', 'number'],
+        ['bool', 'boolean'],
+        ['date', 'date'],
+        ['timestamp', 'timestamp'],
+        ['timestamptz', 'timestamptz'],
+        ['time', 'time'],
+        ['json', 'json'],
+        ['jsonb', 'json'],
+        ['uuid', 'uuid'],
+        ['bytea', 'binary'],
+        ['_text', 'list'],
+        ['_int4', 'list']
+    ])('treats %s as %s', (type, kind) => {
+        expect(getColumnTypeKind(type)).toBe(kind)
+    })
+
+    test('treats a type it does not know as text', () => {
+        expect(getColumnTypeKind('money')).toBe('text')
+        expect(getColumnTypeKind(undefined)).toBe('text')
     })
 })

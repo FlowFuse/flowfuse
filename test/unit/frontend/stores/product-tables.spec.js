@@ -336,6 +336,15 @@ describe('product-tables store', () => {
         })
     })
 
+    describe('showing original values', () => {
+        it('shows formatted values until asked otherwise', () => {
+            const store = useProductTablesStore()
+            expect(store.showOriginalValues).toBe(false)
+            store.setShowOriginalValues(true)
+            expect(store.showOriginalValues).toBe(true)
+        })
+    })
+
     describe('paging', () => {
         it('goes back to the first page when the page size changes', () => {
             const store = useProductTablesStore()
