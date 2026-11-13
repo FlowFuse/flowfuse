@@ -139,4 +139,65 @@ describe('RowsList', () => {
             expect(wrapper.find('thead .sortable').exists()).toBe(false)
         })
     })
+
+    describe('loading a table', () => {
+        const readings = { name: 'readings', dbSchema: 'public' }
+        const schema = [{ name: 'id', safeName: 'col', type: 'bigint' }]
+        // the store is a plain mock, so run the table selection watcher by hand
+        const selectTable = (wrapper, table) => wrapper.vm.$options.watch.tableSelection.call(wrapper.vm, table)
+
+        beforeEach(() => {
+            vi.clearAllMocks()
+            mocks.tablesStore.isLoading = false
+            mocks.tablesStore.tableSelection = readings
+            mocks.tablesStore.selectedTable = { schema, payload: { safe: [{ col: 1 }], total: 1 } }
+        })
+
+        test('shows a loading indicator while the columns of a table are not known yet', () => {
+            mocks.tablesStore.isLoading = true
+            mocks.tablesStore.selectedTable = { name: 'readings' }
+            const wrapper = mountRowsList()
+            expect(wrapper.find('[data-el="table-loading"]').exists()).toBe(true)
+            expect(wrapper.text()).not.toContain("There doesn't seem to be anything here!")
+        })
+
+        test('shows skeleton rows under the headers while the rows are loading', () => {
+            mocks.tablesStore.isLoading = true
+            const wrapper = mountRowsList()
+            expect(wrapper.find('thead').text()).toContain('id')
+            expect(wrapper.findAll('.ff-data-table--skeleton-row').length).toBeGreaterThan(0)
+        })
+
+        test('says there is nothing to show only once loading is done', () => {
+            mocks.tablesStore.selectedTable = { name: 'readings' }
+            const wrapper = mountRowsList()
+            expect(wrapper.find('[data-el="table-loading"]').exists()).toBe(false)
+            expect(wrapper.text()).toContain("There doesn't seem to be anything here!")
+        })
+
+        test('is loading from the moment a table is picked until its rows are in', async () => {
+            const wrapper = mountRowsList()
+            selectTable(wrapper, readings)
+            expect(mocks.tablesStore.setTableLoadingState.mock.calls).toEqual([[true]])
+            await flushPromises()
+            expect(mocks.tablesStore.getTableSchema).toHaveBeenCalledTimes(1)
+            expect(mocks.tablesStore.getTableData).toHaveBeenCalledTimes(1)
+            expect(mocks.tablesStore.setTableLoadingState.mock.calls).toEqual([[true], [false]])
+        })
+
+        test('stops loading when the table fails to load', async () => {
+            mocks.tablesStore.getTableSchema.mockRejectedValueOnce(new Error('nope'))
+            const wrapper = mountRowsList()
+            selectTable(wrapper, readings)
+            await flushPromises()
+            expect(mocks.tablesStore.setTableLoadingState.mock.calls).toEqual([[true], [false]])
+        })
+
+        test('stays loading when another table was picked before this one finished', async () => {
+            const wrapper = mountRowsList()
+            selectTable(wrapper, { name: 'orders', dbSchema: 'public' })
+            await flushPromises()
+            expect(mocks.tablesStore.setTableLoadingState.mock.calls).toEqual([[true]])
+        })
+    })
 })
