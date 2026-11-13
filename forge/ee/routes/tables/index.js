@@ -472,7 +472,7 @@ module.exports = async function (app) {
 
     /**
      * @name /api/v1/teams/:teamId/databases/:databaseId/tables/:tableName/data/:schemaName?
-     * @description Get sample data from a specific table in a team database
+     * @description Get a page of rows from a specific table in a team database, with the table's total row count
      * @static
      * @memberof forge.routes.api.team.tables
      */
@@ -494,7 +494,7 @@ module.exports = async function (app) {
                 200: {
                     type: 'object',
                     properties: {
-                        count: { type: 'number' },
+                        count: { type: 'number', description: 'Total number of rows in the table' },
                         rows: {
                             type: 'array',
                             items: {
@@ -502,10 +502,7 @@ module.exports = async function (app) {
                                 additionalProperties: true // allow any properties in the table rows
                             }
                         },
-                        meta: {
-                            type: 'object',
-                            additionalProperties: true
-                        }
+                        meta: { $ref: 'PaginationMeta' }
                     }
                 },
                 '4xx': {

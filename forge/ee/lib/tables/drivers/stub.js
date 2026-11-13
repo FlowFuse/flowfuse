@@ -58,13 +58,16 @@ module.exports = {
         ]
     },
     getTableData: async function (team, databaseId, table, paginationOptions) {
+        const rows = [
+            { id: 1, name: 'Row 1' },
+            { id: 2, name: 'Row 2' }
+        ]
+        const pageSize = parseInt(paginationOptions?.limit) || 10
+        const page = parseInt(paginationOptions?.page) || 1
         return {
-            count: 2,
-            rows: [
-                { id: 1, name: 'Row 1' },
-                { id: 2, name: 'Row 2' }
-            ],
-            meta: {}
+            count: rows.length,
+            rows: rows.slice((page - 1) * pageSize, page * pageSize),
+            meta: { page, pageSize, total: rows.length, pageCount: Math.max(1, Math.ceil(rows.length / pageSize)) }
         }
     },
     createTable: async function (team, databaseId, tableName, columns, schemaName = 'public') {
