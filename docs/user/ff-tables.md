@@ -22,7 +22,7 @@ Once you have created a database you can use the wizard to create some tables. T
 ![Screenshot of create tables wizard](./images/tables/create-table-wizard.png){data-zoomable}
 _Screenshot of create tables wizard_
 
-Once the tables have data in them then the first 10 rows will be displayed in the Explorer tab.
+Once the tables have data in them the rows will be displayed in the Explorer tab, 25 at a time. On a longer table, use the controls under the grid to move between pages or change how many rows are shown per page.
 
 ![Screenshot of Tables Explorer](./images/tables/tables-ui-screenshot.png){data-zoomable}
 _Screenshot of Tables Explorer_

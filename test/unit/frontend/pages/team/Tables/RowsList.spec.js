@@ -1,11 +1,24 @@
-import { mount } from '@vue/test-utils'
-import { describe, expect, test, vi } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 import RowsList from '../../../../../../frontend/src/pages/team/Tables/Table/TableExplorer/components/RowsList.vue'
 import ForgeUIComponents from '../../../../../../frontend/src/ui-components/index.js'
 
 const mocks = vi.hoisted(() => ({
-    tablesStore: { tables: {}, tableSelection: null, isLoading: false, selectedTable: null },
+    tablesStore: {
+        tables: {},
+        tableSelection: null,
+        isLoading: false,
+        selectedTable: null,
+        page: 1,
+        pageSize: 25,
+        setPage: vi.fn(),
+        setPageSize: vi.fn(),
+        setTableLoadingState: vi.fn(),
+        getTableData: vi.fn(() => Promise.resolve()),
+        getTableSchema: vi.fn(() => Promise.resolve()),
+        updateTableSelection: vi.fn()
+    },
     contextStore: { team: { id: 't1' } },
     drawersStore: { openRightDrawer: vi.fn() }
 }))
@@ -70,6 +83,60 @@ describe('RowsList', () => {
             mocks.tablesStore.tables = { db1: [{ name: 'readings', dbSchema: 'public' }] }
 
             expect(mountRowsList().find('[data-el="no-tables"]').exists()).toBe(false)
+        })
+    })
+
+    describe('paging', () => {
+        const schema = [{ name: 'id', safeName: 'col', type: 'bigint' }]
+
+        beforeEach(() => {
+            vi.clearAllMocks()
+            mocks.tablesStore.page = 2
+            mocks.tablesStore.pageSize = 25
+            mocks.tablesStore.tableSelection = { name: 'readings', dbSchema: 'public' }
+            mocks.tablesStore.selectedTable = { schema, payload: { safe: [{ col: 26 }], total: 1284 } }
+        })
+
+        test('shows where the current page sits in the whole table', () => {
+            const wrapper = mountRowsList()
+            expect(wrapper.find('[data-el="pagination"]').text()).toContain('26–50 of 1284')
+        })
+
+        test('shows no paging controls when the table fits on one page', () => {
+            mocks.tablesStore.page = 1
+            mocks.tablesStore.selectedTable = { schema, payload: { safe: [{ col: 1 }], total: 1 } }
+            const wrapper = mountRowsList()
+            expect(wrapper.find('[data-el="pagination"]').exists()).toBe(false)
+        })
+
+        test('loads the chosen page for the selected table', async () => {
+            const wrapper = mountRowsList()
+            await wrapper.find('[data-action="page-next"]').trigger('click')
+            expect(mocks.tablesStore.setPage).toHaveBeenCalledWith(3)
+            expect(mocks.tablesStore.getTableData).toHaveBeenCalledWith({ teamId: 't1', databaseId: 'db1', tableName: 'readings', schemaName: 'public' })
+        })
+
+        test('keeps showing the loading state until the most recently chosen page has loaded', async () => {
+            const loads = []
+            const pendingLoad = () => new Promise(resolve => loads.push(resolve))
+            mocks.tablesStore.getTableData.mockImplementationOnce(pendingLoad).mockImplementationOnce(pendingLoad)
+            const wrapper = mountRowsList()
+            await wrapper.find('[data-action="page-next"]').trigger('click')
+            await wrapper.find('[data-action="page-next"]').trigger('click')
+            expect(loads).toHaveLength(2)
+
+            loads[0]()
+            await flushPromises()
+            expect(mocks.tablesStore.setTableLoadingState).not.toHaveBeenCalledWith(false)
+
+            loads[1]()
+            await flushPromises()
+            expect(mocks.tablesStore.setTableLoadingState).toHaveBeenLastCalledWith(false)
+        })
+
+        test('does not offer to sort by column, since only the current page is loaded', () => {
+            const wrapper = mountRowsList()
+            expect(wrapper.find('thead .sortable').exists()).toBe(false)
         })
     })
 })

@@ -20,6 +20,8 @@ export const useProductTablesStore = defineStore('product-tables', {
         databaseSelection: null,
         tables: {},
         tableSelection: null,
+        page: 1,
+        pageSize: 25,
         newTable: { name: '', schema: 'public', columns: [{ ...emptyColumn }] },
         isLoading: false
     }),
@@ -63,11 +65,21 @@ export const useProductTablesStore = defineStore('product-tables', {
             tables = tables.map(({ schema, ...table }) => ({ ...table, dbSchema: schema }))
             tables = [...tables].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }))
             this.tables[databaseId] = tables
-            if (tables.length > 0) this.tableSelection = { name: tables[0].name, dbSchema: tables[0].dbSchema }
+            if (tables.length > 0) this.updateTableSelection({ name: tables[0].name, dbSchema: tables[0].dbSchema })
             return tables
         },
         clearState () { this.$reset() },
-        updateTableSelection (table) { this.tableSelection = table },
+        updateTableSelection (table) {
+            this.tableSelection = table
+            this.page = 1
+        },
+        setPage (page) {
+            this.page = page
+        },
+        setPageSize (pageSize) {
+            this.pageSize = pageSize
+            this.page = 1
+        },
         updateDatabaseSelection (databaseId) { this.databaseSelection = databaseId },
         async getTableSchema ({ databaseId, tableName, teamId, schemaName }) {
             const schema = await tablesApi.getTableSchema(teamId, databaseId, tableName, schemaName)
@@ -80,10 +92,25 @@ export const useProductTablesStore = defineStore('product-tables', {
             })
         },
         async getTableData ({ databaseId, tableName, teamId, schemaName }) {
-            const data = await tablesApi.getTableData(teamId, databaseId, tableName, schemaName)
+            const pageSize = this.pageSize
+            let page = this.page
+            // another page or page size picked while this one was loading makes its rows out of date
+            const isStale = () => this.page !== page || this.pageSize !== pageSize
+            const fetchPage = () => tablesApi.getTableData(teamId, databaseId, tableName, schemaName, { page, limit: pageSize })
+            let res = await fetchPage()
+            if (isStale()) return
+            const lastPage = Math.max(1, Math.ceil(res.count / pageSize))
+            if (page > lastPage) {
+                // the table shrank and this page is gone, so fall back to the last one
+                page = this.page = lastPage
+                res = await fetchPage()
+                if (isStale()) return
+            }
+            const { rows: data, count: total } = res
             const payload = {
                 data,
-                safe: data.map(row => Object.fromEntries(Object.entries(row).map(([k, v]) => [hashString(k), v])))
+                safe: data.map(row => Object.fromEntries(Object.entries(row).map(([k, v]) => [hashString(k), v]))),
+                total
             }
             Object.keys(this.tables[databaseId]).forEach(key => {
                 const table = this.tables[databaseId][key]

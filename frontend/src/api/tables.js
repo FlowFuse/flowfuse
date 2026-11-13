@@ -21,10 +21,10 @@ const getTableSchema = (teamId, databaseId, tableName, schemaName) => {
         .then(res => res.data)
 }
 
-const getTableData = (teamId, databaseId, tableName, schemaName) => {
+const getTableData = (teamId, databaseId, tableName, schemaName, { page, limit } = {}) => {
     const suffix = schemaName ? `/${schemaName}` : ''
-    return client.get(`/api/v1/teams/${teamId}/databases/${databaseId}/tables/${tableName}/data${suffix}`)
-        .then(res => res.data.rows)
+    return client.get(`/api/v1/teams/${teamId}/databases/${databaseId}/tables/${tableName}/data${suffix}`, { params: { page, limit } })
+        .then(res => res.data)
 }
 
 const createTable = (teamId, databaseId, payload) => {
