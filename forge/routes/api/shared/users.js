@@ -184,6 +184,8 @@ module.exports = {
             if (user.username !== originalUser.username) {
                 // Node-RED editor sessions are keyed by the username at login
                 await app.db.controllers.StorageSession.removeUserFromSessions(originalUser)
+                // npm registry tokens are keyed by username
+                await app.db.models.AccessToken.destroy({ where: { ownerType: 'npm', ownerId: originalUser.username } })
                 await app.postoffice.send(originalUser, 'UsernameChanged', {
                     oldUsername: originalUser.username,
                     newUsername: user.username
