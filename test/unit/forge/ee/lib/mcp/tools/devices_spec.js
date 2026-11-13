@@ -212,12 +212,17 @@ describe('MCP Devices Tools', function () {
             }
         }
 
+        beforeEach(function () {
+            inject.withArgs({ method: 'GET', url: '/api/v1/devices/device1' })
+                .resolves({ statusCode: 200, json: () => ({ id: 'device1', team: { id: 'deviceTeam' } }) })
+        })
+
         it('wraps a cache hit in the same shape as the live reply', async function () {
             // The cache holds the bare state string, so returning it as-is gave this tool two
             // different success contracts depending on whether the cache happened to be warm.
             const app = buildApp('running', sinon.stub())
 
-            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app })
+            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app, inject })
 
             response.should.eql({ state: 'running', health: null, snapshot: null, cached: true })
         })
@@ -226,16 +231,39 @@ describe('MCP Devices Tools', function () {
             const sendCommandAwaitReply = sinon.stub().resolves({ state: 'stopped', health: { ok: true }, snapshot: 'snap1' })
             const app = buildApp(null, sendCommandAwaitReply)
 
-            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app })
+            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app, inject })
 
             response.should.eql({ state: 'stopped', health: { ok: true }, snapshot: 'snap1', cached: false })
+        })
+
+        it('sends the command to the team the device belongs to, not the teamId argument', async function () {
+            const sendCommandAwaitReply = sinon.stub().resolves({ state: 'running' })
+            const app = buildApp(null, sendCommandAwaitReply)
+
+            await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app, inject })
+
+            sendCommandAwaitReply.firstCall.args[0].should.equal('deviceTeam')
+            sendCommandAwaitReply.firstCall.args[1].should.equal('device1')
+        })
+
+        it('returns the device route error without reading state when the device cannot be read', async function () {
+            const sendCommandAwaitReply = sinon.stub()
+            const app = buildApp('running', sendCommandAwaitReply)
+            const routeResponse = { statusCode: 404, json: () => ({ code: 'not_found', error: 'Not Found' }) }
+            inject.withArgs({ method: 'GET', url: '/api/v1/devices/device2' }).resolves(routeResponse)
+
+            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device2' }, { app, inject })
+
+            response.should.equal(routeResponse)
+            app.db.controllers.Device.getLiveCachedState.called.should.be.false()
+            sendCommandAwaitReply.called.should.be.false()
         })
 
         it('reports an unreachable device as an error, not as a successful result', async function () {
             const sendCommandAwaitReply = sinon.stub().rejects(new Error('timeout'))
             const app = buildApp(null, sendCommandAwaitReply)
 
-            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app })
+            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app, inject })
 
             response.statusCode.should.equal(504)
             response.json().code.should.equal('unexpected_error')
@@ -243,7 +271,7 @@ describe('MCP Devices Tools', function () {
         })
 
         it('reports missing device comms as an error', async function () {
-            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app: { comms: {} } })
+            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app: { comms: {} }, inject })
 
             response.statusCode.should.equal(503)
             response.json().code.should.equal('unexpected_error')
