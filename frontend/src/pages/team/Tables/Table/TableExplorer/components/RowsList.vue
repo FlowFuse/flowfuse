@@ -53,6 +53,7 @@ import { escapeHtml } from '@/composables/strings/String.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+import { getColumnTypeLabel } from '@/utils/tables/columnTypes.ts'
 
 export default defineComponent({
     name: 'RowsList',
@@ -64,7 +65,7 @@ export default defineComponent({
             return (this.selectedTable?.schema ?? []).map((row) => {
                 return {
                     key: row.safeName,
-                    html: `<span >${escapeHtml(row.name)}</span> <span class="text-gray-400">${escapeHtml(row.type)}</span>`,
+                    html: `<span class="column-name">${escapeHtml(row.name)}</span><span class="column-type" title="${escapeHtml(row.type)}">${escapeHtml(getColumnTypeLabel(row.type))}</span>`,
                     component: {
                         is: this.getTableComponent(row.type),
                         extraProps: {},
@@ -199,6 +200,19 @@ export default defineComponent({
         display: flex;
         align-items: center;
         height: 50px;
+    }
+
+    // the column headers are rendered from html, so they sit outside this component's scope
+    :deep(thead) {
+        .column-name, .column-type {
+            display: block;
+        }
+
+        .column-type {
+            color: var(--ff-color-text-muted);
+            font-size: 0.75rem;
+            font-weight: normal;
+        }
     }
 }
 </style>
