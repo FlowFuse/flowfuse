@@ -120,6 +120,24 @@ describe('product-tables store', () => {
     })
 
     describe('getTables', () => {
+        it('orders tables by schema, public first, then by name, and selects the first one', async () => {
+            const store = useProductTablesStore()
+            tablesApi.getTables.mockResolvedValue([
+                { name: 'totals', schema: 'reporting' },
+                { name: 'shifts', schema: 'public' },
+                { name: 'events', schema: 'archive' },
+                { name: 'batches', schema: 'public' }
+            ])
+            await store.getTables('db-1')
+            expect(store.tables['db-1'].map(table => `${table.dbSchema}.${table.name}`)).toEqual([
+                'public.batches',
+                'public.shifts',
+                'archive.events',
+                'reporting.totals'
+            ])
+            expect(store.tableSelection).toEqual({ name: 'batches', dbSchema: 'public' })
+        })
+
         it('sorts and stores tables, sets tableSelection to first', async () => {
             const store = useProductTablesStore()
             tablesApi.getTables.mockResolvedValue([{ name: 'orders' }, { name: 'accounts' }])

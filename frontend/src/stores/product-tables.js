@@ -14,6 +14,18 @@ const emptyColumn = {
     unsigned: false
 }
 
+const compareNames = (a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+
+// the public schema first, then the other schemas by name, and each schema's tables by name
+const compareTables = (a, b) => {
+    if (a.dbSchema !== b.dbSchema) {
+        if (a.dbSchema === 'public') return -1
+        if (b.dbSchema === 'public') return 1
+        return compareNames(a.dbSchema, b.dbSchema)
+    }
+    return compareNames(a.name, b.name)
+}
+
 export const useProductTablesStore = defineStore('product-tables', {
     state: () => ({
         databases: {},
@@ -64,7 +76,7 @@ export const useProductTablesStore = defineStore('product-tables', {
             // dbSchema (the Postgres schema/namespace) is kept separate from `schema`,
             // which getTableSchema below repurposes to hold the table's column definitions
             tables = tables.map(({ schema, ...table }) => ({ ...table, dbSchema: schema }))
-            tables = [...tables].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }))
+            tables = [...tables].sort(compareTables)
             this.tables[databaseId] = tables
             if (tables.length > 0) this.updateTableSelection({ name: tables[0].name, dbSchema: tables[0].dbSchema })
             return tables
