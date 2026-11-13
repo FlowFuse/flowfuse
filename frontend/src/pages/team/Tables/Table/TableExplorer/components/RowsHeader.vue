@@ -15,10 +15,10 @@
             {{ selectedTable.dbSchema }}.{{ selectedTable.name }}
         </span>
         <TextCopier v-if="selectedTable" :text="qualifiedTableName" :show-text="false" />
-        <label v-if="selectedTable" class="show-original" data-el="show-original-values">
+        <div v-if="selectedTable" class="show-original" data-el="show-original-values">
             <ff-toggle-switch size="small" :model-value="showOriginalValues" @update:model-value="setShowOriginalValues" />
-            Show original values
-        </label>
+            <span @click="setShowOriginalValues(!showOriginalValues)">Show original values</span>
+        </div>
     </section>
 </template>
 
