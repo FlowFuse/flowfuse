@@ -1693,6 +1693,46 @@ describe('User API', async function () {
                 }
             })
 
+            it('team-scoped PAT cannot remove its user from a team outside its scope', async function () {
+                await login('bob', 'bbPassword')
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.bob },
+                    payload: { name: 'ATeam Only (leave)', scope: '', teamIds: [TestObjects.ATeam.hashid] }
+                })
+                createResponse.statusCode.should.equal(200)
+
+                const response = await app.inject({
+                    method: 'DELETE',
+                    url: `/api/v1/teams/${TestObjects.BTeam.hashid}/members/${TestObjects.bob.hashid}`,
+                    headers: { authorization: `Bearer ${createResponse.json().token}` }
+                })
+                response.statusCode.should.equal(403)
+                const role = await TestObjects.bob.getTeamMembership(TestObjects.BTeam.id)
+                should.exist(role)
+            })
+
+            it('read-only PAT cannot remove its user from a team', async function () {
+                await login('bob', 'bbPassword')
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.bob },
+                    payload: { name: 'ReadOnly (leave)', scope: '', readOnly: true }
+                })
+                createResponse.statusCode.should.equal(200)
+
+                const response = await app.inject({
+                    method: 'DELETE',
+                    url: `/api/v1/teams/${TestObjects.BTeam.hashid}/members/${TestObjects.bob.hashid}`,
+                    headers: { authorization: `Bearer ${createResponse.json().token}` }
+                })
+                response.statusCode.should.equal(403)
+                const role = await TestObjects.bob.getTeamMembership(TestObjects.BTeam.id)
+                should.exist(role)
+            })
+
             it('team-agnostic PAT (no teamScopes) can access any team the user belongs to', async function () {
                 await login('bob', 'bbPassword')
                 const createResponse = await app.inject({
