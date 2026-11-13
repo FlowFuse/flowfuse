@@ -66,6 +66,10 @@ contains the hosted instances in your team and the remote instances assigned to 
 application. `Project Out` and `Project Call` can target either, including remote
 instances assigned to an application.
 
+A `Project Out` or `Project Call` node on a remote instance can target another remote
+instance, or a hosted instance, and a hosted instance can target a remote instance in the
+same way. Calls work between any two of them.
+
 Broadcast messages are sent on one of two channels. Choose the channel with the
 **Channel** option on the `Project In` and `Project Out` nodes:
 
@@ -88,16 +92,23 @@ sender, and for broadcasts `msg.projectLink.scope`, the channel it was sent on.
 instead of using the instance chosen in the editor. This needs
 `@flowfuse/nr-project-nodes` v1.0.0 or later. Set **Target** to `msg.` and give a
 property name (it defaults to `msg.target`), or to `env` to read it from an environment
-variable. An `env` value can also be a template such as `${PREFIX}-${NAME}`. The value
-must be the id of an instance or remote instance in your team.
+variable. The value must be the id of an instance or remote instance in your team.
+
+A hosted instance is identified by its id alone, without any prefix.
+For example, a Change node can set `msg.target` to the id of the hosted instance.
 
 A remote instance is identified by `dev:` followed by its id. For example, a Function
-node can set ``msg.target = `dev:${deviceId}` ``, or the `env` value can be
-`dev:${TARGET_DEVICE_ID}`.
+node can set ``msg.target = `dev:${deviceId}` ``, or an `env` template such as
+`dev:${TARGET_DEVICE_ID}` can be used.
 
 The nodes do not ask FlowFuse whether the target exists. A value that is missing or is
 not a valid id raises an error that a Catch node can handle. A valid id for an instance
 that does not exist sends the message nowhere, so a `Project Call` node reports a timeout.
+
+This lets the same flows be deployed to many instances or remote instances, each using
+a target of its own. FlowFuse sets some [environment variables](./envvar.md) for you.
+`FF_DEVICE_ID` on remote instances and `FF_INSTANCE_ID` on hosted instances give an
+instance's own id, which it can send in a message so the receiver can target it.
 
 ### Choosing the topic at runtime
 
@@ -105,16 +116,11 @@ The topic of a node can also be set when the flow runs, instead of typing it int
 editor. This needs `@flowfuse/nr-project-nodes` v1.0.0 or later.
 
 Set **Topic** to `env` and give an environment variable name, or a template such as
-`some/topic/${FF_DEVICE_NAME}/status`. `Project Out` and `Project Call` can also use
-`msg.` and a property name (it defaults to `msg.topic`) to read the topic from each
-message.
+`some/topic/${HW_REV}/status`. `Project Out` and `Project Call` can also use `msg.`
+and a property name (it defaults to `msg.topic`) to read the topic the message carries.
 
 `Project In` reads its topic once, when the node starts, so it can use `env` but not
 `msg.`.
-
-This lets the same flows be deployed to many instances or remote instances, each using
-a topic of its own. FlowFuse sets some [environment variables](./envvar.md) for you,
-which are handy for this.
 
 An invalid topic, or an environment variable that is not set, raises an error that a
 Catch node can handle. A `Project In` node shows an invalid topic status and does not
