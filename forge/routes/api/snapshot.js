@@ -131,7 +131,21 @@ module.exports = async function (app) {
         const snapshot = {
             ...(request.snapshot.toJSON ? request.snapshot.toJSON() : request.snapshot)
         }
-        reply.send(projectSnapshotView.snapshotExport(snapshot))
+        const result = projectSnapshotView.snapshotExport(snapshot)
+        // Only Owners see the values of hidden env vars
+        const isOwner = request.session.User.admin || app.hasPermission(request.teamMembership, 'snapshot:edit', { applicationId: request.applicationId })
+        if (!isOwner && result.settings?.env) {
+            const env = {}
+            for (const [name, entry] of Object.entries(result.settings.env)) {
+                if (entry?.hidden === true) {
+                    env[name] = { ...entry, value: '' }
+                } else {
+                    env[name] = entry
+                }
+            }
+            result.settings = { ...result.settings, env }
+        }
+        reply.send(result)
     })
 
     /**

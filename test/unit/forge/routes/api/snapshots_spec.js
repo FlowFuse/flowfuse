@@ -433,6 +433,25 @@ describe('Snapshots API', function () {
                 response.json().should.have.property('name', result.name)
             })
 
+            if (kind === 'instance') {
+                it('Member does not get the values of hidden env vars', async function () {
+                    const snapshotResponse = await createSnapshot()
+                    const result = snapshotResponse.json()
+
+                    const response = await getFullSnapshot(result.id, TestObjects.tokens.bob)
+
+                    response.statusCode.should.equal(200)
+                    const env = response.json().settings.env
+                    env.should.have.property('a', '1')
+                    env.b.should.have.property('hidden', true)
+                    env.b.should.have.property('value', '')
+
+                    // the stored snapshot keeps the value
+                    const stored = await app.db.models.ProjectSnapshot.byId(result.id)
+                    stored.settings.env.b.should.have.property('value', '2')
+                })
+            }
+
             it('Viewer cannot get snapshot', async function () {
                 const snapshotResponse = await createSnapshot()
                 const result = snapshotResponse.json()
