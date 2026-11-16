@@ -123,6 +123,7 @@ module.exports = async function (app) {
             await app.postoffice.send(request.session.User, 'PasswordChanged', { })
             // Delete all existing sessions for this user
             await app.db.controllers.Session.deleteAllUserSessions(request.session.User)
+            await app.db.controllers.User.logout(request.session.User)
             // Create new session
             const sessionInfo = await app.createSessionCookie(request.session.User.username)
             if (sessionInfo) {

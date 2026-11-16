@@ -1563,6 +1563,34 @@ describe('Team API', function () {
             })
             response.statusCode.should.equal(200)
         })
+        it('PAT scoped only to a deleted team cannot access other teams', async function () {
+            const team = await app.db.models.Team.create({ name: 'delete-team-pat', TeamTypeId: app.defaultTeamType.id })
+            await team.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+            const pat = await app.db.controllers.AccessToken.createPersonalAccessToken(
+                TestObjects.bob, '', null, 'Scoped PAT', { teamIds: [team.hashid] }
+            )
+
+            const before = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}`,
+                headers: { authorization: `Bearer ${pat.token}` }
+            })
+            before.statusCode.should.equal(403)
+
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/teams/${team.hashid}`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+
+            const after = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}`,
+                headers: { authorization: `Bearer ${pat.token}` }
+            })
+            after.statusCode.should.equal(401)
+        })
         it('member cannot delete team without instances', async function () {
             const team = await app.db.models.Team.create({ name: 'delete-team-4', TeamTypeId: app.defaultTeamType.id })
             await team.addUser(TestObjects.bob, { through: { role: Roles.Member } })

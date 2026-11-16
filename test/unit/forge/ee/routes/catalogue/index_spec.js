@@ -258,6 +258,42 @@ describe('Team Catalogue', function () {
                 body.teams.should.have.length(1)
                 body.teams[0].should.equal(`${app.team.hashid}:50`)
             })
+            it('suspending a user revokes their User token', async function () {
+                const userDave = await app.db.models.User.create({ username: 'dave', name: 'Dave Vader', email: 'dave@example.com', email_verified: true, password: 'ddPassword' })
+                await app.team.addUser(userDave, { through: { role: Roles.Owner } })
+                const result = await app.db.controllers.AccessToken.createTokenForNPM(userDave, app.team, ['team:packages:manage'])
+
+                const suspend = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/users/${userDave.hashid}`,
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: { suspended: true }
+                })
+                suspend.statusCode.should.equal(200)
+
+                const token = await app.db.models.AccessToken.findOne({ where: { ownerType: 'npm', ownerId: 'dave' } })
+                should.not.exist(token)
+                const authResult = await app.inject({
+                    method: 'GET',
+                    url: '/account/check/npm/dave',
+                    headers: { Authorization: `Bearer ${result.token}` }
+                })
+                authResult.statusCode.should.equal(401)
+            })
+            it('rejects a User token for a suspended user', async function () {
+                const userEve = await app.db.models.User.create({ username: 'eve', name: 'Eve', email: 'eve@example.com', email_verified: true, password: 'eePassword' })
+                await app.team.addUser(userEve, { through: { role: Roles.Owner } })
+                const result = await app.db.controllers.AccessToken.createTokenForNPM(userEve, app.team, ['team:packages:manage'])
+                userEve.suspended = true
+                await userEve.save()
+
+                const authResult = await app.inject({
+                    method: 'GET',
+                    url: '/account/check/npm/eve',
+                    headers: { Authorization: `Bearer ${result.token}` }
+                })
+                authResult.statusCode.should.equal(401)
+            })
         })
         describe('Instance/Device settings', function () {
             it('Instance', async function () {
