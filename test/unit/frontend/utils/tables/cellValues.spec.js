@@ -151,6 +151,11 @@ describe('formatCellValue', () => {
             expect(formatCellValue(['null', null], '_text').text).toBe('["null", null]')
         })
 
+        test('shows the items of a JSON list as the JSON they are', () => {
+            expect(formatCellValue(['{"a": 1}', '"text, with a comma"', null], '_jsonb').text).toBe('[{"a": 1}, "text, with a comma", null]')
+            expect(formatCellValue(['[1, 2]'], '_json').text).toBe('[[1, 2]]')
+        })
+
         test('leaves numbers and dates in a list as they are', () => {
             expect(formatCellValue(['12345678901234567890.123', 'NaN'], '_numeric').text).toBe('[12345678901234567890.123, NaN]')
             expect(formatCellValue(['2025-08-01', '2025-08-02'], '_date').text).toBe('[2025-08-01, 2025-08-02]')

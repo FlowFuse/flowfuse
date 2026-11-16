@@ -56,9 +56,13 @@ const utcDate = (year: number, month: number, day: number, hour = 0, minute = 0,
 // one that is blank or starts or ends with a space, and the word null (which would look like a missing item)
 const NEEDS_QUOTES = /[,"]|^\s|\s$|^$|^null$/i
 
-const listItem = (item: unknown): string => {
+// Postgres names a list type after the type of its items, with a leading underscore
+const listItemKind = (type: string): ColumnKind => getColumnTypeKind(type.slice(1))
+
+// An item of a json or jsonb list is already JSON text, so it is shown as it is
+const listItem = (item: unknown, itemKind?: ColumnKind): string => {
     if (item === null) return 'null'
-    if (typeof item === 'string') return NEEDS_QUOTES.test(item) ? JSON.stringify(item) : item
+    if (typeof item === 'string') return itemKind !== 'json' && NEEDS_QUOTES.test(item) ? JSON.stringify(item) : item
     return typeof item === 'object' ? JSON.stringify(item) : String(item)
 }
 
@@ -69,7 +73,7 @@ const isBinaryValue = (value: unknown): value is BinaryValue => typeof (value as
 // the numbers a pattern picked out of a value, e.g. year, month and day
 const parts = (match: RegExpExecArray): number[] => match.slice(1).map(Number)
 
-const formatters: Partial<Record<ColumnKind, (value: unknown) => string | undefined>> = {
+const formatters: Partial<Record<ColumnKind, (value: unknown, type: string) => string | undefined>> = {
     boolean: value => typeof value === 'boolean' ? String(value) : undefined,
     date: value => {
         const match = DATE.exec(String(value))
@@ -101,7 +105,11 @@ const formatters: Partial<Record<ColumnKind, (value: unknown) => string | undefi
         const preview = value.hex.length / 2 < value.bytes ? `${value.hex}…` : value.hex
         return preview ? `${size} · ${preview}` : size
     },
-    list: value => Array.isArray(value) ? `[${value.map(listItem).join(', ')}]` : undefined
+    list: (value, type) => {
+        if (!Array.isArray(value)) return undefined
+        const itemKind = listItemKind(type)
+        return `[${value.map(item => listItem(item, itemKind)).join(', ')}]`
+    }
 }
 
 /**
@@ -127,7 +135,7 @@ export function formatCellValue (value: unknown, type: string, { original = fals
         return { kind: 'text', text: originalText, original: originalText }
     }
     const kind = getColumnTypeKind(type)
-    const text = formatters[kind]?.(value) ?? originalText
+    const text = formatters[kind]?.(value, type) ?? originalText
     return { kind, text, original: originalText }
 }
 
