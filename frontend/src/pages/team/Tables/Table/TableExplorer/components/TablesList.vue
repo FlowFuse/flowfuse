@@ -18,8 +18,8 @@
 
         <div v-if="filteredTables.length && tables.length" class="list">
             <FfAccordion
-                v-for="group in tableGroups" :key="group.schema"
-                class="schema-group" variant="bare" set-open
+                v-for="group in tableGroups" :key="`${group.schema}:${groupsKey}`"
+                class="schema-group" :class="{ 'schema-group--only': hasOneSchema }" variant="bare" set-open
                 :data-schema="group.schema"
             >
                 <template #label>
@@ -92,6 +92,15 @@ export default defineComponent({
                 groups.get(table.dbSchema).push(table)
             })
             return [...groups].map(([schema, tables]) => ({ schema, tables }))
+        },
+        // most databases only have the one schema, where a heading over the whole list says nothing
+        hasOneSchema () {
+            return new Set(this.tables.map(table => table.dbSchema)).size === 1
+        },
+        // The groups are made again, which opens them all, when a search starts or ends (so a closed group cannot
+        // hide a match) and when the heading comes or goes (so a closed group is not left with nothing to open it)
+        groupsKey () {
+            return `${!!this.filterTerm}:${this.hasOneSchema}`
         }
     },
     watch: {
@@ -160,6 +169,14 @@ export default defineComponent({
 
             .schema-name {
                 font-size: 0.75rem;
+            }
+
+            &--only {
+                margin-bottom: 0;
+
+                :deep(.ff-accordion--button) {
+                    display: none;
+                }
             }
         }
 

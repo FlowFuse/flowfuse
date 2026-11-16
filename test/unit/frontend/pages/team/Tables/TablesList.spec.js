@@ -13,14 +13,14 @@ vi.mock('@/stores/product-tables.js', () => ({ useProductTablesStore: () => mock
 vi.mock('@/stores/ux-drawers.js', () => ({ useUxDrawersStore: () => mocks.drawersStore }))
 
 // in the order the store hands them over: by schema, then by name
-const tables = [
+const allTables = [
     { name: 'batches', dbSchema: 'public' },
     { name: 'shifts', dbSchema: 'public' },
     { name: 'batches', dbSchema: 'reporting' },
     { name: 'daily_totals', dbSchema: 'reporting' }
 ]
 
-async function mountTablesList () {
+async function mountTablesList (tables = allTables) {
     const wrapper = mount(TablesList, {
         global: {
             plugins: [ForgeUIComponents],
@@ -87,5 +87,56 @@ describe('TablesList', () => {
         await wrapper.find('[data-form="search"] input').setValue('daily')
 
         expect(groupsOf(wrapper)).toEqual([{ schema: 'reporting', tables: ['daily_totals'] }])
+    })
+
+    test('searching shows the matches of a schema that was closed, and ending the search opens every schema', async () => {
+        const wrapper = await mountTablesList()
+        await wrapper.find('[data-schema="reporting"] button').trigger('click')
+        expect(wrapper.findAll('[data-schema="reporting"] .item')).toHaveLength(0)
+
+        await wrapper.find('[data-form="search"] input').setValue('daily')
+        expect(groupsOf(wrapper)).toEqual([{ schema: 'reporting', tables: ['daily_totals'] }])
+
+        await wrapper.find('[data-form="search"] input').setValue('')
+        expect(groupsOf(wrapper).map(group => group.tables.length)).toEqual([2, 2])
+    })
+
+    test('keeps a schema closed while the search is only being typed further', async () => {
+        const wrapper = await mountTablesList()
+        await wrapper.find('[data-form="search"] input').setValue('b')
+        await wrapper.find('[data-schema="public"] button').trigger('click')
+
+        await wrapper.find('[data-form="search"] input').setValue('ba')
+
+        expect(wrapper.findAll('[data-schema="public"] .item')).toHaveLength(0)
+        expect(wrapper.findAll('[data-schema="reporting"] .item')).toHaveLength(1)
+    })
+
+    describe('with a single schema', () => {
+        const onlyPublic = allTables.filter(table => table.dbSchema === 'public')
+
+        test('lists the tables without a heading over them', async () => {
+            const wrapper = await mountTablesList(onlyPublic)
+
+            expect(wrapper.find('.schema-group').classes()).toContain('schema-group--only')
+            expect(wrapper.findAll('.item').map(item => item.text())).toEqual(['batches', 'shifts'])
+        })
+
+        test('keeps the headings when a search leaves only one of several schemas', async () => {
+            const wrapper = await mountTablesList()
+
+            await wrapper.find('[data-form="search"] input').setValue('daily')
+
+            expect(wrapper.find('.schema-group').classes()).not.toContain('schema-group--only')
+        })
+
+        test('opens a closed schema when it becomes the only one', async () => {
+            const wrapper = await mountTablesList()
+            await wrapper.find('[data-schema="public"] button').trigger('click')
+
+            await wrapper.setData({ tables: onlyPublic })
+
+            expect(wrapper.findAll('.item')).toHaveLength(2)
+        })
     })
 })
