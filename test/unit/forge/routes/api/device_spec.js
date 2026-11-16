@@ -1919,7 +1919,7 @@ describe('Device API', async function () {
                     const defaultTeamTypeProperties = app.defaultTeamType.properties
                     cats = defaultTeamTypeProperties.extraCatalogues
                 })
-                afterEach(async function  () {
+                afterEach(async function () {
                     const defaultTeamTypeProperties = app.defaultTeamType.properties
                     defaultTeamTypeProperties.extraCatalogues = cats
                     app.defaultTeamType.properties = defaultTeamTypeProperties

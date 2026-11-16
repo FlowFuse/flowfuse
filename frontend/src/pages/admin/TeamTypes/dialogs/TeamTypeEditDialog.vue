@@ -455,7 +455,7 @@ export default {
             for (const cat of extraCataloguesArray) {
                 try {
                     const u = new URL(cat)
-                    if (u.protocol != 'https:') {
+                    if (u.protocol !== 'https:') {
                         return false
                     }
                 } catch (err) {
