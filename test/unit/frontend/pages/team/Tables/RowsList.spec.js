@@ -21,7 +21,7 @@ const mocks = vi.hoisted(() => ({
         getTableSchema: vi.fn(() => Promise.resolve()),
         updateTableSelection: vi.fn()
     },
-    contextStore: { team: { id: 't1' } },
+    contextStore: { team: { id: 't1' }, teamMembership: { role: 50 } },
     drawersStore: { openRightDrawer: vi.fn() }
 }))
 
@@ -59,6 +59,22 @@ describe('RowsList', () => {
     })
 
     describe('when the database has no tables', () => {
+        beforeEach(() => {
+            mocks.contextStore.teamMembership = { role: 50 }
+        })
+
+        test('does not offer a member a way to create the first table', () => {
+            mocks.contextStore.teamMembership = { role: 30 }
+            mocks.tablesStore.selectedTable = null
+            mocks.tablesStore.tables = { db1: [] }
+
+            const emptyState = mountRowsList().find('[data-el="no-tables"]')
+
+            expect(emptyState.text()).toContain('No tables yet')
+            expect(emptyState.text()).toContain('Once a team owner creates a table')
+            expect(emptyState.find('[data-action="create-table"]').exists()).toBe(false)
+        })
+
         test('shows the empty state with a way to create the first table', async () => {
             mocks.tablesStore.selectedTable = null
             mocks.tablesStore.tables = { db1: [] }

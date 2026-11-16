@@ -6,9 +6,10 @@
             </template>
             <template #header>No tables yet</template>
             <template #message>
-                <p>Create your first table and its rows will show up here, ready to browse.</p>
+                <p v-if="canManageTables">Create your first table and its rows will show up here, ready to browse.</p>
+                <p v-else>Once a team owner creates a table, its rows will show up here, ready to browse.</p>
             </template>
-            <template #actions>
+            <template v-if="canManageTables" #actions>
                 <ff-button data-action="create-table" @click="onCreateTable">
                     <template #icon-left><PlusIcon /></template>
                     Create Table
@@ -53,6 +54,7 @@ import TableCell from './TableCell.vue'
 
 import EmptyState from '@/components/EmptyState.vue'
 
+import usePermissions from '@/composables/Permissions.js'
 import { escapeHtml } from '@/composables/strings/String.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
@@ -65,6 +67,10 @@ export default defineComponent({
     provide () {
         return { grid: this.grid }
     },
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         return {
             // the grid is one stop for the Tab key: the cell that last had focus, which the arrow keys move.
@@ -75,6 +81,9 @@ export default defineComponent({
     computed: {
         ...mapState(useProductTablesStore, ['tables', 'tableSelection', 'isLoading', 'selectedTable', 'page', 'pageSize', 'showOriginalValues']),
         ...mapState(useContextStore, ['team']),
+        canManageTables () {
+            return this.hasPermission('team:database:create')
+        },
         columns () {
             return (this.selectedTable?.schema ?? []).map((row) => {
                 return {
