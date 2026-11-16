@@ -1914,6 +1914,7 @@ describe('Device API', async function () {
                     app.defaultTeamType.properties = defaultTeamTypeProperties
                     await app.defaultTeamType.save()
                 }
+                let cats
                 before(async function (){
                     const defaultTeamTypeProperties = app.defaultTeamType.properties
                     cats = defaultTeamTypeProperties.extraCatalogues
