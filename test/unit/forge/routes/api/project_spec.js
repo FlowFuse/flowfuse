@@ -1118,12 +1118,17 @@ describe('Project API', function () {
                     app.defaultTeamType.properties = defaultTeamTypeProperties
                     await app.defaultTeamType.save()
                 }
-                async function afterEach () {
+                let cats
+                before(async function (){
                     const defaultTeamTypeProperties = app.defaultTeamType.properties
-                    defaultTeamTypeProperties.extraCatalogues = undefined
+                    cats = defaultTeamTypeProperties.extraCatalogues
+                })
+                afterEach(async function () {
+                    const defaultTeamTypeProperties = app.defaultTeamType.properties
+                    defaultTeamTypeProperties.extraCatalogues = cats
                     app.defaultTeamType.properties = defaultTeamTypeProperties
                     await app.defaultTeamType.save()
-                }
+                })
                 it('Should add extra catalogue to project', async function () {
                     await setTeamTypeCatalogues([
                         'https://example.com/team-type-cat.json'
