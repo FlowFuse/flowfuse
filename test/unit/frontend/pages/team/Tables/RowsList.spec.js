@@ -1,5 +1,5 @@
 import { flushPromises, mount } from '@vue/test-utils'
-import { beforeEach, describe, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import RowsList from '../../../../../../frontend/src/pages/team/Tables/Table/TableExplorer/components/RowsList.vue'
 import ForgeUIComponents from '../../../../../../frontend/src/ui-components/index.js'
@@ -127,6 +127,84 @@ describe('RowsList', () => {
             const cells = mountRowsList().findAll('tbody [data-el="table-cell"]')
             expect(cells[0].find('.pill').exists()).toBe(false)
             expect(cells[0].text()).toBe('true')
+        })
+
+        describe('keyboard', () => {
+            const rows = [{ a: true, b: 'one' }, { a: false, b: 'two' }]
+            let wrapper, cells
+            const press = (cell, key) => cell.trigger('keydown', { key })
+            const focused = () => cells.findIndex(cell => cell.element === document.activeElement)
+
+            beforeEach(() => {
+                mocks.tablesStore.selectedTable = { schema, payload: { safe: rows } }
+                wrapper = mount(RowsList, {
+                    attachTo: document.body,
+                    global: { plugins: [ForgeUIComponents], mocks: { $route: { params: { id: 'db1' } } } }
+                })
+                cells = wrapper.findAll('tbody [data-el="table-cell"]')
+            })
+
+            afterEach(() => wrapper.unmount())
+
+            test('is a single stop for the Tab key, which hands focus to the first cell', async () => {
+                const grid = wrapper.find('[data-el="rows-grid"]')
+                expect(grid.attributes('tabindex')).toBe('0')
+                expect(cells.map(cell => cell.attributes('tabindex'))).toEqual(['-1', '-1', '-1', '-1'])
+
+                grid.element.matches = selector => selector === ':focus-visible'
+                grid.element.focus()
+                await wrapper.vm.$nextTick()
+
+                expect(focused()).toBe(0)
+                expect(grid.attributes('tabindex')).toBe('-1')
+                expect(cells.map(cell => cell.attributes('tabindex'))).toEqual(['0', '-1', '-1', '-1'])
+            })
+
+            test('does not jump to the first cell when the grid is clicked', () => {
+                const grid = wrapper.find('[data-el="rows-grid"]')
+                grid.element.matches = () => false
+                grid.element.focus()
+                expect(focused()).toBe(-1)
+            })
+
+            test('comes back to the cell that last had focus', async () => {
+                cells[3].element.focus()
+                await wrapper.vm.$nextTick()
+                cells[3].element.blur()
+                await wrapper.vm.$nextTick()
+                expect(cells.map(cell => cell.attributes('tabindex'))).toEqual(['-1', '-1', '-1', '0'])
+            })
+
+            test('moves between cells with the arrow keys', async () => {
+                cells[0].element.focus()
+                await press(cells[0], 'ArrowRight')
+                expect(focused()).toBe(1)
+                await press(cells[1], 'ArrowDown')
+                expect(focused()).toBe(3)
+                await press(cells[3], 'ArrowLeft')
+                expect(focused()).toBe(2)
+                await press(cells[2], 'ArrowUp')
+                expect(focused()).toBe(0)
+            })
+
+            test('stays put at the edges of the grid', async () => {
+                cells[0].element.focus()
+                await press(cells[0], 'ArrowLeft')
+                await press(cells[0], 'ArrowUp')
+                expect(focused()).toBe(0)
+                cells[3].element.focus()
+                await press(cells[3], 'ArrowRight')
+                await press(cells[3], 'ArrowDown')
+                expect(focused()).toBe(3)
+            })
+
+            test('jumps to the start and the end of the row with Home and End', async () => {
+                cells[2].element.focus()
+                await press(cells[2], 'End')
+                expect(focused()).toBe(3)
+                await press(cells[3], 'Home')
+                expect(focused()).toBe(2)
+            })
         })
 
         test('goes back to formatted values when leaving the page', () => {

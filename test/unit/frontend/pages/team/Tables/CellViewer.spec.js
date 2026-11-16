@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { afterEach, describe, expect, test } from 'vitest'
+import { afterEach, describe, expect, test, vi } from 'vitest'
 
 import TableCell from '../../../../../../frontend/src/pages/team/Tables/Table/TableExplorer/components/TableCell.vue'
 
@@ -70,6 +70,74 @@ describe('CellViewer', () => {
     test('shows JSON as stored, on one line, when asked for original values', async () => {
         await mountCell({ name: 'payload', value: '{"a": 1}', type: 'jsonb', showOriginal: true }).trigger('click')
         expect(viewerPart('value')).toBe('{"a": 1}')
+    })
+
+    test('stays closed when the click ends a drag that selected text', async () => {
+        const cell = mountCell({ name: 'notes', value: 'Routine reading', type: 'text' })
+        const selection = vi.spyOn(window, 'getSelection').mockReturnValue({ isCollapsed: false })
+
+        await cell.trigger('click')
+        expect(viewer()).toBeNull()
+
+        selection.mockRestore()
+        await cell.trigger('click')
+        expect(viewer()).not.toBeNull()
+    })
+
+    describe('keyboard', () => {
+        test.each(['Enter', ' '])('opens and closes on the "%s" key', async (key) => {
+            const cell = mountCell({ name: 'notes', value: 'a', type: 'text' })
+            await cell.trigger('keydown', { key })
+            expect(viewer()).not.toBeNull()
+            expect(cell.attributes('aria-expanded')).toBe('true')
+
+            cell.element.focus()
+            await cell.trigger('keydown', { key })
+            expect(viewer()).toBeNull()
+        })
+
+        test('moves focus to the copy button when opened from the keyboard, not when clicked', async () => {
+            const cell = mountCell({ name: 'notes', value: 'a', type: 'text' })
+            cell.element.focus()
+            await cell.trigger('click')
+            expect(document.activeElement).toBe(cell.element)
+            await cell.trigger('click')
+
+            await cell.trigger('keydown', { key: 'Enter' })
+            expect(document.activeElement).toBe(copyButton().querySelector('button'))
+        })
+
+        test.each(['Escape', 'Tab'])('closes on %s and puts focus back on the cell', async (key) => {
+            const cell = mountCell({ name: 'notes', value: 'a', type: 'text' })
+            await cell.trigger('keydown', { key: 'Enter' })
+
+            const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true })
+            document.activeElement.dispatchEvent(event)
+            await wrappers[0].vm.$nextTick()
+
+            expect(viewer()).toBeNull()
+            expect(document.activeElement).toBe(cell.element)
+        })
+
+        test('leaves Tab alone while focus is still on the cell', async () => {
+            const cell = mountCell({ name: 'notes', value: 'a', type: 'text' })
+            cell.element.focus()
+            await cell.trigger('click')
+
+            const event = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true })
+            cell.element.dispatchEvent(event)
+            expect(event.defaultPrevented).toBe(false)
+        })
+
+        test('closes when focus moves somewhere else', async () => {
+            const cell = mountCell({ name: 'notes', value: 'a', type: 'text' })
+            const other = mountCell({ name: 'notes', value: 'b', type: 'text' })
+            await cell.trigger('click')
+
+            other.element.focus()
+            await wrappers[0].vm.$nextTick()
+            expect(viewer()).toBeNull()
+        })
     })
 
     describe('closing', () => {

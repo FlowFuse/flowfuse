@@ -1,19 +1,23 @@
 <template>
     <span
         ref="cell" class="table-cell" :class="[`table-cell--${cell.kind}`, { 'table-cell--open': isOpen }]"
-        :title="cell.original" data-el="table-cell" @click="isOpen = !isOpen"
+        :title="cell.original" data-el="table-cell"
+        role="button" :aria-expanded="isOpen" :tabindex="isTabStop ? 0 : -1"
+        @click="onClick" @focus="grid.tabStop = id"
+        @keydown.enter.self.prevent="toggle({ focusViewer: true })"
+        @keydown.space.self.prevent="toggle({ focusViewer: true })"
     >
         <span v-if="cell.kind === 'boolean'" class="pill" :class="`pill--${cell.text}`">{{ cell.text }}</span>
         <template v-else>{{ cell.text }}</template>
         <CellViewer
             v-if="isOpen" :anchor="$refs.cell" :column="name" :value="value" :type="type" :show-original="showOriginal"
-            @close="isOpen = false"
+            :take-focus="focusViewer" @close="isOpen = false"
         />
     </span>
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+import { defineComponent, reactive } from 'vue'
 
 import CellViewer from './CellViewer.vue'
 
@@ -22,6 +26,10 @@ import { formatCellValue } from '@/utils/tables/cellValues.ts'
 export default defineComponent({
     name: 'TableCell',
     components: { CellViewer },
+    inject: {
+        // shared by the cells of a grid, which is one stop for the Tab key: the cell that last had focus
+        grid: { default: () => reactive({ tabStop: null }) }
+    },
     props: {
         // the name of the column the value belongs to
         name: {
@@ -43,12 +51,34 @@ export default defineComponent({
     },
     data () {
         return {
-            isOpen: false
+            isOpen: false,
+            // opened from the keyboard, so focus goes to the value's copy button
+            focusViewer: false
         }
     },
     computed: {
         cell () {
             return formatCellValue(this.value, this.type, { original: this.showOriginal })
+        },
+        id () {
+            return this.$.uid
+        },
+        isTabStop () {
+            return this.grid.tabStop === this.id
+        }
+    },
+    beforeUnmount () {
+        if (this.isTabStop) this.grid.tabStop = null
+    },
+    methods: {
+        onClick () {
+            // selecting text by dragging over it ends in a click too, which is not a request to open the value
+            if (!window.getSelection().isCollapsed) return
+            this.toggle({ focusViewer: false })
+        },
+        toggle ({ focusViewer }) {
+            this.focusViewer = focusViewer
+            this.isOpen = !this.isOpen
         }
     }
 })
@@ -73,6 +103,11 @@ export default defineComponent({
     // the cell whose value is open keeps a frame, so it is clear what the panel belongs to
     &--open {
         box-shadow: inset 0 0 0 1px var(--ff-color-border-accent);
+    }
+
+    &:focus-visible {
+        outline: none;
+        box-shadow: inset 0 0 0 2px var(--ff-color-focus);
     }
 
     &--empty {

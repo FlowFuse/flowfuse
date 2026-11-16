@@ -50,6 +50,11 @@ export default defineComponent({
         showOriginal: {
             type: Boolean,
             default: false
+        },
+        // moves focus to the copy button once open, for a cell opened from the keyboard
+        takeFocus: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['close'],
@@ -69,28 +74,39 @@ export default defineComponent({
     mounted () {
         this.updatePosition()
         // caught on the way down, so the click that opened the panel is not taken for one outside it
-        document.addEventListener('click', this.onClick, true)
+        document.addEventListener('click', this.onLeave, true)
+        document.addEventListener('focusin', this.onLeave)
         document.addEventListener('keydown', this.onKeydown)
         window.addEventListener('resize', this.close)
         window.addEventListener('scroll', this.onScroll, true)
+        if (this.takeFocus) this.$refs.panel.querySelector('button')?.focus()
     },
     beforeUnmount () {
-        document.removeEventListener('click', this.onClick, true)
+        document.removeEventListener('click', this.onLeave, true)
+        document.removeEventListener('focusin', this.onLeave)
         document.removeEventListener('keydown', this.onKeydown)
         window.removeEventListener('resize', this.close)
         window.removeEventListener('scroll', this.onScroll, true)
     },
     methods: {
         close () {
+            // focus that is inside the panel goes back to its cell, rather than being lost along with the panel
+            if (this.hasFocus()) this.anchor.focus()
             this.$emit('close')
         },
-        onClick (event) {
-            // a click on the cell itself is left to the cell, which closes the panel
+        hasFocus () {
+            return this.$refs.panel.contains(document.activeElement)
+        },
+        // a click or focus landing anywhere else. One on the cell itself is left to the cell, which closes the panel
+        onLeave (event) {
             if (this.$refs.panel.contains(event.target) || this.anchor.contains(event.target)) return
             this.close()
         },
         onKeydown (event) {
-            if (event.key === 'Escape') this.close()
+            // the panel sits at the end of the page, so Tab would wander off from it: it goes back to the cell too
+            const tabsOut = event.key === 'Tab' && this.hasFocus()
+            if (tabsOut) event.preventDefault()
+            if (tabsOut || event.key === 'Escape') this.close()
         },
         onScroll (event) {
             // the grid moving takes the cell away from the panel, a long value scrolling inside it does not

@@ -18,7 +18,11 @@
 
         <div v-else-if="!selectedTable" class="no-content w-full h-full" />
 
-        <div v-else-if="selectedTable && selectedTable.schema" class="content h-full">
+        <div
+            v-else-if="selectedTable && selectedTable.schema" class="content h-full" data-el="rows-grid"
+            :tabindex="grid.tabStop === null ? 0 : -1"
+            @focus.self="onGridFocus" @keydown="onGridKeydown"
+        >
             <ff-data-table
                 :loading="isLoading" loading-type="skeleton"
                 :columns="columns" :rows="rows"
@@ -58,6 +62,16 @@ import { getColumnTypeLabel } from '@/utils/tables/columnTypes.ts'
 export default defineComponent({
     name: 'RowsList',
     components: { EmptyState, PlusIcon },
+    provide () {
+        return { grid: this.grid }
+    },
+    data () {
+        return {
+            // the grid is one stop for the Tab key: the cell that last had focus, which the arrow keys move.
+            // Until a cell has had focus the grid itself is the stop, and hands focus on to its first cell
+            grid: { tabStop: null }
+        }
+    },
     computed: {
         ...mapState(useProductTablesStore, ['tables', 'tableSelection', 'isLoading', 'selectedTable', 'page', 'pageSize', 'showOriginalValues']),
         ...mapState(useContextStore, ['team']),
@@ -131,6 +145,30 @@ export default defineComponent({
                 wider: true,
                 overlay: true
             })
+        },
+        onGridFocus (event) {
+            // only when the keyboard brought focus here: a click on the scrollbar should not jump to the first cell
+            if (event.target.matches(':focus-visible')) {
+                this.$el.querySelector('tbody [data-el="table-cell"]')?.focus()
+            }
+        },
+        onGridKeydown (event) {
+            if (!event.target.matches('[data-el="table-cell"]')) return
+            const cell = event.target.closest('td')
+            const row = cell.parentElement
+            const column = [...row.children].indexOf(cell)
+            const moves = {
+                ArrowLeft: () => cell.previousElementSibling,
+                ArrowRight: () => cell.nextElementSibling,
+                ArrowUp: () => row.previousElementSibling?.children[column],
+                ArrowDown: () => row.nextElementSibling?.children[column],
+                Home: () => row.firstElementChild,
+                End: () => row.lastElementChild
+            }
+            if (!moves[event.key]) return
+            // the keys would otherwise scroll the grid
+            event.preventDefault()
+            moves[event.key]()?.querySelector('[data-el="table-cell"]')?.focus()
         },
         onPageChange (page) {
             this.setPage(page)
