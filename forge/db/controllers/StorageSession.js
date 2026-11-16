@@ -47,7 +47,7 @@ module.exports = {
                     app.log.warn(`Failed to revoke token for Instance ${instance.id}: ${error.toString()}`) // log error but continue to delete session
                 }
             }
-            sessions.session = '{}'
+            sessions.sessions = '{}'
             await sessions.save()
         }
     },

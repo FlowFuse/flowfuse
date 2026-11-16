@@ -72,6 +72,40 @@ describe('Storage Session controller', function () {
         })
     })
 
+    describe('removeAllUsersFromInstance', function () {
+        it('revokes every session and clears the stored session table', async function () {
+            const p1 = await app.db.models.Project.create({ name: 'testProject-all-01', type: '', url: '' })
+            const p2 = await app.db.models.Project.create({ name: 'testProject-all-02', type: '', url: '' })
+            const s1 = await app.db.models.StorageSession.create({
+                sessions: '{"tokenA":{"user":"alice","client":"node-red-editor","scope":["*"],"accessToken":"tokenA","expires":1676376174919},"tokenB":{"user":"bob","client":"node-red-editor","scope":["*"],"accessToken":"tokenB","expires":1676376174919}}',
+                ProjectId: p1.id
+            })
+            const s2 = await app.db.models.StorageSession.create({
+                sessions: '{"tokenC":{"user":"bob","client":"node-red-editor","scope":["*"],"accessToken":"tokenC","expires":1676376174919}}',
+                ProjectId: p2.id
+            })
+            stubDriver.revokeUserToken.resetHistory()
+
+            await app.db.controllers.StorageSession.removeAllUsersFromInstance(p1)
+
+            stubDriver.revokeUserToken.callCount.should.equal(2)
+            stubDriver.revokeUserToken.firstCall.args[1].should.equal('tokenA')
+            stubDriver.revokeUserToken.secondCall.args[1].should.equal('tokenB')
+
+            await Promise.all([
+                s1.reload(),
+                s2.reload()
+            ])
+            JSON.parse(s1.sessions).should.deepEqual({})
+            JSON.parse(s2.sessions).should.have.property('tokenC')
+
+            await s1.destroy()
+            await s2.destroy()
+            await p1.destroy()
+            await p2.destroy()
+        })
+    })
+
     describe('removeUserFromTeamSessions', function () {
         it('remove user sessions from a teams instance\'s', async function () {
             const projectType = await app.factory.createProjectType({
