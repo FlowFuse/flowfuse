@@ -18,13 +18,13 @@
 
         <div v-else-if="!selectedTable" class="no-content w-full h-full" />
 
-        <div v-else-if="selectedTable && selectedTable.schema" class="content overflow-auto h-full">
+        <div v-else-if="selectedTable && selectedTable.schema" class="content h-full">
             <ff-data-table
                 :loading="isLoading"
                 :columns="columns" :rows="rows"
                 :pagination="pagination"
-                class="h-full overflow-auto"
-                tableClass="table-auto overflow-auto"
+                class="h-full"
+                tableClass="table-auto"
                 @update:page="onPageChange"
                 @update:page-size="onPageSizeChange"
             />
@@ -165,9 +165,9 @@ export default defineComponent({
 
 <style scoped lang="scss">
 #rows-list {
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     width: 100%;
-    overflow: auto;
 
     // fill the pane, so the empty state lines up with the tables list next to it
     .no-tables {
