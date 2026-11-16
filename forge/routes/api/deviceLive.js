@@ -410,9 +410,10 @@ module.exports = async function (app) {
                     }
                 }
                 if (team.getProperty('extraCatalogues', null)) {
-                    for (const cat of team.TeamType.properties.extraCatalogues) {
-                        if (response.palette.catalogues.indexOf(cat) === -1) {
-                            response.palette.catalogues.push(cat)
+                    for (const cat of team.getProperty('extraCatalogues')) {
+                        const catURL = new URL(cat)
+                        if (response.palette.catalogues.indexOf(catURL.toString()) === -1) {
+                            response.palette.catalogues.push(catURL.toString())
                         }
                     }
                 }

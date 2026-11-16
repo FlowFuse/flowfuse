@@ -1118,6 +1118,12 @@ describe('Project API', function () {
                     app.defaultTeamType.properties = defaultTeamTypeProperties
                     await app.defaultTeamType.save()
                 }
+                async function afterEach () {
+                    const defaultTeamTypeProperties = app.defaultTeamType.properties
+                    defaultTeamTypeProperties.extraCatalogues = undefined
+                    app.defaultTeamType.properties = defaultTeamTypeProperties
+                    await app.defaultTeamType.save()
+                }
                 it('Should add extra catalogue to project', async function () {
                     await setTeamTypeCatalogues([
                         'https://example.com/team-type-cat.json'
@@ -1158,7 +1164,7 @@ describe('Project API', function () {
                 it('Should add extra catalogue to project only if not present', async function () {
                     await setTeamTypeCatalogues([
                         'https://example.com/team-type-cat.json',
-                        'https://example.com/team-type-cat.json',
+                        'https://EXAMPLE.com/team-type-cat.json',
                         'https://example.com/cat2.json'
                     ])
 
@@ -1192,6 +1198,7 @@ describe('Project API', function () {
                     settings.should.have.property('palette')
                     settings.palette.should.have.property('npmrc')
                     settings.palette.should.have.property('catalogue')
+                    settings.palette.catalogue.should.have.length(2)
                     settings.palette.catalogue.should.containEql('https://example.com/team-type-cat.json')
                     settings.palette.catalogue.should.containEql('https://example.com/cat2.json')
                     let index = settings.palette.catalogue.indexOf('https://example.com/team-type-cat.json')

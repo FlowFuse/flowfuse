@@ -180,7 +180,7 @@
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
                 </div>
                 <FormRow v-model="input.properties.extraCatalogues" :error="errors.extraCatalogues" :disabled="!input.properties.features.certifiedNodes" data-form="extraCatalogues" containerClass="w-full">
-                    Extra Certified Nodes Catalogue URLs
+                    Extra Certified Nodes Catalogue URLs, one per line, must be https://
                     <template #input><textarea v-model="input.properties.extraCatalogues" class="w-full" rows="3" :disabled="!input.properties.features.certifiedNodes" /></template>
                 </FormRow>
             </form>
@@ -454,8 +454,10 @@ export default {
             const extraCataloguesArray = this.input.properties.extraCatalogues.split('\n').filter(cat => cat.trim().length > 0)
             for (const cat of extraCataloguesArray) {
                 try {
-                    // eslint-disable-next-line no-unused-vars
                     const u = new URL(cat)
+                    if (u.protocol != 'https:') {
+                        return false
+                    }
                 } catch (err) {
                     return false
                 }

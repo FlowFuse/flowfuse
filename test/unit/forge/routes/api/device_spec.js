@@ -1914,6 +1914,12 @@ describe('Device API', async function () {
                     app.defaultTeamType.properties = defaultTeamTypeProperties
                     await app.defaultTeamType.save()
                 }
+                async function afterEach () {
+                    const defaultTeamTypeProperties = app.defaultTeamType.properties
+                    defaultTeamTypeProperties.extraCatalogues = undefined
+                    app.defaultTeamType.properties = defaultTeamTypeProperties
+                    await app.defaultTeamType.save()
+                }
                 it('should include catalogues from TeamType', async function () {
                     await setTeamTypeCatalogues([
                         'https://example.com/cat-from-team-type.json'
