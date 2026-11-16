@@ -20,7 +20,7 @@
 
         <div v-else-if="selectedTable && selectedTable.schema" class="content h-full">
             <ff-data-table
-                :loading="isLoading"
+                :loading="isLoading" loading-type="skeleton"
                 :columns="columns" :rows="rows"
                 :pagination="pagination"
                 class="h-full"
@@ -29,6 +29,8 @@
                 @update:page-size="onPageSizeChange"
             />
         </div>
+
+        <ff-loading v-else-if="isLoading" message="Loading Table..." data-el="table-loading" />
 
         <div v-else class="no-content w-full h-full flex justify-center items-center text-gray-400">
             <p>There doesn't seem to be anything here!</p>
@@ -93,7 +95,11 @@ export default defineComponent({
     },
     watch: {
         tableSelection (table) {
-            if (!table) return
+            if (!table) {
+                this.setTableLoadingState(false)
+                return
+            }
+            this.setTableLoadingState(true)
             this.getTableSchema({
                 teamId: this.team.id,
                 databaseId: this.$route.params.id,
@@ -107,6 +113,10 @@ export default defineComponent({
                     schemaName: table.dbSchema
                 }))
                 .catch(e => e)
+                .finally(() => {
+                    // a table picked in the meantime is still loading, so leave the state to it
+                    if (this.tableSelection === table) this.setTableLoadingState(false)
+                })
         }
     },
     beforeUnmount () {
