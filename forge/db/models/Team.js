@@ -63,6 +63,18 @@ module.exports = {
                 if (instanceCount > 0) {
                     throw new Error('Cannot delete team that owns instances')
                 }
+                const scopes = await M.AccessTokenTeamScope.findAll({
+                    where: { TeamId: team.id },
+                    attributes: ['AccessTokenId']
+                })
+                for (const { AccessTokenId } of scopes) {
+                    const otherScopes = await M.AccessTokenTeamScope.count({
+                        where: { AccessTokenId, TeamId: { [Op.ne]: team.id } }
+                    })
+                    if (otherScopes === 0) {
+                        await M.AccessToken.destroy({ where: { id: AccessTokenId } })
+                    }
+                }
             },
             afterDestroy: async (team, opts) => {
                 // TODO: what needs tidying up after a team is deleted?

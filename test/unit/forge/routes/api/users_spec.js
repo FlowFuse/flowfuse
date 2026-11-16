@@ -677,6 +677,32 @@ describe('Users API', async function () {
             JSON.parse(session.sessions).should.have.property('token1')
         })
 
+        it('Rename removes the npm token bound to the old username', async function () {
+            await app.db.controllers.AccessToken.createTokenForNPM(TestObjects.chris, TestObjects.ATeam)
+            ;(await app.db.models.AccessToken.count({ where: { ownerType: 'npm', ownerId: 'chris' } })).should.equal(1)
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user',
+                payload: { username: 'chris-renamed' },
+                cookies: { sid: TestObjects.tokens.chris }
+            })
+            response.should.have.property('statusCode', 200)
+            ;(await app.db.models.AccessToken.count({ where: { ownerType: 'npm', ownerId: 'chris' } })).should.equal(0)
+        })
+
+        it('Failed rename keeps the npm token', async function () {
+            await app.db.controllers.AccessToken.createTokenForNPM(TestObjects.chris, TestObjects.ATeam)
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user',
+                payload: { username: 'bob' },
+                cookies: { sid: TestObjects.tokens.chris }
+            })
+            response.should.have.property('statusCode', 400)
+            ;(await app.db.models.AccessToken.count({ where: { ownerType: 'npm', ownerId: 'chris' } })).should.equal(1)
+            await app.db.models.AccessToken.destroy({ where: { ownerType: 'npm', ownerId: 'chris' } })
+        })
+
         it('Saving the same username does not revoke editor sessions', async function () {
             await createEditorSession('chris')
             const response = await app.inject({

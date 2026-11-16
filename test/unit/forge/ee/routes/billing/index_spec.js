@@ -1834,6 +1834,76 @@ describe('Billing routes', function () {
         })
     })
 
+    describe('Change team type to a contact-required type', function () {
+        let contactTeamType
+        before(async function () {
+            contactTeamType = await app.factory.createTeamType({
+                name: 'contact-required-type',
+                properties: {
+                    billing: { requireContact: true, productId: 'contactTeamProd', priceId: 'contactTeamPrice', yrPriceId: 'contactTeamYrPrice' },
+                    instances: {
+                        [TestObjects.projectType1.hashid]: { active: true }
+                    }
+                }
+            })
+        })
+
+        it('Non-admin owner cannot change team type via team update', async function () {
+            const team = await app.factory.createTeam({ name: generateName('contactTeam') })
+            await team.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+            await app.factory.createSubscription(team)
+            const originalTypeId = team.TeamTypeId
+
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/teams/${team.hashid}`,
+                payload: { type: contactTeamType.hashid },
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(403)
+            response.json().should.have.property('code', 'contact_required')
+
+            await team.reload()
+            team.TeamTypeId.should.equal(originalTypeId)
+        })
+
+        it('Non-admin owner already on the type can upgrade to yearly billing', async function () {
+            const team = await app.factory.createTeam({ name: generateName('contactTeam') }, contactTeamType)
+            await team.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+            await app.factory.createSubscription(team, 'sub_contact_yr')
+            stripe.subscriptions.create('sub_contact_yr')
+
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/teams/${team.hashid}`,
+                payload: { type: contactTeamType.hashid, billing: { interval: 'year' } },
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+
+            const stripeData = await stripe.subscriptions.retrieve('sub_contact_yr')
+            stripeData.items.data.map(item => item.price.id).should.containEql('contactTeamYrPrice')
+        })
+
+        it('Admin can change team type via team update', async function () {
+            const team = await app.factory.createTeam({ name: generateName('contactTeam') })
+            await team.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+            await app.factory.createSubscription(team, 'sub_contact')
+            stripe.subscriptions.create('sub_contact')
+
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/teams/${team.hashid}`,
+                payload: { type: contactTeamType.hashid },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+
+            await team.reload()
+            team.TeamTypeId.should.equal(contactTeamType.id)
+        })
+    })
+
     describe('Trial state', function () {
         const ONE_DAY = 86400000
         const FIVE_MINS = 300000
