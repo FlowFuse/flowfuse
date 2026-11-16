@@ -93,6 +93,18 @@ const tableDataTypes = {
 const DEFAULT_PAGE_SIZE = 10
 const MAX_PAGE_SIZE = 100
 
+// The Postgres error code (undefined_function) for "could not identify an ordering operator for type ..."
+const NO_ORDERING_OPERATOR = '42883'
+
+/**
+ * The error for a sort that cannot be done, which is down to the request rather than the server.
+ * It carries a statusCode and code so that it reaches the API as a 400 rather than a 500.
+ * @param {string} message - What is wrong with the sort
+ */
+function invalidSortError (message) {
+    return Object.assign(new Error(message), { statusCode: 400, code: 'invalid_sort' })
+}
+
 /**
  * Reads one page of a table's rows, along with the table's total row count.
  *
@@ -105,22 +117,45 @@ const MAX_PAGE_SIZE = 100
  *
  * Rows are ordered by the primary key when there is one, otherwise by their physical
  * position (ctid), so that walking the pages of an unchanged table never repeats or
- * skips a row.
+ * skips a row. Sorting by a column puts that column first and keeps this order behind it,
+ * so rows holding the same value still come in a fixed order from one page to the next.
+ * Rows with no value in the sorted column go where Postgres puts them: last when ascending,
+ * first when descending.
  * @param {pg.Client} client - Client connected to the team database
  * @param {string} qualifiedTable - The escaped, schema qualified table name
- * @param {{ page?: number, limit?: number }} pagination - 1 based page number and page size
+ * @param {{ page?: number, limit?: number, sort?: string, dir?: 'asc'|'desc' }} pagination - 1 based
+ * page number and page size, and the column to sort by with its direction (ascending by default)
+ * @throws an invalid sort error (see invalidSortError) when the column does not exist or cannot be put in order
  */
 async function getTableDataPage (client, qualifiedTable, pagination = {}) {
     const pageSize = Math.min(Math.max(parseInt(pagination.limit) || DEFAULT_PAGE_SIZE, 1), MAX_PAGE_SIZE)
     const page = Math.max(parseInt(pagination.page) || 1, 1)
 
     const pkRes = await client.query('SELECT a.attname FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) WHERE i.indrelid = $1::regclass AND i.indisprimary ORDER BY array_position(i.indkey, a.attnum)', [qualifiedTable])
-    const orderBy = pkRes.rows.length > 0 ? pkRes.rows.map(row => pg.escapeIdentifier(row.attname)).join(', ') : 'ctid'
+    let orderBy = pkRes.rows.length > 0 ? pkRes.rows.map(row => pg.escapeIdentifier(row.attname)).join(', ') : 'ctid'
+
+    const { sort } = pagination
+    if (sort) {
+        const columnRes = await client.query('SELECT 1 FROM pg_attribute WHERE attrelid = $1::regclass AND attname = $2 AND attnum > 0 AND NOT attisdropped', [qualifiedTable, sort])
+        if (columnRes.rows.length === 0) {
+            throw invalidSortError(`The table has no column "${sort}" to sort by`)
+        }
+        orderBy = `${pg.escapeIdentifier(sort)} ${pagination.dir === 'desc' ? 'DESC' : 'ASC'}, ${orderBy}`
+    }
 
     const countRes = await client.query(`SELECT count(*) AS total FROM ${qualifiedTable}`)
     const total = Number(countRes.rows[0].total)
 
-    const res = await client.query(`SELECT * FROM ${qualifiedTable} ORDER BY ${orderBy} LIMIT $1 OFFSET $2`, [pageSize, (page - 1) * pageSize])
+    let res
+    try {
+        res = await client.query(`SELECT * FROM ${qualifiedTable} ORDER BY ${orderBy} LIMIT $1 OFFSET $2`, [pageSize, (page - 1) * pageSize])
+    } catch (err) {
+        // some types, json for one, have no order to them
+        if (sort && err.code === NO_ORDERING_OPERATOR) {
+            throw invalidSortError(`Column "${sort}" holds values that cannot be put in order`)
+        }
+        throw err
+    }
     return {
         count: total,
         rows: res.rows,
@@ -137,6 +172,7 @@ module.exports = {
     newClient,
     dropTeamDatabase,
     getTableDataPage,
+    invalidSortError,
     tableDataTypes,
     pg
 }

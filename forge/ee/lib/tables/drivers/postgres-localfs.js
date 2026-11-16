@@ -226,6 +226,10 @@ module.exports = {
                 teamClient.end()
             }
         } catch (err) {
+            // a mistake in the request, which the route reports as it is
+            if (err.statusCode === 400) {
+                throw err
+            }
             console.error('Error retrieving table:', err)
             throw new Error(`Failed to retrieve table ${table} for team ${team.hashid}: ${err.message}`)
         }

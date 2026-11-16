@@ -16,18 +16,21 @@ const mocks = vi.hoisted(() => ({
         setPageSize: vi.fn(),
         showOriginalValues: false,
         setShowOriginalValues: vi.fn(),
+        setSort: vi.fn(),
         setTableLoadingState: vi.fn(),
         getTableData: vi.fn(() => Promise.resolve()),
         getTableSchema: vi.fn(() => Promise.resolve()),
         updateTableSelection: vi.fn()
     },
     contextStore: { team: { id: 't1' } },
-    drawersStore: { openRightDrawer: vi.fn() }
+    drawersStore: { openRightDrawer: vi.fn() },
+    alerts: { emit: vi.fn() }
 }))
 
 vi.mock('@/stores/product-tables.js', () => ({ useProductTablesStore: () => mocks.tablesStore }))
 vi.mock('@/stores/context.js', () => ({ useContextStore: () => mocks.contextStore }))
 vi.mock('@/stores/ux-drawers.js', () => ({ useUxDrawersStore: () => mocks.drawersStore }))
+vi.mock('@/services/alerts.js', () => ({ default: mocks.alerts }))
 
 function mountRowsList () {
     return mount(RowsList, {
@@ -222,6 +225,67 @@ describe('RowsList', () => {
             mocks.tablesStore.pageSize = 25
             mocks.tablesStore.tableSelection = { name: 'readings', dbSchema: 'public' }
             mocks.tablesStore.selectedTable = { schema, payload: { safe: [{ col: 26 }], total: 1284 } }
+        })
+
+        describe('sorting', () => {
+            const sortable = [
+                { name: 'recorded at', safeName: 'a', type: 'timestamptz' },
+                { name: 'payload', safeName: 'b', type: 'jsonb' },
+                { name: 'tags', safeName: 'c', type: '_text' }
+            ]
+            // rows in an order no sort on the page would leave them in
+            const rows = [{ a: '2025-01-02T00:00:00Z' }, { a: '2025-01-03T00:00:00Z' }, { a: '2025-01-01T00:00:00Z' }]
+            const headers = wrapper => wrapper.findAll('thead .ff-data-table--cell')
+            const firstColumn = wrapper => wrapper.findAll('tbody tr').map(row => row.find('[data-el="table-cell"]').attributes('title'))
+
+            beforeEach(() => {
+                mocks.tablesStore.page = 1
+                mocks.tablesStore.selectedTable = { name: 'readings', dbSchema: 'public', schema: sortable, payload: { safe: rows, total: 3 } }
+            })
+
+            test('offers sorting on the columns that can be put in order, and not on JSON or lists', () => {
+                const classes = headers(mountRowsList()).map(header => header.classes().includes('sortable'))
+                expect(classes).toEqual([true, false, false])
+            })
+
+            test('asks for the whole table sorted by the clicked column, by its real name', async () => {
+                const wrapper = mountRowsList()
+                await headers(wrapper)[0].trigger('click')
+                expect(mocks.tablesStore.setSort).toHaveBeenLastCalledWith({ column: 'recorded at', dir: 'desc' })
+                expect(mocks.tablesStore.getTableData).toHaveBeenCalledTimes(1)
+            })
+
+            test('turns the sort around on a second click, and clears it on a third', async () => {
+                const wrapper = mountRowsList()
+                await headers(wrapper)[0].trigger('click')
+                await headers(wrapper)[0].trigger('click')
+                expect(mocks.tablesStore.setSort).toHaveBeenLastCalledWith({ column: 'recorded at', dir: 'asc' })
+
+                await headers(wrapper)[0].trigger('click')
+                expect(mocks.tablesStore.setSort).toHaveBeenLastCalledWith(null)
+                expect(mocks.tablesStore.getTableData).toHaveBeenCalledTimes(3)
+            })
+
+            test('does nothing when a column that cannot be sorted is clicked', async () => {
+                const wrapper = mountRowsList()
+                await headers(wrapper)[1].trigger('click')
+                expect(mocks.tablesStore.setSort).not.toHaveBeenCalled()
+                expect(mocks.tablesStore.getTableData).not.toHaveBeenCalled()
+            })
+
+            test('shows the rows in the order they arrive, without sorting the page itself', async () => {
+                const wrapper = mountRowsList()
+                await headers(wrapper)[0].trigger('click')
+                expect(firstColumn(wrapper)).toEqual(rows.map(row => row.a))
+            })
+
+            test('says why when the table cannot be sorted that way', async () => {
+                mocks.tablesStore.getTableData.mockRejectedValueOnce({ response: { data: { code: 'invalid_sort', error: 'The table has no column "recorded at" to sort by' } } })
+                const wrapper = mountRowsList()
+                await headers(wrapper)[0].trigger('click')
+                await flushPromises()
+                expect(mocks.alerts.emit).toHaveBeenCalledWith('The table has no column "recorded at" to sort by', 'warning')
+            })
         })
 
         test('shows where the current page sits in the whole table', () => {

@@ -472,7 +472,8 @@ module.exports = async function (app) {
 
     /**
      * @name /api/v1/teams/:teamId/databases/:databaseId/tables/:tableName/data/:schemaName?
-     * @description Get a page of rows from a specific table in a team database, with the table's total row count
+     * @description Get a page of rows from a specific table in a team database, with the table's total row count.
+     * The rows can be sorted by one of the table's columns
      * @static
      * @memberof forge.routes.api.team.tables
      */
@@ -489,7 +490,16 @@ module.exports = async function (app) {
                     schemaName: { type: 'string' }
                 }
             },
-            query: { $ref: 'PaginationParams' },
+            // its own query rather than PaginationParams: this route pages by number and has no cursor or search
+            query: {
+                type: 'object',
+                properties: {
+                    page: { type: 'number', minimum: 1, description: 'The page to return, starting at 1' },
+                    limit: { type: 'number', description: 'Rows per page, 100 at most' },
+                    sort: { type: 'string', description: 'The name of the column to sort the whole table by' },
+                    dir: { type: 'string', enum: ['asc', 'desc'], description: 'The direction to sort in, asc when left out' }
+                }
+            },
             response: {
                 200: {
                     type: 'object',
@@ -515,7 +525,15 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
-        const data = await app.tables.getTableData(request.team, request.params.databaseId, request.params.tableName, paginationOptions, request.params.schemaName)
-        reply.send(data)
+        try {
+            const data = await app.tables.getTableData(request.team, request.params.databaseId, request.params.tableName, paginationOptions, request.params.schemaName)
+            reply.send(data)
+        } catch (err) {
+            // a column that does not exist or cannot be put in order is a mistake in the request
+            if (err.code === 'invalid_sort') {
+                return reply.status(400).send({ code: err.code, error: err.message })
+            }
+            throw err
+        }
     })
 }

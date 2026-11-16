@@ -363,6 +363,59 @@ describe('product-tables store', () => {
         })
     })
 
+    describe('sorting', () => {
+        const args = { databaseId: 'db-1', tableName: 'users', teamId: 'team-1' }
+
+        it('has no sort to begin with, and asks for the rows in the table own order', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            tablesApi.getTableData.mockResolvedValue({ count: 0, rows: [] })
+            await store.getTableData(args)
+            expect(store.sort).toBeNull()
+            expect(tablesApi.getTableData.mock.calls[0][4]).toEqual({ page: 1, limit: 25, sort: undefined, dir: undefined })
+        })
+
+        it('asks for the rows sorted by the chosen column and direction', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            tablesApi.getTableData.mockResolvedValue({ count: 0, rows: [] })
+            store.setSort({ column: 'recorded_at', dir: 'desc' })
+            await store.getTableData(args)
+            expect(tablesApi.getTableData).toHaveBeenCalledWith('team-1', 'db-1', 'users', undefined, { page: 1, limit: 25, sort: 'recorded_at', dir: 'desc' })
+        })
+
+        it('goes back to the first page when the sort changes or is cleared', () => {
+            const store = useProductTablesStore()
+            store.setPage(4)
+            store.setSort({ column: 'name', dir: 'asc' })
+            expect(store.page).toBe(1)
+
+            store.setPage(4)
+            store.setSort(null)
+            expect(store.sort).toBeNull()
+            expect(store.page).toBe(1)
+        })
+
+        it('drops the sort when another table is selected', () => {
+            const store = useProductTablesStore()
+            store.setSort({ column: 'name', dir: 'asc' })
+            store.updateTableSelection({ name: 'orders', dbSchema: 'public' })
+            expect(store.sort).toBeNull()
+        })
+
+        it('leaves out rows that arrive after the sort has changed', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            let respond
+            tablesApi.getTableData.mockImplementationOnce(() => new Promise(resolve => { respond = resolve }))
+            const loading = store.getTableData(args)
+            store.setSort({ column: 'name', dir: 'asc' })
+            respond({ count: 1, rows: [{ id: 1 }] })
+            await loading
+            expect(store.tables['db-1'][0].payload).toBeUndefined()
+        })
+    })
+
     describe('paging', () => {
         it('goes back to the first page when the page size changes', () => {
             const store = useProductTablesStore()

@@ -34,6 +34,8 @@ export const useProductTablesStore = defineStore('product-tables', {
         tableSelection: null,
         page: 1,
         pageSize: 25,
+        // the column the selected table is sorted by and the direction ('asc' or 'desc'), null for its own order
+        sort: null,
         showOriginalValues: false,
         newTable: { name: '', schema: 'public', columns: [{ ...emptyColumn }] },
         isLoading: false
@@ -85,6 +87,11 @@ export const useProductTablesStore = defineStore('product-tables', {
         updateTableSelection (table) {
             this.tableSelection = table
             this.page = 1
+            this.sort = null
+        },
+        setSort (sort) {
+            this.sort = sort
+            this.page = 1
         },
         setShowOriginalValues (showOriginalValues) {
             this.showOriginalValues = showOriginalValues
@@ -109,10 +116,11 @@ export const useProductTablesStore = defineStore('product-tables', {
         },
         async getTableData ({ databaseId, tableName, teamId, schemaName }) {
             const pageSize = this.pageSize
+            const sort = this.sort
             let page = this.page
-            // another page or page size picked while this one was loading makes its rows out of date
-            const isStale = () => this.page !== page || this.pageSize !== pageSize
-            const fetchPage = () => tablesApi.getTableData(teamId, databaseId, tableName, schemaName, { page, limit: pageSize })
+            // another page, page size or sort picked while this one was loading makes its rows out of date
+            const isStale = () => this.page !== page || this.pageSize !== pageSize || this.sort !== sort
+            const fetchPage = () => tablesApi.getTableData(teamId, databaseId, tableName, schemaName, { page, limit: pageSize, sort: sort?.column, dir: sort?.dir })
             let res = await fetchPage()
             if (isStale()) return
             const lastPage = Math.max(1, Math.ceil(res.count / pageSize))

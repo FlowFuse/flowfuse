@@ -3,7 +3,9 @@ const pg = require('pg')
 const should = require('should')
 const sinon = require('sinon')
 
-const { newClient, tableDataTypes } = require('../../../../../../../../forge/ee/lib/tables/drivers/lib/pg.js')
+const pgLib = require('../../../../../../../../forge/ee/lib/tables/drivers/lib/pg.js')
+
+const { newClient, tableDataTypes } = pgLib
 
 describe('Tables: helper lib for pg', function () {
     afterEach(function () {
@@ -114,6 +116,75 @@ describe('Tables: helper lib for pg', function () {
             parse(16, 't').should.equal(true) // bool
             parse(20, '9223372036854775807').should.equal('9223372036854775807') // int8
             parse(1184, '2025-08-01 11:20:05.29+00').toISOString().should.equal('2025-08-01T11:20:05.290Z') // timestamptz
+        })
+    })
+
+    describe('getTableDataPage', function () {
+        // a client that answers each kind of query the page needs and keeps what it was asked
+        function fakeClient ({ primaryKey = ['id'], columns = ['id', 'name'], rowsError = null } = {}) {
+            const queries = []
+            return {
+                queries,
+                rowsQuery: () => queries.find(query => query.text.startsWith('SELECT *')),
+                query: async (text, values) => {
+                    queries.push({ text, values })
+                    if (text.includes('indisprimary')) return { rows: primaryKey.map(attname => ({ attname })) }
+                    if (text.includes('attname = $2')) return { rows: columns.includes(values[1]) ? [{}] : [] }
+                    if (text.includes('count(*)')) return { rows: [{ total: '57' }] }
+                    if (rowsError) throw rowsError
+                    return { rows: [{ id: 1 }] }
+                }
+            }
+        }
+
+        it('should order by the primary key when no sort is asked for', async function () {
+            const client = fakeClient()
+            const page = await pgLib.getTableDataPage(client, '"public"."t"', { page: 2, limit: 25 })
+            client.rowsQuery().text.should.equal('SELECT * FROM "public"."t" ORDER BY "id" LIMIT $1 OFFSET $2')
+            client.rowsQuery().values.should.eql([25, 25])
+            page.meta.should.eql({ page: 2, pageSize: 25, total: 57, pageCount: 3 })
+        })
+
+        it('should sort by the column asked for, ascending by default, keeping the primary key behind it', async function () {
+            const client = fakeClient()
+            await pgLib.getTableDataPage(client, '"public"."t"', { sort: 'name' })
+            client.rowsQuery().text.should.containEql('ORDER BY "name" ASC, "id" LIMIT')
+        })
+
+        it('should sort descending when asked to', async function () {
+            const client = fakeClient()
+            await pgLib.getTableDataPage(client, '"public"."t"', { sort: 'name', dir: 'desc' })
+            client.rowsQuery().text.should.containEql('ORDER BY "name" DESC, "id" LIMIT')
+        })
+
+        it('should keep the row position behind the sort on a table with no primary key', async function () {
+            const client = fakeClient({ primaryKey: [] })
+            await pgLib.getTableDataPage(client, '"public"."t"', { sort: 'name' })
+            client.rowsQuery().text.should.containEql('ORDER BY "name" ASC, ctid LIMIT')
+        })
+
+        it('should quote the column name, whatever is in it', async function () {
+            const client = fakeClient({ columns: ['odd "name"; --'] })
+            await pgLib.getTableDataPage(client, '"public"."t"', { sort: 'odd "name"; --' })
+            client.rowsQuery().text.should.containEql('ORDER BY "odd ""name""; --" ASC, "id" LIMIT')
+        })
+
+        it('should refuse to sort by a column the table does not have, before reading any rows', async function () {
+            const client = fakeClient()
+            await pgLib.getTableDataPage(client, '"public"."t"', { sort: 'nope' }).should.be.rejectedWith({ statusCode: 400, code: 'invalid_sort', message: /nope/ })
+            should(client.rowsQuery()).be.undefined()
+        })
+
+        it('should say so when the column holds values that cannot be put in order', async function () {
+            const noOrder = Object.assign(new Error('could not identify an ordering operator for type json'), { code: '42883' })
+            const client = fakeClient({ columns: ['details'], rowsError: noOrder })
+            await pgLib.getTableDataPage(client, '"public"."t"', { sort: 'details' }).should.be.rejectedWith({ statusCode: 400, code: 'invalid_sort', message: /details/ })
+        })
+
+        it('should pass on any other database error as it is', async function () {
+            const broken = Object.assign(new Error('connection lost'), { code: '08006' })
+            const client = fakeClient({ rowsError: broken })
+            await pgLib.getTableDataPage(client, '"public"."t"', { sort: 'name' }).should.be.rejectedWith(broken)
         })
     })
 })
