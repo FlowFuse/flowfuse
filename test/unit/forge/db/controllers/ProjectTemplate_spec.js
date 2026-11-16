@@ -106,6 +106,76 @@ describe('Project Template controller', function () {
             }
         })
 
+        describe('debugMaxLength', function () {
+            const validate = (debugMaxLength, importing) => app.db.controllers.ProjectTemplate.validateSettings({ debugMaxLength }, undefined, importing)
+
+            it('rejects values that are not a whole number', function () {
+                ;['1000 + 1', 'abc', -1, 1.5].forEach(value => {
+                    should.throws(() => validate(value), /Invalid settings.debugMaxLength/)
+                })
+            })
+            it('stores a numeric string as a number', function () {
+                validate('456').should.have.property('debugMaxLength', 456)
+            })
+            it('keeps an empty value so clearing the field is saved', function () {
+                validate('').should.have.property('debugMaxLength', '')
+                validate(null).should.have.property('debugMaxLength', null)
+            })
+            it('drops an invalid value when importing', function () {
+                validate('abc', true).should.not.have.property('debugMaxLength')
+            })
+        })
+
+        describe('editor setting types', function () {
+            const validate = (settings) => app.db.controllers.ProjectTemplate.validateSettings(settings)
+            const textSettings = [
+                ['codeEditor'],
+                ['theme'],
+                ['page', 'title'],
+                ['page', 'favicon'],
+                ['header', 'title'],
+                ['header', 'url']
+            ]
+            const build = (path, value) => path.length === 1 ? { [path[0]]: value } : { [path[0]]: { [path[1]]: value } }
+            const read = (result, path) => path.reduce((o, k) => o?.[k], result)
+
+            it('keeps string and null text settings', function () {
+                textSettings.forEach(path => {
+                    should(read(validate(build(path, 'value')), path)).equal('value')
+                    should(read(validate(build(path, null)), path)).equal(null)
+                })
+            })
+            it('drops text settings that are not strings', function () {
+                textSettings.forEach(path => {
+                    ;[{}, 1, ['a']].forEach(value => {
+                        should(read(validate(build(path, value)), path)).be.undefined()
+                    })
+                })
+            })
+            it('keeps a boolean disableEditor', function () {
+                validate({ disableEditor: true }).should.have.property('disableEditor', true)
+                validate({ disableEditor: false }).should.have.property('disableEditor', false)
+            })
+            it('drops a disableEditor that is not a boolean', function () {
+                validate({ disableEditor: 'true' }).should.not.have.property('disableEditor')
+            })
+        })
+
+        describe('httpNodeCORS origin', function () {
+            const validate = (origin) => app.db.controllers.ProjectTemplate.validateSettings({
+                httpNodeCORS: { enabled: true, origin, GET: true, POST: true, PUT: true, PATCH: true, HEAD: true, DELETE: true }
+            })
+
+            it('stores the normalised origin', function () {
+                validate('http://a.example/').httpNodeCORS.should.have.property('origin', 'http://a.example')
+                validate('https://a.example:8443/').httpNodeCORS.should.have.property('origin', 'https://a.example:8443')
+                validate('http://a.example/#" + x + "').httpNodeCORS.should.have.property('origin', 'http://a.example')
+            })
+            it('keeps a wildcard origin', function () {
+                validate('*').httpNodeCORS.should.have.property('origin', '*')
+            })
+        })
+
         it('only passes through settings a template policy allows', async function () {
             const templateProperties = {
                 name: 'template',
