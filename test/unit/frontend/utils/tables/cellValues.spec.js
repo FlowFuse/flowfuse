@@ -239,6 +239,10 @@ describe('formatCellDetail', () => {
         expect(formatCellDetail(['a', null, 'c'], '_text')).toEqual({ kind: 'list', text: 'a\nnull\nc', copy: '["a",null,"c"]' })
     })
 
+    test('shows the items of a JSON list as the JSON they are', () => {
+        expect(formatCellDetail(['{"a": 1}', '"text, with a comma"'], '_jsonb').text).toBe('{"a": 1}\n"text, with a comma"')
+    })
+
     test('shows a list with nothing in it as the grid does', () => {
         expect(formatCellDetail([], '_text')).toEqual({ kind: 'list', text: '[]', copy: '[]' })
     })

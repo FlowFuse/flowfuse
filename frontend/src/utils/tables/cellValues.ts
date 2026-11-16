@@ -201,7 +201,8 @@ export function formatCellDetail (value: unknown, type: string, { original = fal
         return detail
     }
     if (kind === 'list' && Array.isArray(value) && value.length > 0 && !original) {
-        return { kind, text: value.map(listItem).join('\n'), copy: cell.original }
+        const itemKind = listItemKind(type)
+        return { kind, text: value.map(item => listItem(item, itemKind)).join('\n'), copy: cell.original }
     }
     return { kind: cell.kind, text: cell.text, copy: cell.original }
 }
