@@ -29,7 +29,7 @@ describe('CellViewer', () => {
     })
 
     test('names the column and its type', async () => {
-        await mountCell({ name: 'payload', value: { a: 1 }, type: 'jsonb' }).trigger('click')
+        await mountCell({ name: 'payload', value: '{"a": 1}', type: 'jsonb' }).trigger('click')
         expect(viewerPart('column')).toBe('payload')
         expect(viewerPart('type')).toBe('JSON')
     })
@@ -41,7 +41,7 @@ describe('CellViewer', () => {
     })
 
     test('lays JSON out over several lines', async () => {
-        await mountCell({ name: 'payload', value: { unit: 'C', readings: [1, 2] }, type: 'jsonb' }).trigger('click')
+        await mountCell({ name: 'payload', value: '{"unit": "C", "readings": [1, 2]}', type: 'jsonb' }).trigger('click')
         expect(viewerPart('value')).toBe('{\n  "unit": "C",\n  "readings": [\n    1,\n    2\n  ]\n}')
     })
 
@@ -65,6 +65,11 @@ describe('CellViewer', () => {
     test('shows the value as stored when asked for original values', async () => {
         await mountCell({ name: 'day', value: '2025-08-01', type: 'date', showOriginal: true }).trigger('click')
         expect(viewerPart('value')).toBe('2025-08-01')
+    })
+
+    test('shows JSON as stored, on one line, when asked for original values', async () => {
+        await mountCell({ name: 'payload', value: '{"a": 1}', type: 'jsonb', showOriginal: true }).trigger('click')
+        expect(viewerPart('value')).toBe('{"a": 1}')
     })
 
     describe('closing', () => {
@@ -135,8 +140,8 @@ describe('CellViewer', () => {
             expect(await copied({ name: 'day', value: '2025-08-01', type: 'date' })).toBe('2025-08-01')
         })
 
-        test('copies JSON laid out over several lines', async () => {
-            expect(await copied({ name: 'payload', value: { a: 1 }, type: 'jsonb' })).toBe('{\n  "a": 1\n}')
+        test('copies JSON as it is stored, not laid out over several lines', async () => {
+            expect(await copied({ name: 'payload', value: '{"a": 1}', type: 'jsonb' })).toBe('{"a": 1}')
         })
 
         test('copies the bytes of a binary value', async () => {

@@ -131,6 +131,43 @@ export function formatCellValue (value: unknown, type: string, { original = fals
     return { kind, text, original: originalText }
 }
 
+// the pieces of a JSON text: strings, brackets and punctuation, and anything else (numbers, true, false, null)
+const JSON_PIECE = /"(?:[^"\\]|\\.)*"|[{}[\],:]|[^\s{}[\],:"]+/g
+const OPENS = ['{', '[']
+const CLOSES = ['}', ']']
+
+/**
+ * Lays JSON out over several lines, one item per line. Only the spacing changes: every piece is kept as it is
+ * written, so a number too big for JavaScript is not rounded the way parsing and printing it again would
+ * @param json - JSON as text
+ * @returns The laid out text, or the text as it is when it is not JSON
+ */
+function layOutJson (json: string): string {
+    try {
+        JSON.parse(json)
+    } catch {
+        return json
+    }
+    const pieces = json.match(JSON_PIECE) ?? []
+    let depth = 0
+    const newLine = () => '\n' + '  '.repeat(depth)
+    return pieces.map((piece, index) => {
+        if (OPENS.includes(piece)) {
+            // an object or a list with nothing in it stays closed up: {} and []
+            if (CLOSES.includes(pieces[index + 1])) return piece
+            depth++
+            return piece + newLine()
+        }
+        if (CLOSES.includes(piece)) {
+            if (OPENS.includes(pieces[index - 1])) return piece
+            depth--
+            return newLine() + piece
+        }
+        if (piece === ',') return piece + newLine()
+        return piece === ':' ? ': ' : piece
+    }).join('')
+}
+
 /**
  * Works out how a value is shown in full once its cell is opened
  * @param value - A value as the table data API returns it
@@ -144,9 +181,8 @@ export function formatCellDetail (value: unknown, type: string, { original = fal
         return { kind: 'empty', text: cell.text, copy: null }
     }
     const kind = getColumnTypeKind(type)
-    if (kind === 'json') {
-        const text = JSON.stringify(value, null, 2)
-        return { kind, text, copy: text }
+    if (kind === 'json' && cell.original !== null && !original) {
+        return { kind, text: layOutJson(cell.original), copy: cell.original }
     }
     if (kind === 'binary' && isBinaryValue(value)) {
         const detail: CellDetail = { kind: cell.kind, text: cell.text, copy: value.hex }

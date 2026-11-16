@@ -197,10 +197,37 @@ describe('formatCellDetail', () => {
         expect(detail.copy).toBe('2025-08-01')
     })
 
-    test('lays JSON out over several lines, also when asked for original values', () => {
-        const text = '{\n  "a": 1\n}'
-        expect(formatCellDetail({ a: 1 }, 'jsonb')).toEqual({ kind: 'json', text, copy: text })
-        expect(formatCellDetail({ a: 1 }, 'jsonb', { original: true })).toEqual({ kind: 'json', text, copy: text })
+    test('lays JSON out over several lines, and copies it as stored', () => {
+        expect(formatCellDetail('{"a": 1}', 'jsonb')).toEqual({ kind: 'json', text: '{\n  "a": 1\n}', copy: '{"a": 1}' })
+    })
+
+    test.each([
+        { unit: 'C', readings: [1, 2.5, -3e-7], nested: { ok: true, none: null, empty: {}, list: [] } },
+        [{ a: 'has , : { } [ ] and \\"quotes\\" inside' }, 'two\nlines', ''],
+        'just text',
+        42,
+        null,
+        {},
+        []
+    ])('lays JSON out the way JSON itself does: %j', (value) => {
+        expect(formatCellDetail(JSON.stringify(value), 'jsonb').text).toBe(JSON.stringify(value, null, 2))
+    })
+
+    test('lays JSON out the same whatever spacing it is stored with', () => {
+        expect(formatCellDetail('{ "b":1,\n\t"a" : [ ] }', 'json').text).toBe('{\n  "b": 1,\n  "a": []\n}')
+    })
+
+    test('keeps the numbers in JSON exactly as stored', () => {
+        const detail = formatCellDetail('{"big": 12345678901234567890, "price": 1.50}', 'jsonb')
+        expect(detail.text).toBe('{\n  "big": 12345678901234567890,\n  "price": 1.50\n}')
+    })
+
+    test('shows text that is not JSON as it is', () => {
+        expect(formatCellDetail('{not json', 'jsonb')).toEqual({ kind: 'json', text: '{not json', copy: '{not json' })
+    })
+
+    test('shows and copies JSON as stored when asked for original values', () => {
+        expect(formatCellDetail('{"a": 1}', 'jsonb', { original: true })).toEqual({ kind: 'text', text: '{"a": 1}', copy: '{"a": 1}' })
     })
 
     test('puts each item of a list on its own line', () => {
