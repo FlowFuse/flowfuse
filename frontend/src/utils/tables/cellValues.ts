@@ -42,8 +42,13 @@ const utcDate = (year: number, month: number, day: number, hour = 0, minute = 0,
     return date
 }
 
+// A text item that could be misread goes in quotes, the way Postgres writes it: one holding a comma or a quote,
+// one that is blank or starts or ends with a space, and the word null (which would look like a missing item)
+const NEEDS_QUOTES = /[,"]|^\s|\s$|^$|^null$/i
+
 const listItem = (item: unknown): string => {
     if (item === null) return 'null'
+    if (typeof item === 'string') return NEEDS_QUOTES.test(item) ? JSON.stringify(item) : item
     return typeof item === 'object' ? JSON.stringify(item) : String(item)
 }
 

@@ -68,7 +68,11 @@ const tableDataParsers = Object.fromEntries([
     [600, 1017, asStored], // point
     [718, 719, asStored], // circle
     // numeric is text by default, but the default parser for its array turns the items into floats
-    [1700, 1231, asStored]
+    [1700, 1231, asStored],
+    // JSON stays the text Postgres wrote. Once parsed, a JSON null is the same null as a cell with no value,
+    // big numbers are rounded, and json (unlike jsonb) loses the spacing and key order it was saved with
+    [114, 199, asStored], // json
+    [3802, 3807, asStored] // jsonb
 ].flatMap(([oid, arrayOid, parser]) => [[oid, parser], [arrayOid, arrayOf(parser)]]))
 
 /**
@@ -77,9 +81,10 @@ const tableDataParsers = Object.fromEntries([
  * By default the pg client turns some types into JS values that do not survive being sent as JSON:
  * a date or a timestamp without a time zone becomes a Date in the server's time zone (so it shifts),
  * NaN and Infinity become null, bytea becomes an array with a number per byte, and intervals, points and
- * circles become objects, the items of a numeric array become floats, and a timestamp with a time zone holding
- * infinity becomes null. These parsers hand those back as Postgres wrote them. Every other type keeps its
- * default parser, so integers, booleans, JSON and every other timestamp with a time zone are unchanged.
+ * circles become objects, the items of a numeric array become floats, a timestamp with a time zone holding
+ * infinity becomes null, and a JSON null becomes the same null as a cell with no value. These parsers hand those
+ * back as Postgres wrote them. Every other type keeps its default parser, so integers, booleans and every other
+ * timestamp with a time zone are unchanged.
  */
 const tableDataTypes = {
     getTypeParser: (oid, format) => tableDataParsers[oid] ?? pg.types.getTypeParser(oid, format)

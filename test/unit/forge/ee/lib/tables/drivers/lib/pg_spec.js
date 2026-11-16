@@ -100,11 +100,19 @@ describe('Tables: helper lib for pg', function () {
             moment.toISOString().should.equal('2025-08-01T11:20:05.000Z')
             JSON.parse(JSON.stringify({ value: parse(1184, 'infinity') })).should.eql({ value: 'infinity' })
         })
+        it('should keep JSON as the text that is stored', function () {
+            parse(114, '{"b": 1,  "a": 2}').should.equal('{"b": 1,  "a": 2}') // json
+            parse(3802, '{"a": 12345678901234567890}').should.equal('{"a": 12345678901234567890}') // jsonb
+            parse(199, '{"{\\"a\\": 1}",NULL}').should.eql(['{"a": 1}', null]) // json[]
+        })
+        it('should tell a JSON null apart from a cell with no value', function () {
+            parse(3802, 'null').should.equal('null')
+            parse(114, 'null').should.equal('null')
+        })
         it('should leave every other type to the default parser', function () {
             parse(23, '42').should.equal(42) // int4
             parse(16, 't').should.equal(true) // bool
             parse(20, '9223372036854775807').should.equal('9223372036854775807') // int8
-            parse(114, '{"a":1}').should.eql({ a: 1 }) // json
             parse(1184, '2025-08-01 11:20:05.29+00').toISOString().should.equal('2025-08-01T11:20:05.290Z') // timestamptz
         })
     })

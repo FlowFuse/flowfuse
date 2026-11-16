@@ -99,13 +99,19 @@ describe('formatCellValue', () => {
     })
 
     describe('JSON', () => {
-        test('shows it on one line', () => {
-            expect(formatCellValue({ sensor: 'temp', reading: 22.1 }, 'jsonb')).toMatchObject({ kind: 'json', text: '{"sensor":"temp","reading":22.1}' })
+        test('shows it as it is stored', () => {
+            expect(formatCellValue('{"sensor": "temp", "reading": 22.1}', 'jsonb')).toMatchObject({ kind: 'json', text: '{"sensor": "temp", "reading": 22.1}' })
         })
 
         test('shows a JSON string, number or list as JSON', () => {
-            expect(formatCellValue([1, 2], 'json').text).toBe('[1,2]')
-            expect(formatCellValue(5, 'jsonb').text).toBe('5')
+            expect(formatCellValue('[1, 2]', 'json').text).toBe('[1, 2]')
+            expect(formatCellValue('5', 'jsonb').text).toBe('5')
+            expect(formatCellValue('"temp"', 'jsonb').text).toBe('"temp"')
+        })
+
+        test('shows a JSON null as null, not as a cell with no value', () => {
+            expect(formatCellValue('null', 'jsonb')).toMatchObject({ kind: 'json', text: 'null', original: 'null' })
+            expect(formatCellValue(null, 'jsonb')).toMatchObject({ kind: 'empty' })
         })
     })
 
@@ -138,6 +144,18 @@ describe('formatCellValue', () => {
             expect(formatCellValue([], '_text').text).toBe('[]')
         })
 
+        test('puts an item that could be misread in quotes', () => {
+            expect(formatCellValue(['a,b', 'c'], '_text').text).toBe('["a,b", c]')
+            expect(formatCellValue(['say "hi"', ''], '_text').text).toBe('["say \\"hi\\"", ""]')
+            expect(formatCellValue([' padded', 'two words'], '_text').text).toBe('[" padded", two words]')
+            expect(formatCellValue(['null', null], '_text').text).toBe('["null", null]')
+        })
+
+        test('leaves numbers and dates in a list as they are', () => {
+            expect(formatCellValue(['12345678901234567890.123', 'NaN'], '_numeric').text).toBe('[12345678901234567890.123, NaN]')
+            expect(formatCellValue(['2025-08-01', '2025-08-02'], '_date').text).toBe('[2025-08-01, 2025-08-02]')
+        })
+
         test('shows lists inside lists', () => {
             expect(formatCellValue([[1, 2], [3, 4]], '_int4').text).toBe('[[1,2], [3,4]]')
         })
@@ -155,7 +173,7 @@ describe('formatCellValue', () => {
             ['bool', true, 'true'],
             ['date', '2025-08-01', '2025-08-01'],
             ['timestamptz', '2025-08-01T11:20:05.290Z', '2025-08-01T11:20:05.290Z'],
-            ['jsonb', { a: 1 }, '{"a":1}'],
+            ['jsonb', '{"a": 1}', '{"a": 1}'],
             ['bytea', { bytes: 400, hex: 'deadbeef' }, '{"bytes":400,"hex":"deadbeef"}'],
             ['_text', ['E12', 'E40'], '["E12","E40"]']
         ])('shows a %s as plain text, as stored', (type, value, text) => {
