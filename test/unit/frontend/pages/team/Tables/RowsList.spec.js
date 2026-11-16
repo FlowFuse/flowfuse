@@ -14,6 +14,8 @@ const mocks = vi.hoisted(() => ({
         pageSize: 25,
         setPage: vi.fn(),
         setPageSize: vi.fn(),
+        showOriginalValues: false,
+        setShowOriginalValues: vi.fn(),
         setTableLoadingState: vi.fn(),
         getTableData: vi.fn(() => Promise.resolve()),
         getTableSchema: vi.fn(() => Promise.resolve()),
@@ -100,6 +102,37 @@ describe('RowsList', () => {
 
         expect(types.map(type => type.text())).toEqual(['Big Number', 'List of Text', 'tsvector'])
         expect(types.map(type => type.attributes('title'))).toEqual(['int8', '_text', 'tsvector'])
+    })
+
+    describe('cells', () => {
+        const schema = [
+            { name: 'running', safeName: 'a', type: 'bool' },
+            { name: 'notes', safeName: 'b', type: 'text' }
+        ]
+
+        beforeEach(() => {
+            mocks.tablesStore.showOriginalValues = false
+            mocks.tablesStore.selectedTable = { schema, payload: { safe: [{ a: true, b: null }] } }
+        })
+
+        test('shows each value according to its column type', () => {
+            const cells = mountRowsList().findAll('tbody [data-el="table-cell"]')
+            expect(cells[0].find('.pill').text()).toBe('true')
+            expect(cells[1].classes()).toContain('table-cell--empty')
+            expect(cells[1].text()).toBe('empty')
+        })
+
+        test('shows the values as stored when original values are asked for', () => {
+            mocks.tablesStore.showOriginalValues = true
+            const cells = mountRowsList().findAll('tbody [data-el="table-cell"]')
+            expect(cells[0].find('.pill').exists()).toBe(false)
+            expect(cells[0].text()).toBe('true')
+        })
+
+        test('goes back to formatted values when leaving the page', () => {
+            mountRowsList().unmount()
+            expect(mocks.tablesStore.setShowOriginalValues).toHaveBeenCalledWith(false)
+        })
     })
 
     describe('paging', () => {

@@ -45,7 +45,7 @@ import { defineComponent, markRaw } from 'vue'
 
 import CreateTable from '../drawers/CreateTable.vue'
 
-import TextCell from './table-cells/text-cell.vue'
+import TableCell from './TableCell.vue'
 
 import EmptyState from '@/components/EmptyState.vue'
 
@@ -59,7 +59,7 @@ export default defineComponent({
     name: 'RowsList',
     components: { EmptyState, PlusIcon },
     computed: {
-        ...mapState(useProductTablesStore, ['tables', 'tableSelection', 'isLoading', 'selectedTable', 'page', 'pageSize']),
+        ...mapState(useProductTablesStore, ['tables', 'tableSelection', 'isLoading', 'selectedTable', 'page', 'pageSize', 'showOriginalValues']),
         ...mapState(useContextStore, ['team']),
         columns () {
             return (this.selectedTable?.schema ?? []).map((row) => {
@@ -67,11 +67,9 @@ export default defineComponent({
                     key: row.safeName,
                     html: `<span class="column-name">${escapeHtml(row.name)}</span><span class="column-type" title="${escapeHtml(row.type)}">${escapeHtml(getColumnTypeLabel(row.type))}</span>`,
                     component: {
-                        is: this.getTableComponent(row.type),
-                        extraProps: {},
-                        bind: {
-                            'row-value': row.safeName
-                        }
+                        is: markRaw(TableCell),
+                        extraProps: { type: row.type, showOriginal: this.showOriginalValues },
+                        bind: { value: row.safeName }
                     },
                     tableCellClass: 'truncate',
                     tableLabelClass: 'truncate',
@@ -121,10 +119,11 @@ export default defineComponent({
         }
     },
     beforeUnmount () {
+        this.setShowOriginalValues(false)
         this.updateTableSelection(null)
     },
     methods: {
-        ...mapActions(useProductTablesStore, ['getTableSchema', 'getTableData', 'updateTableSelection', 'setPage', 'setPageSize', 'setTableLoadingState']),
+        ...mapActions(useProductTablesStore, ['getTableSchema', 'getTableData', 'updateTableSelection', 'setPage', 'setPageSize', 'setShowOriginalValues', 'setTableLoadingState']),
         ...mapActions(useUxDrawersStore, ['openRightDrawer']),
         onCreateTable () {
             this.openRightDrawer({
@@ -155,20 +154,6 @@ export default defineComponent({
                     // a page picked in the meantime is still loading, so leave the state to it
                     if (this.latestPageLoad === load) this.setTableLoadingState(false)
                 })
-        },
-        getTableComponent (type) {
-            const componentMap = {
-                text: TextCell
-            }
-
-            if (Object.prototype.hasOwnProperty.call(componentMap, type)) {
-                return componentMap[type]
-            } else {
-                return markRaw({
-                    props: ['row-value'],
-                    template: '<span class="truncate">{{rowValue}}</span>'
-                })
-            }
         }
     }
 })
