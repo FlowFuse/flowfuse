@@ -1,5 +1,3 @@
-const { tokenOwnerTeamId } = require('./tokenOwner')
-
 module.exports = {
     defaultPreHandler: async (app, request, reply) => {
         const applicationId = request.params.applicationId
@@ -23,8 +21,9 @@ module.exports = {
                     return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                 }
             } else if (request.session.ownerType === 'project' || request.session.ownerType === 'device') {
-                const teamId = await tokenOwnerTeamId(app, request.session)
-                if (teamId !== request.application.Team.id) {
+                const ownerModel = request.session.ownerType === 'project' ? app.db.models.Project : app.db.models.Device
+                const owner = await ownerModel.findOne({ where: { id: request.session.ownerId }, attributes: ['TeamId'] })
+                if (owner?.TeamId !== request.application.Team.id) {
                     return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                 }
             }

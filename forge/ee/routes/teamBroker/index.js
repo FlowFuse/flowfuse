@@ -1,7 +1,5 @@
 const crypto = require('crypto')
 
-const { tokenOwnerTeamId } = require('../../../routes/api/shared/tokenOwner')
-
 const schemaApi = require('./schema')
 
 const generateUuid = (length = 6) => {
@@ -48,8 +46,9 @@ module.exports = async function (app) {
             }
         } else if (request.session.ownerType === 'project' || request.session.ownerType === 'device') {
             // this is a request from a project or device
-            const teamId = await tokenOwnerTeamId(app, request.session)
-            if (teamId !== request.team.id) {
+            const ownerModel = request.session.ownerType === 'project' ? app.db.models.Project : app.db.models.Device
+            const owner = await ownerModel.findOne({ where: { id: request.session.ownerId }, attributes: ['TeamId'] })
+            if (owner?.TeamId !== request.team.id) {
                 reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                 return
             }
