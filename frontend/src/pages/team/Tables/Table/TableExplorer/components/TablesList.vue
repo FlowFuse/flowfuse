@@ -16,22 +16,34 @@
             </button>
         </div>
 
-        <ul v-if="filteredTables.length && tables.length" class="list">
-            <li
-                v-for="table in filteredTables" :key="table.id"
-                :title="table.name"
-                class="item relative"
-                :class="{active: table.name === tableSelection?.name && table.dbSchema === tableSelection?.dbSchema}"
-                @click="updateTableSelection({ name: table.name, dbSchema: table.dbSchema })"
+        <div v-if="filteredTables.length && tables.length" class="list">
+            <FfAccordion
+                v-for="group in tableGroups" :key="`${group.schema}:${groupsKey}`"
+                class="schema-group" :class="{ 'schema-group--only': hasOneSchema }" variant="bare" set-open
+                :data-schema="group.schema"
             >
-                <span class="icon-toggle">
-                    <TableCellsIcon class="ff-icon ff-icon-sm" />
-                    <PencilSquareIcon class="ff-icon ff-icon-sm edit" @click="showSchema(table)" />
-                </span>
-                <span class="truncate">{{ table.name }}</span>
-                <span class="schema-label truncate">{{ table.dbSchema }}</span>
-            </li>
-        </ul>
+                <template #label>
+                    <span class="schema-name truncate" :title="group.schema">{{ group.schema }}</span>
+                </template>
+                <template #content>
+                    <ul>
+                        <li
+                            v-for="table in group.tables" :key="table.name"
+                            :title="table.name"
+                            class="item relative"
+                            :class="{active: table.name === tableSelection?.name && table.dbSchema === tableSelection?.dbSchema}"
+                            @click="updateTableSelection({ name: table.name, dbSchema: table.dbSchema })"
+                        >
+                            <span class="icon-toggle">
+                                <TableCellsIcon class="ff-icon ff-icon-sm" />
+                                <PencilSquareIcon class="ff-icon ff-icon-sm edit" @click="showSchema(table)" />
+                            </span>
+                            <span class="truncate">{{ table.name }}</span>
+                        </li>
+                    </ul>
+                </template>
+            </FfAccordion>
+        </div>
 
         <div v-else-if="!filteredTables.length && tables.length" class="empty-state">
             <p>No tables found matching your criteria!</p>
@@ -52,12 +64,13 @@ import { defineComponent, markRaw } from 'vue'
 import CreateTable from '../drawers/CreateTable.vue'
 import TableSchema from '../drawers/TableSchema.vue'
 
+import FfAccordion from '@/components/Accordion.vue'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default defineComponent({
     name: 'TablesList',
-    components: { MagnifyingGlassIcon, TableCellsIcon, PlusIcon, PencilSquareIcon },
+    components: { FfAccordion, MagnifyingGlassIcon, TableCellsIcon, PlusIcon, PencilSquareIcon },
     emits: ['select-table'],
     data () {
         return {
@@ -70,6 +83,24 @@ export default defineComponent({
         ...mapState(useProductTablesStore, { tablesState: 'tables', tableSelection: 'tableSelection' }),
         filteredTables () {
             return this.tables.filter(t => (t.name ?? '').toLowerCase().includes(this.filterTerm.toLowerCase()))
+        },
+        // the store hands the tables over already ordered by schema, so the groups come out in that order
+        tableGroups () {
+            const groups = new Map()
+            this.filteredTables.forEach(table => {
+                if (!groups.has(table.dbSchema)) groups.set(table.dbSchema, [])
+                groups.get(table.dbSchema).push(table)
+            })
+            return [...groups].map(([schema, tables]) => ({ schema, tables }))
+        },
+        // most databases only have the one schema, where a heading over the whole list says nothing
+        hasOneSchema () {
+            return new Set(this.tables.map(table => table.dbSchema)).size === 1
+        },
+        // The groups are made again, which opens them all, when a search starts or ends (so a closed group cannot
+        // hide a match) and when the heading comes or goes (so a closed group is not left with nothing to open it)
+        groupsKey () {
+            return `${!!this.filterTerm}:${this.hasOneSchema}`
         }
     },
     watch: {
@@ -124,6 +155,31 @@ export default defineComponent({
         min-height: 0;
         overflow-y: auto;
 
+        .schema-group {
+            margin-bottom: 10px;
+
+            :deep(.ff-accordion--button) {
+                margin: 0;
+                padding: 2px 12px;
+            }
+
+            :deep(.ff-accordion--content) {
+                margin-top: 0;
+            }
+
+            .schema-name {
+                font-size: 0.75rem;
+            }
+
+            &--only {
+                margin-bottom: 0;
+
+                :deep(.ff-accordion--button) {
+                    display: none;
+                }
+            }
+        }
+
         .item {
             display: flex;
             gap: 5px;
@@ -132,13 +188,6 @@ export default defineComponent({
             align-items: center;
             transition: ease-in-out .3s;
             cursor: pointer;
-
-            .schema-label {
-                margin-left: auto;
-                flex-shrink: 0;
-                font-size: 0.75rem;
-                color: var(--ff-color-text-subtle);
-            }
 
             &:hover, &.active {
                 color: var(--ff-color-focus);
@@ -158,6 +207,8 @@ export default defineComponent({
 
             .icon-toggle {
                 width: 24px;
+                // a long table name is cut short rather than squeezing the icon
+                flex-shrink: 0;
                 .ff-icon:first-child {
                     display: inline-block;
                 }
