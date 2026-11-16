@@ -836,6 +836,9 @@ module.exports = async function (app) {
             if (request.session.ownerType === 'npm') {
                 if (!/[pd]-(.+)@(.+)/.test(request.params.ownerId)) {
                     const user = await app.db.models.User.byUsername(request.params.ownerId)
+                    if (!user || user.suspended) {
+                        return reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                    }
                     const userTeamList = await user.getTeamMemberships(true)
                     const teams = userTeamList.map(t => `${t.Team.hashid}:${t.role}`)
                     response = {

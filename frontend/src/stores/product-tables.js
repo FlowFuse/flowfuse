@@ -14,12 +14,27 @@ const emptyColumn = {
     unsigned: false
 }
 
+const compareNames = (a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+
+// the public schema first, then the other schemas by name, and each schema's tables by name
+const compareTables = (a, b) => {
+    if (a.dbSchema !== b.dbSchema) {
+        if (a.dbSchema === 'public') return -1
+        if (b.dbSchema === 'public') return 1
+        return compareNames(a.dbSchema, b.dbSchema)
+    }
+    return compareNames(a.name, b.name)
+}
+
 export const useProductTablesStore = defineStore('product-tables', {
     state: () => ({
         databases: {},
         databaseSelection: null,
         tables: {},
         tableSelection: null,
+        page: 1,
+        pageSize: 25,
+        showOriginalValues: false,
         newTable: { name: '', schema: 'public', columns: [{ ...emptyColumn }] },
         isLoading: false
     }),
@@ -61,13 +76,26 @@ export const useProductTablesStore = defineStore('product-tables', {
             // dbSchema (the Postgres schema/namespace) is kept separate from `schema`,
             // which getTableSchema below repurposes to hold the table's column definitions
             tables = tables.map(({ schema, ...table }) => ({ ...table, dbSchema: schema }))
-            tables = [...tables].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }))
+            tables = [...tables].sort(compareTables)
             this.tables[databaseId] = tables
-            if (tables.length > 0) this.tableSelection = { name: tables[0].name, dbSchema: tables[0].dbSchema }
+            if (tables.length > 0) this.updateTableSelection({ name: tables[0].name, dbSchema: tables[0].dbSchema })
             return tables
         },
         clearState () { this.$reset() },
-        updateTableSelection (table) { this.tableSelection = table },
+        updateTableSelection (table) {
+            this.tableSelection = table
+            this.page = 1
+        },
+        setShowOriginalValues (showOriginalValues) {
+            this.showOriginalValues = showOriginalValues
+        },
+        setPage (page) {
+            this.page = page
+        },
+        setPageSize (pageSize) {
+            this.pageSize = pageSize
+            this.page = 1
+        },
         updateDatabaseSelection (databaseId) { this.databaseSelection = databaseId },
         async getTableSchema ({ databaseId, tableName, teamId, schemaName }) {
             const schema = await tablesApi.getTableSchema(teamId, databaseId, tableName, schemaName)
@@ -80,10 +108,25 @@ export const useProductTablesStore = defineStore('product-tables', {
             })
         },
         async getTableData ({ databaseId, tableName, teamId, schemaName }) {
-            const data = await tablesApi.getTableData(teamId, databaseId, tableName, schemaName)
+            const pageSize = this.pageSize
+            let page = this.page
+            // another page or page size picked while this one was loading makes its rows out of date
+            const isStale = () => this.page !== page || this.pageSize !== pageSize
+            const fetchPage = () => tablesApi.getTableData(teamId, databaseId, tableName, schemaName, { page, limit: pageSize })
+            let res = await fetchPage()
+            if (isStale()) return
+            const lastPage = Math.max(1, Math.ceil(res.count / pageSize))
+            if (page > lastPage) {
+                // the table shrank and this page is gone, so fall back to the last one
+                page = this.page = lastPage
+                res = await fetchPage()
+                if (isStale()) return
+            }
+            const { rows: data, count: total } = res
             const payload = {
                 data,
-                safe: data.map(row => Object.fromEntries(Object.entries(row).map(([k, v]) => [hashString(k), v])))
+                safe: data.map(row => Object.fromEntries(Object.entries(row).map(([k, v]) => [hashString(k), v]))),
+                total
             }
             Object.keys(this.tables[databaseId]).forEach(key => {
                 const table = this.tables[databaseId][key]

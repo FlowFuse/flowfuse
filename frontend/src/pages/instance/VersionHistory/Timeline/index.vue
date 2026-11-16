@@ -12,7 +12,7 @@
                             :timeline="activeTimeline"
                             :instance="instance"
                             @preview-snapshot="showViewSnapshotDialog"
-                            @restore-snapshot="forceRefresh(showRollbackDialog, $event, true)"
+                            @restore-snapshot="restoreSnapshot"
                             @compare-snapshot="forceRefresh(showCompareSnapshotDialog, $event)"
                             @delete-snapshot="forceRefresh(showDeleteSnapshotDialog, $event)"
                             @edit-snapshot="showEditSnapshotDialog"
@@ -86,6 +86,7 @@ export default {
             default: () => []
         }
     },
+    emits: ['instance-updated'],
     data () {
         return {
             timeline: [],
@@ -149,6 +150,15 @@ export default {
                         .catch(e => e)
                 }
             }
+        },
+        restoreSnapshot (snapshot) {
+            this.showRollbackDialog(snapshot, true)
+                .then(() => {
+                    this.fetchData(false)
+                    // reload the instance so pages such as Settings > Environment show the restored settings
+                    this.$emit('instance-updated')
+                })
+                .catch(e => console.warn(e))
         },
         async forceRefresh (callback, ...payload) {
             callback(...payload)

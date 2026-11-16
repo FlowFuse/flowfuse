@@ -60,6 +60,7 @@
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this instance as an Administrator</div>
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
+            <TeamBanner :team="team" />
         </Teleport>
         <div class="flex flex-col flex-1 overflow-auto">
             <router-view
@@ -83,6 +84,7 @@ import { mapState } from 'pinia'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
+import TeamBanner from '../../components/banners/TeamBanner.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import InstanceActionsButton from '../../components/instance/ActionButton.vue'
 import usePermissions from '../../composables/Permissions.js'
@@ -107,6 +109,7 @@ export default {
         InstanceStatusBadge,
         StatusBadge,
         SubscriptionExpiredBanner,
+        TeamBanner,
         TeamTrialBanner,
         InstanceEditorLink,
         LockClosedIcon

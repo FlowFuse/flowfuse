@@ -256,7 +256,11 @@ export default {
                 },
                 on: {
                     updatedSnapshot: () => this.fetchData(true),
-                    restoredSnapshot: () => this.fetchData(true),
+                    restoredSnapshot: () => {
+                        this.fetchData(true)
+                        // reload the instance so pages such as Settings > Environment show the restored settings
+                        this.$emit('instance-updated')
+                    },
                     deletedSnapshot: () => {
                         this.closeRightDrawer()
                         this.fetchData(true)

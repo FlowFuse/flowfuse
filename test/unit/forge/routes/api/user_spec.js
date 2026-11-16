@@ -362,6 +362,11 @@ describe('User API', async function () {
             secondTemp.should.have.property('name', 'sid')
             const secondLoginSessionId = secondLoginSession.cookies[0].value
 
+            const editorSession = await app.db.models.StorageSession.create({
+                sessions: JSON.stringify({ token1: { user: 'dave', client: 'node-red-editor', scope: ['*'], accessToken: 'token1', expires: Date.now() + 60000 } }),
+                ProjectId: TestObjects.Project1.id
+            })
+
             const response = await app.inject({
                 method: 'PUT',
                 url: '/api/v1/user/change_password',
@@ -403,6 +408,11 @@ describe('User API', async function () {
                 cookies: { sid: secondLoginSessionId }
             })
             checkSecondToken.statusCode.should.equal(401)
+
+            // Node-RED editor sessions should be removed
+            await editorSession.reload()
+            JSON.parse(editorSession.sessions).should.not.have.property('token1')
+            await editorSession.destroy()
 
             // The password_reset token should no longer exist
             ;(await app.db.models.AccessToken.count({ where: { scope: 'password:reset' } })).should.equal(0)
@@ -1693,6 +1703,46 @@ describe('User API', async function () {
                 }
             })
 
+            it('team-scoped PAT cannot remove its user from a team outside its scope', async function () {
+                await login('bob', 'bbPassword')
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.bob },
+                    payload: { name: 'ATeam Only (leave)', scope: '', teamIds: [TestObjects.ATeam.hashid] }
+                })
+                createResponse.statusCode.should.equal(200)
+
+                const response = await app.inject({
+                    method: 'DELETE',
+                    url: `/api/v1/teams/${TestObjects.BTeam.hashid}/members/${TestObjects.bob.hashid}`,
+                    headers: { authorization: `Bearer ${createResponse.json().token}` }
+                })
+                response.statusCode.should.equal(403)
+                const role = await TestObjects.bob.getTeamMembership(TestObjects.BTeam.id)
+                should.exist(role)
+            })
+
+            it('read-only PAT cannot remove its user from a team', async function () {
+                await login('bob', 'bbPassword')
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.bob },
+                    payload: { name: 'ReadOnly (leave)', scope: '', readOnly: true }
+                })
+                createResponse.statusCode.should.equal(200)
+
+                const response = await app.inject({
+                    method: 'DELETE',
+                    url: `/api/v1/teams/${TestObjects.BTeam.hashid}/members/${TestObjects.bob.hashid}`,
+                    headers: { authorization: `Bearer ${createResponse.json().token}` }
+                })
+                response.statusCode.should.equal(403)
+                const role = await TestObjects.bob.getTeamMembership(TestObjects.BTeam.id)
+                should.exist(role)
+            })
+
             it('team-agnostic PAT (no teamScopes) can access any team the user belongs to', async function () {
                 await login('bob', 'bbPassword')
                 const createResponse = await app.inject({
@@ -1991,6 +2041,26 @@ describe('User API', async function () {
             ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(0)
             ;(await getUserTeams(TestObjects.tokens.grace)).should.have.length(2)
             ;(await getUserNotifications(TestObjects.tokens.grace)).should.have.length(0)
+        })
+
+        it('user cannot accept an expired invite', async function () {
+            await login('grace', 'ggPassword')
+
+            const invitor = TestObjects.alice
+            const team = await app.db.models.Team.byName('ATeam')
+            const result = await app.db.controllers.Invitation.createInvitations(invitor, team, ['grace'])
+            const invite = result.grace
+            await app.db.models.Invitation.update({ expiresAt: Date.now() - 1000 }, { where: { id: invite.id } })
+
+            const response = await app.inject({
+                method: 'PATCH',
+                url: '/api/v1/user/invitations/' + invite.hashid,
+                cookies: { sid: TestObjects.tokens.grace }
+            })
+            response.statusCode.should.equal(400)
+            response.json().should.have.property('code', 'invitation_expired')
+            ;(await getUserTeams(TestObjects.tokens.grace)).should.have.length(1)
+            ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(1)
         })
 
         it('user can reject an invite to a team', async function () {

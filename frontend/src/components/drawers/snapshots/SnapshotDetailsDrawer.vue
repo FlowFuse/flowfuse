@@ -380,7 +380,13 @@ export default defineComponent({
                         label: 'Restore',
                         kind: 'primary',
                         iconLeft: ClockIcon,
-                        handler: () => this.isDevice ? this.deployDeviceSnapshot(this.snapshot.id) : this.showRollbackDialog(this.snapshot),
+                        handler: () => {
+                            if (this.isDevice) {
+                                return this.deployDeviceSnapshot(this.snapshot.id)
+                            }
+                            return this.showRollbackDialog(this.snapshot)
+                                .then(() => this.$emit('restored-snapshot', this.snapshot))
+                        },
                         hidden: function () {
                             if (context.isEditing) {
                                 return true

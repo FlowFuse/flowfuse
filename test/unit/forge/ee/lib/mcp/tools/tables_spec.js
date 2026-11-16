@@ -167,7 +167,22 @@ describe('MCP Tables Tools', function () {
             response.should.equal(injectResponse)
         })
 
-        it('omits the query string when limit is undefined', async function () {
+        it('includes the page query param when page is provided', async function () {
+            const injectResponse = { statusCode: 200, json: () => [{ col: 'value' }] }
+            inject.resolves(injectResponse)
+            await tool.handler({ teamId: 'team1', databaseId: 'db1', tableName: 'table1', schemaName: 'public', page: 3, limit: 50 }, { inject })
+            inject.firstCall.args[0].should.eql({
+                method: 'GET',
+                url: '/api/v1/teams/team1/databases/db1/tables/table1/data/public?page=3&limit=50'
+            })
+        })
+
+        it('accepts up to 100 rows per page', function () {
+            tool.inputSchema.limit.safeParse(100).success.should.be.true()
+            tool.inputSchema.limit.safeParse(101).success.should.be.false()
+        })
+
+        it('omits the query string when page and limit are undefined', async function () {
             const injectResponse = { statusCode: 200, json: () => [] }
             inject.resolves(injectResponse)
             const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', tableName: 'table1', schemaName: 'public' }, { inject })

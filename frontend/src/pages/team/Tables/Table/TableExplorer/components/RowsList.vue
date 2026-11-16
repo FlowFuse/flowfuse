@@ -19,14 +19,23 @@
 
         <div v-else-if="!selectedTable" class="no-content w-full h-full" />
 
-        <div v-else-if="selectedTable && selectedTable.schema" class="content overflow-auto h-full">
+        <div
+            v-else-if="selectedTable && selectedTable.schema" class="content h-full" data-el="rows-grid"
+            :tabindex="grid.tabStop === null ? 0 : -1"
+            @focus.self="onGridFocus" @keydown="onGridKeydown"
+        >
             <ff-data-table
-                :loading="isLoading"
+                :loading="isLoading" loading-type="skeleton"
                 :columns="columns" :rows="rows"
-                class="h-full overflow-auto"
-                tableClass="table-auto overflow-auto"
+                :pagination="pagination"
+                class="h-full"
+                tableClass="table-auto"
+                @update:page="onPageChange"
+                @update:page-size="onPageSizeChange"
             />
         </div>
+
+        <ff-loading v-else-if="isLoading" message="Loading Table..." data-el="table-loading" />
 
         <div v-else class="no-content w-full h-full flex justify-center items-center text-gray-400">
             <p>There doesn't seem to be anything here!</p>
@@ -41,7 +50,7 @@ import { defineComponent, markRaw } from 'vue'
 
 import CreateTable from '../drawers/CreateTable.vue'
 
-import TextCell from './table-cells/text-cell.vue'
+import TableCell from './TableCell.vue'
 
 import EmptyState from '@/components/EmptyState.vue'
 
@@ -50,16 +59,27 @@ import { escapeHtml } from '@/composables/strings/String.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+import { getColumnTypeLabel } from '@/utils/tables/columnTypes.ts'
 
 export default defineComponent({
     name: 'RowsList',
     components: { EmptyState, PlusIcon },
+    provide () {
+        return { grid: this.grid }
+    },
     setup () {
         const { hasPermission } = usePermissions()
         return { hasPermission }
     },
+    data () {
+        return {
+            // the grid is one stop for the Tab key: the cell that last had focus, which the arrow keys move.
+            // Until a cell has had focus the grid itself is the stop, and hands focus on to its first cell
+            grid: { tabStop: null }
+        }
+    },
     computed: {
-        ...mapState(useProductTablesStore, ['tables', 'tableSelection', 'isLoading', 'selectedTable']),
+        ...mapState(useProductTablesStore, ['tables', 'tableSelection', 'isLoading', 'selectedTable', 'page', 'pageSize', 'showOriginalValues']),
         ...mapState(useContextStore, ['team']),
         canManageTables () {
             return this.hasPermission('team:database:create')
@@ -68,14 +88,11 @@ export default defineComponent({
             return (this.selectedTable?.schema ?? []).map((row) => {
                 return {
                     key: row.safeName,
-                    html: `<span >${escapeHtml(row.name)}</span> <span class="text-gray-400">${escapeHtml(row.type)}</span>`,
-                    sortable: true,
+                    html: `<span class="column-name">${escapeHtml(row.name)}</span><span class="column-type" title="${escapeHtml(row.type)}">${escapeHtml(getColumnTypeLabel(row.type))}</span>`,
                     component: {
-                        is: this.getTableComponent(row.type),
-                        extraProps: {},
-                        bind: {
-                            'row-value': row.safeName
-                        }
+                        is: markRaw(TableCell),
+                        extraProps: { name: row.name, type: row.type, showOriginal: this.showOriginalValues },
+                        bind: { value: row.safeName }
                     },
                     tableCellClass: 'truncate',
                     tableLabelClass: 'truncate',
@@ -89,11 +106,22 @@ export default defineComponent({
         },
         rows () {
             return (this.selectedTable?.payload?.safe ?? [])
+        },
+        pagination () {
+            return {
+                page: this.page,
+                pageSize: this.pageSize,
+                total: this.selectedTable?.payload?.total ?? 0
+            }
         }
     },
     watch: {
         tableSelection (table) {
-            if (!table) return
+            if (!table) {
+                this.setTableLoadingState(false)
+                return
+            }
+            this.setTableLoadingState(true)
             this.getTableSchema({
                 teamId: this.team.id,
                 databaseId: this.$route.params.id,
@@ -107,13 +135,18 @@ export default defineComponent({
                     schemaName: table.dbSchema
                 }))
                 .catch(e => e)
+                .finally(() => {
+                    // a table picked in the meantime is still loading, so leave the state to it
+                    if (this.tableSelection === table) this.setTableLoadingState(false)
+                })
         }
     },
     beforeUnmount () {
+        this.setShowOriginalValues(false)
         this.updateTableSelection(null)
     },
     methods: {
-        ...mapActions(useProductTablesStore, ['getTableSchema', 'getTableData', 'updateTableSelection']),
+        ...mapActions(useProductTablesStore, ['getTableSchema', 'getTableData', 'updateTableSelection', 'setPage', 'setPageSize', 'setShowOriginalValues', 'setTableLoadingState']),
         ...mapActions(useUxDrawersStore, ['openRightDrawer']),
         onCreateTable () {
             this.openRightDrawer({
@@ -122,19 +155,52 @@ export default defineComponent({
                 overlay: true
             })
         },
-        getTableComponent (type) {
-            const componentMap = {
-                text: TextCell
+        onGridFocus (event) {
+            // only when the keyboard brought focus here: a click on the scrollbar should not jump to the first cell
+            if (event.target.matches(':focus-visible')) {
+                this.$el.querySelector('tbody [data-el="table-cell"]')?.focus()
             }
-
-            if (Object.prototype.hasOwnProperty.call(componentMap, type)) {
-                return componentMap[type]
-            } else {
-                return markRaw({
-                    props: ['row-value'],
-                    template: '<span class="truncate">{{rowValue}}</span>'
+        },
+        onGridKeydown (event) {
+            if (!event.target.matches('[data-el="table-cell"]')) return
+            const cell = event.target.closest('td')
+            const row = cell.parentElement
+            const column = [...row.children].indexOf(cell)
+            const moves = {
+                ArrowLeft: () => cell.previousElementSibling,
+                ArrowRight: () => cell.nextElementSibling,
+                ArrowUp: () => row.previousElementSibling?.children[column],
+                ArrowDown: () => row.nextElementSibling?.children[column],
+                Home: () => row.firstElementChild,
+                End: () => row.lastElementChild
+            }
+            if (!moves[event.key]) return
+            // the keys would otherwise scroll the grid
+            event.preventDefault()
+            moves[event.key]()?.querySelector('[data-el="table-cell"]')?.focus()
+        },
+        onPageChange (page) {
+            this.setPage(page)
+            this.loadPage()
+        },
+        onPageSizeChange (pageSize) {
+            this.setPageSize(pageSize)
+            this.loadPage()
+        },
+        loadPage () {
+            const load = this.latestPageLoad = {}
+            this.setTableLoadingState(true)
+            return this.getTableData({
+                teamId: this.team.id,
+                databaseId: this.$route.params.id,
+                tableName: this.tableSelection.name,
+                schemaName: this.tableSelection.dbSchema
+            })
+                .catch(e => e)
+                .finally(() => {
+                    // a page picked in the meantime is still loading, so leave the state to it
+                    if (this.latestPageLoad === load) this.setTableLoadingState(false)
                 })
-            }
         }
     }
 })
@@ -142,9 +208,9 @@ export default defineComponent({
 
 <style scoped lang="scss">
 #rows-list {
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     width: 100%;
-    overflow: auto;
 
     // fill the pane, so the empty state lines up with the tables list next to it
     .no-tables {
@@ -166,6 +232,19 @@ export default defineComponent({
         display: flex;
         align-items: center;
         height: 50px;
+    }
+
+    // the column headers are rendered from html, so they sit outside this component's scope
+    :deep(thead) {
+        .column-name, .column-type {
+            display: block;
+        }
+
+        .column-type {
+            color: var(--ff-color-text-muted);
+            font-size: 0.75rem;
+            font-weight: normal;
+        }
     }
 }
 </style>

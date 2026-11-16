@@ -8,6 +8,7 @@
             <TeamSuspendedBanner v-if="team.suspended" :team="team" />
             <SubscriptionExpiredBanner v-else :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
+            <TeamBanner :team="team" />
         </Teleport>
         <router-view :key="team.id" />
     </template>
@@ -20,6 +21,7 @@
 import { mapActions, mapState } from 'pinia'
 
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
+import TeamBanner from '../../components/banners/TeamBanner.vue'
 import TeamSuspendedBanner from '../../components/banners/TeamSuspended.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import { useAiConnectorModal } from '../../composables/AiConnectorModal.js'
@@ -40,6 +42,7 @@ export default {
     components: {
         TeamDashboards,
         SubscriptionExpiredBanner,
+        TeamBanner,
         TeamSuspendedBanner,
         TeamTrialBanner
     },

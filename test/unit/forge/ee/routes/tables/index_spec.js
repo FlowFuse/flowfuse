@@ -438,6 +438,38 @@ describe('Tables API', function () {
         columns[1].should.have.property('type', 'text')
     })
 
+    async function getTableData (query = '') {
+        const db = await app.db.models.Table.byTeamId(TestObjects.team.id)
+        return app.inject({
+            method: 'GET',
+            url: `/api/v1/teams/${TestObjects.team.hashid}/databases/${db[0].hashid}/tables/table1/data/public${query}`,
+            cookies: { sid: TestObjects.tokens.bob }
+        })
+    }
+
+    it('Get table data returns the first page with the total row count and page details', async function () {
+        const response = await getTableData()
+        response.statusCode.should.equal(200)
+        const body = response.json()
+        body.should.have.property('count', 2)
+        body.rows.should.eql([{ id: 1, name: 'Row 1' }, { id: 2, name: 'Row 2' }])
+        body.meta.should.eql({ page: 1, pageSize: 10, total: 2, pageCount: 1 })
+    })
+
+    it('Get table data returns the requested page at the requested page size', async function () {
+        const response = await getTableData('?page=2&limit=1')
+        response.statusCode.should.equal(200)
+        const body = response.json()
+        body.should.have.property('count', 2)
+        body.rows.should.eql([{ id: 2, name: 'Row 2' }])
+        body.meta.should.eql({ page: 2, pageSize: 1, total: 2, pageCount: 2 })
+    })
+
+    it('Get table data rejects a page below 1', async function () {
+        const response = await getTableData('?page=0')
+        response.statusCode.should.equal(400)
+    })
+
     describe('Delete a table', function () {
         let db
         const drop = (name, schema) => app.inject({

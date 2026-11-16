@@ -216,9 +216,42 @@ describe('AccessTokenTeamScope model', function () {
 
             ;(await app.db.models.AccessTokenTeamScope.count({ where: { TeamId: tempTeam.id } })).should.equal(0)
 
-            // Token itself should still exist
+            const reloadedToken = await app.db.models.AccessToken.findOne({ where: { id: token.id } })
+            should.not.exist(reloadedToken)
+        })
+
+        it('deleting a Team keeps tokens that are still scoped to other teams', async function () {
+            const tempTeam = await app.db.models.Team.create({
+                name: 'TempTeamCascadeMulti',
+                TeamTypeId: TestObjects.defaultTeamType.id
+            })
+
+            const token = await app.db.models.AccessToken.create({
+                token: 'test-cascade-team-multi',
+                scope: 'user',
+                ownerId: '' + TestObjects.userAlice.id,
+                ownerType: 'user',
+                name: 'test-token'
+            })
+
+            await app.db.models.AccessTokenTeamScope.create({
+                AccessTokenId: token.id,
+                TeamId: tempTeam.id,
+                UserId: TestObjects.userAlice.id
+            })
+            await app.db.models.AccessTokenTeamScope.create({
+                AccessTokenId: token.id,
+                TeamId: TestObjects.team1.id,
+                UserId: TestObjects.userAlice.id
+            })
+
+            await tempTeam.destroy()
+
             const reloadedToken = await app.db.models.AccessToken.findOne({ where: { id: token.id } })
             should.exist(reloadedToken)
+            const scopes = await app.db.models.AccessTokenTeamScope.findAll({ where: { AccessTokenId: token.id } })
+            scopes.should.have.length(1)
+            scopes[0].TeamId.should.equal(TestObjects.team1.id)
         })
 
         it('deleting a User removes scope entries referencing them', async function () {
