@@ -1119,7 +1119,7 @@ describe('Project API', function () {
                     await app.defaultTeamType.save()
                 }
                 let cats
-                before(async function (){
+                before(async function () {
                     const defaultTeamTypeProperties = app.defaultTeamType.properties
                     cats = defaultTeamTypeProperties.extraCatalogues
                 })
