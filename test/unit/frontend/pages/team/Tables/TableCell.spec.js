@@ -15,7 +15,7 @@ describe('TableCell', () => {
     test('marks the kind of value so each one can be styled', () => {
         expect(mountCell({ value: 12, type: 'int4' }).classes()).toContain('table-cell--number')
         expect(mountCell({ value: null, type: 'int4' }).classes()).toContain('table-cell--empty')
-        expect(mountCell({ value: { a: 1 }, type: 'jsonb' }).classes()).toContain('table-cell--json')
+        expect(mountCell({ value: '{"a": 1}', type: 'jsonb' }).classes()).toContain('table-cell--json')
     })
 
     test('keeps the value as stored on hover', () => {

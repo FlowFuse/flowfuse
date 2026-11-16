@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { formatCellValue } from '../../../../../frontend/src/utils/tables/cellValues.ts'
+import { formatCellDetail, formatCellValue } from '../../../../../frontend/src/utils/tables/cellValues.ts'
 
 // what the viewer's browser would print for a moment in time, read as UTC so nothing shifts
 const inUtc = (iso, style) => new Intl.DateTimeFormat(undefined, { ...style, timeZone: 'UTC' }).format(new Date(iso))
@@ -188,5 +188,67 @@ describe('formatCellValue', () => {
         test('still says empty when there is no value', () => {
             expect(formatCellValue(null, 'date', { original: true })).toMatchObject({ kind: 'empty', text: 'empty' })
         })
+    })
+})
+
+describe('formatCellDetail', () => {
+    test('has nothing to copy for an empty value', () => {
+        expect(formatCellDetail(null, 'text')).toEqual({ kind: 'empty', text: 'empty', copy: null })
+    })
+
+    test('shows a value as the grid does, and copies it as stored', () => {
+        const detail = formatCellDetail('2025-08-01', 'date')
+        expect(detail.text).toBe(formatCellValue('2025-08-01', 'date').text)
+        expect(detail.copy).toBe('2025-08-01')
+    })
+
+    test('lays JSON out over several lines, and copies it as stored', () => {
+        expect(formatCellDetail('{"a": 1}', 'jsonb')).toEqual({ kind: 'json', text: '{\n  "a": 1\n}', copy: '{"a": 1}' })
+    })
+
+    test.each([
+        { unit: 'C', readings: [1, 2.5, -3e-7], nested: { ok: true, none: null, empty: {}, list: [] } },
+        [{ a: 'has , : { } [ ] and \\"quotes\\" inside' }, 'two\nlines', ''],
+        'just text',
+        42,
+        null,
+        {},
+        []
+    ])('lays JSON out the way JSON itself does: %j', (value) => {
+        expect(formatCellDetail(JSON.stringify(value), 'jsonb').text).toBe(JSON.stringify(value, null, 2))
+    })
+
+    test('lays JSON out the same whatever spacing it is stored with', () => {
+        expect(formatCellDetail('{ "b":1,\n\t"a" : [ ] }', 'json').text).toBe('{\n  "b": 1,\n  "a": []\n}')
+    })
+
+    test('keeps the numbers in JSON exactly as stored', () => {
+        const detail = formatCellDetail('{"big": 12345678901234567890, "price": 1.50}', 'jsonb')
+        expect(detail.text).toBe('{\n  "big": 12345678901234567890,\n  "price": 1.50\n}')
+    })
+
+    test('shows text that is not JSON as it is', () => {
+        expect(formatCellDetail('{not json', 'jsonb')).toEqual({ kind: 'json', text: '{not json', copy: '{not json' })
+    })
+
+    test('shows and copies JSON as stored when asked for original values', () => {
+        expect(formatCellDetail('{"a": 1}', 'jsonb', { original: true })).toEqual({ kind: 'text', text: '{"a": 1}', copy: '{"a": 1}' })
+    })
+
+    test('puts each item of a list on its own line', () => {
+        expect(formatCellDetail(['a', null, 'c'], '_text')).toEqual({ kind: 'list', text: 'a\nnull\nc', copy: '["a",null,"c"]' })
+    })
+
+    test('shows the items of a JSON list as the JSON they are', () => {
+        expect(formatCellDetail(['{"a": 1}', '"text, with a comma"'], '_jsonb').text).toBe('{"a": 1}\n"text, with a comma"')
+    })
+
+    test('shows a list with nothing in it as the grid does', () => {
+        expect(formatCellDetail([], '_text')).toEqual({ kind: 'list', text: '[]', copy: '[]' })
+    })
+
+    test('copies the bytes of a binary value, and says when there are more of them', () => {
+        expect(formatCellDetail({ bytes: 2, hex: 'abcd' }, 'bytea')).toEqual({ kind: 'binary', text: '2 bytes · abcd', copy: 'abcd' })
+        expect(formatCellDetail({ bytes: 400, hex: 'ab'.repeat(32) }, 'bytea')).toMatchObject({ copy: 'ab'.repeat(32), note: 'Only the first 32 bytes are shown' })
     })
 })

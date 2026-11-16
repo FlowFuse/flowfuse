@@ -11,6 +11,16 @@ export interface CellValue {
     original: string | null
 }
 
+export interface CellDetail {
+    kind: CellKind
+    // the whole value as text
+    text: string
+    // what Copy puts on the clipboard, null when there is nothing to copy
+    copy: string | null
+    // set when the whole value is not available
+    note?: string
+}
+
 // A binary value as the table data API sends it: its size and the hex of its first bytes
 interface BinaryValue {
     bytes: number
@@ -127,4 +137,72 @@ export function formatCellValue (value: unknown, type: string, { original = fals
     const kind = getColumnTypeKind(type)
     const text = formatters[kind]?.(value, type) ?? originalText
     return { kind, text, original: originalText }
+}
+
+// the pieces of a JSON text: strings, brackets and punctuation, and anything else (numbers, true, false, null)
+const JSON_PIECE = /"(?:[^"\\]|\\.)*"|[{}[\],:]|[^\s{}[\],:"]+/g
+const OPENS = ['{', '[']
+const CLOSES = ['}', ']']
+
+/**
+ * Lays JSON out over several lines, one item per line. Only the spacing changes: every piece is kept as it is
+ * written, so a number too big for JavaScript is not rounded the way parsing and printing it again would
+ * @param json - JSON as text
+ * @returns The laid out text, or the text as it is when it is not JSON
+ */
+function layOutJson (json: string): string {
+    try {
+        JSON.parse(json)
+    } catch {
+        return json
+    }
+    const pieces = json.match(JSON_PIECE) ?? []
+    let depth = 0
+    const newLine = () => '\n' + '  '.repeat(depth)
+    return pieces.map((piece, index) => {
+        if (OPENS.includes(piece)) {
+            // an object or a list with nothing in it stays closed up: {} and []
+            if (CLOSES.includes(pieces[index + 1])) return piece
+            depth++
+            return piece + newLine()
+        }
+        if (CLOSES.includes(piece)) {
+            if (OPENS.includes(pieces[index - 1])) return piece
+            depth--
+            return newLine() + piece
+        }
+        if (piece === ',') return piece + newLine()
+        return piece === ':' ? ': ' : piece
+    }).join('')
+}
+
+/**
+ * Works out how a value is shown in full once its cell is opened
+ * @param value - A value as the table data API returns it
+ * @param type - The column's type as Postgres reports it
+ * @returns The kind of value, the whole value as text, what Copy puts on the clipboard,
+ * and a note when the whole value is not available
+ */
+export function formatCellDetail (value: unknown, type: string, { original = false }: FormatOptions = {}): CellDetail {
+    const cell = formatCellValue(value, type, { original })
+    if (cell.kind === 'empty') {
+        return { kind: 'empty', text: cell.text, copy: null }
+    }
+    const kind = getColumnTypeKind(type)
+    if (kind === 'json' && cell.original !== null && !original) {
+        return { kind, text: layOutJson(cell.original), copy: cell.original }
+    }
+    if (kind === 'binary' && isBinaryValue(value)) {
+        const detail: CellDetail = { kind: cell.kind, text: cell.text, copy: value.hex }
+        const sent = value.hex.length / 2
+        if (sent < value.bytes) {
+            detail.note = `Only the first ${sent} bytes are shown`
+        }
+        return detail
+    }
+    if (kind === 'list' && Array.isArray(value) && value.length > 0 && !original) {
+        const itemKind = listItemKind(type)
+        return { kind, text: value.map(item => listItem(item, itemKind)).join('\n'), copy: cell.original }
+    }
+    return { kind: cell.kind, text: cell.text, copy: cell.original }
 }
