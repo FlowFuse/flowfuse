@@ -207,6 +207,8 @@ export default defineComponent({
 
             .icon-toggle {
                 width: 24px;
+                // a long table name is cut short rather than squeezing the icon
+                flex-shrink: 0;
                 .ff-icon:first-child {
                     display: inline-block;
                 }
