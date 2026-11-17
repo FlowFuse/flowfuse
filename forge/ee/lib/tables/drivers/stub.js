@@ -76,6 +76,8 @@ module.exports = {
         const page = parseInt(paginationOptions?.page) || 1
         return {
             count: rows.length,
+            capped: false,
+            primaryKey: ['id'],
             rows: rows.slice((page - 1) * pageSize, page * pageSize),
             meta: { page, pageSize, total: rows.length, pageCount: Math.max(1, Math.ceil(rows.length / pageSize)) }
         }

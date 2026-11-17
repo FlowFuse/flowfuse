@@ -27,7 +27,7 @@ const mocks = vi.hoisted(() => ({
         getTableSchema: vi.fn(() => Promise.resolve()),
         updateTableSelection: vi.fn()
     },
-    contextStore: { team: { id: 't1' } },
+    contextStore: { team: { id: 't1' }, teamMembership: { role: 50 } },
     drawersStore: { openRightDrawer: vi.fn() },
     alerts: { emit: vi.fn() }
 }))
@@ -67,6 +67,22 @@ describe('RowsList', () => {
     })
 
     describe('when the database has no tables', () => {
+        beforeEach(() => {
+            mocks.contextStore.teamMembership = { role: 50 }
+        })
+
+        test('does not offer a member a way to create the first table', () => {
+            mocks.contextStore.teamMembership = { role: 30 }
+            mocks.tablesStore.selectedTable = null
+            mocks.tablesStore.tables = { db1: [] }
+
+            const emptyState = mountRowsList().find('[data-el="no-tables"]')
+
+            expect(emptyState.text()).toContain('No tables yet')
+            expect(emptyState.text()).toContain('Once a team owner creates a table')
+            expect(emptyState.find('[data-action="create-table"]').exists()).toBe(false)
+        })
+
         test('shows the empty state with a way to create the first table', async () => {
             mocks.tablesStore.selectedTable = null
             mocks.tablesStore.tables = { db1: [] }
@@ -262,6 +278,28 @@ describe('RowsList', () => {
                 expect(classes).toEqual([true, false, false])
             })
 
+            describe('on a table too big to show in full', () => {
+                const columns = [
+                    { name: 'id', safeName: 'a', type: 'int8' },
+                    { name: 'recorded at', safeName: 'b', type: 'timestamptz' }
+                ]
+                const bigTable = primaryKey => ({ name: 'readings', dbSchema: 'public', schema: columns, payload: { safe: rows, total: 10000, totalCapped: true, primaryKey } })
+
+                test('offers sorting on the primary key only, and says so', () => {
+                    mocks.tablesStore.selectedTable = bigTable(['id'])
+                    const wrapper = mountRowsList()
+                    expect(headers(wrapper).map(header => header.classes().includes('sortable'))).toEqual([true, false])
+                    expect(wrapper.find('[data-el="table-too-big"]').text()).toContain('It can only be sorted by id.')
+                })
+
+                test('offers no sorting when the table has no primary key, and says so', () => {
+                    mocks.tablesStore.selectedTable = bigTable([])
+                    const wrapper = mountRowsList()
+                    expect(wrapper.find('thead .sortable').exists()).toBe(false)
+                    expect(wrapper.find('[data-el="table-too-big"]').text()).toContain('It cannot be sorted.')
+                })
+            })
+
             test('asks for the whole table sorted by the clicked column, by its real name', async () => {
                 const wrapper = mountRowsList()
                 await headers(wrapper)[0].trigger('click')
@@ -305,6 +343,18 @@ describe('RowsList', () => {
         test('shows where the current page sits in the whole table', () => {
             const wrapper = mountRowsList()
             expect(wrapper.find('[data-el="pagination"]').text()).toContain('26–50 of 1284')
+        })
+
+        test('says nothing about the size of a table that was counted in full', () => {
+            const wrapper = mountRowsList()
+            expect(wrapper.find('[data-el="table-too-big"]').exists()).toBe(false)
+        })
+
+        test('says when a table is too big to show in full, and marks the total as a minimum', () => {
+            mocks.tablesStore.selectedTable = { schema, payload: { safe: [{ col: 26 }], total: 10000, totalCapped: true } }
+            const wrapper = mountRowsList()
+            expect(wrapper.find('[data-el="pagination"]').text()).toContain('26–50 of 10000+')
+            expect(wrapper.find('[data-el="table-too-big"]').text()).toContain(`only its first ${(10000).toLocaleString()} rows are listed here`)
         })
 
         test('shows no paging controls when the table fits on one page', () => {

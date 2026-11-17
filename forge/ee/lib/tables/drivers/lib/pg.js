@@ -90,8 +90,36 @@ const tableDataTypes = {
     getTypeParser: (oid, format) => tableDataParsers[oid] ?? pg.types.getTypeParser(oid, format)
 }
 
+/**
+ * Reads rows of a table that has no primary key, in the order they are physically stored.
+ *
+ * `ORDER BY ctid` gives that order too, but Postgres has no index on ctid, so it reads and sorts the
+ * whole table to return even the first few rows. Reading the table from its start with no ORDER BY
+ * returns the same rows in the same order and stops as soon as it has enough of them. That order is
+ * how Postgres reads a table rather than something SQL promises, so the two settings below turn off
+ * the only things that would change it: starting part way through the table to join a scan already
+ * in progress, and splitting the read across parallel workers. Both are set for this transaction only.
+ * @param {pg.Client} client - Client connected to the team database
+ * @param {string} qualifiedTable - The escaped, schema qualified table name
+ * @param {number} limit - How many rows to read
+ * @param {number} offset - How many rows to skip first
+ */
+async function getRowsInPhysicalOrder (client, qualifiedTable, limit, offset) {
+    await client.query('BEGIN')
+    try {
+        await client.query('SET LOCAL synchronize_seqscans = off')
+        await client.query('SET LOCAL max_parallel_workers_per_gather = 0')
+        return (await client.query(`SELECT * FROM ${qualifiedTable} LIMIT $1 OFFSET $2`, [limit, offset])).rows
+    } finally {
+        // nothing was written, so there is nothing to commit
+        await client.query('ROLLBACK')
+    }
+}
+
 const DEFAULT_PAGE_SIZE = 10
 const MAX_PAGE_SIZE = 100
+// the most rows that are counted, and so the most that can be paged through
+const MAX_COUNTED_ROWS = 10000
 
 // The Postgres error code (undefined_function) for "could not identify an ordering operator for type ..."
 const NO_ORDERING_OPERATOR = '42883'
@@ -116,23 +144,33 @@ function invalidSortError (message) {
  * by any column.
  *
  * Rows are ordered by the primary key when there is one, otherwise by their physical
- * position (ctid), so that walking the pages of an unchanged table never repeats or
- * skips a row. Sorting by a column puts that column first and keeps this order behind it,
+ * position, so that walking the pages of an unchanged table never repeats or skips a row.
+ * Sorting by a column puts that column first and keeps this order behind it,
  * so rows holding the same value still come in a fixed order from one page to the next.
  * Rows with no value in the sorted column go where Postgres puts them: last when ascending,
  * first when descending.
+ *
+ * Counting every row means reading the whole table, which on a big one takes far longer than
+ * fetching the page itself. So the count stops at MAX_COUNTED_ROWS: a table with more rows than
+ * that is reported as `capped`, and its pages stop there as well.
+ *
+ * Sorting such a table by just any column also means reading the whole table, for every page. So a
+ * capped table can only be sorted by the first column of its primary key, whose index already
+ * holds the rows in that order.
  * @param {pg.Client} client - Client connected to the team database
  * @param {string} qualifiedTable - The escaped, schema qualified table name
  * @param {{ page?: number, limit?: number, sort?: string, dir?: 'asc'|'desc' }} pagination - 1 based
  * page number and page size, and the column to sort by with its direction (ascending by default)
- * @throws an invalid sort error (see invalidSortError) when the column does not exist or cannot be put in order
+ * @throws an invalid sort error (see invalidSortError) when the column does not exist, cannot be put in order,
+ * or the table is too big to be sorted by it
  */
 async function getTableDataPage (client, qualifiedTable, pagination = {}) {
     const pageSize = Math.min(Math.max(parseInt(pagination.limit) || DEFAULT_PAGE_SIZE, 1), MAX_PAGE_SIZE)
     const page = Math.max(parseInt(pagination.page) || 1, 1)
 
     const pkRes = await client.query('SELECT a.attname FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) WHERE i.indrelid = $1::regclass AND i.indisprimary ORDER BY array_position(i.indkey, a.attnum)', [qualifiedTable])
-    let orderBy = pkRes.rows.length > 0 ? pkRes.rows.map(row => pg.escapeIdentifier(row.attname)).join(', ') : 'ctid'
+    const primaryKey = pkRes.rows.map(row => row.attname)
+    let orderBy = primaryKey.length > 0 ? primaryKey.map(column => pg.escapeIdentifier(column)).join(', ') : 'ctid'
 
     const { sort } = pagination
     if (sort) {
@@ -143,22 +181,35 @@ async function getTableDataPage (client, qualifiedTable, pagination = {}) {
         orderBy = `${pg.escapeIdentifier(sort)} ${pagination.dir === 'desc' ? 'DESC' : 'ASC'}, ${orderBy}`
     }
 
-    const countRes = await client.query(`SELECT count(*) AS total FROM ${qualifiedTable}`)
-    const total = Number(countRes.rows[0].total)
+    // one row more than the most that are counted, to tell a table of exactly that many rows from a bigger one
+    const countRes = await client.query(`SELECT count(*) AS total FROM (SELECT 1 FROM ${qualifiedTable} LIMIT $1) AS counted`, [MAX_COUNTED_ROWS + 1])
+    const capped = Number(countRes.rows[0].total) > MAX_COUNTED_ROWS
+    const total = Math.min(Number(countRes.rows[0].total), MAX_COUNTED_ROWS)
+    if (sort && capped && sort !== primaryKey[0]) {
+        throw invalidSortError(`The table has too many rows to be sorted by "${sort}"`)
+    }
 
-    let res
-    try {
-        res = await client.query(`SELECT * FROM ${qualifiedTable} ORDER BY ${orderBy} LIMIT $1 OFFSET $2`, [pageSize, (page - 1) * pageSize])
-    } catch (err) {
-        // some types, json for one, have no order to them
-        if (sort && err.code === NO_ORDERING_OPERATOR) {
-            throw invalidSortError(`Column "${sort}" holds values that cannot be put in order`)
+    // a page past the rows that were counted is empty, and reading that deep into a table is slow
+    const offset = (page - 1) * pageSize
+    let rows = []
+    if (offset < total && !sort && primaryKey.length === 0) {
+        rows = await getRowsInPhysicalOrder(client, qualifiedTable, pageSize, offset)
+    } else if (offset < total) {
+        try {
+            rows = (await client.query(`SELECT * FROM ${qualifiedTable} ORDER BY ${orderBy} LIMIT $1 OFFSET $2`, [pageSize, offset])).rows
+        } catch (err) {
+            // some types, json for one, have no order to them
+            if (sort && err.code === NO_ORDERING_OPERATOR) {
+                throw invalidSortError(`Column "${sort}" holds values that cannot be put in order`)
+            }
+            throw err
         }
-        throw err
     }
     return {
         count: total,
-        rows: res.rows,
+        capped,
+        primaryKey,
+        rows,
         meta: {
             page,
             pageSize,
