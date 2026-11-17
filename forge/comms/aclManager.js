@@ -881,18 +881,17 @@ module.exports = function (app) {
             ]
         },
         frontend: {
-            // TODO check the verify function is safe
             sub: [
                 // - ff/v1/<team>/d/<device/logs
-                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/logs$/, verify: 'checkDeviceIsAssigned' },
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/logs$/, verify: 'checkTeamAndObjectIds' },
                 // - ff/v1/<team>/d/<device/resources
-                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/resources$/, verify: 'checkDeviceIsAssigned' }
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/resources$/, verify: 'checkTeamAndObjectIds' }
             ],
             pub: [
                 // - ff/v1/<team>/d/<device/logs/heartbeat
-                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/logs\/heartbeat$/, verify: 'checkDeviceIsAssigned' },
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/logs\/heartbeat$/, verify: 'checkTeamAndObjectIds' },
                 // - ff/v1/<team>/d/<device/resources/heartbeat
-                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/resources\/heartbeat$/, verify: 'checkDeviceIsAssigned' }
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/resources\/heartbeat$/, verify: 'checkTeamAndObjectIds' }
             ]
         },
         // browser-side team channel (per-tab, per-team)
