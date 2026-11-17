@@ -90,7 +90,7 @@
                                 <template v-for="(r, $index) in filteredRows" :key="r.id || r.name || r.label">
                                     <ff-data-table-row
                                         :data="r" :columns="columns"
-                                        :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn"
+                                        :selectable="rowsSelectable" :highlight-cell="highlightedColumn"
                                         :data-el="slugify('row-' + (r.name || r.id || r.label || 'na'))"
                                         @selected="rowClick(r, $event)"
                                     >
@@ -384,6 +384,12 @@ export default {
         noDataToDisplay () {
             return (!this.loading && this.rows?.length > 0 && this.filteredRows?.length === 0) ||
                 (!this.loading && this.filteredRows?.length === 0)
+        },
+        // The sorted column, found by its key rather than by where it was when it was clicked,
+        // as the columns before it can come and go
+        highlightedColumn () {
+            if (this.sort.highlightColumn === null) return null
+            return this.columns.findIndex(col => col.key === this.sort.key)
         },
         filteredRows: function () {
             const rows = this.filterRows([...this.rows])

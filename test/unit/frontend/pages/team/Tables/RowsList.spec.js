@@ -10,6 +10,11 @@ const mocks = vi.hoisted(() => ({
         tableSelection: null,
         isLoading: false,
         selectedTable: null,
+        // the names of the columns hidden from the grid
+        hidden: [],
+        get visibleColumns () {
+            return (this.selectedTable?.schema ?? []).filter(column => !this.hidden.includes(column.name))
+        },
         page: 1,
         pageSize: 25,
         setPage: vi.fn(),
@@ -123,6 +128,15 @@ describe('RowsList', () => {
             expect(cells[0].find('.pill').text()).toBe('true')
             expect(cells[1].classes()).toContain('table-cell--empty')
             expect(cells[1].text()).toBe('empty')
+        })
+
+        test('leaves out the columns that are hidden, header and values', () => {
+            mocks.tablesStore.hidden = ['running']
+            const wrapper = mountRowsList()
+            mocks.tablesStore.hidden = []
+
+            expect(wrapper.findAll('thead .column-name').map(name => name.text())).toEqual(['notes'])
+            expect(wrapper.findAll('tbody [data-el="table-cell"]').map(cell => cell.text())).toEqual(['empty'])
         })
 
         test('shows the values as stored when original values are asked for', () => {

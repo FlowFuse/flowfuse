@@ -78,10 +78,10 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapState(useProductTablesStore, ['tables', 'tableSelection', 'isLoading', 'selectedTable', 'page', 'pageSize', 'showOriginalValues']),
+        ...mapState(useProductTablesStore, ['tables', 'tableSelection', 'isLoading', 'selectedTable', 'visibleColumns', 'page', 'pageSize', 'showOriginalValues']),
         ...mapState(useContextStore, ['team']),
         columns () {
-            return (this.selectedTable?.schema ?? []).map((row) => {
+            return this.visibleColumns.map((row) => {
                 return {
                     key: row.safeName,
                     sortable: isColumnTypeSortable(row.type),

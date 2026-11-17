@@ -369,6 +369,18 @@ describe('Data-Table > DataTable', () => {
             ).toEqual([21, 15, 9, 4, 3, 1])
         })
 
+        it('Highlights the sorted column where it is now, not where it was when it was clicked', () => {
+            const columns = [{ key: 'a' }, { key: 'b' }, { key: 'c' }]
+            const highlighted = (columns, sort) => DataTable.computed.highlightedColumn.call({ columns, sort })
+
+            expect(highlighted(columns, { key: 'c', highlightColumn: 2 })).toBe(2)
+            // the column before it is gone
+            expect(highlighted([columns[0], columns[2]], { key: 'c', highlightColumn: 2 })).toBe(1)
+            // the sorted column itself is gone
+            expect(highlighted([columns[0], columns[1]], { key: 'c', highlightColumn: 2 })).toBe(-1)
+            expect(highlighted(columns, { key: null, highlightColumn: null })).toBeNull()
+        })
+
         it('Leaves the rows in the order given when they are sorted on the server', () => {
             const localThis = {
                 lookupProperty: DataTable.methods.lookupProperty,
