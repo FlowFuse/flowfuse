@@ -6,9 +6,10 @@
             </template>
             <template #header>No tables yet</template>
             <template #message>
-                <p>Create your first table and its rows will show up here, ready to browse.</p>
+                <p v-if="canManageTables">Create your first table and its rows will show up here, ready to browse.</p>
+                <p v-else>Once a team owner creates a table, its rows will show up here, ready to browse.</p>
             </template>
-            <template #actions>
+            <template v-if="canManageTables" #actions>
                 <ff-button data-action="create-table" @click="onCreateTable">
                     <template #icon-left><PlusIcon /></template>
                     Create Table
@@ -23,6 +24,10 @@
             :tabindex="grid.tabStop === null ? 0 : -1"
             @focus.self="onGridFocus" @keydown="onGridKeydown"
         >
+            <p v-if="pagination.totalCapped" class="too-big" data-el="table-too-big">
+                <InformationCircleIcon class="ff-icon ff-icon-sm" aria-hidden="true" />
+                This table is too big to show in full, so only its first {{ pagination.total.toLocaleString() }} rows are listed here.
+            </p>
             <!-- made again for each table, so the sort shown in its header never outlives the table it was for -->
             <ff-data-table
                 :key="`${selectedTable.dbSchema}.${selectedTable.name}`"
@@ -30,7 +35,7 @@
                 :columns="columns" :rows="rows"
                 :pagination="pagination"
                 server-side-sort
-                class="h-full"
+                class="rows-table"
                 tableClass="table-auto"
                 @update:sort="onSortChange"
                 @update:page="onPageChange"
@@ -47,7 +52,7 @@
 </template>
 
 <script>
-import { PlusIcon } from '@heroicons/vue/24/outline'
+import { InformationCircleIcon, PlusIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 import { defineComponent, markRaw } from 'vue'
 
@@ -57,6 +62,7 @@ import TableCell from './TableCell.vue'
 
 import EmptyState from '@/components/EmptyState.vue'
 
+import usePermissions from '@/composables/Permissions.js'
 import { escapeHtml } from '@/composables/strings/String.js'
 import Alerts from '@/services/alerts.js'
 import { useContextStore } from '@/stores/context.js'
@@ -66,9 +72,13 @@ import { getColumnTypeLabel, isColumnTypeSortable } from '@/utils/tables/columnT
 
 export default defineComponent({
     name: 'RowsList',
-    components: { EmptyState, PlusIcon },
+    components: { EmptyState, InformationCircleIcon, PlusIcon },
     provide () {
         return { grid: this.grid }
+    },
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
     },
     data () {
         return {
@@ -80,6 +90,9 @@ export default defineComponent({
     computed: {
         ...mapState(useProductTablesStore, ['tables', 'tableSelection', 'isLoading', 'selectedTable', 'page', 'pageSize', 'showOriginalValues']),
         ...mapState(useContextStore, ['team']),
+        canManageTables () {
+            return this.hasPermission('team:database:create')
+        },
         columns () {
             return (this.selectedTable?.schema ?? []).map((row) => {
                 return {
@@ -108,7 +121,8 @@ export default defineComponent({
             return {
                 page: this.page,
                 pageSize: this.pageSize,
-                total: this.selectedTable?.payload?.total ?? 0
+                total: this.selectedTable?.payload?.total ?? 0,
+                totalCapped: this.selectedTable?.payload?.totalCapped ?? false
             }
         }
     },
@@ -229,6 +243,26 @@ export default defineComponent({
             padding: 24px;
             overflow-y: auto;
         }
+    }
+
+    // the grid takes the height the note above it leaves
+    .content {
+        display: flex;
+        flex-direction: column;
+
+        .rows-table {
+            flex: 1;
+            min-height: 0;
+        }
+    }
+
+    .too-big {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 10px;
+        color: var(--ff-color-text-muted);
+        font-size: 0.875rem;
     }
 
     .header {

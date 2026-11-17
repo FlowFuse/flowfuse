@@ -6,10 +6,12 @@ import ForgeUIComponents from '../../../../../../frontend/src/ui-components/inde
 
 const mocks = vi.hoisted(() => ({
     tablesStore: { tables: {}, tableSelection: null, updateTableSelection: vi.fn() },
+    contextStore: { teamMembership: { role: 50 } },
     drawersStore: { rightDrawer: {}, openRightDrawer: vi.fn(), closeRightDrawer: vi.fn() }
 }))
 
 vi.mock('@/stores/product-tables.js', () => ({ useProductTablesStore: () => mocks.tablesStore }))
+vi.mock('@/stores/context.js', () => ({ useContextStore: () => mocks.contextStore }))
 vi.mock('@/stores/ux-drawers.js', () => ({ useUxDrawersStore: () => mocks.drawersStore }))
 
 // in the order the store hands them over: by schema, then by name
@@ -137,6 +139,37 @@ describe('TablesList', () => {
             await wrapper.setData({ tables: onlyPublic })
 
             expect(wrapper.findAll('.item')).toHaveLength(2)
+        })
+    })
+
+    describe('for a team owner', () => {
+        beforeEach(() => {
+            mocks.contextStore.teamMembership = { role: 50 }
+        })
+
+        test('offers to create a table, from the button and from the empty list', async () => {
+            const wrapper = await mountTablesList([])
+
+            expect(wrapper.find('.empty-state .cta').exists()).toBe(true)
+            await wrapper.find('[data-action="create-table"]').trigger('click')
+            expect(mocks.drawersStore.openRightDrawer).toHaveBeenCalledTimes(1)
+        })
+    })
+
+    describe('for a team member', () => {
+        beforeEach(() => {
+            mocks.contextStore.teamMembership = { role: 30 }
+        })
+
+        test('does not offer to create a table', async () => {
+            const wrapper = await mountTablesList([])
+
+            expect(wrapper.find('[data-action="create-table"]').exists()).toBe(false)
+            expect(wrapper.find('.empty-state .cta').exists()).toBe(false)
+        })
+
+        test('still explains how tables get created from Node-RED', async () => {
+            expect((await mountTablesList([])).find('.empty-state').text()).toContain('@flowfuse/nr-tables-nodes')
         })
     })
 })

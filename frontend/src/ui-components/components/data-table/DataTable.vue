@@ -146,6 +146,7 @@
             :page="pagination.page"
             :page-size="pagination.pageSize"
             :total="pagination.total"
+            :total-capped="pagination.totalCapped"
             :page-size-options="pagination.pageSizeOptions || [10, 25, 50, 100]"
             @update:page="$emit('update:page', $event)"
             @update:page-size="$emit('update:page-size', $event)"

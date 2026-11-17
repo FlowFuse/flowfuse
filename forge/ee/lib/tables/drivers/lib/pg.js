@@ -92,6 +92,8 @@ const tableDataTypes = {
 
 const DEFAULT_PAGE_SIZE = 10
 const MAX_PAGE_SIZE = 100
+// the most rows that are counted, and so the most that can be paged through
+const MAX_COUNTED_ROWS = 10000
 
 // The Postgres error code (undefined_function) for "could not identify an ordering operator for type ..."
 const NO_ORDERING_OPERATOR = '42883'
@@ -121,6 +123,10 @@ function invalidSortError (message) {
  * so rows holding the same value still come in a fixed order from one page to the next.
  * Rows with no value in the sorted column go where Postgres puts them: last when ascending,
  * first when descending.
+ *
+ * Counting every row means reading the whole table, which on a big one takes far longer than
+ * fetching the page itself. So the count stops at MAX_COUNTED_ROWS: a table with more rows than
+ * that is reported as `capped`, and its pages stop there as well.
  * @param {pg.Client} client - Client connected to the team database
  * @param {string} qualifiedTable - The escaped, schema qualified table name
  * @param {{ page?: number, limit?: number, sort?: string, dir?: 'asc'|'desc' }} pagination - 1 based
@@ -143,22 +149,29 @@ async function getTableDataPage (client, qualifiedTable, pagination = {}) {
         orderBy = `${pg.escapeIdentifier(sort)} ${pagination.dir === 'desc' ? 'DESC' : 'ASC'}, ${orderBy}`
     }
 
-    const countRes = await client.query(`SELECT count(*) AS total FROM ${qualifiedTable}`)
-    const total = Number(countRes.rows[0].total)
+    // one row more than the most that are counted, to tell a table of exactly that many rows from a bigger one
+    const countRes = await client.query(`SELECT count(*) AS total FROM (SELECT 1 FROM ${qualifiedTable} LIMIT $1) AS counted`, [MAX_COUNTED_ROWS + 1])
+    const capped = Number(countRes.rows[0].total) > MAX_COUNTED_ROWS
+    const total = Math.min(Number(countRes.rows[0].total), MAX_COUNTED_ROWS)
 
-    let res
-    try {
-        res = await client.query(`SELECT * FROM ${qualifiedTable} ORDER BY ${orderBy} LIMIT $1 OFFSET $2`, [pageSize, (page - 1) * pageSize])
-    } catch (err) {
-        // some types, json for one, have no order to them
-        if (sort && err.code === NO_ORDERING_OPERATOR) {
-            throw invalidSortError(`Column "${sort}" holds values that cannot be put in order`)
+    // a page past the rows that were counted is empty, and reading that deep into a table is slow
+    const offset = (page - 1) * pageSize
+    let rows = []
+    if (offset < total) {
+        try {
+            rows = (await client.query(`SELECT * FROM ${qualifiedTable} ORDER BY ${orderBy} LIMIT $1 OFFSET $2`, [pageSize, offset])).rows
+        } catch (err) {
+            // some types, json for one, have no order to them
+            if (sort && err.code === NO_ORDERING_OPERATOR) {
+                throw invalidSortError(`Column "${sort}" holds values that cannot be put in order`)
+            }
+            throw err
         }
-        throw err
     }
     return {
         count: total,
-        rows: res.rows,
+        capped,
+        rows,
         meta: {
             page,
             pageSize,

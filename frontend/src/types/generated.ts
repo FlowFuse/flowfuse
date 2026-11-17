@@ -8799,8 +8799,10 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @description Total number of rows in the table */
+                            /** @description Number of rows in the table, or the most that are counted when the table has more (see capped) */
                             count?: number;
+                            /** @description True when the table has more rows than are counted. Only the rows that were counted can be paged through */
+                            capped?: boolean;
                             rows?: {
                                 [key: string]: unknown;
                             }[];
