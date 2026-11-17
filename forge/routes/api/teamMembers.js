@@ -245,7 +245,15 @@ module.exports = async function (app) {
                 reply.code(400).send({ code: 'invalid_request', error: 'Invalid permissions object' })
                 return
             }
+            const effectiveRole = (permissions, applicationId) => {
+                const override = permissions?.applications?.[applicationId]
+                return override !== undefined ? override : request.userRole.role
+            }
+            const lowered = applications.some(a => effectiveRole(newPermissions, a.hashid) < effectiveRole(request.userRole.permissions, a.hashid))
             await app.db.controllers.Team.changeUserTeamPermissions(request.params.teamId, request.params.userId, newPermissions)
+            if (lowered) {
+                await app.db.controllers.StorageSession.removeUserFromTeamSessions(request.user, request.team)
+            }
             // TODO: audit log it
             reply.send({ status: 'okay' })
         }

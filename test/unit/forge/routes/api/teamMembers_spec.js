@@ -678,6 +678,59 @@ describe('Team Members API', function () {
             })
             secondResponse.statusCode.should.equal(200)
         })
+
+        describe('Editor sessions on permissions change', function () {
+            let revokeSpy
+
+            beforeEach(function () {
+                revokeSpy = sinon.spy(app.db.controllers.StorageSession, 'removeUserFromTeamSessions')
+            })
+
+            afterEach(function () {
+                sinon.restore()
+            })
+
+            async function setPermissions (applications) {
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/members/${TestObjects.chris.hashid}`,
+                    cookies: { sid: TestObjects.tokens.bob },
+                    payload: { permissions: { applications } }
+                })
+                response.statusCode.should.equal(200)
+            }
+
+            it('revokes editor sessions when an application role is lowered', async function () {
+                await setPermissions({ [TestObjects.application.hashid]: Roles.Viewer })
+                revokeSpy.calledOnce.should.be.true()
+                revokeSpy.firstCall.args[0].id.should.equal(TestObjects.chris.id)
+                revokeSpy.firstCall.args[1].id.should.equal(TestObjects.ATeam.id)
+            })
+
+            it('revokes editor sessions when an application role is set to none', async function () {
+                await setPermissions({ [TestObjects.application.hashid]: 0 })
+                revokeSpy.calledOnce.should.be.true()
+            })
+
+            it('does not revoke editor sessions when an application role is raised', async function () {
+                await setPermissions({ [TestObjects.application.hashid]: Roles.Owner })
+                revokeSpy.called.should.be.false()
+            })
+
+            it('revokes editor sessions when a higher override is removed', async function () {
+                await setPermissions({ [TestObjects.application.hashid]: Roles.Owner })
+                revokeSpy.resetHistory()
+                await setPermissions({})
+                revokeSpy.calledOnce.should.be.true()
+            })
+
+            it('does not revoke editor sessions when a lower override is removed', async function () {
+                await setPermissions({ [TestObjects.application.hashid]: Roles.Viewer })
+                revokeSpy.resetHistory()
+                await setPermissions({})
+                revokeSpy.called.should.be.false()
+            })
+        })
     })
 
     describe('PAT team scope cleanup on member removal', function () {
