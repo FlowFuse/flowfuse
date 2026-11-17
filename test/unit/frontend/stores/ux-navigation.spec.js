@@ -151,5 +151,40 @@ describe('ux-navigation store', () => {
             expect(allTags).toContain('team-instances')
             expect(allTags).toContain('team-members')
         })
+
+        describe('Schemas entry', () => {
+            async function schemasEntry (isJsonSchemasFeatureEnabled) {
+                const { useContextStore } = await import('@/stores/context.js')
+                const { useAccountSettingsStore } = await import('@/stores/account-settings.js')
+                vi.mocked(useContextStore).mockReturnValue({
+                    team: TEAM_STUB,
+                    teamMembership: { role: 50 },
+                    isTrialAccountExpired: false
+                })
+                vi.mocked(useAccountSettingsStore).mockReturnValue({
+                    features: {},
+                    featuresCheck: { ...FEATURES_STUB, isJsonSchemasFeatureEnabled },
+                    requiresBilling: false
+                })
+
+                const store = useUxNavigationStore()
+                store.setMainNavContext('team')
+                const operations = store.mainNavContext.find(g => g.title === 'Operations')
+                return { operations, entry: operations.entries.find(e => e.tag === 'team-schemas') }
+            }
+
+            it('shows directly after Tables and links to the schemas route when the feature is on', async () => {
+                const { operations, entry } = await schemasEntry(true)
+                const tags = operations.entries.map(e => e.tag)
+                expect(tags.indexOf('team-schemas')).toBe(tags.indexOf('team-tables') + 1)
+                expect(entry.label).toBe('Schemas')
+                expect(entry.to).toEqual({ name: 'team-schemas', params: { team_slug: 'test-team' } })
+            })
+
+            it('is not shown when the feature is off', async () => {
+                const { entry } = await schemasEntry(false)
+                expect(entry).toBeUndefined()
+            })
+        })
     })
 })

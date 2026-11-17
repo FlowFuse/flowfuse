@@ -1,5 +1,5 @@
 import {
-    BookOpenIcon, ChartBarIcon, ChartPieIcon, ChatBubbleOvalLeftEllipsisIcon, ChevronLeftIcon, CircleStackIcon, Cog8ToothIcon,
+    BookOpenIcon, ChartBarIcon, ChartPieIcon, ChatBubbleOvalLeftEllipsisIcon, ChevronLeftIcon, CircleStackIcon, CodeBracketIcon, Cog8ToothIcon,
     ComputerDesktopIcon, CpuChipIcon, CurrencyDollarIcon,
     HomeIcon, LockClosedIcon, RectangleGroupIcon, RectangleStackIcon,
     RssIcon, SwatchIcon, TableCellsIcon, UserGroupIcon, UsersIcon
@@ -315,6 +315,14 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                 disabled: requiresBilling,
                                 featureUnavailable: !features.isTablesFeatureEnabled,
                                 hidden: hasALowerOrEqualTeamRoleThan(Roles.Member, teamMembership) && features.isTablesFeatureEnabledForPlatform
+                            },
+                            {
+                                label: 'Schemas',
+                                to: { name: 'team-schemas', params: { team_slug: team.slug } },
+                                tag: 'team-schemas',
+                                icon: CodeBracketIcon,
+                                disabled: requiresBilling,
+                                hidden: features.isJsonSchemasFeatureEnabled
                             }
                         ]
                     },
