@@ -92,6 +92,8 @@ const tableDataTypes = {
 
 const DEFAULT_PAGE_SIZE = 10
 const MAX_PAGE_SIZE = 100
+// the most rows that are counted, and so the most that can be paged through
+const MAX_COUNTED_ROWS = 10000
 
 /**
  * Reads one page of a table's rows, along with the table's total row count.
@@ -106,6 +108,10 @@ const MAX_PAGE_SIZE = 100
  * Rows are ordered by the primary key when there is one, otherwise by their physical
  * position (ctid), so that walking the pages of an unchanged table never repeats or
  * skips a row.
+ *
+ * Counting every row means reading the whole table, which on a big one takes far longer than
+ * fetching the page itself. So the count stops at MAX_COUNTED_ROWS: a table with more rows than
+ * that is reported as `capped`, and its pages stop there as well.
  * @param {pg.Client} client - Client connected to the team database
  * @param {string} qualifiedTable - The escaped, schema qualified table name
  * @param {{ page?: number, limit?: number }} pagination - 1 based page number and page size
@@ -117,13 +123,20 @@ async function getTableDataPage (client, qualifiedTable, pagination = {}) {
     const pkRes = await client.query('SELECT a.attname FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) WHERE i.indrelid = $1::regclass AND i.indisprimary ORDER BY array_position(i.indkey, a.attnum)', [qualifiedTable])
     const orderBy = pkRes.rows.length > 0 ? pkRes.rows.map(row => pg.escapeIdentifier(row.attname)).join(', ') : 'ctid'
 
-    const countRes = await client.query(`SELECT count(*) AS total FROM ${qualifiedTable}`)
-    const total = Number(countRes.rows[0].total)
+    // one row more than the most that are counted, to tell a table of exactly that many rows from a bigger one
+    const countRes = await client.query(`SELECT count(*) AS total FROM (SELECT 1 FROM ${qualifiedTable} LIMIT $1) AS counted`, [MAX_COUNTED_ROWS + 1])
+    const capped = Number(countRes.rows[0].total) > MAX_COUNTED_ROWS
+    const total = Math.min(Number(countRes.rows[0].total), MAX_COUNTED_ROWS)
 
-    const res = await client.query(`SELECT * FROM ${qualifiedTable} ORDER BY ${orderBy} LIMIT $1 OFFSET $2`, [pageSize, (page - 1) * pageSize])
+    // a page past the rows that were counted is empty, and reading that deep into a table is slow
+    const offset = (page - 1) * pageSize
+    const rows = offset < total
+        ? (await client.query(`SELECT * FROM ${qualifiedTable} ORDER BY ${orderBy} LIMIT $1 OFFSET $2`, [pageSize, offset])).rows
+        : []
     return {
         count: total,
-        rows: res.rows,
+        capped,
+        rows,
         meta: {
             page,
             pageSize,

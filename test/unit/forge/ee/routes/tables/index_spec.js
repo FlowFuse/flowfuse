@@ -452,6 +452,7 @@ describe('Tables API', function () {
         response.statusCode.should.equal(200)
         const body = response.json()
         body.should.have.property('count', 2)
+        body.should.have.property('capped', false)
         body.rows.should.eql([{ id: 1, name: 'Row 1' }, { id: 2, name: 'Row 2' }])
         body.meta.should.eql({ page: 1, pageSize: 10, total: 2, pageCount: 1 })
     })
