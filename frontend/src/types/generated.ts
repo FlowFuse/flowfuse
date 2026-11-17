@@ -8773,13 +8773,14 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    query?: string;
-                    cursor?: string;
-                    limit?: number;
+                    /** @description The page to return, starting at 1 */
                     page?: number;
+                    /** @description Rows per page, 100 at most */
+                    limit?: number;
+                    /** @description The name of the column to sort the whole table by */
                     sort?: string;
+                    /** @description The direction to sort in, asc when left out */
                     dir?: "asc" | "desc";
-                    order?: "asc" | "desc";
                 };
                 header?: never;
                 path: {
