@@ -90,6 +90,32 @@ const tableDataTypes = {
     getTypeParser: (oid, format) => tableDataParsers[oid] ?? pg.types.getTypeParser(oid, format)
 }
 
+/**
+ * Reads rows of a table that has no primary key, in the order they are physically stored.
+ *
+ * `ORDER BY ctid` gives that order too, but Postgres has no index on ctid, so it reads and sorts the
+ * whole table to return even the first few rows. Reading the table from its start with no ORDER BY
+ * returns the same rows in the same order and stops as soon as it has enough of them. That order is
+ * how Postgres reads a table rather than something SQL promises, so the two settings below turn off
+ * the only things that would change it: starting part way through the table to join a scan already
+ * in progress, and splitting the read across parallel workers. Both are set for this transaction only.
+ * @param {pg.Client} client - Client connected to the team database
+ * @param {string} qualifiedTable - The escaped, schema qualified table name
+ * @param {number} limit - How many rows to read
+ * @param {number} offset - How many rows to skip first
+ */
+async function getRowsInPhysicalOrder (client, qualifiedTable, limit, offset) {
+    await client.query('BEGIN')
+    try {
+        await client.query('SET LOCAL synchronize_seqscans = off')
+        await client.query('SET LOCAL max_parallel_workers_per_gather = 0')
+        return (await client.query(`SELECT * FROM ${qualifiedTable} LIMIT $1 OFFSET $2`, [limit, offset])).rows
+    } finally {
+        // nothing was written, so there is nothing to commit
+        await client.query('ROLLBACK')
+    }
+}
+
 const DEFAULT_PAGE_SIZE = 10
 const MAX_PAGE_SIZE = 100
 // the most rows that are counted, and so the most that can be paged through
@@ -118,8 +144,8 @@ function invalidSortError (message) {
  * by any column.
  *
  * Rows are ordered by the primary key when there is one, otherwise by their physical
- * position (ctid), so that walking the pages of an unchanged table never repeats or
- * skips a row. Sorting by a column puts that column first and keeps this order behind it,
+ * position, so that walking the pages of an unchanged table never repeats or skips a row.
+ * Sorting by a column puts that column first and keeps this order behind it,
  * so rows holding the same value still come in a fixed order from one page to the next.
  * Rows with no value in the sorted column go where Postgres puts them: last when ascending,
  * first when descending.
@@ -166,7 +192,9 @@ async function getTableDataPage (client, qualifiedTable, pagination = {}) {
     // a page past the rows that were counted is empty, and reading that deep into a table is slow
     const offset = (page - 1) * pageSize
     let rows = []
-    if (offset < total) {
+    if (offset < total && !sort && primaryKey.length === 0) {
+        rows = await getRowsInPhysicalOrder(client, qualifiedTable, pageSize, offset)
+    } else if (offset < total) {
         try {
             rows = (await client.query(`SELECT * FROM ${qualifiedTable} ORDER BY ${orderBy} LIMIT $1 OFFSET $2`, [pageSize, offset])).rows
         } catch (err) {
