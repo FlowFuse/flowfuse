@@ -90,6 +90,44 @@ describe('Team Type API', function () {
             })
             response.statusCode.should.equal(403)
         })
+        it('non-array extra cert nodes URL', async function () {
+            const name = generateName()
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/team-types',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    name,
+                    description: 'another-team-type',
+                    active: true,
+                    order: 2,
+                    properties: {
+                        foo: 'bar',
+                        extraCatalogues: 'https://example.com'
+                    }
+                }
+            })
+            response.statusCode.should.equal(400)
+        })
+        it('bad extra cert nodes URL', async function () {
+            const name = generateName()
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/team-types',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    name,
+                    description: 'another-team-type',
+                    active: true,
+                    order: 2,
+                    properties: {
+                        foo: 'bar',
+                        extraCatalogues: ['http://example.com']
+                    }
+                }
+            })
+            response.statusCode.should.equal(400)
+        })
     })
 
     describe('Update team type', async function () {
@@ -188,6 +226,64 @@ describe('Team Type API', function () {
             await denyUpdate(app.defaultTeamType.hashid, {
                 name: 'not-allowed'
             }, TestObjects.tokens.bob, 403)
+        })
+
+        it('Deny update non-array extraCatalogues ', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/team-types',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    name: generateName(),
+                    description: 'another-team-type',
+                    active: true,
+                    order: 2,
+                    properties: {
+                        foo: 'bar'
+                    }
+                }
+            })
+            response.statusCode.should.equal(200)
+            const unusedProjectType = response.json()
+            await denyUpdate(unusedProjectType.id, {
+                name: 'team-type-updated',
+                description: 'updated',
+                active: false,
+                order: 7,
+                properties: {
+                    foo: 'new',
+                    extraCatalogues: 'https://example.com'
+                }
+            }, TestObjects.tokens.alice, 400)
+        })
+
+        it('Deny update bad extraCatalogues ', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/team-types',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    name: generateName(),
+                    description: 'another-team-type',
+                    active: true,
+                    order: 2,
+                    properties: {
+                        foo: 'bar'
+                    }
+                }
+            })
+            response.statusCode.should.equal(200)
+            const unusedProjectType = response.json()
+            await denyUpdate(unusedProjectType.id, {
+                name: 'team-type-updated',
+                description: 'updated',
+                active: false,
+                order: 7,
+                properties: {
+                    foo: 'new',
+                    extraCatalogues: ['http://example.com']
+                }
+            }, TestObjects.tokens.alice, 400)
         })
     })
 

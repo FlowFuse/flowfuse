@@ -1934,6 +1934,18 @@ describe('Device API', async function () {
                     liveSettings.palette.should.have.property('catalogues')
                     liveSettings.palette.catalogues.should.containEql('https://example.com/cat-from-team-type.json')
                 })
+                it('should remove dupes from catalogues from TeamType', async function () {
+                    await setTeamTypeCatalogues([
+                        'https://example.com/cat-from-team-type.json',
+                        'https://example.com/cat-from-team-type.json',
+                        'https://example.com/cat-from-team-type.json'
+                    ])
+                    const device = await createDevice({ name: 'CertifiedNodesMulti', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                    const liveSettings = await getLiveSettings(device)
+                    liveSettings.palette.should.have.property('catalogues')
+                    liveSettings.palette.catalogues.should.containEql('https://example.com/cat-from-team-type.json')
+                    liveSettings.palette.catalogues.should.have.length(6)
+                })
             })
         })
 

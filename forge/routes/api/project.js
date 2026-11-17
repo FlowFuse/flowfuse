@@ -1001,23 +1001,18 @@ module.exports = async function (app) {
                     }
                 }
                 if (team.getProperty('extraCatalogues', null)) {
-                    for (const cat of team.TeamType.properties.extraCatalogues) {
-                        const catURL = new URL(cat)
-                        if (settings.settings.palette.catalogue.indexOf(catURL.toString()) === -1) {
-                            settings.settings.palette.catalogue.push(catURL.toString())
-                        }
-                    }
-                const extraCatalogues = team.getProperty('extraCatalogues', null)
-                if (Array.isArray(extraCatalogues)) {
-                    for (const cat of extraCatalogues) {
-                        let catURL
-                        try {
-                            catURL = new URL(cat)
-                        } catch (_err) {
-                            continue // skip invalid URL
-                        }
-                        if (catURL.protocol === 'https:' && settings.settings.palette.catalogue.indexOf(catURL.toString()) === -1) {
-                            settings.settings.palette.catalogue.push(catURL.toString())
+                    const extraCatalogues = team.getProperty('extraCatalogues', null)
+                    if (Array.isArray(extraCatalogues)) {
+                        for (const cat of extraCatalogues) {
+                            let catURL
+                            try {
+                                catURL = new URL(cat)
+                            } catch (_err) {
+                                continue // skip invalid URL
+                            }
+                            if (catURL.protocol === 'https:' && settings.settings.palette.catalogue.indexOf(catURL.toString()) === -1) {
+                                settings.settings.palette.catalogue.push(catURL.toString())
+                            }
                         }
                     }
                 }
