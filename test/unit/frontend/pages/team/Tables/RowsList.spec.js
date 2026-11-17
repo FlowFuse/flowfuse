@@ -19,6 +19,7 @@ const mocks = vi.hoisted(() => ({
         setSort: vi.fn(),
         setTableLoadingState: vi.fn(),
         getTableData: vi.fn(() => Promise.resolve()),
+        cancelTableData: vi.fn(),
         getTableSchema: vi.fn(() => Promise.resolve()),
         updateTableSelection: vi.fn()
     },
@@ -424,6 +425,28 @@ describe('RowsList', () => {
             expect(mocks.tablesStore.getTableSchema).toHaveBeenCalledTimes(1)
             expect(mocks.tablesStore.getTableData).toHaveBeenCalledTimes(1)
             expect(mocks.tablesStore.setTableLoadingState.mock.calls).toEqual([[true], [false]])
+        })
+
+        test('drops the rows still loading for the table that was showing', () => {
+            const wrapper = mountRowsList()
+            selectTable(wrapper, readings)
+            expect(mocks.tablesStore.cancelTableData).toHaveBeenCalledTimes(1)
+        })
+
+        test('drops the rows still loading when leaving the page', () => {
+            const wrapper = mountRowsList()
+            wrapper.unmount()
+            expect(mocks.tablesStore.cancelTableData).toHaveBeenCalledTimes(1)
+        })
+
+        test('does not load the rows of a table that was left before its columns arrived', async () => {
+            // by the time the columns of readings are in, another table is the one selected
+            mocks.tablesStore.tableSelection = { name: 'events', dbSchema: 'public' }
+            const wrapper = mountRowsList()
+            selectTable(wrapper, readings)
+            await flushPromises()
+            expect(mocks.tablesStore.getTableSchema).toHaveBeenCalledTimes(1)
+            expect(mocks.tablesStore.getTableData).not.toHaveBeenCalled()
         })
 
         test('stops loading when the table fails to load', async () => {

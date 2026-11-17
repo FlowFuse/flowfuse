@@ -60,9 +60,9 @@ module.exports = {
             throw new Error('Database driver does not support getTable')
         }
     },
-    getTableData: async (team, databaseId, table, paginationOptions, schemaName) => {
+    getTableData: async (team, databaseId, table, paginationOptions, schemaName, signal) => {
         if (this._driver.getTableData) {
-            return this._driver.getTableData(team, databaseId, table, paginationOptions, schemaName)
+            return this._driver.getTableData(team, databaseId, table, paginationOptions, schemaName, signal)
         } else {
             throw new Error('Database driver does not support getTableData')
         }

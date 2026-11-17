@@ -238,7 +238,7 @@ describe('product-tables store', () => {
             store.tables = { 'db-1': [{ name: 'users' }] }
             tablesApi.getTableData.mockResolvedValue({ count: 0, rows: [] })
             await store.getTableData({ databaseId: 'db-1', tableName: 'users', teamId: 'team-1' })
-            expect(tablesApi.getTableData).toHaveBeenCalledWith('team-1', 'db-1', 'users', undefined, { page: 1, limit: 25 })
+            expect(tablesApi.getTableData).toHaveBeenCalledWith('team-1', 'db-1', 'users', undefined, { page: 1, limit: 25, signal: expect.any(AbortSignal) })
         })
 
         it('asks for the current page at the current page size', async () => {
@@ -248,7 +248,7 @@ describe('product-tables store', () => {
             store.setPageSize(50)
             store.setPage(3)
             await store.getTableData({ databaseId: 'db-1', tableName: 'users', teamId: 'team-1' })
-            expect(tablesApi.getTableData).toHaveBeenCalledWith('team-1', 'db-1', 'users', undefined, { page: 3, limit: 50 })
+            expect(tablesApi.getTableData).toHaveBeenCalledWith('team-1', 'db-1', 'users', undefined, { page: 3, limit: 50, signal: expect.any(AbortSignal) })
         })
 
         it('only updates the table matching both name and schemaName when schemaName is given', async () => {
@@ -256,9 +256,73 @@ describe('product-tables store', () => {
             store.tables = { 'db-1': [{ name: 'users', dbSchema: 'public' }, { name: 'users', dbSchema: 'reports' }] }
             tablesApi.getTableData.mockResolvedValue({ count: 1, rows: [{ id: 1, name: 'Alice' }] })
             await store.getTableData({ databaseId: 'db-1', tableName: 'users', teamId: 'team-1', schemaName: 'reports' })
-            expect(tablesApi.getTableData).toHaveBeenCalledWith('team-1', 'db-1', 'users', 'reports', { page: 1, limit: 25 })
+            expect(tablesApi.getTableData).toHaveBeenCalledWith('team-1', 'db-1', 'users', 'reports', { page: 1, limit: 25, signal: expect.any(AbortSignal) })
             expect(store.tables['db-1'][0].payload).toBeUndefined()
             expect(store.tables['db-1'][1].payload.data).toEqual([{ id: 1, name: 'Alice' }])
+        })
+    })
+
+    describe('getTableData when another request for rows comes along', () => {
+        const args = { databaseId: 'db-1', tableName: 'users', teamId: 'team-1' }
+        // a request that stays open until it is settled by hand, as the real one does until the server answers
+        const pending = () => {
+            const calls = []
+            tablesApi.getTableData.mockImplementation((...callArgs) => new Promise((resolve, reject) => {
+                calls.push({ signal: callArgs[4].signal, resolve, reject })
+            }))
+            return calls
+        }
+
+        it('drops the request that is still loading, and keeps its rows out of the table', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            const calls = pending()
+            const first = store.getTableData(args)
+            const second = store.getTableData(args)
+            expect(calls[0].signal.aborted).toBe(true)
+            expect(calls[1].signal.aborted).toBe(false)
+
+            // the browser fails a dropped request, which is not an error to pass on
+            calls[0].reject(new Error('canceled'))
+            await expect(first).resolves.toBeUndefined()
+            calls[1].resolve({ count: 1, rows: [{ id: 2 }] })
+            await second
+            expect(store.tables['db-1'][0].payload.data).toEqual([{ id: 2 }])
+        })
+
+        it('still passes on the failure of a request that was not dropped', async () => {
+            const store = useProductTablesStore()
+            tablesApi.getTableData.mockRejectedValue(new Error('nope'))
+            await expect(store.getTableData(args)).rejects.toThrow('nope')
+        })
+
+        it('drops the request that is still loading when asked to', async () => {
+            const store = useProductTablesStore()
+            const calls = pending()
+            const load = store.getTableData(args)
+            store.cancelTableData()
+            expect(calls[0].signal.aborted).toBe(true)
+            calls[0].reject(new Error('canceled'))
+            await load
+        })
+
+        it('stays loading while rows are on their way, whoever says it is done', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            const calls = pending()
+            store.setTableLoadingState(true)
+            const first = store.getTableData(args)
+            const second = store.getTableData(args)
+            calls[0].reject(new Error('canceled'))
+            await first
+            // what the caller of the dropped request does once it is over
+            store.setTableLoadingState(false)
+            expect(store.isLoading).toBe(true)
+
+            calls[1].resolve({ count: 0, rows: [] })
+            await second
+            store.setTableLoadingState(false)
+            expect(store.isLoading).toBe(false)
         })
     })
 
@@ -278,8 +342,8 @@ describe('product-tables store', () => {
                 .mockResolvedValueOnce({ count: 60, rows: [] })
                 .mockResolvedValueOnce({ count: 60, rows: [{ id: 51 }] })
             await store.getTableData(args)
-            expect(tablesApi.getTableData).toHaveBeenNthCalledWith(1, 'team-1', 'db-1', 'users', undefined, { page: 5, limit: 25 })
-            expect(tablesApi.getTableData).toHaveBeenNthCalledWith(2, 'team-1', 'db-1', 'users', undefined, { page: 3, limit: 25 })
+            expect(tablesApi.getTableData).toHaveBeenNthCalledWith(1, 'team-1', 'db-1', 'users', undefined, { page: 5, limit: 25, signal: expect.any(AbortSignal) })
+            expect(tablesApi.getTableData).toHaveBeenNthCalledWith(2, 'team-1', 'db-1', 'users', undefined, { page: 3, limit: 25, signal: expect.any(AbortSignal) })
             expect(store.page).toBe(3)
             expect(store.tables['db-1'][0].payload.data).toEqual([{ id: 51 }])
             expect(store.tables['db-1'][0].payload.total).toBe(60)
@@ -383,7 +447,7 @@ describe('product-tables store', () => {
             tablesApi.getTableData.mockResolvedValue({ count: 0, rows: [] })
             await store.getTableData(args)
             expect(store.sort).toBeNull()
-            expect(tablesApi.getTableData.mock.calls[0][4]).toEqual({ page: 1, limit: 25, sort: undefined, dir: undefined })
+            expect(tablesApi.getTableData.mock.calls[0][4]).toEqual({ page: 1, limit: 25, sort: undefined, dir: undefined, signal: expect.any(AbortSignal) })
         })
 
         it('asks for the rows sorted by the chosen column and direction', async () => {
@@ -392,7 +456,7 @@ describe('product-tables store', () => {
             tablesApi.getTableData.mockResolvedValue({ count: 0, rows: [] })
             store.setSort({ column: 'recorded_at', dir: 'desc' })
             await store.getTableData(args)
-            expect(tablesApi.getTableData).toHaveBeenCalledWith('team-1', 'db-1', 'users', undefined, { page: 1, limit: 25, sort: 'recorded_at', dir: 'desc' })
+            expect(tablesApi.getTableData).toHaveBeenCalledWith('team-1', 'db-1', 'users', undefined, { page: 1, limit: 25, sort: 'recorded_at', dir: 'desc', signal: expect.any(AbortSignal) })
         })
 
         it('goes back to the first page when the sort changes or is cleared', () => {
