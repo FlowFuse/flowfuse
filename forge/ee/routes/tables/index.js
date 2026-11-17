@@ -505,7 +505,8 @@ module.exports = async function (app) {
                     type: 'object',
                     properties: {
                         count: { type: 'number', description: 'Number of rows in the table, or the most that are counted when the table has more (see capped)' },
-                        capped: { type: 'boolean', description: 'True when the table has more rows than are counted. Only the rows that were counted can be paged through' },
+                        capped: { type: 'boolean', description: 'True when the table has more rows than are counted. Only the rows that were counted can be paged through, and the rows can only be sorted by the first column of the primary key' },
+                        primaryKey: { type: 'array', items: { type: 'string' }, description: 'The columns of the table\'s primary key, in order. Empty when it has none' },
                         rows: {
                             type: 'array',
                             items: {

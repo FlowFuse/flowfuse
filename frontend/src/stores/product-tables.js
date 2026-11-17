@@ -136,7 +136,8 @@ export const useProductTablesStore = defineStore('product-tables', {
                 safe: data.map(row => Object.fromEntries(Object.entries(row).map(([k, v]) => [hashString(k), v]))),
                 total,
                 // the table has more rows than the total, which is as many as are counted and can be paged through
-                totalCapped: !!res.capped
+                totalCapped: !!res.capped,
+                primaryKey: res.primaryKey ?? []
             }
             Object.keys(this.tables[databaseId]).forEach(key => {
                 const table = this.tables[databaseId][key]

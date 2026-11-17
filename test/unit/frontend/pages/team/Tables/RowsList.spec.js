@@ -264,6 +264,28 @@ describe('RowsList', () => {
                 expect(classes).toEqual([true, false, false])
             })
 
+            describe('on a table too big to show in full', () => {
+                const columns = [
+                    { name: 'id', safeName: 'a', type: 'int8' },
+                    { name: 'recorded at', safeName: 'b', type: 'timestamptz' }
+                ]
+                const bigTable = primaryKey => ({ name: 'readings', dbSchema: 'public', schema: columns, payload: { safe: rows, total: 10000, totalCapped: true, primaryKey } })
+
+                test('offers sorting on the primary key only, and says so', () => {
+                    mocks.tablesStore.selectedTable = bigTable(['id'])
+                    const wrapper = mountRowsList()
+                    expect(headers(wrapper).map(header => header.classes().includes('sortable'))).toEqual([true, false])
+                    expect(wrapper.find('[data-el="table-too-big"]').text()).toContain('It can only be sorted by id.')
+                })
+
+                test('offers no sorting when the table has no primary key, and says so', () => {
+                    mocks.tablesStore.selectedTable = bigTable([])
+                    const wrapper = mountRowsList()
+                    expect(wrapper.find('thead .sortable').exists()).toBe(false)
+                    expect(wrapper.find('[data-el="table-too-big"]').text()).toContain('It cannot be sorted.')
+                })
+            })
+
             test('asks for the whole table sorted by the clicked column, by its real name', async () => {
                 const wrapper = mountRowsList()
                 await headers(wrapper)[0].trigger('click')

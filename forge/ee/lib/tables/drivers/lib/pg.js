@@ -127,18 +127,24 @@ function invalidSortError (message) {
  * Counting every row means reading the whole table, which on a big one takes far longer than
  * fetching the page itself. So the count stops at MAX_COUNTED_ROWS: a table with more rows than
  * that is reported as `capped`, and its pages stop there as well.
+ *
+ * Sorting such a table by just any column also means reading the whole table, for every page. So a
+ * capped table can only be sorted by the first column of its primary key, whose index already
+ * holds the rows in that order.
  * @param {pg.Client} client - Client connected to the team database
  * @param {string} qualifiedTable - The escaped, schema qualified table name
  * @param {{ page?: number, limit?: number, sort?: string, dir?: 'asc'|'desc' }} pagination - 1 based
  * page number and page size, and the column to sort by with its direction (ascending by default)
- * @throws an invalid sort error (see invalidSortError) when the column does not exist or cannot be put in order
+ * @throws an invalid sort error (see invalidSortError) when the column does not exist, cannot be put in order,
+ * or the table is too big to be sorted by it
  */
 async function getTableDataPage (client, qualifiedTable, pagination = {}) {
     const pageSize = Math.min(Math.max(parseInt(pagination.limit) || DEFAULT_PAGE_SIZE, 1), MAX_PAGE_SIZE)
     const page = Math.max(parseInt(pagination.page) || 1, 1)
 
     const pkRes = await client.query('SELECT a.attname FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) WHERE i.indrelid = $1::regclass AND i.indisprimary ORDER BY array_position(i.indkey, a.attnum)', [qualifiedTable])
-    let orderBy = pkRes.rows.length > 0 ? pkRes.rows.map(row => pg.escapeIdentifier(row.attname)).join(', ') : 'ctid'
+    const primaryKey = pkRes.rows.map(row => row.attname)
+    let orderBy = primaryKey.length > 0 ? primaryKey.map(column => pg.escapeIdentifier(column)).join(', ') : 'ctid'
 
     const { sort } = pagination
     if (sort) {
@@ -153,6 +159,9 @@ async function getTableDataPage (client, qualifiedTable, pagination = {}) {
     const countRes = await client.query(`SELECT count(*) AS total FROM (SELECT 1 FROM ${qualifiedTable} LIMIT $1) AS counted`, [MAX_COUNTED_ROWS + 1])
     const capped = Number(countRes.rows[0].total) > MAX_COUNTED_ROWS
     const total = Math.min(Number(countRes.rows[0].total), MAX_COUNTED_ROWS)
+    if (sort && capped && sort !== primaryKey[0]) {
+        throw invalidSortError(`The table has too many rows to be sorted by "${sort}"`)
+    }
 
     // a page past the rows that were counted is empty, and reading that deep into a table is slow
     const offset = (page - 1) * pageSize
@@ -171,6 +180,7 @@ async function getTableDataPage (client, qualifiedTable, pagination = {}) {
     return {
         count: total,
         capped,
+        primaryKey,
         rows,
         meta: {
             page,

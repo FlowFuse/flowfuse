@@ -121,7 +121,7 @@ describe('Tables: helper lib for pg', function () {
 
     describe('getTableDataPage', function () {
         // a client that answers each kind of query the page needs and keeps what it was asked
-        function fakeClient ({ primaryKey = ['id'], columns = ['id', 'name'], rowsError = null } = {}) {
+        function fakeClient ({ primaryKey = ['id'], columns = ['id', 'name'], rowsError = null, total = 57 } = {}) {
             const queries = []
             return {
                 queries,
@@ -130,7 +130,7 @@ describe('Tables: helper lib for pg', function () {
                     queries.push({ text, values })
                     if (text.includes('indisprimary')) return { rows: primaryKey.map(attname => ({ attname })) }
                     if (text.includes('attname = $2')) return { rows: columns.includes(values[1]) ? [{}] : [] }
-                    if (text.includes('count(*)')) return { rows: [{ total: '57' }] }
+                    if (text.includes('count(*)')) return { rows: [{ total: String(total) }] }
                     if (rowsError) throw rowsError
                     return { rows: [{ id: 1 }] }
                 }
@@ -179,6 +179,39 @@ describe('Tables: helper lib for pg', function () {
             const noOrder = Object.assign(new Error('could not identify an ordering operator for type json'), { code: '42883' })
             const client = fakeClient({ columns: ['details'], rowsError: noOrder })
             await pgLib.getTableDataPage(client, '"public"."t"', { sort: 'details' }).should.be.rejectedWith({ statusCode: 400, code: 'invalid_sort', message: /details/ })
+        })
+
+        it('should name the primary key columns of the table', async function () {
+            const page = await pgLib.getTableDataPage(fakeClient({ primaryKey: ['line', 'machine'] }), '"public"."t"', {})
+            page.primaryKey.should.eql(['line', 'machine'])
+            const keyless = await pgLib.getTableDataPage(fakeClient({ primaryKey: [] }), '"public"."t"', {})
+            keyless.primaryKey.should.eql([])
+        })
+
+        describe('a table with more rows than are counted', function () {
+            it('should sort by the first column of the primary key, either way', async function () {
+                const client = fakeClient({ total: 10001, primaryKey: ['id', 'name'] })
+                const page = await pgLib.getTableDataPage(client, '"public"."t"', { sort: 'id', dir: 'desc' })
+                page.capped.should.be.true()
+                client.rowsQuery().text.should.containEql('ORDER BY "id" DESC, "id", "name" LIMIT')
+            })
+
+            it('should reject a sort by any other column without reading the rows', async function () {
+                const client = fakeClient({ total: 10001, primaryKey: ['id', 'name'] })
+                await pgLib.getTableDataPage(client, '"public"."t"', { sort: 'name' }).should.be.rejectedWith({ statusCode: 400, code: 'invalid_sort', message: /too many rows/ })
+                should(client.rowsQuery()).be.undefined()
+            })
+
+            it('should reject every sort when the table has no primary key', async function () {
+                const client = fakeClient({ total: 10001, primaryKey: [] })
+                await pgLib.getTableDataPage(client, '"public"."t"', { sort: 'id' }).should.be.rejectedWith({ code: 'invalid_sort' })
+            })
+
+            it('should still sort a table of exactly as many rows as are counted by any column', async function () {
+                const client = fakeClient({ total: 10000 })
+                await pgLib.getTableDataPage(client, '"public"."t"', { sort: 'name' })
+                client.rowsQuery().text.should.containEql('ORDER BY "name" ASC, "id" LIMIT')
+            })
         })
 
         it('should pass on any other database error as it is', async function () {

@@ -27,6 +27,7 @@
             <p v-if="pagination.totalCapped" class="too-big" data-el="table-too-big">
                 <InformationCircleIcon class="ff-icon ff-icon-sm" aria-hidden="true" />
                 This table is too big to show in full, so only its first {{ pagination.total.toLocaleString() }} rows are listed here.
+                {{ sortKey ? `It can only be sorted by ${sortKey}.` : 'It cannot be sorted.' }}
             </p>
             <!-- made again for each table, so the sort shown in its header never outlives the table it was for -->
             <ff-data-table
@@ -97,7 +98,7 @@ export default defineComponent({
             return (this.selectedTable?.schema ?? []).map((row) => {
                 return {
                     key: row.safeName,
-                    sortable: isColumnTypeSortable(row.type),
+                    sortable: isColumnTypeSortable(row.type) && (!this.pagination.totalCapped || row.name === this.sortKey),
                     html: `<span class="column-name">${escapeHtml(row.name)}</span><span class="column-type" title="${escapeHtml(row.type)}">${escapeHtml(getColumnTypeLabel(row.type))}</span>`,
                     component: {
                         is: markRaw(TableCell),
@@ -109,6 +110,10 @@ export default defineComponent({
                     headerClass: 'sticky top-0'
                 }
             })
+        },
+        // the one column a table too big to count can be sorted by: the first of its primary key, which has an index
+        sortKey () {
+            return this.selectedTable?.payload?.primaryKey?.[0]
         },
         // only once the tables have been loaded, so the empty state does not flash while they are
         hasNoTables () {
@@ -263,6 +268,10 @@ export default defineComponent({
         margin-bottom: 10px;
         color: var(--ff-color-text-muted);
         font-size: 0.875rem;
+        // the note runs onto a second line in a narrow pane
+        .ff-icon {
+            flex-shrink: 0;
+        }
     }
 
     .header {

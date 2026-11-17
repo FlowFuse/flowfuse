@@ -8801,8 +8801,10 @@ export interface paths {
                         "application/json": {
                             /** @description Number of rows in the table, or the most that are counted when the table has more (see capped) */
                             count?: number;
-                            /** @description True when the table has more rows than are counted. Only the rows that were counted can be paged through */
+                            /** @description True when the table has more rows than are counted. Only the rows that were counted can be paged through, and the rows can only be sorted by the first column of the primary key */
                             capped?: boolean;
+                            /** @description The columns of the table's primary key, in order. Empty when it has none */
+                            primaryKey?: string[];
                             rows?: {
                                 [key: string]: unknown;
                             }[];

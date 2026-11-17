@@ -226,10 +226,11 @@ describe('product-tables store', () => {
         it('notes when the table has more rows than were counted', async () => {
             const store = useProductTablesStore()
             store.tables = { 'db-1': [{ name: 'users' }] }
-            tablesApi.getTableData.mockResolvedValue({ count: 10000, capped: true, rows: [{ id: 1 }] })
+            tablesApi.getTableData.mockResolvedValue({ count: 10000, capped: true, primaryKey: ['id'], rows: [{ id: 1 }] })
             await store.getTableData({ databaseId: 'db-1', tableName: 'users', teamId: 'team-1' })
             expect(store.tables['db-1'][0].payload.total).toBe(10000)
             expect(store.tables['db-1'][0].payload.totalCapped).toBe(true)
+            expect(store.tables['db-1'][0].payload.primaryKey).toEqual(['id'])
         })
 
         it('asks for the first page of 25 rows by default', async () => {

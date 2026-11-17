@@ -540,7 +540,7 @@ describe('Tables: Postgres Supavisor Driver', function () {
             setup({ total: 0, rows: [] })
             await driver.init(app, options)
             const result = await driver.getTableData(team, team.hashid, 'table1', { limit: 5 })
-            result.should.eql({ count: 0, capped: false, rows: [], meta: { page: 1, pageSize: 5, total: 0, pageCount: 1 } })
+            result.should.eql({ count: 0, capped: false, primaryKey: ['id'], rows: [], meta: { page: 1, pageSize: 5, total: 0, pageCount: 1 } })
         })
         it('should look up and use the table\'s actual schema when it is not in public', async function () {
             const query = setup({ schema: 'other_schema' })
