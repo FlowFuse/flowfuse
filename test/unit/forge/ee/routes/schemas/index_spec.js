@@ -106,20 +106,32 @@ describe('Data Schemas API', function () {
     })
 
     describe('permissions', function () {
-        it('lets viewers and members read but not write', async function () {
+        it('lets viewers read but not write', async function () {
             const schema = await createSchema()
             const group = await createGroup()
-            for (const user of ['chris', 'dave']) {
-                ;(await request('GET', '', user)).statusCode.should.equal(200)
-                ;(await request('GET', `/${schema.id}`, user)).statusCode.should.equal(200)
-                ;(await request('GET', '/groups', user)).statusCode.should.equal(200)
-                ;(await request('POST', '', user, { name: uniqueName('schema') })).statusCode.should.equal(403)
-                ;(await request('PUT', `/${schema.id}`, user, { name: 'x' })).statusCode.should.equal(403)
-                ;(await request('DELETE', `/${schema.id}`, user)).statusCode.should.equal(403)
-                ;(await request('POST', '/groups', user, { name: 'x' })).statusCode.should.equal(403)
-                ;(await request('PUT', `/groups/${group.id}`, user, { name: 'x' })).statusCode.should.equal(403)
-                ;(await request('DELETE', `/groups/${group.id}`, user)).statusCode.should.equal(403)
-            }
+            ;(await request('GET', '', 'dave')).statusCode.should.equal(200)
+            ;(await request('GET', `/${schema.id}`, 'dave')).statusCode.should.equal(200)
+            ;(await request('GET', '/groups', 'dave')).statusCode.should.equal(200)
+            ;(await request('POST', '', 'dave', { name: uniqueName('schema') })).statusCode.should.equal(403)
+            ;(await request('PUT', `/${schema.id}`, 'dave', { name: 'x' })).statusCode.should.equal(403)
+            ;(await request('DELETE', `/${schema.id}`, 'dave')).statusCode.should.equal(403)
+            ;(await request('POST', '/groups', 'dave', { name: 'x' })).statusCode.should.equal(403)
+            ;(await request('PUT', `/groups/${group.id}`, 'dave', { name: 'x' })).statusCode.should.equal(403)
+            ;(await request('DELETE', `/groups/${group.id}`, 'dave')).statusCode.should.equal(403)
+        })
+
+        it('lets members create and edit but not delete', async function () {
+            const created = await request('POST', '', 'chris', { name: uniqueName('schema') })
+            created.statusCode.should.equal(200)
+            const schema = created.json()
+            ;(await request('PUT', `/${schema.id}`, 'chris', { name: uniqueName('schema') })).statusCode.should.equal(200)
+            ;(await request('DELETE', `/${schema.id}`, 'chris')).statusCode.should.equal(403)
+
+            const createdGroup = await request('POST', '/groups', 'chris', { name: uniqueName('group') })
+            createdGroup.statusCode.should.equal(200)
+            const group = createdGroup.json()
+            ;(await request('PUT', `/groups/${group.id}`, 'chris', { name: uniqueName('group') })).statusCode.should.equal(200)
+            ;(await request('DELETE', `/groups/${group.id}`, 'chris')).statusCode.should.equal(403)
         })
     })
 
