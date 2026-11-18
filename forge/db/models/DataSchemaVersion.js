@@ -185,6 +185,29 @@ module.exports = {
                     return count === 1
                 },
                 /**
+                 * Save a draft's document and notes only while it is still a draft
+                 * @param {number} draftId
+                 * @param {{ schema?: object, notes?: string }} values
+                 * @returns {Promise<boolean>} false when the draft was published or discarded first
+                 */
+                saveDraft: async (draftId, values) => {
+                    const [count] = await this.update(values, {
+                        where: { id: draftId, status: 'draft' }
+                    })
+                    return count === 1
+                },
+                /**
+                 * Delete a draft only while it is still a draft
+                 * @param {number} draftId
+                 * @returns {Promise<boolean>} false when the draft was published or discarded first
+                 */
+                discardDraft: async (draftId) => {
+                    const count = await this.destroy({
+                        where: { id: draftId, status: 'draft' }
+                    })
+                    return count === 1
+                },
+                /**
                  * Every version number in use, published or deprecated
                  * @param {number} schemaId
                  * @returns {Promise<string[]>}
