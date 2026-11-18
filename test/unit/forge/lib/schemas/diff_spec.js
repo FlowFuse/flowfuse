@@ -30,7 +30,7 @@ describe('Schema diff', function () {
             { path: '/properties/readAt', type: 'added', detail: { to: { type: 'string', format: 'date-time' } } },
             { path: '/properties/sensor', type: 'deleted', detail: { from: { type: 'string' } } },
             { path: '/properties/value/minimum', type: 'added', detail: { to: 0 } },
-            { path: '/properties/value/unit', type: 'changed', detail: { from: 'C', to: 'K' } }
+            { path: '/properties/value/unit', type: 'changed', detail: { from: 'Cel', to: 'K' } }
         ])
     })
 
