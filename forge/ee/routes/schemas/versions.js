@@ -143,6 +143,30 @@ module.exports = async function (app) {
         reply.send(app.db.views.DataSchemaVersion.version(version))
     })
 
+    app.post('/:schemaId/versions/:version/undeprecate', {
+        preHandler: app.needsPermission('team:schema:deprecate'),
+        schema: {
+            summary: 'Undeprecate a deprecated version, so it is published again',
+            tags: ['Data Schemas'],
+            params: versionParams,
+            response: {
+                200: { $ref: 'DataSchemaVersion' },
+                ...errors
+            }
+        }
+    }, async (request, reply) => {
+        const version = await app.db.models.DataSchemaVersion.byVersion(request.dataSchema.id, request.params.version)
+        if (!version) {
+            return reply.status(404).send(unknownVersion(request.params.version))
+        }
+        if (version.status !== 'deprecated') {
+            return reply.status(409).send({ code: 'not_deprecated', error: `Version ${version.version} is not deprecated` })
+        }
+        await version.update({ status: 'published' })
+        await app.auditLog.Team.schemas.version.undeprecated(request.session.User, null, request.team, request.dataSchema, version)
+        reply.send(app.db.views.DataSchemaVersion.version(version))
+    })
+
     app.post('/:schemaId/versions/:version/validate', {
         preHandler: app.needsPermission('team:schema:list'),
         bodyLimit: validateBodyLimit,

@@ -78,13 +78,14 @@ describe('Data Schemas API - versions, validate and diff', function () {
         await app.close()
     })
 
-    it('lets viewers read, validate and diff but not deprecate', async function () {
+    it('lets viewers read, validate and diff but not deprecate or undeprecate', async function () {
         const schema = await schemaWithVersions(reading, reading)
         ;(await request('GET', `/${schema.id}/versions`, 'dave')).statusCode.should.equal(200)
         ;(await request('GET', `/${schema.id}/versions/1.0.0`, 'dave')).statusCode.should.equal(200)
         ;(await request('POST', `/${schema.id}/versions/1.0.0/validate`, 'dave', { payload: { value: 1 } })).statusCode.should.equal(200)
         ;(await request('GET', `/${schema.id}/diff?from=1.0.0&to=2.0.0`, 'dave')).statusCode.should.equal(200)
         ;(await request('POST', `/${schema.id}/versions/1.0.0/deprecate`, 'dave')).statusCode.should.equal(403)
+        ;(await request('POST', `/${schema.id}/versions/1.0.0/undeprecate`, 'dave')).statusCode.should.equal(403)
     })
 
     it('lets members deprecate a version', async function () {
@@ -137,6 +138,23 @@ describe('Data Schemas API - versions, validate and diff', function () {
             again.statusCode.should.equal(409)
             again.json().code.should.equal('already_deprecated')
             ;(await request('POST', `/${schema.id}/versions/9.0.0/deprecate`, 'bob')).statusCode.should.equal(404)
+        })
+
+        it('undeprecates a deprecated version, which becomes the latest again', async function () {
+            const schema = await schemaWithVersions(reading, reading)
+            await request('POST', `/${schema.id}/versions/2.0.0/deprecate`, 'bob')
+            ;(await request('GET', `/${schema.id}/versions/latest`, 'bob')).json().version.should.equal('1.0.0')
+
+            const response = await request('POST', `/${schema.id}/versions/2.0.0/undeprecate`, 'chris')
+            response.statusCode.should.equal(200)
+            response.json().status.should.equal('published')
+            ;(await lastAuditEvent()).should.equal('team.schema.version.undeprecated')
+            ;(await request('GET', `/${schema.id}/versions/latest`, 'bob')).json().version.should.equal('2.0.0')
+
+            const again = await request('POST', `/${schema.id}/versions/2.0.0/undeprecate`, 'bob')
+            again.statusCode.should.equal(409)
+            again.json().code.should.equal('not_deprecated')
+            ;(await request('POST', `/${schema.id}/versions/9.0.0/undeprecate`, 'bob')).statusCode.should.equal(404)
         })
     })
 
