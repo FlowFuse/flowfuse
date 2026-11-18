@@ -1,9 +1,13 @@
 const semver = require('semver')
 
+// Each part is stored as a 32-bit integer
+const MAX_VERSION_PART = 2147483647
+
 /**
  * Check that a schema version is a plain `major.minor.patch` string.
  * Strings that semver would normalise (`v1.2.0`, `=1.2.0`, ` 1.2.0`, `1.2.0+build`)
  * and prerelease versions (`1.2.0-rc.1`) are rejected rather than normalised.
+ * Each part must be at most 2147483647.
  * @param {string} version
  * @returns {boolean}
  */
@@ -14,7 +18,10 @@ function isValidVersion (version) {
     if (semver.valid(version) !== version) {
         return false
     }
-    return semver.prerelease(version) === null
+    if (semver.prerelease(version) !== null) {
+        return false
+    }
+    return version.split('.').every(part => Number(part) <= MAX_VERSION_PART)
 }
 
 /**
