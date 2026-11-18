@@ -21,6 +21,7 @@
                             <ff-button data-action="publish" @click="publishDialog?.show()">Publish</ff-button>
                         </template>
                         <ff-button v-else-if="canEdit" data-action="create-draft" @click="schemasStore.createDraft(latestPublished?.version)">
+                            <template #icon-left><PlusIcon /></template>
                             {{ latestPublished ? `Create draft from ${latestPublished.version}` : 'Create draft' }}
                         </ff-button>
                     </div>
@@ -47,6 +48,7 @@
 </template>
 
 <script setup lang="ts">
+import { PlusIcon } from '@heroicons/vue/24/outline'
 import { storeToRefs } from 'pinia'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'

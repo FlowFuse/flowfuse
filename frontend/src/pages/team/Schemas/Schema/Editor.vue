@@ -1,15 +1,13 @@
 <template>
     <div class="flex flex-col gap-6" data-el="schema-editor">
-        <FormRow v-if="draft" data-form="draft-notes">
+        <FormRow v-if="draft || latestPublished" :key="draft ? 'draft' : 'published'" data-form="version-notes">
             Version notes
+            <template v-if="!draft && latestPublished" #description>Published {{ published }}</template>
             <template #input>
-                <textarea v-model="notes" class="w-full" rows="3" :disabled="readOnly" />
+                <textarea v-if="draft" v-model="notes" class="w-full" rows="3" :disabled="readOnly" />
+                <p v-else class="text-sm text-gray-800 whitespace-pre-line">{{ latestPublished?.notes || 'None' }}</p>
             </template>
         </FormRow>
-        <div v-else-if="latestPublished">
-            <InfoCardRow property="Version notes:" :value="latestPublished.notes || 'None'" />
-            <InfoCardRow property="Published:" :value="published" />
-        </div>
     </div>
 </template>
 
@@ -17,7 +15,6 @@
 import { computed } from 'vue'
 
 import FormRow from '@/components/FormRow.vue'
-import InfoCardRow from '@/components/InfoCardRow.vue'
 import type { SchemaDraft, SchemaVersion } from '@/stores/data-farm-schemas'
 
 import daysSince from '@/utils/daysSince'
