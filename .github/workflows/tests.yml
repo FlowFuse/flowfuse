@@ -183,7 +183,7 @@ jobs:
         id: specs
         run: echo "list=$(find test/e2e/frontend/cypress/tests -name '*.js' | sort | awk -v total=${{ strategy.job-total }} -v shard=${{ strategy.job-index }} 'NR % total == shard' | paste -sd, -)" >> "$GITHUB_OUTPUT"
       - name: Run UI E2E (Cypress) Tests - OS
-        uses: cypress-io/github-action@18016a55674bd02cabf197de5762a1710cb5577c # v7.4.9
+        uses: cypress-io/github-action@0ed14f5d30c4ad6e5e8ffb6f57dbb69150137a3f # v7.4.10
         with:
           install: false
           config-file: config/cypress-os.config.js
@@ -235,7 +235,7 @@ jobs:
         id: specs
         run: echo "list=$(find test/e2e/frontend/cypress/tests-ee -name '*.js' | sort | awk -v total=${{ strategy.job-total }} -v shard=${{ strategy.job-index }} 'NR % total == shard' | paste -sd, -)" >> "$GITHUB_OUTPUT"
       - name: Run UI E2E (Cypress) Tests - EE
-        uses: cypress-io/github-action@18016a55674bd02cabf197de5762a1710cb5577c # v7.4.9
+        uses: cypress-io/github-action@0ed14f5d30c4ad6e5e8ffb6f57dbb69150137a3f # v7.4.10
         with:
             install: false
             config-file: config/cypress-ee.config.js
