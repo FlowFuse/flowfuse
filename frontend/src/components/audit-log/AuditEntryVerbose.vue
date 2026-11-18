@@ -239,6 +239,10 @@
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.dataSchema">Version {{ entry.body.dataSchemaVersion?.version }} of schema '{{ entry.body.dataSchema.name }}' deprecated</span>
     </template>
+    <template v-else-if="entry.event === 'team.schema.version.undeprecated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.dataSchema">Version {{ entry.body.dataSchemaVersion?.version }} of schema '{{ entry.body.dataSchema.name }}' undeprecated</span>
+    </template>
     <template v-else-if="entry.event === 'team.schema.group.created'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.dataSchemaGroup">Schema group '{{ entry.body.dataSchemaGroup.name }}' created</span>
