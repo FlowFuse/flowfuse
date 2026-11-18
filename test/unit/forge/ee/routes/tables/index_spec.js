@@ -471,6 +471,32 @@ describe('Tables API', function () {
         response.statusCode.should.equal(400)
     })
 
+    it('Get table data sorts the rows by a column, in the direction asked for', async function () {
+        const descending = await getTableData('?sort=name&dir=desc')
+        descending.statusCode.should.equal(200)
+        descending.json().rows.should.eql([{ id: 2, name: 'Row 2' }, { id: 1, name: 'Row 1' }])
+
+        const ascending = await getTableData('?sort=name')
+        ascending.json().rows.should.eql([{ id: 1, name: 'Row 1' }, { id: 2, name: 'Row 2' }])
+    })
+
+    it('Get table data sorts the whole table, not only the page asked for', async function () {
+        const response = await getTableData('?sort=id&dir=desc&page=2&limit=1')
+        response.json().rows.should.eql([{ id: 1, name: 'Row 1' }])
+    })
+
+    it('Get table data rejects a sort by a column the table does not have', async function () {
+        const response = await getTableData('?sort=nope')
+        response.statusCode.should.equal(400)
+        response.json().should.have.property('code', 'invalid_sort')
+        response.json().error.should.containEql('nope')
+    })
+
+    it('Get table data rejects a direction that is neither asc nor desc', async function () {
+        const response = await getTableData('?sort=name&dir=sideways')
+        response.statusCode.should.equal(400)
+    })
+
     describe('Delete a table', function () {
         let db
         const drop = (name, schema) => app.inject({
