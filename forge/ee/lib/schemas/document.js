@@ -7,12 +7,14 @@ const SCHEMA_DIALECT = 'https://json-schema.org/draft/2020-12/schema'
 const MAX_DOCUMENT_BYTES = 256 * 1024
 const MAX_DOCUMENT_DEPTH = 32
 const MAX_PAYLOAD_BYTES = 1024 * 1024
+const MAX_PAYLOAD_DEPTH = 64
+const MAX_VALIDATION_ERRORS = 100
 
 // Annotation keywords that are not part of JSON Schema but are accepted in a document
 const ANNOTATION_KEYWORDS = ['unit']
 
-// Not supported until schemas can reference each other
-const REFERENCE_KEYWORDS = ['$ref', '$dynamicRef', '$defs']
+// Not supported until schemas can reference each other. `$id` is only allowed at the top level.
+const REFERENCE_KEYWORDS = ['$ref', '$dynamicRef', '$recursiveRef', '$defs', 'definitions', '$anchor', '$dynamicAnchor', '$recursiveAnchor', '$id']
 
 // Keywords whose value is a subschema, a list of subschemas or a map of subschemas.
 // Only these are walked, so a property named `$ref` or a `$ref` inside `default` is not a reference.
@@ -20,12 +22,28 @@ const SUBSCHEMA_KEYWORDS = ['additionalProperties', 'propertyNames', 'items', 'c
 const SUBSCHEMA_LIST_KEYWORDS = ['allOf', 'anyOf', 'oneOf', 'prefixItems']
 const SUBSCHEMA_MAP_KEYWORDS = ['properties', 'patternProperties', 'dependentSchemas']
 
+// Every keyword a schema may use. Anything else is reported, so a keyword is never accepted without being screened.
+const ACCEPTED_KEYWORDS = new Set([
+    ...SUBSCHEMA_KEYWORDS,
+    ...SUBSCHEMA_LIST_KEYWORDS,
+    ...SUBSCHEMA_MAP_KEYWORDS,
+    ...ANNOTATION_KEYWORDS,
+    '$comment',
+    'type', 'enum', 'const',
+    'multipleOf', 'maximum', 'exclusiveMaximum', 'minimum', 'exclusiveMinimum',
+    'maxLength', 'minLength', 'pattern', 'format',
+    'maxItems', 'minItems', 'uniqueItems', 'maxContains', 'minContains',
+    'maxProperties', 'minProperties', 'required', 'dependentRequired',
+    'contentEncoding', 'contentMediaType',
+    'title', 'description', 'default', 'deprecated', 'readOnly', 'writeOnly', 'examples'
+])
+
 /**
  * A document that is rejected outright rather than saved with problems.
  */
 class SchemaDocumentError extends Error {
     /**
-     * @param {'references_not_supported' | 'document_too_large' | 'document_too_deep' | 'payload_too_large' | 'invalid_schema'} code
+     * @param {'references_not_supported' | 'document_too_large' | 'document_too_deep' | 'payload_too_large' | 'payload_too_deep' | 'invalid_schema'} code
      * @param {string} message
      * @param {string} [path] JSON Pointer into the document
      */
@@ -44,7 +62,7 @@ function escapePointer (segment) {
     return segment.replace(/~/g, '~0').replace(/\//g, '~1')
 }
 
-function jsonDepth (value) {
+function jsonDepth (value, limit) {
     let maxDepth = 0
     const stack = [[value, 1]]
     while (stack.length > 0) {
@@ -54,7 +72,7 @@ function jsonDepth (value) {
         }
         if (depth > maxDepth) {
             maxDepth = depth
-            if (maxDepth > MAX_DOCUMENT_DEPTH) {
+            if (maxDepth > limit) {
                 return maxDepth
             }
         }
@@ -70,7 +88,7 @@ function serializedBytes (value) {
 }
 
 function checkLimits (doc) {
-    if (jsonDepth(doc) > MAX_DOCUMENT_DEPTH) {
+    if (jsonDepth(doc, MAX_DOCUMENT_DEPTH) > MAX_DOCUMENT_DEPTH) {
         throw new SchemaDocumentError('document_too_deep', `The schema is nested more than ${MAX_DOCUMENT_DEPTH} levels deep`)
     }
     if (serializedBytes(doc) > MAX_DOCUMENT_BYTES) {
@@ -138,24 +156,31 @@ function createAjv () {
 /**
  * Check a schema document.
  *
- * Throws a `SchemaDocumentError` for a document that cannot be saved at all: one over the size or
- * depth limits, or one using `$ref`, `$dynamicRef` or `$defs`. Anything else that stops the document
+ * Throws a `SchemaDocumentError` for a document that cannot be saved at all: one that is not an object,
+ * one over the size or depth limits, or one using references. Anything else that stops the document
  * compiling is returned as a problem, so a draft can be saved while it is being written.
  * @param {*} doc the parsed document
  * @returns {{ problems: { path: string, message: string }[] }}
  */
 function checkDocument (doc) {
+    if (!isPlainObject(doc)) {
+        throw new SchemaDocumentError('invalid_schema', 'The schema must be a JSON object')
+    }
     checkLimits(doc)
 
-    if (!isPlainObject(doc)) {
-        return { problems: [{ path: '', message: 'The schema must be a JSON object' }] }
-    }
-
     const problems = []
+    let unsupported = false
     walkSchema(doc, '', (schema, path) => {
-        for (const keyword of REFERENCE_KEYWORDS) {
-            if (Object.hasOwn(schema, keyword)) {
-                throw new SchemaDocumentError('references_not_supported', `${keyword} is not supported`, `${path}/${keyword}`)
+        for (const keyword of Object.keys(schema)) {
+            if (path === '' && (keyword === '$schema' || keyword === '$id')) {
+                continue
+            }
+            if (REFERENCE_KEYWORDS.includes(keyword)) {
+                throw new SchemaDocumentError('references_not_supported', `${keyword} is not supported`, `${path}/${escapePointer(keyword)}`)
+            }
+            if (!ACCEPTED_KEYWORDS.has(keyword)) {
+                unsupported = true
+                problems.push({ path: `${path}/${escapePointer(keyword)}`, message: `${keyword} is not a supported keyword` })
             }
         }
         if (typeof schema.pattern === 'string' && !isSafePattern(schema.pattern)) {
@@ -169,6 +194,10 @@ function checkDocument (doc) {
             }
         }
     })
+
+    if (unsupported) {
+        return { problems }
+    }
 
     if (Object.hasOwn(doc, '$schema') && doc.$schema !== SCHEMA_DIALECT) {
         problems.push({ path: '/$schema', message: `$schema must be ${SCHEMA_DIALECT}` })
@@ -207,10 +236,14 @@ function setId (doc, schemaId, version) {
 
 /**
  * Validate a payload against a schema document. Nothing is stored or cached.
- * Throws a `SchemaDocumentError` when the payload is over the size limit or the document has problems.
+ * Throws a `SchemaDocumentError` when the payload is over the size or depth limit or the document has problems.
+ * Returns at most `MAX_VALIDATION_ERRORS` errors.
  * @returns {{ valid: boolean, errors: { path: string, keyword: string, message: string, params: object }[] }}
  */
 function validatePayload (doc, payload) {
+    if (jsonDepth(payload, MAX_PAYLOAD_DEPTH) > MAX_PAYLOAD_DEPTH) {
+        throw new SchemaDocumentError('payload_too_deep', `The payload is nested more than ${MAX_PAYLOAD_DEPTH} levels deep`)
+    }
     if (serializedBytes(payload) > MAX_PAYLOAD_BYTES) {
         throw new SchemaDocumentError('payload_too_large', `The payload is larger than ${MAX_PAYLOAD_BYTES / 1024 / 1024} MB`)
     }
@@ -222,7 +255,7 @@ function validatePayload (doc, payload) {
     if (validate(payload)) {
         return { valid: true, errors: [] }
     }
-    const errors = validate.errors.map(error => {
+    const errors = validate.errors.slice(0, MAX_VALIDATION_ERRORS).map(error => {
         let path = error.instancePath
         if (error.keyword === 'required') {
             path = `${path}/${escapePointer(error.params.missingProperty)}`
@@ -237,6 +270,8 @@ module.exports = {
     MAX_DOCUMENT_BYTES,
     MAX_DOCUMENT_DEPTH,
     MAX_PAYLOAD_BYTES,
+    MAX_PAYLOAD_DEPTH,
+    MAX_VALIDATION_ERRORS,
     SchemaDocumentError,
     checkDocument,
     removeId,
