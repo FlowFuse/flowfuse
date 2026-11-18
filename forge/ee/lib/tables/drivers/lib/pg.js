@@ -123,6 +123,16 @@ const tableDataTypes = {
 }
 
 /**
+ * The name of a table as it goes into a query: escaped, with its schema in front when it has one.
+ * @param {{ schema?: string, name: string }} table - The plain, unescaped names of the table and its schema
+ * @returns {string} the escaped, schema qualified table name
+ */
+function qualifiedTableName ({ schema, name }) {
+    const escapedName = pg.escapeIdentifier(name)
+    return schema ? `${pg.escapeIdentifier(schema)}.${escapedName}` : escapedName
+}
+
+/**
  * Reads rows of a table that has no primary key, in the order they are physically stored.
  *
  * `ORDER BY ctid` gives that order too, but Postgres has no index on ctid, so it reads and sorts the
@@ -132,16 +142,16 @@ const tableDataTypes = {
  * the only things that would change it: starting part way through the table to join a scan already
  * in progress, and splitting the read across parallel workers. Both are set for this transaction only.
  * @param {pg.Client} client - Client connected to the team database
- * @param {string} qualifiedTable - The escaped, schema qualified table name
+ * @param {{ schema?: string, name: string }} table - The plain, unescaped names of the table and its schema
  * @param {number} limit - How many rows to read
  * @param {number} offset - How many rows to skip first
  */
-async function getRowsInPhysicalOrder (client, qualifiedTable, limit, offset) {
+async function getRowsInPhysicalOrder (client, table, limit, offset) {
     await client.query('BEGIN')
     try {
         await client.query('SET LOCAL synchronize_seqscans = off')
         await client.query('SET LOCAL max_parallel_workers_per_gather = 0')
-        return (await client.query(`SELECT * FROM ${qualifiedTable} LIMIT $1 OFFSET $2`, [limit, offset])).rows
+        return (await client.query(`SELECT * FROM ${qualifiedTableName(table)} LIMIT $1 OFFSET $2`, [limit, offset])).rows
     } finally {
         // nothing was written, so there is nothing to commit
         await client.query('ROLLBACK')
@@ -190,7 +200,7 @@ function invalidSortError (message) {
  * capped table can only be sorted by the first column of its primary key, whose index already
  * holds the rows in that order.
  * @param {pg.Client} client - Client connected to the team database
- * @param {string} qualifiedTable - The escaped, schema qualified table name
+ * @param {{ schema?: string, name: string }} table - The plain, unescaped names of the table and its schema
  * @param {{ page?: number, limit?: number, sort?: string, dir?: 'asc'|'desc' }} pagination - 1 based
  * page number and page size, and the column to sort by with its direction (ascending by default)
  * @param {AbortSignal} [signal] - Aborts when the rows are no longer wanted. A query that is running is cancelled
@@ -198,7 +208,8 @@ function invalidSortError (message) {
  * @throws an invalid sort error (see invalidSortError) when the column does not exist, cannot be put in order,
  * or the table is too big to be sorted by it
  */
-async function getTableDataPage (client, qualifiedTable, pagination = {}, signal) {
+async function getTableDataPage (client, table, pagination = {}, signal) {
+    const qualifiedTable = qualifiedTableName(table)
     const pageSize = Math.min(Math.max(parseInt(pagination.limit) || DEFAULT_PAGE_SIZE, 1), MAX_PAGE_SIZE)
     const page = Math.max(parseInt(pagination.page) || 1, 1)
 
@@ -229,7 +240,7 @@ async function getTableDataPage (client, qualifiedTable, pagination = {}, signal
     const offset = (page - 1) * pageSize
     let rows = []
     if (offset < total && !sort && primaryKey.length === 0) {
-        rows = await getRowsInPhysicalOrder(client, qualifiedTable, pageSize, offset)
+        rows = await getRowsInPhysicalOrder(client, table, pageSize, offset)
     } else if (offset < total) {
         try {
             rows = (await client.query(`SELECT * FROM ${qualifiedTable} ORDER BY ${orderBy} LIMIT $1 OFFSET $2`, [pageSize, offset])).rows
