@@ -216,7 +216,8 @@
     </template>
     <template v-else-if="entry.event === 'team.schema.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.dataSchema">Schema '{{ entry.body.dataSchema.name }}' updated</span>
+        <span v-if="!error && nameUpdate">Schema renamed from '{{ nameUpdate.old }}' to '{{ nameUpdate.new }}'</span>
+        <span v-else-if="!error && entry.body?.dataSchema">Schema '{{ entry.body.dataSchema.name }}' updated</span>
     </template>
     <template v-else-if="entry.event === 'team.schema.deleted'">
         <label>{{ AuditEvents[entry.event] }}</label>
@@ -244,7 +245,8 @@
     </template>
     <template v-else-if="entry.event === 'team.schema.group.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.dataSchemaGroup">Schema group '{{ entry.body.dataSchemaGroup.name }}' updated</span>
+        <span v-if="!error && nameUpdate">Schema group renamed from '{{ nameUpdate.old }}' to '{{ nameUpdate.new }}'</span>
+        <span v-else-if="!error && entry.body?.dataSchemaGroup">Schema group '{{ entry.body.dataSchemaGroup.name }}' updated</span>
     </template>
     <template v-else-if="entry.event === 'team.schema.group.deleted'">
         <label>{{ AuditEvents[entry.event] }}</label>
