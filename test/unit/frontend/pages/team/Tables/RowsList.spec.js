@@ -395,25 +395,91 @@ describe('RowsList', () => {
             mocks.tablesStore.selectedTable = { schema, payload: { safe: [{ col: 1 }], total: 1 } }
         })
 
-        test('shows a loading indicator while the columns of a table are not known yet', () => {
-            mocks.tablesStore.isLoading = true
-            mocks.tablesStore.selectedTable = { name: 'readings' }
-            const wrapper = mountRowsList()
-            expect(wrapper.find('[data-el="table-loading"]').exists()).toBe(true)
-            expect(wrapper.text()).not.toContain("There doesn't seem to be anything here!")
-        })
+        describe('loader', () => {
+            const skeletonRows = wrapper => wrapper.findAll('.ff-data-table--skeleton-row')
+            // the store is a plain mock, so tell the page by hand that loading is over
+            const finishLoading = wrapper => wrapper.vm.$options.watch.isLoading.handler.call(wrapper.vm, false)
+            const wait = async (ms) => {
+                vi.advanceTimersByTime(ms)
+                await flushPromises()
+            }
 
-        test('shows skeleton rows under the headers while the rows are loading', () => {
-            mocks.tablesStore.isLoading = true
-            const wrapper = mountRowsList()
-            expect(wrapper.find('thead').text()).toContain('id')
-            expect(wrapper.findAll('.ff-data-table--skeleton-row').length).toBeGreaterThan(0)
+            beforeEach(() => {
+                vi.useFakeTimers()
+                mocks.tablesStore.isLoading = true
+            })
+
+            afterEach(() => vi.useRealTimers())
+
+            test('shows no loader for a load that is quick, keeping the rows that were there', async () => {
+                const wrapper = mountRowsList()
+                await wait(199)
+                expect(skeletonRows(wrapper)).toHaveLength(0)
+                expect(wrapper.findAll('tbody [data-el="table-cell"]')).toHaveLength(1)
+
+                finishLoading(wrapper)
+                await wait(1000)
+                expect(skeletonRows(wrapper)).toHaveLength(0)
+            })
+
+            test('shows skeleton rows under the headers once a load takes a while', async () => {
+                const wrapper = mountRowsList()
+                await wait(200)
+                expect(wrapper.find('thead').text()).toContain('id')
+                expect(skeletonRows(wrapper).length).toBeGreaterThan(0)
+            })
+
+            test('keeps the skeleton rows long enough to be seen when the load ends right after they show', async () => {
+                const wrapper = mountRowsList()
+                await wait(200)
+                finishLoading(wrapper)
+                await wait(399)
+                expect(skeletonRows(wrapper).length).toBeGreaterThan(0)
+
+                await wait(1)
+                expect(skeletonRows(wrapper)).toHaveLength(0)
+            })
+
+            test('drops the skeleton rows as soon as a long load ends', async () => {
+                const wrapper = mountRowsList()
+                await wait(2000)
+                finishLoading(wrapper)
+                await wait(0)
+                expect(skeletonRows(wrapper)).toHaveLength(0)
+            })
+
+            test('shows nothing at first for a table whose columns are not known yet, then skeleton rows', async () => {
+                mocks.tablesStore.selectedTable = { name: 'readings' }
+                const wrapper = mountRowsList()
+                expect(wrapper.find('[data-el="rows-grid"]').exists()).toBe(false)
+                expect(wrapper.find('[data-el="loading"]').exists()).toBe(false)
+                expect(wrapper.text()).not.toContain("There doesn't seem to be anything here!")
+
+                await wait(200)
+                expect(skeletonRows(wrapper).length).toBeGreaterThan(0)
+                expect(wrapper.find('[data-el="loading"]').exists()).toBe(false)
+            })
+
+            test('does not show the rows kept from the last time a table was open while it loads again', async () => {
+                let columnsLoaded
+                mocks.tablesStore.getTableSchema.mockImplementationOnce(() => new Promise(resolve => { columnsLoaded = resolve }))
+                mocks.tablesStore.isLoading = false
+                const wrapper = mountRowsList()
+                expect(wrapper.findAll('tbody [data-el="table-cell"]')).toHaveLength(1)
+
+                selectTable(wrapper, readings)
+                await wait(0)
+                expect(wrapper.find('[data-el="rows-grid"]').exists()).toBe(false)
+
+                columnsLoaded()
+                await wait(0)
+                expect(wrapper.findAll('tbody [data-el="table-cell"]')).toHaveLength(1)
+            })
         })
 
         test('says there is nothing to show only once loading is done', () => {
             mocks.tablesStore.selectedTable = { name: 'readings' }
             const wrapper = mountRowsList()
-            expect(wrapper.find('[data-el="table-loading"]').exists()).toBe(false)
             expect(wrapper.text()).toContain("There doesn't seem to be anything here!")
         })
 

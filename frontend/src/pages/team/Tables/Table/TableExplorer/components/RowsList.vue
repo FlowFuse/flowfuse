@@ -20,7 +20,7 @@
         <div v-else-if="!selectedTable" class="no-content w-full h-full" />
 
         <div
-            v-else-if="selectedTable && selectedTable.schema" class="content h-full" data-el="rows-grid"
+            v-else-if="showGrid" class="content h-full" data-el="rows-grid"
             :tabindex="grid.tabStop === null ? 0 : -1"
             @focus.self="onGridFocus" @keydown="onGridKeydown"
         >
@@ -32,7 +32,7 @@
             <!-- made again for each table, so the sort shown in its header never outlives the table it was for -->
             <ff-data-table
                 :key="`${selectedTable.dbSchema}.${selectedTable.name}`"
-                :loading="isLoading" loading-type="skeleton"
+                :loading="loaderVisible" loading-type="skeleton"
                 :columns="columns" :rows="rows"
                 :pagination="pagination"
                 server-side-sort
@@ -44,7 +44,8 @@
             />
         </div>
 
-        <ff-loading v-else-if="isLoading" message="Loading Table..." data-el="table-loading" />
+        <!-- a table being opened has nothing to show until it loads, or until the skeleton is due -->
+        <div v-else-if="isLoading" class="no-content w-full h-full" data-el="table-loading" />
 
         <div v-else class="no-content w-full h-full flex justify-center items-center text-gray-400">
             <p>There doesn't seem to be anything here!</p>
@@ -71,6 +72,13 @@ import { useProductTablesStore } from '@/stores/product-tables.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { getColumnTypeLabel, isColumnTypeSortable } from '@/utils/tables/columnTypes.ts'
 
+// a load quicker than this shows no loader at all, so it does not flash by
+const LOADER_DELAY = 200
+// once shown, the loader stays at least this long, so it does not flash by either
+const LOADER_MIN_TIME = 400
+// stand in for the columns of a table until they are known, so there is a skeleton to show
+const PLACEHOLDER_COLUMNS = Array.from({ length: 5 }, (_, index) => ({ key: `placeholder-${index}`, label: '' }))
+
 export default defineComponent({
     name: 'RowsList',
     components: { EmptyState, InformationCircleIcon, PlusIcon },
@@ -85,7 +93,10 @@ export default defineComponent({
         return {
             // the grid is one stop for the Tab key: the cell that last had focus, which the arrow keys move.
             // Until a cell has had focus the grid itself is the stop, and hands focus on to its first cell
-            grid: { tabStop: null }
+            grid: { tabStop: null },
+            loaderVisible: false,
+            // from the moment a table is picked until its rows are in
+            openingTable: false
         }
     },
     computed: {
@@ -94,8 +105,14 @@ export default defineComponent({
         canManageTables () {
             return this.hasPermission('team:database:create')
         },
+        // the grid holds the skeleton while that shows. A table being opened stays out of it until its rows are in,
+        // so the rows kept from the last time it was open do not show, give way to the skeleton, and show again
+        showGrid () {
+            return this.loaderVisible || (!this.openingTable && !!this.selectedTable?.schema)
+        },
         columns () {
-            return (this.selectedTable?.schema ?? []).map((row) => {
+            if (!this.selectedTable?.schema) return PLACEHOLDER_COLUMNS
+            return this.selectedTable.schema.map((row) => {
                 return {
                     key: row.safeName,
                     sortable: isColumnTypeSortable(row.type) && (!this.pagination.totalCapped || row.name === this.sortKey),
@@ -132,9 +149,26 @@ export default defineComponent({
         }
     },
     watch: {
+        isLoading: {
+            // loading may already be under way when the page opens
+            immediate: true,
+            handler (isLoading) {
+                clearTimeout(this.loaderTimer)
+                if (isLoading && !this.loaderVisible) {
+                    this.loaderTimer = setTimeout(() => {
+                        this.loaderVisible = true
+                        this.loaderShownAt = Date.now()
+                    }, LOADER_DELAY)
+                } else if (!isLoading && this.loaderVisible) {
+                    const timeLeft = LOADER_MIN_TIME - (Date.now() - this.loaderShownAt)
+                    this.loaderTimer = setTimeout(() => { this.loaderVisible = false }, Math.max(0, timeLeft))
+                }
+            }
+        },
         tableSelection (table) {
             // the rows of the table that was showing are no longer wanted
             this.cancelTableData()
+            this.openingTable = !!table
             if (!table) {
                 this.setTableLoadingState(false)
                 return
@@ -159,11 +193,15 @@ export default defineComponent({
                 .catch(e => e)
                 .finally(() => {
                     // a table picked in the meantime is still loading, so leave the state to it
-                    if (this.tableSelection === table) this.setTableLoadingState(false)
+                    if (this.tableSelection === table) {
+                        this.openingTable = false
+                        this.setTableLoadingState(false)
+                    }
                 })
         }
     },
     beforeUnmount () {
+        clearTimeout(this.loaderTimer)
         this.cancelTableData()
         this.setShowOriginalValues(false)
         this.updateTableSelection(null)
