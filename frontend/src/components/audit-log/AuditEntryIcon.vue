@@ -284,6 +284,7 @@ const iconMap = {
         'team.schema.draft.discarded',
         'team.schema.version.published',
         'team.schema.version.deprecated',
+        'team.schema.version.undeprecated',
         'team.schema.group.created',
         'team.schema.group.updated',
         'team.schema.group.deleted'

@@ -861,6 +861,12 @@ describe('Audit Log > Team', async function () {
             logEntry.should.have.property('event', 'team.schema.version.deprecated')
             logEntry.body.should.only.have.keys('team', 'dataSchema', 'dataSchemaVersion')
         })
+        it('Undeprecate version', async function () {
+            await teamLogger.schemas.version.undeprecated(ACTIONED_BY, null, TEAM, SCHEMA, VERSION)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.schema.version.undeprecated')
+            logEntry.body.should.only.have.keys('team', 'dataSchema', 'dataSchemaVersion')
+        })
         it('Create group', async function () {
             await teamLogger.schemas.group.created(ACTIONED_BY, null, TEAM, GROUP)
             const logEntry = await getLog()
