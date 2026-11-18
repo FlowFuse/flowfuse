@@ -185,6 +185,10 @@
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
                 </div>
+                <FormRow v-model="input.properties.extraCatalogues" :error="errors.extraCatalogues" :disabled="!input.properties.features.certifiedNodes" data-form="extraCatalogues" containerClass="w-full">
+                    Extra Certified Nodes Catalogue URLs, one per line, must be https://
+                    <template #input><textarea v-model="input.properties.extraCatalogues" class="w-full" rows="3" :disabled="!input.properties.features.certifiedNodes" /></template>
+                </FormRow>
             </form>
         </template>
         <template #actions>
@@ -344,6 +348,11 @@ export default {
                             this.input.autoStack.hours[`${hours[d]}`] = true
                         }
                     }
+                    if (teamType.properties?.extraCatalogues) {
+                        this.input.properties.extraCatalogues = teamType.properties.extraCatalogues.join('\n')
+                    } else {
+                        this.input.properties.extraCatalogues = ''
+                    }
                 } else {
                     this.editDisabled = false
                     this.input = {
@@ -369,7 +378,8 @@ export default {
                                 allowDisable: true,
                                 days: [],
                                 hours: []
-                            }
+                            },
+                            extraCatalogues: ''
                         },
                         autoStack: {
                             days: {},
@@ -432,7 +442,8 @@ export default {
                         days: {},
                         hours: {}
                     },
-                    enableAllFeatures: false
+                    enableAllFeatures: false,
+                    extraCatalogues: ''
                 }
             },
             errors: {},
@@ -450,6 +461,17 @@ export default {
             })
         },
         formValid () {
+            const extraCataloguesArray = this.input.properties.extraCatalogues.split('\n').filter(cat => cat.trim().length > 0)
+            for (const cat of extraCataloguesArray) {
+                try {
+                    const u = new URL(cat)
+                    if (u.protocol !== 'https:') {
+                        return false
+                    }
+                } catch (err) {
+                    return false
+                }
+            }
             return (this.input.name)
         },
         isEditingExisting () {
@@ -552,6 +574,18 @@ export default {
                 for (const h in hours) {
                     if (this.input.autoStack.hours[`${hours[h]}`]) {
                         opts.properties.autoStackUpdate.hours.push(parseInt(h))
+                    }
+                }
+
+                opts.properties.extraCatalogues = []
+                const extraCataloguesArray = this.input.properties.extraCatalogues.split('\n').filter(cat => cat.trim().length > 0)
+                for (const cat of extraCataloguesArray) {
+                    try {
+                        // eslint-disable-next-line no-unused-vars
+                        const u = new URL(cat)
+                        opts.properties.extraCatalogues.push(cat)
+                    } catch (err) {
+                        // Ignore invalid URL
                     }
                 }
 
