@@ -224,8 +224,8 @@ const Permissions = {
     'team:schema:create': { description: 'Create data schemas and schema groups', role: Roles.Member, access: 'write' },
     'team:schema:edit': { description: 'Edit data schemas, their drafts and schema groups', role: Roles.Member, access: 'write' },
     'team:schema:publish': { description: 'Publish a data schema version', role: Roles.Member, access: 'write' },
-    'team:schema:deprecate': { description: 'Deprecate a data schema version', role: Roles.Owner, access: 'write' },
-    'team:schema:delete': { description: 'Delete data schemas and schema groups', role: Roles.Owner, access: 'write' },
+    'team:schema:deprecate': { description: 'Deprecate a data schema version', role: Roles.Member, access: 'write' },
+    'team:schema:delete': { description: 'Delete data schemas and schema groups', role: Roles.Member, access: 'write' },
 
     // MCP
     'team:mcp:list': { description: 'List the team MCP endpoints', role: Roles.Member, access: 'read' },
