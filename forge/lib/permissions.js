@@ -221,9 +221,9 @@ const Permissions = {
 
     // Team Data Schemas
     'team:schema:list': { description: 'List and read the team data schemas', role: Roles.Viewer, access: 'read' },
-    'team:schema:create': { description: 'Create data schemas and schema groups', role: Roles.Owner, access: 'write' },
-    'team:schema:edit': { description: 'Edit data schemas, their drafts and schema groups', role: Roles.Owner, access: 'write' },
-    'team:schema:publish': { description: 'Publish a data schema version', role: Roles.Owner, access: 'write' },
+    'team:schema:create': { description: 'Create data schemas and schema groups', role: Roles.Member, access: 'write' },
+    'team:schema:edit': { description: 'Edit data schemas, their drafts and schema groups', role: Roles.Member, access: 'write' },
+    'team:schema:publish': { description: 'Publish a data schema version', role: Roles.Member, access: 'write' },
     'team:schema:deprecate': { description: 'Deprecate a data schema version', role: Roles.Owner, access: 'write' },
     'team:schema:delete': { description: 'Delete data schemas and schema groups', role: Roles.Owner, access: 'write' },
 
