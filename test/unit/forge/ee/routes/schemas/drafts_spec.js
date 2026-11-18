@@ -79,15 +79,21 @@ describe('Data Schemas API - draft and publish', function () {
         await app.close()
     })
 
-    it('lets viewers and members read the draft but not change it', async function () {
+    it('lets viewers read the draft but not change it', async function () {
         const schema = await createSchema()
-        for (const user of ['chris', 'dave']) {
-            ;(await request('GET', `/${schema.id}/draft`, user)).statusCode.should.equal(200)
-            ;(await request('PUT', `/${schema.id}/draft`, user, { notes: 'x' })).statusCode.should.equal(403)
-            ;(await request('DELETE', `/${schema.id}/draft`, user)).statusCode.should.equal(403)
-            ;(await request('POST', `/${schema.id}/draft`, user)).statusCode.should.equal(403)
-            ;(await publish(schema, '1.0.0', user)).statusCode.should.equal(403)
-        }
+        ;(await request('GET', `/${schema.id}/draft`, 'dave')).statusCode.should.equal(200)
+        ;(await request('PUT', `/${schema.id}/draft`, 'dave', { notes: 'x' })).statusCode.should.equal(403)
+        ;(await request('DELETE', `/${schema.id}/draft`, 'dave')).statusCode.should.equal(403)
+        ;(await request('POST', `/${schema.id}/draft`, 'dave')).statusCode.should.equal(403)
+        ;(await publish(schema, '1.0.0', 'dave')).statusCode.should.equal(403)
+    })
+
+    it('lets members change, publish, start and discard the draft', async function () {
+        const schema = await createSchema()
+        ;(await request('PUT', `/${schema.id}/draft`, 'chris', { notes: 'x' })).statusCode.should.equal(200)
+        ;(await publish(schema, '1.0.0', 'chris')).statusCode.should.equal(200)
+        ;(await request('POST', `/${schema.id}/draft`, 'chris')).statusCode.should.equal(200)
+        ;(await request('DELETE', `/${schema.id}/draft`, 'chris')).statusCode.should.equal(200)
     })
 
     describe('draft', function () {
