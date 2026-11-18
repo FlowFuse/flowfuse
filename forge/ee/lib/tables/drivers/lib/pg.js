@@ -124,11 +124,11 @@ const tableDataTypes = {
 
 /**
  * The name of a table as it goes into a query: escaped, with its schema in front when it has one.
- * @param {{ schema?: string, name: string }} table - The plain, unescaped names of the table and its schema
+ * @param {{ schema?: string, tableName: string }} table - The plain, unescaped names of the table and its schema
  * @returns {string} the escaped, schema qualified table name
  */
-function qualifiedTableName ({ schema, name }) {
-    const escapedName = pg.escapeIdentifier(name)
+function qualifiedTableName ({ schema, tableName }) {
+    const escapedName = pg.escapeIdentifier(tableName)
     return schema ? `${pg.escapeIdentifier(schema)}.${escapedName}` : escapedName
 }
 
@@ -142,7 +142,7 @@ function qualifiedTableName ({ schema, name }) {
  * the only things that would change it: starting part way through the table to join a scan already
  * in progress, and splitting the read across parallel workers. Both are set for this transaction only.
  * @param {pg.Client} client - Client connected to the team database
- * @param {{ schema?: string, name: string }} table - The plain, unescaped names of the table and its schema
+ * @param {{ schema?: string, tableName: string }} table - The plain, unescaped names of the table and its schema
  * @param {number} limit - How many rows to read
  * @param {number} offset - How many rows to skip first
  */
@@ -200,7 +200,7 @@ function invalidSortError (message) {
  * capped table can only be sorted by the first column of its primary key, whose index already
  * holds the rows in that order.
  * @param {pg.Client} client - Client connected to the team database
- * @param {{ schema?: string, name: string }} table - The plain, unescaped names of the table and its schema
+ * @param {{ schema?: string, tableName: string }} table - The plain, unescaped names of the table and its schema
  * @param {{ page?: number, limit?: number, sort?: string, dir?: 'asc'|'desc' }} pagination - 1 based
  * page number and page size, and the column to sort by with its direction (ascending by default)
  * @param {AbortSignal} [signal] - Aborts when the rows are no longer wanted. A query that is running is cancelled

@@ -299,7 +299,7 @@ module.exports = {
                     const schemaRes = await teamClient.query('SELECT "schemaname" FROM "pg_catalog"."pg_tables" WHERE "tablename" = $1 AND "schemaname" != \'pg_catalog\' AND "schemaname" != \'information_schema\' LIMIT 1', [table])
                     resolvedSchema = schemaRes.rows[0]?.schemaname
                 }
-                return await libPg.getTableDataPage(teamClient, { schema: resolvedSchema, name: table }, pagination, signal)
+                return await libPg.getTableDataPage(teamClient, { schema: resolvedSchema, tableName: table }, pagination, signal)
             } finally {
                 stopCancelling()
                 teamClient.end()
