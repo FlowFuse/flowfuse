@@ -113,7 +113,9 @@ export default defineComponent({
             return this.loaderVisible || (!this.openingTable && !!this.selectedTable?.schema)
         },
         columns () {
-            if (!this.selectedTable?.schema) return PLACEHOLDER_COLUMNS
+            if (!this.selectedTable?.schema) {
+                return PLACEHOLDER_COLUMNS
+            }
             return this.selectedTable.schema.map((row) => {
                 return {
                     key: row.safeName,
