@@ -1,6 +1,6 @@
 /**
  * A version of a data schema: the draft (no version number) or a published or deprecated version.
- * A published version is immutable apart from its notes and being deprecated.
+ * A published version is immutable apart from its notes and being deprecated or undeprecated.
  * @namespace forge.db.models.DataSchemaVersion
  */
 
@@ -15,7 +15,8 @@ const LOCKED_FIELDS = ['schema', 'version', 'major', 'minor', 'patch', 'format',
 
 const ALLOWED_STATUS_CHANGES = {
     draft: ['published'],
-    published: ['deprecated']
+    published: ['deprecated'],
+    deprecated: ['published']
 }
 
 const NEWEST_FIRST = [['major', 'DESC'], ['minor', 'DESC'], ['patch', 'DESC']]
