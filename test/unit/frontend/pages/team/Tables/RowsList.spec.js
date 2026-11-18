@@ -245,6 +245,18 @@ describe('RowsList', () => {
             expect(wrapper.find('[data-el="pagination"]').text()).toContain('26–50 of 1284')
         })
 
+        test('says nothing about the size of a table that was counted in full', () => {
+            const wrapper = mountRowsList()
+            expect(wrapper.find('[data-el="table-too-big"]').exists()).toBe(false)
+        })
+
+        test('says when a table is too big to show in full, and marks the total as a minimum', () => {
+            mocks.tablesStore.selectedTable = { schema, payload: { safe: [{ col: 26 }], total: 10000, totalCapped: true } }
+            const wrapper = mountRowsList()
+            expect(wrapper.find('[data-el="pagination"]').text()).toContain('26–50 of 10000+')
+            expect(wrapper.find('[data-el="table-too-big"]').text()).toContain(`only its first ${(10000).toLocaleString()} rows are listed here`)
+        })
+
         test('shows no paging controls when the table fits on one page', () => {
             mocks.tablesStore.page = 1
             mocks.tablesStore.selectedTable = { schema, payload: { safe: [{ col: 1 }], total: 1 } }

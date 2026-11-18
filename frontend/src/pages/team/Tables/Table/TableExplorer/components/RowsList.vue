@@ -24,11 +24,15 @@
             :tabindex="grid.tabStop === null ? 0 : -1"
             @focus.self="onGridFocus" @keydown="onGridKeydown"
         >
+            <p v-if="pagination.totalCapped" class="too-big" data-el="table-too-big">
+                <InformationCircleIcon class="ff-icon ff-icon-sm" aria-hidden="true" />
+                This table is too big to show in full, so only its first {{ pagination.total.toLocaleString() }} rows are listed here.
+            </p>
             <ff-data-table
                 :loading="isLoading" loading-type="skeleton"
                 :columns="columns" :rows="rows"
                 :pagination="pagination"
-                class="h-full"
+                class="rows-table"
                 tableClass="table-auto"
                 @update:page="onPageChange"
                 @update:page-size="onPageSizeChange"
@@ -44,7 +48,7 @@
 </template>
 
 <script>
-import { PlusIcon } from '@heroicons/vue/24/outline'
+import { InformationCircleIcon, PlusIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 import { defineComponent, markRaw } from 'vue'
 
@@ -63,7 +67,7 @@ import { getColumnTypeLabel } from '@/utils/tables/columnTypes.ts'
 
 export default defineComponent({
     name: 'RowsList',
-    components: { EmptyState, PlusIcon },
+    components: { EmptyState, InformationCircleIcon, PlusIcon },
     provide () {
         return { grid: this.grid }
     },
@@ -111,7 +115,8 @@ export default defineComponent({
             return {
                 page: this.page,
                 pageSize: this.pageSize,
-                total: this.selectedTable?.payload?.total ?? 0
+                total: this.selectedTable?.payload?.total ?? 0,
+                totalCapped: this.selectedTable?.payload?.totalCapped ?? false
             }
         }
     },
@@ -223,6 +228,26 @@ export default defineComponent({
             padding: 24px;
             overflow-y: auto;
         }
+    }
+
+    // the grid takes the height the note above it leaves
+    .content {
+        display: flex;
+        flex-direction: column;
+
+        .rows-table {
+            flex: 1;
+            min-height: 0;
+        }
+    }
+
+    .too-big {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 10px;
+        color: var(--ff-color-text-muted);
+        font-size: 0.875rem;
     }
 
     .header {

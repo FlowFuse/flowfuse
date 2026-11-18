@@ -220,6 +220,16 @@ describe('product-tables store', () => {
             expect(table.payload.data).toEqual([{ id: 1, name: 'Alice' }])
             expect(table.payload.safe[0].safe_id).toBe(1)
             expect(table.payload.total).toBe(42)
+            expect(table.payload.totalCapped).toBe(false)
+        })
+
+        it('notes when the table has more rows than were counted', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            tablesApi.getTableData.mockResolvedValue({ count: 10000, capped: true, rows: [{ id: 1 }] })
+            await store.getTableData({ databaseId: 'db-1', tableName: 'users', teamId: 'team-1' })
+            expect(store.tables['db-1'][0].payload.total).toBe(10000)
+            expect(store.tables['db-1'][0].payload.totalCapped).toBe(true)
         })
 
         it('asks for the first page of 25 rows by default', async () => {

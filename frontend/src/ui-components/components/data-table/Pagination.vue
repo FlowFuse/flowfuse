@@ -58,11 +58,14 @@ const props = withDefaults(defineProps<{
     page?: number
     pageSize?: number
     total?: number
+    // there are more rows than the total, which is as many as were counted
+    totalCapped?: boolean
     pageSizeOptions?: number[]
 }>(), {
     page: 1,
     pageSize: 25,
     total: 0,
+    totalCapped: false,
     pageSizeOptions: () => [10, 25, 50, 100]
 })
 
@@ -74,7 +77,7 @@ const summary = computed(() => {
     if (props.total === 0) return '0 of 0'
     const from = (props.page - 1) * props.pageSize + 1
     const to = Math.min(props.total, props.page * props.pageSize)
-    return `${from}–${to} of ${props.total}`
+    return `${from}–${to} of ${props.total}${props.totalCapped ? '+' : ''}`
 })
 
 const pageItems = computed<(number | '...')[]>(() => {
