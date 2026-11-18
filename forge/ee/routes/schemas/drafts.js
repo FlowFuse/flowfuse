@@ -23,6 +23,7 @@ module.exports = async function (app) {
     }
     const noDraft = { code: 'not_found', error: 'This schema has no draft' }
     const noPublishableDraft = { code: 'not_found', error: 'This schema has no draft to publish' }
+    const draftChanged = { code: 'draft_changed', error: 'The draft was published or discarded by another request' }
     const versionExists = (version) => ({ code: 'version_exists', error: `Version ${version} already exists` })
 
     function draftView (draft) {
@@ -120,19 +121,22 @@ module.exports = async function (app) {
             return reply.status(404).send(noDraft)
         }
         const body = request.body || {}
+        const values = {}
         try {
             if (body.schema !== undefined) {
                 checkDocument(body.schema)
-                draft.schema = removeId(body.schema)
+                values.schema = removeId(body.schema)
             }
             if (body.notes !== undefined) {
-                draft.notes = body.notes
+                values.notes = body.notes
             }
-            await draft.save()
+            if (!await app.db.models.DataSchemaVersion.saveDraft(draft.id, values)) {
+                return reply.status(409).send(draftChanged)
+            }
         } catch (err) {
             return sendError(reply, err)
         }
-        reply.send(draftView(draft))
+        reply.send(draftView(await app.db.models.DataSchemaVersion.draftFor(request.dataSchema.id)))
     })
 
     app.delete('/:schemaId/draft', {
@@ -151,7 +155,9 @@ module.exports = async function (app) {
         if (!draft) {
             return reply.status(404).send(noDraft)
         }
-        await draft.destroy()
+        if (!await app.db.models.DataSchemaVersion.discardDraft(draft.id)) {
+            return reply.status(409).send(draftChanged)
+        }
         await app.auditLog.Team.schemas.draft.discarded(request.session.User, null, request.team, request.dataSchema)
         reply.send({ status: 'okay' })
     })
@@ -210,8 +216,7 @@ module.exports = async function (app) {
                 publishedById: request.session.User?.id ?? null
             })
             if (!published) {
-                // Another request published this draft first
-                return reply.status(404).send(noPublishableDraft)
+                return reply.status(409).send(draftChanged)
             }
         } catch (err) {
             if (err.name === 'SequelizeUniqueConstraintError') {

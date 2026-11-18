@@ -1,4 +1,5 @@
 const should = require('should')
+const sinon = require('sinon')
 
 const setup = require('../../setup')
 
@@ -274,6 +275,30 @@ describe('Data Schemas API - draft and publish', function () {
             const versions = (await request('GET', `/${schema.id}`, 'bob')).json().versions
             versions.should.have.length(1)
             versions[0].status.should.equal('published')
+        })
+
+        it('does not save or discard a draft published after it was loaded', async function () {
+            const schema = await createSchema({ schema: { type: 'string' } })
+            const dbSchema = await app.db.models.DataSchema.byId(schema.id)
+            const stale = await app.db.models.DataSchemaVersion.draftFor(dbSchema.id)
+            ;(await publish(schema, '1.0.0')).statusCode.should.equal(200)
+
+            const draftFor = sinon.stub(app.db.models.DataSchemaVersion, 'draftFor').resolves(stale)
+            try {
+                const saved = await request('PUT', `/${schema.id}/draft`, 'bob', { schema: { type: 'number' }, notes: 'x' })
+                saved.statusCode.should.equal(409)
+                saved.json().code.should.equal('draft_changed')
+                const discarded = await request('DELETE', `/${schema.id}/draft`, 'bob')
+                discarded.statusCode.should.equal(409)
+                discarded.json().code.should.equal('draft_changed')
+            } finally {
+                draftFor.restore()
+            }
+
+            const published = await app.db.models.DataSchemaVersion.byVersion(dbSchema.id, '1.0.0')
+            published.status.should.equal('published')
+            published.schema.type.should.equal('string')
+            should.not.exist(published.notes)
         })
     })
 })
