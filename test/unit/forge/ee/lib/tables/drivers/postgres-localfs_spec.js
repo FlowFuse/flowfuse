@@ -442,6 +442,29 @@ describe('Tables: Postgres LocalFS Driver', function () {
             query.calledWith(countQuery).should.be.false()
             query.calledWith(rowsQuery).should.be.false()
         })
+        it('should not read the rows for a request given up on while they were being counted', async function () {
+            const query = setup({ total: 42 })
+            const controller = new AbortController()
+            // the count ends before the cancel reaches it, so it is not the count that fails
+            query.withArgs(countQuery).callsFake(async () => {
+                controller.abort()
+                return { rows: [{ total: 42 }] }
+            })
+            await driver.init(app, options)
+            await driver.getTableData(team, team.hashid, 'table1', {}, undefined, controller.signal).should.be.rejected()
+            query.calledWith(rowsQuery).should.be.false()
+        })
+        it('should not count the rows for a request given up on while the table was being looked up', async function () {
+            const query = setup()
+            const controller = new AbortController()
+            query.withArgs(pkQuery).callsFake(async () => {
+                controller.abort()
+                return { rows: [{ attname: 'id' }] }
+            })
+            await driver.init(app, options)
+            await driver.getTableData(team, team.hashid, 'table1', {}, undefined, controller.signal).should.be.rejected()
+            query.calledWith(countQuery).should.be.false()
+        })
         it('should cancel nothing once the rows have been read', async function () {
             const query = setup()
             const controller = new AbortController()
