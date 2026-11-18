@@ -135,6 +135,8 @@ export default defineComponent({
     },
     watch: {
         tableSelection (table) {
+            // the rows of the table that was showing are no longer wanted
+            this.cancelTableData()
             if (!table) {
                 this.setTableLoadingState(false)
                 return
@@ -146,12 +148,18 @@ export default defineComponent({
                 tableName: table.name,
                 schemaName: table.dbSchema
             })
-                .then(() => this.getTableData({
-                    teamId: this.team.id,
-                    databaseId: this.$route.params.id,
-                    tableName: table.name,
-                    schemaName: table.dbSchema
-                }))
+                .then(() => {
+                    // another table picked in the meantime loads its own rows
+                    if (this.tableSelection !== table) {
+                        return
+                    }
+                    return this.getTableData({
+                        teamId: this.team.id,
+                        databaseId: this.$route.params.id,
+                        tableName: table.name,
+                        schemaName: table.dbSchema
+                    })
+                })
                 .catch(e => e)
                 .finally(() => {
                     // a table picked in the meantime is still loading, so leave the state to it
@@ -160,11 +168,12 @@ export default defineComponent({
         }
     },
     beforeUnmount () {
+        this.cancelTableData()
         this.setShowOriginalValues(false)
         this.updateTableSelection(null)
     },
     methods: {
-        ...mapActions(useProductTablesStore, ['getTableSchema', 'getTableData', 'updateTableSelection', 'setPage', 'setPageSize', 'setSort', 'setShowOriginalValues', 'setTableLoadingState']),
+        ...mapActions(useProductTablesStore, ['getTableSchema', 'getTableData', 'cancelTableData', 'updateTableSelection', 'setPage', 'setPageSize', 'setSort', 'setShowOriginalValues', 'setTableLoadingState']),
         ...mapActions(useUxDrawersStore, ['openRightDrawer']),
         onCreateTable () {
             this.openRightDrawer({

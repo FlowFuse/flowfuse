@@ -498,6 +498,61 @@ describe('Tables: Postgres Supavisor Driver', function () {
             await driver.getTableData(team, team.hashid, 'table1', { limit: 5 })
             query.calledWith('SELECT * FROM "public"."table1" ORDER BY "line", "machine" LIMIT $1 OFFSET $2', [5, 0]).should.be.true()
         })
+        it('should cancel the query in the database when the request is given up on', async function () {
+            const query = setup()
+            pgClients[team.hashid].processID = 4242
+            const controller = new AbortController()
+            // the rows are still being read when the request is given up on, and the read fails once it is cancelled
+            query.withArgs(rowsQuery).callsFake(async () => {
+                controller.abort()
+                await new Promise(resolve => setImmediate(resolve))
+                throw new Error('canceling statement due to user request')
+            })
+            await driver.init(app, options)
+            await driver.getTableData(team, team.hashid, 'table1', {}, undefined, controller.signal).should.be.rejectedWith(/canceling statement/)
+            query.calledWith('SELECT pg_cancel_backend($1)', [4242]).should.be.true()
+        })
+        it('should not read a table for a request given up on before the database was reached', async function () {
+            const query = setup()
+            const controller = new AbortController()
+            pgClients[team.hashid].connect.callsFake(async () => controller.abort())
+            await driver.init(app, options)
+            await driver.getTableData(team, team.hashid, 'table1', {}, undefined, controller.signal).should.be.rejected()
+            query.calledWith(countQuery).should.be.false()
+            query.calledWith(rowsQuery).should.be.false()
+        })
+        it('should not read the rows for a request given up on while they were being counted', async function () {
+            const query = setup({ total: 42 })
+            const controller = new AbortController()
+            // the count ends before the cancel reaches it, so it is not the count that fails
+            query.withArgs(countQuery).callsFake(async () => {
+                controller.abort()
+                return { rows: [{ total: 42 }] }
+            })
+            await driver.init(app, options)
+            await driver.getTableData(team, team.hashid, 'table1', {}, undefined, controller.signal).should.be.rejected()
+            query.calledWith(rowsQuery).should.be.false()
+        })
+        it('should not count the rows for a request given up on while the table was being looked up', async function () {
+            const query = setup()
+            const controller = new AbortController()
+            query.withArgs(pkQuery).callsFake(async () => {
+                controller.abort()
+                return { rows: [{ attname: 'id' }] }
+            })
+            await driver.init(app, options)
+            await driver.getTableData(team, team.hashid, 'table1', {}, undefined, controller.signal).should.be.rejected()
+            query.calledWith(countQuery).should.be.false()
+        })
+        it('should cancel nothing once the rows have been read', async function () {
+            const query = setup()
+            const controller = new AbortController()
+            await driver.init(app, options)
+            await driver.getTableData(team, team.hashid, 'table1', {}, undefined, controller.signal)
+            controller.abort()
+            await new Promise(resolve => setImmediate(resolve))
+            query.calledWith('SELECT pg_cancel_backend($1)').should.be.false()
+        })
         it('should read the rows as they are stored, without sorting them, when the table has no primary key', async function () {
             const query = setup({ primaryKey: [], total: 42 })
             await driver.init(app, options)

@@ -21,9 +21,9 @@ const getTableSchema = (teamId, databaseId, tableName, schemaName) => {
         .then(res => res.data)
 }
 
-const getTableData = (teamId, databaseId, tableName, schemaName, { page, limit, sort, dir } = {}) => {
+const getTableData = (teamId, databaseId, tableName, schemaName, { page, limit, sort, dir, signal } = {}) => {
     const suffix = schemaName ? `/${schemaName}` : ''
-    return client.get(`/api/v1/teams/${teamId}/databases/${databaseId}/tables/${tableName}/data${suffix}`, { params: { page, limit, sort, dir } })
+    return client.get(`/api/v1/teams/${teamId}/databases/${databaseId}/tables/${tableName}/data${suffix}`, { params: { page, limit, sort, dir }, signal })
         .then(res => res.data)
 }
 

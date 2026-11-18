@@ -528,9 +528,14 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         try {
-            const data = await app.tables.getTableData(request.team, request.params.databaseId, request.params.tableName, paginationOptions, request.params.schemaName)
+            // the signal aborts when the browser gives up on the request, which stops the read in the database
+            const data = await app.tables.getTableData(request.team, request.params.databaseId, request.params.tableName, paginationOptions, request.params.schemaName, request.signal)
             reply.send(data)
         } catch (err) {
+            // the read was stopped because nobody is waiting for it, so there is nothing to report
+            if (request.signal.aborted) {
+                return reply.code(499).send()
+            }
             // a column that does not exist or cannot be put in order is a mistake in the request
             if (err.code === 'invalid_sort') {
                 return reply.status(400).send({ code: err.code, error: err.message })

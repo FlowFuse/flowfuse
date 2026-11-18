@@ -31,6 +31,38 @@ async function dropTeamDatabase (adminClient, hashid) {
     await adminClient.query(`DROP USER IF EXISTS ${pg.escapeIdentifier(hashid)}`)
     await adminClient.query(`DROP ROLE IF EXISTS ${pg.escapeIdentifier(hashid + '-role')}`)
 }
+
+/**
+ * Cancels whatever query a client is running once the signal aborts, so that a read nobody is
+ * waiting for any more stops using the database rather than running to its end.
+ *
+ * Closing the client's connection is not enough: Postgres only notices that when it comes to send
+ * the result. So a second, short lived connection asks Postgres to cancel the first one's query,
+ * which then fails with "canceling statement due to user request".
+ * @param {pg.Client} client - The client whose query is to be cancelled
+ * @param {AbortSignal} [signal] - Aborts when the work is no longer wanted. Nothing is done without one
+ * @param {pg.ClientConfig} databaseOptions - Options to connect to the same database as the client
+ * @returns {Function} to be called once the client is finished with, so nothing is cancelled after that
+ */
+function cancelOnAbort (client, signal, databaseOptions) {
+    if (!signal) {
+        return () => {}
+    }
+    const cancel = async () => {
+        const canceller = newClient(databaseOptions)
+        try {
+            await canceller.connect()
+            await canceller.query('SELECT pg_cancel_backend($1)', [client.processID])
+        } catch (err) {
+            // the query carries on until it ends or times out, as it did before it could be cancelled
+        } finally {
+            canceller.end().catch(() => {})
+        }
+    }
+    signal.addEventListener('abort', cancel, { once: true })
+    return () => signal.removeEventListener('abort', cancel)
+}
+
 // How many bytes of a binary value are sent as its preview
 const BINARY_PREVIEW_BYTES = 32
 
@@ -161,10 +193,12 @@ function invalidSortError (message) {
  * @param {string} qualifiedTable - The escaped, schema qualified table name
  * @param {{ page?: number, limit?: number, sort?: string, dir?: 'asc'|'desc' }} pagination - 1 based
  * page number and page size, and the column to sort by with its direction (ascending by default)
+ * @param {AbortSignal} [signal] - Aborts when the rows are no longer wanted. A query that is running is cancelled
+ * by cancelOnAbort, and the checks here stop the next one from starting when the cancel came between two of them
  * @throws an invalid sort error (see invalidSortError) when the column does not exist, cannot be put in order,
  * or the table is too big to be sorted by it
  */
-async function getTableDataPage (client, qualifiedTable, pagination = {}) {
+async function getTableDataPage (client, qualifiedTable, pagination = {}, signal) {
     const pageSize = Math.min(Math.max(parseInt(pagination.limit) || DEFAULT_PAGE_SIZE, 1), MAX_PAGE_SIZE)
     const page = Math.max(parseInt(pagination.page) || 1, 1)
 
@@ -181,6 +215,7 @@ async function getTableDataPage (client, qualifiedTable, pagination = {}) {
         orderBy = `${pg.escapeIdentifier(sort)} ${pagination.dir === 'desc' ? 'DESC' : 'ASC'}, ${orderBy}`
     }
 
+    signal?.throwIfAborted()
     // one row more than the most that are counted, to tell a table of exactly that many rows from a bigger one
     const countRes = await client.query(`SELECT count(*) AS total FROM (SELECT 1 FROM ${qualifiedTable} LIMIT $1) AS counted`, [MAX_COUNTED_ROWS + 1])
     const capped = Number(countRes.rows[0].total) > MAX_COUNTED_ROWS
@@ -189,6 +224,7 @@ async function getTableDataPage (client, qualifiedTable, pagination = {}) {
         throw invalidSortError(`The table has too many rows to be sorted by "${sort}"`)
     }
 
+    signal?.throwIfAborted()
     // a page past the rows that were counted is empty, and reading that deep into a table is slow
     const offset = (page - 1) * pageSize
     let rows = []
@@ -222,6 +258,7 @@ async function getTableDataPage (client, qualifiedTable, pagination = {}) {
 module.exports = {
     newClient,
     dropTeamDatabase,
+    cancelOnAbort,
     getTableDataPage,
     invalidSortError,
     tableDataTypes,
