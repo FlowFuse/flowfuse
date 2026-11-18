@@ -184,7 +184,9 @@ export default defineComponent({
             })
                 .then(() => {
                     // another table picked in the meantime loads its own rows
-                    if (this.tableSelection !== table) return
+                    if (this.tableSelection !== table) {
+                        return
+                    }
                     return this.getTableData({
                         teamId: this.team.id,
                         databaseId: this.$route.params.id,
