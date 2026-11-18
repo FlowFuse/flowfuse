@@ -31,6 +31,12 @@ describe('Schema version rules', function () {
             isValidVersion('1.02.0').should.be.false()
         })
 
+        it('rejects a part larger than a 32-bit integer', function () {
+            isValidVersion('2147483647.2147483647.2147483647').should.be.true()
+            isValidVersion('2147483648.0.0').should.be.false()
+            isValidVersion('1.0.2147483648').should.be.false()
+        })
+
         it('rejects anything that is not a string', function () {
             isValidVersion(undefined).should.be.false()
             isValidVersion(null).should.be.false()
