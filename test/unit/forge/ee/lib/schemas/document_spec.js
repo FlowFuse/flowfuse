@@ -124,19 +124,23 @@ describe('Schema document checks', function () {
             checkDocument({ const: { $defs: 1 } }).problems.should.eql([])
         })
 
-        it('reports patterns with nested repetition', function () {
-            const { problems } = checkDocument({
-                type: 'object',
-                properties: { name: { type: 'string', pattern: '^(a+)+$' } },
-                patternProperties: { '^(x+x+)+y$': { type: 'string' } }
-            })
-            problems.map(p => p.path).sort().should.eql(['/patternProperties/^(x+x+)+y$', '/properties/name/pattern'])
+        it('accepts patterns with nested repetition', function () {
+            checkDocument({ type: 'string', pattern: '^(a+)+$' }).problems.should.eql([])
+            checkDocument({ type: 'string', pattern: '^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$' }).problems.should.eql([])
         })
 
-        it('leaves a pattern that does not compile to the compiler', function () {
-            const { problems } = checkDocument({ type: 'string', pattern: '([a-z]' })
-            problems.should.have.length(1)
-            problems[0].message.should.not.match(/too long to match/)
+        it('reports patterns RE2 cannot run, with their path', function () {
+            const { problems } = checkDocument({
+                type: 'object',
+                properties: { name: { type: 'string', pattern: '(?<=a)b' } },
+                patternProperties: { '^(x)\\1$': { type: 'string' } }
+            })
+            problems.map(p => p.path).sort().should.eql(['/patternProperties/^(x)\\1$', '/properties/name/pattern'])
+            problems[0].message.should.match(/lookaround or backreferences/)
+        })
+
+        it('reports a pattern that does not compile', function () {
+            checkDocument({ type: 'string', pattern: '([a-z]' }).problems.should.have.length(1)
         })
 
         it('rejects a document nested deeper than the limit', function () {
@@ -197,8 +201,16 @@ describe('Schema document checks', function () {
             validatePayload(doc, { value: 1, sensor: 'a-1' }).valid.should.be.true()
         })
 
+        it('matches patterns in linear time', function () {
+            const doc = { type: 'object', properties: { a: { type: 'string', pattern: '.*.*.*x$' } }, patternProperties: { '^(b+)+$': { type: 'number' } } }
+            const started = Date.now()
+            const result = validatePayload(doc, { a: 'a'.repeat(100000), [`${'b'.repeat(1000)}!`]: 'skipped', bbbb: 'not a number' })
+            ;(Date.now() - started).should.be.below(1000)
+            result.errors.map(e => [e.path, e.keyword]).should.eql([['/a', 'pattern'], ['/bbbb', 'type']])
+        })
+
         it('refuses a document with problems', function () {
-            rejectedWith(() => validatePayload({ type: 'string', pattern: '^(a+)+$' }, 'aaaa'), 'invalid_schema', '/pattern')
+            rejectedWith(() => validatePayload({ type: 'string', pattern: '(?=a)' }, 'aaaa'), 'invalid_schema', '/pattern')
             rejectedWith(() => validatePayload({ type: 'numbr' }, 1), 'invalid_schema')
         })
 

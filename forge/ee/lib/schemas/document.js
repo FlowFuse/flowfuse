@@ -1,6 +1,6 @@
 const Ajv2020 = require('ajv/dist/2020')
 const addFormats = require('ajv-formats')
-const safeRegex = require('safe-regex2')
+const { RE2JS } = require('re2js')
 
 const SCHEMA_DIALECT = 'https://json-schema.org/draft/2020-12/schema'
 
@@ -123,20 +123,28 @@ function walkSchema (schema, path, visit) {
 }
 
 /**
- * Screen a regex for nested repetition that can take exponential time to match.
- * Patterns that do not compile are left to AJV, which reports them.
+ * Patterns run on RE2, which matches in linear time, so no pattern can stall validation.
+ * RE2 has no lookaround or backreferences.
+ * @returns {string | null} why the pattern cannot be used, or null when it can
  */
-function isSafePattern (pattern) {
-    let regex
+function patternProblem (pattern) {
     try {
-        regex = new RegExp(pattern, 'u')
+        RE2JS.compile(pattern)
+        return null
     } catch (err) {
-        return true
+        return `${err.message}; patterns cannot use lookaround or backreferences`
     }
-    return safeRegex(regex)
 }
 
-const UNSAFE_PATTERN_MESSAGE = 'This pattern can take too long to match; avoid nesting repetition such as (a+)+'
+// AJV calls this for every `pattern` and `patternProperties` key in place of `new RegExp`.
+// AJV caches compiled patterns by `toString()`, so it must differ per pattern.
+function re2RegExp (pattern) {
+    const regex = RE2JS.compile(pattern)
+    return {
+        test: (value) => regex.matcher(value).find(),
+        toString: () => `/${pattern}/`
+    }
+}
 
 function createAjv () {
     // A new instance per compile, so a document's $id never clashes with one compiled earlier
@@ -144,7 +152,8 @@ function createAjv () {
         allErrors: true,
         strictTypes: false,
         strictTuples: false,
-        logger: false
+        logger: false,
+        code: { regExp: re2RegExp }
     })
     addFormats(ajv)
     for (const keyword of ANNOTATION_KEYWORDS) {
@@ -169,6 +178,7 @@ function checkDocument (doc) {
     checkLimits(doc)
 
     const problems = []
+    // Problems that stop the document reaching AJV, which would report them again
     let unsupported = false
     walkSchema(doc, '', (schema, path) => {
         for (const keyword of Object.keys(schema)) {
@@ -183,13 +193,19 @@ function checkDocument (doc) {
                 problems.push({ path: `${path}/${escapePointer(keyword)}`, message: `${keyword} is not a supported keyword` })
             }
         }
-        if (typeof schema.pattern === 'string' && !isSafePattern(schema.pattern)) {
-            problems.push({ path: `${path}/pattern`, message: UNSAFE_PATTERN_MESSAGE })
+        if (typeof schema.pattern === 'string') {
+            const message = patternProblem(schema.pattern)
+            if (message) {
+                unsupported = true
+                problems.push({ path: `${path}/pattern`, message })
+            }
         }
         if (isPlainObject(schema.patternProperties)) {
             for (const pattern of Object.keys(schema.patternProperties)) {
-                if (!isSafePattern(pattern)) {
-                    problems.push({ path: `${path}/patternProperties/${escapePointer(pattern)}`, message: UNSAFE_PATTERN_MESSAGE })
+                const message = patternProblem(pattern)
+                if (message) {
+                    unsupported = true
+                    problems.push({ path: `${path}/patternProperties/${escapePointer(pattern)}`, message })
                 }
             }
         }
