@@ -5,6 +5,8 @@ const {
     MAX_DOCUMENT_BYTES,
     MAX_DOCUMENT_DEPTH,
     MAX_PAYLOAD_BYTES,
+    MAX_PAYLOAD_DEPTH,
+    MAX_VALIDATION_ERRORS,
     SchemaDocumentError,
     checkDocument,
     removeId,
@@ -16,7 +18,7 @@ const temperature = {
     $schema: SCHEMA_DIALECT,
     type: 'object',
     properties: {
-        value: { type: 'number', unit: 'celsius' },
+        value: { type: 'number', unit: 'Cel' },
         sensor: { type: 'string', pattern: '^[a-z]+-[0-9]+$' },
         readAt: { type: 'string', format: 'date-time' }
     },
@@ -58,10 +60,10 @@ describe('Schema document checks', function () {
             checkDocument(doc).problems.should.eql([])
         })
 
-        it('reports a document that is not an object', function () {
-            checkDocument([]).problems.should.eql([{ path: '', message: 'The schema must be a JSON object' }])
-            checkDocument('string').problems.should.have.length(1)
-            checkDocument(true).problems.should.have.length(1)
+        it('rejects a document that is not an object', function () {
+            for (const doc of [[], 'string', true, null]) {
+                rejectedWith(() => checkDocument(doc), 'invalid_schema')
+            }
         })
 
         it('reports a $schema other than 2020-12', function () {
@@ -78,8 +80,12 @@ describe('Schema document checks', function () {
 
         it('reports an unknown keyword', function () {
             const { problems } = checkDocument({ type: 'string', minLenght: 2 })
-            problems.should.have.length(1)
-            problems[0].message.should.match(/minLenght/)
+            problems.should.eql([{ path: '/minLenght', message: 'minLenght is not a supported keyword' }])
+        })
+
+        it('reports keywords from older drafts, without looking inside them', function () {
+            checkDocument({ dependencies: { a: { $ref: '#' } } }).problems.map(p => p.path).should.eql(['/dependencies'])
+            checkDocument({ properties: { a: { additionalItems: false } } }).problems.map(p => p.path).should.eql(['/properties/a/additionalItems'])
         })
 
         it('reports an unknown format', function () {
@@ -89,6 +95,19 @@ describe('Schema document checks', function () {
         it('accepts the unit annotation only as a string', function () {
             checkDocument({ type: 'number', unit: 'kPa' }).problems.should.eql([])
             checkDocument({ type: 'number', unit: 5 }).problems.should.have.length(1)
+        })
+
+        it('rejects every reference keyword, including those from older drafts', function () {
+            rejectedWith(() => checkDocument({ properties: { a: { $recursiveRef: '#' } } }), 'references_not_supported', '/properties/a/$recursiveRef')
+            rejectedWith(() => checkDocument({ definitions: { a: { type: 'string' } } }), 'references_not_supported', '/definitions')
+            rejectedWith(() => checkDocument({ allOf: [{ $anchor: 'a' }] }), 'references_not_supported', '/allOf/0/$anchor')
+            rejectedWith(() => checkDocument({ $dynamicAnchor: 'a' }), 'references_not_supported', '/$dynamicAnchor')
+        })
+
+        it('accepts $id and $schema only at the top level', function () {
+            checkDocument({ $id: 'https://example.com/a', type: 'string' }).problems.should.eql([])
+            rejectedWith(() => checkDocument({ properties: { a: { $id: 'urn:flowfuse:schema:other:1.0.0' } } }), 'references_not_supported', '/properties/a/$id')
+            checkDocument({ properties: { a: { $schema: SCHEMA_DIALECT } } }).problems.map(p => p.path).should.eql(['/properties/a/$schema'])
         })
 
         it('rejects $ref, $dynamicRef and $defs wherever a subschema is', function () {
@@ -185,6 +204,26 @@ describe('Schema document checks', function () {
 
         it('refuses a payload larger than the limit', function () {
             rejectedWith(() => validatePayload({ type: 'string' }, 'x'.repeat(MAX_PAYLOAD_BYTES)), 'payload_too_large')
+        })
+
+        it('refuses a payload nested deeper than the limit', function () {
+            let payload = 1
+            for (let i = 0; i < 20000; i++) {
+                payload = [payload]
+            }
+            rejectedWith(() => validatePayload({}, payload), 'payload_too_deep')
+
+            payload = 1
+            for (let i = 1; i < MAX_PAYLOAD_DEPTH; i++) {
+                payload = [payload]
+            }
+            validatePayload({}, payload).valid.should.be.true()
+        })
+
+        it('returns at most the error limit', function () {
+            const result = validatePayload({ type: 'array', items: { type: 'string' } }, new Array(1000).fill(1))
+            result.valid.should.be.false()
+            result.errors.should.have.length(MAX_VALIDATION_ERRORS)
         })
     })
 })
