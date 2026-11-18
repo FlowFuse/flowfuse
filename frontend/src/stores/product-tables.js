@@ -135,18 +135,24 @@ export const useProductTablesStore = defineStore('product-tables', {
             const fetchPage = () => tablesApi.getTableData(teamId, databaseId, tableName, schemaName, { page, limit: pageSize, sort: sort?.column, dir: sort?.dir, signal })
                 .catch(err => {
                     // a dropped request has no rows to show and is not a failure
-                    if (signal.aborted) return null
+                    if (signal.aborted) {
+                        return null
+                    }
                     throw err
                 })
             try {
                 let res = await fetchPage()
-                if (!res || isStale()) return
+                if (!res || isStale()) {
+                    return
+                }
                 const lastPage = Math.max(1, Math.ceil(res.count / pageSize))
                 if (page > lastPage) {
                     // the table shrank and this page is gone, so fall back to the last one
                     page = this.page = lastPage
                     res = await fetchPage()
-                    if (!res || isStale()) return
+                    if (!res || isStale()) {
+                        return
+                    }
                 }
                 const { rows: data, count: total } = res
                 const payload = {
@@ -164,7 +170,9 @@ export const useProductTablesStore = defineStore('product-tables', {
                     }
                 })
             } finally {
-                if (tableDataRequest === request) tableDataRequest = null
+                if (tableDataRequest === request) {
+                    tableDataRequest = null
+                }
             }
         },
         async createTable ({ databaseId }) {
