@@ -21,6 +21,17 @@ const ALLOWED_STATUS_CHANGES = {
 
 const NEWEST_FIRST = [['major', 'DESC'], ['minor', 'DESC'], ['patch', 'DESC']]
 
+function versionParts (version) {
+    return isValidVersion(version) ? version.split('.').map(Number) : [null, null, null]
+}
+
+function setVersionParts (row) {
+    const [major, minor, patch] = versionParts(row.getDataValue('version'))
+    row.setDataValue('major', major)
+    row.setDataValue('minor', minor)
+    row.setDataValue('patch', patch)
+}
+
 function versionError (message) {
     const err = new Error(message)
     err.code = 'invalid_schema_version'
@@ -34,12 +45,9 @@ module.exports = {
             type: DataTypes.STRING,
             allowNull: true,
             set (value) {
-                // major, minor and patch are set here rather than in a hook, so `update({ version })` saves them too
+                // major, minor and patch are set here as well as in beforeValidate, so `update({ version })` saves them too
                 this.setDataValue('version', value)
-                const [major, minor, patch] = isValidVersion(value) ? value.split('.').map(Number) : [null, null, null]
-                this.setDataValue('major', major)
-                this.setDataValue('minor', minor)
-                this.setDataValue('patch', patch)
+                setVersionParts(this)
             }
         },
         major: { type: DataTypes.INTEGER, allowNull: true },
@@ -84,6 +92,8 @@ module.exports = {
     hooks: function (M) {
         return {
             beforeValidate: (row) => {
+                // Always derived from version, so a major, minor or patch passed alongside it cannot disagree
+                setVersionParts(row)
                 if (row.status === 'draft') {
                     if (row.version !== null && row.version !== undefined) {
                         throw versionError('A draft cannot have a version')
