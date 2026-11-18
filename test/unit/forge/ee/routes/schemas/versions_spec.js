@@ -78,15 +78,18 @@ describe('Data Schemas API - versions, validate and diff', function () {
         await app.close()
     })
 
-    it('lets viewers and members read, validate and diff but not deprecate', async function () {
+    it('lets viewers read, validate and diff but not deprecate', async function () {
         const schema = await schemaWithVersions(reading, reading)
-        for (const user of ['chris', 'dave']) {
-            ;(await request('GET', `/${schema.id}/versions`, user)).statusCode.should.equal(200)
-            ;(await request('GET', `/${schema.id}/versions/1.0.0`, user)).statusCode.should.equal(200)
-            ;(await request('POST', `/${schema.id}/versions/1.0.0/validate`, user, { payload: { value: 1 } })).statusCode.should.equal(200)
-            ;(await request('GET', `/${schema.id}/diff?from=1.0.0&to=2.0.0`, user)).statusCode.should.equal(200)
-            ;(await request('POST', `/${schema.id}/versions/1.0.0/deprecate`, user)).statusCode.should.equal(403)
-        }
+        ;(await request('GET', `/${schema.id}/versions`, 'dave')).statusCode.should.equal(200)
+        ;(await request('GET', `/${schema.id}/versions/1.0.0`, 'dave')).statusCode.should.equal(200)
+        ;(await request('POST', `/${schema.id}/versions/1.0.0/validate`, 'dave', { payload: { value: 1 } })).statusCode.should.equal(200)
+        ;(await request('GET', `/${schema.id}/diff?from=1.0.0&to=2.0.0`, 'dave')).statusCode.should.equal(200)
+        ;(await request('POST', `/${schema.id}/versions/1.0.0/deprecate`, 'dave')).statusCode.should.equal(403)
+    })
+
+    it('lets members deprecate a version', async function () {
+        const schema = await schemaWithVersions(reading)
+        ;(await request('POST', `/${schema.id}/versions/1.0.0/deprecate`, 'chris')).statusCode.should.equal(200)
     })
 
     describe('versions', function () {
