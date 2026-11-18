@@ -14,7 +14,7 @@
                 <FormRow v-model="version" placeholder="x.y.z" data-form="version" :error="error">
                     Version
                     <template #description>
-                        <template v-if="latestVersion">Latest published version is {{ latestVersion }}. The new version must be higher.</template>
+                        <template v-if="latestVersion">Latest version is {{ latestVersion }}. The new version must be higher.</template>
                         <template v-else>Use a plain major.minor.patch version, e.g. 1.0.0.</template>
                     </template>
                 </FormRow>
@@ -53,7 +53,7 @@ const error = ref('')
 
 watch(version, () => {
     error.value = ''
-    // @TODO-SCHEMAS: WHEN version IS NOT EMPTY, SET error FROM checkNewVersion(version, existingVersions) IN forge/lib/schemas/version.js (#9242), IMPORTED DIRECTLY LIKE forge/lib/permissions.js; existingVersions COMES FROM A data-farm-schemas STORE ACTION BACKED BY GET /api/v1/teams/:teamId/schemas/:schemaId/versions (#9228)
+    // @TODO-SCHEMAS: WHEN version IS NOT EMPTY, SET error FROM checkNewVersion(version, existingVersions) IN forge/lib/schemas/version.js (#9242), IMPORTED DIRECTLY LIKE forge/lib/permissions.js; existingVersions IS EVERY NON-DRAFT VERSION (DEPRECATED INCLUDED) FROM THE versions LIST THAT loadActiveSchema ALREADY FETCHES
 })
 
 function show () {
