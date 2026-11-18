@@ -90,6 +90,32 @@ const tableDataTypes = {
     getTypeParser: (oid, format) => tableDataParsers[oid] ?? pg.types.getTypeParser(oid, format)
 }
 
+/**
+ * Reads rows of a table that has no primary key, in the order they are physically stored.
+ *
+ * `ORDER BY ctid` gives that order too, but Postgres has no index on ctid, so it reads and sorts the
+ * whole table to return even the first few rows. Reading the table from its start with no ORDER BY
+ * returns the same rows in the same order and stops as soon as it has enough of them. That order is
+ * how Postgres reads a table rather than something SQL promises, so the two settings below turn off
+ * the only things that would change it: starting part way through the table to join a scan already
+ * in progress, and splitting the read across parallel workers. Both are set for this transaction only.
+ * @param {pg.Client} client - Client connected to the team database
+ * @param {string} qualifiedTable - The escaped, schema qualified table name
+ * @param {number} limit - How many rows to read
+ * @param {number} offset - How many rows to skip first
+ */
+async function getRowsInPhysicalOrder (client, qualifiedTable, limit, offset) {
+    await client.query('BEGIN')
+    try {
+        await client.query('SET LOCAL synchronize_seqscans = off')
+        await client.query('SET LOCAL max_parallel_workers_per_gather = 0')
+        return (await client.query(`SELECT * FROM ${qualifiedTable} LIMIT $1 OFFSET $2`, [limit, offset])).rows
+    } finally {
+        // nothing was written, so there is nothing to commit
+        await client.query('ROLLBACK')
+    }
+}
+
 const DEFAULT_PAGE_SIZE = 10
 const MAX_PAGE_SIZE = 100
 // the most rows that are counted, and so the most that can be paged through
@@ -106,8 +132,7 @@ const MAX_COUNTED_ROWS = 10000
  * by any column.
  *
  * Rows are ordered by the primary key when there is one, otherwise by their physical
- * position (ctid), so that walking the pages of an unchanged table never repeats or
- * skips a row.
+ * position, so that walking the pages of an unchanged table never repeats or skips a row.
  *
  * Counting every row means reading the whole table, which on a big one takes far longer than
  * fetching the page itself. So the count stops at MAX_COUNTED_ROWS: a table with more rows than
@@ -121,7 +146,7 @@ async function getTableDataPage (client, qualifiedTable, pagination = {}) {
     const page = Math.max(parseInt(pagination.page) || 1, 1)
 
     const pkRes = await client.query('SELECT a.attname FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) WHERE i.indrelid = $1::regclass AND i.indisprimary ORDER BY array_position(i.indkey, a.attnum)', [qualifiedTable])
-    const orderBy = pkRes.rows.length > 0 ? pkRes.rows.map(row => pg.escapeIdentifier(row.attname)).join(', ') : 'ctid'
+    const primaryKey = pkRes.rows.map(row => pg.escapeIdentifier(row.attname))
 
     // one row more than the most that are counted, to tell a table of exactly that many rows from a bigger one
     const countRes = await client.query(`SELECT count(*) AS total FROM (SELECT 1 FROM ${qualifiedTable} LIMIT $1) AS counted`, [MAX_COUNTED_ROWS + 1])
@@ -130,9 +155,12 @@ async function getTableDataPage (client, qualifiedTable, pagination = {}) {
 
     // a page past the rows that were counted is empty, and reading that deep into a table is slow
     const offset = (page - 1) * pageSize
-    const rows = offset < total
-        ? (await client.query(`SELECT * FROM ${qualifiedTable} ORDER BY ${orderBy} LIMIT $1 OFFSET $2`, [pageSize, offset])).rows
-        : []
+    let rows = []
+    if (offset < total && primaryKey.length > 0) {
+        rows = (await client.query(`SELECT * FROM ${qualifiedTable} ORDER BY ${primaryKey.join(', ')} LIMIT $1 OFFSET $2`, [pageSize, offset])).rows
+    } else if (offset < total) {
+        rows = await getRowsInPhysicalOrder(client, qualifiedTable, pageSize, offset)
+    }
     return {
         count: total,
         capped,

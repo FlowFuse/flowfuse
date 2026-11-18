@@ -419,11 +419,28 @@ describe('Tables: Postgres LocalFS Driver', function () {
             await driver.getTableData(team, team.hashid, 'table1', { limit: 5 })
             query.calledWith('SELECT * FROM "public"."table1" ORDER BY "line", "machine" LIMIT $1 OFFSET $2', [5, 0]).should.be.true()
         })
-        it('should order by physical row position when the table has no primary key', async function () {
-            const query = setup({ primaryKey: [] })
+        it('should read the rows as they are stored, without sorting them, when the table has no primary key', async function () {
+            const query = setup({ primaryKey: [], total: 42 })
             await driver.init(app, options)
-            await driver.getTableData(team, team.hashid, 'table1', { limit: 5 })
-            query.calledWith('SELECT * FROM "public"."table1" ORDER BY ctid LIMIT $1 OFFSET $2', [5, 0]).should.be.true()
+            const result = await driver.getTableData(team, team.hashid, 'table1', { page: 2, limit: 5 })
+            result.rows.should.eql([{ id: 1, name: 'foo' }])
+            query.calledWith('SELECT * FROM "public"."table1" LIMIT $1 OFFSET $2', [5, 5]).should.be.true()
+            // the settings that keep the read in stored order only hold inside the transaction
+            const statements = query.args.map(([text]) => text)
+            statements.slice(statements.indexOf('BEGIN')).should.eql([
+                'BEGIN',
+                'SET LOCAL synchronize_seqscans = off',
+                'SET LOCAL max_parallel_workers_per_gather = 0',
+                'SELECT * FROM "public"."table1" LIMIT $1 OFFSET $2',
+                'ROLLBACK'
+            ])
+        })
+        it('should end the transaction when reading a table with no primary key fails', async function () {
+            const query = setup({ primaryKey: [] })
+            query.withArgs(rowsQuery).rejects(new Error('canceling statement due to statement timeout'))
+            await driver.init(app, options)
+            await driver.getTableData(team, team.hashid, 'table1', {}).should.be.rejectedWith(/statement timeout/)
+            query.lastCall.args[0].should.equal('ROLLBACK')
         })
         it('should default to 10 rows and cap the page size at 100', async function () {
             const query = setup({ total: 1000 })
