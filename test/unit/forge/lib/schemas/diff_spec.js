@@ -15,7 +15,7 @@ describe('Schema diff', function () {
         const from = {
             type: 'object',
             properties: {
-                value: { type: 'number', unit: 'C' },
+                value: { type: 'number', unit: 'Cel' },
                 sensor: { type: 'string' }
             }
         }

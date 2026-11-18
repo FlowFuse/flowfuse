@@ -35,7 +35,7 @@ describe('Data Schemas API - versions, validate and diff', function () {
     const reading = {
         type: 'object',
         properties: {
-            value: { type: 'number', unit: 'C' },
+            value: { type: 'number', unit: 'Cel' },
             sensor: { type: 'string' }
         },
         required: ['value']
