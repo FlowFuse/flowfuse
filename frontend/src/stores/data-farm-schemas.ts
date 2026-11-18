@@ -16,6 +16,7 @@ export interface SchemaDraft {
 export interface SchemaVersion {
     version: string
     status: 'draft' | 'published' | 'deprecated'
+    schema: Record<string, unknown>
     notes: string | null
     publishedAt: string
     publishedBy: { name: string } | null

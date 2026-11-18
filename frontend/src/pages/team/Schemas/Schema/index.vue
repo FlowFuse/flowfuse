@@ -10,15 +10,18 @@
                     <StatusBadge :status="badge.status" :text="badge.text" data-el="schema-status" />
                 </template>
                 <template #context>
-                    <span v-if="!draft">Published versions can't be changed.<template v-if="canEdit"> Create a draft to make changes.</template></span>
+                    <template v-if="!draft && latestPublished">
+                        <p class="text-gray-800" data-el="schema-published">{{ published }}</p>
+                        <p>Published versions can't be changed.<template v-if="canEdit"> Create a draft to make changes.</template></p>
+                    </template>
                 </template>
                 <template #tools>
                     <div class="flex gap-2">
                         <ff-button v-if="editingDraft" kind="secondary" data-action="discard-draft" @click="confirmDiscard">Discard draft</ff-button>
                         <ff-button kind="secondary" data-action="validate-message" disabled>Validate a message</ff-button>
                         <template v-if="editingDraft">
-                            <ff-button kind="secondary" data-action="save-draft" @click="schemasStore.saveDraft({ notes })">Save draft</ff-button>
-                            <ff-button data-action="publish" @click="publishDialog?.show()">Publish</ff-button>
+                            <ff-button kind="secondary" data-action="save-draft" :disabled="!canSave" @click="schemasStore.saveDraft({ schema: parsedSchema!, notes })">Save draft</ff-button>
+                            <ff-button data-action="publish" :disabled="!canSave || editorProblems > 0" @click="publishDialog?.show()">Publish</ff-button>
                         </template>
                         <ff-button v-else-if="canEdit" data-action="create-draft" @click="schemasStore.createDraft(latestPublished?.version)">
                             <template #icon-left><PlusIcon /></template>
@@ -32,6 +35,9 @@
             <component
                 :is="Component"
                 v-model:notes="notes"
+                v-model:schema-text="schemaText"
+                v-model:editor-problems="editorProblems"
+                :reference-problems="referenceProblems"
                 :draft="draft"
                 :latest-published="latestPublished"
                 :read-only="!canEdit"
@@ -53,6 +59,7 @@ import { storeToRefs } from 'pinia'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
+import { findReferenceProblems } from './components/referenceProblems'
 import PublishSchemaDialog from './dialogs/PublishSchemaDialog.vue'
 
 import StatusBadge from '@/components/StatusBadge.vue'
@@ -62,6 +69,7 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useDataFarmSchemasStore } from '@/stores/data-farm-schemas'
 import { useUxLoadingStore } from '@/stores/ux-loading.js'
+import daysSince from '@/utils/daysSince'
 import { Roles } from '@/utils/roles.js'
 
 defineOptions({ name: 'TeamSchema' })
@@ -75,10 +83,15 @@ const { hasAMinimumTeamRoleOf } = usePermissions()
 const { team } = storeToRefs(useContextStore())
 
 const notes = ref('')
+const schemaText = ref('')
+const editorProblems = ref(0)
 const publishDialog = ref<InstanceType<typeof PublishSchemaDialog> | null>(null)
 
 watch(() => route.params.schemaId, (schemaId) => schemasStore.loadActiveSchema(schemaId as string), { immediate: true })
-watch(draft, (value) => { notes.value = value?.notes ?? '' }, { immediate: true })
+watch(() => [schemaHydrated.value, schema.value?.id, !!draft.value, latestPublished.value?.version], () => {
+    notes.value = draft.value?.notes ?? ''
+    schemaText.value = JSON.stringify(draft.value?.schema ?? latestPublished.value?.schema ?? {}, null, 2)
+}, { immediate: true })
 const routeSchemaHydrated = computed(() => schemaHydrated.value && schema.value?.id === route.params.schemaId)
 watch(routeSchemaHydrated, (hydrated) => uxLoading.setPageLoader(!hydrated, 'Loading Schema...'), { immediate: true })
 onBeforeUnmount(() => {
@@ -90,11 +103,33 @@ onBeforeUnmount(() => {
 const canEdit = computed(() => hasAMinimumTeamRoleOf(Roles.Member))
 const editingDraft = computed(() => !!draft.value && canEdit.value)
 
+const parsedSchema = computed<Record<string, unknown> | null>(() => {
+    try {
+        const value = JSON.parse(schemaText.value)
+        return value && typeof value === 'object' && !Array.isArray(value) ? value : null
+    } catch {
+        return null
+    }
+})
+const referenceProblems = computed(() => findReferenceProblems(schemaText.value))
+const canSave = computed(() => !!parsedSchema.value && referenceProblems.value.length === 0)
+const hasUnsavedChanges = computed(() => !!draft.value && (
+    JSON.stringify(parsedSchema.value) !== JSON.stringify(draft.value.schema) ||
+    notes.value !== (draft.value.notes ?? '')
+))
+
 const badge = computed(() => {
     if (draft.value) return { status: 'info', text: 'Draft' }
     if (latestPublished.value?.status === 'deprecated') return { status: 'warning', text: `Deprecated ${latestPublished.value.version}` }
     if (latestPublished.value) return { status: 'success', text: `Published ${latestPublished.value.version}` }
     return { status: 'info', text: 'No versions' }
+})
+
+const published = computed(() => {
+    const version = latestPublished.value
+    if (!version) return ''
+    const by = version.publishedBy ? ` by ${version.publishedBy.name}` : ''
+    return `Published ${daysSince(version.publishedAt)}${by}`
 })
 
 const tabs = [
@@ -118,6 +153,7 @@ async function confirmDiscard () {
 
 async function publish (payload: { version: string, notes: string }) {
     // @TODO-SCHEMAS: CATCH THE ERROR publishDraft THROWS (#9227) AND SHOW ITS code ON THE DIALOG'S VERSION FIELD
+    if (hasUnsavedChanges.value) await schemasStore.saveDraft({ schema: parsedSchema.value!, notes: notes.value })
     await schemasStore.publishDraft(payload)
     publishDialog.value?.close()
 }

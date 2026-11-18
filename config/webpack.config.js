@@ -15,6 +15,11 @@ function getPath (file) {
     return path.resolve(__dirname, '..', file)
 }
 
+// Worker chunks load their dependencies with importScripts, so keep them out of the main-thread vendor groups
+function isAsyncPageChunk (chunk) {
+    return !chunk.canBeInitial() && !chunk.name?.endsWith('-worker')
+}
+
 module.exports = function (env, argv) {
     const devMode = argv?.mode === 'development'
     const hmrEnabled = devMode && process.env.NODE_RUN_HOT === 'hot'
@@ -177,11 +182,17 @@ module.exports = function (env, argv) {
                         priority: -10,
                         chunks: 'initial'
                     },
+                    monaco: {
+                        test: /[\\/]node_modules[\\/]monaco-editor[\\/]/,
+                        name: 'monaco',
+                        priority: 0,
+                        chunks: isAsyncPageChunk
+                    },
                     async: {
                         test: /[\\/]node_modules[\\/]/,
                         name: 'async-vendors',
                         priority: -10,
-                        chunks: 'async'
+                        chunks: isAsyncPageChunk
                     }
                 }
             }
