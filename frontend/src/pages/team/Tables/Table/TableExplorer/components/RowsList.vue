@@ -31,7 +31,7 @@
             </p>
             <!-- made again for each table, so the sort shown in its header never outlives the table it was for -->
             <ff-data-table
-                :key="`${selectedTable.dbSchema}.${selectedTable.name}`"
+                :key="`${selectedTable.dbSchema}.${selectedTable.name}.${sortResets}`"
                 :loading="isLoading" loading-type="skeleton"
                 :columns="columns" :rows="rows"
                 :pagination="pagination"
@@ -85,7 +85,9 @@ export default defineComponent({
         return {
             // the grid is one stop for the Tab key: the cell that last had focus, which the arrow keys move.
             // Until a cell has had focus the grid itself is the stop, and hands focus on to its first cell
-            grid: { tabStop: null }
+            grid: { tabStop: null },
+            // goes up each time a sort is refused, which makes the grid again so its header stops showing that sort
+            sortResets: 0
         }
     },
     computed: {
@@ -227,7 +229,13 @@ export default defineComponent({
             })
                 .catch(err => {
                     // a sort the table cannot do, by a column removed since the page was loaded for one
-                    if (err.response?.data?.code === 'invalid_sort') Alerts.emit(err.response.data.error, 'warning')
+                    if (err.response?.data?.code === 'invalid_sort') {
+                        Alerts.emit(err.response.data.error, 'warning')
+                        // drop the sort the table refused, along with its arrow in the header
+                        this.setSort(null)
+                        this.sortResets++
+                        this.loadPage()
+                    }
                 })
                 .finally(() => {
                     // a page picked in the meantime is still loading, so leave the state to it
