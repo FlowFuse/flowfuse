@@ -427,6 +427,76 @@ describe('product-tables store', () => {
         })
     })
 
+    describe('visible columns', () => {
+        const schema = [{ name: 'id' }, { name: 'name' }, { name: 'notes' }]
+        const names = store => store.visibleColumns.map(column => column.name)
+
+        function storeWithTable () {
+            const store = useProductTablesStore()
+            store.databaseSelection = 'db-1'
+            store.tables = { 'db-1': [{ name: 'users', dbSchema: 'public', schema }, { name: 'users', dbSchema: 'reports', schema }] }
+            store.updateTableSelection({ name: 'users', dbSchema: 'public' })
+            return store
+        }
+
+        it('shows every column to begin with', () => {
+            expect(names(storeWithTable())).toEqual(['id', 'name', 'notes'])
+        })
+
+        it('hides a column and brings it back', () => {
+            const store = storeWithTable()
+            store.setColumnVisible('name', false)
+            expect(names(store)).toEqual(['id', 'notes'])
+
+            store.setColumnVisible('name', true)
+            expect(names(store)).toEqual(['id', 'name', 'notes'])
+        })
+
+        it('always keeps one column showing', () => {
+            const store = storeWithTable()
+            store.setColumnVisible('id', false)
+            store.setColumnVisible('name', false)
+            store.setColumnVisible('notes', false)
+            expect(names(store)).toEqual(['notes'])
+        })
+
+        it('shows every column again in one go', () => {
+            const store = storeWithTable()
+            store.setColumnVisible('id', false)
+            store.setColumnVisible('name', false)
+            store.showAllColumns()
+            expect(names(store)).toEqual(['id', 'name', 'notes'])
+        })
+
+        it('remembers the hidden columns of each table apart, also for tables sharing a name across schemas', () => {
+            const store = storeWithTable()
+            store.setColumnVisible('name', false)
+
+            store.updateTableSelection({ name: 'users', dbSchema: 'reports' })
+            expect(names(store)).toEqual(['id', 'name', 'notes'])
+
+            store.updateTableSelection({ name: 'users', dbSchema: 'public' })
+            expect(names(store)).toEqual(['id', 'notes'])
+        })
+
+        it('keeps nothing for a table with every column showing', () => {
+            const store = storeWithTable()
+            store.setColumnVisible('name', false)
+            store.setColumnVisible('name', true)
+            expect(store.hiddenColumns).toEqual({})
+        })
+
+        it('ignores a hidden column the table no longer has', () => {
+            const store = storeWithTable()
+            store.hiddenColumns = { 'db-1/public.users': ['dropped', 'name'] }
+            expect(names(store)).toEqual(['id', 'notes'])
+        })
+
+        it('has no columns to show before a table is selected', () => {
+            expect(useProductTablesStore().visibleColumns).toEqual([])
+        })
+    })
+
     describe('paging', () => {
         it('goes back to the first page when the page size changes', () => {
             const store = useProductTablesStore()

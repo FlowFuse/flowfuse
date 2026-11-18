@@ -89,13 +89,13 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapState(useProductTablesStore, ['tables', 'tableSelection', 'isLoading', 'selectedTable', 'page', 'pageSize', 'showOriginalValues']),
+        ...mapState(useProductTablesStore, ['tables', 'tableSelection', 'isLoading', 'selectedTable', 'visibleColumns', 'page', 'pageSize', 'showOriginalValues']),
         ...mapState(useContextStore, ['team']),
         canManageTables () {
             return this.hasPermission('team:database:create')
         },
         columns () {
-            return (this.selectedTable?.schema ?? []).map((row) => {
+            return this.visibleColumns.map((row) => {
                 return {
                     key: row.safeName,
                     sortable: isColumnTypeSortable(row.type) && (!this.pagination.totalCapped || row.name === this.sortKey),

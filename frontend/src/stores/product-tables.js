@@ -37,6 +37,9 @@ export const useProductTablesStore = defineStore('product-tables', {
         // the column the selected table is sorted by and the direction ('asc' or 'desc'), null for its own order
         sort: null,
         showOriginalValues: false,
+        // the names of the columns hidden from the data grid, for each table that has any (see hiddenColumnsKey).
+        // Kept in the browser, so it is one person's view of a table and nobody else's
+        hiddenColumns: {},
         newTable: { name: '', schema: 'public', columns: [{ ...emptyColumn }] },
         isLoading: false
     }),
@@ -58,6 +61,16 @@ export const useProductTablesStore = defineStore('product-tables', {
                 return state.tables[state.databaseSelection]?.find(t => t.name === state.tableSelection?.name && t.dbSchema === state.tableSelection?.dbSchema)
             }
             return null
+        },
+        // tables are told apart by database, schema and name, as two schemas can hold a table of the same name
+        hiddenColumnsKey: (state) => {
+            const table = state.tableSelection
+            return table ? `${state.databaseSelection}/${table.dbSchema}.${table.name}` : null
+        },
+        // the columns of the selected table that the data grid shows
+        visibleColumns () {
+            const hidden = this.hiddenColumns[this.hiddenColumnsKey] ?? []
+            return (this.selectedTable?.schema ?? []).filter(column => !hidden.includes(column.name))
         }
     },
     actions: {
@@ -95,6 +108,26 @@ export const useProductTablesStore = defineStore('product-tables', {
         },
         setShowOriginalValues (showOriginalValues) {
             this.showOriginalValues = showOriginalValues
+        },
+        setColumnVisible (name, visible) {
+            const key = this.hiddenColumnsKey
+            const hidden = (this.hiddenColumns[key] ?? []).filter(column => column !== name)
+            if (!visible) {
+                // a grid with no columns at all would look like a broken table
+                if (this.visibleColumns.length <= 1) return
+                hidden.push(name)
+            }
+            this.setHiddenColumns(key, hidden)
+        },
+        showAllColumns () {
+            this.setHiddenColumns(this.hiddenColumnsKey, [])
+        },
+        setHiddenColumns (key, hidden) {
+            if (hidden.length > 0) {
+                this.hiddenColumns[key] = hidden
+            } else {
+                delete this.hiddenColumns[key]
+            }
         },
         setPage (page) {
             this.page = page
@@ -169,7 +202,7 @@ export const useProductTablesStore = defineStore('product-tables', {
         setTableLoadingState (isLoading) { this.isLoading = isLoading }
     },
     persist: {
-        pick: ['databases', 'newTable'],
+        pick: ['databases', 'newTable', 'hiddenColumns'],
         storage: localStorage
     }
 })
