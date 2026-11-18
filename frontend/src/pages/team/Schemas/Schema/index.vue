@@ -111,6 +111,7 @@ const parsedSchema = computed<Record<string, unknown> | null>(() => {
         return null
     }
 })
+// @TODO-SCHEMAS: ALSO SHOW THE DRAFT'S problems FROM THE BACKEND (#9227) AS MARKERS; MAP EACH path TO AN OFFSET WITH jsonc-parser findNodeAtLocation
 const referenceProblems = computed(() => findReferenceProblems(schemaText.value))
 const canSave = computed(() => !!parsedSchema.value && referenceProblems.value.length === 0)
 const hasUnsavedChanges = computed(() => !!draft.value && (

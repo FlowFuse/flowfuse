@@ -6,7 +6,7 @@ export interface ReferenceProblem {
     message: string
 }
 
-// @TODO-SCHEMAS: THESE LISTS MIRROR forge/ee/lib/schemas/document.js (#9225); ALSO SHOW THE DRAFT RESPONSE'S problems[].path (JSON POINTER) AS MARKERS VIA jsonc-parser findNodeAtLocation
+// Copied from forge/ee/lib/schemas/document.js, which the frontend can't import; keep the lists in sync
 const REFERENCE_KEYWORDS = ['$ref', '$dynamicRef', '$recursiveRef', '$defs', 'definitions', '$anchor', '$dynamicAnchor', '$recursiveAnchor', '$id']
 const SUBSCHEMA_KEYWORDS = ['additionalProperties', 'propertyNames', 'items', 'contains', 'not', 'if', 'then', 'else', 'unevaluatedItems', 'unevaluatedProperties', 'contentSchema']
 const SUBSCHEMA_LIST_KEYWORDS = ['allOf', 'anyOf', 'oneOf', 'prefixItems']
