@@ -120,18 +120,18 @@ describe('Data Schemas API', function () {
             ;(await request('DELETE', `/groups/${group.id}`, 'dave')).statusCode.should.equal(403)
         })
 
-        it('lets members create and edit but not delete', async function () {
+        it('lets members create, edit and delete', async function () {
             const created = await request('POST', '', 'chris', { name: uniqueName('schema') })
             created.statusCode.should.equal(200)
             const schema = created.json()
             ;(await request('PUT', `/${schema.id}`, 'chris', { name: uniqueName('schema') })).statusCode.should.equal(200)
-            ;(await request('DELETE', `/${schema.id}`, 'chris')).statusCode.should.equal(403)
+            ;(await request('DELETE', `/${schema.id}`, 'chris')).statusCode.should.equal(200)
 
             const createdGroup = await request('POST', '/groups', 'chris', { name: uniqueName('group') })
             createdGroup.statusCode.should.equal(200)
             const group = createdGroup.json()
             ;(await request('PUT', `/groups/${group.id}`, 'chris', { name: uniqueName('group') })).statusCode.should.equal(200)
-            ;(await request('DELETE', `/groups/${group.id}`, 'chris')).statusCode.should.equal(403)
+            ;(await request('DELETE', `/groups/${group.id}`, 'chris')).statusCode.should.equal(200)
         })
     })
 
