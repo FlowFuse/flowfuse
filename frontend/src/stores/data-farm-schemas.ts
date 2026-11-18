@@ -15,7 +15,7 @@ export interface SchemaDraft {
 
 export interface SchemaVersion {
     version: string
-    status: 'published' | 'deprecated'
+    status: 'draft' | 'published' | 'deprecated'
     notes: string | null
     publishedAt: string
     publishedBy: { name: string } | null

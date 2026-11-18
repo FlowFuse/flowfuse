@@ -14,13 +14,13 @@
                 </template>
                 <template #tools>
                     <div class="flex gap-2">
-                        <ff-button v-if="draft && canEdit" kind="secondary" data-action="discard-draft" @click="confirmDiscard">Discard draft</ff-button>
+                        <ff-button v-if="editingDraft" kind="secondary" data-action="discard-draft" @click="confirmDiscard">Discard draft</ff-button>
                         <ff-button kind="secondary" data-action="validate-message" disabled>Validate a message</ff-button>
-                        <template v-if="draft && canEdit">
-                            <ff-button kind="secondary" data-action="save-draft" @click="saveDraft">Save draft</ff-button>
+                        <template v-if="editingDraft">
+                            <ff-button kind="secondary" data-action="save-draft" @click="schemasStore.saveDraft({ notes })">Save draft</ff-button>
                             <ff-button data-action="publish" @click="publishDialog?.show()">Publish</ff-button>
                         </template>
-                        <ff-button v-else-if="canEdit && !draft" data-action="create-draft" @click="createDraft">
+                        <ff-button v-else-if="canEdit" data-action="create-draft" @click="schemasStore.createDraft(latestPublished?.version)">
                             {{ latestPublished ? `Create draft from ${latestPublished.version}` : 'Create draft' }}
                         </ff-button>
                     </div>
@@ -33,7 +33,7 @@
                 v-model:notes="notes"
                 :draft="draft"
                 :latest-published="latestPublished"
-                :read-only="readOnly"
+                :read-only="!canEdit"
             />
         </router-view>
         <PublishSchemaDialog
@@ -86,7 +86,7 @@ onBeforeUnmount(() => {
 
 // @TODO-SCHEMAS: ONCE #9244 ADDS THE SCOPES, GATE CREATE/SAVE/DISCARD DRAFT ON hasPermission('team:schema:edit') AND PUBLISH ON hasPermission('team:schema:publish')
 const canEdit = computed(() => hasAMinimumTeamRoleOf(Roles.Member))
-const readOnly = computed(() => !draft.value || !canEdit.value)
+const editingDraft = computed(() => !!draft.value && canEdit.value)
 
 const badge = computed(() => {
     if (draft.value) return { status: 'info', text: 'Draft' }
@@ -95,18 +95,10 @@ const badge = computed(() => {
     return { status: 'info', text: 'No versions' }
 })
 
-const tabs = computed(() => [
-    { label: 'Editor', to: { name: 'team-schema-editor', params: route.params }, tag: 'team-schema-editor' },
-    { label: 'Versions', to: { name: 'team-schema-versions', params: route.params }, tag: 'team-schema-versions' }
-])
-
-function saveDraft () {
-    return schemasStore.saveDraft({ notes: notes.value })
-}
-
-function createDraft () {
-    return schemasStore.createDraft(latestPublished.value?.version)
-}
+const tabs = [
+    { label: 'Editor', to: { name: 'team-schema-editor' }, tag: 'team-schema-editor' },
+    { label: 'Versions', to: { name: 'team-schema-versions' }, tag: 'team-schema-versions' }
+]
 
 async function confirmDiscard () {
     const result = await Dialog.showAsync({
