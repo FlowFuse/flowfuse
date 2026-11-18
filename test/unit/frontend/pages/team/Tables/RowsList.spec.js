@@ -324,6 +324,24 @@ describe('RowsList', () => {
                 await flushPromises()
                 expect(mocks.alerts.emit).toHaveBeenCalledWith('The table has no column "recorded at" to sort by', 'warning')
             })
+
+            test('drops a sort the table refused and loads the rows again without it, every time', async () => {
+                const refusal = { response: { data: { code: 'invalid_sort', error: 'The table has too many rows to be sorted by "recorded at"' } } }
+                const wrapper = mountRowsList()
+
+                for (const loads of [2, 4]) {
+                    let refuse
+                    mocks.tablesStore.getTableData.mockImplementationOnce(() => new Promise((resolve, reject) => { refuse = () => reject(refusal) }))
+                    await headers(wrapper)[0].trigger('click')
+                    expect(wrapper.find('thead .sorted').exists()).toBe(true)
+                    refuse()
+                    await flushPromises()
+
+                    expect(mocks.tablesStore.setSort).toHaveBeenLastCalledWith(null)
+                    expect(mocks.tablesStore.getTableData).toHaveBeenCalledTimes(loads)
+                    expect(wrapper.find('thead .sorted').exists()).toBe(false)
+                }
+            })
         })
 
         test('shows where the current page sits in the whole table', () => {

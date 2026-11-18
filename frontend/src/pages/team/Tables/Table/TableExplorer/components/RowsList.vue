@@ -85,7 +85,9 @@ export default defineComponent({
         return {
             // the grid is one stop for the Tab key: the cell that last had focus, which the arrow keys move.
             // Until a cell has had focus the grid itself is the stop, and hands focus on to its first cell
-            grid: { tabStop: null }
+            grid: { tabStop: null },
+            // goes up each time a sort is refused, which makes the grid again so its header stops showing that sort
+            sortResets: 0
         }
     },
     computed: {
