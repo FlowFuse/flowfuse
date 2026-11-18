@@ -27,6 +27,7 @@
     <CircleStackIcon v-else-if="icon == 'tables'" class="ff-icon text-green-700" />
     <KeyIcon v-else-if="icon === 'gitops'" class="ff-icon text-green-700" />
     <BookOpenIcon v-else-if="icon === 'library'" class="ff-icon text-green-700" />
+    <DocumentCheckIcon v-else-if="icon === 'schemas'" class="ff-icon text-green-700" />
     <InformationCircleIcon v-else class="ff-icon text-gray-600" />
 </template>
 
@@ -34,7 +35,7 @@
 
 import {
     ArrowLeftOnRectangleIcon, ArrowRightOnRectangleIcon, BeakerIcon, BookOpenIcon, CircleStackIcon, ClockIcon,
-    Cog8ToothIcon, ComputerDesktopIcon, CpuChipIcon, CurrencyDollarIcon,
+    Cog8ToothIcon, ComputerDesktopIcon, CpuChipIcon, CurrencyDollarIcon, DocumentCheckIcon,
     EnvelopeIcon, ExclamationCircleIcon, ExclamationTriangleIcon,
     IdentificationIcon, InformationCircleIcon, KeyIcon, LockClosedIcon, PuzzlePieceIcon,
     RectangleGroupIcon, SwatchIcon, TicketIcon, UserGroupIcon, UserIcon
@@ -274,6 +275,18 @@ const iconMap = {
         'team.library.entry.created',
         'team.library.entry.updated',
         'team.library.entry.deleted'
+    ],
+    schemas: [
+        'team.schema.created',
+        'team.schema.updated',
+        'team.schema.deleted',
+        'team.schema.draft.created',
+        'team.schema.draft.discarded',
+        'team.schema.version.published',
+        'team.schema.version.deprecated',
+        'team.schema.group.created',
+        'team.schema.group.updated',
+        'team.schema.group.deleted'
     ]
 }
 
@@ -336,7 +349,8 @@ export default {
         InformationCircleIcon,
         PuzzlePieceIcon,
         CircleStackIcon,
-        BookOpenIcon
+        BookOpenIcon,
+        DocumentCheckIcon
     }
 }
 </script>

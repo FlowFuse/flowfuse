@@ -209,6 +209,48 @@
         <span v-if="!error && entry.body?.libraryEntry">Library path '{{ entry.body.libraryEntry.name }}' deleted, {{ entry.body.libraryEntry.deleteCount }} {{ entry.body.libraryEntry.deleteCount === 1 ? 'entry' : 'entries' }} removed<span v-if="entry.body?.project"> by instance '{{ entry.body.project.name }}'</span><span v-else-if="entry.body?.device"> by device '{{ entry.body.device.name }}'</span></span>
     </template>
 
+    <!-- Team Data Schema Events -->
+    <template v-else-if="entry.event === 'team.schema.created'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.dataSchema">Schema '{{ entry.body.dataSchema.name }}' created</span>
+    </template>
+    <template v-else-if="entry.event === 'team.schema.updated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.dataSchema">Schema '{{ entry.body.dataSchema.name }}' updated</span>
+    </template>
+    <template v-else-if="entry.event === 'team.schema.deleted'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.dataSchema">Schema '{{ entry.body.dataSchema.name }}' and all its versions deleted</span>
+    </template>
+    <template v-else-if="entry.event === 'team.schema.draft.created'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.dataSchema">Draft created for schema '{{ entry.body.dataSchema.name }}'</span>
+    </template>
+    <template v-else-if="entry.event === 'team.schema.draft.discarded'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.dataSchema">Draft of schema '{{ entry.body.dataSchema.name }}' discarded</span>
+    </template>
+    <template v-else-if="entry.event === 'team.schema.version.published'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.dataSchema">Version {{ entry.body.dataSchemaVersion?.version }} of schema '{{ entry.body.dataSchema.name }}' published</span>
+    </template>
+    <template v-else-if="entry.event === 'team.schema.version.deprecated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.dataSchema">Version {{ entry.body.dataSchemaVersion?.version }} of schema '{{ entry.body.dataSchema.name }}' deprecated</span>
+    </template>
+    <template v-else-if="entry.event === 'team.schema.group.created'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.dataSchemaGroup">Schema group '{{ entry.body.dataSchemaGroup.name }}' created</span>
+    </template>
+    <template v-else-if="entry.event === 'team.schema.group.updated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.dataSchemaGroup">Schema group '{{ entry.body.dataSchemaGroup.name }}' updated</span>
+    </template>
+    <template v-else-if="entry.event === 'team.schema.group.deleted'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.dataSchemaGroup">Schema group '{{ entry.body.dataSchemaGroup.name }}' deleted</span>
+    </template>
+
     <!-- Device Actions Events -->
     <template v-else-if="entry.event === 'device.started'">
         <label>{{ AuditEvents[entry.event] }}</label>

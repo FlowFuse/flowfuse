@@ -275,6 +275,57 @@ module.exports = {
             }
         }
 
+        const schemas = {
+            schema: {
+                async created (actionedBy, error, team, dataSchema) {
+                    const body = generateBody({ error, team, dataSchema })
+                    await log('team.schema.created', actionedBy, team?.id, body)
+                },
+                async updated (actionedBy, error, team, dataSchema, updates) {
+                    const body = generateBody({ error, team, dataSchema, updates })
+                    await log('team.schema.updated', actionedBy, team?.id, body)
+                },
+                async deleted (actionedBy, error, team, dataSchema) {
+                    const body = generateBody({ error, team, dataSchema })
+                    await log('team.schema.deleted', actionedBy, team?.id, body)
+                }
+            },
+            draft: {
+                async created (actionedBy, error, team, dataSchema) {
+                    const body = generateBody({ error, team, dataSchema })
+                    await log('team.schema.draft.created', actionedBy, team?.id, body)
+                },
+                async discarded (actionedBy, error, team, dataSchema) {
+                    const body = generateBody({ error, team, dataSchema })
+                    await log('team.schema.draft.discarded', actionedBy, team?.id, body)
+                }
+            },
+            version: {
+                async published (actionedBy, error, team, dataSchema, dataSchemaVersion) {
+                    const body = generateBody({ error, team, dataSchema, dataSchemaVersion })
+                    await log('team.schema.version.published', actionedBy, team?.id, body)
+                },
+                async deprecated (actionedBy, error, team, dataSchema, dataSchemaVersion) {
+                    const body = generateBody({ error, team, dataSchema, dataSchemaVersion })
+                    await log('team.schema.version.deprecated', actionedBy, team?.id, body)
+                }
+            },
+            group: {
+                async created (actionedBy, error, team, dataSchemaGroup) {
+                    const body = generateBody({ error, team, dataSchemaGroup })
+                    await log('team.schema.group.created', actionedBy, team?.id, body)
+                },
+                async updated (actionedBy, error, team, dataSchemaGroup, updates) {
+                    const body = generateBody({ error, team, dataSchemaGroup, updates })
+                    await log('team.schema.group.updated', actionedBy, team?.id, body)
+                },
+                async deleted (actionedBy, error, team, dataSchemaGroup) {
+                    const body = generateBody({ error, team, dataSchemaGroup })
+                    await log('team.schema.group.deleted', actionedBy, team?.id, body)
+                }
+            }
+        }
+
         const log = async (event, actionedBy, teamId, body) => {
             try {
                 const trigger = triggerObject(actionedBy)
@@ -295,7 +346,8 @@ module.exports = {
             billing,
             tables,
             gitToken,
-            library
+            library,
+            schemas
         }
     }
 }
