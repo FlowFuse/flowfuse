@@ -38,4 +38,5 @@ module.exports = async function (app) {
 
     await app.register(require('./groups'), { prefix: '/groups' })
     await app.register(require('./schemas'))
+    await app.register(require('./drafts'))
 }

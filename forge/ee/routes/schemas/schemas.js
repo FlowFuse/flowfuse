@@ -1,9 +1,6 @@
 const { checkDocument, removeId } = require('../../lib/schemas/document')
 
-const { sendError, resolveGroupId, invalidGroup } = require('./shared')
-
-// The document a new schema's draft starts from when none is given
-const EMPTY_SCHEMA = { type: 'object', properties: {} }
+const { sendError, resolveGroupId, invalidGroup, EMPTY_SCHEMA } = require('./shared')
 
 /**
  * Data schemas
