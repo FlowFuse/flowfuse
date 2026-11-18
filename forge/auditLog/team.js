@@ -308,6 +308,10 @@ module.exports = {
                 async deprecated (actionedBy, error, team, dataSchema, dataSchemaVersion) {
                     const body = generateBody({ error, team, dataSchema, dataSchemaVersion })
                     await log('team.schema.version.deprecated', actionedBy, team?.id, body)
+                },
+                async undeprecated (actionedBy, error, team, dataSchema, dataSchemaVersion) {
+                    const body = generateBody({ error, team, dataSchema, dataSchemaVersion })
+                    await log('team.schema.version.undeprecated', actionedBy, team?.id, body)
                 }
             },
             group: {
