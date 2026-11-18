@@ -322,6 +322,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                 tag: 'team-schemas',
                                 icon: CodeBracketIcon,
                                 disabled: requiresBilling,
+                                // the filter below keeps entries whose `hidden` is truthy
                                 hidden: features.isJsonSchemasFeatureEnabled
                             }
                         ]
