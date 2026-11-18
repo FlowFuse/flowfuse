@@ -224,7 +224,7 @@ module.exports = {
                 }
                 const escapedTable = libPg.pg.escapeIdentifier(table)
                 const qualifiedTable = resolvedSchema ? `${libPg.pg.escapeIdentifier(resolvedSchema)}.${escapedTable}` : escapedTable
-                return await libPg.getTableDataPage(teamClient, qualifiedTable, pagination)
+                return await libPg.getTableDataPage(teamClient, qualifiedTable, pagination, signal)
             } finally {
                 stopCancelling()
                 teamClient.end()
