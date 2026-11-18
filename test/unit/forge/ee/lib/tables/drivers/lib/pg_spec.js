@@ -128,10 +128,18 @@ describe('Tables: helper lib for pg', function () {
                 rowsQuery: () => queries.find(query => query.text.startsWith('SELECT *')),
                 query: async (text, values) => {
                     queries.push({ text, values })
-                    if (text.includes('indisprimary')) return { rows: primaryKey.map(attname => ({ attname })) }
-                    if (text.includes('attname = $2')) return { rows: columns.includes(values[1]) ? [{}] : [] }
-                    if (text.includes('count(*)')) return { rows: [{ total: String(total) }] }
-                    if (rowsError) throw rowsError
+                    if (text.includes('indisprimary')) {
+                        return { rows: primaryKey.map(attname => ({ attname })) }
+                    }
+                    if (text.includes('attname = $2')) {
+                        return { rows: columns.includes(values[1]) ? [{}] : [] }
+                    }
+                    if (text.includes('count(*)')) {
+                        return { rows: [{ total: String(total) }] }
+                    }
+                    if (rowsError) {
+                        throw rowsError
+                    }
                     return { rows: [{ id: 1 }] }
                 }
             }
