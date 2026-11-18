@@ -294,18 +294,18 @@ describe('DataSchema models', function () {
             })
         }
 
-        it('only changes status from draft to published and published to deprecated', async function () {
+        it('only changes status from draft to published, and between published and deprecated', async function () {
             const schema = await createSchema()
             const draft = await createVersion(schema)
             await draft.update({ status: 'deprecated', version: '1.0.0' }).should.be.rejectedWith(/Cannot change a draft version to deprecated/)
 
-            const deprecated = await publish(schema, '2.0.0', { status: 'deprecated' })
-            await deprecated.update({ status: 'published' }).should.be.rejectedWith(/Cannot change a deprecated version to published/)
-
-            const published = await publish(schema, '3.0.0')
+            const published = await publish(schema, '2.0.0')
             await published.update({ status: 'deprecated' })
             await published.reload()
             published.status.should.equal('deprecated')
+            await published.update({ status: 'published' })
+            await published.reload()
+            published.status.should.equal('published')
         })
 
         it('orders versions numerically and finds the latest published one', async function () {
