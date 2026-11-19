@@ -134,27 +134,54 @@ rate_limits:
 #################################################
 # Time-Series Database (QuestDB) Configuration  #
 #################################################
+# One QuestDB server per team (Enterprise). Pick one driver:
+#   kubernetes - creates a server per team in its own namespace (see the Helm chart)
+#   docker     - creates a container per team on Docker Compose installs
+#   static     - one server you run, shared by every team (no isolation between teams)
+# Team owners can also connect a QuestDB server FlowFuse doesn't manage (external).
+#
 # timeseries:
 #   enabled: false
-#   questdb:
-#     ilp:
-#       protocol: http          # http, https, tcp, or tcps
-#       host: localhost
-#       port: 9000
-#       authType: none          # none, basic, bearer
-#       username:               # for basic auth
-#       password:               # for basic auth
-#       token:                  # for bearer token auth
-#       tlsVerify: true         # set false for self-signed certs
-#       tlsCa:                  # path to CA cert PEM file (self-hosted only)
-#       protocolVersion: auto   # auto, 1, 2, or 3
-#     pgwire:
-#       host: localhost
-#       port: 8812
-#       user: admin
-#       password: quest
-#       database: qdb
-#       ssl: false              # enable TLS for PGWire connections
+#   driver:
+#     type: static
+#     options:
+#       questdb:
+#         ilp:
+#           protocol: http        # http or https
+#           host: localhost
+#           port: 9000
+#           authType: none        # none, basic, bearer
+#           username:             # basic auth
+#           password:             # basic auth
+#           token:                # bearer auth
+#           tlsVerify: true
+#           tlsCa:                # PEM, for a private CA
+#           protocolVersion: auto # auto, 1 or 2
+#         pgwire:
+#           host: localhost
+#           port: 8812
+#           user: admin
+#           password: quest
+#           database: qdb
+#           ssl: false
+#         external:               # optional overrides for devices outside your network
+#           ilp: { protocol: https, host: questdb.example.com, port: 443 }
+#           pgwire: { host: questdb.example.com, ssl: true }
+#   # kubernetes and docker drivers:
+#   #   options: { image, domain, defaultTier, tiers: { small: { cpu, memory, storage } } }
+#   #   kubernetes: namespace, storageClass, ingressClass, ingressAnnotations, tlsSecretName, nodeSelector, tolerations
+#   #   docker: socket, network, letsencrypt, tls, vhostDir
+#   # PgBouncer gives devices PGWire access to managed servers:
+#   # pgbouncer:
+#   #   host: ts.example.com
+#   #   port: 5432
+#   #   ssl: true
+#   #   maxConnectionsPerTeam: 10
+#   #   configDir: /opt/timeseries-pgbouncer   # docker: directory shared with PgBouncer
+#   #   secretName: timeseries-pgbouncer       # kubernetes: Secret PgBouncer mounts
+#   external:
+#     enabled: true                # let team owners connect their own server
+#     allowPrivateNetworks: false  # let the connection check reach private addresses
 
 #################################################
 # Create Default Admin                          #
