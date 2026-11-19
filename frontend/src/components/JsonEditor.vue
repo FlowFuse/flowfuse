@@ -96,6 +96,7 @@ onMounted(async () => {
         automaticLayout: true,
         minimap: { enabled: false },
         scrollBeyondLastLine: false,
+        fixedOverflowWidgets: true,
         scrollbar: { alwaysConsumeMouseWheel: false }
     })
     contentHeight.value = editor.getContentHeight()
