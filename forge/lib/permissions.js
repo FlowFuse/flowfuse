@@ -218,6 +218,10 @@ const Permissions = {
     'team:database:create': { description: 'Create a new database for the team', role: Roles.Owner, access: 'write' },
     'team:database:delete': { description: 'Delete the team database', role: Roles.Owner, access: 'write' },
     'team:database:list': { description: 'List the team databases', role: Roles.Member, access: 'read' },
+    'team:timeseries:create': { description: 'Create or connect the team time-series database', role: Roles.Owner, access: 'write' },
+    'team:timeseries:edit': { description: 'Resize the team time-series database, change its connection or rotate its credentials', role: Roles.Owner, access: 'write' },
+    'team:timeseries:delete': { description: 'Delete the team time-series database', role: Roles.Owner, access: 'write' },
+    'team:timeseries:list': { description: 'View the team time-series database', role: Roles.Member, access: 'read' },
 
     // MCP
     'team:mcp:list': { description: 'List the team MCP endpoints', role: Roles.Member, access: 'read' },

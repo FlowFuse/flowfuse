@@ -1046,6 +1046,7 @@ module.exports = async function (app) {
             projectComms: app.config.features.enabled('projectComms') && team.getFeatureProperty('projectComms', true),
             teamBroker: app.config.features.enabled('teamBroker') && team.getFeatureProperty('teamBroker', true),
             tables: app.config.features.enabled('tables') && team.getFeatureProperty('tables', false),
+            timeseries: !!(app.config.features.enabled('timeseries') && team.getFeatureProperty('timeseries', false)),
             teamNPM: teamNPMEnabled
         }
         reply.send(settings)

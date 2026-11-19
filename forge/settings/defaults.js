@@ -8,6 +8,9 @@ module.exports = {
     // Secret used to sign cookies:
     cookieSecret: null,
 
+    // Secret used to encrypt time-series database credentials:
+    timeseriesSecret: null,
+
     // Token to connect the platform client to the broker
     commsToken: null,
 

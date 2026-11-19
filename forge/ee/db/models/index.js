@@ -17,7 +17,8 @@ const modelTypes = [
     'MFAToken',
     'GitToken',
     'Table',
-    'MCPRegistration'
+    'MCPRegistration',
+    'TimeseriesDatabase'
 ]
 
 async function init (app) {

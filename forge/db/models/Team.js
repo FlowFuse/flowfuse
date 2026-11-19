@@ -63,6 +63,16 @@ module.exports = {
                 if (instanceCount > 0) {
                     throw new Error('Cannot delete team that owns instances')
                 }
+                // A managed server holds customer data on a volume, so it's never removed as a
+                // side effect of deleting the team. External servers are only a row.
+                // EE models aren't in M, so look it up on the team's own Sequelize instance
+                const TimeseriesDatabase = team.sequelize.models.TimeseriesDatabase
+                if (TimeseriesDatabase) {
+                    const managed = await TimeseriesDatabase.count({ where: { TeamId: team.id, kind: 'managed' } })
+                    if (managed > 0) {
+                        throw new Error('Cannot delete team that owns a time-series database')
+                    }
+                }
                 const scopes = await M.AccessTokenTeamScope.findAll({
                     where: { TeamId: team.id },
                     attributes: ['AccessTokenId']

@@ -16,6 +16,10 @@ async function commonFeatures (app) {
     if (app.config.tables?.enabled) {
         await app.register(require('./tables'), { prefix: '/api/v1/teams/:teamId/databases', logLevel: app.config.logging.http })
     }
+    if (app.config.timeseries?.enabled) {
+        await app.register(require('./timeseries'), { prefix: '/api/v1/teams/:teamId/timeseries', logLevel: app.config.logging.http })
+        await app.register(require('./timeseries/config.js'), { prefix: '/api/v1/timeseries', logLevel: app.config.logging.http })
+    }
     await app.register(require('./resource'), { prefix: '/api/v1/projects/:instanceId/resources', logLevel: app.config.logging.http })
     await app.register(require('./autoUpdateStacks'), { prefix: '/api/v1/projects/:projectId/autoUpdateStack', logLevel: app.config.logging.http })
     await app.register(require('./httpTokens'), { prefix: '/api/v1', logLevel: app.config.logging.http })

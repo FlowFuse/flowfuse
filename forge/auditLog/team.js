@@ -243,6 +243,27 @@ module.exports = {
             }
         }
 
+        const timeseries = {
+            database: {
+                async created (actionedBy, error, team, database) {
+                    const body = generateBody({ error, team, database })
+                    await log('team.timeseries.created', actionedBy, team?.id, body)
+                },
+                async updated (actionedBy, error, team, database, updates) {
+                    const body = generateBody({ error, team, database, updates })
+                    await log('team.timeseries.updated', actionedBy, team?.id, body)
+                },
+                async credentialsRotated (actionedBy, error, team, database) {
+                    const body = generateBody({ error, team, database })
+                    await log('team.timeseries.credentials-rotated', actionedBy, team?.id, body)
+                },
+                async deleted (actionedBy, error, team, database) {
+                    const body = generateBody({ error, team, database })
+                    await log('team.timeseries.deleted', actionedBy, team?.id, body)
+                }
+            }
+        }
+
         const gitToken = {
             async created (actionedBy, error, team, token) {
                 const body = generateBody({ error, team, gitToken: token })
@@ -294,6 +315,7 @@ module.exports = {
             project,
             billing,
             tables,
+            timeseries,
             gitToken,
             library
         }

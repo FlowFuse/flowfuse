@@ -14,6 +14,9 @@ async function commonFeatures (app, opts) {
     if (app.config.tables?.enabled) {
         app.decorate('tables', await require('./tables').init(app))
     }
+    if (app.config.timeseries?.enabled) {
+        app.decorate('timeseries', await require('./timeseries').init(app))
+    }
     app.config.features.register('certifiedNodes', true, true)
     app.config.features.register('ffNodes', true, true)
     // Application level RBAC

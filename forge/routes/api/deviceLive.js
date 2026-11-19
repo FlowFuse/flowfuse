@@ -292,7 +292,8 @@ module.exports = async function (app) {
             'shared-library': !!(app.config.features.enabled('shared-library') && team.getFeatureProperty('shared-library', true)),
             projectComms: !!(app.config.features.enabled('projectComms') && team.getFeatureProperty('projectComms', true)),
             teamBroker: !!(app.config.features.enabled('teamBroker') && team.getFeatureProperty('teamBroker', true)),
-            tables: !!(app.config.features.enabled('tables') && team.getFeatureProperty('tables', true))
+            tables: !!(app.config.features.enabled('tables') && team.getFeatureProperty('tables', true)),
+            timeseries: !!(app.config.features.enabled('timeseries') && team.getFeatureProperty('timeseries', false))
         }
 
         const isAiEnabled = !!(app.config.features.enabled('ai') && team.getFeatureProperty('ai', true))

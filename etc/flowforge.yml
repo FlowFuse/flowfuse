@@ -130,7 +130,32 @@ rate_limits:
   # timeWindow: 60000
   # max: 1000
   # maxAnonymous: 100 # optional (defaults to value of max if not set)
- 
+
+#################################################
+# Time-Series Database (QuestDB) Configuration  #
+#################################################
+# timeseries:
+#   enabled: false
+#   questdb:
+#     ilp:
+#       protocol: http          # http, https, tcp, or tcps
+#       host: localhost
+#       port: 9000
+#       authType: none          # none, basic, bearer
+#       username:               # for basic auth
+#       password:               # for basic auth
+#       token:                  # for bearer token auth
+#       tlsVerify: true         # set false for self-signed certs
+#       tlsCa:                  # path to CA cert PEM file (self-hosted only)
+#       protocolVersion: auto   # auto, 1, 2, or 3
+#     pgwire:
+#       host: localhost
+#       port: 8812
+#       user: admin
+#       password: quest
+#       database: qdb
+#       ssl: false              # enable TLS for PGWire connections
+
 #################################################
 # Create Default Admin                          #
 #################################################

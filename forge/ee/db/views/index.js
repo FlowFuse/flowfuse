@@ -5,7 +5,8 @@ const modelTypes = [
     'FlowTemplate',
     'GitToken',
     'MCPRegistrations',
-    'Table'
+    'Table',
+    'TimeseriesDatabase'
 ]
 
 async function init (app) {
