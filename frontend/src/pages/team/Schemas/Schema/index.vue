@@ -17,10 +17,10 @@
                         <ff-button v-if="editingDraft" kind="secondary" data-action="discard-draft" @click="confirmDiscard">Discard draft</ff-button>
                         <ff-button kind="secondary" data-action="validate-message" disabled>Validate a message</ff-button>
                         <template v-if="editingDraft">
-                            <ff-button kind="secondary" data-action="save-draft" @click="schemasStore.saveDraft({ notes })">Save draft</ff-button>
-                            <ff-button data-action="publish" @click="publishDialog?.show()">Publish</ff-button>
+                            <ff-button kind="secondary" data-action="save-draft" @click="saveDraft">Save draft</ff-button>
+                            <ff-button v-if="canPublish" data-action="publish" @click="publishDialog?.show()">Publish</ff-button>
                         </template>
-                        <ff-button v-else-if="canEdit" data-action="create-draft" @click="schemasStore.createDraft(latestPublished?.version)">
+                        <ff-button v-else-if="canEdit" data-action="create-draft" @click="createDraft">
                             <template #icon-left><PlusIcon /></template>
                             {{ latestPublished ? `Create draft from ${latestPublished.version}` : 'Create draft' }}
                         </ff-button>
@@ -41,6 +41,7 @@
             ref="publishDialog"
             :schema-name="schema?.name ?? ''"
             :latest-version="latestPublished?.version ?? null"
+            :existing-versions="existingVersions"
             :draft-notes="notes"
             @publish="publish"
         />
@@ -51,33 +52,41 @@
 import { PlusIcon } from '@heroicons/vue/24/outline'
 import { storeToRefs } from 'pinia'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import PublishSchemaDialog from './dialogs/PublishSchemaDialog.vue'
 
 import StatusBadge from '@/components/StatusBadge.vue'
 import usePermissions from '@/composables/Permissions.js'
+import Alerts from '@/services/alerts.js'
 import Dialog from '@/services/dialog.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useDataFarmSchemasStore } from '@/stores/data-farm-schemas'
 import { useUxLoadingStore } from '@/stores/ux-loading.js'
-import { Roles } from '@/utils/roles.js'
 
 defineOptions({ name: 'TeamSchema' })
 
 const route = useRoute()
+const router = useRouter()
 const schemasStore = useDataFarmSchemasStore()
 const uxLoading = useUxLoadingStore()
-const { activeSchema: schema, activeDraft: draft, activeLatestPublished: latestPublished, schemaHydrated } = storeToRefs(schemasStore)
+const { activeSchema: schema, activeDraft: draft, activeLatestPublished: latestPublished, schemaHydrated, existingVersions } = storeToRefs(schemasStore)
 const { featuresCheck } = storeToRefs(useAccountSettingsStore())
-const { hasAMinimumTeamRoleOf } = usePermissions()
+const { hasPermission } = usePermissions()
 const { team } = storeToRefs(useContextStore())
 
 const notes = ref('')
 const publishDialog = ref<InstanceType<typeof PublishSchemaDialog> | null>(null)
 
-watch(() => route.params.schemaId, (schemaId) => schemasStore.loadActiveSchema(schemaId as string), { immediate: true })
+watch(() => route.params.schemaId, async (schemaId) => {
+    try {
+        await schemasStore.loadActiveSchema(schemaId as string)
+    } catch (err) {
+        Alerts.emit(err.response?.data?.error || 'Failed to load the schema.', 'warning')
+        router.push({ name: 'team-schemas', params: { team_slug: team.value?.slug } })
+    }
+}, { immediate: true })
 watch(draft, (value) => { notes.value = value?.notes ?? '' }, { immediate: true })
 const routeSchemaHydrated = computed(() => schemaHydrated.value && schema.value?.id === route.params.schemaId)
 watch(routeSchemaHydrated, (hydrated) => uxLoading.setPageLoader(!hydrated, 'Loading Schema...'), { immediate: true })
@@ -86,8 +95,8 @@ onBeforeUnmount(() => {
     uxLoading.setPageLoader(false)
 })
 
-// @TODO-SCHEMAS: ONCE #9244 ADDS THE SCOPES, GATE CREATE/SAVE/DISCARD DRAFT ON hasPermission('team:schema:edit') AND PUBLISH ON hasPermission('team:schema:publish')
-const canEdit = computed(() => hasAMinimumTeamRoleOf(Roles.Member))
+const canEdit = computed(() => hasPermission('team:schema:edit'))
+const canPublish = computed(() => hasPermission('team:schema:publish'))
 const editingDraft = computed(() => !!draft.value && canEdit.value)
 
 const badge = computed(() => {
@@ -111,14 +120,42 @@ async function confirmDiscard () {
         confirmLabel: 'Discard',
         kind: 'danger'
     })
-    if (result === 'confirm') {
+    if (result !== 'confirm') return
+    try {
         await schemasStore.discardDraft()
+        Alerts.emit('Draft discarded.', 'confirmation')
+    } catch (err) {
+        Alerts.emit(err.response?.data?.error || 'Failed to discard the draft.', 'warning')
+    }
+}
+
+async function saveDraft () {
+    try {
+        await schemasStore.saveDraft({ notes: notes.value })
+        Alerts.emit('Draft saved.', 'confirmation')
+    } catch (err) {
+        Alerts.emit(err.response?.data?.error || 'Failed to save the draft.', 'warning')
+    }
+}
+
+async function createDraft () {
+    try {
+        await schemasStore.createDraft(latestPublished.value?.version ?? undefined)
+    } catch (err) {
+        Alerts.emit(err.response?.data?.error || 'Failed to create a draft.', 'warning')
     }
 }
 
 async function publish (payload: { version: string, notes: string }) {
-    // @TODO-SCHEMAS: CATCH THE ERROR publishDraft THROWS (#9227) AND SHOW ITS code ON THE DIALOG'S VERSION FIELD
-    await schemasStore.publishDraft(payload)
-    publishDialog.value?.close()
+    try {
+        await schemasStore.publishDraft(payload)
+        publishDialog.value?.close()
+        Alerts.emit(`Version ${payload.version} published.`, 'confirmation')
+    } catch (err) {
+        const message = err.response?.data?.error || 'Failed to publish the draft.'
+        if (draft.value) return publishDialog.value?.setError(message)
+        publishDialog.value?.close()
+        Alerts.emit(message, 'warning')
+    }
 }
 </script>

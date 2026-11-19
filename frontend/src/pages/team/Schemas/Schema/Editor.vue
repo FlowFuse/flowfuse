@@ -15,15 +15,15 @@
 import { computed } from 'vue'
 
 import FormRow from '@/components/FormRow.vue'
-import type { SchemaDraft, SchemaVersion } from '@/stores/data-farm-schemas'
+import type { DataSchemaDraft, DataSchemaVersion } from '@/types'
 
 import daysSince from '@/utils/daysSince'
 
 defineOptions({ name: 'SchemaEditor' })
 
 const props = defineProps<{
-    draft: SchemaDraft | null
-    latestPublished: SchemaVersion | null
+    draft: DataSchemaDraft | null
+    latestPublished: DataSchemaVersion | null
     readOnly: boolean
 }>()
 
