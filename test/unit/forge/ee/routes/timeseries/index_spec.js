@@ -1,10 +1,13 @@
 const should = require('should')
+const sinon = require('sinon')
 
 const setup = require('../../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 const stubDriver = FF_UTIL.require('forge/ee/lib/timeseries/drivers/stub.js')
+const { imageMajor } = FF_UTIL.require('forge/ee/lib/timeseries/wrapper.js')
+const backupTask = FF_UTIL.require('forge/housekeeper/tasks/timeseriesBackup.js')
 
 const externalServer = {
     kind: 'external',
@@ -68,6 +71,7 @@ describe('Timeseries API', function () {
                 driver: {
                     type: 'stub',
                     options: {
+                        image: 'questdb/questdb:9.0.1',
                         defaultTier: 'small',
                         tiers: {
                             small: { cpu: '1', memory: '2Gi', storage: '20Gi' },
@@ -101,8 +105,32 @@ describe('Timeseries API', function () {
     afterEach(async function () {
         await removeAll()
         stubDriver.state.options.fail = false
+        stubDriver.state.options.failUpgrade = false
+        stubDriver.state.options.failBackup = false
+        delete stubDriver.state.options.snapshots
+        stubDriver.state.snapshots = []
+        stubDriver.state.servers = {}
+        await app.team.reload()
+        if (app.team.suspended) {
+            await app.team.unsuspend()
+        }
         await enableFeature(true)
     })
+
+    async function createReady () {
+        await inject('POST', '', 'bob', {})
+        await app.timeseries.settle()
+        return app.db.models.TimeseriesDatabase.byTeamId(TestObjects.team.id)
+    }
+
+    async function freshTeam () {
+        return app.db.models.Team.byId(TestObjects.team.id)
+    }
+
+    async function auditEvents () {
+        const entries = await app.db.models.AuditLog.findAll({ where: { entityType: 'team', entityId: String(TestObjects.team.id) } })
+        return entries.map(entry => entry.event)
+    }
 
     describe('team routes', function () {
         it('returns no database and what the platform supports', async function () {
@@ -258,6 +286,304 @@ describe('Timeseries API', function () {
             await app.timeseries.createManaged(team, {})
             await app.timeseries.settle()
             await team.destroy().should.be.rejectedWith(/time-series database/)
+        })
+    })
+
+    describe('suspend and resume', function () {
+        beforeEach(function () {
+            // The test team has a Stripe subscription, which would call the real API
+            sinon.stub(app.billing, 'closeSubscription').resolves()
+            sinon.stub(app.billing, 'updateTeamType').resolves()
+            sinon.stub(app.billing, 'updateTeamBillingCounts').resolves()
+        })
+
+        afterEach(function () {
+            sinon.restore()
+        })
+
+        it('suspends the server with the team and resumes it when the team is unsuspended', async function () {
+            const row = await createReady()
+            await app.team.suspend()
+            await row.reload()
+            row.state.should.equal('suspended')
+            row.stateDetail.should.equal('team_suspended')
+            Object.values(stubDriver.state.servers)[0].running.should.be.false()
+            stubDriver.state.pgbouncer.userlist.should.equal('')
+            ;(await auditEvents()).should.containEql('team.timeseries.suspended')
+
+            await app.team.unsuspend()
+            await row.reload()
+            row.state.should.equal('ready')
+            Object.values(stubDriver.state.servers)[0].running.should.be.true()
+            ;(await auditEvents()).should.containEql('team.timeseries.resumed')
+        })
+
+        it('does not resume a server suspended for another reason when the team is unsuspended', async function () {
+            const row = await createReady()
+            await app.timeseries.suspendTeam(TestObjects.team, 'feature_disabled')
+            await app.team.suspend()
+            await app.team.unsuspend()
+            await row.reload()
+            row.state.should.equal('suspended')
+            row.stateDetail.should.equal('feature_disabled')
+        })
+
+        it('suspends the team even when the driver fails', async function () {
+            await createReady()
+            const original = stubDriver.suspend
+            stubDriver.suspend = async () => { throw new Error('stub suspend failure') }
+            try {
+                await app.team.suspend()
+            } finally {
+                stubDriver.suspend = original
+            }
+            await app.team.reload()
+            app.team.suspended.should.be.true()
+        })
+
+        it('resumes without a reason whatever the reason was', async function () {
+            const row = await createReady()
+            await app.timeseries.suspendTeam(TestObjects.team, 'trial_ended')
+            await app.timeseries.resumeTeam(TestObjects.team)
+            await row.reload()
+            row.state.should.equal('ready')
+        })
+
+        it('suspends the server when the team type loses the feature and resumes it when it returns', async function () {
+            const row = await createReady()
+            await enableFeature(false)
+            await app.timeseries.syncFeature(await freshTeam())
+            await row.reload()
+            row.state.should.equal('suspended')
+            row.stateDetail.should.equal('feature_disabled')
+
+            await enableFeature(true)
+            await app.timeseries.syncFeature(await freshTeam())
+            await row.reload()
+            row.state.should.equal('ready')
+        })
+
+        it('keeps a server suspended when the team is unsuspended after the team type lost the feature', async function () {
+            const row = await createReady()
+            await app.team.suspend()
+            await enableFeature(false)
+            await (await freshTeam()).unsuspend()
+            await row.reload()
+            row.state.should.equal('suspended')
+            row.stateDetail.should.equal('feature_disabled')
+        })
+
+        it('checks the feature when the team type changes', async function () {
+            const row = await createReady()
+            const without = await app.db.models.TeamType.create({
+                name: 'no-timeseries',
+                active: true,
+                order: 99,
+                properties: { enableAllFeatures: false, features: { timeseries: false } }
+            })
+            try {
+                const team = await freshTeam()
+                await team.updateTeamType(without)
+                await row.reload()
+                row.stateDetail.should.equal('feature_disabled')
+                await team.updateTeamType(app.defaultTeamType)
+                await row.reload()
+                row.state.should.equal('ready')
+            } finally {
+                const team = await freshTeam()
+                if (team.TeamTypeId === without.id) {
+                    await team.setTeamType(app.defaultTeamType)
+                    await team.save()
+                }
+                await app.db.models.TeamType.destroy({ where: { id: without.id } })
+            }
+        })
+
+        it('checks the feature of every managed server at startup', async function () {
+            const row = await createReady()
+            await enableFeature(false)
+            await app.timeseries.reconcile()
+            await row.reload()
+            row.state.should.equal('suspended')
+            row.stateDetail.should.equal('feature_disabled')
+        })
+
+        it('lets an owner resume a server suspended when the trial ended', async function () {
+            const row = await createReady()
+            await app.timeseries.suspendTeam(TestObjects.team, 'trial_ended')
+            ;(await inject('POST', `/${row.hashid}/resume`, 'chris')).statusCode.should.equal(403)
+            const response = await inject('POST', `/${row.hashid}/resume`, 'bob')
+            response.statusCode.should.equal(202)
+            await app.timeseries.settle()
+            await row.reload()
+            row.state.should.equal('ready')
+            ;(await auditEvents()).should.containEql('team.timeseries.resumed')
+        })
+
+        it('refuses to resume a server that was not suspended by a trial ending', async function () {
+            const row = await createReady()
+            ;(await inject('POST', `/${row.hashid}/resume`, 'bob')).statusCode.should.equal(409)
+            await app.timeseries.suspendTeam(TestObjects.team, 'feature_disabled')
+            const response = await inject('POST', `/${row.hashid}/resume`, 'bob')
+            response.statusCode.should.equal(409)
+            response.json().code.should.equal('not_resumable')
+        })
+
+        it('refuses to resume while the team is suspended', async function () {
+            const row = await createReady()
+            await app.timeseries.suspendTeam(TestObjects.team, 'trial_ended')
+            app.team.suspended = true
+            await app.team.save()
+            const response = await inject('POST', `/${row.hashid}/resume`, 'bob')
+            response.statusCode.should.equal(409)
+            response.json().code.should.equal('team_suspended')
+        })
+    })
+
+    describe('image upgrade', function () {
+        it('reads the major version from the tag', function () {
+            imageMajor('questdb/questdb:9.0.1').should.equal(9)
+            imageMajor('registry.example.com:5000/questdb/questdb:10.1').should.equal(10)
+            imageMajor('questdb/questdb:v8').should.equal(8)
+            should(imageMajor('questdb/questdb:latest')).be.null()
+            should(imageMajor('questdb/questdb')).be.null()
+            should(imageMajor(undefined)).be.null()
+        })
+
+        it('is for administrators only', async function () {
+            const row = await createReady()
+            ;(await inject('POST', `/${row.hashid}/upgrade`, 'bob', {})).statusCode.should.equal(403)
+        })
+
+        it('moves a ready server to a newer image of the same major version', async function () {
+            const row = await createReady()
+            const response = await inject('POST', `/${row.hashid}/upgrade`, 'alice', { image: 'questdb/questdb:9.0.2' })
+            response.statusCode.should.equal(202)
+            response.json().state.should.equal('provisioning')
+            await app.timeseries.settle()
+            await row.reload()
+            row.state.should.equal('ready')
+            row.image.should.equal('questdb/questdb:9.0.2')
+            stubDriver.state.calls.should.containEql(['upgrade', row.meta.slug, 'questdb/questdb:9.0.2'])
+            ;(await auditEvents()).should.containEql('team.timeseries.upgraded')
+        })
+
+        it('defaults to the configured image', async function () {
+            const row = await createReady()
+            row.image = 'questdb/questdb:9.0.0'
+            await row.save()
+            ;(await inject('POST', `/${row.hashid}/upgrade`, 'alice', {})).statusCode.should.equal(202)
+            await app.timeseries.settle()
+            await row.reload()
+            row.image.should.equal('questdb/questdb:9.0.1')
+        })
+
+        it('refuses another major version unless forced', async function () {
+            const row = await createReady()
+            const refused = await inject('POST', `/${row.hashid}/upgrade`, 'alice', { image: 'questdb/questdb:10.0.0' })
+            refused.statusCode.should.equal(409)
+            refused.json().code.should.equal('major_upgrade')
+            await row.reload()
+            row.state.should.equal('ready')
+            row.image.should.equal('questdb/questdb:9.0.1')
+
+            const forced = await inject('POST', `/${row.hashid}/upgrade`, 'alice', { image: 'questdb/questdb:10.0.0', force: true })
+            forced.statusCode.should.equal(202)
+            await app.timeseries.settle()
+            await row.reload()
+            row.image.should.equal('questdb/questdb:10.0.0')
+        })
+
+        it('needs force for a tag it cannot read', async function () {
+            const row = await createReady()
+            const refused = await inject('POST', `/${row.hashid}/upgrade`, 'alice', { image: 'questdb/questdb:latest' })
+            refused.statusCode.should.equal(409)
+            refused.json().code.should.equal('major_upgrade')
+        })
+
+        it('marks the server as errored and keeps the recorded image when the driver fails', async function () {
+            const row = await createReady()
+            stubDriver.state.options.failUpgrade = true
+            ;(await inject('POST', `/${row.hashid}/upgrade`, 'alice', { image: 'questdb/questdb:9.0.2' })).statusCode.should.equal(202)
+            await app.timeseries.settle()
+            await row.reload()
+            row.state.should.equal('error')
+            row.stateDetail.should.match(/stub upgrade failure/)
+            row.image.should.equal('questdb/questdb:9.0.1')
+        })
+
+        it('only upgrades ready managed servers', async function () {
+            const row = await createReady()
+            await app.timeseries.suspendTeam(TestObjects.team, 'trial_ended')
+            ;(await inject('POST', `/${row.hashid}/upgrade`, 'alice', {})).statusCode.should.equal(409)
+            await app.timeseries.settle()
+            await app.db.models.TimeseriesDatabase.destroy({ where: {} })
+            const external = (await inject('POST', '', 'bob', externalServer)).json().database
+            ;(await inject('POST', `/${external.id}/upgrade`, 'alice', {})).statusCode.should.equal(400)
+        })
+    })
+
+    describe('reconcile', function () {
+        it('logs servers without a row and leaves them alone', async function () {
+            await createReady()
+            stubDriver.state.servers.orphan01 = { running: true }
+            const warnings = []
+            const warn = app.log.warn
+            app.log.warn = (message) => { warnings.push(String(message)) }
+            try {
+                await app.timeseries.reconcile()
+            } finally {
+                app.log.warn = warn
+            }
+            warnings.filter(message => message.includes('orphan01')).should.have.length(1)
+            warnings.filter(message => message.includes('no database row')).should.have.length(1)
+            stubDriver.state.servers.should.have.property('orphan01')
+        })
+    })
+
+    describe('backups', function () {
+        function enableBackups (retention) {
+            stubDriver.state.options.snapshots = { enabled: true, retention }
+        }
+
+        it('is off unless snapshots are enabled', async function () {
+            await createReady()
+            app.timeseries.backupsEnabled.should.be.false()
+            await backupTask.run(app)
+            stubDriver.state.calls.filter(call => call[0] === 'backup').should.have.length(0)
+        })
+
+        it('backs up every ready managed server and prunes to the retention', async function () {
+            const row = await createReady()
+            enableBackups({ daily: 2, weekly: 0 })
+            app.timeseries.backupsEnabled.should.be.true()
+            for (let i = 0; i < 4; i++) {
+                await app.timeseries.backupAll()
+            }
+            stubDriver.state.calls.filter(call => call[0] === 'backup').should.have.length(4)
+            stubDriver.state.snapshots.should.have.length(2)
+            stubDriver.state.snapshots.forEach(snapshot => snapshot.slug.should.equal(row.meta.slug))
+        })
+
+        it('runs from the housekeeper task', async function () {
+            await createReady()
+            enableBackups()
+            await backupTask.run(app)
+            stubDriver.state.snapshots.should.have.length(1)
+        })
+
+        it('skips servers that are not ready and carries on after a failure', async function () {
+            const row = await createReady()
+            enableBackups()
+            stubDriver.state.options.failBackup = true
+            await app.timeseries.backupAll()
+            stubDriver.state.snapshots.should.have.length(0)
+            stubDriver.state.options.failBackup = false
+            await app.timeseries.suspendTeam(TestObjects.team, 'trial_ended')
+            await app.timeseries.backupAll()
+            stubDriver.state.snapshots.should.have.length(0)
+            await row.reload()
+            row.state.should.equal('suspended')
         })
     })
 

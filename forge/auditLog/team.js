@@ -260,6 +260,18 @@ module.exports = {
                 async deleted (actionedBy, error, team, database) {
                     const body = generateBody({ error, team, database })
                     await log('team.timeseries.deleted', actionedBy, team?.id, body)
+                },
+                async suspended (actionedBy, error, team, database, reason) {
+                    const body = generateBody({ error, team, database, info: { reason } })
+                    await log('team.timeseries.suspended', actionedBy, team?.id, body)
+                },
+                async resumed (actionedBy, error, team, database, reason) {
+                    const body = generateBody({ error, team, database, info: { reason } })
+                    await log('team.timeseries.resumed', actionedBy, team?.id, body)
+                },
+                async upgraded (actionedBy, error, team, database, updates) {
+                    const body = generateBody({ error, team, database, updates })
+                    await log('team.timeseries.upgraded', actionedBy, team?.id, body)
                 }
             }
         }

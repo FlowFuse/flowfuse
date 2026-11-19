@@ -118,6 +118,25 @@ describe('Billing - Trial Housekeeper Task', function () {
         // Testing the specific body text is going to be too brittle
     })
 
+    it('suspends the time-series database of a team whose trial ended without billing', async function () {
+        const suspendTeam = sandbox.stub().rejects(new Error('driver down'))
+        app.timeseries = { suspendTeam }
+        const trialTeam = await app.factory.createTeam({ name: 'noBillingTeam' })
+        const trialSub = await app.factory.createTrialSubscription(trialTeam)
+        await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+        trialSub.trialEndsAt = new Date(Date.now() - 1000)
+        await trialSub.save()
+
+        await task(app)
+
+        suspendTeam.calledOnce.should.be.true()
+        suspendTeam.firstCall.args[0].id.should.equal(trialTeam.id)
+        suspendTeam.firstCall.args[1].should.equal('trial_ended')
+        // A failing driver does not stop the trial from being closed
+        await trialSub.reload()
+        should.not.exist(trialSub.trialEndsAt)
+    })
+
     it('sends trial reminder emails at appropriate intervals', async function () {
         const DAY_MS = 86400000
         // TestObjects.ATeam - has billing setup, should not get touched

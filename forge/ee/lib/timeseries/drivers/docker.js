@@ -23,6 +23,7 @@ const pgbouncer = require('../pgbouncer')
 const DATA_DIR = '/var/lib/questdb'
 const LABEL_COMPONENT = 'flowfuse.com/component'
 const LABEL_TEAM = 'flowfuse.com/team'
+const LABEL_SLUG = 'flowfuse.com/timeseries'
 const ALLOWED_PATHS = '^/(write|api/v2/write|ping)$'
 // The QuestDB image has no curl or wget, so the health endpoint is read with bash's /dev/tcp
 const HEALTH_CMD = ['bash', '-c', 'exec 3<>/dev/tcp/127.0.0.1/9003 && printf "GET / HTTP/1.0\\r\\n\\r\\n" >&3 && head -1 <&3 | grep -q " 200"']
@@ -82,6 +83,18 @@ async function detectNetwork () {
     throw new Error('Unable to find the flowforge Docker network, set timeseries.driver.options.network')
 }
 
+async function volumeExists (volume) {
+    try {
+        await docker.getVolume(volume).inspect()
+        return true
+    } catch (err) {
+        if (err.statusCode === 404) {
+            return false
+        }
+        throw err
+    }
+}
+
 async function writeVhostFile (host) {
     const dir = options.vhostDir || '/etc/nginx/vhost.d'
     const file = path.join(dir, `${host}_location`)
@@ -103,7 +116,7 @@ async function removeVhostFile (host) {
     await fs.rm(path.join(dir, `${host}_location`), { force: true })
 }
 
-function containerSpec (team, database, credentials, tier) {
+function containerSpec (team, database, credentials, tier, image) {
     const { container, volume, host } = names(database)
     const env = [
         `QDB_HTTP_USER=${credentials.httpUser}`,
@@ -124,11 +137,12 @@ function containerSpec (team, database, credentials, tier) {
     }
     return {
         name: container,
-        Image: database.image || options.image,
+        Image: image || database.image || options.image,
         Env: env,
         Labels: {
             [LABEL_COMPONENT]: 'timeseries',
-            [LABEL_TEAM]: team.hashid
+            [LABEL_TEAM]: team.hashid,
+            [LABEL_SLUG]: database.meta.slug
         },
         Healthcheck: {
             Test: ['CMD', ...HEALTH_CMD],
@@ -187,10 +201,9 @@ async function waitUntilReady (container) {
     throw new Error(`QuestDB did not become ready within ${timeout / 1000}s`)
 }
 
-async function startContainer (team, database, credentials, tier) {
-    const image = database.image || options.image
+async function startContainer (team, database, credentials, tier, image = database.image || options.image) {
     await pullImage(image)
-    const container = await docker.createContainer(containerSpec(team, database, credentials, tier))
+    const container = await docker.createContainer(containerSpec(team, database, credentials, tier, image))
     await container.start()
     await waitUntilReady(container)
     return container
@@ -237,13 +250,19 @@ module.exports = {
 
     shutdown: async () => {},
 
+    // Also recreates a server whose container has gone (startup reconcile). An existing
+    // volume holds the team's data, so a failure only removes a volume this call created.
     create: async (team, database, { credentials, tier }) => {
         const { volume, container, host } = names(database)
+        let createdVolume = false
         try {
-            await docker.createVolume({
-                Name: volume,
-                Labels: { [LABEL_COMPONENT]: 'timeseries', [LABEL_TEAM]: team.hashid }
-            })
+            if (!await volumeExists(volume)) {
+                await docker.createVolume({
+                    Name: volume,
+                    Labels: { [LABEL_COMPONENT]: 'timeseries', [LABEL_TEAM]: team.hashid, [LABEL_SLUG]: database.meta.slug }
+                })
+                createdVolume = true
+            }
             await writeVhostFile(host)
             const started = await startContainer(team, database, credentials, tier)
             return {
@@ -251,10 +270,11 @@ module.exports = {
                 meta: { containerId: started.id, volume }
             }
         } catch (err) {
-            // Nothing in a brand-new volume is worth keeping, so undo everything
             await removeContainer(container).catch(() => {})
-            await docker.getVolume(volume).remove().catch(() => {})
-            await removeVhostFile(host).catch(() => {})
+            if (createdVolume) {
+                await docker.getVolume(volume).remove().catch(() => {})
+                await removeVhostFile(host).catch(() => {})
+            }
             throw err
         }
     },
@@ -302,6 +322,38 @@ module.exports = {
         const tier = (options.tiers || {})[database.tier]
         await removeContainer(container)
         await startContainer(team, database, credentials, tier)
+    },
+
+    // The data stays on the volume. A new image that fails to start is replaced by the old
+    // one, so a bad tag doesn't leave the team without a server.
+    upgrade: async (team, database, image) => {
+        const { container } = names(database)
+        const tier = (options.tiers || {})[database.tier]
+        const previous = database.image || options.image
+        await pullImage(image)
+        await removeContainer(container)
+        try {
+            await startContainer(team, database, database.getCredentials(), tier, image)
+        } catch (err) {
+            await removeContainer(container).catch(() => {})
+            await startContainer(team, database, database.getCredentials(), tier, previous).catch(restoreErr => {
+                app.log.error(`[timeseries] restoring ${previous} for ${database.meta.slug} failed: ${restoreErr.message}`)
+            })
+            throw err
+        }
+    },
+
+    // Slugs of every server this driver has created, whether or not forge still has a row
+    list: async () => {
+        const containers = await docker.listContainers({ all: true, filters: { label: [`${LABEL_COMPONENT}=timeseries`] } })
+        return containers.map(entry => {
+            const labelled = entry.Labels?.[LABEL_SLUG]
+            if (labelled) {
+                return labelled
+            }
+            const name = (entry.Names?.[0] || '').replace(/^\//, '')
+            return name.startsWith('ts-') ? name.slice(3) : name
+        })
     },
 
     status: async (team, database) => {

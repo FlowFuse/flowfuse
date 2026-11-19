@@ -97,6 +97,7 @@ module.exports = fp(async function (app, _opts) {
     await registerTask(require('./tasks/deviceUnusedReminder'))
     await registerTask(require('./tasks/certifiedNodes'))
     await registerTask(require('./tasks/dashboardAdoption'))
+    await registerTask(require('./tasks/timeseriesBackup'))
 
     app.addHook('onReady', async () => {
         let promise = Promise.resolve()

@@ -314,6 +314,73 @@ module.exports = async function (app) {
     })
 
     /**
+     * Starts a server that was suspended when the team's trial ended without billing
+     * @name /api/v1/teams/:teamId/timeseries/:databaseId/resume
+     */
+    app.post('/:databaseId/resume', {
+        preHandler: app.needsPermission('team:timeseries:edit'),
+        schema: {
+            summary: 'Resume the managed time-series database after a trial ended',
+            tags: ['Timeseries'],
+            response: {
+                202: { $ref: 'TimeseriesDatabaseSummary' },
+                '4xx': { $ref: 'APIError' }
+            }
+        }
+    }, async (request, reply) => {
+        if (request.team.suspended) {
+            return reply.status(409).send({ code: 'team_suspended', error: 'The team is suspended' })
+        }
+        const database = await app.timeseries.resumeAfterTrial(request.timeseriesDatabase)
+        const summary = app.db.views.TimeseriesDatabase.summary(database)
+        await app.auditLog.Team.timeseries.database.resumed(request.session.User, null, request.team, database, 'trial_ended')
+        reply.status(202).send(summary)
+    })
+
+    /**
+     * Platform administrators move a managed server to another image
+     * @name /api/v1/teams/:teamId/timeseries/:databaseId/upgrade
+     */
+    app.post('/:databaseId/upgrade', {
+        preHandler: async (request, reply) => {
+            if (!request.session.User?.admin) {
+                return reply.status(403).send({ code: 'forbidden', error: 'Only administrators can upgrade a time-series database' })
+            }
+        },
+        schema: {
+            summary: 'Upgrade the managed time-series database image',
+            tags: ['Timeseries'],
+            body: {
+                type: 'object',
+                properties: {
+                    image: { type: 'string' },
+                    force: { type: 'boolean' }
+                },
+                additionalProperties: false
+            },
+            response: {
+                202: { $ref: 'TimeseriesDatabaseSummary' },
+                '4xx': { $ref: 'APIError' }
+            }
+        }
+    }, async (request, reply) => {
+        const database = request.timeseriesDatabase
+        const previous = database.image
+        const updates = new app.auditLog.formatters.UpdatesCollection()
+        try {
+            await app.timeseries.upgrade(database, request.body?.image, { force: request.body?.force })
+        } catch (err) {
+            await app.auditLog.Team.timeseries.database.upgraded(request.session.User, err, request.team, database)
+            throw err
+        }
+        const image = request.body?.image || app.timeseries.options.image
+        updates.push('image', previous, image)
+        const summary = app.db.views.TimeseriesDatabase.summary(database)
+        await app.auditLog.Team.timeseries.database.upgraded(request.session.User, null, request.team, database, updates)
+        reply.status(202).send(summary)
+    })
+
+    /**
      * Managed servers are deleted with their data. External servers are only disconnected.
      * @name /api/v1/teams/:teamId/timeseries/:databaseId
      */

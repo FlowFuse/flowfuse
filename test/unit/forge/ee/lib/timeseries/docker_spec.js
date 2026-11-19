@@ -31,18 +31,19 @@ describe('Timeseries: Docker driver', function () {
     // Runs against the local Docker daemon: TIMESERIES_DOCKER_TEST=1 npx mocha <this file>
     describe('against Docker', function () {
         const enabled = process.env.TIMESERIES_DOCKER_TEST === '1'
-        const database = { meta: { slug: 'dockertest01' }, tier: 'small', image: null }
+        const database = { meta: { slug: 'dockertest01' }, tier: 'small', image: null, getCredentials: () => currentCredentials }
+        let currentCredentials = credentials
         let Docker
         let client
         let network
         let vhostDir
         let pgbouncerDir
 
-        async function questdbAnswers (user, password) {
+        async function questdbAnswers (user, password, query = 'select 1') {
             const container = client.getContainer('ts-dockertest01')
             const auth = Buffer.from(`${user}:${password}`).toString('base64')
             // No curl in the image: send the request with bash's /dev/tcp
-            const request = `GET /exec?query=select%%201 HTTP/1.0\\r\\nAuthorization: Basic ${auth}\\r\\n\\r\\n`
+            const request = `GET /exec?query=${encodeURIComponent(query).replace(/%/g, '%%')} HTTP/1.0\\r\\nAuthorization: Basic ${auth}\\r\\n\\r\\n`
             const run = await container.exec({
                 Cmd: ['bash', '-c', `exec 3<>/dev/tcp/127.0.0.1/9000 && printf "${request}" >&3 && head -1 <&3 | grep -q " 200"`],
                 AttachStdout: true,
@@ -126,8 +127,45 @@ describe('Timeseries: Docker driver', function () {
             this.timeout(180000)
             const rotated = { ...credentials, httpPassword: 'http-pass-2', pgPassword: 'pg-pass-2' }
             await docker.rotateCredentials(team, database, rotated)
+            currentCredentials = rotated
             ;(await questdbAnswers(rotated.httpUser, 'http-pass-2')).should.be.true()
             ;(await questdbAnswers(rotated.httpUser, 'http-pass-1')).should.be.false()
+        })
+
+        it('lists the servers it created by their slug', async function () {
+            ;(await docker.list()).should.containEql('dockertest01')
+        })
+
+        it('upgrades by recreating the container on the same volume with the new image', async function () {
+            this.timeout(240000)
+            const volumeBefore = await client.getVolume('ts-dockertest01').inspect()
+            const idBefore = (await client.getContainer('ts-dockertest01').inspect()).Id
+            await docker.upgrade(team, database, 'questdb/questdb:9.0.1')
+            const info = await client.getContainer('ts-dockertest01').inspect()
+            info.Id.should.not.equal(idBefore)
+            info.Config.Image.should.equal('questdb/questdb:9.0.1')
+            info.Config.Labels['flowfuse.com/timeseries'].should.equal('dockertest01')
+            ;(await client.getVolume('ts-dockertest01').inspect()).CreatedAt.should.equal(volumeBefore.CreatedAt)
+            ;(await questdbAnswers(currentCredentials.httpUser, currentCredentials.httpPassword)).should.be.true()
+        })
+
+        it('leaves the server running when the new image cannot be pulled', async function () {
+            this.timeout(240000)
+            await docker.upgrade(team, database, 'questdb/questdb:no-such-tag').should.be.rejected()
+            ;(await docker.status(team, database)).should.equal('running')
+            const info = await client.getContainer('ts-dockertest01').inspect()
+            info.Config.Image.should.equal('questdb/questdb:9.0.1')
+        })
+
+        it('keeps the existing volume when recreating a missing container fails', async function () {
+            this.timeout(240000)
+            ;(await questdbAnswers(currentCredentials.httpUser, currentCredentials.httpPassword, 'create table marker (x int)')).should.be.true()
+            await client.getContainer('ts-dockertest01').remove({ force: true })
+            ;(await docker.status(team, database)).should.equal('missing')
+            await docker.create(team, { ...database, image: 'questdb/questdb:no-such-tag' }, { credentials: currentCredentials, tier }).should.be.rejected()
+            await client.getVolume('ts-dockertest01').inspect()
+            await docker.create(team, database, { credentials: currentCredentials, tier })
+            ;(await questdbAnswers(currentCredentials.httpUser, currentCredentials.httpPassword, 'select count() from marker')).should.be.true()
         })
 
         it('writes the PgBouncer team list into the shared directory', async function () {

@@ -30,6 +30,7 @@ module.exports.init = function (app) {
                         app.log.info(`Team ${subscription.Team.hashid} ending trial - suspending instances`)
                         // Stripe not configured - suspend the lot
                         await suspendAllProjects(subscription.Team)
+                        await suspendTimeseries(subscription.Team)
                         await sendTrialEmail(subscription.Team, 'TrialTeamSuspended', {
                             teamSettingsURL: `${app.config.base_url}/team/${subscription.Team.slug}/billing`
                         })
@@ -121,6 +122,17 @@ module.exports.init = function (app) {
             app.notifications.send(user, 'team-trial-suspended', {
                 team: teamPayload
             })
+        }
+    }
+
+    async function suspendTimeseries (team) {
+        if (!app.timeseries) {
+            return
+        }
+        try {
+            await app.timeseries.suspendTeam(team, 'trial_ended')
+        } catch (err) {
+            app.log.error(`Failed to suspend the time-series database of team ${team.hashid}: ${err.message}`)
         }
     }
 

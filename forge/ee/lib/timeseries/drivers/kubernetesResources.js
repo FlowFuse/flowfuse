@@ -198,7 +198,60 @@ function endpoints (database, options) {
     }
 }
 
+/** A VolumeSnapshot of the server's PVC. The class is the cluster default unless one is named. */
+function volumeSnapshot (team, database, options, name) {
+    const { name: claim, namespace } = names(database, options)
+    const spec = { source: { persistentVolumeClaimName: claim } }
+    if (options.snapshots?.volumeSnapshotClass) {
+        spec.volumeSnapshotClassName = options.snapshots.volumeSnapshotClass
+    }
+    return {
+        apiVersion: 'snapshot.storage.k8s.io/v1',
+        kind: 'VolumeSnapshot',
+        metadata: {
+            name,
+            namespace,
+            labels: {
+                'flowfuse.com/component': COMPONENT,
+                'flowfuse.com/team': team.hashid,
+                'flowfuse.com/timeseries': database.meta.slug
+            }
+        },
+        spec
+    }
+}
+
+/** `ts-<slug>-<yyyymmddhhmmss>`, in UTC */
+function snapshotName (database, date) {
+    const stamp = date.toISOString().replace(/\D/g, '').slice(0, 14)
+    return `ts-${database.meta.slug}-${stamp}`
+}
+
+function snapshotSelector (database) {
+    return `flowfuse.com/component=${COMPONENT},flowfuse.com/timeseries=${database.meta.slug}`
+}
+
+/** The snapshot has been taken from the volume, so the checkpoint can be released */
+function snapshotTaken (snapshot) {
+    return !!(snapshot?.status?.creationTime || snapshot?.status?.readyToUse)
+}
+
+/** The Deployment has rolled out its latest spec and the pod is ready */
+function deploymentReady (deployment) {
+    const status = deployment.status || {}
+    const observed = status.observedGeneration ?? deployment.metadata?.generation ?? 0
+    if (observed < (deployment.metadata?.generation ?? 0)) {
+        return false
+    }
+    return (status.updatedReplicas ?? 0) >= 1 && (status.readyReplicas ?? 0) >= 1
+}
+
 module.exports = {
+    volumeSnapshot,
+    snapshotName,
+    snapshotSelector,
+    snapshotTaken,
+    deploymentReady,
     names,
     labels,
     secret,

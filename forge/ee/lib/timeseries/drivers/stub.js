@@ -1,9 +1,12 @@
 /**
- * In-memory timeseries driver for tests. Set `options.fail` to make create fail.
+ * In-memory timeseries driver for tests. Set `options.fail` to make create fail, and
+ * `options.failUpgrade` or `options.failBackup` to make those fail.
  */
 const state = {
     servers: {},
     pgbouncer: null,
+    snapshots: [],
+    snapshotCount: 0,
     calls: []
 }
 
@@ -12,6 +15,8 @@ module.exports = {
     init: async (app, options) => {
         state.servers = {}
         state.pgbouncer = null
+        state.snapshots = []
+        state.snapshotCount = 0
         state.calls = []
         state.options = options || {}
     },
@@ -46,6 +51,34 @@ module.exports = {
     resize: async (team, database, tier) => {
         state.calls.push(['resize', database.meta.slug])
         state.servers[database.meta.slug].tier = tier
+    },
+    upgrade: async (team, database, image) => {
+        state.calls.push(['upgrade', database.meta.slug, image])
+        if (state.options.failUpgrade) {
+            throw new Error('stub upgrade failure')
+        }
+        state.servers[database.meta.slug].image = image
+    },
+    list: async () => Object.keys(state.servers),
+    backup: async (team, database) => {
+        state.calls.push(['backup', database.meta.slug])
+        if (state.options.failBackup) {
+            throw new Error('stub backup failure')
+        }
+        state.snapshotCount++
+        // Unique names and strictly increasing times, so retention always has one order to keep
+        const snapshot = {
+            name: `ts-${database.meta.slug}-${state.snapshotCount}`,
+            slug: database.meta.slug,
+            createdAt: new Date(Date.now() + state.snapshotCount)
+        }
+        state.snapshots.push(snapshot)
+        return snapshot.name
+    },
+    listSnapshots: async (team, database) => state.snapshots.filter(snapshot => snapshot.slug === database.meta.slug),
+    deleteSnapshot: async (team, database, name) => {
+        state.calls.push(['deleteSnapshot', name])
+        state.snapshots = state.snapshots.filter(snapshot => snapshot.name !== name)
     },
     rotateCredentials: async (team, database, credentials) => {
         state.calls.push(['rotateCredentials', database.meta.slug])

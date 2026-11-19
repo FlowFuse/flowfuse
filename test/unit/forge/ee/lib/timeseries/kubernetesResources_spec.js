@@ -94,4 +94,57 @@ describe('Timeseries: Kubernetes resources', function () {
         kubernetes._parseQuantity('1Ti').should.equal(1024 ** 4)
         kubernetes._parseQuantity('5G').should.equal(5e9)
     })
+
+    describe('snapshots', function () {
+        it('snapshots the server volume, labelled for the team and server', function () {
+            const snapshot = resources.volumeSnapshot(team, database, options, 'ts-abc123def456-20261118030000')
+            snapshot.should.match({
+                apiVersion: 'snapshot.storage.k8s.io/v1',
+                kind: 'VolumeSnapshot',
+                metadata: {
+                    name: 'ts-abc123def456-20261118030000',
+                    namespace: 'flowfuse-timeseries',
+                    labels: { 'flowfuse.com/component': 'timeseries', 'flowfuse.com/team': 'TeamHash1', 'flowfuse.com/timeseries': 'abc123def456' }
+                },
+                spec: { source: { persistentVolumeClaimName: 'ts-abc123def456' } }
+            })
+            snapshot.spec.should.not.have.property('volumeSnapshotClassName')
+        })
+
+        it('names the VolumeSnapshotClass only when one is configured', function () {
+            const snapshot = resources.volumeSnapshot(team, database, { ...options, snapshots: { volumeSnapshotClass: 'ebs-snapshots' } }, 'name')
+            snapshot.spec.volumeSnapshotClassName.should.equal('ebs-snapshots')
+        })
+
+        it('names snapshots after the server and the UTC time', function () {
+            resources.snapshotName(database, new Date('2026-11-18T03:04:05.678Z')).should.equal('ts-abc123def456-20261118030405')
+        })
+
+        it('selects the snapshots of one server', function () {
+            resources.snapshotSelector(database).should.equal('flowfuse.com/component=timeseries,flowfuse.com/timeseries=abc123def456')
+        })
+
+        it('treats a snapshot as taken once it has a creation time or is ready', function () {
+            resources.snapshotTaken({}).should.be.false()
+            resources.snapshotTaken({ status: {} }).should.be.false()
+            resources.snapshotTaken({ status: { creationTime: '2026-11-18T03:00:00Z' } }).should.be.true()
+            resources.snapshotTaken({ status: { readyToUse: true } }).should.be.true()
+        })
+    })
+
+    describe('rollout', function () {
+        it('is ready once the pod runs the latest spec', function () {
+            resources.deploymentReady({ metadata: { generation: 2 }, status: { observedGeneration: 2, updatedReplicas: 1, readyReplicas: 1 } }).should.be.true()
+        })
+
+        it('is not ready while the controller has not seen the latest spec', function () {
+            resources.deploymentReady({ metadata: { generation: 3 }, status: { observedGeneration: 2, updatedReplicas: 1, readyReplicas: 1 } }).should.be.false()
+        })
+
+        it('is not ready while the pod is not updated or not ready', function () {
+            resources.deploymentReady({ metadata: { generation: 2 }, status: { observedGeneration: 2, readyReplicas: 1 } }).should.be.false()
+            resources.deploymentReady({ metadata: { generation: 2 }, status: { observedGeneration: 2, updatedReplicas: 1 } }).should.be.false()
+            resources.deploymentReady({ metadata: { generation: 1 } }).should.be.false()
+        })
+    })
 })
