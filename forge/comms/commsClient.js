@@ -4,6 +4,19 @@ const EventEmitter = require('events')
 const mqtt = require('mqtt')
 const { v4: uuidv4 } = require('uuid')
 
+// The heartbeat is published on the device status topic so that it flows through
+// the same shared subscription as real device status messages. The placeholder
+// team/device ids can never clash with a real team or device.
+const HEARTBEAT_TOPIC = 'ff/v1/platform/d/heartbeat/status'
+// How often each platform instance publishes a heartbeat
+const HEARTBEAT_INTERVAL = 10000
+// How often to check when the last message was received on the shared subscription
+const HEARTBEAT_CHECK_INTERVAL = 5000
+// Log a warning if nothing has been received on the shared subscription for this long
+const HEARTBEAT_WARN_THRESHOLD = 30000
+// Reconnect if nothing has been received on the shared subscription for this long
+const HEARTBEAT_RECONNECT_THRESHOLD = 90000
+
 /**
  * MQTT Client wrapper. This connects to the platform broker and subscribes
  * to the appropriate status topics.
@@ -13,6 +26,18 @@ class CommsClient extends EventEmitter {
         super()
         this.app = app
         this.platformId = uuidv4()
+
+        // Heartbeat properties
+        // - Interval timer to publish heartbeat to broker
+        this.heartbeatPublisher = null
+        // - Interval timer to check for heartbeat from broker
+        this.heartbeatWatchdog = null
+        // - Timestamp of last message received on the shared device status subscription
+        this.lastHeartbeatSeenAt = 0
+        // - Flag indicating if any message has been received on the shared device status subscription
+        this.heartbeatSeen = false
+        // - Flag indicating if a heartbeat warning has been logged
+        this.heartbeatWarned = false
     }
 
     async init () {
@@ -33,11 +58,81 @@ class CommsClient extends EventEmitter {
                 }
             }
             this.client = mqtt.connect(this.app.config.broker.url, brokerConfig)
+
+            const setupWatchdog = () => {
+                // The watchdog is a mechanism to monitor the connection to the broker.
+                // Each platform instance publishes a heartbeat on the device status topic. As
+                // that is a shared subscription, the broker distributes the heartbeats from all
+                // instances between them - so an instance will not necessarily receive its own,
+                // but should receive *something* at roughly the heartbeat rate.
+                // Any message received on the shared device status subscription (heartbeat or
+                // real device status) counts as the subscription being alive.
+                // If nothing arrives within a certain time it will bounce the connection
+
+                this.lastHeartbeatSeenAt = Date.now()
+                this.heartbeatSeen = false
+                if (this.heartbeatWatchdog) {
+                    clearInterval(this.heartbeatWatchdog)
+                    this.heartbeatWatchdog = null
+                }
+                if (this.heartbeatPublisher) {
+                    clearInterval(this.heartbeatPublisher)
+                    this.heartbeatPublisher = null
+                }
+                this.heartbeatWatchdog = setInterval(async () => {
+                    // Check when a message was last received on the shared subscription
+                    const now = Date.now()
+                    const delta = now - this.lastHeartbeatSeenAt
+                    if (delta < HEARTBEAT_WARN_THRESHOLD) {
+                        return
+                    }
+                    if (delta < HEARTBEAT_RECONNECT_THRESHOLD || !this.heartbeatSeen) {
+                        if (!this.heartbeatWarned) {
+                            this.app.log.warn(`No comms heartbeat received on device status subscription for ${delta} ms`)
+                            this.heartbeatWarned = true
+                        }
+                        return
+                    }
+                    this.app.log.warn(`No comms heartbeat received on device status subscription for ${delta} ms - reconnecting`)
+                    try {
+                        // Reset the flag so failures will be logged after reconnect
+                        this.heartbeatWarned = false
+                        // Force a disconnect
+                        await this.disconnect(true)
+                        // Reinitialise a new client and re-subscribe to topics
+                        await this.init()
+                    } catch (err) {
+                        this.app.log.error(`Error reconnecting to comms broker: ${err.toString()}`)
+                    }
+                }, HEARTBEAT_CHECK_INTERVAL)
+                this.heartbeatPublisher = setInterval(() => {
+                    if (this.client?.connected) {
+                        this.app.log.debug('Sending comms broker heartbeat')
+                        this.client.publish(HEARTBEAT_TOPIC, JSON.stringify({ platform: this.platformId, sentAt: Date.now() }), { qos: 0 })
+                    }
+                }, HEARTBEAT_INTERVAL)
+            }
+
             this.client.on('connect', () => {
                 this.app.log.info('Connected to comms broker')
+                // Enable the connection watchdog to monitor the connection.
+                setupWatchdog()
             })
             this.client.on('reconnect', () => {
                 this.app.log.info('Reconnecting to comms broker')
+            })
+            this.client.on('close', () => {
+                this.app.log.info('Disconnected from comms broker')
+                // Not connected. Stop the watchdog timers if they are running
+                // They will be restarted when the connection is re-established.
+                if (this.heartbeatWatchdog) {
+                    clearInterval(this.heartbeatWatchdog)
+                    this.heartbeatWatchdog = null
+                }
+                if (this.heartbeatPublisher) {
+                    clearInterval(this.heartbeatPublisher)
+                    this.heartbeatPublisher = null
+                }
             })
             this.client.on('disconnect', (disconnectPacket) => {
                 const rc = disconnectPacket?.reasonCode || 'unknown reason code'
@@ -53,6 +148,38 @@ class CommsClient extends EventEmitter {
                 const ownerId = topicParts[4]
                 const messageType = topicParts[5]
 
+                /**
+                 * Shared device status subscription
+                 * ff/v1/<team>/d/<device>/status
+                 * Any message received here shows the shared subscription is alive
+                 */
+                if (ownerType === 'd' && messageType === 'status' && topicParts.length === 6) {
+                    this.heartbeatSeen = true
+                    this.lastHeartbeatSeenAt = Date.now()
+                    if (this.heartbeatWarned) {
+                        // We have warned of a missing heartbeat, but now we have received a message. Log that the subscription is healthy again.
+                        this.app.log.info('Comms broker heartbeat received on device status subscription')
+                        this.heartbeatWarned = false
+                    }
+                }
+                /** Platform heartbeat
+                 * ff/v1/platform/d/heartbeat/status
+                 * This may have been published by any platform instance
+                 */
+                if (topic === HEARTBEAT_TOPIC) {
+                    let heartbeat
+                    try {
+                        heartbeat = JSON.parse(message.toString())
+                    } catch (err) {
+                        return
+                    }
+                    if (heartbeat.platform === this.platformId) {
+                        this.app.log.debug(`Comms broker heartbeat received (${Date.now() - heartbeat.sentAt} ms round-trip)`)
+                    } else {
+                        this.app.log.debug(`Comms broker heartbeat received from platform ${heartbeat.platform}`)
+                    }
+                    return
+                }
                 /**
                  * 3rd Party Mcp events
                  */
@@ -277,6 +404,7 @@ class CommsClient extends EventEmitter {
                 // Launcher status - shared subscription
                 '$share/platform/ff/v1/+/l/+/status',
                 // Device status - shared subscription
+                // - also receives the platform heartbeat (HEARTBEAT_TOPIC)
                 '$share/platform/ff/v1/+/d/+/status',
                 // Device response - not shared subscription
                 'ff/v1/+/d/+/response/' + this.platformId,
@@ -317,10 +445,10 @@ class CommsClient extends EventEmitter {
                 data.type = error?.name || error?.constructor?.name || 'Error'
                 data.message = error?.message || error?.toString()
             }
-            this.client.publish(responseTopic, JSON.stringify(data), mqttOptions)
+            this.client?.publish(responseTopic, JSON.stringify(data), mqttOptions)
         }
         const onSuccess = (result) => {
-            this.client.publish(responseTopic, JSON.stringify(result), mqttOptions)
+            this.client?.publish(responseTopic, JSON.stringify(result), mqttOptions)
         }
         return { onSuccess, onError }
     }
@@ -347,9 +475,22 @@ class CommsClient extends EventEmitter {
         }
     }
 
-    async disconnect () {
+    async disconnect (force = false) {
+        if (this.heartbeatPublisher) {
+            clearInterval(this.heartbeatPublisher)
+            this.heartbeatPublisher = null
+        }
+        if (this.heartbeatWatchdog) {
+            clearInterval(this.heartbeatWatchdog)
+            this.heartbeatWatchdog = null
+        }
         if (this.client) {
-            this.client.end()
+            const client = this.client
+            // Avoid transient use of a client being disconnected
+            this.client = null
+            await client.endAsync(force)
+            // Disarm listeners on the client
+            client.removeAllListeners()
         }
     }
 }
