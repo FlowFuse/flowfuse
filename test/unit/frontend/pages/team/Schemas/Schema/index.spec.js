@@ -90,20 +90,31 @@ describe('Team Schema page', () => {
         expect(page.find('[data-action="create-draft"]').text()).toBe('Create draft from 1.2.0')
     })
 
-    test('enables Save and Publish for a valid draft', () => {
+    test('enables Publish but not Save for an unchanged valid draft', () => {
         const { page } = mountPage(Roles.Member, { draft: DRAFT })
-        expect(page.find('[data-action="save-draft"]').attributes('disabled')).toBeUndefined()
+        expect(page.find('[data-action="save-draft"]').attributes('disabled')).toBeDefined()
         expect(page.find('[data-action="publish"]').attributes('disabled')).toBeUndefined()
     })
 
-    test('disables Save and Publish when the draft uses a reference', () => {
-        const { page } = mountPage(Roles.Member, { draft: { ...DRAFT, schema: { properties: { a: { $ref: '#' } } } } })
+    test('enables Save once the draft has unsaved edits', async () => {
+        const { page } = mountPage(Roles.Member, { draft: DRAFT })
+        edit.notes = 'new notes'
+        await page.find('[data-test="set-notes"]').trigger('click')
+        expect(page.find('[data-action="save-draft"]').attributes('disabled')).toBeUndefined()
+    })
+
+    test('disables Save and Publish when the draft uses a reference', async () => {
+        const { page } = mountPage(Roles.Member, { draft: DRAFT })
+        edit.text = JSON.stringify({ properties: { a: { $ref: '#' } } })
+        await page.find('[data-test="set-text"]').trigger('click')
         expect(page.find('[data-action="save-draft"]').attributes('disabled')).toBeDefined()
         expect(page.find('[data-action="publish"]').attributes('disabled')).toBeDefined()
     })
 
-    test('blocks Publish but not Save while the saved draft has problems from the backend', () => {
+    test('blocks Publish but not Save while the saved draft has problems from the backend', async () => {
         const { page } = mountPage(Roles.Member, { draft: { ...DRAFT, problems: [{ path: '/type', message: 'must be equal to one of the allowed values' }] } })
+        edit.notes = 'new notes'
+        await page.find('[data-test="set-notes"]').trigger('click')
         expect(page.find('[data-action="save-draft"]').attributes('disabled')).toBeUndefined()
         expect(page.find('[data-action="publish"]').attributes('disabled')).toBeDefined()
     })
@@ -143,8 +154,10 @@ describe('Team Schema page', () => {
         expect(dialog.setError).not.toHaveBeenCalled()
     })
 
-    test('disables Save when the draft is not a JSON object', () => {
-        const { page } = mountPage(Roles.Member, { draft: { ...DRAFT, schema: [] } })
+    test('disables Save when the draft is not a JSON object', async () => {
+        const { page } = mountPage(Roles.Member, { draft: DRAFT })
+        edit.text = '[]'
+        await page.find('[data-test="set-text"]').trigger('click')
         expect(page.find('[data-action="save-draft"]').attributes('disabled')).toBeDefined()
     })
 

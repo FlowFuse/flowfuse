@@ -20,7 +20,7 @@
                         <ff-button v-if="editingDraft" kind="secondary" data-action="discard-draft" @click="confirmDiscard">Discard draft</ff-button>
                         <ff-button kind="secondary" data-action="validate-message" disabled>Validate a message</ff-button>
                         <template v-if="editingDraft">
-                            <ff-button kind="secondary" data-action="save-draft" :disabled="!canSave" @click="saveDraft">Save draft</ff-button>
+                            <ff-button kind="secondary" data-action="save-draft" :disabled="!canSave || !hasUnsavedChanges" @click="saveDraft">Save draft</ff-button>
                             <ff-button v-if="canPublish" data-action="publish" :disabled="!canSave || problemCount > 0" @click="publishDialog?.show()">Publish</ff-button>
                         </template>
                         <ff-button v-else-if="canEdit" data-action="create-draft" @click="createDraft">
