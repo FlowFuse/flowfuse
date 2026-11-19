@@ -1,0 +1,208 @@
+import { type ColumnKind, getColumnTypeKind } from './columnTypes.ts'
+
+// How a cell looks: the kind of value its column holds, or 'empty' when it has no value
+export type CellKind = ColumnKind | 'empty'
+
+export interface CellValue {
+    kind: CellKind
+    // the text to show
+    text: string
+    // the value as stored, null when there is none
+    original: string | null
+}
+
+export interface CellDetail {
+    kind: CellKind
+    // the whole value as text
+    text: string
+    // what Copy puts on the clipboard, null when there is nothing to copy
+    copy: string | null
+    // set when the whole value is not available
+    note?: string
+}
+
+// A binary value as the table data API sends it: its size and the hex of its first bytes
+interface BinaryValue {
+    bytes: number
+    hex: string
+}
+
+interface FormatOptions {
+    // shows the value as stored
+    original?: boolean
+}
+
+const DATE = /^(\d{4})-(\d{2})-(\d{2})$/
+const TIME = /^(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?$/
+const TIMESTAMP = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})(?:\.\d+)?$/
+
+// Values without a time zone are formatted as if they were UTC, so they are made readable
+// without ever being shifted to another day or hour
+const asStored: Intl.DateTimeFormatOptions = { timeZone: 'UTC' }
+const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', ...asStored })
+const timeFormat = new Intl.DateTimeFormat(undefined, { timeStyle: 'medium', ...asStored })
+const timestampFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'medium', ...asStored })
+// A value with a time zone is an exact moment, so it is shown in the viewer's local time
+const localTimestampFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'medium' })
+
+const utcDate = (year: number, month: number, day: number, hour = 0, minute = 0, second = 0): Date => {
+    const date = new Date(Date.UTC(year, month - 1, day, hour, minute, second))
+    // Date.UTC reads years 0 to 99 as 1900 to 1999
+    date.setUTCFullYear(year)
+    return date
+}
+
+// A text item that could be misread goes in quotes, the way Postgres writes it: one holding a comma or a quote,
+// one that is blank or starts or ends with a space, and the word null (which would look like a missing item)
+const NEEDS_QUOTES = /[,"]|^\s|\s$|^$|^null$/i
+
+// Postgres names a list type after the type of its items, with a leading underscore
+const listItemKind = (type: string): ColumnKind => getColumnTypeKind(type.slice(1))
+
+// An item of a json or jsonb list is already JSON text, so it is shown as it is
+const listItem = (item: unknown, itemKind?: ColumnKind): string => {
+    if (item === null) return 'null'
+    if (typeof item === 'string') return itemKind !== 'json' && NEEDS_QUOTES.test(item) ? JSON.stringify(item) : item
+    return typeof item === 'object' ? JSON.stringify(item) : String(item)
+}
+
+// Each formatter returns the text to show, or undefined when the value is not in the shape
+// it expects (e.g. the date 'infinity'), in which case the value is shown as stored
+const isBinaryValue = (value: unknown): value is BinaryValue => typeof (value as BinaryValue)?.bytes === 'number'
+
+// the numbers a pattern picked out of a value, e.g. year, month and day
+const parts = (match: RegExpExecArray): number[] => match.slice(1).map(Number)
+
+const formatters: Partial<Record<ColumnKind, (value: unknown, type: string) => string | undefined>> = {
+    boolean: value => typeof value === 'boolean' ? String(value) : undefined,
+    date: value => {
+        const match = DATE.exec(String(value))
+        if (!match) return undefined
+        const [year, month, day] = parts(match)
+        return dateFormat.format(utcDate(year, month, day))
+    },
+    time: value => {
+        const match = TIME.exec(String(value))
+        if (!match) return undefined
+        const [hour, minute, second] = parts(match)
+        return timeFormat.format(utcDate(1970, 1, 1, hour, minute, second))
+    },
+    timestamp: value => {
+        const match = TIMESTAMP.exec(String(value))
+        if (!match) return undefined
+        const [year, month, day, hour, minute, second] = parts(match)
+        return timestampFormat.format(utcDate(year, month, day, hour, minute, second))
+    },
+    timestamptz: value => {
+        if (typeof value !== 'string') return undefined
+        const date = new Date(value)
+        return Number.isNaN(date.getTime()) ? undefined : localTimestampFormat.format(date)
+    },
+    binary: value => {
+        if (!isBinaryValue(value)) return undefined
+        const size = `${value.bytes} ${value.bytes === 1 ? 'byte' : 'bytes'}`
+        // only the start of the content is sent, so say when there is more of it
+        const preview = value.hex.length / 2 < value.bytes ? `${value.hex}…` : value.hex
+        return preview ? `${size} · ${preview}` : size
+    },
+    list: (value, type) => {
+        if (!Array.isArray(value)) return undefined
+        const itemKind = listItemKind(type)
+        return `[${value.map(item => listItem(item, itemKind)).join(', ')}]`
+    }
+}
+
+/**
+ * The value exactly as it is stored, as text
+ * @param value - A value as the table data API returns it
+ */
+export function getOriginalCellText (value: unknown): string {
+    return typeof value === 'object' ? JSON.stringify(value) : String(value)
+}
+
+/**
+ * Works out how the data grid shows a value
+ * @param value - A value as the table data API returns it
+ * @param type - The column's type as Postgres reports it
+ * @returns The kind of value (which decides how the cell looks), the text to show, and the value as stored
+ */
+export function formatCellValue (value: unknown, type: string, { original = false }: FormatOptions = {}): CellValue {
+    if (value === null || value === undefined) {
+        return { kind: 'empty', text: 'empty', original: null }
+    }
+    const originalText = getOriginalCellText(value)
+    if (original) {
+        return { kind: 'text', text: originalText, original: originalText }
+    }
+    const kind = getColumnTypeKind(type)
+    const text = formatters[kind]?.(value, type) ?? originalText
+    return { kind, text, original: originalText }
+}
+
+// the pieces of a JSON text: strings, brackets and punctuation, and anything else (numbers, true, false, null)
+const JSON_PIECE = /"(?:[^"\\]|\\.)*"|[{}[\],:]|[^\s{}[\],:"]+/g
+const OPENS = ['{', '[']
+const CLOSES = ['}', ']']
+
+/**
+ * Lays JSON out over several lines, one item per line. Only the spacing changes: every piece is kept as it is
+ * written, so a number too big for JavaScript is not rounded the way parsing and printing it again would
+ * @param json - JSON as text
+ * @returns The laid out text, or the text as it is when it is not JSON
+ */
+function layOutJson (json: string): string {
+    try {
+        JSON.parse(json)
+    } catch {
+        return json
+    }
+    const pieces = json.match(JSON_PIECE) ?? []
+    let depth = 0
+    const newLine = () => '\n' + '  '.repeat(depth)
+    return pieces.map((piece, index) => {
+        if (OPENS.includes(piece)) {
+            // an object or a list with nothing in it stays closed up: {} and []
+            if (CLOSES.includes(pieces[index + 1])) return piece
+            depth++
+            return piece + newLine()
+        }
+        if (CLOSES.includes(piece)) {
+            if (OPENS.includes(pieces[index - 1])) return piece
+            depth--
+            return newLine() + piece
+        }
+        if (piece === ',') return piece + newLine()
+        return piece === ':' ? ': ' : piece
+    }).join('')
+}
+
+/**
+ * Works out how a value is shown in full once its cell is opened
+ * @param value - A value as the table data API returns it
+ * @param type - The column's type as Postgres reports it
+ * @returns The kind of value, the whole value as text, what Copy puts on the clipboard,
+ * and a note when the whole value is not available
+ */
+export function formatCellDetail (value: unknown, type: string, { original = false }: FormatOptions = {}): CellDetail {
+    const cell = formatCellValue(value, type, { original })
+    if (cell.kind === 'empty') {
+        return { kind: 'empty', text: cell.text, copy: null }
+    }
+    const kind = getColumnTypeKind(type)
+    if (kind === 'json' && cell.original !== null && !original) {
+        return { kind, text: layOutJson(cell.original), copy: cell.original }
+    }
+    if (kind === 'binary' && isBinaryValue(value)) {
+        const detail: CellDetail = { kind: cell.kind, text: cell.text, copy: value.hex }
+        const sent = value.hex.length / 2
+        if (sent < value.bytes) {
+            detail.note = `Only the first ${sent} bytes are shown`
+        }
+        return detail
+    }
+    if (kind === 'list' && Array.isArray(value) && value.length > 0 && !original) {
+        const itemKind = listItemKind(type)
+        return { kind, text: value.map(item => listItem(item, itemKind)).join('\n'), copy: cell.original }
+    }
+    return { kind: cell.kind, text: cell.text, copy: cell.original }
+}

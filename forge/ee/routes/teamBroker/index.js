@@ -46,6 +46,12 @@ module.exports = async function (app) {
             }
         } else if (request.session.ownerType === 'project' || request.session.ownerType === 'device') {
             // this is a request from a project or device
+            const ownerModel = request.session.ownerType === 'project' ? app.db.models.Project : app.db.models.Device
+            const owner = await ownerModel.findOne({ where: { id: request.session.ownerId }, attributes: ['TeamId'] })
+            if (owner?.TeamId !== request.team.id) {
+                reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                return
+            }
             request.sessionUserReq = false
             request.instanceTokenReq = true
         } else {

@@ -3,6 +3,7 @@
         <Teleport v-if="mounted" to="#platform-banner">
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
+            <TeamBanner :team="team" />
         </Teleport>
         <SectionNavigationHeader :tabs="navigation">
             <template #breadcrumbs>
@@ -152,6 +153,7 @@ import DropdownMenu from '../../components/DropdownMenu.vue'
 import FinishSetupButton from '../../components/FinishSetup.vue'
 import SectionNavigationHeader from '../../components/SectionNavigationHeader.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
+import TeamBanner from '../../components/banners/TeamBanner.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import { useInstanceStates } from '../../composables/InstanceStates.js'
 import { useNavigationHelper } from '../../composables/NavigationHelper.js'
@@ -197,6 +199,7 @@ export default {
         DropdownMenu,
         SectionNavigationHeader,
         SubscriptionExpiredBanner,
+        TeamBanner,
         TeamTrialBanner,
         AssignDeviceDialog,
         DeviceAssignApplicationDialog,

@@ -983,6 +983,36 @@ describe('Broker Auth v2 API', async function () {
                             topic: `${frontendTopic}/heartbeat`
                         })
                     })
+                    it('frontend can subscribe to own device resources', async function () {
+                        const resourcesTopic = `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.DeviceB.hashid}/resources`
+                        await allowRead({ username: frontendUsername, topic: resourcesTopic })
+                        await allowWrite({ username: frontendUsername, topic: `${resourcesTopic}/heartbeat` })
+                    })
+                    it('frontend for an unassigned device can subscribe to its own logs', async function () {
+                        const device = await factory.createDevice({ name: 'unassigned log device', type: 'test device' }, TestObjects.ATeam, null, null)
+                        await allowRead({
+                            username: `frontend:${TestObjects.ATeam.hashid}:${device.hashid}`,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/d/${device.hashid}/logs`
+                        })
+                    })
+                    it('frontend cannot subscribe to another device\'s logs', async function () {
+                        await denyRead({ username: frontendUsername, topic: deviceLogTopic })
+                    })
+                    it('frontend cannot subscribe to another device\'s resources', async function () {
+                        await denyRead({ username: frontendUsername, topic: `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.DeviceA.hashid}/resources` })
+                    })
+                    it('frontend cannot subscribe to all device logs', async function () {
+                        await denyRead({ username: frontendUsername, topic: `ff/v1/${TestObjects.ATeam.hashid}/d/+/logs` })
+                    })
+                    it('frontend cannot subscribe to another team\'s device logs', async function () {
+                        await denyRead({ username: frontendUsername, topic: `ff/v1/other-team/d/${TestObjects.DeviceB.hashid}/logs` })
+                        await denyRead({ username: frontendUsername, topic: `ff/v1/+/d/${TestObjects.DeviceB.hashid}/logs` })
+                    })
+                    it('frontend cannot publish another device\'s heartbeats', async function () {
+                        const otherDevice = `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.DeviceA.hashid}`
+                        await denyWrite({ username: frontendUsername, topic: `${otherDevice}/logs/heartbeat` })
+                        await denyWrite({ username: frontendUsername, topic: `${otherDevice}/resources/heartbeat` })
+                    })
                 })
             })
         })

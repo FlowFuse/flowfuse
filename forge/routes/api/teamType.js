@@ -79,6 +79,26 @@ module.exports = async function (app) {
         reply.send(response)
     })
 
+    function validateExtraCatalogues (properties) {
+        const cats = properties?.extraCatalogues
+        if (!cats || typeof cats === 'undefined') {
+            return null
+        }
+        if (!Array.isArray(cats)) {
+            return 'extraCatalogues must be an array of URLs'
+        }
+        for (const cat of cats) {
+            try {
+                if (typeof cat !== 'string' || new URL(cat).protocol !== 'https:') {
+                    return `Invalid extraCatalogues URL: ${cat}`
+                }
+            } catch (_err) {
+                return `Invalid extraCatalogues URL: ${cat}`
+            }
+        }
+        return null
+    }
+
     /**
      * Create a Team Type
      * /api/v1/project-types
@@ -110,6 +130,11 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         // Only admins can create a projectType
+        const catalogueError = validateExtraCatalogues(request.body.properties)
+        if (catalogueError) {
+            reply.code(400).send({ code: 'invalid_request', error: catalogueError })
+            return
+        }
         const properties = {
             name: request.body.name,
             description: request.body.description,
@@ -174,6 +199,12 @@ module.exports = async function (app) {
         const teamType = await app.db.models.TeamType.byId(request.params.teamTypeId)
         if (!teamType) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+            return
+        }
+
+        const catalogueError = validateExtraCatalogues(request.body.properties)
+        if (catalogueError) {
+            reply.code(400).send({ code: 'invalid_request', error: catalogueError })
             return
         }
 

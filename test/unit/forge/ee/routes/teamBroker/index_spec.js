@@ -901,6 +901,63 @@ describe('Team Broker API', function () {
                     await app.defaultTeamType.save()
                 })
             })
+
+            describe('Read clients with a device or instance token', function () {
+                const otherClientName = 'other-team-client'
+                let otherTeam, deviceToken, instanceToken, device, instance
+
+                before(async function () {
+                    otherTeam = await factory.createTeam({ name: 'tokenOtherTeam' })
+                    await otherTeam.addUser(app.user, { through: { role: Roles.Owner } })
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/teams/${otherTeam.hashid}/broker/client`,
+                        cookies: { sid: TestObjects.tokens.alice },
+                        body: {
+                            username: otherClientName,
+                            password: `${otherClientName}Password`,
+                            acls: [{ pattern: 'other/#', action: 'both' }]
+                        }
+                    })
+                    response.statusCode.should.equal(201)
+
+                    device = await factory.createDevice({ name: 'tokenReadDevice' }, app.team, null, app.application)
+                    deviceToken = (await app.db.controllers.AccessToken.createTokenForDevice(device)).token
+                    instance = await factory.createInstance({ name: 'token-read-instance' }, app.application, app.stack, app.template, app.projectType, { start: false })
+                    instanceToken = (await instance.refreshAuthTokens()).token
+                })
+
+                after(async function () {
+                    await app.db.models.TeamBrokerClient.destroy({ where: { TeamId: otherTeam.id } })
+                    await app.db.models.TeamBrokerClient.destroy({ where: { username: `instance:${instance.id}` } })
+                    await device.destroy()
+                    await instance.destroy()
+                })
+
+                async function get (url, token) {
+                    return app.inject({ method: 'GET', url, headers: { Authorization: `Bearer ${token}` } })
+                }
+
+                it('device token cannot list another team\'s broker clients', async function () {
+                    const response = await get(`/api/v1/teams/${otherTeam.hashid}/broker/clients`, deviceToken)
+                    response.statusCode.should.equal(404)
+                })
+
+                it('instance token cannot list another team\'s broker clients', async function () {
+                    const response = await get(`/api/v1/teams/${otherTeam.hashid}/broker/clients`, instanceToken)
+                    response.statusCode.should.equal(404)
+                })
+
+                it('device token cannot read another team\'s broker client', async function () {
+                    const response = await get(`/api/v1/teams/${otherTeam.hashid}/broker/client/${otherClientName}`, deviceToken)
+                    response.statusCode.should.equal(404)
+                })
+
+                it('device token can list own team\'s broker clients', async function () {
+                    const response = await get(`/api/v1/teams/${app.team.hashid}/broker/clients`, deviceToken)
+                    response.statusCode.should.equal(200)
+                })
+            })
         })
         describe('Test EMQX MQTT Broker user auth', function () {
             const testProjects = []

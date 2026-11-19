@@ -804,6 +804,10 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/[^/]+\/u\/[^/]+\/s\/[^/]+\/[^/]+$/, shared: true }
             ],
             pub: [
+                // Comms heartbeat - published on the device status topic, using placeholder
+                // team/device ids, so it flows through the shared device status subscription
+                // - ff/v1/platform/d/heartbeat/status
+                { topic: /^ff\/v1\/platform\/d\/heartbeat\/status$/ },
                 // Send commands to project launchers
                 // - ff/v1/+/l/+/command
                 { topic: /^ff\/v1\/[^/]+\/l\/[^/]+\/command$/ },
@@ -881,18 +885,17 @@ module.exports = function (app) {
             ]
         },
         frontend: {
-            // TODO check the verify function is safe
             sub: [
                 // - ff/v1/<team>/d/<device/logs
-                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/logs$/, verify: 'checkDeviceIsAssigned' },
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/logs$/, verify: 'checkTeamAndObjectIds' },
                 // - ff/v1/<team>/d/<device/resources
-                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/resources$/, verify: 'checkDeviceIsAssigned' }
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/resources$/, verify: 'checkTeamAndObjectIds' }
             ],
             pub: [
                 // - ff/v1/<team>/d/<device/logs/heartbeat
-                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/logs\/heartbeat$/, verify: 'checkDeviceIsAssigned' },
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/logs\/heartbeat$/, verify: 'checkTeamAndObjectIds' },
                 // - ff/v1/<team>/d/<device/resources/heartbeat
-                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/resources\/heartbeat$/, verify: 'checkDeviceIsAssigned' }
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/resources\/heartbeat$/, verify: 'checkTeamAndObjectIds' }
             ]
         },
         // browser-side team channel (per-tab, per-team)

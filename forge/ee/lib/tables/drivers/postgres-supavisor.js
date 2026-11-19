@@ -282,42 +282,36 @@ module.exports = {
             throw new Error(`Failed to retrieve table ${tableName} for team ${team.hashid}: ${err.message}`)
         }
     },
-    getTableData: async function (team, database, table, pagination, schemaName) {
-        const rows = Math.min(parseInt(pagination.limit) || 10, 10)
+    getTableData: async function (team, database, table, pagination, schemaName, signal) {
         const databaseExists = await this._app.db.models.Table.byId(team.id, database)
         if (!databaseExists || databaseExists.TeamId !== team.id) {
             throw new Error(`Database ${database} for team ${team.hashid} does not exist`)
         }
         try {
-            const teamClient = libPg.newClient({ ...this._options.backend, database: team.hashid })
+            const databaseOptions = { ...this._options.backend, database: team.hashid }
+            const teamClient = libPg.newClient({ ...databaseOptions, types: libPg.tableDataTypes })
+            const stopCancelling = libPg.cancelOnAbort(teamClient, signal, databaseOptions)
             try {
                 await teamClient.connect()
+                signal?.throwIfAborted()
                 let resolvedSchema = schemaName
                 if (!resolvedSchema) {
                     const schemaRes = await teamClient.query('SELECT "schemaname" FROM "pg_catalog"."pg_tables" WHERE "tablename" = $1 AND "schemaname" != \'pg_catalog\' AND "schemaname" != \'information_schema\' LIMIT 1', [table])
                     resolvedSchema = schemaRes.rows[0]?.schemaname
                 }
-                const escapedTable = libPg.pg.escapeIdentifier(table)
-                const qualifiedTable = resolvedSchema ? `${libPg.pg.escapeIdentifier(resolvedSchema)}.${escapedTable}` : escapedTable
-                const query = `SELECT * FROM ${qualifiedTable} LIMIT $1`
-                const res = await teamClient.query(query, [rows || 10])
-                if (res.rows && res.rows.length > 0) {
-                    return {
-                        count: res.rows.length,
-                        rows: res.rows,
-                        meta: {}
-                    }
-                } else {
-                    return {
-                        count: 0,
-                        rows: [],
-                        meta: {}
-                    }
-                }
+                return await libPg.getTableDataPage(teamClient, { schema: resolvedSchema, tableName: table }, pagination, signal)
             } finally {
+                stopCancelling()
                 teamClient.end()
             }
         } catch (err) {
+            if (signal?.aborted) {
+                throw err
+            }
+            // a mistake in the request, which the route reports as it is
+            if (err.statusCode === 400) {
+                throw err
+            }
             console.error('Error retrieving table:', err)
             throw new Error(`Failed to retrieve table ${table} for team ${team.hashid}: ${err.message}`)
         }

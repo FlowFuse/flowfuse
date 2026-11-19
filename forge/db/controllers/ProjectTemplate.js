@@ -219,10 +219,34 @@ module.exports = {
                 throw new Error('Invalid settings.apiMaxLength')
             }
         }
-        if (result.debugMaxLenth) {
-            if (!Number.isInteger(result.debugMaxLength) || result.debugMaxLength < 0) {
+        const isClearedDebugMaxLength = result.debugMaxLength === '' || result.debugMaxLength === null
+        if (result.debugMaxLength !== undefined && !isClearedDebugMaxLength) {
+            const isStringNumber = typeof result.debugMaxLength === 'string' && /^\d+$/.test(result.debugMaxLength)
+            const debugMaxLength = isStringNumber ? Number(result.debugMaxLength) : result.debugMaxLength
+            const isValid = Number.isInteger(debugMaxLength) && debugMaxLength >= 0
+            if (isValid) {
+                result.debugMaxLength = debugMaxLength
+            } else if (importing) {
+                delete result.debugMaxLength
+            } else {
                 throw new Error('Invalid settings.debugMaxLength')
             }
+        }
+        const textSettings = ['codeEditor', 'theme', 'page_title', 'page_favicon', 'header_title', 'header_url']
+        textSettings.forEach(name => {
+            const value = getTemplateValue(result, name)
+            const isSet = value !== undefined && value !== null
+            if (isSet && typeof value !== 'string') {
+                const [group, key] = name.split('_')
+                if (key) {
+                    delete result[group][key]
+                } else {
+                    delete result[group]
+                }
+            }
+        })
+        if (result.disableEditor !== undefined && typeof result.disableEditor !== 'boolean') {
+            delete result.disableEditor
         }
         if (result.httpNodeCORS) {
             if (result.httpNodeCORS?.origin) {
@@ -235,6 +259,7 @@ module.exports = {
                         if (url.pathname !== '/') {
                             throw new Error('Invalid httpNodeCORS.origin path')
                         }
+                        result.httpNodeCORS.origin = url.origin
                     } catch (err) {
                         throw new Error(`Invalid httpNodeCORS.origin - ${err.toString()}`)
                     }

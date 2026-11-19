@@ -214,23 +214,24 @@ module.exports = fp(async function (app, opts) {
                     reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
                     throw new Error()
                 }
-                if (permission.self && (request.user && (request.user.id === request.session.User?.id))) {
-                    // This permission is permitted if the user is operating on themselves
-                    return
-                }
-                let userRole = request.teamMembership.role
-                if (app.config.features.enabled('rbacApplication')) {
-                    // Granular RBAC; if the request provides an application context for the request, check against
-                    // the teamMembership.permissions object
-                    const application = request.application?.hashid || request.applicationId
-                    if (application && request.teamMembership.permissions?.applications?.[application] !== undefined) {
-                        userRole = request.teamMembership.permissions.applications[application]
+                // A user operating on themselves does not need the role, but the
+                // token checks below still apply
+                const isSelf = permission.self && request.user && request.user.id === request.session.User?.id
+                if (!isSelf) {
+                    let userRole = request.teamMembership.role
+                    if (app.config.features.enabled('rbacApplication')) {
+                        // Granular RBAC; if the request provides an application context for the request, check against
+                        // the teamMembership.permissions object
+                        const application = request.application?.hashid || request.applicationId
+                        if (application && request.teamMembership.permissions?.applications?.[application] !== undefined) {
+                            userRole = request.teamMembership.permissions.applications[application]
+                        }
                     }
-                }
-                // console.log(request.url, scope, request.teamMembership.role, userRole)
-                if (userRole < permission.role) {
-                    reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
-                    throw new Error()
+                    // console.log(request.url, scope, request.teamMembership.role, userRole)
+                    if (userRole < permission.role) {
+                        reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
+                        throw new Error()
+                    }
                 }
             } else if (permission.self) {
                 // A request outside the context of a team.

@@ -218,6 +218,13 @@ describe('PlatformAutomationHandler', function () {
     })
 
     describe('platform_get_remote_instance_status', function () {
+        let device
+        before(async function () {
+            device = await app.factory.createDevice({ name: 'status-device' }, app.team)
+        })
+        after(async function () {
+            await device.destroy()
+        })
         afterEach(function () {
             delete app.comms
         })
@@ -233,7 +240,7 @@ describe('PlatformAutomationHandler', function () {
             const res = await invokeToolCall({
                 userId: app.adminUser.hashid,
                 toolName: 'platform_get_remote_instance_status',
-                args: { teamId: app.team.hashid, remoteInstanceId: 'device-1' },
+                args: { teamId: app.team.hashid, remoteInstanceId: device.hashid },
                 meta: { toolDefinition: { annotations: tool.annotations } }
             })
 
@@ -241,7 +248,7 @@ describe('PlatformAutomationHandler', function () {
             res.result.should.have.property('state', 'running')
             app.comms.devices.sendCommandAwaitReply.calledOnce.should.be.true()
             app.comms.devices.sendCommandAwaitReply.firstCall.args[0].should.equal(app.team.hashid)
-            app.comms.devices.sendCommandAwaitReply.firstCall.args[1].should.equal('device-1')
+            app.comms.devices.sendCommandAwaitReply.firstCall.args[1].should.equal(device.hashid)
         })
 
         it('returns a structured error, not a false "comms unavailable", when no comms is configured', async function () {
@@ -251,7 +258,7 @@ describe('PlatformAutomationHandler', function () {
             const res = await invokeToolCall({
                 userId: app.adminUser.hashid,
                 toolName: 'platform_get_remote_instance_status',
-                args: { teamId: app.team.hashid, remoteInstanceId: 'device-1' },
+                args: { teamId: app.team.hashid, remoteInstanceId: device.hashid },
                 meta: { toolDefinition: { annotations: tool.annotations } }
             })
 

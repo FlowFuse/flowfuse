@@ -599,6 +599,63 @@ describe('Application API', function () {
         })
     })
 
+    describe('List instances with a device or instance token', async function () {
+        let ownApplication, otherOwnApplication, otherTeamApplication
+        let deviceToken, teamDeviceToken, instanceToken
+
+        before(async function () {
+            ownApplication = await app.factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
+            otherOwnApplication = await app.factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
+            otherTeamApplication = await app.factory.createApplication({ name: generateName('app') }, TestObjects.ATeam)
+
+            const instance = await app.factory.createInstance({ name: generateName('instance') }, ownApplication, app.stack, app.template, app.projectType, { start: false })
+            await app.factory.createInstance({ name: generateName('instance') }, otherOwnApplication, app.stack, app.template, app.projectType, { start: false })
+            await app.factory.createInstance({ name: generateName('instance') }, otherTeamApplication, app.stack, app.template, app.projectType, { start: false })
+
+            const device = await app.factory.createDevice({ name: generateName('device') }, TestObjects.BTeam, null, ownApplication)
+            deviceToken = (await app.db.controllers.AccessToken.createTokenForDevice(device)).token
+            const teamDevice = await app.factory.createDevice({ name: generateName('device') }, TestObjects.BTeam)
+            teamDeviceToken = (await app.db.controllers.AccessToken.createTokenForDevice(teamDevice)).token
+            instanceToken = (await instance.refreshAuthTokens()).token
+        })
+
+        async function get (url, token) {
+            return app.inject({ method: 'GET', url, headers: { Authorization: `Bearer ${token}` } })
+        }
+
+        it('device token cannot list another team\'s application instances', async function () {
+            const response = await get(`/api/v1/applications/${otherTeamApplication.hashid}/instances`, deviceToken)
+            response.statusCode.should.equal(404)
+        })
+
+        it('device token cannot list another team\'s application instance statuses', async function () {
+            const response = await get(`/api/v1/applications/${otherTeamApplication.hashid}/instances/status`, deviceToken)
+            response.statusCode.should.equal(404)
+        })
+
+        it('instance token cannot list another team\'s application instance statuses', async function () {
+            const response = await get(`/api/v1/applications/${otherTeamApplication.hashid}/instances/status`, instanceToken)
+            response.statusCode.should.equal(404)
+        })
+
+        it('device token can list own team\'s application instances', async function () {
+            const response = await get(`/api/v1/applications/${ownApplication.hashid}/instances`, deviceToken)
+            response.statusCode.should.equal(200)
+            response.json().should.have.property('count', 1)
+        })
+
+        it('team-level device token can list own team\'s application instances', async function () {
+            const response = await get(`/api/v1/applications/${ownApplication.hashid}/instances`, teamDeviceToken)
+            response.statusCode.should.equal(200)
+        })
+
+        it('instance token can list instance statuses of another application in its own team', async function () {
+            const response = await get(`/api/v1/applications/${otherOwnApplication.hashid}/instances/status`, instanceToken)
+            response.statusCode.should.equal(200)
+            response.json().instances.should.have.length(1)
+        })
+    })
+
     describe('List snapshots belonging to the application', async function () {
         const mockResponses = {}
         /** @type {import('../../../../lib/TestModelFactory')} */
