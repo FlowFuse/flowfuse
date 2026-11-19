@@ -401,6 +401,10 @@ FlowFuse Docker Compose files includes FlowFuse File Storage component by defaul
 Full details on configuring the File Storage service are available [here](../file-storage/).
 
 
+### Can I give each team a time-series database?
+
+Yes, with an Enterprise licence. Set `TIMESERIES_ENABLED=true` in `.env` and start the stack with `--profile timeseries`. You also need wildcard DNS for `*.ts.<your domain>` and the PgBouncer port open. See [Time-series databases](../timeseries.md) for the prerequisites and the full set of options.
+
 ## Uninstall
 
 - Bring the services down with `docker compose -p flowfuse down -v` (note the extra `-v` to delete all the volumes, only include this if you do not want to reuse this install)

@@ -31,6 +31,10 @@ Whichever installation you choose, the platform needs outbound network access to
 hostnames. If it runs behind a firewall or proxy, see
 [Networking requirements](/docs/install/networking-requirements/).
 
+## Optional features
+
+ - [Time-series databases](/docs/install/timeseries/): give each team its own QuestDB server, on Docker or Kubernetes
+
 ## Upgrading FlowFuse
 
 If you are upgrading FlowFuse, please refer to the [Upgrade Guide](/docs/upgrade/)

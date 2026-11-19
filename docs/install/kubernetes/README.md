@@ -412,6 +412,10 @@ Apply changes with [platform startup command](#start-flowfuse-platform).
 
 Check the [FlowFuse Helm chart documentation](https://github.com/FlowFuse/helm/tree/main/helm/flowfuse#file-storage) for more details about the parameters that can be configured for the File Storage.
 
+### I would like to give each team a time-series database, how can I do that?
+
+Set `forge.timeseries.enabled` in the Helm values, with an Enterprise licence. The feature needs a block-storage StorageClass, `vm.max_map_count` raised on the nodes, wildcard DNS and TLS for `*.ts.<your domain>`, and a TLS Secret for PgBouncer. See [Time-series databases](../timeseries.md) for the prerequisites, backups and the full set of options.
+
 ### I would like to run FlowFuse on AWS EKS. Do you have any guidance?
 
 Yes, we have a dedicated guide on how to deploy FlowFuse on AWS EKS. You can find it [here](aws.md).

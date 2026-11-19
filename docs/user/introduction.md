@@ -168,3 +168,7 @@ FlowFuse supports reading and writing persistent files and persistent context.
  ## Working with FF Tables
 
   - [FF Tables](/docs/user/ff-tables/) - Databases
+
+ ## Working with Time-Series Databases
+
+  - [Time-Series Database](/docs/user/timeseries/) - A QuestDB server for each team

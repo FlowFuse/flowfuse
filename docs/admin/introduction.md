@@ -185,6 +185,9 @@ including what Instance Types are available and any limits that should be applie
  - **Tables**
 
     Provides a Team scoped shared SQL Relational Database (Requires specific configuration). More details [here](../user/ff-tables.md)
+ - **Time-Series Database**
+
+    Provides a Team scoped QuestDB time-series database (Requires specific configuration and an Enterprise licence). More details [here](../user/timeseries.md) and [here](../install/timeseries.md)
  - **AI Features**
 
     Global toggle for all AI functionality within the team. When disabled, all AI features below are unavailable regardless of their individual settings. Requires `ai.enabled: true` in the platform configuration.
