@@ -1,4 +1,7 @@
 const { generatePassword } = require('../../../../lib/userTeam')
+
+const { invalidSortError } = require('./lib/pg.js')
+
 const databases = {}
 const tables = {}
 
@@ -62,10 +65,19 @@ module.exports = {
             { id: 1, name: 'Row 1' },
             { id: 2, name: 'Row 2' }
         ]
+        const { sort, dir } = paginationOptions ?? {}
+        if (sort) {
+            if (!Object.hasOwn(rows[0], sort)) {
+                throw invalidSortError(`The table has no column "${sort}" to sort by`)
+            }
+            rows.sort((a, b) => (a[sort] > b[sort] ? 1 : -1) * (dir === 'desc' ? -1 : 1))
+        }
         const pageSize = parseInt(paginationOptions?.limit) || 10
         const page = parseInt(paginationOptions?.page) || 1
         return {
             count: rows.length,
+            capped: false,
+            primaryKey: ['id'],
             rows: rows.slice((page - 1) * pageSize, page * pageSize),
             meta: { page, pageSize, total: rows.length, pageCount: Math.max(1, Math.ceil(rows.length / pageSize)) }
         }

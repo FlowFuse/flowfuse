@@ -27,7 +27,8 @@ const featureList = [
     'expertInsights',
     'mcpThirdParty',
     'ffNodes',
-    'rbacApplication'
+    'rbacApplication',
+    'schemas'
 ]
 const featureNames = {
     'shared-library': 'Team Library',
@@ -58,7 +59,8 @@ const featureNames = {
     expertInsights: 'Expert Insights',
     mcpThirdParty: 'MCP Third-Party Agents',
     ffNodes: 'FlowFuse Exclusive Nodes',
-    rbacApplication: 'Application-level RBAC'
+    rbacApplication: 'Application-level RBAC',
+    schemas: 'Data Schemas'
 }
 module.exports = {
     featureList,

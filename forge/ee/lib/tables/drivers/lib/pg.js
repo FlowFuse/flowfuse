@@ -31,6 +31,38 @@ async function dropTeamDatabase (adminClient, hashid) {
     await adminClient.query(`DROP USER IF EXISTS ${pg.escapeIdentifier(hashid)}`)
     await adminClient.query(`DROP ROLE IF EXISTS ${pg.escapeIdentifier(hashid + '-role')}`)
 }
+
+/**
+ * Cancels whatever query a client is running once the signal aborts, so that a read nobody is
+ * waiting for any more stops using the database rather than running to its end.
+ *
+ * Closing the client's connection is not enough: Postgres only notices that when it comes to send
+ * the result. So a second, short lived connection asks Postgres to cancel the first one's query,
+ * which then fails with "canceling statement due to user request".
+ * @param {pg.Client} client - The client whose query is to be cancelled
+ * @param {AbortSignal} [signal] - Aborts when the work is no longer wanted. Nothing is done without one
+ * @param {pg.ClientConfig} databaseOptions - Options to connect to the same database as the client
+ * @returns {Function} to be called once the client is finished with, so nothing is cancelled after that
+ */
+function cancelOnAbort (client, signal, databaseOptions) {
+    if (!signal) {
+        return () => {}
+    }
+    const cancel = async () => {
+        const canceller = newClient(databaseOptions)
+        try {
+            await canceller.connect()
+            await canceller.query('SELECT pg_cancel_backend($1)', [client.processID])
+        } catch (err) {
+            // the query carries on until it ends or times out, as it did before it could be cancelled
+        } finally {
+            canceller.end().catch(() => {})
+        }
+    }
+    signal.addEventListener('abort', cancel, { once: true })
+    return () => signal.removeEventListener('abort', cancel)
+}
+
 // How many bytes of a binary value are sent as its preview
 const BINARY_PREVIEW_BYTES = 32
 
@@ -90,8 +122,58 @@ const tableDataTypes = {
     getTypeParser: (oid, format) => tableDataParsers[oid] ?? pg.types.getTypeParser(oid, format)
 }
 
+/**
+ * The name of a table as it goes into a query: escaped, with its schema in front when it has one.
+ * @param {{ schema?: string, tableName: string }} table - The plain, unescaped names of the table and its schema
+ * @returns {string} the escaped, schema qualified table name
+ */
+function qualifiedTableName ({ schema, tableName }) {
+    const escapedName = pg.escapeIdentifier(tableName)
+    return schema ? `${pg.escapeIdentifier(schema)}.${escapedName}` : escapedName
+}
+
+/**
+ * Reads rows of a table that has no primary key, in the order they are physically stored.
+ *
+ * `ORDER BY ctid` gives that order too, but Postgres has no index on ctid, so it reads and sorts the
+ * whole table to return even the first few rows. Reading the table from its start with no ORDER BY
+ * returns the same rows in the same order and stops as soon as it has enough of them. That order is
+ * how Postgres reads a table rather than something SQL promises, so the two settings below turn off
+ * the only things that would change it: starting part way through the table to join a scan already
+ * in progress, and splitting the read across parallel workers. Both are set for this transaction only.
+ * @param {pg.Client} client - Client connected to the team database
+ * @param {{ schema?: string, tableName: string }} table - The plain, unescaped names of the table and its schema
+ * @param {number} limit - How many rows to read
+ * @param {number} offset - How many rows to skip first
+ */
+async function getRowsInPhysicalOrder (client, table, limit, offset) {
+    await client.query('BEGIN')
+    try {
+        await client.query('SET LOCAL synchronize_seqscans = off')
+        await client.query('SET LOCAL max_parallel_workers_per_gather = 0')
+        return (await client.query(`SELECT * FROM ${qualifiedTableName(table)} LIMIT $1 OFFSET $2`, [limit, offset])).rows
+    } finally {
+        // nothing was written, so there is nothing to commit
+        await client.query('ROLLBACK')
+    }
+}
+
 const DEFAULT_PAGE_SIZE = 10
 const MAX_PAGE_SIZE = 100
+// the most rows that are counted, and so the most that can be paged through
+const MAX_COUNTED_ROWS = 10000
+
+// The Postgres error code (undefined_function) for "could not identify an ordering operator for type ..."
+const NO_ORDERING_OPERATOR = '42883'
+
+/**
+ * The error for a sort that cannot be done, which is down to the request rather than the server.
+ * It carries a statusCode and code so that it reaches the API as a 400 rather than a 500.
+ * @param {string} message - What is wrong with the sort
+ */
+function invalidSortError (message) {
+    return Object.assign(new Error(message), { statusCode: 400, code: 'invalid_sort' })
+}
 
 /**
  * Reads one page of a table's rows, along with the table's total row count.
@@ -104,26 +186,77 @@ const MAX_PAGE_SIZE = 100
  * by any column.
  *
  * Rows are ordered by the primary key when there is one, otherwise by their physical
- * position (ctid), so that walking the pages of an unchanged table never repeats or
- * skips a row.
+ * position, so that walking the pages of an unchanged table never repeats or skips a row.
+ * Sorting by a column puts that column first and keeps this order behind it,
+ * so rows holding the same value still come in a fixed order from one page to the next.
+ * Rows with no value in the sorted column go where Postgres puts them: last when ascending,
+ * first when descending.
+ *
+ * Counting every row means reading the whole table, which on a big one takes far longer than
+ * fetching the page itself. So the count stops at MAX_COUNTED_ROWS: a table with more rows than
+ * that is reported as `capped`, and its pages stop there as well.
+ *
+ * Sorting such a table by just any column also means reading the whole table, for every page. So a
+ * capped table can only be sorted by the first column of its primary key, whose index already
+ * holds the rows in that order.
  * @param {pg.Client} client - Client connected to the team database
- * @param {string} qualifiedTable - The escaped, schema qualified table name
- * @param {{ page?: number, limit?: number }} pagination - 1 based page number and page size
+ * @param {{ schema?: string, tableName: string }} table - The plain, unescaped names of the table and its schema
+ * @param {{ page?: number, limit?: number, sort?: string, dir?: 'asc'|'desc' }} pagination - 1 based
+ * page number and page size, and the column to sort by with its direction (ascending by default)
+ * @param {AbortSignal} [signal] - Aborts when the rows are no longer wanted. A query that is running is cancelled
+ * by cancelOnAbort, and the checks here stop the next one from starting when the cancel came between two of them
+ * @throws an invalid sort error (see invalidSortError) when the column does not exist, cannot be put in order,
+ * or the table is too big to be sorted by it
  */
-async function getTableDataPage (client, qualifiedTable, pagination = {}) {
+async function getTableDataPage (client, table, pagination = {}, signal) {
+    const qualifiedTable = qualifiedTableName(table)
     const pageSize = Math.min(Math.max(parseInt(pagination.limit) || DEFAULT_PAGE_SIZE, 1), MAX_PAGE_SIZE)
     const page = Math.max(parseInt(pagination.page) || 1, 1)
 
     const pkRes = await client.query('SELECT a.attname FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) WHERE i.indrelid = $1::regclass AND i.indisprimary ORDER BY array_position(i.indkey, a.attnum)', [qualifiedTable])
-    const orderBy = pkRes.rows.length > 0 ? pkRes.rows.map(row => pg.escapeIdentifier(row.attname)).join(', ') : 'ctid'
+    const primaryKey = pkRes.rows.map(row => row.attname)
+    let orderBy = primaryKey.length > 0 ? primaryKey.map(column => pg.escapeIdentifier(column)).join(', ') : 'ctid'
 
-    const countRes = await client.query(`SELECT count(*) AS total FROM ${qualifiedTable}`)
-    const total = Number(countRes.rows[0].total)
+    const { sort } = pagination
+    if (sort) {
+        const columnRes = await client.query('SELECT 1 FROM pg_attribute WHERE attrelid = $1::regclass AND attname = $2 AND attnum > 0 AND NOT attisdropped', [qualifiedTable, sort])
+        if (columnRes.rows.length === 0) {
+            throw invalidSortError(`The table has no column "${sort}" to sort by`)
+        }
+        orderBy = `${pg.escapeIdentifier(sort)} ${pagination.dir === 'desc' ? 'DESC' : 'ASC'}, ${orderBy}`
+    }
 
-    const res = await client.query(`SELECT * FROM ${qualifiedTable} ORDER BY ${orderBy} LIMIT $1 OFFSET $2`, [pageSize, (page - 1) * pageSize])
+    signal?.throwIfAborted()
+    // one row more than the most that are counted, to tell a table of exactly that many rows from a bigger one
+    const countRes = await client.query(`SELECT count(*) AS total FROM (SELECT 1 FROM ${qualifiedTable} LIMIT $1) AS counted`, [MAX_COUNTED_ROWS + 1])
+    const capped = Number(countRes.rows[0].total) > MAX_COUNTED_ROWS
+    const total = Math.min(Number(countRes.rows[0].total), MAX_COUNTED_ROWS)
+    if (sort && capped && sort !== primaryKey[0]) {
+        throw invalidSortError(`The table has too many rows to be sorted by "${sort}"`)
+    }
+
+    signal?.throwIfAborted()
+    // a page past the rows that were counted is empty, and reading that deep into a table is slow
+    const offset = (page - 1) * pageSize
+    let rows = []
+    if (offset < total && !sort && primaryKey.length === 0) {
+        rows = await getRowsInPhysicalOrder(client, table, pageSize, offset)
+    } else if (offset < total) {
+        try {
+            rows = (await client.query(`SELECT * FROM ${qualifiedTable} ORDER BY ${orderBy} LIMIT $1 OFFSET $2`, [pageSize, offset])).rows
+        } catch (err) {
+            // some types, json for one, have no order to them
+            if (sort && err.code === NO_ORDERING_OPERATOR) {
+                throw invalidSortError(`Column "${sort}" holds values that cannot be put in order`)
+            }
+            throw err
+        }
+    }
     return {
         count: total,
-        rows: res.rows,
+        capped,
+        primaryKey,
+        rows,
         meta: {
             page,
             pageSize,
@@ -136,7 +269,9 @@ async function getTableDataPage (client, qualifiedTable, pagination = {}) {
 module.exports = {
     newClient,
     dropTeamDatabase,
+    cancelOnAbort,
     getTableDataPage,
+    invalidSortError,
     tableDataTypes,
     pg
 }

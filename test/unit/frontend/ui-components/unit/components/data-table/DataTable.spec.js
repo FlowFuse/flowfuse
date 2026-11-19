@@ -369,6 +369,20 @@ describe('Data-Table > DataTable', () => {
             ).toEqual([21, 15, 9, 4, 3, 1])
         })
 
+        it('Leaves the rows in the order given when they are sorted on the server', () => {
+            const localThis = {
+                lookupProperty: DataTable.methods.lookupProperty,
+                filterRows: DataTable.methods.filterRows,
+                serverSideSort: true,
+                rows: [{ value: 9 }, { value: 21 }, { value: 1 }],
+                sort: { key: 'value', order: 'asc' }
+            }
+
+            expect(
+                DataTable.computed.filteredRows.call(localThis).map((row) => row.value)
+            ).toEqual([9, 21, 1])
+        })
+
         it('Sorts numbers ascending', () => {
             const localThis = {
                 lookupProperty: DataTable.methods.lookupProperty,

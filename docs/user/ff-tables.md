@@ -22,7 +22,7 @@ Once you have created a database you can use the wizard to create some tables. T
 ![Screenshot of create tables wizard](./images/tables/create-table-wizard.png){data-zoomable}
 _Screenshot of create tables wizard_
 
-Once the tables have data in them the rows will be displayed in the Explorer tab, 25 at a time. On a longer table, use the controls under the grid to move between pages or change how many rows are shown per page.
+Once the tables have data in them the rows will be displayed in the Explorer tab, 25 at a time. On a longer table, use the controls under the grid to move between pages or change how many rows are shown per page. Click a column's name to sort the whole table by that column, click again to turn the order around, and a third time to go back to the table's own order. A table with more than 10,000 rows shows its first 10,000, and its row count as 10000+. A table that big can only be sorted by its primary key.
 
 ![Screenshot of Tables Explorer](./images/tables/tables-ui-screenshot.png){data-zoomable}
 _Screenshot of Tables Explorer_

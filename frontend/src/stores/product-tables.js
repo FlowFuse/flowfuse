@@ -14,6 +14,9 @@ const emptyColumn = {
     unsigned: false
 }
 
+// the request for a table's rows that is still loading, if any. There is only ever one
+let tableDataRequest = null
+
 const compareNames = (a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
 
 // the public schema first, then the other schemas by name, and each schema's tables by name
@@ -34,6 +37,8 @@ export const useProductTablesStore = defineStore('product-tables', {
         tableSelection: null,
         page: 1,
         pageSize: 25,
+        // the column the selected table is sorted by and the direction ('asc' or 'desc'), null for its own order
+        sort: null,
         showOriginalValues: false,
         newTable: { name: '', schema: 'public', columns: [{ ...emptyColumn }] },
         isLoading: false
@@ -85,6 +90,11 @@ export const useProductTablesStore = defineStore('product-tables', {
         updateTableSelection (table) {
             this.tableSelection = table
             this.page = 1
+            this.sort = null
+        },
+        setSort (sort) {
+            this.sort = sort
+            this.page = 1
         },
         setShowOriginalValues (showOriginalValues) {
             this.showOriginalValues = showOriginalValues
@@ -107,33 +117,63 @@ export const useProductTablesStore = defineStore('product-tables', {
                 }
             })
         },
+        // drops the request for rows that is still loading, which also stops its work in the database
+        cancelTableData () {
+            tableDataRequest?.abort()
+            tableDataRequest = null
+        },
         async getTableData ({ databaseId, tableName, teamId, schemaName }) {
+            // only the latest request for rows matters, so the one before it is dropped
+            this.cancelTableData()
+            const request = tableDataRequest = new AbortController()
+            const { signal } = request
             const pageSize = this.pageSize
+            const sort = this.sort
             let page = this.page
-            // another page or page size picked while this one was loading makes its rows out of date
-            const isStale = () => this.page !== page || this.pageSize !== pageSize
-            const fetchPage = () => tablesApi.getTableData(teamId, databaseId, tableName, schemaName, { page, limit: pageSize })
-            let res = await fetchPage()
-            if (isStale()) return
-            const lastPage = Math.max(1, Math.ceil(res.count / pageSize))
-            if (page > lastPage) {
-                // the table shrank and this page is gone, so fall back to the last one
-                page = this.page = lastPage
-                res = await fetchPage()
-                if (isStale()) return
-            }
-            const { rows: data, count: total } = res
-            const payload = {
-                data,
-                safe: data.map(row => Object.fromEntries(Object.entries(row).map(([k, v]) => [hashString(k), v]))),
-                total
-            }
-            Object.keys(this.tables[databaseId]).forEach(key => {
-                const table = this.tables[databaseId][key]
-                if (table.name === tableName && (!schemaName || table.dbSchema === schemaName)) {
-                    table.payload = payload
+            // another page, page size or sort picked while this one was loading makes its rows out of date
+            const isStale = () => this.page !== page || this.pageSize !== pageSize || this.sort !== sort
+            const fetchPage = () => tablesApi.getTableData(teamId, databaseId, tableName, schemaName, { page, limit: pageSize, sort: sort?.column, dir: sort?.dir, signal })
+                .catch(err => {
+                    // a dropped request has no rows to show and is not a failure
+                    if (signal.aborted) {
+                        return null
+                    }
+                    throw err
+                })
+            try {
+                let res = await fetchPage()
+                if (!res || isStale()) {
+                    return
                 }
-            })
+                const lastPage = Math.max(1, Math.ceil(res.count / pageSize))
+                if (page > lastPage) {
+                    // the table shrank and this page is gone, so fall back to the last one
+                    page = this.page = lastPage
+                    res = await fetchPage()
+                    if (!res || isStale()) {
+                        return
+                    }
+                }
+                const { rows: data, count: total } = res
+                const payload = {
+                    data,
+                    safe: data.map(row => Object.fromEntries(Object.entries(row).map(([k, v]) => [hashString(k), v]))),
+                    total,
+                    // the table has more rows than the total, which is as many as are counted and can be paged through
+                    totalCapped: !!res.capped,
+                    primaryKey: res.primaryKey ?? []
+                }
+                Object.keys(this.tables[databaseId]).forEach(key => {
+                    const table = this.tables[databaseId][key]
+                    if (table.name === tableName && (!schemaName || table.dbSchema === schemaName)) {
+                        table.payload = payload
+                    }
+                })
+            } finally {
+                if (tableDataRequest === request) {
+                    tableDataRequest = null
+                }
+            }
         },
         async createTable ({ databaseId }) {
             const team = useContextStore().team
@@ -155,7 +195,10 @@ export const useProductTablesStore = defineStore('product-tables', {
         },
         addNewTableColumn () { this.newTable.columns.push({ ...emptyColumn }) },
         removeNewTableColumn (columnKey) { this.newTable.columns.splice(columnKey, 1) },
-        setTableLoadingState (isLoading) { this.isLoading = isLoading }
+        setTableLoadingState (isLoading) {
+            // rows that are still loading keep the state on: a request dropped for a newer one must not turn it off
+            this.isLoading = isLoading || tableDataRequest !== null
+        }
     },
     persist: {
         pick: ['databases', 'newTable'],

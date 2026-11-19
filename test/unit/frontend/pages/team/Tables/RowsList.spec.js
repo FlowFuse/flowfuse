@@ -16,18 +16,22 @@ const mocks = vi.hoisted(() => ({
         setPageSize: vi.fn(),
         showOriginalValues: false,
         setShowOriginalValues: vi.fn(),
+        setSort: vi.fn(),
         setTableLoadingState: vi.fn(),
         getTableData: vi.fn(() => Promise.resolve()),
+        cancelTableData: vi.fn(),
         getTableSchema: vi.fn(() => Promise.resolve()),
         updateTableSelection: vi.fn()
     },
     contextStore: { team: { id: 't1' }, teamMembership: { role: 50 } },
-    drawersStore: { openRightDrawer: vi.fn() }
+    drawersStore: { openRightDrawer: vi.fn() },
+    alerts: { emit: vi.fn() }
 }))
 
 vi.mock('@/stores/product-tables.js', () => ({ useProductTablesStore: () => mocks.tablesStore }))
 vi.mock('@/stores/context.js', () => ({ useContextStore: () => mocks.contextStore }))
 vi.mock('@/stores/ux-drawers.js', () => ({ useUxDrawersStore: () => mocks.drawersStore }))
+vi.mock('@/services/alerts.js', () => ({ default: mocks.alerts }))
 
 function mountRowsList () {
     return mount(RowsList, {
@@ -240,9 +244,122 @@ describe('RowsList', () => {
             mocks.tablesStore.selectedTable = { schema, payload: { safe: [{ col: 26 }], total: 1284 } }
         })
 
+        describe('sorting', () => {
+            const sortable = [
+                { name: 'recorded at', safeName: 'a', type: 'timestamptz' },
+                { name: 'payload', safeName: 'b', type: 'jsonb' },
+                { name: 'tags', safeName: 'c', type: '_text' }
+            ]
+            // rows in an order no sort on the page would leave them in
+            const rows = [{ a: '2025-01-02T00:00:00Z' }, { a: '2025-01-03T00:00:00Z' }, { a: '2025-01-01T00:00:00Z' }]
+            const headers = wrapper => wrapper.findAll('thead .ff-data-table--cell')
+            const firstColumn = wrapper => wrapper.findAll('tbody tr').map(row => row.find('[data-el="table-cell"]').attributes('title'))
+
+            beforeEach(() => {
+                mocks.tablesStore.page = 1
+                mocks.tablesStore.selectedTable = { name: 'readings', dbSchema: 'public', schema: sortable, payload: { safe: rows, total: 3 } }
+            })
+
+            test('offers sorting on the columns that can be put in order, and not on JSON or lists', () => {
+                const classes = headers(mountRowsList()).map(header => header.classes().includes('sortable'))
+                expect(classes).toEqual([true, false, false])
+            })
+
+            describe('on a table too big to show in full', () => {
+                const columns = [
+                    { name: 'id', safeName: 'a', type: 'int8' },
+                    { name: 'recorded at', safeName: 'b', type: 'timestamptz' }
+                ]
+                const bigTable = primaryKey => ({ name: 'readings', dbSchema: 'public', schema: columns, payload: { safe: rows, total: 10000, totalCapped: true, primaryKey } })
+
+                test('offers sorting on the primary key only, and says so', () => {
+                    mocks.tablesStore.selectedTable = bigTable(['id'])
+                    const wrapper = mountRowsList()
+                    expect(headers(wrapper).map(header => header.classes().includes('sortable'))).toEqual([true, false])
+                    expect(wrapper.find('[data-el="table-too-big"]').text()).toContain('It can only be sorted by id.')
+                })
+
+                test('offers no sorting when the table has no primary key, and says so', () => {
+                    mocks.tablesStore.selectedTable = bigTable([])
+                    const wrapper = mountRowsList()
+                    expect(wrapper.find('thead .sortable').exists()).toBe(false)
+                    expect(wrapper.find('[data-el="table-too-big"]').text()).toContain('It cannot be sorted.')
+                })
+            })
+
+            test('asks for the whole table sorted by the clicked column, by its real name', async () => {
+                const wrapper = mountRowsList()
+                await headers(wrapper)[0].trigger('click')
+                expect(mocks.tablesStore.setSort).toHaveBeenLastCalledWith({ column: 'recorded at', dir: 'desc' })
+                expect(mocks.tablesStore.getTableData).toHaveBeenCalledTimes(1)
+            })
+
+            test('turns the sort around on a second click, and clears it on a third', async () => {
+                const wrapper = mountRowsList()
+                await headers(wrapper)[0].trigger('click')
+                await headers(wrapper)[0].trigger('click')
+                expect(mocks.tablesStore.setSort).toHaveBeenLastCalledWith({ column: 'recorded at', dir: 'asc' })
+
+                await headers(wrapper)[0].trigger('click')
+                expect(mocks.tablesStore.setSort).toHaveBeenLastCalledWith(null)
+                expect(mocks.tablesStore.getTableData).toHaveBeenCalledTimes(3)
+            })
+
+            test('does nothing when a column that cannot be sorted is clicked', async () => {
+                const wrapper = mountRowsList()
+                await headers(wrapper)[1].trigger('click')
+                expect(mocks.tablesStore.setSort).not.toHaveBeenCalled()
+                expect(mocks.tablesStore.getTableData).not.toHaveBeenCalled()
+            })
+
+            test('shows the rows in the order they arrive, without sorting the page itself', async () => {
+                const wrapper = mountRowsList()
+                await headers(wrapper)[0].trigger('click')
+                expect(firstColumn(wrapper)).toEqual(rows.map(row => row.a))
+            })
+
+            test('says why when the table cannot be sorted that way', async () => {
+                mocks.tablesStore.getTableData.mockRejectedValueOnce({ response: { data: { code: 'invalid_sort', error: 'The table has no column "recorded at" to sort by' } } })
+                const wrapper = mountRowsList()
+                await headers(wrapper)[0].trigger('click')
+                await flushPromises()
+                expect(mocks.alerts.emit).toHaveBeenCalledWith('The table has no column "recorded at" to sort by', 'warning')
+            })
+
+            test('drops a sort the table refused and loads the rows again without it, every time', async () => {
+                const refusal = { response: { data: { code: 'invalid_sort', error: 'The table has too many rows to be sorted by "recorded at"' } } }
+                const wrapper = mountRowsList()
+
+                for (const loads of [2, 4]) {
+                    let refuse
+                    mocks.tablesStore.getTableData.mockImplementationOnce(() => new Promise((resolve, reject) => { refuse = () => reject(refusal) }))
+                    await headers(wrapper)[0].trigger('click')
+                    expect(wrapper.find('thead .sorted').exists()).toBe(true)
+                    refuse()
+                    await flushPromises()
+
+                    expect(mocks.tablesStore.setSort).toHaveBeenLastCalledWith(null)
+                    expect(mocks.tablesStore.getTableData).toHaveBeenCalledTimes(loads)
+                    expect(wrapper.find('thead .sorted').exists()).toBe(false)
+                }
+            })
+        })
+
         test('shows where the current page sits in the whole table', () => {
             const wrapper = mountRowsList()
             expect(wrapper.find('[data-el="pagination"]').text()).toContain('26–50 of 1284')
+        })
+
+        test('says nothing about the size of a table that was counted in full', () => {
+            const wrapper = mountRowsList()
+            expect(wrapper.find('[data-el="table-too-big"]').exists()).toBe(false)
+        })
+
+        test('says when a table is too big to show in full, and marks the total as a minimum', () => {
+            mocks.tablesStore.selectedTable = { schema, payload: { safe: [{ col: 26 }], total: 10000, totalCapped: true } }
+            const wrapper = mountRowsList()
+            expect(wrapper.find('[data-el="pagination"]').text()).toContain('26–50 of 10000+')
+            expect(wrapper.find('[data-el="table-too-big"]').text()).toContain(`only its first ${(10000).toLocaleString()} rows are listed here`)
         })
 
         test('shows no paging controls when the table fits on one page', () => {
@@ -296,25 +413,91 @@ describe('RowsList', () => {
             mocks.tablesStore.selectedTable = { schema, payload: { safe: [{ col: 1 }], total: 1 } }
         })
 
-        test('shows a loading indicator while the columns of a table are not known yet', () => {
-            mocks.tablesStore.isLoading = true
-            mocks.tablesStore.selectedTable = { name: 'readings' }
-            const wrapper = mountRowsList()
-            expect(wrapper.find('[data-el="table-loading"]').exists()).toBe(true)
-            expect(wrapper.text()).not.toContain("There doesn't seem to be anything here!")
-        })
+        describe('loader', () => {
+            const skeletonRows = wrapper => wrapper.findAll('.ff-data-table--skeleton-row')
+            // the store is a plain mock, so tell the page by hand that loading is over
+            const finishLoading = wrapper => wrapper.vm.$options.watch.isLoading.handler.call(wrapper.vm, false)
+            const wait = async (ms) => {
+                vi.advanceTimersByTime(ms)
+                await flushPromises()
+            }
 
-        test('shows skeleton rows under the headers while the rows are loading', () => {
-            mocks.tablesStore.isLoading = true
-            const wrapper = mountRowsList()
-            expect(wrapper.find('thead').text()).toContain('id')
-            expect(wrapper.findAll('.ff-data-table--skeleton-row').length).toBeGreaterThan(0)
+            beforeEach(() => {
+                vi.useFakeTimers()
+                mocks.tablesStore.isLoading = true
+            })
+
+            afterEach(() => vi.useRealTimers())
+
+            test('shows no loader for a load that is quick, keeping the rows that were there', async () => {
+                const wrapper = mountRowsList()
+                await wait(199)
+                expect(skeletonRows(wrapper)).toHaveLength(0)
+                expect(wrapper.findAll('tbody [data-el="table-cell"]')).toHaveLength(1)
+
+                finishLoading(wrapper)
+                await wait(1000)
+                expect(skeletonRows(wrapper)).toHaveLength(0)
+            })
+
+            test('shows skeleton rows under the headers once a load takes a while', async () => {
+                const wrapper = mountRowsList()
+                await wait(200)
+                expect(wrapper.find('thead').text()).toContain('id')
+                expect(skeletonRows(wrapper).length).toBeGreaterThan(0)
+            })
+
+            test('keeps the skeleton rows long enough to be seen when the load ends right after they show', async () => {
+                const wrapper = mountRowsList()
+                await wait(200)
+                finishLoading(wrapper)
+                await wait(399)
+                expect(skeletonRows(wrapper).length).toBeGreaterThan(0)
+
+                await wait(1)
+                expect(skeletonRows(wrapper)).toHaveLength(0)
+            })
+
+            test('drops the skeleton rows as soon as a long load ends', async () => {
+                const wrapper = mountRowsList()
+                await wait(2000)
+                finishLoading(wrapper)
+                await wait(0)
+                expect(skeletonRows(wrapper)).toHaveLength(0)
+            })
+
+            test('shows nothing at first for a table whose columns are not known yet, then skeleton rows', async () => {
+                mocks.tablesStore.selectedTable = { name: 'readings' }
+                const wrapper = mountRowsList()
+                expect(wrapper.find('[data-el="rows-grid"]').exists()).toBe(false)
+                expect(wrapper.find('[data-el="loading"]').exists()).toBe(false)
+                expect(wrapper.text()).not.toContain("There doesn't seem to be anything here!")
+
+                await wait(200)
+                expect(skeletonRows(wrapper).length).toBeGreaterThan(0)
+                expect(wrapper.find('[data-el="loading"]').exists()).toBe(false)
+            })
+
+            test('does not show the rows kept from the last time a table was open while it loads again', async () => {
+                let columnsLoaded
+                mocks.tablesStore.getTableSchema.mockImplementationOnce(() => new Promise(resolve => { columnsLoaded = resolve }))
+                mocks.tablesStore.isLoading = false
+                const wrapper = mountRowsList()
+                expect(wrapper.findAll('tbody [data-el="table-cell"]')).toHaveLength(1)
+
+                selectTable(wrapper, readings)
+                await wait(0)
+                expect(wrapper.find('[data-el="rows-grid"]').exists()).toBe(false)
+
+                columnsLoaded()
+                await wait(0)
+                expect(wrapper.findAll('tbody [data-el="table-cell"]')).toHaveLength(1)
+            })
         })
 
         test('says there is nothing to show only once loading is done', () => {
             mocks.tablesStore.selectedTable = { name: 'readings' }
             const wrapper = mountRowsList()
-            expect(wrapper.find('[data-el="table-loading"]').exists()).toBe(false)
             expect(wrapper.text()).toContain("There doesn't seem to be anything here!")
         })
 
@@ -326,6 +509,28 @@ describe('RowsList', () => {
             expect(mocks.tablesStore.getTableSchema).toHaveBeenCalledTimes(1)
             expect(mocks.tablesStore.getTableData).toHaveBeenCalledTimes(1)
             expect(mocks.tablesStore.setTableLoadingState.mock.calls).toEqual([[true], [false]])
+        })
+
+        test('drops the rows still loading for the table that was showing', () => {
+            const wrapper = mountRowsList()
+            selectTable(wrapper, readings)
+            expect(mocks.tablesStore.cancelTableData).toHaveBeenCalledTimes(1)
+        })
+
+        test('drops the rows still loading when leaving the page', () => {
+            const wrapper = mountRowsList()
+            wrapper.unmount()
+            expect(mocks.tablesStore.cancelTableData).toHaveBeenCalledTimes(1)
+        })
+
+        test('does not load the rows of a table that was left before its columns arrived', async () => {
+            // by the time the columns of readings are in, another table is the one selected
+            mocks.tablesStore.tableSelection = { name: 'events', dbSchema: 'public' }
+            const wrapper = mountRowsList()
+            selectTable(wrapper, readings)
+            await flushPromises()
+            expect(mocks.tablesStore.getTableSchema).toHaveBeenCalledTimes(1)
+            expect(mocks.tablesStore.getTableData).not.toHaveBeenCalled()
         })
 
         test('stops loading when the table fails to load', async () => {

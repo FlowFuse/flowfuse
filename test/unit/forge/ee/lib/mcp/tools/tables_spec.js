@@ -177,6 +177,13 @@ describe('MCP Tables Tools', function () {
             })
         })
 
+        it('says that rows are only counted up to a limit, and reports when a table goes past it', function () {
+            tool.description.should.match(/only counted up to 10000/)
+            tool.outputSchema.capped.safeParse(true).success.should.be.true()
+            // a driver that does not report it leaves it out
+            tool.outputSchema.capped.safeParse(undefined).success.should.be.true()
+        })
+
         it('accepts up to 100 rows per page', function () {
             tool.inputSchema.limit.safeParse(100).success.should.be.true()
             tool.inputSchema.limit.safeParse(101).success.should.be.false()

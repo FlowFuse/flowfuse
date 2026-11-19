@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { getColumnTypeKind, getColumnTypeLabel } from '../../../../../frontend/src/utils/tables/columnTypes.ts'
+import { getColumnTypeKind, getColumnTypeLabel, isColumnTypeSortable } from '../../../../../frontend/src/utils/tables/columnTypes.ts'
 
 describe('getColumnTypeLabel', () => {
     test.each([
@@ -69,5 +69,24 @@ describe('getColumnTypeKind', () => {
     test('treats a type it does not know as text', () => {
         expect(getColumnTypeKind('money')).toBe('text')
         expect(getColumnTypeKind(undefined)).toBe('text')
+    })
+})
+
+describe('isColumnTypeSortable', () => {
+    test.each(['text', 'varchar', 'int8', 'numeric', 'bool', 'date', 'timestamp', 'timestamptz', 'time', 'interval', 'uuid'])('offers sorting by a %s column', (type) => {
+        expect(isColumnTypeSortable(type)).toBe(true)
+    })
+
+    test.each(['json', 'jsonb', 'bytea'])('does not offer sorting by a %s column', (type) => {
+        expect(isColumnTypeSortable(type)).toBe(false)
+    })
+
+    test('does not offer sorting by a list', () => {
+        expect(isColumnTypeSortable('_text')).toBe(false)
+    })
+
+    test('does not offer sorting by a type it does not know, or by no type at all', () => {
+        expect(isColumnTypeSortable('point')).toBe(false)
+        expect(isColumnTypeSortable(undefined)).toBe(false)
     })
 })

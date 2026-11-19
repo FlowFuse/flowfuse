@@ -193,6 +193,28 @@ describe('Broker Auth API', async function () {
                     topic: 'ff/v1/platform/sync'
                 })
             })
+            it('allows platform to publish heartbeat to placeholder device status topic', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: 'ff/v1/platform/d/heartbeat/status'
+                })
+            })
+            it('prevents platform from publishing to other device status topics', async function () {
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: 'ff/v1/abc/d/xyz/status'
+                })
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: 'ff/v1/platform/d/xyz/status'
+                })
+            })
+            it('prevents device from publishing to the platform heartbeat topic', async function () {
+                await denyWrite({
+                    username: 'device:abc:xyz',
+                    topic: 'ff/v1/platform/d/heartbeat/status'
+                })
+            })
         })
 
         describe('Project', async function () {
