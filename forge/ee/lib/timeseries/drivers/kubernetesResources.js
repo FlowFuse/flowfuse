@@ -3,11 +3,26 @@
  * without a cluster.
  */
 
+const crypto = require('crypto')
+
 const QUESTDB_UID = 10001
 const COMPONENT = 'timeseries'
 
 // Only ILP writes and /ping are routed from outside: no web console, no SQL over REST
 const EXTERNAL_PATHS = ['/write', '/api/v2/write', '/ping']
+
+// Matches the PgBouncer pods the Helm chart creates
+const PGBOUNCER_POD_SELECTOR = 'flowfuse.com/component=timeseries-pgbouncer'
+const TEAM_LIST_ANNOTATION = 'flowfuse.com/team-list'
+
+/** Short hash of the PgBouncer team-list Secret data, stable for the same content */
+function teamListHash (data) {
+    const hash = crypto.createHash('sha256')
+    for (const key of Object.keys(data).sort()) {
+        hash.update(key).update('\0').update(String(data[key])).update('\0')
+    }
+    return hash.digest('hex').slice(0, 16)
+}
 
 function names (database, options) {
     const slug = database.meta.slug
@@ -247,6 +262,9 @@ function deploymentReady (deployment) {
 }
 
 module.exports = {
+    PGBOUNCER_POD_SELECTOR,
+    TEAM_LIST_ANNOTATION,
+    teamListHash,
     volumeSnapshot,
     snapshotName,
     snapshotSelector,

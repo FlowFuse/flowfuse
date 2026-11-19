@@ -147,4 +147,17 @@ describe('Timeseries: Kubernetes resources', function () {
             resources.deploymentReady({ metadata: { generation: 1 } }).should.be.false()
         })
     })
+
+    describe('PgBouncer team list hash', function () {
+        it('is stable for the same content in any key order', function () {
+            const a = resources.teamListHash({ 'databases.ini': 'x', 'userlist.txt': 'y' })
+            const b = resources.teamListHash({ 'userlist.txt': 'y', 'databases.ini': 'x' })
+            a.should.equal(b)
+            a.should.match(/^[0-9a-f]{16}$/)
+        })
+
+        it('changes when the content changes', function () {
+            resources.teamListHash({ 'databases.ini': 'x', 'userlist.txt': 'y' }).should.not.equal(resources.teamListHash({ 'databases.ini': 'x', 'userlist.txt': 'z' }))
+        })
+    })
 })

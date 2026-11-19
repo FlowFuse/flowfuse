@@ -172,6 +172,7 @@ Change the default `admin` password of the shared server before you use it.
 | `pgbouncer.maxConnectionsPerTeam` | not set | Server connections one team's database may hold. When not set, PgBouncer's own default applies |
 | `pgbouncer.configDir` | none | Docker only. Directory shared with the PgBouncer container where the team list is written |
 | `pgbouncer.secretName` | none | Kubernetes only. Secret the PgBouncer pods mount, where the team list is written |
+| `pgbouncer.podSelector` | `flowfuse.com/component=timeseries-pgbouncer` | Kubernetes only. Label selector for the PgBouncer pods the platform annotates after writing the team list |
 
 ## External servers
 
@@ -207,7 +208,7 @@ If PgBouncer finds no certificate, it starts and accepts unencrypted connections
 When a team's server is created, or its credentials are rotated, devices can't query it until PgBouncer has the new team list.
 
 1. On Docker the delay is up to 5 seconds.
-2. On Kubernetes it is about a minute, because the kubelet only refreshes a mounted Secret every so often.
+2. On Kubernetes it is a few seconds. The kubelet only refreshes a mounted Secret on its periodic sync, which can take over a minute, so the platform annotates the PgBouncer pods after each change to make the kubelet sync them straight away. The pods don't restart. This needs the `update` permission on pods in the time-series namespace, which the Helm chart grants. Without it the delay goes back to about a minute and the platform logs a warning.
 
 Hosted instances don't use PgBouncer and are not affected. Writes from devices are not affected either.
 

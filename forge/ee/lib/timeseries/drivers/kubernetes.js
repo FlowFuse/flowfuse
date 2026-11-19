@@ -95,6 +95,45 @@ async function removeAll (database) {
     await ignoreNotFound(core.deleteNamespacedSecret({ name, namespace }))
 }
 
+/**
+ * kubelet only refreshes a mounted Secret on its periodic pod sync, which takes up to a
+ * minute or more. Any change to a pod makes kubelet sync it straight away, so the PgBouncer
+ * pods get an annotation with the team list's hash and see the new files in seconds. The
+ * pod spec is unchanged, so nothing restarts. A failure only costs the delay, so it is logged.
+ */
+async function nudgePgbouncerPods (data) {
+    const namespace = options.namespace
+    const selector = config.pgbouncer?.podSelector || resources.PGBOUNCER_POD_SELECTOR
+    const hash = resources.teamListHash(data)
+    let pods
+    try {
+        pods = await core.listNamespacedPod({ namespace, labelSelector: selector })
+    } catch (err) {
+        app.log.warn(`[timeseries] could not list PgBouncer pods to refresh the team list: ${err.message}`)
+        return
+    }
+    for (const pod of pods.items) {
+        const name = pod.metadata.name
+        // Pods change often (status updates), so a stale read is retried
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+                const current = await core.readNamespacedPod({ name, namespace })
+                current.metadata.annotations = { ...(current.metadata.annotations || {}), [resources.TEAM_LIST_ANNOTATION]: hash }
+                await core.replaceNamespacedPod({ name, namespace, body: current })
+                break
+            } catch (err) {
+                if (isConflict(err) && attempt < 3) {
+                    continue
+                }
+                if (!isNotFound(err)) {
+                    app.log.warn(`[timeseries] could not refresh the team list in PgBouncer pod ${name}: ${err.message}`)
+                }
+                break
+            }
+        }
+    }
+}
+
 const SNAPSHOT_API = { group: 'snapshot.storage.k8s.io', version: 'v1', plural: 'volumesnapshots' }
 
 async function pgExec (database, credentials, sql) {
@@ -336,10 +375,12 @@ module.exports = {
                 namespace,
                 body: { apiVersion: 'v1', kind: 'Secret', metadata: { name: secretName, namespace }, type: 'Opaque', data }
             })
+            await nudgePgbouncerPods(data)
             return
         }
         secret.data = data
         await core.replaceNamespacedSecret({ name: secretName, namespace, body: secret })
+        await nudgePgbouncerPods(data)
     },
 
     // Exposed for tests

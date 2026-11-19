@@ -188,7 +188,7 @@ The response is `202`. The server restarts with new passwords, which takes it of
 What clients see:
 
 1. Writes and queries that use the old password are rejected. The QuestDB nodes fetch the details again when the server rejects their password and retry once, so a running flow recovers on its own. Rows that were buffered but not yet sent when the old password was rejected are lost, so turn on **Flush after write** on the write node if you cannot accept that.
-2. Devices query through PgBouncer, which learns the new password after a delay. On Docker installs this is up to 5 seconds. On Kubernetes installs it is about a minute. Until then, devices cannot query the database.
+2. Devices query through PgBouncer, which learns the new password after a delay. This takes a few seconds. Until then, devices cannot query the database.
 3. Hosted instances do not use PgBouncer, so they recover as soon as the server is back.
 
 Rotation does not apply to external databases. Change the password on your own server, then update the saved details with `PUT`.
