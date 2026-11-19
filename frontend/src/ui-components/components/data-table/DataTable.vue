@@ -146,6 +146,7 @@
             :page="pagination.page"
             :page-size="pagination.pageSize"
             :total="pagination.total"
+            :total-capped="pagination.totalCapped"
             :page-size-options="pagination.pageSizeOptions || [10, 25, 50, 100]"
             @update:page="$emit('update:page', $event)"
             @update:page-size="$emit('update:page-size', $event)"
@@ -318,6 +319,11 @@ export default {
         serverSideSearch: {
             type: Boolean,
             default: false
+        },
+        // the rows are sorted where they come from (listen for update:sort), so they are shown in the order given
+        serverSideSort: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['update:search', 'load-more', 'row-selected', 'update:sort', 'rows-checked', 'update:page', 'update:page-size'],
@@ -382,7 +388,7 @@ export default {
         },
         filteredRows: function () {
             const rows = this.filterRows([...this.rows])
-            if (this.sort.key) {
+            if (this.sort.key && !this.serverSideSort) {
                 return rows.sort((a, b) => {
                     // Catch undefined and null, swapping to ''
                     const aProp = this.lookupProperty(a, this.sort.key) ?? ''

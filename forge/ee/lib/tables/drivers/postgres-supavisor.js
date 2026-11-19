@@ -282,27 +282,36 @@ module.exports = {
             throw new Error(`Failed to retrieve table ${tableName} for team ${team.hashid}: ${err.message}`)
         }
     },
-    getTableData: async function (team, database, table, pagination, schemaName) {
+    getTableData: async function (team, database, table, pagination, schemaName, signal) {
         const databaseExists = await this._app.db.models.Table.byId(team.id, database)
         if (!databaseExists || databaseExists.TeamId !== team.id) {
             throw new Error(`Database ${database} for team ${team.hashid} does not exist`)
         }
         try {
-            const teamClient = libPg.newClient({ ...this._options.backend, database: team.hashid, types: libPg.tableDataTypes })
+            const databaseOptions = { ...this._options.backend, database: team.hashid }
+            const teamClient = libPg.newClient({ ...databaseOptions, types: libPg.tableDataTypes })
+            const stopCancelling = libPg.cancelOnAbort(teamClient, signal, databaseOptions)
             try {
                 await teamClient.connect()
+                signal?.throwIfAborted()
                 let resolvedSchema = schemaName
                 if (!resolvedSchema) {
                     const schemaRes = await teamClient.query('SELECT "schemaname" FROM "pg_catalog"."pg_tables" WHERE "tablename" = $1 AND "schemaname" != \'pg_catalog\' AND "schemaname" != \'information_schema\' LIMIT 1', [table])
                     resolvedSchema = schemaRes.rows[0]?.schemaname
                 }
-                const escapedTable = libPg.pg.escapeIdentifier(table)
-                const qualifiedTable = resolvedSchema ? `${libPg.pg.escapeIdentifier(resolvedSchema)}.${escapedTable}` : escapedTable
-                return await libPg.getTableDataPage(teamClient, qualifiedTable, pagination)
+                return await libPg.getTableDataPage(teamClient, { schema: resolvedSchema, tableName: table }, pagination, signal)
             } finally {
+                stopCancelling()
                 teamClient.end()
             }
         } catch (err) {
+            if (signal?.aborted) {
+                throw err
+            }
+            // a mistake in the request, which the route reports as it is
+            if (err.statusCode === 400) {
+                throw err
+            }
             console.error('Error retrieving table:', err)
             throw new Error(`Failed to retrieve table ${table} for team ${team.hashid}: ${err.message}`)
         }

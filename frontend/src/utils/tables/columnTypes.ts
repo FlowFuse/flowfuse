@@ -44,6 +44,16 @@ export function getColumnTypeLabel (type: string): string {
 }
 
 /**
+ * Whether the data grid offers to sort by a column of this type. Left out are JSON and binary values, which have
+ * no order that means anything, lists, and the types not known here, some of which Postgres cannot sort at all
+ * @param type - The column's type as Postgres reports it, e.g. 'int8' or '_text'
+ */
+export function isColumnTypeSortable (type: string): boolean {
+    const kind = columnTypes[type]?.kind
+    return !!kind && kind !== 'json' && kind !== 'binary'
+}
+
+/**
  * @param type - The column's type as Postgres reports it, e.g. 'int8' or '_text'
  * @returns The kind of value the column holds, 'text' when the type is not a known one
  */
