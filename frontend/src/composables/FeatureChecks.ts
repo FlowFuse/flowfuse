@@ -153,6 +153,7 @@ export const FEATURE_CONFIGS: FeatureConfig[] = [
         posthogKey: 'MCP_THIRD_PARTY'
     },
     { output: 'isApplicationsRBACFeatureEnabled', platformKey: 'rbacApplication', teamKey: 'rbacApplication' },
+    { output: 'isJsonSchemasFeatureEnabled', platformKey: 'schemas', teamKey: 'schemas', posthogKey: 'JSON_SCHEMAS' },
 
     // Team-only
     { output: 'isDeviceGroupsFeatureEnabled', teamKey: 'deviceGroups' },

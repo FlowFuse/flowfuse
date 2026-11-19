@@ -350,4 +350,24 @@ describe('buildFeatureChecks', () => {
             })
         })
     })
+
+    describe('isJsonSchemasFeatureEnabled', () => {
+        afterEach(() => {
+            delete window.posthog
+        })
+
+        test('follows the JSON_SCHEMAS flag when PostHog is available', () => {
+            window.posthog = {}
+            const checks = buildFeatureChecks(platformState({ posthogFlags: { JSON_SCHEMAS: true } }), team())
+            expect(checks.isJsonSchemasFeatureEnabled).toBe(true)
+        })
+
+        test('follows the schemas platform and team type features when PostHog is unavailable', () => {
+            const checks = buildFeatureChecks(
+                platformState({ features: { schemas: true } }),
+                team({ features: { schemas: true } })
+            )
+            expect(checks.isJsonSchemasFeatureEnabled).toBe(true)
+        })
+    })
 })
