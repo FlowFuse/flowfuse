@@ -31,7 +31,7 @@ vi.mock('../../../../../../../frontend/src/services/alerts.js', () => ({
 
 const DRAFT = { status: 'draft', schema: { type: 'object' }, notes: '', problems: [] }
 const PUBLISHED = { version: '1.2.0', status: 'published', schema: { type: 'object' }, notes: '', publishedAt: '2026-11-01T00:00:00Z', publishedBy: null }
-const apiError = (error) => Object.assign(new Error(error), { response: { data: { error } } })
+const apiError = (error, code) => Object.assign(new Error(error), { response: { data: { error, code } } })
 
 function mountPage (role, { draft = null, latestPublished = null, loadError = null } = {}) {
     const pinia = createTestingPinia({ createSpy: vi.fn })
@@ -180,11 +180,24 @@ describe('Team Schema page', () => {
 
     test('shows a publish error in the dialog while the draft still exists', async () => {
         const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
-        schemas.publishDraft.mockRejectedValue(apiError('Version 1.3.0 already exists'))
+        schemas.publishDraft.mockRejectedValue(apiError('Version 1.3.0 already exists', 'version_exists'))
         publishFrom(page)
         await flushPromises()
         expect(dialog.setError).toHaveBeenCalledWith('Version 1.3.0 already exists')
         expect(dialog.close).not.toHaveBeenCalled()
+    })
+
+    test('closes the dialog and shows a toast when saving before publishing fails', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        schemas.saveDraft.mockRejectedValue(apiError('Schema document is too large', 'document_too_large'))
+        edit.text = JSON.stringify({ type: 'string' })
+        await page.find('[data-test="set-text"]').trigger('click')
+        publishFrom(page)
+        await flushPromises()
+        expect(schemas.publishDraft).not.toHaveBeenCalled()
+        expect(dialog.close).toHaveBeenCalled()
+        expect(Alerts.emit).toHaveBeenCalledWith('Schema document is too large', 'warning')
+        expect(dialog.setError).not.toHaveBeenCalled()
     })
 
     test('closes the dialog when the draft was published or discarded elsewhere', async () => {

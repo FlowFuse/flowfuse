@@ -191,6 +191,8 @@ async function createDraft () {
     }
 }
 
+const VERSION_ERRORS = ['invalid_version', 'version_exists', 'version_not_higher']
+
 async function publish (payload: { version: string, notes: string }) {
     try {
         if (hasUnsavedChanges.value) await schemasStore.saveDraft({ schema: parsedSchema.value!, notes: notes.value })
@@ -199,7 +201,7 @@ async function publish (payload: { version: string, notes: string }) {
         Alerts.emit(`Version ${payload.version} published.`, 'confirmation')
     } catch (err) {
         const message = err.response?.data?.error || 'Failed to publish the draft.'
-        if (draft.value && err.response?.data?.code !== 'schema_has_problems') return publishDialog.value?.setError(message)
+        if (draft.value && VERSION_ERRORS.includes(err.response?.data?.code)) return publishDialog.value?.setError(message)
         publishDialog.value?.close()
         Alerts.emit(message, 'warning')
     }
