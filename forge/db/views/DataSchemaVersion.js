@@ -45,8 +45,39 @@ module.exports = function (app) {
         }
     }
 
+    app.addSchema({
+        $id: 'DataSchemaDraft',
+        type: 'object',
+        allOf: [{ $ref: 'DataSchemaVersion' }],
+        properties: {
+            problems: {
+                type: 'array',
+                items: {
+                    type: 'object',
+                    properties: {
+                        path: { type: 'string' },
+                        message: { type: 'string' }
+                    },
+                    required: ['path', 'message']
+                }
+            }
+        },
+        required: ['problems']
+    })
+    /**
+     * @param {*} draft the draft version
+     * @param {{ path: string, message: string }[]} problems what stops it compiling
+     */
+    function draft (draft, problems) {
+        return {
+            ...version(draft),
+            problems
+        }
+    }
+
     return {
         versionSummary,
-        version
+        version,
+        draft
     }
 }

@@ -31,10 +31,14 @@ async function resolveGroupId (app, team, groupId) {
     return group.id
 }
 
+// The document a draft starts from when there is nothing to copy
+const EMPTY_SCHEMA = { type: 'object', properties: {} }
+
 const invalidGroup = { code: 'invalid_group', error: 'The schema group does not exist in this team' }
 
 module.exports = {
     sendError,
     resolveGroupId,
-    invalidGroup
+    invalidGroup,
+    EMPTY_SCHEMA
 }

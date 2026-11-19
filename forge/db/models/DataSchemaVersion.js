@@ -154,6 +154,60 @@ module.exports = {
                     })
                 },
                 /**
+                 * The schema's draft, with its author
+                 * @param {number} schemaId
+                 */
+                draftFor: async (schemaId, options = {}) => {
+                    return this.findOne({
+                        where: { DataSchemaId: schemaId, status: 'draft' },
+                        include: userIncludes,
+                        transaction: options.transaction
+                    })
+                },
+                /**
+                 * Publish a draft with one conditional update, so when two publishes of the same draft race only one changes it
+                 * @param {number} draftId
+                 * @param {{ version: string, schema: object, notes?: string, publishedById: number | null }} values
+                 * @returns {Promise<boolean>} false when the draft no longer exists
+                 */
+                publishDraft: async (draftId, { version, schema, notes, publishedById }) => {
+                    // The attribute setters still run, so major, minor and patch are set from the version
+                    const [count] = await this.update({
+                        status: 'published',
+                        version,
+                        schema,
+                        notes,
+                        PublishedById: publishedById,
+                        publishedAt: new Date()
+                    }, {
+                        where: { id: draftId, status: 'draft' }
+                    })
+                    return count === 1
+                },
+                /**
+                 * Save a draft's document and notes only while it is still a draft
+                 * @param {number} draftId
+                 * @param {{ schema?: object, notes?: string }} values
+                 * @returns {Promise<boolean>} false when the draft was published or discarded first
+                 */
+                saveDraft: async (draftId, values) => {
+                    const [count] = await this.update(values, {
+                        where: { id: draftId, status: 'draft' }
+                    })
+                    return count === 1
+                },
+                /**
+                 * Delete a draft only while it is still a draft
+                 * @param {number} draftId
+                 * @returns {Promise<boolean>} false when the draft was published or discarded first
+                 */
+                discardDraft: async (draftId) => {
+                    const count = await this.destroy({
+                        where: { id: draftId, status: 'draft' }
+                    })
+                    return count === 1
+                },
+                /**
                  * Every version number in use, published or deprecated
                  * @param {number} schemaId
                  * @returns {Promise<string[]>}
