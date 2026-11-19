@@ -219,6 +219,14 @@ const Permissions = {
     'team:database:delete': { description: 'Delete the team database', role: Roles.Owner, access: 'write' },
     'team:database:list': { description: 'List the team databases', role: Roles.Member, access: 'read' },
 
+    // Team Data Schemas
+    'team:schema:list': { description: 'List and read the team data schemas', role: Roles.Viewer, access: 'read' },
+    'team:schema:create': { description: 'Create data schemas and schema groups', role: Roles.Member, access: 'write' },
+    'team:schema:edit': { description: 'Edit data schemas, their drafts and schema groups', role: Roles.Member, access: 'write' },
+    'team:schema:publish': { description: 'Publish a data schema version', role: Roles.Member, access: 'write' },
+    'team:schema:deprecate': { description: 'Deprecate and undeprecate a data schema version', role: Roles.Member, access: 'write' },
+    'team:schema:delete': { description: 'Delete data schemas and schema groups', role: Roles.Member, access: 'write' },
+
     // MCP
     'team:mcp:list': { description: 'List the team MCP endpoints', role: Roles.Member, access: 'read' },
 
