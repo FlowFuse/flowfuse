@@ -3,9 +3,9 @@
         <div class="flex flex-wrap items-center justify-between gap-4">
             <ToggleButtonGroup v-model="view" :buttons="views" :uses-links="false" size="small" title="View" visually-hide-title />
             <div class="flex items-center gap-2">
-                <span v-if="problems" class="flex items-center gap-1 text-sm text-red-500" data-el="schema-problems">
+                <span v-if="problemCount" class="flex items-center gap-1 text-sm text-red-500" data-el="schema-problems">
                     <ExclamationCircleIcon class="ff-icon-sm" />
-                    {{ problems }} {{ problems === 1 ? 'problem' : 'problems' }}
+                    {{ problemCount }} {{ problemCount === 1 ? 'problem' : 'problems' }}
                 </span>
                 <template v-if="view === 'json'">
                     <ff-button v-if="!jsonReadOnly" kind="secondary" size="small" data-action="format-json" @click="jsonEditor?.format()">Format</ff-button>
@@ -17,7 +17,7 @@
                 </template>
             </div>
         </div>
-        <JsonEditor v-show="view === 'json'" ref="jsonEditor" v-model="schemaText" v-model:problems="editorProblems" :markers="referenceProblems" :read-only="jsonReadOnly" />
+        <JsonEditor v-show="view === 'json'" ref="jsonEditor" v-model="schemaText" v-model:problems="editorProblems" :markers="markers" :read-only="jsonReadOnly" />
         <div v-if="draft" class="schema-notes" data-el="schema-notes">
             <label for="schema-version-notes" class="schema-notes__label">
                 <DocumentTextIcon class="ff-icon" />
@@ -58,7 +58,8 @@ const props = defineProps<{
     draft: DataSchemaDraft | null
     latestPublished: DataSchemaVersion | null
     readOnly: boolean
-    referenceProblems: ReferenceProblem[]
+    markers: ReferenceProblem[]
+    problemCount: number
 }>()
 
 const notes = defineModel<string>('notes', { required: true })
@@ -74,7 +75,6 @@ const jsonEditor = ref<InstanceType<typeof JsonEditor> | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 
 const jsonReadOnly = computed(() => props.readOnly || !props.draft)
-const problems = computed(() => Math.max(editorProblems.value, props.referenceProblems.length))
 
 async function copy () {
     await navigator.clipboard.writeText(schemaText.value)

@@ -15,16 +15,15 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
     const schemaHydrated = ref(false)
 
     const existingVersions = computed(() => (activeSchema.value?.versions ?? [])
-        .filter(version => version.status !== 'draft')
-        .map(version => version.version as string))
+        .flatMap(version => version.status !== 'draft' && version.version ? [version.version] : []))
 
     const teamId = () => useContextStore().team?.id as string
 
     async function fetchActiveSchema (schemaId: string): Promise<void> {
         const schema = await schemasApi.getSchema(teamId(), schemaId)
-        const latest = schema.versions.find(version => version.status !== 'draft')
+        const latest = schema.versions.find(version => version.status !== 'draft')?.version
         const [latestVersion, draft] = await Promise.all([
-            latest ? schemasApi.getVersion(teamId(), schemaId, latest.version as string) : null,
+            latest ? schemasApi.getVersion(teamId(), schemaId, latest) : null,
             schema.hasDraft
                 ? schemasApi.getDraft(teamId(), schemaId).catch(err => {
                     if (errorCode(err) === 'not_found') return null
@@ -66,7 +65,7 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         activeSchema.value = {
             ...schema,
             hasDraft: !!entry,
-            versions: [entry, published, ...versions].filter(Boolean) as DataSchemaVersionSummary[]
+            versions: [...(entry ? [entry] : []), ...(published ? [published] : []), ...versions]
         }
     }
 

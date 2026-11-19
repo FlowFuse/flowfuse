@@ -21,7 +21,7 @@
                         <ff-button kind="secondary" data-action="validate-message" disabled>Validate a message</ff-button>
                         <template v-if="editingDraft">
                             <ff-button kind="secondary" data-action="save-draft" :disabled="!canSave" @click="saveDraft">Save draft</ff-button>
-                            <ff-button v-if="canPublish" data-action="publish" :disabled="!canSave || editorProblems > 0" @click="publishDialog?.show()">Publish</ff-button>
+                            <ff-button v-if="canPublish" data-action="publish" :disabled="!canSave || problemCount > 0" @click="publishDialog?.show()">Publish</ff-button>
                         </template>
                         <ff-button v-else-if="canEdit" data-action="create-draft" @click="createDraft">
                             <template #icon-left><PlusIcon /></template>
@@ -37,7 +37,8 @@
                 v-model:notes="notes"
                 v-model:schema-text="schemaText"
                 v-model:editor-problems="editorProblems"
-                :reference-problems="referenceProblems"
+                :markers="markers"
+                :problem-count="problemCount"
                 :draft="draft"
                 :latest-published="latestPublished"
                 :read-only="!canEdit"
@@ -60,6 +61,7 @@ import { storeToRefs } from 'pinia'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+import { locateDraftProblems } from './components/draftProblems'
 import { findReferenceProblems } from './components/referenceProblems'
 import PublishSchemaDialog from './dialogs/PublishSchemaDialog.vue'
 
@@ -120,13 +122,20 @@ const parsedSchema = computed<Record<string, unknown> | null>(() => {
         return null
     }
 })
-// @TODO-SCHEMAS: ALSO SHOW THE DRAFT'S problems FROM THE BACKEND (#9227) AS MARKERS; MAP EACH path TO AN OFFSET WITH jsonc-parser findNodeAtLocation
 const referenceProblems = computed(() => findReferenceProblems(schemaText.value))
 const canSave = computed(() => !!parsedSchema.value && referenceProblems.value.length === 0)
-const hasUnsavedChanges = computed(() => !!draft.value && (
-    JSON.stringify(parsedSchema.value) !== JSON.stringify(draft.value.schema) ||
-    notes.value !== (draft.value.notes ?? '')
-))
+// The backend strips the root $id on save
+const schemaChanged = computed(() => {
+    if (!draft.value) return false
+    if (!parsedSchema.value) return true
+    const { $id: _rootId, ...schema } = parsedSchema.value
+    return JSON.stringify(schema) !== JSON.stringify(draft.value.schema)
+})
+const hasUnsavedChanges = computed(() => schemaChanged.value || (!!draft.value && notes.value !== (draft.value.notes ?? '')))
+const draftProblems = computed(() => draft.value && !schemaChanged.value ? locateDraftProblems(schemaText.value, draft.value.problems) : [])
+const markers = computed(() => [...referenceProblems.value, ...draftProblems.value])
+// Monaco only counts these markers once it has loaded
+const problemCount = computed(() => Math.max(editorProblems.value, markers.value.length))
 
 const badge = computed(() => {
     if (draft.value) return { status: 'info', text: 'Draft' }
@@ -190,7 +199,7 @@ async function publish (payload: { version: string, notes: string }) {
         Alerts.emit(`Version ${payload.version} published.`, 'confirmation')
     } catch (err) {
         const message = err.response?.data?.error || 'Failed to publish the draft.'
-        if (draft.value) return publishDialog.value?.setError(message)
+        if (draft.value && err.response?.data?.code !== 'schema_has_problems') return publishDialog.value?.setError(message)
         publishDialog.value?.close()
         Alerts.emit(message, 'warning')
     }

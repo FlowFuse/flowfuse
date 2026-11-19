@@ -11,6 +11,14 @@ import { useDataFarmSchemasStore } from '../../../../../../../frontend/src/store
 
 const router = vi.hoisted(() => ({ push: vi.fn() }))
 const dialog = vi.hoisted(() => ({ setError: vi.fn(), close: vi.fn() }))
+const edit = vi.hoisted(() => ({ text: '', notes: '' }))
+
+const EditorStub = {
+    props: ['schemaText', 'notes', 'editorProblems', 'markers', 'draft', 'latestPublished', 'readOnly'],
+    emits: ['update:schemaText', 'update:notes', 'update:editorProblems'],
+    template: '<div><button data-test="set-text" @click="$emit(\'update:schemaText\', edit.text)" /><button data-test="set-notes" @click="$emit(\'update:notes\', edit.notes)" /><span data-test="markers">{{ markers.length }}</span></div>',
+    data: () => ({ edit })
+}
 
 vi.mock('vue-router', () => ({
     useRoute: () => ({ params: { team_slug: 'team', schemaId: 'abc' } }),
@@ -43,7 +51,7 @@ function mountPage (role, { draft = null, latestPublished = null, loadError = nu
                 'ff-page': { template: '<div><slot name="header" /><slot /></div>' },
                 'ff-page-header': { template: '<div><slot name="status" /><slot name="context" /><slot name="tools" /></div>' },
                 'ff-button': { template: '<button><slot /></button>' },
-                'router-view': true,
+                'router-view': { setup: (_, { slots }) => () => slots.default({ Component: EditorStub }) },
                 PublishSchemaDialog: { name: 'PublishSchemaDialog', template: '<div />', methods: { show () {}, close: dialog.close, setError: dialog.setError } },
                 StatusBadge: { props: ['text'], template: '<span data-el="schema-status">{{ text }}</span>' }
             }
@@ -89,18 +97,59 @@ describe('Team Schema page', () => {
     })
 
     test('disables Save and Publish when the draft uses a reference', () => {
-        const { page } = mountPage(Roles.Member, { draft: { schema: { properties: { a: { $ref: '#' } } }, notes: null } })
+        const { page } = mountPage(Roles.Member, { draft: { ...DRAFT, schema: { properties: { a: { $ref: '#' } } } } })
         expect(page.find('[data-action="save-draft"]').attributes('disabled')).toBeDefined()
         expect(page.find('[data-action="publish"]').attributes('disabled')).toBeDefined()
     })
 
+    test('blocks Publish but not Save while the saved draft has problems from the backend', () => {
+        const { page } = mountPage(Roles.Member, { draft: { ...DRAFT, problems: [{ path: '/type', message: 'must be equal to one of the allowed values' }] } })
+        expect(page.find('[data-action="save-draft"]').attributes('disabled')).toBeUndefined()
+        expect(page.find('[data-action="publish"]').attributes('disabled')).toBeDefined()
+    })
+
+    test('ignores a root $id the backend strips when deciding whether to save before publishing', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        edit.text = JSON.stringify({ $id: 'urn:x', ...DRAFT.schema })
+        await page.find('[data-test="set-text"]').trigger('click')
+        publishFrom(page)
+        await flushPromises()
+        expect(schemas.saveDraft).not.toHaveBeenCalled()
+        expect(schemas.publishDraft).toHaveBeenCalled()
+    })
+
+    test('keeps showing backend problems when only the notes change', async () => {
+        const { page } = mountPage(Roles.Member, { draft: { ...DRAFT, problems: [{ path: '/type', message: 'bad type' }] } })
+        edit.notes = 'new notes'
+        await page.find('[data-test="set-notes"]').trigger('click')
+        expect(page.find('[data-test="markers"]').text()).toBe('1')
+        expect(page.find('[data-action="publish"]').attributes('disabled')).toBeDefined()
+    })
+
+    test('hides backend problems while the document has unsaved edits', async () => {
+        const { page } = mountPage(Roles.Member, { draft: { ...DRAFT, problems: [{ path: '/type', message: 'bad type' }] } })
+        edit.text = JSON.stringify({ type: 'string' })
+        await page.find('[data-test="set-text"]').trigger('click')
+        expect(page.find('[data-test="markers"]').text()).toBe('0')
+    })
+
+    test('closes the dialog and shows a toast when the saved draft has problems', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        schemas.publishDraft.mockRejectedValue(Object.assign(new Error('problems'), { response: { data: { code: 'schema_has_problems', error: 'The draft has problems and cannot be published' } } }))
+        publishFrom(page)
+        await flushPromises()
+        expect(dialog.close).toHaveBeenCalled()
+        expect(Alerts.emit).toHaveBeenCalledWith('The draft has problems and cannot be published', 'warning')
+        expect(dialog.setError).not.toHaveBeenCalled()
+    })
+
     test('disables Save when the draft is not a JSON object', () => {
-        const { page } = mountPage(Roles.Member, { draft: { schema: [], notes: null } })
+        const { page } = mountPage(Roles.Member, { draft: { ...DRAFT, schema: [] } })
         expect(page.find('[data-action="save-draft"]').attributes('disabled')).toBeDefined()
     })
 
     test('saves unsaved edits before publishing', async () => {
-        const { page, schemas } = mountPage(Roles.Member, { draft: { schema: { type: 'object' }, notes: null } })
+        const { page, schemas } = mountPage(Roles.Member, { draft: { ...DRAFT, schema: { type: 'object' } } })
         schemas.activeDraft.schema = { type: 'object', title: 'saved elsewhere' }
         await page.findComponent({ name: 'PublishSchemaDialog' }).vm.$emit('publish', { version: '1.0.0', notes: '' })
         await new Promise(resolve => setTimeout(resolve))
