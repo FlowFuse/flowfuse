@@ -4,11 +4,6 @@
             <FeatureUnavailable v-if="!featuresCheck.isInstanceResourcesFeatureEnabledForPlatform" />
             <FeatureUnavailableToTeam v-else-if="!featuresCheck.isInstanceResourcesFeatureEnabledForTeam" />
             <FeatureUnavailable
-                v-if="isLiteAgent"
-                message="The Lite Remote Agent does not currently support this feature"
-                :only-custom-message="true"
-            />
-            <FeatureUnavailable
                 v-else-if="!agentSatisfiesVersion"
                 message="Update your device agent to the latest version to enable this feature"
                 :only-custom-message="true"
@@ -127,7 +122,12 @@ export default {
             return !offline.includes(this.device.status)
         },
         agentSatisfiesVersion () {
-            return this.device && this.device.agentVersion && SemVer.satisfies(this.device.agentVersion, '>=3.5.1', { includePrerelease: true })
+            return this.device && this.device.agentVersion && (
+                // Lite Agent >= 4.1.0
+                (this.device.agentType === 'lite' && SemVer.satisfies(this.device.agentVersion, '>=4.1.0', { includePrerelease: true })) ||
+                // Device Agent >= 3.5.1
+                (this.device.agentType !== 'lite' && SemVer.satisfies(this.device.agentVersion, '>=3.5.1', { includePrerelease: true }))
+            )
         },
         isLiteAgent () {
             return this.device?.agentType === 'lite'
@@ -135,7 +135,7 @@ export default {
         featureAvailable () {
             return this.featuresCheck.isInstanceResourcesFeatureEnabledForPlatform &&
                 this.featuresCheck.isInstanceResourcesFeatureEnabledForTeam &&
-                this.agentSatisfiesVersion && this.deviceOnline && !this.isLiteAgent
+                this.agentSatisfiesVersion && this.deviceOnline
         },
         mqttConnectionKey () {
             return `device-resources-${this.device.id}`

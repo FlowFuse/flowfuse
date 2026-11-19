@@ -50,13 +50,13 @@ import JsonEditor from '@/components/JsonEditor.vue'
 import ToggleButtonGroup from '@/components/elements/ToggleButtonGroup.vue'
 import Alerts from '@/services/alerts.js'
 
-import type { SchemaDraft, SchemaVersion } from '@/stores/data-farm-schemas'
+import type { DataSchemaDraft, DataSchemaVersion } from '@/types'
 
 defineOptions({ name: 'SchemaEditor' })
 
 const props = defineProps<{
-    draft: SchemaDraft | null
-    latestPublished: SchemaVersion | null
+    draft: DataSchemaDraft | null
+    latestPublished: DataSchemaVersion | null
     readOnly: boolean
     referenceProblems: ReferenceProblem[]
 }>()

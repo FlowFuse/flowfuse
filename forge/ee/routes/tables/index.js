@@ -472,7 +472,8 @@ module.exports = async function (app) {
 
     /**
      * @name /api/v1/teams/:teamId/databases/:databaseId/tables/:tableName/data/:schemaName?
-     * @description Get a page of rows from a specific table in a team database, with the table's total row count
+     * @description Get a page of rows from a specific table in a team database, with the table's row count (counted up to a limit).
+     * The rows can be sorted by one of the table's columns
      * @static
      * @memberof forge.routes.api.team.tables
      */
@@ -489,12 +490,23 @@ module.exports = async function (app) {
                     schemaName: { type: 'string' }
                 }
             },
-            query: { $ref: 'PaginationParams' },
+            // its own query rather than PaginationParams: this route pages by number and has no cursor or search
+            query: {
+                type: 'object',
+                properties: {
+                    page: { type: 'number', minimum: 1, description: 'The page to return, starting at 1' },
+                    limit: { type: 'number', description: 'Rows per page, 100 at most' },
+                    sort: { type: 'string', description: 'The name of the column to sort the whole table by' },
+                    dir: { type: 'string', enum: ['asc', 'desc'], description: 'The direction to sort in, asc when left out' }
+                }
+            },
             response: {
                 200: {
                     type: 'object',
                     properties: {
-                        count: { type: 'number', description: 'Total number of rows in the table' },
+                        count: { type: 'number', description: 'Number of rows in the table, or the most that are counted when the table has more (see capped)' },
+                        capped: { type: 'boolean', description: 'True when the table has more rows than are counted. Only the rows that were counted can be paged through, and the rows can only be sorted by the first column of the primary key' },
+                        primaryKey: { type: 'array', items: { type: 'string' }, description: 'The columns of the table\'s primary key, in order. Empty when it has none' },
                         rows: {
                             type: 'array',
                             items: {
@@ -515,7 +527,20 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
-        const data = await app.tables.getTableData(request.team, request.params.databaseId, request.params.tableName, paginationOptions, request.params.schemaName)
-        reply.send(data)
+        try {
+            // the signal aborts when the browser gives up on the request, which stops the read in the database
+            const data = await app.tables.getTableData(request.team, request.params.databaseId, request.params.tableName, paginationOptions, request.params.schemaName, request.signal)
+            reply.send(data)
+        } catch (err) {
+            // the read was stopped because nobody is waiting for it, so there is nothing to report
+            if (request.signal.aborted) {
+                return reply.code(499).send()
+            }
+            // a column that does not exist or cannot be put in order is a mistake in the request
+            if (err.code === 'invalid_sort') {
+                return reply.status(400).send({ code: err.code, error: err.message })
+            }
+            throw err
+        }
     })
 }

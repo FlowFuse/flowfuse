@@ -123,7 +123,7 @@ export default function usePermissions () {
      * Checks if a user has the required permission for a specific scope based on their team membership.
      *
      * @param {string} scope - The specific scope for which the permission check is being made.
-     * @param {string} context - The context in which the permission check is being made.
+     * @param {string} [context] - The context in which the permission check is being made.
      * @throws {Error} If the provided scope is not recognized.
      * @returns {boolean} Returns true if the user has the required permission for the given scope, false otherwise.
      */

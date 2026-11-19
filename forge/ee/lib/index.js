@@ -18,6 +18,8 @@ async function commonFeatures (app, opts) {
     app.config.features.register('ffNodes', true, true)
     // Application level RBAC
     app.config.features.register('rbacApplication', true, true)
+    // Data schemas, enabled per team type
+    app.config.features.register('schemas', true, true)
     require('./autoUpdateStacks').init(app)
 
     // Expert

@@ -29,7 +29,10 @@ const modelTypes = [
     'User',
     'TeamBrokerClient',
     'BrokerCredentials',
-    'MQTTTopicSchema'
+    'MQTTTopicSchema',
+    'DataSchemaGroup',
+    'DataSchemaVersion',
+    'DataSchema'
 ]
 
 async function register (app, viewType, viewModule) {

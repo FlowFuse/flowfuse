@@ -32,6 +32,8 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 
+import { checkNewVersion } from '../../../../../../../forge/lib/schemas/version.js'
+
 import FormRow from '@/components/FormRow.vue'
 
 defineOptions({ name: 'PublishSchemaDialog' })
@@ -39,6 +41,7 @@ defineOptions({ name: 'PublishSchemaDialog' })
 const props = defineProps<{
     schemaName: string
     latestVersion: string | null
+    existingVersions: string[]
     draftNotes: string | null
 }>()
 
@@ -51,9 +54,12 @@ const version = ref('')
 const notes = ref('')
 const error = ref('')
 
-watch(version, () => {
-    error.value = ''
-    // @TODO-SCHEMAS: WHEN version IS NOT EMPTY, SET error FROM checkNewVersion(version, existingVersions) IN forge/lib/schemas/version.js (#9242), IMPORTED DIRECTLY LIKE forge/lib/permissions.js; existingVersions IS EVERY NON-DRAFT VERSION (DEPRECATED INCLUDED) FROM THE versions LIST THAT loadActiveSchema ALREADY FETCHES
+watch(version, (value) => {
+    const problem = value ? checkNewVersion(value, props.existingVersions) : null
+    if (!problem) error.value = ''
+    else if (problem.code === 'version_not_higher') error.value = `Must be higher than ${problem.highest}`
+    else if (problem.code === 'version_exists') error.value = `Version ${value} already exists`
+    else error.value = 'Use a plain major.minor.patch version, e.g. 1.0.0'
 })
 
 function show () {
@@ -71,5 +77,9 @@ function close () {
     dialog.value?.close()
 }
 
-defineExpose({ show, close })
+function setError (message: string) {
+    error.value = message
+}
+
+defineExpose({ show, close, setError })
 </script>

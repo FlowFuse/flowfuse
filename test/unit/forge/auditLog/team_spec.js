@@ -808,4 +808,85 @@ describe('Audit Log > Team', async function () {
             logEntry.body.libraryEntry.should.have.property('deleteCount', 2)
         })
     })
+
+    describe('Data schema events', function () {
+        const SCHEMA = { hashid: 'schema1', name: 'Temperature' }
+        const VERSION = { version: '1.2.0', schema: '{}' }
+        const GROUP = { hashid: 'group1', name: 'Production line' }
+
+        it('Create schema', async function () {
+            await teamLogger.schemas.schema.created(ACTIONED_BY, null, TEAM, SCHEMA)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.schema.created')
+            logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+            logEntry.body.should.only.have.keys('team', 'dataSchema')
+            logEntry.body.dataSchema.should.eql({ id: 'schema1', name: 'Temperature' })
+        })
+        it('Update schema', async function () {
+            const updates = new app.auditLog.formatters.UpdatesCollection()
+            updates.push('name', 'Temp', 'Temperature')
+            await teamLogger.schemas.schema.updated(ACTIONED_BY, null, TEAM, SCHEMA, updates)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.schema.updated')
+            logEntry.body.should.only.have.keys('team', 'dataSchema', 'updates')
+        })
+        it('Delete schema', async function () {
+            await teamLogger.schemas.schema.deleted(ACTIONED_BY, null, TEAM, SCHEMA)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.schema.deleted')
+            logEntry.body.should.only.have.keys('team', 'dataSchema')
+        })
+        it('Create draft', async function () {
+            await teamLogger.schemas.draft.created(ACTIONED_BY, null, TEAM, SCHEMA)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.schema.draft.created')
+            logEntry.body.should.only.have.keys('team', 'dataSchema')
+        })
+        it('Discard draft', async function () {
+            await teamLogger.schemas.draft.discarded(ACTIONED_BY, null, TEAM, SCHEMA)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.schema.draft.discarded')
+            logEntry.body.should.only.have.keys('team', 'dataSchema')
+        })
+        it('Publish version', async function () {
+            await teamLogger.schemas.version.published(ACTIONED_BY, null, TEAM, SCHEMA, VERSION)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.schema.version.published')
+            logEntry.body.should.only.have.keys('team', 'dataSchema', 'dataSchemaVersion')
+            logEntry.body.dataSchemaVersion.should.eql({ version: '1.2.0' })
+        })
+        it('Deprecate version', async function () {
+            await teamLogger.schemas.version.deprecated(ACTIONED_BY, null, TEAM, SCHEMA, VERSION)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.schema.version.deprecated')
+            logEntry.body.should.only.have.keys('team', 'dataSchema', 'dataSchemaVersion')
+        })
+        it('Undeprecate version', async function () {
+            await teamLogger.schemas.version.undeprecated(ACTIONED_BY, null, TEAM, SCHEMA, VERSION)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.schema.version.undeprecated')
+            logEntry.body.should.only.have.keys('team', 'dataSchema', 'dataSchemaVersion')
+        })
+        it('Create group', async function () {
+            await teamLogger.schemas.group.created(ACTIONED_BY, null, TEAM, GROUP)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.schema.group.created')
+            logEntry.body.should.only.have.keys('team', 'dataSchemaGroup')
+            logEntry.body.dataSchemaGroup.should.eql({ id: 'group1', name: 'Production line' })
+        })
+        it('Update group', async function () {
+            const updates = new app.auditLog.formatters.UpdatesCollection()
+            updates.push('name', 'Line', 'Production line')
+            await teamLogger.schemas.group.updated(ACTIONED_BY, null, TEAM, GROUP, updates)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.schema.group.updated')
+            logEntry.body.should.only.have.keys('team', 'dataSchemaGroup', 'updates')
+        })
+        it('Delete group', async function () {
+            await teamLogger.schemas.group.deleted(ACTIONED_BY, null, TEAM, GROUP)
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.schema.group.deleted')
+            logEntry.body.should.only.have.keys('team', 'dataSchemaGroup')
+        })
+    })
 })
