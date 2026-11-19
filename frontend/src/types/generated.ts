@@ -11233,6 +11233,52 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** DataSchemaGroup */
+        DataSchemaGroup: {
+            id: string;
+            name: string;
+            schemaCount: number;
+            createdAt: string;
+            updatedAt: string;
+        };
+        /** DataSchemaVersionSummary */
+        DataSchemaVersionSummary: {
+            version: string | null;
+            /** @enum {string} */
+            status: "draft" | "published" | "deprecated";
+            notes: string;
+            format: string;
+            createdBy: components["schemas"]["UserSummary"] | null;
+            publishedBy: components["schemas"]["UserSummary"] | null;
+            createdAt: string;
+            publishedAt: string | null;
+            updatedAt: string;
+        };
+        /** DataSchemaVersion */
+        DataSchemaVersion: {
+            schema: {
+                [key: string]: unknown;
+            };
+        } & components["schemas"]["DataSchemaVersionSummary"];
+        /** DataSchemaSummary */
+        DataSchemaSummary: {
+            id: string;
+            name: string;
+            description: string;
+            group: {
+                id: string;
+                name: string;
+            } | null;
+            latestVersion: string | null;
+            latestPublishedAt: string | null;
+            hasDraft: boolean;
+            createdAt: string;
+            updatedAt: string;
+        };
+        /** DataSchema */
+        DataSchema: {
+            versions: components["schemas"]["DataSchemaVersionSummary"][];
+        } & components["schemas"]["DataSchemaSummary"];
         /** APIStatus */
         APIStatus: {
             status: string;
@@ -11486,6 +11532,11 @@ export type TeamMemberList = components['schemas']['TeamMemberList'];
 export type UserList = components['schemas']['UserList'];
 export type MqttBroker = components['schemas']['MQTTBroker'];
 export type MqttBrokerInput = components['schemas']['MQTTBrokerInput'];
+export type DataSchemaGroup = components['schemas']['DataSchemaGroup'];
+export type DataSchemaVersionSummary = components['schemas']['DataSchemaVersionSummary'];
+export type DataSchemaVersion = components['schemas']['DataSchemaVersion'];
+export type DataSchemaSummary = components['schemas']['DataSchemaSummary'];
+export type DataSchema = components['schemas']['DataSchema'];
 export type ApiStatus = components['schemas']['APIStatus'];
 export type ApiError = components['schemas']['APIError'];
 export type PaginationParams = components['schemas']['PaginationParams'];
