@@ -168,4 +168,11 @@
     --ff-color-checkbox-checked-bg:        var(--ff-color-accent);
     --ff-color-checkbox-checked-border:    var(--ff-color-accent);
     --ff-color-toggle-track-on:            var(--ff-palette-blue-900);
+
+    --ff-color-diff-added-line-bg:         #dafbe1;
+    --ff-color-diff-added-num-bg:          #aceebb;
+    --ff-color-diff-added-word-bg:         #aceebb;
+    --ff-color-diff-removed-line-bg:       #ffebe9;
+    --ff-color-diff-removed-num-bg:        #ffcecb;
+    --ff-color-diff-removed-word-bg:       #ffcecb;
 }
