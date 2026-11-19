@@ -1,5 +1,7 @@
 const sinon = require('sinon')
 const should = require('should') // eslint-disable-line
+const stubDriver = require('../../../../forge/containers/stub/index.js')
+
 const setup = require('./setup')
 
 // async function waitFor(delay) {
@@ -129,6 +131,24 @@ describe('Container Wrapper', function () {
 
             const newDetails = await app.containers.details(project)
             should.not.exist(newDetails)
+        })
+    })
+
+    describe('getBrokerAgentState', function () {
+        beforeEach(async function () {
+            app = await setup()
+        })
+
+        it('only needs the driver to implement getBrokerAgentState', async function () {
+            // The wrapper holds the same cached stub driver module, so take stopBrokerAgent off it
+            const stopBrokerAgent = stubDriver.stopBrokerAgent
+            delete stubDriver.stopBrokerAgent
+            try {
+                const state = await app.containers.getBrokerAgentState({})
+                state.should.have.property('connected', true)
+            } finally {
+                stubDriver.stopBrokerAgent = stopBrokerAgent
+            }
         })
     })
 

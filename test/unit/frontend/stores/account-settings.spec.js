@@ -87,7 +87,7 @@ describe('account-settings store', () => {
 
         describe('loadPosthogFlags', () => {
             it('stores the flag values PostHog reports', () => {
-                const onFeatureFlags = vi.fn((cb) => cb(['MCP_THIRD_PARTY'], { MCP_THIRD_PARTY: true }))
+                const onFeatureFlags = vi.fn((onFlags) => onFlags(['MCP_THIRD_PARTY'], { MCP_THIRD_PARTY: true }))
                 window.posthog = { onFeatureFlags }
 
                 const store = useAccountSettingsStore()
@@ -284,6 +284,14 @@ describe('account-settings store', () => {
 
             it('isAiFeatureEnabled is true when team ai is undefined and enableAllFeatures is true', () => {
                 mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { enableAllFeatures: true, billing: {}, instances: {} } } } })
+                const store = useAccountSettingsStore()
+                store.setSettings({ features: { ai: true } })
+                expect(store.featuresCheck.isAiFeatureEnabledForTeam).toBe(true)
+                expect(store.featuresCheck.isAiFeatureEnabled).toBe(true)
+            })
+
+            it('isAiFeatureEnabled is true when team ai is undefined, matching the backend opt-out default', () => {
+                mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { features: {}, billing: {}, instances: {} } } } })
                 const store = useAccountSettingsStore()
                 store.setSettings({ features: { ai: true } })
                 expect(store.featuresCheck.isAiFeatureEnabledForTeam).toBe(true)

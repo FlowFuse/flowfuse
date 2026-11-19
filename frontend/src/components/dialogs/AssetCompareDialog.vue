@@ -39,7 +39,7 @@
             <!-- Navigation bar — shown after comparison -->
             <div v-if="hasCompared && !loading" class="flex items-center gap-2 px-3 py-1.5 border-b border-gray-200 bg-white shrink-0">
                 <div v-if="currentGroup" class="flex-1 flex items-center gap-2 min-w-0">
-                    <span class="text-xs font-semibold px-1.5 py-0.5 rounded-sm capitalize shrink-0" :class="diffTypeBadgeClass(currentGroup.diffType)">{{ currentGroup.diffType }}</span>
+                    <DiffTypeBadge :type="currentGroup.diffType" />
                     <span class="font-semibold text-sm text-gray-800 truncate">{{ currentGroup.name }}</span>
                     <span class="text-xs font-semibold text-gray-700 bg-gray-200 px-1.5 py-0.5 rounded-sm shrink-0">{{ currentGroup.type }}</span>
                     <span v-if="currentGroupCategoryLabel" class="text-xs font-semibold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded-sm shrink-0">{{ currentGroupCategoryLabel }}</span>
@@ -117,6 +117,7 @@ import { CheckIcon } from '@heroicons/vue/24/outline'
 
 import SnapshotsApi from '../../api/snapshots.js'
 import Alerts from '../../services/alerts.js'
+import DiffTypeBadge from '../diff/DiffTypeBadge.vue'
 
 import SnapshotDiffChangePanel from './SnapshotDiffChangePanel.vue'
 
@@ -136,7 +137,7 @@ const SIDEBAR_MAX_WIDTH = 800
 
 export default {
     name: 'AssetCompareDialog',
-    components: { SnapshotDiffChangePanel },
+    components: { DiffTypeBadge, SnapshotDiffChangePanel },
     props: {
         title: {
             type: String,
@@ -364,14 +365,6 @@ export default {
                         rc.highlight(layerNo)
                     }
                 }
-            }
-        },
-        diffTypeBadgeClass (diffType) {
-            switch (diffType) {
-            case 'added': return 'bg-green-100 text-green-700'
-            case 'deleted': return 'bg-red-100 text-red-700'
-            case 'moved': return 'bg-yellow-100 text-yellow-700'
-            default: return 'bg-blue-100 text-blue-700'
             }
         },
         cleanup () {

@@ -1,16 +1,16 @@
-const { exec } = require('node:child_process')
+const { execFile } = require('node:child_process')
 const { existsSync } = require('node:fs')
 const fs = require('node:fs/promises')
 const os = require('node:os')
 const path = require('node:path')
 const { promisify } = require('node:util')
-const execPromised = promisify(exec)
+const execFilePromised = promisify(execFile)
 
 const axios = require('axios')
 
 const { encryptValue, decryptValue } = require('../../../../db/utils')
 
-const { cloneRepository } = require('./utils')
+const { cloneRepository, resolveRepoFile, validateRepoUrl, writeRepoFile } = require('./utils')
 
 module.exports.init = async function (app) {
     /**
@@ -30,10 +30,12 @@ module.exports.init = async function (app) {
         try {
             const token = repoOptions.token
             const branch = repoOptions.branch || 'main'
-            if (!/^https:\/\/github.com/i.test(repoOptions.url)) {
+            let url
+            try {
+                url = validateRepoUrl(repoOptions.url, { allowedHosts: ['github.com'] })
+            } catch (err) {
                 throw new Error('Only GitHub repositories are supported')
             }
-            const url = new URL(repoOptions.url)
             url.username = 'x-access-token'
             url.password = token
 
@@ -56,17 +58,17 @@ module.exports.init = async function (app) {
 
             const userGitName = userDetails.data.login
             const userGitEmail = `${userDetails.data.id}+${userDetails.data.login}@users.noreply.github.com`
-            const author = `${userGitName} <${userGitEmail}>`.replace(/"/g, '\\"')
+            const author = `${userGitName} <${userGitEmail}>`
             workingDir = await fs.mkdtemp(path.join(os.tmpdir(), 'flowfuse-git-repo-'))
 
             // 3. clone repo
             await cloneRepository(url, branch, workingDir)
 
             // 4. set username/email
-            await execPromised('git config user.email "no-reply@flowfuse.com"', { cwd: workingDir })
-            await execPromised('git config user.name "FlowFuse"', { cwd: workingDir })
+            await execFilePromised('git', ['config', 'user.email', 'no-reply@flowfuse.com'], { cwd: workingDir })
+            await execFilePromised('git', ['config', 'user.name', 'FlowFuse'], { cwd: workingDir })
             // For local dev - disable gpg signing in case its set in global config
-            await execPromised('git config commit.gpgsign false', { cwd: workingDir })
+            await execFilePromised('git', ['config', 'commit.gpgsign', 'false'], { cwd: workingDir })
 
             // 5. export snapshot
             const exportOptions = {
@@ -82,18 +84,19 @@ module.exports.init = async function (app) {
                 const enc = encryptValue(repoOptions.credentialSecret, snapshotExport.settings.settings?.palette?.npmrc)
                 snapshotExport.settings.settings.palette.npmrc = { $: enc }
             }
-            const snapshotFile = path.join(workingDir, repoOptions.path || 'snapshot.json').replace(/"/g, '')
-            await fs.writeFile(snapshotFile, JSON.stringify(snapshotExport, null, 4))
+            const snapshotFile = await resolveRepoFile(workingDir, repoOptions.path || 'snapshot.json')
+            await writeRepoFile(snapshotFile, JSON.stringify(snapshotExport, null, 4))
 
             // 6. stage file
-            await execPromised(`git add "${snapshotFile}"`, { cwd: workingDir })
+            await execFilePromised('git', ['add', snapshotFile], { cwd: workingDir })
 
             // 7. commit
-            await execPromised(`git commit -m "Update snapshot\n\nSnapshot updated by FlowFuse Pipeline '${options.pipeline.name.replace(/"/g, '')}', triggered by ${options.user.username.replace(/"/g, '')}" --author="${author}"`, { cwd: workingDir })
+            const commitMessage = `Update snapshot\n\nSnapshot updated by FlowFuse Pipeline '${options.pipeline.name}', triggered by ${options.user.username}`
+            await execFilePromised('git', ['commit', '-m', commitMessage, '--author', author], { cwd: workingDir })
 
             try {
                 // 8. push
-                await execPromised('git push', { cwd: workingDir })
+                await execFilePromised('git', ['push'], { cwd: workingDir })
             } catch (err) {
                 const output = err.stdout + err.stderr
                 if (/unable to access/.test(output)) {
@@ -133,10 +136,12 @@ module.exports.init = async function (app) {
         try {
             const token = repoOptions.token
             const branch = repoOptions.branch || 'main'
-            if (!/^https:\/\/github.com/i.test(repoOptions.url)) {
+            let url
+            try {
+                url = validateRepoUrl(repoOptions.url, { allowedHosts: ['github.com'] })
+            } catch (err) {
                 throw new Error('Only GitHub repositories are supported')
             }
-            const url = new URL(repoOptions.url)
             url.username = 'x-access-token'
             url.password = token
 
@@ -145,7 +150,7 @@ module.exports.init = async function (app) {
             // 3. clone repo
             await cloneRepository(url, branch, workingDir)
 
-            const snapshotFile = path.join(workingDir, repoOptions.path || 'snapshot.json').replace(/"/g, '')
+            const snapshotFile = await resolveRepoFile(workingDir, repoOptions.path || 'snapshot.json')
 
             if (!existsSync(snapshotFile)) {
                 throw new Error('Snapshot file not found in repository')

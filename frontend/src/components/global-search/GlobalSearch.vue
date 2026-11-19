@@ -384,11 +384,8 @@ export default {
 
     &.focused {
         .content-wrapper {
-            position: fixed;
-            width: 60vw;
+            position: relative;
             background: var(--ff-color-bg-app);
-            top: 15px;
-            left: 20vw;
             z-index: 120;
             border: none;
             border-radius: 5px;
@@ -425,6 +422,10 @@ export default {
             }
 
             .results-wrapper {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
                 overflow: auto;
                 max-height: 90vh;
 
@@ -435,7 +436,7 @@ export default {
         }
 
         .overlay {
-            position: absolute;
+            position: fixed;
             width: 100vw;
             height: 100vh;
             background: rgba(0, 0, 0, .3);
@@ -455,6 +456,7 @@ export default {
         }
         &.focused {
             .content-wrapper {
+                position: fixed;
                 width: 100%;
                 top: 0;
                 left: 0;

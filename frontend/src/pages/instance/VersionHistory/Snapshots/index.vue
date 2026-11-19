@@ -139,6 +139,9 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
+        canRestore () {
+            return !this.instance.protected?.enabled || this.hasPermission('project:edit', { application: this.instance.application })
+        },
         columns () {
             const cols = [
                 {
@@ -244,10 +247,20 @@ export default {
             this.openRightDrawer({
                 component: markRaw(SnapshotDetailsDrawer),
                 header: { title: 'Snapshot' },
-                props: { snapshot, snapshotList: this.snapshotList, instance: this.instance },
+                props: {
+                    snapshot,
+                    snapshotList: this.snapshotList,
+                    instance: this.instance,
+                    canRestore: this.canRestore,
+                    canRestoreReason: this.canRestore ? '' : 'Only a team Owner can restore a snapshot to a protected instance'
+                },
                 on: {
                     updatedSnapshot: () => this.fetchData(true),
-                    restoredSnapshot: () => this.fetchData(true),
+                    restoredSnapshot: () => {
+                        this.fetchData(true)
+                        // reload the instance so pages such as Settings > Environment show the restored settings
+                        this.$emit('instance-updated')
+                    },
                     deletedSnapshot: () => {
                         this.closeRightDrawer()
                         this.fetchData(true)

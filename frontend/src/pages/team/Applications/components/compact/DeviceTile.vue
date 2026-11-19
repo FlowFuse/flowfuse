@@ -1,5 +1,5 @@
 <template>
-    <div class="device-tile" data-el="device-tile">
+    <div class="device-tile" data-el="device-tile" role="link" @click="navigateToDevice">
         <div class="status">
             <StatusBadge v-if="!minimalView" :status="localDevice.status" :instanceId="device.id" instanceType="device" />
             <InstanceMinimalStatusBadge v-else :status="localDevice.status" />
@@ -18,8 +18,8 @@
                 </span>
             </div>
         </div>
-        <div class="actions">
-            <FinishSetupButton v-if="neverConnected && hasPermission('device:edit')" :device="device" :minimal-view="minimalView" />
+        <div class="actions" @click.stop>
+            <FinishSetupButton v-if="!isLiteDevice && neverConnected && hasPermission('device:edit')" :device="device" :minimal-view="minimalView" />
             <ff-kebab-menu v-else-if="shouldDisplayKebabMenu">
                 <ff-kebab-item
                     v-if="hasPermission('device:edit')"
@@ -103,6 +103,9 @@ export default {
         ...mapState(useLiveStatusStore, { liveDeviceMetadata: 'deviceMetadata' }),
         neverConnected () {
             return !this.device.lastSeenAt
+        },
+        isLiteDevice () {
+            return this.device?.agentType === 'lite'
         }
     },
     watch: {
@@ -113,6 +116,9 @@ export default {
         liveDeviceMetadata: { handler: 'applyLiveStatus', deep: true }
     },
     methods: {
+        navigateToDevice () {
+            this.$router.push({ name: 'device', params: { id: this.device.id } })
+        },
         applyLiveStatus () {
             const meta = this.liveDeviceMetadata[this.localDevice?.id]
             if (!meta || this.localDevice?.status === meta.status) return

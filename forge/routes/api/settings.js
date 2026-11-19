@@ -157,6 +157,7 @@ module.exports = async function (app) {
             if (app.config.features.enabled('sso') && app.settings.get('platform:sso:google') && app.settings.get('platform:sso:google:clientId')) {
                 publicSettings['platform:sso:google'] = true
                 publicSettings['platform:sso:google:clientId'] = app.settings.get('platform:sso:google:clientId')
+                publicSettings['platform:sso:google:auto-create'] = app.settings.get('platform:sso:google:auto-create')
             }
             if (app.config.features.enabled('sso') && app.settings.get('platform:sso:direct')) {
                 const providers = await app.db.models.SAMLProvider.getAll({}, { active: true, type: 'saml' })

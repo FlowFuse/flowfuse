@@ -1,3 +1,6 @@
+const crypto = require('node:crypto')
+
+const { FLOW_BUILDING_CATALOG_USER_ID } = require('./utils/mcpSessionId')
 const { SendMqttMessageAwaitReply } = require('./utils/sendMqttMessageAwaitReply')
 
 const DEFAULT_TIMEOUT = 30000
@@ -56,6 +59,22 @@ class McpGatewayHandler {
 
         const response = await promise
         return response.mcp || response
+    }
+
+    /**
+     * Fetch the global flow-building tool catalog. Reuses the MCP request channel with the
+     * catalog sentinel as userId and a throwaway session id.
+     *
+     * @param {object} payload Request payload (mcp body, toolGroups)
+     * @param {number} [timeoutMs] Override default timeout
+     * @returns {Promise<object>} The MCP response body
+     */
+    async proxyCatalogRequest (payload, timeoutMs) {
+        return this.proxyRequest(
+            { userId: FLOW_BUILDING_CATALOG_USER_ID, mcpSessionId: crypto.randomUUID() },
+            payload,
+            timeoutMs
+        )
     }
 }
 

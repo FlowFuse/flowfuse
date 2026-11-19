@@ -5,6 +5,7 @@
         <rich-content
             v-if="shouldShowRichContent"
             :content="answer.content"
+            :diagrams="answer.diagrams"
             :message-uuid="messageUuid"
             :answer-uuid="answer._uuid"
             :should-stream="shouldStream"
@@ -72,9 +73,9 @@
             :questions="answer.questions"
             :disabled="interactionDisabled"
             :should-stream="shouldStream"
+            :initial-answer="questionAnswers[answer._uuid] || null"
             class="mb-3"
             @select="onQuestionsSubmit"
-            @edit="onQuestionsEdit"
             @streaming-complete="onComponentComplete('questions-list')"
         />
 
@@ -83,6 +84,10 @@
             :plan="answer.content"
             :message-uuid="messageUuid"
             :answer-uuid="answer._uuid"
+            :plan-id="answer.planId || ''"
+            :name="answer.name || ''"
+            :description="answer.description || ''"
+            :active="isActivePlan"
             :disabled="interactionDisabled"
             :should-stream="shouldStream"
             class="mb-3"
@@ -99,6 +104,7 @@
             :tool-class="answer.toolClass"
             :params="answer.params"
             :status="resolvedToolApprovalStatus"
+            :disabled="interactionDisabled"
             @approve="onToolApprove"
             @allow-always="onToolAllowAlways"
             @deny="onToolDeny"
@@ -128,6 +134,8 @@ import RichContent from './resources/RichContent.vue'
 import SuggestionsList from './resources/SuggestionsList.vue'
 import ToolApprovalCard from './resources/ToolApprovalCard.vue'
 
+import Product from '@/services/product.js'
+import { useContextStore } from '@/stores/context.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 
@@ -148,6 +156,12 @@ export default {
         IssuesList,
         ToolApprovalCard
     },
+    inject: {
+        expertSurface: {
+            from: 'expert-surface',
+            default: 'drawer'
+        }
+    },
     props: {
         answer: {
             type: Object,
@@ -156,6 +170,10 @@ export default {
         messageUuid: {
             type: String,
             required: true
+        },
+        instant: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['streaming-complete'],
@@ -171,21 +189,20 @@ export default {
     },
     computed: {
         ...mapState(useProductAssistantStore, ['supportedActions', 'toolApprovalStatuses']),
-        ...mapState(useProductExpertStore, ['agentMode', 'isWaitingForResponse', 'messages']),
+        ...mapState(useProductExpertStore, ['agentMode', 'isWaitingForResponse', 'messages', 'activePlanId', 'questionAnswers']),
         isLatestMessage () {
             const msgs = this.messages || []
             return msgs.length > 0 && msgs[msgs.length - 1]?._uuid === this.messageUuid
         },
         interactionDisabled () {
-            // Disable the question/plan cards while a response is in flight, and once the turn
+            // Disable the question/plan/approval cards while a response is in flight, and once the turn
             // has passed — i.e. any message has arrived after this one — so a stale card from
             // an earlier turn can no longer be answered.
             return this.isWaitingForResponse || !this.isLatestMessage
         },
         hasGuideHeader () {
             // chat answers contain generic titles, they don't need to be displayed.
-            // questions answers carry no guide title either.
-            // plan answers carry their heading inside their Markdown content, not a title.
+            // questions and plan answers render their own heading, not a guide title.
             return !!(this.answer.title && !this.isChatAnswer && !this.isQuestionsAnswer && !this.isPlanAnswer)
         },
         hasGuideSteps () {
@@ -234,6 +251,9 @@ export default {
         },
         isPlanAnswer () {
             return this.answer.kind === 'plan'
+        },
+        isActivePlan () {
+            return !!this.answer.planId && this.answer.planId === this.activePlanId
         },
         isEditorContext () {
             // In editor context, the route name includes 'editor'
@@ -317,20 +337,27 @@ export default {
             return this.streamedComponents.length >= this.componentStreamingOrder.indexOf(key)
         },
         shouldStream () {
-            return !this.answer._streamed
+            return !this.instant && !this.answer._streamed
+        },
+        isOnboardingSurface () {
+            return this.expertSurface === 'onboarding'
         }
     },
     watch: {
-        streamedComponents () {
+        streamedComponents: {
             // when all components finished streaming, we'll mark the answer as streamed
             // so we won't stream it again when re-rendering the same content
-            if (this.componentStreamingOrder.length === this.streamedComponents.length) {
-                this.updateAnswerStreamedState({
-                    messageUuid: this.messageUuid,
-                    answerUuid: this.answer._uuid
-                })
-                this.$emit('streaming-complete')
-            }
+            handler () {
+                if (this.componentStreamingOrder.length === this.streamedComponents.length) {
+                    this.updateAnswerStreamedState({
+                        messageUuid: this.messageUuid,
+                        answerUuid: this.answer._uuid
+                    })
+                    this.$emit('streaming-complete')
+                }
+            },
+            // components are pushed, not replaced
+            deep: true
         }
     },
     beforeUnmount () {
@@ -349,9 +376,12 @@ export default {
         if (this.isEditorContext) {
             this.$refs.messageBubble.$el.addEventListener('click', this.handleClick)
         }
+        if (this.isOnboardingSurface && this.hasPlan) {
+            Product.capture('ff-onboarding-plan-presented', {}, { team: useContextStore().team?.id })
+        }
     },
     methods: {
-        ...mapActions(useProductExpertStore, ['updateAnswerStreamedState', 'handleQuery', 'setPendingInput', 'setComposerCommand', 'setPlanMode', 'resolveToolApproval']),
+        ...mapActions(useProductExpertStore, ['updateAnswerStreamedState', 'handleQuery', 'setPendingInput', 'setComposerCommand', 'approvePlan', 'resolveToolApproval', 'saveQuestionAnswer']),
         buildStreamingOrder () {
             // order matters
             // this is where the decision of the streaming order of components is decided
@@ -369,22 +399,22 @@ export default {
             if (this.hasToolApproval) this.componentStreamingOrder.push('tool-approval-card')
         },
         async onComponentComplete (key) {
-            if (!this.shouldStream) await this.waitFor(200)
+            if (!this.shouldStream && !this.instant) await this.waitFor(200)
 
             this.streamedComponents.push(key)
         },
-        onQuestionsSubmit (text) {
-            this.handleQuery({ query: text })
-        },
-        onQuestionsEdit (text) {
-            this.setPendingInput(text)
+        onQuestionsSubmit ({ query, answer }) {
+            if (this.isOnboardingSurface && Object.keys(this.questionAnswers).length === 0) {
+                Product.capture('ff-onboarding-first-question-answered', {}, { team: useContextStore().team?.id })
+            }
+            this.saveQuestionAnswer(this.answer._uuid, answer)
+            this.handleQuery({ query })
         },
         onPlanApprove () {
-            // Approving exits read-only plan mode so the build runs as a normal acting turn,
-            // and clears any plan text loaded into the composer via "Edit manually".
-            this.setPlanMode(false)
-            this.setComposerCommand('reset')
-            this.handleQuery({ query: 'Approved. Proceed with the plan.' })
+            if (this.isOnboardingSurface) {
+                Product.capture('ff-onboarding-plan-approved', {}, { team: useContextStore().team?.id })
+            }
+            this.approvePlan()
         },
         onPlanEditManual () {
             // Load the plan markdown into the composer to edit and resubmit for a re-proposal.

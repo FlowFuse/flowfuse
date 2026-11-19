@@ -60,6 +60,7 @@ module.exports = {
         }
     },
 
+    // Skips the secret check when clientSecret is falsy; callers that require a secret must enforce it themselves
     getAuthClient: async function (app, clientID, clientSecret) {
         const client = await app.db.models.AuthClient.findOne({
             where: { clientID }

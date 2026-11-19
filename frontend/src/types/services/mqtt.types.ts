@@ -114,6 +114,7 @@ export interface ManagedMqttClient {
     reconnectPolicy: MqttReconnectPolicy
     reconnectAttempt: number
     reconnectGeneration: number
+    connectedAt: number | null
     reconnectTimer: ReturnType<typeof setTimeout> | null
     subscriptions: Map<string, ManagedMqttSubscription>
     observers: Set<ManagedMqttObserver>

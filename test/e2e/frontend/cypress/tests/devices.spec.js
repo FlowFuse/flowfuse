@@ -242,6 +242,11 @@ describe('FlowFuse - Team Devices', () => {
             cy.request('GET', '/api/v1/user/teams')
                 .then((response) => {
                     const team = response.body.teams.find((team) => team.name === 'BTeam')
+                    // A failed assign test would otherwise leave the device assigned for its retries and later specs
+                    cy.request('GET', `/api/v1/teams/${team.id}/devices?limit=100`).then((response) => {
+                        const device = response.body.devices.find((device) => device.name === 'team2-unassigned-device')
+                        cy.request('PUT', `/api/v1/devices/${device.id}`, { instance: null, application: null })
+                    })
                     cy.visit(`/team/${team.slug}/devices`)
                     cy.wait('@getDevices')
                 })
@@ -524,6 +529,8 @@ describe('FlowFuse - Team Devices', () => {
 
             // Click first Application
             cy.get('[data-el="listbox-options"] > .ff-option:first').click()
+            // The closing application options stay in the DOM during their leave transition
+            cy.get('[data-el="listbox-options"]').should('not.exist')
 
             cy.get('[data-el="assign-device-to-instance-dialog"]')
                 .within(() => {

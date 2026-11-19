@@ -1,0 +1,162 @@
+import { mount } from '@vue/test-utils'
+import { beforeEach, describe, expect, test, vi } from 'vitest'
+
+const mocks = vi.hoisted(() => {
+    return {
+        expertStore: { setPendingInput: vi.fn(), isWaitingForResponse: false, feedbackMessageUuids: new Set() }
+    }
+})
+
+vi.mock('@/stores/product-expert.js', () => ({
+    useProductExpertStore: () => mocks.expertStore
+}))
+// The real message components pull in the full expert tree; the fold only
+// needs placeholders it can expand into.
+vi.mock('@/components/expert/components/messages/AiMessage.vue', () => ({
+    default: { name: 'AiMessage', props: ['answer', 'feedback'], template: '<div data-stub="ai-message" />' }
+}))
+vi.mock('@/components/expert/components/messages/components/TurnFeedback.vue', () => ({
+    default: { name: 'TurnFeedback', props: ['messageUuid', 'vote', 'shared', 'feedbackSent', 'feedbackDismissed'], template: '<div data-stub="turn-feedback" />' }
+}))
+vi.mock('@/components/expert/components/messages/HumanMessage.vue', () => ({
+    default: { name: 'HumanMessage', template: '<div data-stub="human-message" />' }
+}))
+
+// imported after mocks so vi.mock hoisting resolves correctly
+import CollapsedQuestionTurn from '../../../../../frontend/src/components/expert/components/messages/CollapsedQuestionTurn.vue'
+
+function answeredTurn () {
+    return {
+        kind: 'folded-turn',
+        questionsMessage: { _uuid: 'a1', _type: 'ai', answer: [] },
+        replyMessage: { _uuid: 'h1', _type: 'human', content: 'Q1? Sensors' },
+        entries: [
+            { question: 'Q1?', answer: 'Sensors' },
+            { question: 'Q2?', answer: 'A dashboard' }
+        ]
+    }
+}
+
+function mountTurn (turn = answeredTurn()) {
+    return mount(CollapsedQuestionTurn, {
+        props: { turn }
+    })
+}
+
+describe('CollapsedQuestionTurn', () => {
+    beforeEach(() => {
+        mocks.expertStore.setPendingInput.mockClear()
+        mocks.expertStore.isWaitingForResponse = false
+        mocks.expertStore.feedbackMessageUuids = new Set()
+    })
+
+    test('shows the rating row for the question turn when it closes a rated turn', () => {
+        mocks.expertStore.feedbackMessageUuids = new Set(['a1'])
+        const turn = answeredTurn()
+        turn.questionsMessage._vote = 'up'
+        turn.questionsMessage._feedbackSent = true
+        turn.questionsMessage._feedbackDismissed = true
+        const feedback = mountTurn(turn).findComponent({ name: 'TurnFeedback' })
+        expect(feedback.exists()).toBe(true)
+        expect(feedback.props('messageUuid')).toBe('a1')
+        expect(feedback.props('vote')).toBe('up')
+        expect(feedback.props('feedbackSent')).toBe(true)
+        expect(feedback.props('feedbackDismissed')).toBe(true)
+    })
+
+    test('draws the rating row once, outside the folded message', () => {
+        mocks.expertStore.feedbackMessageUuids = new Set(['a1'])
+        const turn = answeredTurn()
+        turn.questionsMessage.answer = [{ kind: 'questions', content: 'A few questions first.', questions: [] }]
+        const wrapper = mountTurn(turn)
+
+        expect(wrapper.findComponent({ name: 'AiMessage' }).props('feedback')).toBeUndefined()
+        expect(wrapper.findAll('[data-stub="turn-feedback"]')).toHaveLength(1)
+    })
+
+    test('hides the rating row when the question turn cannot be rated', () => {
+        expect(mountTurn().find('[data-stub="turn-feedback"]').exists()).toBe(false)
+    })
+
+    test('renders one quiet line per question with the pick as a chip', () => {
+        const wrapper = mountTurn()
+        const rows = wrapper.findAll('[data-el="folded-question"]')
+        expect(rows.length).toBe(2)
+        expect(rows[0].text()).toContain('Q1?')
+        expect(rows[0].find('[data-action="edit-answer"]').text()).toContain('Sensors')
+        expect(rows[1].find('[data-action="edit-answer"]').text()).toContain('A dashboard')
+    })
+
+    test('clicking a chip loads the answer into the composer for correction', async () => {
+        const wrapper = mountTurn()
+        await wrapper.findAll('[data-action="edit-answer"]')[0].trigger('click')
+        expect(mocks.expertStore.setPendingInput).toHaveBeenCalledWith('Q1? Sensors')
+    })
+
+    test('disables the answer chips while a response is in flight', async () => {
+        mocks.expertStore.isWaitingForResponse = true
+        const wrapper = mountTurn()
+        const chip = wrapper.findAll('[data-action="edit-answer"]')[0]
+        expect(chip.attributes('disabled')).toBeDefined()
+
+        await chip.trigger('click')
+        expect(mocks.expertStore.setPendingInput).not.toHaveBeenCalled()
+    })
+
+    test('an unanswered turn shows a skipped marker and no chips', () => {
+        const turn = answeredTurn()
+        turn.replyMessage = null
+        turn.entries = [{ question: 'Q1?', answer: null }]
+        const wrapper = mountTurn(turn)
+        expect(wrapper.findAll('[data-action="edit-answer"]').length).toBe(0)
+        expect(wrapper.find('[data-el="folded-question"]').text()).toContain('Skipped')
+    })
+
+    test('a multi-select answer renders one chip per pick', async () => {
+        const turn = answeredTurn()
+        turn.entries = [{ question: 'Q1?', answer: 'Allen-Bradley PLC, over Ethernet' }]
+        const wrapper = mountTurn(turn)
+        const chips = wrapper.findAll('[data-action="edit-answer"]')
+        expect(chips.length).toBe(2)
+        expect(chips[0].text()).toContain('Allen-Bradley PLC')
+        expect(chips[1].text()).toContain('over Ethernet')
+
+        // editing any pick loads the whole answer line for correction
+        await chips[1].trigger('click')
+        expect(mocks.expertStore.setPendingInput).toHaveBeenCalledWith('Q1? Allen-Bradley PLC, over Ethernet')
+    })
+
+    test('a free-form reply shows once for the turn, not repeated per question', async () => {
+        const turn = answeredTurn()
+        turn.replyMessage = { _uuid: 'h1', _type: 'human', content: 'typed by hand' }
+        turn.entries = [{ question: 'Q1?', answer: null }, { question: 'Q2?', answer: null }]
+        const wrapper = mountTurn(turn)
+        const chips = wrapper.findAll('[data-action="edit-answer"]')
+        expect(chips.length).toBe(1)
+        expect(chips[0].text()).toContain('typed by hand')
+
+        await chips[0].trigger('click')
+        expect(mocks.expertStore.setPendingInput).toHaveBeenCalledWith('typed by hand')
+    })
+
+    test('keeps the turn prose visible while folded, questions stripped', () => {
+        const turn = answeredTurn()
+        turn.questionsMessage.answer = [{ kind: 'questions', content: 'Hello!', questions: [{ question: 'Q1?', options: [] }] }]
+        const wrapper = mountTurn(turn)
+        const prose = wrapper.findComponent({ name: 'AiMessage' })
+        expect(prose.exists()).toBe(true)
+        expect(prose.props('answer')).toEqual([{ kind: 'questions', content: 'Hello!', questions: undefined }])
+    })
+
+    test('expands to the original messages and folds back', async () => {
+        const wrapper = mountTurn()
+        expect(wrapper.find('[data-stub="ai-message"]').exists()).toBe(false)
+
+        await wrapper.find('[data-action="toggle-turn"]').trigger('click')
+        expect(wrapper.find('[data-stub="ai-message"]').exists()).toBe(true)
+        expect(wrapper.find('[data-stub="human-message"]').exists()).toBe(true)
+
+        await wrapper.find('[data-action="toggle-turn"]').trigger('click')
+        expect(wrapper.find('[data-stub="ai-message"]').exists()).toBe(false)
+    })
+})

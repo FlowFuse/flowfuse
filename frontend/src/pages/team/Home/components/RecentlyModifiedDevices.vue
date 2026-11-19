@@ -1,6 +1,6 @@
 <template>
-    <div class="recently-modified">
-        <p class="text-gray-400 text-sm">Recently Modified</p>
+    <div class="recently-modified" :class="{ 'recently-modified--compact': isCompact }">
+        <p v-if="!isCompact" class="text-gray-400 text-sm" data-el="recently-modified-label">Recently Modified</p>
         <ul v-if="devices.length" class="flex flex-col gap-1">
             <li v-for="device in devices" :key="device.id" class="device-wrapper flex">
                 <DeviceTile
@@ -23,8 +23,10 @@
         <div v-else class="no-devices flex flex-col flex-1 justify-center text-gray-500 italic">
             <p class="text-center self-center">
                 No remote Node-RED Instances found.
-                <span class="text-indigo-500 cursor-pointer" @click.stop.prevent="openCreateDialog">Add a Remote Instance</span>
-                to get started.
+                <template v-if="!teamDeviceLimitReached">
+                    <span class="text-indigo-500 cursor-pointer" @click.stop.prevent="openCreateDialog">Add a Remote Instance</span>
+                    to get started.
+                </template>
             </p>
         </div>
 
@@ -42,7 +44,7 @@
             <template #description>
                 <p class="my-4">
                     Further info on Remote Instances can be found
-                    <a href="https://flowfuse.com/docs/user/devices/" target="_blank">here</a>.
+                    <a href="https://flowfuse.com/docs/device-agent/" target="_blank">here</a>.
                 </p>
             </template>
         </TeamDeviceCreateDialog>
@@ -56,6 +58,7 @@ import { mapState } from 'pinia'
 import teamAPI from '../../../../api/team.js'
 
 import TeamLink from '../../../../components/router-links/TeamLink.vue'
+import { getTeamProperty } from '../../../../composables/TeamProperties.js'
 
 import DeviceActions from '../../../../mixins/DeviceActions.js'
 import DeviceTile from '../../Applications/components/compact/DeviceTile.vue'
@@ -78,6 +81,11 @@ export default {
         totalDevices: {
             type: Number,
             required: true
+        },
+        variant: {
+            type: String,
+            default: 'boxed',
+            validator: value => ['boxed', 'compact'].includes(value)
         }
     },
     data () {
@@ -89,8 +97,25 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
+        isCompact () {
+            return this.variant === 'compact'
+        },
         instancesLeft () {
             return this.totalDevices - this.devices.length
+        },
+        teamDeviceLimitReached () {
+            const teamTypeDeviceLimit = getTeamProperty(this.team, 'devices.limit')
+            if (teamTypeDeviceLimit > -1 && this.team.deviceCount >= teamTypeDeviceLimit) {
+                // Device specific limit has been reached
+                return true
+            }
+            return false
+        }
+    },
+    watch: {
+        totalDevices () {
+            this.getTeamDevices()
+                .catch(e => e)
         }
     },
     mounted () {
@@ -145,15 +170,17 @@ export default {
             justify-content: space-between;
             align-items: center;
             gap: 10px;
-            will-change: border-color;
+            will-change: border-color, background-color;
             transition: ease-in-out .3s;
+            cursor: pointer;
 
             &.has-more {
                 padding: 10px;
             }
 
             &:hover {
-                border-color: var(--ff-color-border);
+                border-color: var(--ff-color-border-strong);
+                background-color: var(--ff-color-accent-surface);
             }
 
             .details {
@@ -163,12 +190,6 @@ export default {
                     &:last-of-type {
                         font-size: $ff-funit-sm;
                         color: var(--ff-color-text-subtle);
-                    }
-                }
-
-                .name {
-                    &:hover {
-                        color: var(--ff-color-accent-hover);
                     }
                 }
             }
@@ -183,6 +204,19 @@ export default {
 
     .no-devices {
         min-height: 130px;
+    }
+}
+
+.recently-modified--compact {
+    border: 1px solid var(--ff-color-border);
+    border-radius: 0.625rem;
+    background: var(--ff-color-bg-surface);
+    padding: 4px;
+
+    .device-wrapper .device-tile {
+        border: none;
+        padding: 2px 4px;
+        min-height: 50px;
     }
 }
 </style>

@@ -1,7 +1,7 @@
 # FlowFuse Metrics
 
 The FlowFuse platform will send occasional pings back to a data collector
-running at https://ping.flowforge.com
+running at https://ping.flowfuse.com
 
 The payload of the ping is a collection of well-defined statistics about the
 platform instance. That allows us to gather information on how the platform

@@ -165,7 +165,7 @@ automatically be assigned to an Application or Instance.
 
 ### Applications
 
-This step will permit you to push Snapshots to your Remote Instance via [DevOps Pipelines](/docs/user/devops-pipelines.md), or via a [Target Snapshot](/docs/user/snapshots/#application-owned-devices) from the Application.
+This step will permit you to push Snapshots to your Remote Instance via [DevOps Pipelines](/docs/user/devops-pipelines/), or via a [Target Snapshot](/docs/user/snapshots/#application-owned-devices) from the Application.
 
 #### Assign to Application
 
@@ -207,7 +207,7 @@ NOTE: If you wish to keep the flows currently running on the Remote Instance, it
 
 This method establishes a deployment relationship where a Hosted Instance becomes the source for snapshot deployments to your Remote Instance(s).
 
-**Important:** This is a legacy feature; [assigning to Applications](./register.md#applications) is the recommended approach as it provides better fleet management and DevOps Pipeline capabilities. For guidance, see [when to use each approach](/docs/user/concepts.md#when-to-use-instance-assignment-vs-devops-pipelines).
+**Important:** This is a legacy feature; [assigning to Applications](./register.md#applications) is the recommended approach as it provides better fleet management and DevOps Pipeline capabilities. For guidance, see [when to use each approach](/docs/user/concepts/#when-to-use-instance-assignment-vs-devops-pipelines).
 
 #### Assign to Hosted Instance
 
@@ -215,7 +215,7 @@ This method establishes a deployment relationship where a Hosted Instance become
 2. Open the dropdown menu to the right of the Remote Instance you want to assign and select the **Add to Instance** option.
 3. Select the Hosted Instance in the dialog and click **Add** to continue.
 
-**Note:** There are constraints on which instances can be assigned to each other. For detailed information, refer to [Assignment Rules and Constraints](/docs/user/concepts.md#assignment-rules).
+**Note:** There are constraints on which instances can be assigned to each other. For detailed information, refer to [Assignment Rules and Constraints](/docs/user/concepts/#assignment-rules).
 
 ### Remove from Hosted Instance
 

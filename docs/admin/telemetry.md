@@ -105,7 +105,7 @@ For the core tracking, the platform will send the telemetry data:
  - 30 seconds after the platform starts up (but only if the platform has already been initialised)
  - Once every 24 hours at a time randomly picked when the platform starts
 
-The data is sent via an HTTP Post to `https://ping.flowforge.com`.
+The data is sent via an HTTP Post to `https://ping.flowfuse.com`.
 
 ## Frontend Telemetry
 

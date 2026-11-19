@@ -9,6 +9,8 @@
  * @memberof forge.routes.api
  */
 
+const { KEY_PROTECTED } = require('../../db/models/ProjectSettings')
+
 module.exports = async function (app) {
     app.post('/start', {
         preHandler: app.needsPermission('project:change-status'),
@@ -225,8 +227,10 @@ module.exports = async function (app) {
             body: {
                 type: 'object',
                 properties: {
-                    snapshot: { type: 'string' }
-                }
+                    snapshot: { type: 'string' },
+                    mergeEnvVars: { type: 'boolean', default: false, description: 'If true, keep the instance\'s existing env vars and add only those missing from the snapshot. If false (default), replace them with the snapshot\'s env vars.' }
+                },
+                required: ['snapshot']
             },
             response: {
                 200: {
@@ -241,6 +245,10 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        const protectedInstance = await request.project.getSetting(KEY_PROTECTED)
+        if (protectedInstance?.enabled && !request.session.User?.admin && !app.hasPermission(request.teamMembership, 'project:edit', { applicationId: request.applicationId })) {
+            return reply.code(403).send({ code: 'protected_instance', error: 'Only an Owner can roll back a protected instance' })
+        }
         let restartProject = false
         try {
             // get (and check) snapshot is valid / owned by project before any actions
@@ -257,8 +265,8 @@ module.exports = async function (app) {
                 restartProject = true
             }
             await app.db.controllers.Project.setInflightState(request.project, 'rollback')
-            await app.db.controllers.Project.importProjectSnapshot(request.project, snapshot)
-            await app.auditLog.Project.project.snapshot.rolledBack(request.session.User, null, request.project, snapshot)
+            await app.db.controllers.Project.importProjectSnapshot(request.project, snapshot, { mergeEnvVars: request.body.mergeEnvVars })
+            await app.auditLog.Project.project.snapshot.rolledBack(request.session.User, null, request.project, snapshot, { mergeEnvVars: request.body.mergeEnvVars })
             if (restartProject) {
                 await app.db.controllers.Project.setInflightState(request.project, 'restarting')
                 await app.containers.restartFlows(request.project)

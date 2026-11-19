@@ -1,3 +1,5 @@
+const SemVer = require('semver')
+
 const { hash } = require('../../db/utils')
 // eslint-disable-next-line no-unused-vars
 const { DeviceTunnelManager } = require('../../ee/lib/deviceEditor/DeviceTunnelManager')
@@ -28,11 +30,7 @@ module.exports = async function (app) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return
                     }
-                    if (request.device.ApplicationId) {
-                        request.applicationId = app.db.models.Application.encodeHashid(request.device.ApplicationId)
-                    } else if (request.device.Project?.Application) {
-                        request.applicationId = request.device.Project.Application.hashid
-                    }
+                    request.applicationId = request.device.getApplicationHashid()
                     if (request.session.User) {
                         request.teamMembership = await request.session.User.getTeamMembership(request.device.Team.id)
                     }
@@ -110,7 +108,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const result = app.db.views.Device.device(request.device)
+        const result = app.db.views.Device.device(request.device, { includeEditorUrl: app.canAccessDeviceEditor(request, request.applicationId) })
         const securitySettings = await request.device.getSetting('security')
         result.localLoginEnabled = securitySettings?.localAuth?.enabled || false
 
@@ -248,7 +246,8 @@ module.exports = async function (app) {
                     application: { type: 'string' },
                     setup: { type: 'boolean', enum: [true] }, // enum only permits a value of true for setup
                     agentHost: { type: 'string' }, // future, for audit log
-                    registrationSession: { type: 'string' } // optional, for async device registration flow
+                    registrationSession: { type: 'string' }, // optional, for async device registration flow,
+                    agentType: { type: 'string', enum: ['lite', 'full'] }
                 }
             },
             response: {
@@ -360,7 +359,8 @@ module.exports = async function (app) {
             const device = await app.db.models.Device.create({
                 name: request.body.name,
                 type: request.body.type,
-                credentialSecret: ''
+                credentialSecret: '',
+                agentType: request.body.agentType || null
             }, { transaction })
             await transaction.commit()
 
@@ -444,6 +444,14 @@ module.exports = async function (app) {
         },
         schema: {
             summary: 'Start an asynchronous registration for a device',
+            body: {
+                // The body is optional - if provided, it may contain the agent type
+                type: ['object', 'null'],
+                properties: {
+                    // Accept both types; anything other than lite gets the default (full) registration URL
+                    type: { type: 'string', enum: ['lite', 'full'] }
+                }
+            },
             response: {
                 200: {
                     type: 'object',
@@ -460,7 +468,10 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         // Create a new AsyncLoginSession with a unique sessionToken and doneToken
         const session = await app.db.models.AsyncLoginSession.createToken()
-        const registerUrl = `/register/remote-instance/${session.sessionToken}`
+        let registerUrl = `/register/remote-instance/${session.sessionToken}`
+        if (request.body?.type === 'lite') {
+            registerUrl = registerUrl + '?type=lite'
+        }
         const doneUrl = `/api/v1/devices/_/register/done/${session.doneToken}`
         reply.send({ registerUrl, doneUrl })
     })
@@ -590,7 +601,8 @@ module.exports = async function (app) {
                     name: { type: 'string' },
                     type: { type: 'string' },
                     instance: { type: 'string', nullable: true },
-                    application: { type: 'string', nullable: true }
+                    application: { type: 'string', nullable: true },
+                    targetSnapshot: { type: 'string' }
                 }
             },
             response: {
@@ -720,7 +732,7 @@ module.exports = async function (app) {
             }
         } else {
             // ### Modify device properties ###
-            if (request.body.targetSnapshot !== undefined && request.body.targetSnapshot !== device.targetSnapshotId) {
+            if (request.body.targetSnapshot !== undefined && request.body.targetSnapshot !== device.targetSnapshot?.hashid) {
                 // get snapshot from db
                 const targetSnapshot = await app.db.models.ProjectSnapshot.byId(request.body.targetSnapshot, { includeFlows: false, includeSettings: false })
                 if (!targetSnapshot) {
@@ -730,6 +742,31 @@ module.exports = async function (app) {
                 const snapshotTeamId = await targetSnapshot.getTeamId()
                 if (snapshotTeamId !== device.Team.id) {
                     reply.code(400).send({ code: 'invalid_snapshot', error: 'invalid snapshot' })
+                    return
+                }
+                if (device.isApplicationOwned) {
+                    // Scoped to application (not just team) because granular RBAC can
+                    // authorize a caller for this application without authorizing them
+                    // for another application in the same team.
+                    if (await targetSnapshot.getApplicationId() !== device.ApplicationId) {
+                        reply.code(400).send({ code: 'invalid_snapshot', error: 'Snapshot does not belong to the same application as the device' })
+                        return
+                    }
+                } else if (!targetSnapshot.ProjectId || targetSnapshot.ProjectId !== device.ProjectId) {
+                    // The update sent to a device that is not application owned only
+                    // carries a snapshot of its own instance, so any other target
+                    // would stop its flows instead of deploying.
+                    reply.code(400).send({ code: 'invalid_snapshot', error: 'A device that is not assigned to an application can only target a snapshot of its own instance' })
+                    return
+                }
+                if (device.agentType === 'lite') {
+                    reply.code(400).send({ code: 'invalid_request', error: 'The Lite Remote Agent does not support deploying snapshots' })
+                    return
+                }
+                // Older agents ignore the forced update sent to a device in developer
+                // mode, so the target would be stored but never deployed.
+                if (device.mode === 'developer' && !(device.agentVersion && SemVer.gte(device.agentVersion, '3.8.0'))) {
+                    reply.code(400).send({ code: 'invalid_request', error: 'Deploying a snapshot to a device in developer mode requires Device Agent v3.8.0 or later' })
                     return
                 }
                 // store original value for later audit log
@@ -743,7 +780,7 @@ module.exports = async function (app) {
                 })
                 await app.auditLog.Device.device.snapshot.deployed(request.session.User, null, device, targetSnapshot)
                 await app.auditLog.Device.device.snapshot.targetSet(request.session.User, null, device, targetSnapshot)
-                updates.push('targetSnapshotId', originalSnapshotId, device.targetSnapshotId)
+                updates.push('targetSnapshotId', originalSnapshotId, targetSnapshot.id)
                 sendDeviceUpdate = true
                 // If in developer mode, set the force flag to true otherwise the agent will ignore the update
                 if (device.mode === 'developer') {
@@ -787,7 +824,7 @@ module.exports = async function (app) {
             await app.auditLog.Team.team.device.updated(request.session.User, null, device.Team, device, updates)
         }
 
-        reply.send(app.db.views.Device.device(updatedDevice))
+        reply.send(app.db.views.Device.device(updatedDevice, { includeEditorUrl: app.canAccessDeviceEditor(request, updatedDevice.getApplicationHashid()) }))
     })
 
     app.post('/:deviceId/generate_credentials', {

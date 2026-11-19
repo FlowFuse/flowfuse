@@ -1,5 +1,7 @@
 ---
 navTitle: Groups
+meta:
+   description: Create groups of remote instances in an application, manage their membership, and set group-level environment variables for pipeline deployments.
 ---
 
 # Groups
@@ -26,8 +28,8 @@ Groups help you organize and manage multiple devices that run the same [snapshot
 
 ### Requirements
 
-- FlowFuse 1.15+ (Enterprise Tier)
-- FlowFuse Cloud (Enterprise Tier)
+- FlowFuse Cloud: the Edge and Fleet products
+- Self-hosted: FlowFuse 3.0+ with an Edge or Fleet license, or FlowFuse 1.15+ with an older Enterprise license
 - FlowFuse 2.10+ for Group Environment Variables
 
 ## Creating a Group

@@ -8,6 +8,7 @@
             <TeamSuspendedBanner v-if="team.suspended" :team="team" />
             <SubscriptionExpiredBanner v-else :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
+            <TeamBanner :team="team" />
         </Teleport>
         <router-view :key="team.id" />
     </template>
@@ -20,8 +21,10 @@
 import { mapActions, mapState } from 'pinia'
 
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
+import TeamBanner from '../../components/banners/TeamBanner.vue'
 import TeamSuspendedBanner from '../../components/banners/TeamSuspended.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
+import { useAiConnectorModal } from '../../composables/AiConnectorModal.js'
 import { Roles } from '../../utils/roles.js'
 
 import TeamDashboards from './Dashboards/index.vue'
@@ -32,12 +35,14 @@ import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
+import { useUxStore } from '@/stores/ux.js'
 
 export default {
     name: 'TeamPage',
     components: {
         TeamDashboards,
         SubscriptionExpiredBanner,
+        TeamBanner,
         TeamSuspendedBanner,
         TeamTrialBanner
     },
@@ -54,12 +59,13 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team', 'teamMembership']),
-        ...mapState(useAccountSettingsStore, ['requiresBilling']),
+        ...mapState(useAccountSettingsStore, ['requiresBilling', 'featuresCheck']),
         ...mapState(useAccountAuthStore, ['user', 'isAdminUser']),
-        ...mapState(useUxToursStore, ['shouldPresentTour']),
+        ...mapState(useUxToursStore, ['shouldPresentTour', 'activeTour', 'shouldShowEducationModal', 'shouldAutoShowAiConnectorModal']),
         ...mapState(useProductExpertStore, ['shouldWakeUpAssistant']),
+        ...mapState(useUxStore, ['isOnboarding']),
         isVisitingAdmin: function () {
-            return (this.teamMembership.role === Roles.Admin)
+            return (this.teamMembership?.role === Roles.Admin)
         },
         isTrialEnded: function () {
             if (this.team.billing?.trialEndsAt) {
@@ -70,6 +76,18 @@ export default {
         },
         canAccessTeam: function () {
             return this.isAdminUser || this.teamMembership?.role >= Roles.Viewer
+        },
+        canAutoShowAiConnector: function () {
+            return !!this.team &&
+                !this.shouldPresentTour &&
+                !this.activeTour &&
+                !this.shouldShowEducationModal &&
+                // Every new user starts in the onboarding stage, but it only means something on a team
+                // that gets AI onboarding, where the dialog waits until onboarding is complete
+                !(this.featuresCheck.isAiOnboardingFeatureEnabled && this.isOnboarding) &&
+                this.featuresCheck.isAiFeatureEnabled &&
+                this.featuresCheck.isMcpThirdPartyFeatureEnabled &&
+                this.shouldAutoShowAiConnectorModal
         }
     },
     watch: {
@@ -90,6 +108,11 @@ export default {
             if (val) {
                 this.wakeUpAssistant({ shouldHydrateMessages: true })
             }
+        },
+        canAutoShowAiConnector (ready) {
+            if (ready) {
+                this.autoShowAiConnector()
+            }
         }
     },
     mounted () {
@@ -101,13 +124,17 @@ export default {
         } else if (this.shouldWakeUpAssistant) {
             this.$nextTick(() => this.wakeUpAssistant({ shouldHydrateMessages: true }))
         }
+
+        if (this.canAutoShowAiConnector) {
+            this.autoShowAiConnector()
+        }
     },
     async beforeMount () {
         this.checkRoute(this.$route)
     },
     methods: {
         ...mapActions(useProductExpertStore, ['wakeUpAssistant']),
-        ...mapActions(useUxToursStore, ['setWelcomeTour', 'openModal']),
+        ...mapActions(useUxToursStore, ['setWelcomeTour', 'withdrawTour', 'openModal']),
         checkRoute: async function (route) {
             const allowedRoutes = []
 
@@ -133,7 +160,20 @@ export default {
                 })
             }
         },
+        autoShowAiConnector () {
+            // Deferred so PlatformDialog in the layout has bound the dialog service
+            this.$nextTick(() => useAiConnectorModal().open())
+        },
         dispatchTour () {
+            // The welcome tour and the getting started modal walk the classic dashboard, which the
+            // Expert home doesn't have, and AI onboarding covers the same ground by doing
+            if (this.featuresCheck.isAiOnboardingFeatureEnabled || this.featuresCheck.isExpertAssistantFeatureEnabled) {
+                this.withdrawTour()
+                if (this.shouldWakeUpAssistant) {
+                    this.wakeUpAssistant({ shouldHydrateMessages: true })
+                }
+                return
+            }
             return this.setWelcomeTour(() => {
                 if (this.shouldWakeUpAssistant) {
                     this.wakeUpAssistant({ shouldHydrateMessages: true })

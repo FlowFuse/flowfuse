@@ -1,11 +1,13 @@
 <template>
     <ff-dialog
         ref="dialog"
-        confirm-label="Delete"
+
+        :confirm-label="loading ? 'Deleting...' : 'Delete'"
         data-el="delete-instance-dialog"
         :header="'Delete Instance: \'' + localInstance?.name + '\''"
         kind="danger"
-        :disable-primary="!formValid"
+        :closeOnConfirm="false"
+        :disable-primary="!formValid || loading"
         @confirm="deleteInstance()"
         @cancel="$emit('cancel')"
     >
@@ -60,7 +62,8 @@ export default {
             input: {
                 instanceName: ''
             },
-            localInstance: null
+            localInstance: null,
+            loading: false
         }
     },
     computed: {
@@ -73,15 +76,26 @@ export default {
     },
     methods: {
         deleteInstance () {
-            if (this.formValid) {
-                InstanceApi.deleteInstance(this.localInstance)
-                    .then(() => this.$emit('confirm', this.localInstance))
-                    .then(() => alerts.emit('Instance successfully deleted.', 'confirmation'))
-                    .catch(err => {
-                        console.warn(err)
-                        alerts.emit('Instance failed to delete.', 'warning')
-                    })
+            if (!this.formValid || this.loading) {
+                return
             }
+            // Keep the dialog open and the button disabled until the backend
+            // confirms the deletion. Closing early lets the instance linger in
+            // the list long enough for a second delete to be triggered
+            this.loading = true
+            InstanceApi.deleteInstance(this.localInstance)
+                .then(() => {
+                    this.$refs.dialog.close()
+                    this.$emit('confirm', this.localInstance)
+                    alerts.emit('Instance successfully deleted.', 'confirmation')
+                })
+                .catch(err => {
+                    console.warn(err)
+                    alerts.emit('Instance failed to delete.', 'warning')
+                })
+                .finally(() => {
+                    this.loading = false
+                })
         },
         updateLocalInstance () {
             this.localInstance = this.instance

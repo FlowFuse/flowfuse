@@ -682,7 +682,11 @@ describe('FlowFuse - Instance Snapshots', () => {
     it('Can rollback a snapshot', () => {
         // Premise: Ensure the rollback endpoint is available and callable
         // (NOTE: this is not testing the full mechanics of the rollback feature, only to prevent repeat regression. See #2032)
-        cy.intercept('POST', '/api/*/projects/*/actions/rollback').as('rollbackSnapshot')
+        // The response is stubbed so the instance keeps its settings for later specs
+        cy.intercept('POST', '/api/*/projects/*/actions/rollback', { statusCode: 200, body: {} }).as('rollbackSnapshot')
+        cy.intercept('GET', '/api/*/projects/*/snapshots/*/rollback-preview', (req) => {
+            req.on('response', (res) => res.setDelay(500))
+        }).as('rollbackPreview')
 
         cy.get('[data-el="snapshots"] tbody').find('tr').first().click()
 
@@ -693,6 +697,14 @@ describe('FlowFuse - Instance Snapshots', () => {
 
         cy.get('[data-el="platform-dialog"]').should('be.visible')
         cy.get('[data-el="platform-dialog"] .ff-dialog-header').contains('Restore Snapshot')
+        cy.get('[data-el="platform-dialog"] [data-form="env-vars-mode"]').should('exist')
+
+        cy.intercept('GET', '/api/*/projects/*').as('reloadInstance')
+
+        // Confirm stays disabled until the env var preview has loaded
+        cy.contains('[data-el="platform-dialog"] .ff-btn--danger', 'Confirm').should('be.disabled')
+        cy.wait('@rollbackPreview')
+        cy.contains('[data-el="platform-dialog"] .ff-btn--danger', 'Confirm').should('not.be.disabled')
 
         // find .ff-btn--danger with text "Confirm" and click it
         cy.get('[data-el="platform-dialog"] .ff-btn--danger').contains('Confirm').click()
@@ -702,7 +714,42 @@ describe('FlowFuse - Instance Snapshots', () => {
             const body = interception.request.body
             expect(body).to.have.property('snapshot')
             expect(body.snapshot).to.be.a('string')
+            expect(body.mergeEnvVars).to.equal(true)
         })
+
+        // the instance is reloaded so its settings, such as env vars, reflect the restore
+        cy.wait('@reloadInstance')
+
+        // Opening Restore again fetches a fresh preview
+        cy.get('[data-el="right-drawer"]').within(() => {
+            cy.get('[data-action="restore"]').click()
+        })
+        cy.get('[data-el="platform-dialog"]').should('be.visible')
+        cy.contains('[data-el="platform-dialog"] .ff-btn--danger', 'Confirm').should('be.disabled')
+        cy.wait('@rollbackPreview')
+        cy.contains('[data-el="platform-dialog"] .ff-btn--danger', 'Confirm').should('not.be.disabled')
+    })
+
+    it('Does not enable Confirm when the preview of a cancelled restore loads', () => {
+        // The first preview loads quickly, the second one slowly
+        let previewRequests = 0
+        cy.intercept('GET', '/api/*/projects/*/snapshots/*/rollback-preview', (req) => {
+            previewRequests += 1
+            const delay = previewRequests === 1 ? 500 : 5000
+            req.on('response', (res) => res.setDelay(delay))
+        }).as('rollbackPreview')
+
+        cy.get('[data-el="snapshots"] tbody').find('tr').first().click()
+        cy.get('[data-el="right-drawer"] [data-action="restore"]').click()
+        cy.get('[data-el="platform-dialog"] [data-el="env-vars-preview-loading"]').should('be.visible')
+        cy.get('[data-el="platform-dialog"] [data-action="dialog-cancel"]').click()
+
+        cy.get('[data-el="right-drawer"] [data-action="restore"]').click()
+        cy.wait('@rollbackPreview')
+
+        // The first preview has loaded, the second is still loading
+        cy.get('[data-el="platform-dialog"] [data-el="env-vars-preview-loading"]').should('be.visible')
+        cy.contains('[data-el="platform-dialog"] .ff-btn--danger', 'Confirm').should('be.disabled')
     })
 })
 

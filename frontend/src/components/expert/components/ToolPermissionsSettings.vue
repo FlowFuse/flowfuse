@@ -116,8 +116,8 @@ import ToggleButtonGroup from '../../elements/ToggleButtonGroup.vue'
 import { useContextStore } from '@/stores/context.js'
 import { TOOL_GROUPS, classOf, groupOf, useProductAssistantStore } from '@/stores/product-assistant.js'
 
-const CLASS_ORDER = ['read', 'write', 'delete']
-const CLASS_LABELS = { read: 'Read', write: 'Write', delete: 'Delete' }
+const CLASS_ORDER = ['read', 'write', 'destructive']
+const CLASS_LABELS = { read: 'Read', write: 'Write', destructive: 'Destructive' }
 // Non-breaking hyphen in the product name so "nr-assistant" never wraps across
 // two lines in the narrow hint column (a literal hyphen is a valid break point
 // and CSS can't suppress breaks at real hyphens).
@@ -172,7 +172,7 @@ export default {
             return [
                 { key: 'read', label: 'Read', hint: 'View only, no changes' },
                 { key: 'write', label: 'Write', hint: 'Create or change resources' },
-                { key: 'delete', label: 'Delete', hint: 'Remove resources' }
+                { key: 'destructive', label: 'Destructive', hint: 'Remove resources' }
             ]
         },
         // The two tool sections, ordered by where the user is (see isImmersive).
@@ -181,7 +181,7 @@ export default {
                 key: TOOL_GROUPS.FLOW_BUILDING,
                 title: 'Flow Building Tools',
                 tools: this.groupTools(TOOL_GROUPS.FLOW_BUILDING),
-                empty: 'No flow-building tools available yet.'
+                empty: 'Flow Building tools permissions cannot be changed. Default will apply: read-only tools are always allowed, write and destructive tools will ask for permissions.'
             }
             const platform = {
                 key: TOOL_GROUPS.PLATFORM,

@@ -35,7 +35,7 @@ Please see [Networking requirements](./overview.md#networking-requirements).
 
 ### One-line install
 
-For the fastest one-line install experience, see the [Quick Start guide](/docs/device-agent/quickstart.md).
+For the fastest one-line install experience, see the [Quick Start guide](/docs/device-agent/quickstart/).
 
 ### Manual install
 

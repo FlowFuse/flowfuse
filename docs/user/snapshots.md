@@ -1,5 +1,7 @@
 ---
 navTitle: Snapshots
+meta:
+   description: Create, restore, compare and download snapshots, the point-in-time backups of a Node-RED instance's flows, credentials, settings and packages.
 ---
 
 # Snapshots
@@ -218,11 +220,11 @@ more information.
 
 ### Creating a Snapshot locally
 
-Using the [Node-RED Tools Plugin](/docs/migration/node-red-tools.md) it is also possible to create
+Using the [Node-RED Tools Plugin](/docs/migration/node-red-tools/) it is also possible to create
 Snapshots in a local copy of Node-RED and push them back into your FlowFuse
 managed Node-RED instances.
 
-For more information, see the [Node-RED Tools Plugin guide](/docs/migration/node-red-tools.md).
+For more information, see the [Node-RED Tools Plugin guide](/docs/migration/node-red-tools/).
 
 ### Auto Snapshots
 
@@ -235,7 +237,7 @@ A limit of 10 auto snapshots will be kept, with the oldest being deleted when a 
 Devices can optionally disable auto snapshots, in the developer mode tab. This can be helpful to
 avoid excessive data usage when a device is in the field or on a cellular connection.
 
-NOTE: This feature is only available to Enterprise tier teams
+NOTE: This feature is included in every FlowFuse product: Edge, Hub and Fleet.
 
 ### Previewing Snapshots
 

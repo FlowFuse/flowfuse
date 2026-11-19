@@ -51,6 +51,7 @@ import { mapState } from 'pinia'
 
 import brokerApi from '../../../../../api/broker.js'
 import EmptyState from '../../../../../components/EmptyState.vue'
+import alerts from '../../../../../services/alerts.js'
 
 import MainTitle from '../components/MainTitle.vue'
 
@@ -185,9 +186,16 @@ export default {
             delete this.localSegment.metadata.schema
             this.saveTopicMeta()
         },
-        startTeamBrokerAgent () {
-            brokerApi.startBroker(this.team.id, 'team-broker')
-            // alerts.emit('MQTT Payload Schema will be collected for the next 24 hours', 'confirmation')
+        async startTeamBrokerAgent () {
+            try {
+                await brokerApi.startBroker(this.team.id, 'team-broker')
+            } catch (err) {
+                // The request failed outright, so the toggle isn't really on. Put it
+                // back and let the user know rather than leaving it looking enabled.
+                this.agentActive = false
+                alerts.emit('Could not reach the broker agent. Please try again.', 'warning')
+                console.error(err)
+            }
         }
     }
 }

@@ -255,6 +255,38 @@ describe('Accounts API', async function () {
             userTeams.teams.should.have.length(1)
         })
 
+        it('auto-creates personal team with a suffixed slug if a team already owns the username', async function () {
+            app.settings.set('user:signup', true)
+            app.settings.set('user:team:auto-create', true)
+
+            await app.db.models.Team.create({ name: 'Taken', slug: 'slugclash', TeamTypeId: app.defaultTeamType.id })
+
+            const response = await registerUser({
+                username: 'SlugClash',
+                password: '12345678',
+                name: 'Slug Clash',
+                email: 'slugclash@example.com'
+            })
+            response.statusCode.should.equal(200)
+
+            await login('SlugClash', '12345678')
+            const user = await app.db.models.User.findOne({ where: { username: 'SlugClash' } })
+            const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
+            const verifyResponse = await app.inject({
+                method: 'POST',
+                url: '/account/verify/token',
+                payload: {
+                    token: verificationToken.token
+                },
+                cookies: { sid: TestObjects.tokens.SlugClash }
+            })
+            verifyResponse.statusCode.should.equal(200)
+
+            const teams = await app.db.models.Team.forUser(user)
+            teams.should.have.length(1)
+            teams[0].Team.slug.should.match(/^slugclash-[0-9a-f]{4}$/)
+        })
+
         it('auto-creates personal team if option set - selected team type', async function () {
             app.settings.set('user:signup', true)
             app.settings.set('user:team:auto-create', true)
@@ -336,6 +368,99 @@ describe('Accounts API', async function () {
 
                 const instance = instances[0]
                 instance.safeName.should.match(/team-user-user3-(\w)+/)
+            })
+
+            describe('with AI onboarding enabled on the platform', function () {
+                let originalFeatures
+                let teamType
+
+                beforeEach(function () {
+                    originalFeatures = app.config.features.getAllFeatures()
+                    app.config.features.register('aiOnboarding', true, true)
+                    app.config.features.register('externalBroker', true, true)
+                    app.settings.set('user:signup', true)
+                    app.settings.set('user:team:auto-create', true)
+                    app.settings.set('user:team:auto-create:instanceType', app.projectType.hashid)
+                })
+
+                afterEach(async function () {
+                    app.config.features.register('aiOnboarding', originalFeatures.aiOnboarding, true)
+                    app.config.features.register('externalBroker', originalFeatures.externalBroker, true)
+                    app.settings.set('user:team:auto-create:instanceType', null)
+                    app.settings.set('user:team:auto-create:teamType', null)
+                    if (teamType) {
+                        // inactive, else it becomes the new default and breaks other tests
+                        teamType.active = false
+                        await teamType.save()
+                        teamType = null
+                    }
+                })
+
+                // Signs a new user up into a team type with the given features (and only those,
+                // unless enableAllFeatures is set) and returns how many instances they ended up
+                // with once their email is verified
+                async function signUpWithFeatures (username, features, { enableAllFeatures = false } = {}) {
+                    const defaults = app.defaultTeamType.properties
+                    teamType = await app.db.models.TeamType.create({
+                        name: `type-${username}`,
+                        properties: { ...defaults, enableAllFeatures, features: { ...defaults.features, ...features } }
+                    })
+                    app.settings.set('user:team:auto-create:teamType', teamType.hashid)
+
+                    const response = await registerUser({
+                        username,
+                        password: '12345678',
+                        name: username,
+                        email: `${username}@example.com`
+                    })
+                    response.statusCode.should.equal(200)
+
+                    const user = await app.db.models.User.findOne({ where: { username } })
+                    const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
+                    const verifyResponse = await app.inject({
+                        method: 'POST',
+                        url: '/account/verify/token',
+                        payload: { token: verificationToken.token },
+                        cookies: { sid: TestObjects.tokens[username] }
+                    })
+                    verifyResponse.statusCode.should.equal(200)
+
+                    // The team is always created
+                    const teamMemberships = await app.db.models.Team.forUser(user)
+                    teamMemberships.length.should.equal(1)
+                    return (await app.db.models.Project.byUser(user)).length
+                }
+
+                it('skips the default workspace when the new team will be offered AI onboarding', async function () {
+                    const instances = await signUpWithFeatures('onboarded', { teamBroker: true })
+                    instances.should.equal(0)
+                })
+
+                it('skips the default workspace when the team type enables all features', async function () {
+                    const instances = await signUpWithFeatures('allfeatures', {}, { enableAllFeatures: true })
+                    instances.should.equal(0)
+                })
+
+                it('creates the default workspace when the team type has no team broker', async function () {
+                    const instances = await signUpWithFeatures('nobroker', { teamBroker: false })
+                    instances.should.equal(1)
+                })
+
+                it('creates the default workspace when the team type turns the Expert off', async function () {
+                    const instances = await signUpWithFeatures('noexpert', { teamBroker: true, expertAssistant: false })
+                    instances.should.equal(1)
+                })
+
+                it('creates the default workspace when the team type turns AI off', async function () {
+                    const instances = await signUpWithFeatures('noai', { teamBroker: true, ai: false })
+                    instances.should.equal(1)
+                })
+
+                it('creates the default workspace when the platform has no external broker', async function () {
+                    app.config.features.register('externalBroker', false, true)
+                    const instances = await signUpWithFeatures('noextbroker', { teamBroker: true })
+                    instances.should.equal(1)
+                })
             })
 
             it('auto-creates an application & instance if instanceType option is set and there is no application yet', async function () {
@@ -530,7 +655,7 @@ describe('Accounts API', async function () {
                 username: 'user',
                 password: '12345678',
                 name: 'user',
-                email: 'user@example.com'
+                email: 'user@example-company.com'
             })
             response.statusCode.should.equal(200)
 
@@ -583,6 +708,34 @@ describe('Accounts API', async function () {
                 resp.statusCode.should.equal(200)
             }
             // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
+        })
+
+        it('rejects registration with a free email provider when billing is enabled', async function () {
+            const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTA4ODAwLCJleHAiOjc5ODY5ODg3OTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjo1LCJ0ZWFtcyI6NTAsInByb2plY3RzIjo1MCwiZGV2aWNlcyI6NTAsImRldiI6dHJ1ZSwiaWF0IjoxNjYyNTQ4NjAyfQ.vvSw6pm-NP5e0NUL7yMOG-w0AgB8H3NRGGN7b5Dw_iW5DiIBbVQ4HVLEi3dyy9fk7WgKnloiCCkIFJvN79fK_g'
+            app = await setup({ license, billing: { stripe: {} } })
+            app.settings.set('user:signup', true)
+
+            const response = await registerUser({
+                username: 'freeuser',
+                password: '12345678',
+                name: 'freeuser',
+                email: 'freeuser@gmail.com'
+            })
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_email_domain')
+        })
+
+        it('allows registration with a free email provider when billing is not enabled (self-hosted)', async function () {
+            app = await setup({})
+            app.settings.set('user:signup', true)
+
+            const response = await registerUser({
+                username: 'freeuser',
+                password: '12345678',
+                name: 'freeuser',
+                email: 'freeuser@gmail.com'
+            })
+            response.statusCode.should.equal(200)
         })
     })
 
@@ -712,6 +865,39 @@ describe('Accounts API', async function () {
                 const temp = { ...mfaResponse.cookies[0] }
                 temp.should.have.property('name', 'sid')
                 temp.should.have.property('value', '')
+            })
+
+            it('treats a session without the mfa verified flag as anonymous on anonymous routes', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/account/login',
+                    payload: { username: 'mfauser', password: 'mmPassword' }
+                })
+                response.should.have.property('statusCode', 403)
+                const sid = response.cookies[0].value
+
+                // /api/v1/settings allows anonymous access and returns a different
+                // payload for a logged-in user. The half-logged-in session must get
+                // the anonymous payload, not the logged-in one
+                const settingsResponse = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/settings',
+                    cookies: { sid }
+                })
+                settingsResponse.should.have.property('statusCode', 200)
+                const settings = settingsResponse.json()
+                settings.should.have.property('user:signup')
+                settings.should.not.have.property('team:create')
+                // The session is left in place so the mfa flow can still be completed
+                settingsResponse.cookies.should.have.length(0)
+
+                const mfaResponse = await app.inject({
+                    method: 'POST',
+                    url: '/account/login/token',
+                    payload: { token: mfaToken.generateToken() },
+                    cookies: { sid }
+                })
+                mfaResponse.should.have.property('statusCode', 200)
             })
 
             it('rejects access if session does not have mfa verified flag set', async function () {
@@ -966,6 +1152,11 @@ describe('Accounts API', async function () {
             temp.should.have.property('name', 'sid')
             const secondLoginSessionId = secondLoginSession.cookies[0].value
 
+            const editorSession = await app.db.models.StorageSession.create({
+                sessions: JSON.stringify({ token1: { user: 'testUser', client: 'node-red-editor', scope: ['*'], accessToken: 'token1', expires: Date.now() + 60000 } }),
+                ProjectId: app.project.id
+            })
+
             // Submit the reset request
             const response = await app.inject({
                 method: 'POST',
@@ -1003,6 +1194,11 @@ describe('Accounts API', async function () {
                 cookies: { sid: secondLoginSessionId }
             })
             checkSecondToken.statusCode.should.equal(401)
+
+            // Node-RED editor sessions should be removed
+            await editorSession.reload()
+            JSON.parse(editorSession.sessions).should.not.have.property('token1')
+            await editorSession.destroy()
 
             // The reset token cannot be reused
             const resetResponse2 = await app.inject({
@@ -1188,7 +1384,7 @@ describe('Accounts API', async function () {
 
         async function getLatestAuditEntry () {
             return app.db.models.AuditLog.findOne({
-                order: [['createdAt', 'DESC']]
+                order: [['id', 'DESC']]
             })
         }
 

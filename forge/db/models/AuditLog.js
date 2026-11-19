@@ -64,7 +64,7 @@ module.exports = {
                         // As we aren't using the default cursor behaviour (Op.gt)
                         // set the appropriate clause and delete cursor so that
                         // buildPaginationSearchClause doesn't do it for us
-                        where.id = { [Op.lt]: M.AuditLog.decodeHashid(pagination.cursor) }
+                        where.id = { [Op.lt]: M.AuditLog.decodeCursor(pagination.cursor) }
                         delete pagination.cursor
                     }
                     const whereFinal = buildPaginationSearchClause(
@@ -152,7 +152,7 @@ module.exports = {
                         // As we aren't using the default cursor behaviour (Op.gt)
                         // set the appropriate clause and delete cursor so that
                         // buildPaginationSearchClause doesn't do it for us
-                        where.id = { [Op.lt]: M.AuditLog.decodeHashid(pagination.cursor) }
+                        where.id = { [Op.lt]: M.AuditLog.decodeCursor(pagination.cursor) }
                         delete pagination.cursor
                     }
                     const rows = await this.findAll({

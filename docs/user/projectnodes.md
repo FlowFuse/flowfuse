@@ -1,5 +1,7 @@
 ---
 navTitle: FlowFuse Project Nodes
+meta:
+   description: Send messages and call flows between Node-RED instances and remote instances in a team or application with the Project In, Out and Call nodes.
 ---
 
 # FlowFuse Project Nodes
@@ -10,8 +12,7 @@ instances in a team.
 
 The nodes act in a similar way to the Node-RED Link nodes, but by allowing the
 links to extend between different instances, they open up a wide range of
-possibilities. Remote instances can take part too, with the limitations described
-below.
+possibilities. Remote instances can take part too.
 
 For example, a single Node-RED instance may contain a set of utility flows that
 you want to reuse in other instances. Rather than copy the flows around, the
@@ -19,7 +20,7 @@ Project Nodes allow you to easily call those flows and get the result back. The
 flows stay in one place, so a change to them applies to every caller at once,
 with the trade-offs covered in [Limitations](#limitations).
 
-The project nodes are only available in the Enterprise tier of FlowFuse.
+The project nodes are included in every FlowFuse product: Edge, Hub and Fleet.
 
 ### Nodes
 
@@ -38,7 +39,8 @@ message is received back.
 
 Each node is configured with a topic on which it either sends or receives messages
 on. This is similar in concept to MQTT topics - although the nodes do not currently
-support using MQTT wildcards in their topics.
+support using MQTT wildcards in their topics. The topic can also be set when the flow
+runs, see [Choosing the topic at runtime](#choosing-the-topic-at-runtime).
 
 The Project Out nodes can either broadcast messages on a topic to anyone listening,
 or they can send messages on a topic to a specific other instance.
@@ -51,22 +53,88 @@ and then wait for a response, with a built-in timeout if it doesn't arrive.
 The response is sent back using a Project Out node configured to respond to the call
 node.
 
+### Applications
+
+The application features need FlowFuse v3.3 or later (already available on FlowFuse
+Cloud) and `@flowfuse/nr-project-nodes` v1.0.0 or later on every instance that uses
+them, remote instances included. Older versions of the nodes keep working with team
+broadcasts and hosted instance targets.
+
+The list of targets and sources offered by the nodes is grouped by application.
+Use the **Application** filter above the list to show a single application. The list
+contains the hosted instances in your team and the remote instances assigned to an
+application. `Project Out` and `Project Call` can target either.
+
+A `Project Out` or `Project Call` node on a remote instance can target another remote
+instance, or a hosted instance, and a hosted instance can target a remote instance in the
+same way. Calls work between any two of them.
+
+Broadcast messages are sent on one of two channels. Choose the channel with the
+**Channel** option on the `Project In` and `Project Out` nodes:
+
+ - **Team** - received by any instance or remote instance in the team whose
+   `Project In` node listens on the Team channel. This is the default.
+ - **Application** - only received by instances and remote instances in the same
+   application whose `Project In` node listens on the Application channel. Instances
+   outside the application cannot send or receive these messages.
+
+The channels are separate. A `Project In` node listening on the Team channel does
+not receive Application channel broadcasts, even from an instance in the same
+application.
+
+Received messages include `msg.projectLink.applicationId`, the application of the
+sender, and for broadcasts `msg.projectLink.scope`, the channel it was sent on.
+
+### Choosing the target at runtime
+
+`Project Out` and `Project Call` can read their target from the message as it is sent,
+instead of using the instance chosen in the editor. This needs
+`@flowfuse/nr-project-nodes` v1.0.0 or later. Set **Target** to `msg.` and give a
+property name (it defaults to `msg.target`), or to `env` to read it from an environment
+variable. The value must be the id of an instance or remote instance in your team.
+
+A hosted instance is identified by its id alone, without any prefix.
+For example, a Change node can set `msg.target` to the id of the hosted instance.
+
+A remote instance is identified by `dev:` followed by its id. For example, a Function
+node can set ``msg.target = `dev:${deviceId}` ``, or an `env` template such as
+`dev:${TARGET_DEVICE_ID}` can be used.
+
+The nodes do not ask FlowFuse whether the target exists. A value that is missing or is
+not a valid id raises an error that a Catch node can handle. A valid id for an instance
+that does not exist sends the message nowhere, so a `Project Call` node reports a timeout.
+
+This lets the same flows be deployed to many instances or remote instances, each using
+a target of its own. FlowFuse sets some [environment variables](./envvar.md) for you.
+`FF_DEVICE_ID` on remote instances and `FF_INSTANCE_ID` on hosted instances give an
+instance's own id, which it can send in a message so the receiver can target it.
+
+### Choosing the topic at runtime
+
+The topic of a node can also be set when the flow runs, instead of typing it into the
+editor. This needs `@flowfuse/nr-project-nodes` v1.0.0 or later.
+
+Set **Topic** to `env` and give an environment variable name, or a template such as
+`some/topic/${HW_REV}/status`. `Project Out` and `Project Call` can also use `msg.`
+and a property name (it defaults to `msg.topic`) to read the topic the message carries.
+
+`Project In` reads its topic once, when the node starts, so it can use `env` but not
+`msg.`.
+
+An invalid topic, or an environment variable that is not set, raises an error that a
+Catch node can handle. A `Project In` node shows an invalid topic status and does not
+listen.
+
 ### Limitations
 
-**Only hosted instances can be addressed directly.** The list of targets and sources
-offered by the nodes is the hosted instances in your team. This applies to the
-`Project Out` node when sending to a specific instance, the `Project In` node when
-listening to a specific source, and the `Project Call` node's target.
+**Remote instances assigned to an instance are reached through that instance.** They
+share the identity of the instance they are assigned to, so they are not listed
+separately. A message or call sent to the instance is also received by its remote
+instances that are listening on the same topic.
 
-**A remote instance can send, but cannot be sent to.** Flows on a remote instance can
-use `Project Out` and `Project Call` to reach a hosted instance, and can receive
-broadcasts. They cannot be named as a target, so shared logic being called by others
-has to live on a hosted instance. A remote instance assigned to an application cannot
-receive direct messages at all, and can only listen for broadcasts.
-
-**Calls need the target to be up.** The `Project Call` node waits for the default
-timeout of 30 seconds, then logs an error that can be caught with a Catch node. The
-target instance must be running and have a `Project In` node listening on the same
+**Calls need the target to be up.** The `Project Call` node waits for its
+timeout (5 seconds by default for new nodes), then logs an error that can be caught with a Catch node.
+The target instance must be running and have a `Project In` node listening on the same
 topic. Because every call travels through the platform's broker, logic called this
 way is unavailable to a caller whose connection to the platform is down.
 

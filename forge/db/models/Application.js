@@ -14,6 +14,35 @@ module.exports = {
     },
     hooks: function (M, app) {
         return {
+            beforeDestroy: async (application, opts) => {
+                // The Pipeline models are only usable on licensed (EE) installs
+                // Licences can be added without a restart, so the model is looked up when used
+                const { Pipeline, PipelineStage } = app.db.models
+                if (!app.license.active() || !Pipeline) {
+                    return
+                }
+                const { transaction } = opts
+                const pipelines = await Pipeline.findAll({ where: { ApplicationId: application.id }, transaction })
+                for (const pipeline of pipelines) {
+                    await PipelineStage.destroy({ where: { PipelineId: pipeline.id }, individualHooks: true, transaction })
+                    await pipeline.destroy({ transaction })
+                }
+                if (pipelines.length === 0) {
+                    return
+                }
+                const audit = async () => {
+                    const team = application.Team || await M.Team.byId(application.TeamId)
+                    for (const pipeline of pipelines) {
+                        await app.auditLog.Team.application.pipeline.deleted('system', null, team, application, pipeline)
+                    }
+                }
+                // Audit entries are only written once the deletes have committed
+                if (transaction) {
+                    transaction.afterCommit(audit)
+                } else {
+                    await audit()
+                }
+            },
             afterDestroy: async (application, opts) => {
                 const where = {
                     ApplicationId: application.id

@@ -196,19 +196,19 @@ describe('product-mcp store', () => {
         it('announces an arrival', () => {
             store.setClients([])
             store.setClients(['a'])
-            expect(emit).toHaveBeenCalledWith('An MCP client is now targeting this tab.', 'confirmation')
+            expect(emit).toHaveBeenCalledWith('An MCP client is now targeting this tab.', 'confirmation', 30000)
         })
 
         it('announces a departure', () => {
             store.setClients(['a'])
             store.setClients([])
-            expect(emit).toHaveBeenCalledWith('An MCP client stopped targeting this tab.', 'info')
+            expect(emit).toHaveBeenCalledWith('An MCP client stopped targeting this tab.', 'info', 30000)
         })
 
         it('pluralises when several arrive at once', () => {
             store.setClients([])
             store.setClients(['a', 'b'])
-            expect(emit).toHaveBeenCalledWith('2 MCP clients are now targeting this tab.', 'confirmation')
+            expect(emit).toHaveBeenCalledWith('2 MCP clients are now targeting this tab.', 'confirmation', 30000)
         })
 
         it('reports a swap as both, since the count alone would not move', () => {
@@ -217,8 +217,8 @@ describe('product-mcp store', () => {
 
             store.setClients(['b'])
 
-            expect(emit).toHaveBeenCalledWith('An MCP client is now targeting this tab.', 'confirmation')
-            expect(emit).toHaveBeenCalledWith('An MCP client stopped targeting this tab.', 'info')
+            expect(emit).toHaveBeenCalledWith('An MCP client is now targeting this tab.', 'confirmation', 30000)
+            expect(emit).toHaveBeenCalledWith('An MCP client stopped targeting this tab.', 'info', 30000)
         })
 
         it('says nothing when the set has not changed', () => {

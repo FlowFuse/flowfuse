@@ -41,9 +41,7 @@ module.exports = async function (app) {
                             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                             return
                         }
-                        if (request.device.ApplicationId) {
-                            request.applicationId = app.db.models.Application.encodeHashid(request.device.ApplicationId)
-                        }
+                        request.applicationId = request.device.getApplicationHashid()
                     }
                 } catch (err) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })
@@ -233,6 +231,8 @@ module.exports = async function (app) {
             } else if (!request.session?.User) {
                 // Failed authentication. Redirect to the device overview page
                 reply.redirect(`/device/${request.params.deviceId}/overview`, 303)
+            } else if (!app.hasPermission(request.teamMembership, 'device:editor', { applicationId: request.applicationId })) {
+                reply.code(403).send('Forbidden')
             } else {
                 // For a websocket comms request
                 if (/\/comms$/.test(request.url)) {
@@ -261,6 +261,11 @@ module.exports = async function (app) {
             // tunnel does not exist
             reply.code(503).send('The editor is not currently enabled for this device') // Service Unavailable
         },
+        /**
+         * Handle an editor websocket connection (the browser's Node-RED `/comms` socket)
+         * @param {import('ws').WebSocket} connection - with @fastify/websocket v11 this is the `ws` WebSocket itself (no `.socket` wrapper)
+         * @param {import('fastify').FastifyRequest & { params: { deviceId: string } }} request
+         */
         wsHandler: (connection, request) => {
             // Handle WS connection from the device
             const tunnelManager = getTunnelManager()
@@ -268,7 +273,7 @@ module.exports = async function (app) {
                 return // handled
             }
             // not handled
-            connection.socket.close(4000, 'No tunnel established')
+            connection.close(4000, 'No tunnel established')
         }
     })
 
@@ -290,6 +295,8 @@ module.exports = async function (app) {
             } else if (!request.session?.User) {
                 // Failed authentication. Redirect to the device overview page
                 reply.redirect(`/device/${request.params.deviceId}/overview`, 303)
+            } else if (!app.hasPermission(request.teamMembership, 'device:editor', { applicationId: request.applicationId })) {
+                reply.code(403).send('Forbidden')
             } else {
                 // For a websocket comms request
                 if (/\/comms$/.test(request.url)) {

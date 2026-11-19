@@ -1,5 +1,7 @@
 ---
 navTitle: Custom Node Packages
+meta:
+   description: Publish private Node-RED nodes to the FlowFuse Custom Node Registry, or connect an instance to a third-party npm registry and catalogue.
 ---
 
 # Custom Node Packages
@@ -15,6 +17,10 @@ catalogue file. FlowFuse has two solutions for this:
 
 1. FlowFuse Hosted Nodes - Use the private NPM registry hosted by FlowFuse to store and manage your custom npm packages.
 2. Third-Party NPM Registries - If you already have a private npm registry, you can enable access to these in your Instance's settings.
+
+ ::note
+To package an existing Node-RED **subflow** as a node from the editor — without hand-authoring an npm package — see [Packaging Subflows](/docs/user/packaging-subflows.md).
+::
 
 ## FlowFuse Hosted Nodes
 

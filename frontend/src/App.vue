@@ -23,7 +23,7 @@
                 </ff-layout-platform>
             </template>
             <template v-else-if="pageLayout === 'modal'">
-                <ff-layout-box>
+                <ff-layout-box :class="{ 'ff--center-box': $route.meta?.centerBox }">
                     <router-view />
                 </ff-layout-box>
             </template>
@@ -39,7 +39,8 @@
             </template>
             <template v-else-if="pageLayout === 'plain'">
                 <ff-layout-plain>
-                    <router-view />
+                    <!-- The build routes share one page, keyed so moving between them starts a new chat -->
+                    <router-view :key="$route.name" />
                 </ff-layout-plain>
             </template>
             <EducationModal />

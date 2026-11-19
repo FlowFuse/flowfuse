@@ -23,6 +23,7 @@ module.exports = function (app) {
             onlineStatus: { type: 'string', enum: ['online', 'offline', 'not-seen'] },
             isDeploying: { type: 'boolean' },
             agentVersion: { nullable: true, type: 'string' },
+            agentType: { nullable: true, type: 'string' },
             mode: { type: 'string' },
             links: { $ref: 'LinksMeta' },
             team: { $ref: 'TeamSummary' },
@@ -40,7 +41,7 @@ module.exports = function (app) {
         required: ['id', 'lastSeenAt', 'lastSeenMs', 'status', 'onlineStatus', 'mode', 'isDeploying']
     })
 
-    function device (device, { statusOnly = false } = {}) {
+    function device (device, { statusOnly = false, includeEditorUrl = false } = {}) {
         if (!device) {
             return null
         }
@@ -72,6 +73,7 @@ module.exports = function (app) {
             links: result.links,
             status: result.state || 'offline',
             onlineStatus: device.status,
+            agentType: result.agentType,
             agentVersion: result.agentVersion,
             mode: result.mode || 'autonomous',
             ownerType: result.ownerType,
@@ -94,6 +96,9 @@ module.exports = function (app) {
             /** @type {import("../../ee/lib/deviceEditor/DeviceTunnelManager").DeviceTunnelManager} */
             const tunnelManager = app.comms.devices.tunnelManager
             filtered.editor = tunnelManager.getTunnelStatus(device) || {}
+            if (!includeEditorUrl) {
+                delete filtered.editor.url
+            }
         }
 
         return filtered
@@ -114,6 +119,7 @@ module.exports = function (app) {
             isDeploying: { type: 'boolean' },
             links: { $ref: 'LinksMeta' },
             application: { $ref: 'ApplicationSummary' },
+            agentType: { type: 'string' },
             mostRecentAuditLogCreatedAt: { type: 'string' },
             mostRecentAuditLogEvent: { type: 'string' }
         },
@@ -138,6 +144,7 @@ module.exports = function (app) {
                 lastSeenAt: result.lastSeenAt,
                 lastSeenMs: result.lastSeenAt ? (Date.now() - new Date(result.lastSeenAt).valueOf()) : null,
                 status: result.state || 'offline',
+                agentType: result.agentType,
                 onlineStatus: device.status,
                 mode: result.mode || 'autonomous',
                 isDeploying: app.db.controllers.Device.isDeploying(device),
@@ -183,7 +190,7 @@ module.exports = function (app) {
             $ref: 'DeviceStatus'
         }
     })
-    async function deviceStatusList (devicesArray, { includeEditor = false } = {}) {
+    async function deviceStatusList (devicesArray, { includeEditor = false, includeEditorUrl = false } = {}) {
         return devicesArray.map((device) => {
             const summary = deviceSummary(device)
 
@@ -201,6 +208,9 @@ module.exports = function (app) {
                 /** @type {import("../../ee/lib/deviceEditor/DeviceTunnelManager").DeviceTunnelManager} */
                 const tunnelManager = app.comms.devices.tunnelManager
                 filtered.editor = tunnelManager.getTunnelStatus(device) || {}
+                if (!includeEditorUrl) {
+                    delete filtered.editor.url
+                }
             }
 
             return filtered

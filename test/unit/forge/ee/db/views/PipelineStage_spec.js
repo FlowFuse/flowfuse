@@ -42,17 +42,17 @@ describe('PipelineStage view', function () {
             }, pipeline)
             const stage2 = await app.factory.createPipelineStage({
                 name: 's2',
-                instanceId: instanceTwo.id
+                instanceId: instanceTwo.id,
+                source: stage1.hashid
             }, pipeline)
             const stage3 = await app.factory.createPipelineStage({
                 name: 's3',
-                instanceId: instanceThree.id
+                instanceId: instanceThree.id,
+                source: stage2.hashid
             }, pipeline)
-
-            stage1.NextStageId = stage2.id
-            stage2.NextStageId = stage3.id
-            await stage1.save()
-            await stage2.save()
+            // pick up the NextStageId links set when the following stages were added
+            await stage1.reload()
+            await stage2.reload()
 
             function validateList (list) {
                 list.should.have.length(3)

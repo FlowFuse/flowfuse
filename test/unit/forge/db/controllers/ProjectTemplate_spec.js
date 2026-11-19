@@ -106,6 +106,76 @@ describe('Project Template controller', function () {
             }
         })
 
+        describe('debugMaxLength', function () {
+            const validate = (debugMaxLength, importing) => app.db.controllers.ProjectTemplate.validateSettings({ debugMaxLength }, undefined, importing)
+
+            it('rejects values that are not a whole number', function () {
+                ;['1000 + 1', 'abc', -1, 1.5].forEach(value => {
+                    should.throws(() => validate(value), /Invalid settings.debugMaxLength/)
+                })
+            })
+            it('stores a numeric string as a number', function () {
+                validate('456').should.have.property('debugMaxLength', 456)
+            })
+            it('keeps an empty value so clearing the field is saved', function () {
+                validate('').should.have.property('debugMaxLength', '')
+                validate(null).should.have.property('debugMaxLength', null)
+            })
+            it('drops an invalid value when importing', function () {
+                validate('abc', true).should.not.have.property('debugMaxLength')
+            })
+        })
+
+        describe('editor setting types', function () {
+            const validate = (settings) => app.db.controllers.ProjectTemplate.validateSettings(settings)
+            const textSettings = [
+                ['codeEditor'],
+                ['theme'],
+                ['page', 'title'],
+                ['page', 'favicon'],
+                ['header', 'title'],
+                ['header', 'url']
+            ]
+            const build = (path, value) => path.length === 1 ? { [path[0]]: value } : { [path[0]]: { [path[1]]: value } }
+            const read = (result, path) => path.reduce((o, k) => o?.[k], result)
+
+            it('keeps string and null text settings', function () {
+                textSettings.forEach(path => {
+                    should(read(validate(build(path, 'value')), path)).equal('value')
+                    should(read(validate(build(path, null)), path)).equal(null)
+                })
+            })
+            it('drops text settings that are not strings', function () {
+                textSettings.forEach(path => {
+                    ;[{}, 1, ['a']].forEach(value => {
+                        should(read(validate(build(path, value)), path)).be.undefined()
+                    })
+                })
+            })
+            it('keeps a boolean disableEditor', function () {
+                validate({ disableEditor: true }).should.have.property('disableEditor', true)
+                validate({ disableEditor: false }).should.have.property('disableEditor', false)
+            })
+            it('drops a disableEditor that is not a boolean', function () {
+                validate({ disableEditor: 'true' }).should.not.have.property('disableEditor')
+            })
+        })
+
+        describe('httpNodeCORS origin', function () {
+            const validate = (origin) => app.db.controllers.ProjectTemplate.validateSettings({
+                httpNodeCORS: { enabled: true, origin, GET: true, POST: true, PUT: true, PATCH: true, HEAD: true, DELETE: true }
+            })
+
+            it('stores the normalised origin', function () {
+                validate('http://a.example/').httpNodeCORS.should.have.property('origin', 'http://a.example')
+                validate('https://a.example:8443/').httpNodeCORS.should.have.property('origin', 'https://a.example:8443')
+                validate('http://a.example/#" + x + "').httpNodeCORS.should.have.property('origin', 'http://a.example')
+            })
+            it('keeps a wildcard origin', function () {
+                validate('*').httpNodeCORS.should.have.property('origin', '*')
+            })
+        })
+
         it('only passes through settings a template policy allows', async function () {
             const templateProperties = {
                 name: 'template',
@@ -445,6 +515,54 @@ describe('Project Template controller', function () {
             result.should.have.property('page')
             // Check we patch the branding
             result.page.should.have.property('title', 'FlowFuse')
+        })
+
+        describe('env vars', function () {
+            const cases = [
+                {
+                    name: 'keeps an existing empty value when merging',
+                    existing: [{ name: 'EMPTY', value: '' }],
+                    snapshot: [{ name: 'EMPTY', value: 'x' }],
+                    merge: [{ name: 'EMPTY', value: '' }],
+                    replace: [{ name: 'EMPTY', value: 'x' }]
+                },
+                {
+                    name: 'handles a snapshot with no env vars',
+                    existing: [{ name: 'one', value: 'a' }, { name: 'two', value: 'b' }],
+                    snapshot: [],
+                    merge: [{ name: 'one', value: 'a' }, { name: 'two', value: 'b' }],
+                    replace: []
+                },
+                {
+                    name: 'adds a hidden var that is only in the snapshot',
+                    existing: [],
+                    snapshot: [{ name: 'SECRET', value: 's', hidden: true }],
+                    merge: [{ name: 'SECRET', value: 's', hidden: true }],
+                    replace: [{ name: 'SECRET', value: 's', hidden: true }]
+                },
+                {
+                    name: 'handles a visible instance var that is hidden in the snapshot',
+                    existing: [{ name: 'X', value: 'instance' }],
+                    snapshot: [{ name: 'X', value: 'snapshot', hidden: true }],
+                    merge: [{ name: 'X', value: 'instance' }],
+                    replace: [{ name: 'X', value: 'snapshot', hidden: true }]
+                },
+                {
+                    name: 'handles a hidden instance var that is visible in the snapshot',
+                    existing: [{ name: 'X', value: 'instance', hidden: true }],
+                    snapshot: [{ name: 'X', value: 'snapshot' }],
+                    merge: [{ name: 'X', value: 'instance', hidden: true }],
+                    replace: [{ name: 'X', value: 'snapshot' }]
+                }
+            ]
+            cases.forEach(({ name, existing, snapshot, merge, replace }) => {
+                it(name, function () {
+                    const merged = app.db.controllers.ProjectTemplate.mergeSettings({ env: existing }, { env: snapshot }, { mergeEnvVars: true })
+                    merged.env.should.eql(merge)
+                    const replaced = app.db.controllers.ProjectTemplate.mergeSettings({ env: existing }, { env: snapshot }, { mergeEnvVars: false })
+                    replaced.env.should.eql(replace)
+                })
+            })
         })
 
         it('it clears httpNodeAuth user/pass if auth type set to not-basic', function () {

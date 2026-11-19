@@ -286,6 +286,21 @@ describe('InstanceCommsHandler', function () {
             args[3].should.deepEqual({ foo: 'bar' }) // tool input
         })
 
+        it('takes the MCP endpoint from the registration, not the caller', async function () {
+            const res = await invokeInsight({
+                userId: EE.alice.hashid,
+                command: 'mcp:call-tool',
+                mcpServer: baseMcpServer({ mcpEndpoint: '/somewhere-else', headers: { 'x-injected': 'yes' } }),
+                mcpDefinitionKind: 'mcp_tool',
+                mcpDefinition: READONLY_TOOL,
+                data: { name: 'my_tool', input: {} }
+            })
+            res.ok.should.be.true()
+            const endpoint = eeApp.containers.callMCPTool.firstCall.args[1]
+            endpoint.should.have.property('mcpEndpoint', '/mcp')
+            endpoint.should.have.property('headers').which.deepEqual({})
+        })
+
         it('forwards a resource read to the instance', async function () {
             const res = await invokeInsight({
                 userId: EE.alice.hashid,

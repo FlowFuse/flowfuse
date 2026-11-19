@@ -2,6 +2,12 @@ const crypto = require('crypto')
 
 const schemaApi = require('./schema')
 
+const generateUuid = (length = 6) => {
+    return Array.from(crypto.getRandomValues(new Uint8Array(6)), (byte) =>
+        byte.toString(36).padStart(2, '0')
+    ).join('').substring(0, length)
+}
+
 module.exports = async function (app) {
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.teamId !== undefined || request.params.teamSlug !== undefined) {
@@ -27,7 +33,7 @@ module.exports = async function (app) {
 
                 await request.team.ensureTeamTypeExists()
                 if (!request.team.getFeatureProperty('teamBroker', false)) {
-                    reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                    reply.code(404).send({ code: 'not_found', error: 'Not Found - Team Broker is not enabled for this team' })
                     return
                 }
             }
@@ -40,6 +46,12 @@ module.exports = async function (app) {
             }
         } else if (request.session.ownerType === 'project' || request.session.ownerType === 'device') {
             // this is a request from a project or device
+            const ownerModel = request.session.ownerType === 'project' ? app.db.models.Project : app.db.models.Device
+            const owner = await ownerModel.findOne({ where: { id: request.session.ownerId }, attributes: ['TeamId'] })
+            if (owner?.TeamId !== request.team.id) {
+                reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                return
+            }
             request.sessionUserReq = false
             request.instanceTokenReq = true
         } else {
@@ -160,7 +172,7 @@ module.exports = async function (app) {
         }
         try {
             const newUser = request.body
-            newUser.acls = JSON.stringify(newUser.acls)
+            newUser.acls = JSON.stringify(newUser.acls || [{ action: 'both', pattern: '#', id: generateUuid() }])
             await request.team.checkTeamBrokerClientCreateAllowed()
             const user = await app.db.models.TeamBrokerClient.create({ ...request.body, TeamId: request.team.id })
             reply.status(201).send(app.db.views.TeamBrokerClient.user(user))
@@ -237,7 +249,7 @@ module.exports = async function (app) {
         if (client) {
             reply.send(app.db.views.TeamBrokerClient.user(client))
         } else {
-            reply.status(404).send({})
+            reply.status(404).send({ code: 'not_found', error: 'Broker client not found' })
         }
     })
 
@@ -313,7 +325,7 @@ module.exports = async function (app) {
             }
 
             if (!client) {
-                return reply.status(404).send({})
+                return reply.status(404).send({ code: 'not_found', error: 'Broker client not found' })
             }
             if (request.body.password) {
                 client.password = request.body.password
@@ -379,7 +391,7 @@ module.exports = async function (app) {
             await client.destroy()
             reply.send({ status: 'okay' })
         } else {
-            reply.status(404).send({})
+            reply.status(404).send({ code: 'not_found', error: 'Broker client not found' })
         }
     })
 
@@ -549,12 +561,6 @@ module.exports = async function (app) {
                             error: 'Team Broker client limit reached'
                         })
                 }
-            }
-            // mvp for generating default acls
-            const generateUuid = (length = 6) => {
-                return Array.from(crypto.getRandomValues(new Uint8Array(6)), (byte) =>
-                    byte.toString(36).padStart(2, '0')
-                ).join('').substring(0, length)
             }
             const acls = [
                 {

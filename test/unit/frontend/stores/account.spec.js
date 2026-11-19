@@ -17,7 +17,8 @@ vi.mock('@/api/flowBlueprints.js', () => ({
 vi.mock('@/api/user.js', () => ({
     default: {
         getNotifications: vi.fn(),
-        getTeamInvitations: vi.fn()
+        getTeamInvitations: vi.fn(),
+        updateUserSettings: vi.fn().mockResolvedValue()
     }
 }))
 
@@ -175,7 +176,7 @@ describe('account store', () => {
 
     describe('actions', () => {
         describe('setTeam', () => {
-            it('refreshes membership but skips full reload when the same team is already active (by id)', async () => {
+            it('refreshes membership and re-applies the analytics group when the same team is already active (by id)', async () => {
                 const store = useAccountStore()
                 const team = { id: 'team-1', slug: 'alpha' }
                 mockContext.team = team
@@ -184,8 +185,19 @@ describe('account store', () => {
 
                 expect(mockContext.refreshTeamMembership).toHaveBeenCalled()
                 expect(mockContext.team).toEqual(team)
-                // no full switch — analytics + store reset are skipped
-                expect(product.setTeam).not.toHaveBeenCalled()
+                // the team survives a reload in sessionStorage, the PostHog group does not
+                expect(product.setTeam).toHaveBeenCalledWith(team)
+            })
+
+            it('re-applies the analytics group when the active team is named by slug', async () => {
+                const store = useAccountStore()
+                const team = { id: 'team-1', slug: 'alpha' }
+                mockContext.team = team
+
+                await store.setTeam('alpha')
+
+                expect(product.setTeam).toHaveBeenCalledWith(team)
+                expect(teamsStore.fetchTeam).not.toHaveBeenCalled()
             })
 
             it('does nothing if both current and new team are null', async () => {
@@ -217,6 +229,39 @@ describe('account store', () => {
                 expect(teamsStore.fetchTeam).toHaveBeenCalledWith({ slug: 'gamma' })
                 expect(mockContext.team).toEqual(fetchedTeam)
                 expect(product.setTeam).toHaveBeenCalledWith(fetchedTeam)
+            })
+
+            it('ends a stale onboarding stage when the first team loads with an instance and no conversation', async () => {
+                const { useUxStore } = await import('@/stores/ux.js')
+                const ux = useUxStore()
+                ux.setNewlyCreatedUser()
+
+                await useAccountStore().setTeam({ id: 'team-4', slug: 'delta', aiOnboarding: true, instanceCount: 1 })
+
+                expect(ux.isOnboarding).toBe(false)
+            })
+
+            it('keeps onboarding while a conversation is alive', async () => {
+                const { useUxStore } = await import('@/stores/ux.js')
+                const ux = useUxStore()
+                ux.setNewlyCreatedUser()
+                ux.markOnboardingActive()
+
+                await useAccountStore().setTeam({ id: 'team-5', slug: 'epsilon', aiOnboarding: true, instanceCount: 1 })
+
+                expect(ux.isOnboardingIntake).toBe(true)
+            })
+
+            it('checks a stale stage on a reload, where the active team is restored from sessionStorage', async () => {
+                const { useUxStore } = await import('@/stores/ux.js')
+                const ux = useUxStore()
+                ux.setNewlyCreatedUser()
+                const team = { id: 'team-6', slug: 'zeta', aiOnboarding: true, instanceCount: 1 }
+                mockContext.team = team
+
+                await useAccountStore().setTeam(team)
+
+                expect(ux.isOnboarding).toBe(false)
             })
         })
 

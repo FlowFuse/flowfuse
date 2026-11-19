@@ -1,3 +1,4 @@
+import { createInsightsChatPublisher, createSupportChatPublisher } from './expert-chat.publisher'
 import { createTabPresencePublisher } from './tab-presence.publisher'
 
 /**
@@ -8,5 +9,8 @@ import { createTabPresencePublisher } from './tab-presence.publisher'
  * which only happens once the user has asked for it.
  */
 export default [
-    { key: 'tabPresence' as const, create: createTabPresencePublisher, requiredLifecycle: ['destroy'] as const, autoConnect: false }
+    { key: 'tabPresence' as const, create: createTabPresencePublisher, requiredLifecycle: ['destroy'] as const, autoConnect: false },
+    // Each connects with its agent's chat subscriber when the user first sends to the agent
+    { key: 'expertSupportChat' as const, create: createSupportChatPublisher, requiredLifecycle: ['destroy'] as const, autoConnect: false },
+    { key: 'expertInsightsChat' as const, create: createInsightsChatPublisher, requiredLifecycle: ['destroy'] as const, autoConnect: false }
 ]

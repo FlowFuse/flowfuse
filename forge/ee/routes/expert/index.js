@@ -10,6 +10,7 @@ const { default: axios } = require('axios')
 const semver = require('semver')
 const { v4: uuidv4 } = require('uuid')
 
+const { parseMcpToolResult } = require('../../../comms/utils/mcpToolResult.js')
 const { filterAccessibleMCPServerFeatures } = require('../../../services/expert.js')
 /** @type {typeof import('../../../comms/devices.js').DeviceCommsHandler} */
 const getDeviceComms = (app) => { return app.comms?.devices }
@@ -37,12 +38,8 @@ async function mapWithConcurrency (items, limit, fn, isStopped) {
     await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker))
 }
 
-/**
- * Maps a platform automation tool's wire definition into a catalog entry for the
- * Expert permissions UI. The read/write/delete class comes from the MCP annotations
- * (readOnlyHint / destructiveHint), and `group: 'platform'` routes it to the platform
- * section. The label is the tool's own `title`, falling back to a name-derived label.
- */
+// Maps a platform automation tool into a permissions-UI entry: class from the MCP
+// annotations, group: 'platform' for the platform section.
 const curatePlatformTool = (def) => {
     const annotations = def.annotations || {}
     const readOnly = annotations.readOnlyHint === true
@@ -54,6 +51,20 @@ const curatePlatformTool = (def) => {
         toolClass: readOnly ? 'read' : (destructive ? 'delete' : 'write'),
         destructive,
         group: 'platform'
+    }
+}
+
+// Maps a flow-building tool descriptor to the permissions-UI entry shape.
+const toUiCatalogEntry = (d) => {
+    const ann = d.annotations || {}
+    const meta = d._meta || {}
+    return {
+        key: d.key || d.name,
+        name: ann.title || d.title || d.name,
+        toolClass: d.toolClass,
+        destructive: d.toolClass === 'delete',
+        minVersion: meta.assistantMinVersion || null,
+        maxVersion: meta.assistantMaxVersion || null
     }
 }
 
@@ -660,8 +671,8 @@ module.exports = async function (app) {
 
     /**
      * Returns the merged tool catalog for the Expert permissions UI: flow-building tools
-     * proxied from the agent's /mcp/flow-tools endpoint, plus curated platform tools. A
-     * `hash` of the flow-building catalog rides along so the browser refetches only when
+     * fetched from the gateway's list_flow_catalog over MQTT, plus curated platform tools.
+     * A `hash` of the flow-building catalog rides along so the browser refetches only when
      * it changes. Team access and feature gating are enforced by the shared preHandler.
      */
     app.get('/mcp/tools', {
@@ -700,40 +711,52 @@ module.exports = async function (app) {
         if (!request.isExpertAssistantEnabled) {
             return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
         }
-        try {
-            const toolsUrl = `${app.expert.expertUrl.split('/').slice(0, -1).join('/')}/mcp/flow-tools`
-            const response = await axios.get(toolsUrl, {
-                headers: {
-                    Origin: request.headers.origin,
-                    ...(app.expert.serviceToken ? { Authorization: `Bearer ${app.expert.serviceToken}` } : {})
-                },
-                timeout: app.expert.requestTimeout
-            })
-            const catalog = response.data?.catalog || []
 
-            // Merge in the FlowFuse platform tools. They are global (no per-team filtering)
-            // and served from the handler singleton already constructed on app.comms, so we
-            // reuse it rather than newing one up — constructing re-registers its MQTT event
-            // listener. getToolDefinitions() is synchronous and takes no args.
-            const platformHandler = app.comms?.platformAutomation
-            if (platformHandler) {
-                const platformDefs = platformHandler.getToolDefinitions() || []
-                catalog.push(...platformDefs.map(curatePlatformTool))
+        // Flow-building catalog, over MQTT: global, failure degrades to platform tools alone.
+        // Its own short budget: an MQTT publish to an absent bridge never fails fast, so reusing
+        // the 60s HTTP timeout would block this route for a full minute when no bridge is listening.
+        const CATALOG_REQUEST_TIMEOUT = app.config.expert?.catalog?.requestTimeout ?? 10_000
+        let catalog = []
+        let hash = null
+        const mcpGateway = app.comms?.mcpGateway
+        if (mcpGateway) {
+            try {
+                const mcpResponse = await mcpGateway.proxyCatalogRequest(
+                    {
+                        mcp: {
+                            jsonrpc: '2.0',
+                            id: 1,
+                            method: 'tools/call',
+                            params: { name: 'list_flow_catalog', arguments: {} }
+                        },
+                        toolGroups: ['flow_building']
+                    },
+                    CATALOG_REQUEST_TIMEOUT
+                )
+                if (mcpResponse?.error) {
+                    app.log.warn(`[expert/mcp/tools] gateway returned an error for flow-catalog: ${JSON.stringify(mcpResponse.error)}`)
+                } else if (mcpResponse?.result?.isError) {
+                    app.log.warn(`[expert/mcp/tools] flow-catalog tool reported an error result: ${JSON.stringify(mcpResponse.result.content)}`)
+                }
+                const parsed = parseMcpToolResult(mcpResponse)
+                if (parsed === null) {
+                    app.log.warn('[expert/mcp/tools] could not parse a flow catalog from the gateway response; serving platform tools only')
+                }
+                const tools = Array.isArray(parsed?.tools) ? parsed.tools : []
+                catalog = tools.map(toUiCatalogEntry)
+                hash = parsed?.hash || null
+            } catch (error) {
+                app.log.warn(`[expert/mcp/tools] gateway flow-catalog fetch failed: ${error.message}`)
             }
-
-            reply.send({ catalog, hash: response.data?.hash || null })
-        } catch (error) {
-            // The tool catalog is a non-fatal enhancement (the client swallows failures and
-            // gates safely with defaults). Never forward an upstream auth failure as our own
-            // 401. The SPA's axios interceptor treats any 401 as session-expiry and logs the
-            // user out, which an unrelated expert-service token rejection must not trigger.
-            const upstreamStatus = error.response?.status
-            app.log.warn(`[expert/mcp/tools] upstream tool-catalog fetch failed: status=${upstreamStatus} msg=${error.message}`)
-            if (upstreamStatus === 401 || upstreamStatus === 403) {
-                return reply.send({ catalog: [], hash: null })
-            }
-            reply.code(upstreamStatus || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
         }
+
+        const platformHandler = app.comms?.platformAutomation
+        if (platformHandler) {
+            const platformDefs = platformHandler.getToolDefinitions() || []
+            catalog.push(...platformDefs.map(curatePlatformTool))
+        }
+
+        reply.send({ catalog, hash })
     })
 }
 

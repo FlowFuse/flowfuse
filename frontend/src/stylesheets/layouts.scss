@@ -109,6 +109,8 @@ $nav_height: 60px;
 
 @media screen and (max-width: ($ff-screen-md - 1px)) {
     .ff-signup {
+        background-image: none;
+
         .ff-layout--box--wrapper {
             flex-direction: column;
             gap: 0;
@@ -125,6 +127,10 @@ $nav_height: 60px;
             padding-top: 16px;
         }
     }
+}
+
+.ff-signup--popup {
+    background-image: none;
 }
 
 .ff-layout--box--right .ff-layout--box--content {

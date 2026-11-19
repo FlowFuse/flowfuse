@@ -270,5 +270,33 @@ describe('Instance Alerts emails', function () {
             await app.auditLog.alerts.generate(app.TestObjects.instance.id, 'crashed')
             inbox.messages.should.have.length(1)
         })
+        it('Escapes the instance name in the html body', async function () {
+            const instance = app.TestObjects.instance
+            const originalName = (await app.db.models.Project.byId(instance.id)).name
+            await app.db.models.Project.update({ name: '<a href="https://random.example">link</a>' }, { where: { id: instance.id } })
+            const log = (msg) => [{ ts: '1648000000000', level: 'error', msg }]
+            const alerts = [
+                ['crashed', undefined, 'Crashed'],
+                ['crashed', { exitCode: 255, log: log('v8::internal::heap::') }, 'Crashed-out-of-memory'],
+                ['crashed', { exitCode: 1, log: log('uncaught exception') }, 'Crashed-uncaught-exception'],
+                ['safe-mode', undefined, 'SafeMode'],
+                ['resource.cpu', undefined, 'InstanceResourceCPUExceeded'],
+                ['resource.memory', undefined, 'InstanceResourceMemoryExceeded']
+            ]
+            try {
+                for (const [event, data, template] of alerts) {
+                    sinon.spy(app.postoffice, 'send')
+                    await app.auditLog.alerts.generate(instance.id, event, data)
+                    app.postoffice.send.firstCall.args[1].should.equal(template)
+                    inbox.messages.should.have.length(1)
+                    inbox.messages[0].html.should.not.containEql('<a href="https://random.example">')
+                    inbox.messages[0].html.should.containEql('&lt;a href')
+                    inbox.messages = []
+                    sinon.restore()
+                }
+            } finally {
+                await app.db.models.Project.update({ name: originalName }, { where: { id: instance.id } })
+            }
+        })
     })
 })

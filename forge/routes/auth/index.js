@@ -1,4 +1,8 @@
 const Sentry = require('@sentry/node')
+const fp = require('fastify-plugin')
+const { isFreeEmail } = require('free-email-domains-list')
+
+const mcpToolPermissions = require('../../lib/mcpToolPermissions')
 
 /**
  * Routes related to session handling, login/out etc
@@ -17,7 +21,6 @@ const Sentry = require('@sentry/node')
  * @namespace session
  * @memberof forge.routes
  */
-const fp = require('fastify-plugin')
 
 const { completeUserSignup } = require('../../lib/userTeam')
 
@@ -96,6 +99,9 @@ async function init (app, opts) {
                     return
                 }
                 if (request.routeOptions.config.allowAnonymous) {
+                    // The cookie session failed validation. Treat the request
+                    // as anonymous rather than exposing the half-authenticated user
+                    request.session = null
                     return
                 }
                 await request.session.destroy()
@@ -138,7 +144,7 @@ async function init (app, opts) {
                             return
                         }
                         Sentry.setUser({ id: request.session.User.hashid, username: request.session.User.username, email: request.session.User.email, name: request.session.User.name })
-                        if (accessToken.name) {
+                        if (accessToken.name !== null && accessToken.name !== undefined) {
                             const scopes = accessToken.AccessTokenTeamScopes ?? []
                             let teamScopes = null
 
@@ -158,13 +164,17 @@ async function init (app, opts) {
 
                             const patMetadata = {
                                 id: accessToken.id,
-                                readOnly: accessToken.readOnly,
+                                readOnly: mcpToolPermissions.effectiveReadOnly(accessToken, app.db.models.Team.encodeHashid),
                                 adminOptIn: accessToken.adminOptIn,
                                 teamScopes
                             }
 
                             request.session.isPAT = true
                             request.session.pat = patMetadata
+                            const grant = accessToken.MCPGrant
+                            if (grant) {
+                                request.session.mcpGrant = mcpToolPermissions.fromGrant(grant, grant.MCPGrantTeamPermissions, app.db.models.Team.encodeHashid)
+                            }
                             request.requestContext.set('isPAT', true)
                             request.requestContext.set('pat', patMetadata)
 
@@ -231,6 +241,12 @@ async function init (app, opts) {
                         delete request.session.scope
                     }
                     resolveSourceContext(request)
+                    // An MCP token's tool permissions are only enforced for calls made through
+                    // the MCP door, so it must not reach the REST API directly
+                    if (request.session.mcpGrant && !request.routeOptions.config.allowMcpGrant && request.requestContext.get('sourceContext')?.source !== 'mcp') {
+                        reply.code(403).send({ code: 'unauthorized', error: 'MCP tokens can only be used through the MCP endpoint' })
+                        return
+                    }
                     return
                 }
                 reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
@@ -274,7 +290,7 @@ async function init (app, opts) {
      */
     app.decorate('blockPAT', async (request, reply) => {
         if (request.session?.isPAT) {
-            reply.code(403).send({ code: 'pat_cannot_create_pat', error: 'PATs cannot create other PATs' })
+            reply.code(403).send({ code: 'pat_cannot_create_pat', error: 'PATs cannot create/edit/delete other PATs' })
         }
     })
 
@@ -525,6 +541,15 @@ async function init (app, opts) {
             await app.auditLog.User.account.register(userInfo, resp, userInfo)
             reply.code(400).send(resp)
             return
+        }
+        if (app.billing && isFreeEmail(request.body.email.toLowerCase())) {
+            const invite = await app.db.models.Invitation.forExternalEmail(request.body.email)
+            if (!invite || invite.length === 0) {
+                const resp = { code: 'invalid_email_domain', error: 'Please register using your company email address' }
+                await app.auditLog.User.account.register(userInfo, resp, userInfo)
+                reply.code(400).send(resp)
+                return
+            }
         }
         if (app.settings.get('user:tcs-required') && !request.body.tcs_accepted) {
             const resp = { code: 'tcs_missing', error: 'terms and conditions not accepted' }
@@ -862,6 +887,7 @@ async function init (app, opts) {
                     await app.db.controllers.User.resetPassword(user, request.body.password)
                     // Clear any existing sessions to force a re-login
                     await app.db.controllers.Session.deleteAllUserSessions(user)
+                    await app.db.controllers.User.logout(user)
                     await app.db.controllers.AccessToken.deleteAllUserPasswordResetTokens(user)
                     success = true
                 } catch (err) {

@@ -2,6 +2,9 @@ const sharedUser = require('./shared/users')
 const UserInvitations = require('./userInvitations')
 const UserNotifications = require('./userNotifications')
 
+const KEY_ONBOARDING_COMPLETED = 'onboardingCompleted'
+const KEY_AI_CONNECTOR_LAST_SHOWN_AT = 'aiConnectorLastShownAt'
+
 /**
  * User api routes
  *
@@ -41,12 +44,46 @@ module.exports = async function (app) {
         if (app.license.active() && app.billing && app.db.controllers.Subscription.freeTrialCreditEnabled()) {
             response.free_trial_available = await app.db.controllers.Subscription.userEligibleForFreeTrialCredit(user)
         }
+        response.settings = await user.getAllSettings()
         const allowTeam = app.patTeamScopeFilter(request)
         if (allowTeam && response.defaultTeam && !allowTeam(response.defaultTeam)) {
             delete response.defaultTeam
         }
 
         reply.send(response)
+    })
+
+    /**
+     * Update the current user's settings. The body schema is the allow-list
+     * of what a user may set about themselves; anything else is stripped.
+     * /api/v1/user/settings
+     */
+    app.put('/settings', {
+        preHandler: app.needsPermission('user:edit'),
+        schema: {
+            summary: 'Update the current user\'s settings',
+            tags: ['User'],
+            body: {
+                type: 'object',
+                properties: {
+                    [KEY_ONBOARDING_COMPLETED]: { type: 'boolean' },
+                    [KEY_AI_CONNECTOR_LAST_SHOWN_AT]: { type: 'number' }
+                },
+                additionalProperties: false
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    additionalProperties: true
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        await request.session.User.updateSettings(request.body)
+        reply.send(await request.session.User.getAllSettings())
     })
 
     /**
@@ -86,6 +123,7 @@ module.exports = async function (app) {
             await app.postoffice.send(request.session.User, 'PasswordChanged', { })
             // Delete all existing sessions for this user
             await app.db.controllers.Session.deleteAllUserSessions(request.session.User)
+            await app.db.controllers.User.logout(request.session.User)
             // Create new session
             const sessionInfo = await app.createSessionCookie(request.session.User.username)
             if (sessionInfo) {
@@ -269,10 +307,11 @@ module.exports = async function (app) {
             tags: ['Tokens'],
             body: {
                 type: 'object',
+                required: ['name'],
                 properties: {
                     scope: { type: 'string' },
                     expiresAt: { type: 'number' },
-                    name: { type: 'string' },
+                    name: { type: 'string', minLength: 1, pattern: '\\S' },
                     readOnly: { type: 'boolean' },
                     adminOptIn: { type: 'boolean' },
                     teamIds: { type: 'array', items: { type: 'string' } }
@@ -329,6 +368,7 @@ module.exports = async function (app) {
      * /api/v1/user/tokens/:id
      */
     app.delete('/tokens/:id', {
+        preHandler: app.blockPAT,
         schema: {
             summary: 'Delete user Personal Access Token',
             tags: ['Tokens'],
@@ -403,7 +443,12 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const updates = new app.auditLog.formatters.UpdatesCollection()
         try {
-            const oldToken = await app.db.models.AccessToken.byId(request.params.id, 'user', request.session.User.id)
+            const oldToken = await app.db.models.AccessToken.byId(request.params.id, 'user', request.session.User.id, {
+                include: [{
+                    model: app.db.models.MCPGrant,
+                    include: [{ model: app.db.models.MCPGrantTeamPermission }]
+                }]
+            })
             if (oldToken) {
                 const oldSummary = app.db.views.AccessToken.personalAccessTokenSummary(oldToken)
                 const body = request.body

@@ -25,13 +25,22 @@ const create = async (projectId, options) => {
     })
 }
 
-const rollbackSnapshot = async (instanceId, snapshotId) => {
+const rollbackSnapshot = async (instanceId, snapshotId, options) => {
     product.capture('ff-snapshot-rollback', {
         'snapshot-id': snapshotId
     }, {
         instance: instanceId
     })
-    return instanceApi.rollbackInstance(instanceId, snapshotId)
+    return instanceApi.rollbackInstance(instanceId, snapshotId, options)
+}
+
+/**
+ * Get the environment variable changes a rollback to a snapshot would make, for both the merge and replace options
+ * @param {String} instanceId - instance id
+ * @param {String} snapshotId - snapshot id
+ */
+const getRollbackPreview = (instanceId, snapshotId) => {
+    return client.get(`/api/v1/projects/${instanceId}/snapshots/${snapshotId}/rollback-preview`).then(res => res.data)
 }
 
 /**
@@ -98,5 +107,6 @@ export default {
     rollbackSnapshot,
     getSnapshot,
     getInstanceSnapshots,
+    getRollbackPreview,
     exportInstanceSnapshot
 }

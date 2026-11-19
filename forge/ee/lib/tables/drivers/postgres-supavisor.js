@@ -61,9 +61,11 @@ module.exports = {
             throw new Error('Database already exists')
         } else {
             const password = generatePassword(16)
+            let databaseCreated = false
             try {
                 const escapedDatabaseName = libPg.pg.escapeIdentifier(team.hashid)
                 await this._adminClient.query(`CREATE DATABASE ${escapedDatabaseName}`)
+                databaseCreated = true
                 await this._adminClient.query(`REVOKE connect ON DATABASE ${escapedDatabaseName} FROM PUBLIC;`)
                 await this._adminClient.query(`ALTER DATABASE ${escapedDatabaseName} SET statement_timeout='30s';`)
                 const teamClient = libPg.newClient({ ...this._options.backend, database: team.hashid })
@@ -148,16 +150,28 @@ module.exports = {
                     throw new Error(`Failed to create database for team ${team.hashid}: ${response.statusText}`)
                 }
             } catch (err) {
-                // console.log(err)
                 this._app.log.error(`Failed to create database\n${this._options.supavisor.url}/api/tenants/${team.hashid}\n${err.toString()}`)
+                if (databaseCreated) {
+                    await this._rollbackCreate(team)
+                }
+                throw err
             }
         }
     },
-    destroyDatabase: async function (team, databaseId) {
-        const db = await this._app.db.models.Table.byId(team.id, databaseId)
-        if (!db) {
-            throw new Error(`Database ${databaseId} for team ${team.hashid} does not exist`)
+    _rollbackCreate: async function (team) {
+        // Only called once CREATE DATABASE succeeded, so everything removed here was created by this call
+        try {
+            await this._deleteTenant(team)
+        } catch (err) {
+            this._app.log.warn(`Failed to clean up tenant for team ${team.hashid}: ${err.toString()}`)
         }
+        try {
+            await libPg.dropTeamDatabase(this._adminClient, team.hashid)
+        } catch (err) {
+            this._app.log.warn(`Failed to clean up database for team ${team.hashid}: ${err.toString()}`)
+        }
+    },
+    _deleteTenant: async function (team) {
         try {
             await axios.delete(`${this._options.supavisor.url}/api/tenants/${team.hashid}`, {
                 headers: {
@@ -166,21 +180,20 @@ module.exports = {
                 }
             })
         } catch (err) {
-            // console.log(err)
-        }
-        const res = await this._adminClient.query('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid])
-        if (res.rows.length === 1) {
-            try {
-                await this._adminClient.query(`DROP DATABASE IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid)}`)
-                await this._adminClient.query(`DROP USER IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid)}`)
-                await this._adminClient.query(`DROP ROLE IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid + '-role')}`)
-                await db.destroy()
-            } catch (err) {
-                // console.log(err)
+            // A tenant that is already gone (e.g. from an earlier partial delete) is not a failure
+            if (err.response?.status !== 404) {
+                throw err
             }
-        } else {
-            throw new Error(`Database ${team.hashid} does not exist`)
         }
+    },
+    destroyDatabase: async function (team, databaseId) {
+        const db = await this._app.db.models.Table.byId(team.id, databaseId)
+        if (!db) {
+            throw new Error(`Database ${databaseId} for team ${team.hashid} does not exist`)
+        }
+        await this._deleteTenant(team)
+        await libPg.dropTeamDatabase(this._adminClient, team.hashid)
+        await db.destroy()
     },
     getTables: async function (team, databaseId, paginationOptions) {
         // SELECT * FROM pg_catalog.pg_tables;
@@ -269,42 +282,36 @@ module.exports = {
             throw new Error(`Failed to retrieve table ${tableName} for team ${team.hashid}: ${err.message}`)
         }
     },
-    getTableData: async function (team, database, table, pagination, schemaName) {
-        const rows = Math.min(parseInt(pagination.limit) || 10, 10)
+    getTableData: async function (team, database, table, pagination, schemaName, signal) {
         const databaseExists = await this._app.db.models.Table.byId(team.id, database)
         if (!databaseExists || databaseExists.TeamId !== team.id) {
             throw new Error(`Database ${database} for team ${team.hashid} does not exist`)
         }
         try {
-            const teamClient = libPg.newClient({ ...this._options.backend, database: team.hashid })
+            const databaseOptions = { ...this._options.backend, database: team.hashid }
+            const teamClient = libPg.newClient({ ...databaseOptions, types: libPg.tableDataTypes })
+            const stopCancelling = libPg.cancelOnAbort(teamClient, signal, databaseOptions)
             try {
                 await teamClient.connect()
+                signal?.throwIfAborted()
                 let resolvedSchema = schemaName
                 if (!resolvedSchema) {
                     const schemaRes = await teamClient.query('SELECT "schemaname" FROM "pg_catalog"."pg_tables" WHERE "tablename" = $1 AND "schemaname" != \'pg_catalog\' AND "schemaname" != \'information_schema\' LIMIT 1', [table])
                     resolvedSchema = schemaRes.rows[0]?.schemaname
                 }
-                const escapedTable = libPg.pg.escapeIdentifier(table)
-                const qualifiedTable = resolvedSchema ? `${libPg.pg.escapeIdentifier(resolvedSchema)}.${escapedTable}` : escapedTable
-                const query = `SELECT * FROM ${qualifiedTable} LIMIT $1`
-                const res = await teamClient.query(query, [rows || 10])
-                if (res.rows && res.rows.length > 0) {
-                    return {
-                        count: res.rows.length,
-                        rows: res.rows,
-                        meta: {}
-                    }
-                } else {
-                    return {
-                        count: 0,
-                        rows: [],
-                        meta: {}
-                    }
-                }
+                return await libPg.getTableDataPage(teamClient, { schema: resolvedSchema, tableName: table }, pagination, signal)
             } finally {
+                stopCancelling()
                 teamClient.end()
             }
         } catch (err) {
+            if (signal?.aborted) {
+                throw err
+            }
+            // a mistake in the request, which the route reports as it is
+            if (err.statusCode === 400) {
+                throw err
+            }
             console.error('Error retrieving table:', err)
             throw new Error(`Failed to retrieve table ${table} for team ${team.hashid}: ${err.message}`)
         }
@@ -336,7 +343,7 @@ module.exports = {
             await teamClient.end()
         }
     },
-    createTable: async function (team, databaseId, tableName, columns) {
+    createTable: async function (team, databaseId, tableName, columns, schemaName = 'public') {
         const databaseExists = await this._app.db.models.Table.byId(team.id, databaseId)
         if (!databaseExists || databaseExists.TeamId !== team.id) {
             throw new Error(`Database ${databaseId} for team ${team.hashid} does not exist`)
@@ -353,7 +360,8 @@ module.exports = {
             const teamClient = libPg.newClient(options)
             try {
                 await teamClient.connect()
-                let query = `CREATE TABLE IF NOT EXISTS ${libPg.pg.escapeIdentifier(tableName)} (\n`
+                const escapedSchema = libPg.pg.escapeIdentifier(schemaName)
+                let query = `CREATE TABLE IF NOT EXISTS ${escapedSchema}.${libPg.pg.escapeIdentifier(tableName)} (\n`
                 for (const [i, col] of columns.entries()) {
                     if (col.name.length === 0 || col.type.length === 0) {
                         continue
@@ -371,11 +379,14 @@ module.exports = {
                         } else if (col.type === 'bigint') {
                             column += `DEFAULT ${parseInt(col.default)}`
                         } else if (['real', 'double precision'].includes(col.type)) {
-                            column += `DEFAULT ${parseFloat(column.default)}`
+                            column += `DEFAULT ${parseFloat(col.default)}`
                         } else if (col.type === 'boolean') {
-                            column += `DEFAULT ${column.default === 'true'}`
+                            column += `DEFAULT ${col.default === 'true'}`
                         } else if (col.type === 'timestamptz') {
                             column += 'DEFAULT NOW()'
+                        } else if (col.type === 'date') {
+                            // CURRENT_DATE defaults to the day each row is inserted, anything else is a literal date
+                            column += col.default === 'CURRENT_DATE' ? 'DEFAULT CURRENT_DATE' : `DEFAULT ${libPg.pg.escapeLiteral(col.default)}`
                         }
                     }
                     if (i + 1 !== columns.length) {
@@ -388,7 +399,17 @@ module.exports = {
                     query = query.replace(/ ,\n$/, '\n')
                 }
                 query += ')'
-                await teamClient.query(query)
+                await teamClient.query('BEGIN')
+                try {
+                    if (schemaName !== 'public') {
+                        await teamClient.query(`CREATE SCHEMA IF NOT EXISTS ${escapedSchema}`)
+                    }
+                    await teamClient.query(query)
+                    await teamClient.query('COMMIT')
+                } catch (err) {
+                    await teamClient.query('ROLLBACK')
+                    throw err
+                }
             } finally {
                 teamClient.end()
             }

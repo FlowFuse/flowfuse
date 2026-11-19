@@ -36,7 +36,7 @@
         <span v-if="isIconOnly" class="ff-btn--icon">
             <slot name="icon"></slot>
         </span>
-        <span class="clipped-overflow flex align-center justify-center gap-4">
+        <span class="clipped-overflow flex align-center gap-4" :class="align === 'left' ? 'justify-start' : 'justify-center'">
             <slot></slot>
         </span>
         <span v-if="hasIconRight" class="ff-btn--icon ff-btn--icon-right">
@@ -57,11 +57,15 @@ export default {
         },
         kind: {
             default: 'primary',
-            type: String // "primary", "secondary", "tertiary", "danger", "secondary-danger", "tertiary-danger"
+            type: String // "primary", "secondary", "tertiary", "danger", "secondary-danger", "tertiary-danger", "expert", "plain"
         },
         size: {
             default: 'normal',
             type: String // "small", "medium", "normal", "full-width"
+        },
+        align: {
+            default: 'center',
+            type: String // "center", "left"
         },
         to: {
             default: null,

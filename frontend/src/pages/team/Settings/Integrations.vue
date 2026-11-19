@@ -193,7 +193,7 @@ export default {
                         Alerts.emit('Successfully deleted the token', 'confirmation')
                         this.tokens.delete(token.id)
                     } catch (err) {
-                        Alerts.emit('Failed to delete token: ' + err.toString(), 'warning', 7500)
+                        Alerts.emit('Failed to delete token: ' + (err.response?.data?.error || err.toString()), 'warning', 7500)
                     } finally {
                         this.deletingItem = false
                     }

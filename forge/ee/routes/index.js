@@ -16,6 +16,7 @@ async function commonFeatures (app) {
     if (app.config.tables?.enabled) {
         await app.register(require('./tables'), { prefix: '/api/v1/teams/:teamId/databases', logLevel: app.config.logging.http })
     }
+    await app.register(require('./schemas'), { prefix: '/api/v1/teams/:teamId/schemas', logLevel: app.config.logging.http })
     await app.register(require('./resource'), { prefix: '/api/v1/projects/:instanceId/resources', logLevel: app.config.logging.http })
     await app.register(require('./autoUpdateStacks'), { prefix: '/api/v1/projects/:projectId/autoUpdateStack', logLevel: app.config.logging.http })
     await app.register(require('./httpTokens'), { prefix: '/api/v1', logLevel: app.config.logging.http })
@@ -34,6 +35,7 @@ module.exports = async function (app) {
     await app.register(require('./pipeline'), { prefix: '/api/v1', logLevel: app.config.logging.http })
     await app.register(require('./pipeline/teamPipelines.js'), { prefix: '/api/v1/teams/:teamId/pipelines', logLevel: app.config.logging.http })
     await app.register(require('./deviceEditor'), { prefix: '/api/v1/devices/:deviceId/editor', logLevel: app.config.logging.http })
+    await app.register(require('./projectLink'), { prefix: '/api/v1/teams/:teamId/project-link', logLevel: app.config.logging.http })
 
     await app.register(require('./flowBlueprints'), { prefix: '/api/v1/flow-blueprints', logLevel: app.config.logging.http })
 
@@ -60,7 +62,7 @@ module.exports = async function (app) {
         await commonFeatures(app)
         enableSSO = true
 
-        if (tiers.includes('hub')) {
+        if (tiers.includes('hub') || tiers.includes('testing')) {
             await app.register(require('./gitops'), { prefix: '/api/v1/teams/:teamId/git', logLevel: app.config.logging.http })
             await app.register(require('./ha'), { prefix: '/api/v1/projects/:projectId/ha', logLevel: app.config.logging.http })
             await app.register(require('./protectedInstance'), { prefix: '/api/v1/projects/:projectId/protectInstance', logLevel: app.config.logging.http })
@@ -68,7 +70,7 @@ module.exports = async function (app) {
             await app.register(require('./bom/team.js'), { prefix: '/api/v1/teams', logLevel: app.config.logging.http })
             await app.register(require('./customHostnames'), { prefix: '/api/v1/projects/:projectId/customHostname', logLevel: app.config.logging.http })
         }
-        if (tiers.includes('edge') || tiers.includes('fleet')) {
+        if (tiers.includes('edge') || tiers.includes('fleet') || tiers.includes('testing')) {
             await app.register(require('./teamBroker'), { prefix: '/api/v1/teams/:teamId/broker', logLevel: app.config.logging.http })
             await app.register(require('./teamBroker/3rdPartyBroker'), { prefix: '/api/v1/teams/:teamId/brokers', logLevel: app.config.logging.http })
             await app.register(require('./applicationDeviceGroups'), { prefix: '/api/v1/applications/:applicationId/device-groups', logLevel: app.config.logging.http })

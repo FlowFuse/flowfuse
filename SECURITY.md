@@ -2,6 +2,6 @@
 
 ## Reporting a Vulnerability
 
-Please report any vulnerabilities discovered in FlowForge products to security@flowforge.com.
+Please report any vulnerabilities discovered in FlowFuse products to security@flowfuse.com.
 
-We will endeavour to acknowledge and fix any reported vulnerabilities ASAP.
+Full details of our security policy are available on [our website](https://flowfuse.com/handbook/engineering/security/#security-reporting-policy).

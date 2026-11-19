@@ -103,6 +103,62 @@ module.exports = async function (app) {
     })
 
     /**
+     * Preview the env var changes a rollback to this snapshot would make
+     */
+    const envVarChangeSchema = {
+        type: 'object',
+        properties: {
+            name: { type: 'string' },
+            hidden: { type: 'boolean' },
+            from: { type: 'string' },
+            to: { type: 'string' }
+        }
+    }
+    const envVarChangesSchema = {
+        type: 'object',
+        properties: {
+            added: { type: 'array', items: envVarChangeSchema },
+            changed: { type: 'array', items: envVarChangeSchema },
+            removed: { type: 'array', items: envVarChangeSchema }
+        }
+    }
+    app.get('/:snapshotId/rollback-preview', {
+        preHandler: app.needsPermission('project:snapshot:rollback'),
+        schema: {
+            summary: 'Preview the environment variable changes a rollback to a snapshot would make',
+            description: 'Returns the changes for both rollback options: merge (mergeEnvVars: true) and replace (mergeEnvVars: false). Values of hidden environment variables are never returned.',
+            tags: ['Snapshots'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' },
+                    snapshotId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        env: {
+                            type: 'object',
+                            properties: {
+                                merge: envVarChangesSchema,
+                                replace: envVarChangesSchema
+                            }
+                        }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const env = await app.db.controllers.Project.previewSnapshotEnvVarChanges(request.project, request.snapshot)
+        reply.send({ env })
+    })
+
+    /**
      * Delete a snapshot
      */
     app.delete('/:snapshotId', {

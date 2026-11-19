@@ -81,6 +81,21 @@
   margin-right: -$ff-unit-xs;
 }
 
+@property --ff-expert-border-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 135deg;
+}
+
+@keyframes expert-border-swirl {
+  from {
+    --ff-expert-border-angle: 135deg;
+  }
+  to {
+    --ff-expert-border-angle: 495deg;
+  }
+}
+
 .ff-btn {
   border-radius: $ff-unit-sm;
   display: flex;
@@ -173,6 +188,30 @@
     &:hover {
       background-color: var(--ff-color-danger-strong);
       color: var(--ff-color-text-on-brand);
+    }
+  }
+  &--expert {
+    @include ff-expert-border;
+    color: var(--ff-color-text-strong);
+    &:hover, &.active {
+      border-width: 2px;
+      margin: -1px;
+    }
+    &[disabled=""] {
+      animation: none;
+    }
+  }
+  &--plain {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font-weight: inherit;
+    > .clipped-overflow {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+      gap: $ff-unit-sm;
     }
   }
 
@@ -653,6 +692,42 @@ li.ff-kebab-item {
     background-color: transparent;
     border: 1px solid var(--ff-color-border-strong);
     background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e")
+  }
+}
+
+/**
+ *  FF Radio/Checkbox tile option: a full-width tappable card (e.g. onboarding
+ *  question cards), with the glyph kept at its normal size and the label
+ *  stacked above its description.
+ */
+
+.ff-radio-btn.ff-radio-btn--tile,
+.ff-checkbox.ff-checkbox--tile {
+  // block, not flex: the label and its description are flex siblings on the
+  // base rule, which would otherwise sit them side by side instead of stacked
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--ff-color-border);
+  border-radius: 0.375rem;
+  padding: 0.875rem 1rem 0.875rem 2.75rem;
+  background-color: var(--ff-color-bg-surface);
+
+  // the glyph is absolutely positioned top-left by default; align it with the centre of
+  // the label's first line (0.875rem padding + half of the 1.25rem/16px height gap),
+  // not the tile's, so it stays beside the label when a description adds a second line
+  .checkbox {
+    top: 1rem;
+    left: 1rem;
+  }
+
+  &:hover:not([disabled=true]) {
+    border-color: var(--ff-color-text-subtle);
+  }
+
+  &:has(.checkbox[checked='true']) {
+    border-color: var(--ff-color-accent);
+    background-color: var(--ff-color-accent-surface);
   }
 }
 

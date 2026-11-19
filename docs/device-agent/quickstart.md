@@ -52,13 +52,13 @@ powershell -Command "Start-Process 'powershell' -Verb RunAs"
 Set-Location $env:USERPROFILE; powershell -c "irm https://flowfuse.github.io/device-agent/get.ps1 | iex"; .\flowfuse-device-agent-installer.exe
 ```
 
-{% note %}
+::note
 The installer checks to see if port 1880 is available to use. If it isn't, it will let you know before exiting. This is typically because you already have Node-RED running locally. You can tell the installer to configure its Node-RED to use a different port using the `--port <port>` argument. Pick a different port, for example `1881` and re-run the above command with `--port 1881` added to the end.
-{% endnote %}
+::
 
-{% note %}
+::note
 By default, the installer will use `/opt/flowfuse-device` (Linux/MacOS) or `c:\opt\flowfuse-device` (Windows) as the install location. To use a different location, use the `--dir` option with the install command. For example, `--dir /path/to/custom/location`.
-{% endnote %}
+::
 
 ## Step 2: Follow the installer prompts
 
@@ -99,7 +99,7 @@ From there you can start building your applications.
 There are two approaches to deploying flows to your Remote Instances.
 
 - **Developer Mode**: This mode allows you to edit and deploy flows directly from the FlowFuse platform.
-- **DevOps Pipelines**: FlowFuse provides [DevOps Pipelines](/docs/user/devops-pipelines.md) as a way of pushing flows from one Hosted Instance/Remote Instance to another (or several in the case of [Device Groups](/docs/user/device-groups.md)). This is the recommended approach if you're pushing from development environments (e.g. remote test instances) out to remote production instances.
+- **DevOps Pipelines**: FlowFuse provides [DevOps Pipelines](/docs/user/devops-pipelines/) as a way of pushing flows from one Hosted Instance/Remote Instance to another (or several in the case of [Device Groups](/docs/user/device-groups/)). This is the recommended approach if you're pushing from development environments (e.g. remote test instances) out to remote production instances.
 
 ### Developer Mode
 
@@ -126,7 +126,7 @@ There are two approaches to deploying flows to your Remote Instances.
 ![Screenshot showing the user interface for creating and running DevOps Pipelines in FlowFuse](./images/ui-devops-pipelines.png){width=750}{data-zoomable}
 _Screenshot showing the user interface for creating and running DevOps Pipelines in FlowFuse_
 
-To work with Pipelines, you need at least one other Hosted Instance or Remote Device to push _from_/_to_. You can follow the instructions on setting up a Pipeline and deploying your flows between Hosted Instances/Remote Instances [DevOps Pipelines](/docs/user/devops-pipelines.md).
+To work with Pipelines, you need at least one other Hosted Instance or Remote Device to push _from_/_to_. You can follow the instructions on setting up a Pipeline and deploying your flows between Hosted Instances/Remote Instances [DevOps Pipelines](/docs/user/devops-pipelines/).
 
 ## Next Steps
 

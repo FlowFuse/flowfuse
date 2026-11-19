@@ -5,6 +5,7 @@ const { URL } = require('url')
 const { KEY_PROTECTED } = require('../../db/models/ProjectSettings')
 
 const { base64URLEncode, sha256, URLEncode } = require('../../db/utils')
+const mcpToolPermissions = require('../../lib/mcpToolPermissions')
 
 function badRequest (reply, error, description) {
     // This format is defined by the OAuth standard - do not change
@@ -13,6 +14,10 @@ function badRequest (reply, error, description) {
         description
     })
 }
+
+// Per-caller cap on the refresh grant, throttling probes with guessed tokens.
+const MCP_REFRESH_RATE_WINDOW = 1000 * 60 // 60 seconds
+const MCP_REFRESH_RATE_MAX = 30
 
 // A loopback redirect_uri may vary its port between registration and use
 // (RFC 8252 Section 7.3); localhost and 127.0.0.1 are interchangeable.
@@ -44,14 +49,26 @@ function redirectUriMatches (registeredURIs, requested) {
     })
 }
 
-function redirectInvalidRequest (reply, redirectURI, error, errorDescription, state) {
+function errorRedirectURL (redirectURI, error, errorDescription, state) {
     const responseUrl = new URL(redirectURI)
     const response = { error, errorDescription }
     if (state) {
         response.state = state
     }
     responseUrl.search = querystring.stringify(response)
-    reply.redirect(responseUrl.toString())
+    return responseUrl.toString()
+}
+
+function redirectInvalidRequest (reply, redirectURI, error, errorDescription, state) {
+    reply.redirect(errorRedirectURL(redirectURI, error, errorDescription, state))
+}
+
+// The FlowFuse Node-RED plugin and MCP agents receive user-scoped tokens, so
+// the user must explicitly approve the request on the consent page. These
+// requests can only be completed via the PUT routes, which cannot be triggered
+// cross-site; the GET routes are reserved for the editor auth flow.
+function requiresApproval (requestObject) {
+    return requestObject.client_id === 'ff-plugin' || requestObject.mcp
 }
 
 module.exports = async function (app) {
@@ -62,6 +79,29 @@ module.exports = async function (app) {
         get: async function (id) {
             return app.db.models.OAuthSession.getAndRemoveById(id)
         }
+    }
+
+    // Approving an OAuth request must come from the user's own logged-in browser
+    // session. Bearer tokens are refused so an existing token cannot be used to
+    // mint a new, broader one.
+    async function verifyBrowserSession (request, reply) {
+        request.session = request.sid ? await app.db.controllers.Session.getValidSession(request.sid) : null
+        if (!request.session) {
+            return reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+        }
+    }
+
+    // Issue an authorization code for the user and return the client callback url
+    async function issueCode (requestObject, user) {
+        requestObject.userId = user.id
+        requestObject.code = base64URLEncode(crypto.randomBytes(32))
+        await requestCache.set(requestObject.code, requestObject)
+        const responseUrl = new URL(requestObject.redirect_uri)
+        responseUrl.search = querystring.stringify({
+            code: requestObject.code,
+            state: requestObject.state
+        })
+        return responseUrl.toString()
     }
 
     app.addContentTypeParser('application/x-www-form-urlencoded', { parseAs: 'string' }, function (req, body, done) {
@@ -116,6 +156,11 @@ module.exports = async function (app) {
         try {
             redirectURI = new URL(redirect_uri)
         } catch (err) {
+            return badRequest(reply, 'invalid_request', 'Invalid redirect_uri')
+        }
+        // Only http(s) callbacks are valid - this rejects schemes such as javascript:
+        // that would otherwise pass the path checks below
+        if (redirectURI.protocol !== 'http:' && redirectURI.protocol !== 'https:') {
             return badRequest(reply, 'invalid_request', 'Invalid redirect_uri')
         }
         let isMCP = false
@@ -187,7 +232,7 @@ module.exports = async function (app) {
             if (request.sid) {
                 // This is the editor auth flow. If logged-in, redirect straight
                 // to the complete route. Otherwise prompt to login
-                request.session = await app.db.controllers.Session.getOrExpire(request.sid)
+                request.session = await app.db.controllers.Session.getValidSession(request.sid)
                 if (request.session) {
                     // Logged in with valid session - bounce to complete page
                     reply.redirect(`${app.config.base_url}/account/complete/${requestId}`)
@@ -217,82 +262,72 @@ module.exports = async function (app) {
         if (!requestObject) {
             return badRequest(reply, 'invalid_request', 'Invalid request')
         }
+        if (requiresApproval(requestObject)) {
+            return badRequest(reply, 'invalid_request', 'Invalid request')
+        }
         if (request.sid) {
-            request.session = await app.db.controllers.Session.getOrExpire(request.sid)
+            request.session = await app.db.controllers.Session.getValidSession(request.sid)
             if (request.session) {
-                if (requestObject.client_id === 'ff-plugin' || requestObject.mcp) {
-                    // FlowFuse Node-RED plugin or MCP agent: user-scoped, no resource ownership checks
-                } else {
-                    const authClient = await app.db.controllers.AuthClient.getAuthClient(requestObject.client_id)
-                    if (!authClient) {
-                        return badRequest(reply, 'invalid_request', 'Invalid client_id')
-                    }
-                    let owner = null
-                    let applicationId
-                    if (authClient.ownerType === 'project') {
-                        owner = await app.db.models.Project.byId(authClient.ownerId)
-                        // Project.byId will include the full Application object
-                        applicationId = owner?.Application.hashid
-                    } else if (authClient.ownerType === 'device') {
-                        owner = await app.db.models.Device.byId(parseInt(authClient.ownerId))
-                        // Device.byId does not include the full Application object
-                        if (owner?.ApplicationId) {
-                            applicationId = app.db.models.Application.encodeHashid(owner.ApplicationId)
-                        }
-                    }
-                    const teamMembership = await request.session.User.getTeamMembership(owner.TeamId)
-                    if (!teamMembership && !request.session.User.admin) {
-                        // This user is neither a team member, nor an admin - reject
-                        return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
-                    }
-                    const isEditor = /^editor($|-)/.test(requestObject.scope)
-                    if (isEditor) {
-                        // Allow admin users to have read-access to flows
-                        const protectedInstance = await owner.getSetting(KEY_PROTECTED)
-                        let context
-                        if (applicationId) {
-                            context = { applicationId }
-                        }
-                        const canReadFlows = request.session.User.admin || app.hasPermission(teamMembership, 'project:flows:view', context)
-                        const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit', context) && !protectedInstance?.enabled
-                        const canReadHTTP = app.hasPermission(teamMembership, 'project:flows:http', context)
-                        if (!canReadFlows && !canWriteFlows) {
-                            if (!canReadHTTP) {
-                                return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
-                            } else {
-                                // We have to avoid Node-RED autoLogin redirect loops - so bail out with this
-                                // rather ugly error message.
-                                reply.code(400).send('Access Denied: you do not have access to the editor')
-                                return
-                            }
-                        }
-                        if (!canWriteFlows && requestObject.scope === 'editor') {
-                            // Older versions of nr-auth do not know how to apply read-only
-                            // access. We know it is an older version because it set scope to `editor`.
-                            // Versions that support viewer will have a scope of `editor-<version>`.
-                            // This should be sent as plain text as the user will see it in the browser window.
-                            reply.code(400).send('Please ask the team owner to update this project to the latest stack to support viewer access')
-                            return
-                        }
-                    } else {
-                        // This is the httpNode middleware checking access. All
-                        // team members are allowed to access the httpNode routes
-                        if (!teamMembership) {
-                            // This is an admin who isn't a team member - reject the request
-                            return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
-                        }
+                const authClient = await app.db.controllers.AuthClient.getAuthClient(requestObject.client_id)
+                if (!authClient) {
+                    return badRequest(reply, 'invalid_request', 'Invalid client_id')
+                }
+                let owner = null
+                let applicationId
+                if (authClient.ownerType === 'project') {
+                    owner = await app.db.models.Project.byId(authClient.ownerId)
+                    // Project.byId will include the full Application object
+                    applicationId = owner?.Application.hashid
+                } else if (authClient.ownerType === 'device') {
+                    owner = await app.db.models.Device.byId(parseInt(authClient.ownerId))
+                    // Device.byId does not include the full Application object
+                    if (owner?.ApplicationId) {
+                        applicationId = app.db.models.Application.encodeHashid(owner.ApplicationId)
                     }
                 }
-                requestObject.userId = request.session.User.id
-                requestObject.code = base64URLEncode(crypto.randomBytes(32))
-                await requestCache.set(requestObject.code, requestObject)
-                const responseUrl = new URL(requestObject.redirect_uri)
-
-                responseUrl.search = querystring.stringify({
-                    code: requestObject.code,
-                    state: requestObject.state
-                })
-                reply.redirect(responseUrl.toString())
+                const teamMembership = await request.session.User.getTeamMembership(owner.TeamId)
+                if (!teamMembership && !request.session.User.admin) {
+                    // This user is neither a team member, nor an admin - reject
+                    return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
+                }
+                const isEditor = /^editor($|-)/.test(requestObject.scope)
+                if (isEditor) {
+                    // Allow admin users to have read-access to flows
+                    const protectedInstance = await owner.getSetting(KEY_PROTECTED)
+                    let context
+                    if (applicationId) {
+                        context = { applicationId }
+                    }
+                    const canReadFlows = request.session.User.admin || app.hasPermission(teamMembership, 'project:flows:view', context)
+                    const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit', context) && !protectedInstance?.enabled
+                    const canReadHTTP = app.hasPermission(teamMembership, 'project:flows:http', context)
+                    if (!canReadFlows && !canWriteFlows) {
+                        if (!canReadHTTP) {
+                            return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
+                        } else {
+                            // We have to avoid Node-RED autoLogin redirect loops - so bail out with this
+                            // rather ugly error message.
+                            reply.code(400).send('Access Denied: you do not have access to the editor')
+                            return
+                        }
+                    }
+                    if (!canWriteFlows && requestObject.scope === 'editor') {
+                        // Older versions of nr-auth do not know how to apply read-only
+                        // access. We know it is an older version because it set scope to `editor`.
+                        // Versions that support viewer will have a scope of `editor-<version>`.
+                        // This should be sent as plain text as the user will see it in the browser window.
+                        reply.code(400).send('Please ask the team owner to update this project to the latest stack to support viewer access')
+                        return
+                    }
+                } else {
+                    // This is the httpNode middleware checking access. All
+                    // team members are allowed to access the httpNode routes
+                    if (!teamMembership) {
+                        // This is an admin who isn't a team member - reject the request
+                        return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
+                    }
+                }
+                reply.redirect(await issueCode(requestObject, request.session.User))
                 return
             }
         }
@@ -305,10 +340,41 @@ module.exports = async function (app) {
     }, async function (request, reply) {
         const requestId = request.params.code
         const requestObject = await requestCache.get(requestId)
-        if (!requestObject) {
+        if (!requestObject || requiresApproval(requestObject)) {
             return badRequest(reply, 'invalid_request', 'Invalid request')
         }
         return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
+    })
+
+    // Consent page approval for the FlowFuse Node-RED plugin and MCP agents.
+    // Returns the client callback url for the page to redirect to.
+    app.put('/account/complete/:code', {
+        preHandler: verifyBrowserSession,
+        schema: {
+            tags: ['Authentication', 'X-HIDDEN']
+        }
+    }, async function (request, reply) {
+        const requestObject = await requestCache.get(request.params.code)
+        if (!requestObject || !requiresApproval(requestObject)) {
+            return badRequest(reply, 'invalid_request', 'Invalid request')
+        }
+        if (requestObject.mcp && requestObject.approvedBy !== request.session.User.id) {
+            // The access choices must have been saved by this user via the consent route
+            return badRequest(reply, 'access_denied', 'Access Denied')
+        }
+        reply.send({ redirect: await issueCode(requestObject, request.session.User) })
+    })
+    app.put('/account/reject/:code', {
+        preHandler: verifyBrowserSession,
+        schema: {
+            tags: ['Authentication', 'X-HIDDEN']
+        }
+    }, async function (request, reply) {
+        const requestObject = await requestCache.get(request.params.code)
+        if (!requestObject) {
+            return badRequest(reply, 'invalid_request', 'Invalid request')
+        }
+        reply.send({ redirect: errorRedirectURL(requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state) })
     })
 
     // RFC 7591: Dynamic Client Registration for MCP agents
@@ -369,7 +435,7 @@ module.exports = async function (app) {
 
     // MCP consent: save the user's access choices before they approve
     app.put('/account/authorize/:id/consent', {
-        preHandler: (request, reply) => app.verifySession(request, reply),
+        preHandler: verifyBrowserSession,
         schema: {
             tags: ['Authentication', 'X-HIDDEN'],
             params: {
@@ -382,15 +448,26 @@ module.exports = async function (app) {
             body: {
                 type: 'object',
                 properties: {
-                    readOnly: { type: 'boolean' },
                     teamIds: { type: 'array', items: { type: 'string' } },
-                    expiresAt: { type: 'number' }
-                }
+                    expiresAt: { type: 'number' },
+                    toolPermissions: {
+                        type: 'object',
+                        properties: {
+                            default: mcpToolPermissions.TOOL_PERMISSIONS_SCHEMA,
+                            teams: {
+                                type: 'object',
+                                additionalProperties: mcpToolPermissions.TOOL_PERMISSIONS_SCHEMA
+                            }
+                        },
+                        required: ['default']
+                    }
+                },
+                required: ['toolPermissions']
             }
         }
     }, async function (request, reply) {
         const requestId = request.params.id
-        const { readOnly = false, teamIds = [], expiresAt } = request.body
+        const { teamIds = [], expiresAt, toolPermissions } = request.body
 
         const session = await app.db.models.OAuthSession.findOne({ where: { id: requestId } })
         if (!session) {
@@ -410,7 +487,28 @@ module.exports = async function (app) {
             return badRequest(reply, 'invalid_request', 'Invalid expiresAt')
         }
 
-        session.value = { ...requestObject, readOnly, teamIds, expiresAt }
+        const overrideTeamIds = Object.keys(toolPermissions.teams || {})
+        for (const teamId of overrideTeamIds) {
+            const decodedId = app.db.models.Team.decodeHashid(teamId)
+            const membership = decodedId ? await app.db.models.TeamMember.findOne({ where: { UserId: request.session.User.id, TeamId: decodedId } }) : null
+            if (!membership) {
+                return badRequest(reply, 'invalid_request', `Not a member of team: ${teamId}`)
+            }
+            if (teamIds.length > 0 && !teamIds.includes(teamId)) {
+                return badRequest(reply, 'invalid_request', `Team override is not in teamIds: ${teamId}`)
+            }
+        }
+
+        const normalisedDefault = mcpToolPermissions.normalise(toolPermissions.default)
+        const normalisedTeams = {}
+        for (const teamId of overrideTeamIds) {
+            const normalisedOverride = mcpToolPermissions.normalise(toolPermissions.teams[teamId])
+            if (!mcpToolPermissions.equals(normalisedOverride, normalisedDefault)) {
+                normalisedTeams[teamId] = normalisedOverride
+            }
+        }
+
+        session.value = { ...requestObject, approvedBy: request.session.User.id, teamIds, expiresAt, toolPermissions: { default: normalisedDefault, teams: normalisedTeams } }
         await session.save()
 
         reply.send({ status: 'ok' })
@@ -487,7 +585,7 @@ module.exports = async function (app) {
                 return
             }
             if (requestObject.code_challenge !== URLEncode(sha256(code_verifier))) {
-                redirectInvalidRequest(reply, 'invalid_request', 'Invalid code_verifier', requestObject.state)
+                badRequest(reply, 'invalid_request', 'Invalid code_verifier')
                 return
             }
 
@@ -525,12 +623,16 @@ module.exports = async function (app) {
                 }
                 reply.send(response)
             } else if (requestObject.mcp) {
+                // Only issue a token for a request the user approved on the consent page
+                if (requestObject.approvedBy !== requestObject.userId || !requestObject.expiresAt || !requestObject.toolPermissions) {
+                    return badRequest(reply, 'access_denied', 'Access Denied')
+                }
                 const accessToken = await app.db.controllers.AccessToken.createMCPOAuthToken(
                     requestObject.userId,
                     {
-                        readOnly: requestObject.readOnly || false,
-                        teamIds: requestObject.teamIds || [],
-                        grantExpiresAt: requestObject.expiresAt || null
+                        teamIds: requestObject.teamIds,
+                        grantExpiresAt: requestObject.expiresAt,
+                        toolPermissions: requestObject.toolPermissions
                     }
                 )
                 const response = {
@@ -543,7 +645,7 @@ module.exports = async function (app) {
                 reply.send(response)
             } else {
                 const authClient = await app.db.controllers.AuthClient.getAuthClient(client_id, client_secret)
-                if (!authClient) {
+                if (!authClient || (authClient.clientSecret && !client_secret)) {
                     return badRequest(reply, 'invalid_request', 'Invalid client_id')
                 }
 
@@ -608,21 +710,38 @@ module.exports = async function (app) {
             if (!refresh_token) {
                 return badRequest(reply, 'invalid_request', 'Invalid refresh_token')
             }
-            const existingToken = await app.db.models.AccessToken.byRefreshToken(refresh_token)
-            if (!existingToken) {
-                badRequest(reply, 'invalid_request', 'Invalid refresh_token')
-                return
-            }
-            // Only project/device clients re-check resource ownership on refresh;
-            // ff-plugin and MCP clients are user-scoped.
             let refreshAuthClient = null
             if (client_id !== 'ff-plugin') {
                 refreshAuthClient = await app.db.controllers.AuthClient.getAuthClient(client_id, client_secret)
-                if (!refreshAuthClient) {
+                if (!refreshAuthClient || (refreshAuthClient.clientSecret && !client_secret)) {
                     return badRequest(reply, 'invalid_request', 'Invalid client_id')
                 }
             }
+            if (refreshAuthClient?.ownerType === 'mcp') {
+                // Rate-limit only the MCP refresh grant: it owns the unindexed replay
+                // lookups this guards, and editor/device refreshes must not share its
+                // budget. Keyed per client and IP so one client can't starve another.
+                const rateKey = `${client_id}:${request.ip}`
+                const rateCache = app.caches?.getCache?.('mcp-refresh-rate', { ttl: MCP_REFRESH_RATE_WINDOW, max: 100000 })
+                const now = Date.now()
+                const rateEntry = await rateCache?.get(rateKey)
+                // The cache renews an entry's TTL on each set, so the window is anchored on windowStart.
+                const inWindow = rateEntry && now - rateEntry.windowStart < MCP_REFRESH_RATE_WINDOW
+                const rateCount = inWindow ? rateEntry.count : 0
+                if (rateCount >= MCP_REFRESH_RATE_MAX) {
+                    reply.code(429).send({ error: 'slow_down', description: 'Too many refresh attempts' })
+                    return
+                }
+                await rateCache?.set(rateKey, { windowStart: inWindow ? rateEntry.windowStart : now, count: rateCount + 1 })
+            }
             if (refreshAuthClient && refreshAuthClient.ownerType !== 'mcp') {
+                // MCP tokens are resolved by refreshToken() below, which owns the grace
+                // window and replay detection; other clients re-check ownership here.
+                const existingToken = await app.db.models.AccessToken.byRefreshToken(refresh_token)
+                if (!existingToken) {
+                    badRequest(reply, 'invalid_grant', 'Invalid refresh_token')
+                    return
+                }
                 // Check the owner of the existing session still has access to the project
                 // this client is owned by
                 let owner = null
@@ -643,7 +762,10 @@ module.exports = async function (app) {
                     context = { applicationId }
                 }
 
-                const user = await app.db.models.User.findOne({ where: { id: parseInt(existingToken.ownerId) }, attributes: ['admin'] })
+                const user = await app.db.models.User.findOne({ where: { id: parseInt(existingToken.ownerId) }, attributes: ['admin', 'suspended'] })
+                if (!user || user.suspended) {
+                    return badRequest(reply, 'access_denied', 'Access Denied')
+                }
                 const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: owner.TeamId, UserId: parseInt(existingToken.ownerId) } })
                 const canReadFlows = user.admin || app.hasPermission(teamMembership, 'project:flows:view', context)
                 const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit', context)
@@ -653,16 +775,26 @@ module.exports = async function (app) {
                 }
             }
             const accessToken = await app.db.controllers.AccessToken.refreshToken(refresh_token)
-            if (!accessToken) {
-                badRequest(reply, 'invalid_request', 'Invalid refresh_token')
+            if (!accessToken || accessToken.replay) {
+                if (accessToken?.replay) {
+                    await app.auditLog.User.account.mcpRefreshTokenReplay(accessToken.userId, null, {
+                        info: 'MCP refresh token replay detected; grant revoked',
+                        client: client_id,
+                        grant: accessToken.grantId
+                    })
+                }
+                badRequest(reply, 'invalid_grant', 'Invalid refresh_token')
                 return
             }
 
             const response = {
                 access_token: accessToken.token,
                 token_type: 'bearer',
-                expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000),
-                refresh_token: accessToken.refreshToken
+                expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000)
+            }
+            // A within-grace refresh omits refresh_token so the client keeps its current one.
+            if (accessToken.refreshToken) {
+                response.refresh_token = accessToken.refreshToken
             }
             reply.send(response)
         } else {
@@ -693,6 +825,7 @@ module.exports = async function (app) {
                 const fileStorageLimit = project.Team.getFeatureProperty('fileStorageLimit', 100)
                 const contextLimit = project.Team.getFeatureProperty('contextLimit', 1)
                 response = {
+                    team: project.Team.hashid,
                     quota: {
                         file: fileStorageLimit * 1024 * 1024,
                         context: contextLimit * 1024 * 1024
@@ -703,6 +836,9 @@ module.exports = async function (app) {
             if (request.session.ownerType === 'npm') {
                 if (!/[pd]-(.+)@(.+)/.test(request.params.ownerId)) {
                     const user = await app.db.models.User.byUsername(request.params.ownerId)
+                    if (!user || user.suspended) {
+                        return reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                    }
                     const userTeamList = await user.getTeamMemberships(true)
                     const teams = userTeamList.map(t => `${t.Team.hashid}:${t.role}`)
                     response = {

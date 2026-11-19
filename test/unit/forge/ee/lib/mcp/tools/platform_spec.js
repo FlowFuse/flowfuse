@@ -136,6 +136,68 @@ describe('MCP Platform Catalog Tools', function () {
         })
     })
 
+    describe('browser session team scope', function () {
+        const sessions = [
+            { sessionId: 'tab-own', context: { teamId: 'team-own' } },
+            { sessionId: 'tab-other', context: { teamId: 'team-other' } },
+            { sessionId: 'tab-account', context: { teamId: null } }
+        ]
+        let app
+
+        beforeEach(function () {
+            app = {
+                config: {},
+                db: {
+                    controllers: {
+                        BrowserSession: {
+                            getSessionsByUser: sinon.stub().resolves(sessions),
+                            setActiveBrowserSession: sinon.stub().resolves()
+                        }
+                    }
+                }
+            }
+            inject.withArgs({ method: 'GET', url: '/api/v1/user/teams' }).resolves({
+                statusCode: 200,
+                json: () => ({ teams: [{ id: 'team-own' }] })
+            })
+        })
+
+        it('lists only tabs on teams the token can reach', async function () {
+            const response = await getTool('platform_list_browser_sessions').handler({}, { app, user: { hashid: 'user1' }, inject, scope: { teams: ['team-own'] } })
+            response.sessions.map(session => session.sessionId).should.eql(['tab-own'])
+        })
+
+        it('lists a tab on no team for an all-teams token', async function () {
+            const response = await getTool('platform_list_browser_sessions').handler({}, { app, user: { hashid: 'user1' }, inject, scope: { teams: [] } })
+            response.sessions.map(session => session.sessionId).should.eql(['tab-own', 'tab-account'])
+        })
+
+        it('pins a tab on no team for an all-teams token', async function () {
+            const response = await getTool('platform_set_active_browser_session').handler({ session_id: 'tab-account' }, { app, user: { hashid: 'user1' }, mcpSessionId: 'mcp1', inject, scope: { teams: [] } })
+            response.should.have.property('success', true)
+            app.db.controllers.BrowserSession.setActiveBrowserSession.calledOnceWith('user1', 'mcp1', 'tab-account').should.be.true()
+        })
+
+        it('treats a tab on no team as not found for a team-scoped token', async function () {
+            const response = await getTool('platform_set_active_browser_session').handler({ session_id: 'tab-account' }, { app, user: { hashid: 'user1' }, mcpSessionId: 'mcp1', inject, scope: { teams: ['team-own'] } })
+            response.should.have.property('success', false)
+            app.db.controllers.BrowserSession.setActiveBrowserSession.called.should.be.false()
+        })
+
+        it('treats a tab on a team the token cannot reach as not found', async function () {
+            const response = await getTool('platform_set_active_browser_session').handler({ session_id: 'tab-other' }, { app, user: { hashid: 'user1' }, mcpSessionId: 'mcp1', inject })
+            response.should.have.property('success', false)
+            response.message.should.startWith("No live browser session with sessionId 'tab-other'")
+            app.db.controllers.BrowserSession.setActiveBrowserSession.called.should.be.false()
+        })
+
+        it('pins a tab on a team the token can reach', async function () {
+            const response = await getTool('platform_set_active_browser_session').handler({ session_id: 'tab-own' }, { app, user: { hashid: 'user1' }, mcpSessionId: 'mcp1', inject })
+            response.should.have.property('success', true)
+            app.db.controllers.BrowserSession.setActiveBrowserSession.calledOnceWith('user1', 'mcp1', 'tab-own').should.be.true()
+        })
+    })
+
     describe('platform_list_team_types', function () {
         const tool = getTool('platform_list_team_types')
 

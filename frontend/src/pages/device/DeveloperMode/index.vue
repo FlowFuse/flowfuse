@@ -1,5 +1,10 @@
 <template>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <FeatureUnavailable
+        v-if="device?.agentType === 'lite'"
+        message="The Lite Remote Agent does not currently support this feature"
+        :only-custom-message="true"
+    />
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <InfoCard v-if="isDevModeAvailable" header="Developer Mode Options:">
             <template #icon>
                 <BeakerIcon />
@@ -111,9 +116,12 @@ import deviceApi from '../../../api/devices.js'
 // components
 import InfoCard from '../../../components/InfoCard.vue'
 import InfoCardRow from '../../../components/InfoCardRow.vue'
+import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
+
 import alerts from '../../../services/alerts.js'
 import SnapshotCreateDialog from '../dialogs/SnapshotCreateDialog.vue'
 
+import usePermissions from '@/composables/Permissions.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
@@ -123,7 +131,8 @@ export default {
         BeakerIcon,
         InfoCard,
         InfoCardRow,
-        SnapshotCreateDialog
+        SnapshotCreateDialog,
+        FeatureUnavailable
     },
     props: {
         device: {
@@ -140,6 +149,10 @@ export default {
         }
     },
     emits: ['close-tunnel', 'open-tunnel'],
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         return {
             agentSupportsDeviceAccess: false,
@@ -164,7 +177,7 @@ export default {
             return !!this.device?.editor?.connected
         },
         editorCanBeEnabled: function () {
-            return this.developerMode && this.device.status === 'running'
+            return this.developerMode && this.device.status === 'running' && this.hasPermission('device:editor', { application: this.device.application })
         },
         createSnapshotDisabled () {
             return this.device.ownerType !== 'application' && this.device.ownerType !== 'instance'

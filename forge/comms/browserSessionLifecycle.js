@@ -36,10 +36,10 @@ class BrowserSessionLifecycleHandler {
             break
         case 'close':
             // The user opted this tab out. The connection is still alive.
-            await this.app.db.controllers.BrowserSession.removeSession(userId, sessionId)
+            await this.app.db.controllers.BrowserSession.removeSession(userId, sessionId, teamId)
             break
         case 'disconnected':
-            await this.handleDisconnected(userId, sessionId)
+            await this.handleDisconnected(userId, sessionId, teamId)
             break
         }
     }
@@ -48,8 +48,8 @@ class BrowserSessionLifecycleHandler {
      * The tab's connection is gone. Fans out to every subsystem that keeps
      * per-session state.
      */
-    async handleDisconnected (userId, sessionId) {
-        await this.app.db.controllers.BrowserSession.removeSession(userId, sessionId)
+    async handleDisconnected (userId, sessionId, teamId) {
+        await this.app.db.controllers.BrowserSession.removeSession(userId, sessionId, teamId)
     }
 
     /**

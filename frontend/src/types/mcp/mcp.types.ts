@@ -28,7 +28,12 @@ export interface McpToolMeta {
      * platform_set_active_browser_session before it can run. Discovery is not gated on this.
      */
     requiresBrowserSession?: boolean,
-    requiresImmersiveEditor?: boolean
+    requiresImmersiveEditor?: boolean,
+    /**
+     * Restricts who may call the tool. 'expert' marks it first-party-only, 'mcp'
+     * third-party-only; absent means both. The gateway filters on this value.
+     */
+    audience?: 'expert' | 'mcp'
 }
 
 export interface McpToolDefinition {

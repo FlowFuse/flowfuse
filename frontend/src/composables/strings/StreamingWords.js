@@ -1,6 +1,6 @@
 import { nextTick, onBeforeUnmount, ref } from 'vue'
 
-export default function useStreamingWords ({ delayMs = 30, splitRegex = /\s+/, joinWith = ' ' } = {}) {
+export default function useStreamingWords ({ delayMs = 30, wordsPerTick = 1 } = {}) {
     const text = ref('')
     const isStreaming = ref(false)
 
@@ -20,7 +20,8 @@ export default function useStreamingWords ({ delayMs = 30, splitRegex = /\s+/, j
         stop()
         text.value = ''
 
-        words = String(message).trim().split(splitRegex).filter(Boolean)
+        // Each word keeps the whitespace before it, so code indentation survives streaming
+        words = String(message).trim().match(/\s*\S+/g) || []
         index = 0
         isStreaming.value = true
 
@@ -34,8 +35,8 @@ export default function useStreamingWords ({ delayMs = 30, splitRegex = /\s+/, j
                     return resolve()
                 }
 
-                text.value += (text.value ? joinWith : '') + words[index]
-                index += 1
+                text.value += words.slice(index, index + wordsPerTick).join('')
+                index += wordsPerTick
                 timer = setTimeout(tick, delayMs)
             }
 

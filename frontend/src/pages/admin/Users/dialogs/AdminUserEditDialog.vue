@@ -2,7 +2,12 @@
     <ff-dialog ref="dialog" header="Edit User" confirm-label="Save" :closeOnConfirm="false" :disable-primary="disableSave" @confirm="confirm()">
         <template #default>
             <form class="space-y-6" @submit.prevent>
-                <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
+                <div>
+                    <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
+                    <p v-if="user && input.username !== user.username" class="ff-description max-w-sm mt-1" data-el="username-change-warning">
+                        Changing the username will sign this user out of any open Node-RED editors.
+                    </p>
+                </div>
                 <FormRow v-model="input.name" :placeholder="input.username">Name</FormRow>
                 <FormRow v-model="input.email" :error="errors.email">
                     Email

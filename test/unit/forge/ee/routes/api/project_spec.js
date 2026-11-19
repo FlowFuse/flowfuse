@@ -463,12 +463,13 @@ describe('Projects API (EE)', function () {
             }
 
             async function rollback (instance, snapshotId, sid) {
-                await app.inject({
+                const response = await app.inject({
                     method: 'POST',
                     url: `/api/v1/projects/${instance.id}/actions/rollback`,
-                    payload: { snapshotId },
+                    payload: { snapshot: snapshotId },
                     cookies: { sid }
                 })
+                response.statusCode.should.equal(200)
             }
 
             async function modifySettings (instance, newSettings, sid) {

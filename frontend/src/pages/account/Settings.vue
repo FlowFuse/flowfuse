@@ -2,7 +2,12 @@
     <div>
         <ff-loading v-if="loading" message="" />
         <form v-else class="space-y-6" @submit.enter.prevent="">
-            <FormRow v-model="input.username" :type="editing?'text':'uneditable'" :error="errors.username">Username</FormRow>
+            <div>
+                <FormRow v-model="input.username" :type="editing?'text':'uneditable'" :error="errors.username">Username</FormRow>
+                <p v-if="editing && changed.username" class="ff-description max-w-sm mt-1" data-el="username-change-warning">
+                    Changing your username will sign you out of any open Node-RED editors. Deploy any pending changes first.
+                </p>
+            </div>
             <FormRow v-model="input.name" :type="editing?'text':'uneditable'" :placeholder="input.username" :error="errors.name">Name</FormRow>
             <FormRow v-model="input.email" :type="emailEditingEnabled?'email':'uneditable'" :error="errors.email">Email</FormRow>
             <FormRow v-if="!editing" v-model="defaultTeamName" :options="teams" type="uneditable">

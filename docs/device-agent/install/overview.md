@@ -85,4 +85,4 @@ After installing by any method:
 
 - Follow the [Quick Start guide](../quickstart.md) to add and connect a Remote Instance
 - Learn [how to run and configure the agent](../running.md)
-- Use [DevOps Pipelines](/docs/user/devops-pipelines.md) to deploy flows
+- Use [DevOps Pipelines](/docs/user/devops-pipelines/) to deploy flows

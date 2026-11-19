@@ -21,13 +21,20 @@ module.exports.init = function (app) {
 
     app.db.models.Project.prototype.updateProtectedInstanceState = async function (protectedConfig) {
         if (!protectedConfig) {
-            app.db.controllers.StorageSession.removeAllUsersFromInstance(this)
+            clearEditorSessions(this)
             return this.removeSetting(KEY_PROTECTED)
         }
         if (Object.hasOwn(protectedConfig, 'enabled')) {
-            app.db.controllers.StorageSession.removeAllUsersFromInstance(this)
+            clearEditorSessions(this)
             return this.updateSetting(KEY_PROTECTED, protectedConfig)
         }
+    }
+
+    // Revoking each editor token can be slow, so this runs in the background
+    function clearEditorSessions (instance) {
+        app.db.controllers.StorageSession.removeAllUsersFromInstance(instance).catch(err => {
+            app.log.warn(`Failed to clear editor sessions for instance ${instance.id}: ${err.toString()}`)
+        })
     }
 
     app.decorate('protectedInstance', {

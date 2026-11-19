@@ -133,6 +133,42 @@ describe('Team API', function () {
             })
             response.statusCode.should.equal(404)
         })
+
+        describe('aiOnboarding', function () {
+            // Each test gets a fresh app, so the flags and team set here don't leak
+            async function getTeam () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.BTeam.hashid}`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+                return response.json()
+            }
+
+            it('is true when the team will be offered AI onboarding', async function () {
+                app.config.features.register('aiOnboarding', true, true)
+                app.config.features.register('externalBroker', true, true)
+                const team = await getTeam()
+                team.should.have.property('aiOnboarding', true)
+            })
+
+            it('is false when AI onboarding is off for the platform', async function () {
+                app.config.features.register('aiOnboarding', false, true)
+                app.config.features.register('externalBroker', true, true)
+                const team = await getTeam()
+                team.should.have.property('aiOnboarding', false)
+            })
+
+            it('is false when the team has the team broker turned off', async function () {
+                app.config.features.register('aiOnboarding', true, true)
+                app.config.features.register('externalBroker', true, true)
+                TestObjects.BTeam.properties = { features: { teamBroker: false } }
+                await TestObjects.BTeam.save()
+                const team = await getTeam()
+                team.should.have.property('aiOnboarding', false)
+            })
+        })
     })
 
     describe('Get team details by slug', async function () {
@@ -824,6 +860,10 @@ describe('Team API', function () {
             const result = response.json()
             result.should.have.property('projects').and.be.an.Array()
             result.projects.should.have.a.property('length', 4)
+            // Only the minimal information is returned to a device
+            result.projects.forEach(project => {
+                Object.keys(project).should.eql(['id', 'name'])
+            })
         })
 
         it('Device can not get a list of team projects without a valid token', async function () {
@@ -1323,6 +1363,160 @@ describe('Team API', function () {
     describe('Create team', async function () {
         // POST /api/v1/teams
         // - Admin/Owner/Member
+        it('creates a default application when the auto-create application setting is on', async function () {
+            await app.settings.set('user:team:auto-create:application', true)
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/teams',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: { name: 'create-team-1', slug: 'create-team-1', type: app.defaultTeamType.hashid }
+            })
+            response.statusCode.should.equal(200)
+            const team = await app.db.models.Team.bySlug('create-team-1')
+            const applications = await app.db.models.Application.byTeam(team.id)
+            applications.should.have.length(1)
+            applications[0].should.have.property('name', `${TestObjects.alice.name}'s Application`)
+        })
+
+        it('does not create a default application by default', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/teams',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: { name: 'create-team-2', slug: 'create-team-2', type: app.defaultTeamType.hashid }
+            })
+            response.statusCode.should.equal(200)
+            const team = await app.db.models.Team.bySlug('create-team-2')
+            const applications = await app.db.models.Application.byTeam(team.id)
+            applications.should.have.length(0)
+        })
+
+        it('does not create a team for a non-admin when team creation is disabled', async function () {
+            // The route's needsPermission preHandler only rejects an explicit false,
+            // so an unset value is what reaches the handler's own check
+            const originalGet = app.settings.get
+            sinon.stub(app.settings, 'get').callsFake((key) => {
+                if (key === 'team:create') {
+                    return undefined
+                }
+                return originalGet(key)
+            })
+            const createTeamSpy = sinon.spy(app.db.controllers.Team, 'createTeamForUser')
+            try {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/teams',
+                    cookies: { sid: TestObjects.tokens.chris },
+                    payload: { name: 'create-team-disabled', slug: 'create-team-disabled', type: app.defaultTeamType.hashid }
+                })
+                response.statusCode.should.equal(403)
+                await sleep(250)
+                createTeamSpy.called.should.be.false()
+                const team = await app.db.models.Team.bySlug('create-team-disabled')
+                should.not.exist(team)
+            } finally {
+                createTeamSpy.restore()
+                app.settings.get.restore()
+            }
+        })
+    })
+
+    describe('Provision default workspace', async function () {
+        // POST /api/v1/teams/:teamId/default-workspace
+        beforeEach(async function () {
+            app.config.features.register('aiOnboarding', true, true)
+            await app.settings.set('user:team:auto-create:instanceType', app.projectType.hashid)
+        })
+
+        async function createEmptyTeam (user, role) {
+            const team = await app.db.models.Team.create({ name: generateName('provision-team'), TeamTypeId: app.defaultTeamType.id })
+            await team.addUser(user, { through: { role } })
+            return team
+        }
+
+        it('member can provision an empty team', async function () {
+            const team = await createEmptyTeam(TestObjects.bob, Roles.Member)
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${team.hashid}/default-workspace`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('application')
+            result.application.should.have.property('id')
+            result.application.should.have.property('name', `${TestObjects.bob.name}'s Application`)
+            result.should.have.property('instance')
+            result.instance.should.have.property('id')
+            result.instance.should.have.property('name')
+
+            const applications = await app.db.models.Application.byTeam(team.id)
+            applications.length.should.equal(1)
+            const instances = await app.db.models.Project.byTeam(team.hashid)
+            instances.length.should.equal(1)
+        })
+
+        it('refuses to provision a team that already has instances', async function () {
+            const team = await createEmptyTeam(TestObjects.bob, Roles.Owner)
+            const firstResponse = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${team.hashid}/default-workspace`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            firstResponse.statusCode.should.equal(200)
+
+            const secondResponse = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${team.hashid}/default-workspace`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            secondResponse.statusCode.should.equal(409)
+            secondResponse.json().should.have.property('code', 'team_not_empty')
+        })
+
+        it('dashboard role cannot provision', async function () {
+            const team = await createEmptyTeam(TestObjects.dave, Roles.Dashboard)
+            await login('dave', 'ddPassword')
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${team.hashid}/default-workspace`,
+                cookies: { sid: TestObjects.tokens.dave }
+            })
+            response.statusCode.should.equal(403)
+        })
+
+        it('non-member cannot provision', async function () {
+            const team = await createEmptyTeam(TestObjects.bob, Roles.Owner)
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${team.hashid}/default-workspace`,
+                cookies: { sid: TestObjects.tokens.chris }
+            })
+            response.statusCode.should.equal(404)
+        })
+
+        it('is not available when the aiOnboarding flag is off', async function () {
+            app.config.features.register('aiOnboarding', false, true)
+            const team = await createEmptyTeam(TestObjects.bob, Roles.Member)
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${team.hashid}/default-workspace`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(404)
+        })
+
+        it('fails cleanly when the platform has no default instance type configured', async function () {
+            await app.settings.set('user:team:auto-create:instanceType', null)
+            const team = await createEmptyTeam(TestObjects.bob, Roles.Member)
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${team.hashid}/default-workspace`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(400)
+            response.json().should.have.property('code', 'invalid_instance_type')
+        })
     })
 
     describe('Delete team', async function () {
@@ -1368,6 +1562,34 @@ describe('Team API', function () {
                 cookies: { sid: TestObjects.tokens.bob }
             })
             response.statusCode.should.equal(200)
+        })
+        it('PAT scoped only to a deleted team cannot access other teams', async function () {
+            const team = await app.db.models.Team.create({ name: 'delete-team-pat', TeamTypeId: app.defaultTeamType.id })
+            await team.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+            const pat = await app.db.controllers.AccessToken.createPersonalAccessToken(
+                TestObjects.bob, '', null, 'Scoped PAT', { teamIds: [team.hashid] }
+            )
+
+            const before = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}`,
+                headers: { authorization: `Bearer ${pat.token}` }
+            })
+            before.statusCode.should.equal(403)
+
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/teams/${team.hashid}`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+
+            const after = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}`,
+                headers: { authorization: `Bearer ${pat.token}` }
+            })
+            after.statusCode.should.equal(401)
         })
         it('member cannot delete team without instances', async function () {
             const team = await app.db.models.Team.create({ name: 'delete-team-4', TeamTypeId: app.defaultTeamType.id })
@@ -1503,6 +1725,157 @@ describe('Team API', function () {
             await team.reload()
 
             team.should.have.property('TeamTypeId', newTeamType.id)
+        })
+
+        describe('Feature overrides (features branch)', async function () {
+            // PUT /api/v1/teams/:teamId { features: {...} }
+            it('owner can toggle agentAutoDeploy', async function () {
+                const team = await app.db.models.Team.create({ name: 'update-team-feat-1', slug: 'team-feat-1', TeamTypeId: app.defaultTeamType.id })
+                await team.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${team.hashid}`,
+                    payload: {
+                        features: { agentAutoDeploy: true }
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+
+                await team.reload()
+                team.properties.features.should.have.property('agentAutoDeploy', true)
+            })
+            it('member cannot toggle agentAutoDeploy', async function () {
+                const team = await app.db.models.Team.create({ name: 'update-team-feat-2', slug: 'team-feat-2', TeamTypeId: app.defaultTeamType.id })
+                await team.addUser(TestObjects.bob, { through: { role: Roles.Member } })
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${team.hashid}`,
+                    payload: {
+                        features: { agentAutoDeploy: true }
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(403)
+
+                await team.reload()
+                should.not.exist(team.properties?.features?.agentAutoDeploy)
+            })
+            it('ignores feature keys outside the allowlist', async function () {
+                const team = await app.db.models.Team.create({ name: 'update-team-feat-3', slug: 'team-feat-3', TeamTypeId: app.defaultTeamType.id })
+                await team.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${team.hashid}`,
+                    payload: {
+                        features: { agentAutoDeploy: true, notAllowed: true }
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+
+                await team.reload()
+                team.properties.features.should.have.property('agentAutoDeploy', true)
+                should.not.exist(team.properties.features.notAllowed)
+            })
+            it('owner can toggle mcpThirdParty', async function () {
+                const team = await app.db.models.Team.create({ name: 'update-team-feat-4', slug: 'team-feat-4', TeamTypeId: app.defaultTeamType.id })
+                await team.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${team.hashid}`,
+                    payload: {
+                        features: { mcpThirdParty: false }
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+
+                await team.reload()
+                team.properties.features.should.have.property('mcpThirdParty', false)
+            })
+            it('member cannot toggle mcpThirdParty', async function () {
+                const team = await app.db.models.Team.create({ name: 'update-team-feat-5', slug: 'team-feat-5', TeamTypeId: app.defaultTeamType.id })
+                await team.addUser(TestObjects.bob, { through: { role: Roles.Member } })
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${team.hashid}`,
+                    payload: {
+                        features: { mcpThirdParty: false }
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(403)
+
+                await team.reload()
+                should.not.exist(team.properties?.features?.mcpThirdParty)
+            })
+
+            describe('agentAutoDeploy audit log', function () {
+                async function updateFeatures (team, features) {
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/teams/${team.hashid}`,
+                        payload: { features },
+                        cookies: { sid: TestObjects.tokens.bob }
+                    })
+                    response.statusCode.should.equal(200)
+                }
+                async function getTeamAuditEntries (team) {
+                    return app.db.models.AuditLog.findAll({
+                        where: { entityType: 'team', entityId: team.id.toString() },
+                        order: [['id', 'ASC']]
+                    })
+                }
+                async function createTeam (name) {
+                    const team = await app.db.models.Team.create({ name, slug: name, TeamTypeId: app.defaultTeamType.id })
+                    await team.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+                    return team
+                }
+
+                it('logs a dedicated entry when enabled and disabled', async function () {
+                    const team = await createTeam(generateName('auto-deploy-audit'))
+
+                    await updateFeatures(team, { agentAutoDeploy: true })
+                    await updateFeatures(team, { agentAutoDeploy: false })
+
+                    const entries = await getTeamAuditEntries(team)
+                    entries.map(e => e.event).should.eql([
+                        'team.agent-auto-deploy.enabled',
+                        'team.agent-auto-deploy.disabled'
+                    ])
+                    entries.forEach(e => e.UserId.should.equal(TestObjects.bob.id))
+                })
+
+                it('logs nothing when the value does not change', async function () {
+                    const team = await createTeam(generateName('auto-deploy-audit'))
+
+                    await updateFeatures(team, { agentAutoDeploy: false })
+
+                    const entries = await getTeamAuditEntries(team)
+                    entries.should.have.length(0)
+                })
+
+                it('keeps other feature changes in the generic settings entry', async function () {
+                    const team = await createTeam(generateName('auto-deploy-audit'))
+
+                    await updateFeatures(team, { agentAutoDeploy: true, mcpThirdParty: false })
+
+                    const entries = await getTeamAuditEntries(team)
+                    entries.map(e => e.event).sort().should.eql([
+                        'team.agent-auto-deploy.enabled',
+                        'team.settings.updated'
+                    ])
+                    const settingsEntry = entries.find(e => e.event === 'team.settings.updated')
+                    const updates = JSON.parse(settingsEntry.body).updates
+                    updates.map(u => u.key).should.eql(['features.mcpThirdParty'])
+                })
+            })
         })
 
         describe('Suspending team', async function () {
@@ -1790,6 +2163,15 @@ describe('Team API', function () {
 
     describe('Get team audit-log', async function () {
         // GET /api/v1/teams/:teamId/audit-log
+        it('rejects an invalid cursor', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/audit-log?cursor=abc`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(400)
+            response.json().should.have.property('code', 'invalid_cursor')
+        })
     })
 
     describe('License limits', async function () {

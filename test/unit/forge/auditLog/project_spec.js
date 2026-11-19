@@ -91,6 +91,30 @@ describe('Audit Log > Project', async function () {
         logEntry.body.project.id.should.equal(PROJECT.id)
     })
 
+    it('Provides a logger for assigning a project to a pipeline stage', async function () {
+        const pipeline = { id: 1, hashid: 'pipelineHash', name: 'pipeline-1' }
+        const stage = { id: 2, hashid: 'stageHash', name: 'stage-1' }
+        await projectLogger.project.assignedToPipelineStage(ACTIONED_BY, null, PROJECT, pipeline, stage)
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.assigned-to-pipeline-stage')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.body.should.only.have.keys('project', 'pipeline', 'pipelineStage')
+        logEntry.body.pipelineStage.should.have.property('name', 'stage-1')
+    })
+
+    it('Provides a logger for unassigning a project from a pipeline stage', async function () {
+        const pipeline = { id: 1, hashid: 'pipelineHash', name: 'pipeline-1' }
+        const stage = { id: 2, hashid: 'stageHash', name: 'stage-1' }
+        await projectLogger.project.unassignedFromPipelineStage(ACTIONED_BY, null, PROJECT, pipeline, stage)
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.unassigned-from-pipeline-stage')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.body.should.only.have.keys('project', 'pipeline', 'pipelineStage')
+        logEntry.body.pipelineStage.should.have.property('name', 'stage-1')
+    })
+
     it('Provides a logger for deleting a project', async function () {
         await projectLogger.project.deleted(ACTIONED_BY, null, TEAM, PROJECT)
         // check log stored
@@ -320,6 +344,14 @@ describe('Audit Log > Project', async function () {
         logEntry.body.project.id.should.equal(PROJECT.id)
         logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
+    })
+
+    it('Records whether env vars were merged when rolling back a snapshot', async function () {
+        await projectLogger.project.snapshot.rolledBack(ACTIONED_BY, null, PROJECT, SNAPSHOT, { mergeEnvVars: true })
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.snapshot.rolled-back')
+        logEntry.body.should.only.have.keys('project', 'snapshot', 'info')
+        logEntry.body.info.should.eql({ mergeEnvVars: true })
     })
 
     it('Provides a logger for deleteing a snapshot of a project', async function () {

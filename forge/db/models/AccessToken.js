@@ -58,11 +58,13 @@ module.exports = {
         this.belongsTo(M.Device, { foreignKey: 'ownerId', constraints: false })
         this.belongsTo(M.User, { foreignKey: 'ownerId', constraints: false })
         this.hasMany(M.AccessTokenTeamScope)
+        this.hasOne(M.MCPGrant, { onDelete: 'CASCADE' })
+        this.hasMany(M.AccessTokenRefreshRotation, { onDelete: 'CASCADE' })
     },
     finders: function (M) {
         return {
             static: {
-                byId: async (id, ownerType, ownerId) => {
+                byId: async (id, ownerType, ownerId, { include } = {}) => {
                     if (typeof id === 'string') {
                         id = M.AccessToken.decodeHashid(id)
                     }
@@ -74,12 +76,17 @@ module.exports = {
                         where.ownerId = '' + ownerId
                     }
                     return this.findOne({
-                        where
+                        where,
+                        include
                     })
                 },
                 byRefreshToken: async (refreshToken) => {
                     const hashedToken = sha256(refreshToken)
                     return await this.findOne({ where: { refreshToken: hashedToken } })
+                },
+                byRotatedRefreshToken: async (refreshToken) => {
+                    const hashedToken = sha256(refreshToken)
+                    return await M.AccessTokenRefreshRotation.findOne({ where: { tokenHash: hashedToken } })
                 },
                 getProvisioningTokens: async (pagination = {}, team) => {
                     // pagination not implemented at this time
@@ -125,6 +132,9 @@ module.exports = {
                                 model: M.Team,
                                 attributes: ['id', 'name']
                             }]
+                        }, {
+                            model: M.MCPGrant,
+                            include: [{ model: M.MCPGrantTeamPermission }]
                         }]
                     })
                     return tokens

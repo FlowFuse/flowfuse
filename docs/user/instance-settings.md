@@ -1,5 +1,7 @@
 ---
 navTitle: Instance Settings
+meta:
+   description: Change a Node-RED instance's settings in FlowFuse, covering stack, environment, High Availability, editor, security, palette and alerts.
 ---
 
 # Instance Settings

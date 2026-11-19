@@ -1,6 +1,8 @@
 const should = require('should') // eslint-disable-line no-unused-vars
 const sinon = require('sinon')
+const { default: z } = require('zod')
 
+const { formatResponse } = require('../../../../../../../forge/ee/lib/mcp/toolLoader')
 const tools = require('../../../../../../../forge/ee/lib/mcp/tools/instances')
 
 function getTool (name) {
@@ -583,6 +585,437 @@ describe('MCP Instances Tools', function () {
 
             inject.calledOnce.should.be.true()
             response.should.equal(routeResponse)
+        })
+    })
+
+    describe('platform_update_hosted_instance_env', function () {
+        const tool = getTool('platform_update_hosted_instance_env')
+        const instanceId = '11111111-1111-1111-1111-111111111111'
+
+        it('is marked destructive, since it overwrites or removes existing state', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
+
+        it('puts a body of exactly { settings: { env } } so the narrower edit-env permission applies', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ id: instanceId }) }
+            const env = [{ name: 'FOO', value: 'bar' }, { name: 'SECRET', value: '', hidden: true }]
+            inject.withArgs({ method: 'PUT', url: `/api/v1/projects/${instanceId}`, payload: { settings: { env } } }).resolves(routeResponse)
+
+            const response = await tool.handler({ instanceId, env }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 400, json: () => ({ code: 'settings_validation' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ instanceId, env: [] }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_update_hosted_instance_settings', function () {
+        const tool = getTool('platform_update_hosted_instance_settings')
+        const instanceId = '11111111-1111-1111-1111-111111111111'
+
+        it('is marked destructive, since it overwrites or removes existing state', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
+
+        it('puts only the provided fields onto the instance route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ id: instanceId }) }
+            inject.withArgs({ method: 'PUT', url: `/api/v1/projects/${instanceId}`, payload: { name: 'renamed-instance' } }).resolves(routeResponse)
+
+            const response = await tool.handler({ instanceId, name: 'renamed-instance' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('forwards settings, launcherSettings, projectType, stack and sourceProject', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ id: instanceId }) })
+
+            const args = {
+                instanceId,
+                settings: { palette: { allowInstall: false } },
+                launcherSettings: { healthCheckInterval: 10000 },
+                projectType: 'type1',
+                stack: 'stack1',
+                sourceProject: { id: '22222222-2222-2222-2222-222222222222', options: { flows: true } }
+            }
+            await tool.handler(args, { inject })
+
+            inject.firstCall.args[0].payload.should.eql({
+                settings: { palette: { allowInstall: false } },
+                launcherSettings: { healthCheckInterval: 10000 },
+                projectType: 'type1',
+                stack: 'stack1',
+                sourceProject: { id: '22222222-2222-2222-2222-222222222222', options: { flows: true } }
+            })
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 409, json: () => ({ code: 'invalid_project_name' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ instanceId, name: 'taken' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_import_hosted_instance_flows', function () {
+        const tool = getTool('platform_import_hosted_instance_flows')
+        const instanceId = '11111111-1111-1111-1111-111111111111'
+
+        it('is marked destructive, since it overwrites or removes existing state', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
+
+        it('posts flows, credentials and the secret to the import route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
+            inject.withArgs({
+                method: 'POST',
+                url: `/api/v1/projects/${instanceId}/import`,
+                payload: { flows: '[]', credentials: '{"$":"abc"}', credsSecret: 's3cret' }
+            }).resolves(routeResponse)
+
+            const response = await tool.handler({ instanceId, flows: '[]', credentials: '{"$":"abc"}', credsSecret: 's3cret' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('omits credentials fields when only flows are imported', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ status: 'okay' }) })
+
+            await tool.handler({ instanceId, flows: '[]' }, { inject })
+
+            inject.firstCall.args[0].payload.should.eql({ flows: '[]' })
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 403, json: () => ({ code: 'invalid_credentials_secret' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ instanceId, flows: '[]', credentials: '{}', credsSecret: 'wrong' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_set_instance_config', function () {
+        const tool = getTool('platform_set_instance_config')
+        const instanceId = '11111111-1111-1111-1111-111111111111'
+
+        it('is marked destructive, since it overwrites or removes existing state', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
+
+        it('enables ha with a replica count', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ replicas: 2 }) }
+            inject.withArgs({ method: 'PUT', url: `/api/v1/projects/${instanceId}/ha`, payload: { replicas: 2 } }).resolves(routeResponse)
+
+            const response = await tool.handler({ instanceId, surface: 'ha', action: 'enable', replicas: 2 }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('disables ha with a DELETE', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({}) })
+
+            await tool.handler({ instanceId, surface: 'ha', action: 'disable' }, { inject })
+
+            inject.firstCall.args[0].should.eql({ method: 'DELETE', url: `/api/v1/projects/${instanceId}/ha` })
+        })
+
+        it('sets a custom hostname', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({}) })
+
+            await tool.handler({ instanceId, surface: 'customHostname', action: 'set', hostname: 'flows.example.com' }, { inject })
+
+            inject.firstCall.args[0].should.eql({ method: 'PUT', url: `/api/v1/projects/${instanceId}/customHostname`, payload: { hostname: 'flows.example.com' } })
+        })
+
+        it('clears a custom hostname with a DELETE', async function () {
+            inject.resolves({ statusCode: 204, json: () => ({}) })
+
+            await tool.handler({ instanceId, surface: 'customHostname', action: 'clear' }, { inject })
+
+            inject.firstCall.args[0].should.eql({ method: 'DELETE', url: `/api/v1/projects/${instanceId}/customHostname` })
+        })
+
+        it('enables protection', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ enabled: true }) })
+
+            await tool.handler({ instanceId, surface: 'protection', action: 'enable' }, { inject })
+
+            inject.firstCall.args[0].should.eql({ method: 'PUT', url: `/api/v1/projects/${instanceId}/protectInstance`, payload: { enabled: true } })
+        })
+
+        it('disables protection with a DELETE', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({}) })
+
+            await tool.handler({ instanceId, surface: 'protection', action: 'disable' }, { inject })
+
+            inject.firstCall.args[0].should.eql({ method: 'DELETE', url: `/api/v1/projects/${instanceId}/protectInstance` })
+        })
+
+        it('sets the auto-update-stack schedule', async function () {
+            inject.resolves({ statusCode: 200, json: () => ([]) })
+            const schedule = [{ day: 0, hour: 3, restart: true }]
+
+            await tool.handler({ instanceId, surface: 'autoUpdateStack', action: 'set', schedule }, { inject })
+
+            inject.firstCall.args[0].should.eql({ method: 'PUT', url: `/api/v1/projects/${instanceId}/autoUpdateStack`, payload: { schedule } })
+        })
+
+        it('clears the auto-update-stack schedule with a DELETE', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({}) })
+
+            await tool.handler({ instanceId, surface: 'autoUpdateStack', action: 'clear' }, { inject })
+
+            inject.firstCall.args[0].should.eql({ method: 'DELETE', url: `/api/v1/projects/${instanceId}/autoUpdateStack` })
+        })
+
+        it('rejects an action that does not belong to the surface', async function () {
+            const response = await tool.handler({ instanceId, surface: 'ha', action: 'set' }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
+        it('rejects enabling ha without replicas', async function () {
+            const response = await tool.handler({ instanceId, surface: 'ha', action: 'enable' }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
+        it('rejects setting customHostname without hostname', async function () {
+            const response = await tool.handler({ instanceId, surface: 'customHostname', action: 'set' }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
+        it('rejects setting autoUpdateStack without schedule', async function () {
+            const response = await tool.handler({ instanceId, surface: 'autoUpdateStack', action: 'set' }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 409, json: () => ({ code: 'hostname_not_available' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ instanceId, surface: 'customHostname', action: 'set', hostname: 'taken.example.com' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_update_instance_file', function () {
+        const tool = getTool('platform_update_instance_file')
+        const instanceId = '11111111-1111-1111-1111-111111111111'
+
+        it('is marked destructive, since it overwrites or removes existing state', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
+
+        it('puts a rename as body.path with the current path URL-encoded into the route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({}) }
+            inject.withArgs({ method: 'PUT', url: `/api/v1/projects/${instanceId}/files/_/${encodeURIComponent('logs/old.txt')}`, payload: { path: 'logs/new.txt' } }).resolves(routeResponse)
+
+            const response = await tool.handler({ instanceId, path: 'logs/old.txt', newPath: 'logs/new.txt' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('puts a directory share config', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({}) })
+
+            await tool.handler({ instanceId, path: 'public', share: { root: '/static' } }, { inject })
+
+            inject.firstCall.args[0].payload.should.eql({ share: { root: '/static' } })
+        })
+
+        it('rejects when both newPath and share are given', async function () {
+            const response = await tool.handler({ instanceId, path: 'public', newPath: 'other', share: {} }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
+        it('rejects when neither newPath nor share is given', async function () {
+            const response = await tool.handler({ instanceId, path: 'public' }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ instanceId, path: 'missing.txt', newPath: 'other.txt' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_upload_instance_file', function () {
+        const tool = getTool('platform_upload_instance_file')
+        const instanceId = '11111111-1111-1111-1111-111111111111'
+
+        it('is marked destructive, since it overwrites or removes existing state', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
+
+        it('creates a directory with a JSON body', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({}) }
+            inject.withArgs({ method: 'POST', url: `/api/v1/projects/${instanceId}/files/_/${encodeURIComponent('logs')}`, payload: { path: 'archive' } }).resolves(routeResponse)
+
+            const response = await tool.handler({ instanceId, path: 'logs', directoryName: 'archive' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('uploads file content as a multipart body', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({}) })
+
+            await tool.handler({ instanceId, path: 'data/config.json', content: '{"a":1}' }, { inject })
+
+            const call = inject.firstCall.args[0]
+            call.method.should.equal('POST')
+            call.url.should.equal(`/api/v1/projects/${instanceId}/files/_/${encodeURIComponent('data/config.json')}`)
+            call.headers['content-type'].should.match(/^multipart\/form-data; boundary=/)
+            call.payload.should.containEql('{"a":1}')
+            call.payload.should.containEql('filename="config.json"')
+        })
+
+        it('rejects when both content and directoryName are given', async function () {
+            const response = await tool.handler({ instanceId, path: 'logs', content: 'x', directoryName: 'archive' }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
+        it('rejects when neither content nor directoryName is given', async function () {
+            const response = await tool.handler({ instanceId, path: 'logs' }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ instanceId, path: 'logs', directoryName: 'archive' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_delete_instance_file', function () {
+        const tool = getTool('platform_delete_instance_file')
+        const instanceId = '6c1f3e2a-8b4d-4f10-9a2e-3d5c7b9e1f00'
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('deletes the encoded path through the instance files route', async function () {
+            inject.withArgs({ method: 'DELETE', url: `/api/v1/projects/${instanceId}/files/_/${encodeURIComponent('logs/old.txt')}` }).resolves({ statusCode: 200, body: '', json: () => JSON.parse('') })
+
+            const response = await tool.handler({ instanceId, path: 'logs/old.txt' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            formatResponse(response).should.eql({ status: 'okay' })
+        })
+
+        it('rejects an empty path, which would target the file-store root', function () {
+            tool.inputSchema.path.safeParse('').success.should.be.false()
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 400, body: '{}', json: () => ({ code: 'invalid_request', error: 'HTTPError: Response code 404 (Not Found)' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ instanceId, path: 'missing.txt' }, { inject })
+            response.should.equal(errorResponse)
+        })
+
+        it('drops empty segments, so a trailing slash still names the directory', async function () {
+            inject.resolves({ statusCode: 200, body: '', json: () => JSON.parse('') })
+
+            await tool.handler({ instanceId, path: '/logs//old/' }, { inject })
+
+            inject.firstCall.args[0].url.should.equal(`/api/v1/projects/${instanceId}/files/_/${encodeURIComponent('logs/old')}`)
+        })
+
+        it('refuses a path that resolves to the root or climbs out of it', async function () {
+            for (const path of ['/', '//', '.', 'logs/..', '../other', 'logs/./old']) {
+                const response = await tool.handler({ instanceId, path }, { inject })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            }
+            inject.called.should.be.false()
+        })
+    })
+
+    describe('platform_rollback_hosted_instance', function () {
+        const tool = getTool('platform_rollback_hosted_instance')
+        const instanceId = '11111111-1111-1111-1111-111111111111'
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('publishes merge as the default for mergeEnvVars', function () {
+            const schema = z.toJSONSchema(z.object(tool.inputSchema))
+            schema.properties.mergeEnvVars.should.have.property('default', true)
+            schema.required.should.not.containEql('mergeEnvVars')
+        })
+
+        it('posts the snapshot to the instance rollback action, merging env vars by default', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
+            inject.withArgs({ method: 'POST', url: `/api/v1/projects/${instanceId}/actions/rollback`, payload: { snapshot: 'snapshot1', mergeEnvVars: true } }).resolves(routeResponse)
+
+            const response = await tool.handler({ instanceId, snapshotId: 'snapshot1' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('passes mergeEnvVars through', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ status: 'okay' }) })
+
+            await tool.handler({ instanceId, snapshotId: 'snapshot1', mergeEnvVars: true }, { inject })
+            await tool.handler({ instanceId, snapshotId: 'snapshot1', mergeEnvVars: false }, { inject })
+
+            inject.firstCall.args[0].payload.should.eql({ snapshot: 'snapshot1', mergeEnvVars: true })
+            inject.secondCall.args[0].payload.should.eql({ snapshot: 'snapshot1', mergeEnvVars: false })
+        })
+
+        it('passes through the 400 for a snapshot from another instance', async function () {
+            const errorResponse = { statusCode: 400, json: () => ({ code: 'invalid_snapshot' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ instanceId, snapshotId: 'snapshot1' }, { inject })
+            response.should.equal(errorResponse)
         })
     })
 })

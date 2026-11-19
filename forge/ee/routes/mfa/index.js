@@ -5,7 +5,7 @@ module.exports = async function (app, opts) {
      * 2. Return qrcode
      */
     app.put('/user/mfa', {
-        preHandler: app.needsPermission('user:edit')
+        preHandler: [app.blockPAT, app.needsPermission('user:edit')]
     }, async (request, reply) => {
         if (request.session.User.mfa_enabled) {
             return reply.status(400).send({ code: 'mfa_enabled', error: 'MFA is already enabled for this user' })
@@ -18,7 +18,7 @@ module.exports = async function (app, opts) {
      * Complete MFA setup
      */
     app.put('/user/mfa/verify', {
-        preHandler: app.needsPermission('user:edit')
+        preHandler: [app.blockPAT, app.needsPermission('user:edit')]
     }, async (request, reply) => {
         if (request.session.User.mfa_enabled) {
             return reply.status(400).send({ code: 'mfa_enabled', error: 'MFA is already enabled for this user' })
@@ -64,7 +64,7 @@ module.exports = async function (app, opts) {
      * Disable MFA for the user
      */
     app.delete('/user/mfa', {
-        preHandler: app.needsPermission('user:edit')
+        preHandler: [app.blockPAT, app.needsPermission('user:edit')]
     }, async (request, reply) => {
         await app.db.models.MFAToken.deleteTokenForUser(request.session.User)
         reply.send({ status: 'okay' })

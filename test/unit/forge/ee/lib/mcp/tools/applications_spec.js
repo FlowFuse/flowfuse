@@ -163,6 +163,80 @@ describe('MCP Applications Tools', function () {
         })
     })
 
+    describe('platform_update_application', function () {
+        const tool = getTool('platform_update_application')
+
+        it('puts the application payload and returns the response', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ id: 'app1' }) }
+            inject.withArgs({ method: 'PUT', url: '/api/v1/applications/app1', payload: { name: 'Renamed App', description: 'new desc' } }).resolves(routeResponse)
+
+            const response = await tool.handler({ applicationId: 'app1', name: 'Renamed App', description: 'new desc' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('omits description from the payload when it is not set', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ id: 'app1' }) })
+
+            await tool.handler({ applicationId: 'app1', name: 'Renamed App' }, { inject })
+
+            inject.firstCall.args[0].payload.should.eql({ name: 'Renamed App' })
+        })
+
+        it('keeps an empty-string description in the payload so it can clear the stored value', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ id: 'app1' }) })
+
+            await tool.handler({ applicationId: 'app1', name: 'Renamed App', description: '' }, { inject })
+
+            inject.firstCall.args[0].payload.should.eql({ name: 'Renamed App', description: '' })
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 403, json: () => ({ code: 'unauthorized' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ applicationId: 'app1', name: 'Renamed App' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_delete_application', function () {
+        const tool = getTool('platform_delete_application')
+
+        it('is annotated as destructive so it is served as a delete tool', function () {
+            tool.annotations.should.have.property('readOnlyHint', false)
+            tool.annotations.should.have.property('destructiveHint', true)
+        })
+
+        it('deletes through the application route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
+            inject.withArgs({ method: 'DELETE', url: '/api/v1/applications/app1' }).resolves(routeResponse)
+
+            const response = await tool.handler({ applicationId: 'app1' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('passes through the 422 for an application that still has hosted instances', async function () {
+            const errorResponse = { statusCode: 422, json: () => ({ code: 'invalid_application', error: 'Please delete the instances within the application first' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ applicationId: 'app1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+
+        it('refuses an applicationId that would reach another route', async function () {
+            for (const applicationId of ['../teams/team1', 'app1?x=1', '..']) {
+                const response = await tool.handler({ applicationId }, { inject })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_request')
+            }
+            inject.called.should.be.false()
+        })
+    })
+
     describe('platform_list_application_snapshots', function () {
         const tool = getTool('platform_list_application_snapshots')
 

@@ -50,6 +50,7 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 import { useUxLoadingStore } from '@/stores/ux-loading.js'
+import { useUxStore } from '@/stores/ux.js'
 
 export default {
     name: 'HomePage',
@@ -66,9 +67,10 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useDataFarmTeamsStore, { teams: 'teamList', defaultUserTeam: 'defaultUserTeam' }),
-        ...mapState(useAccountSettingsStore, ['settings']),
+        ...mapState(useAccountSettingsStore, ['settings', 'featuresCheck']),
         ...mapState(useAccountAuthStore, ['user', 'redirectUrlAfterLogin']),
         ...mapState(useUxLoadingStore, ['appLoader']),
+        ...mapState(useUxStore, ['shouldEnterOnboarding']),
         canCreateTeam () {
             if (this.user.admin) return true
             return Object.prototype.hasOwnProperty.call(this.settings, 'team:create') && this.settings['team:create'] === true
@@ -88,13 +90,26 @@ export default {
             }
 
             // Only bounce to team view if there's no redirectUrlAfterLogin set
+            // these should be route guards
             if (this.user.email_verified) {
-                if (this.team || this.defaultUserTeam) {
+                // isAiOnboardingFeatureEnabled needs the full team, which loads
+                // after the teams list; deciding earlier would burn the one-shot
+                // while it still reads false.
+                if (this.shouldEnterOnboarding && !this.team) {
+                    return
+                }
+                const teamSlug = this.team?.slug || this.defaultUserTeam?.slug
+                if (teamSlug) {
+                    const enterOnboarding = useUxStore().consumeOnboardingEntry()
+                    if (enterOnboarding && this.featuresCheck?.isAiOnboardingFeatureEnabled) {
+                        return this.$router.push({
+                            name: 'team-onboarding',
+                            params: { team_slug: teamSlug }
+                        })
+                    }
                     this.$router.push({
                         name: 'team',
-                        params: {
-                            team_slug: this.team?.slug || this.defaultUserTeam?.slug
-                        }
+                        params: { team_slug: teamSlug }
                     })
                 }
             }

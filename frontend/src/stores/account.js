@@ -9,6 +9,7 @@ import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
 import { useDataFarmHostedInstancesStore } from '@/stores/data-farm-hosted-instances'
 import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 import { useProductTablesStore } from '@/stores/product-tables.js'
+import { useUxStore } from '@/stores/ux.js'
 import SUBSCRIBER_REGISTRY from '@/subscribers/subscriber.registry'
 
 function isOptInSubscriber (key) {
@@ -68,6 +69,7 @@ export const useAccountStore = defineStore('account', {
                 if (!currentTeam || currentTeam.slug !== team) {
                     team = await teams.fetchTeam({ slug: team })
                 } else {
+                    product.setTeam(currentTeam)
                     ensureTeamChannelConnected(currentTeam)
                     this.pendingTeamChange = false
                     return
@@ -81,7 +83,11 @@ export const useAccountStore = defineStore('account', {
                     // Same team — update team data and refresh membership
                     // without clearing other stores
                     if (team?.id) {
+                        product.setTeam(team)
                         context.setTeam(team)
+                        // A reload restores the active team from sessionStorage, so its
+                        // first full team arrives here rather than below
+                        useUxStore().checkOnboardingOnArrival(team)
                         await context.refreshTeamMembership()
                     }
                     ensureTeamChannelConnected(team || currentTeam)
@@ -93,6 +99,7 @@ export const useAccountStore = defineStore('account', {
             context.setTeam(team)
             this.clearOtherStores()
             if (team?.id) {
+                useUxStore().checkOnboardingOnArrival(team)
                 await context.refreshTeamMembership()
                 ensureTeamChannelConnected(team)
             } else {

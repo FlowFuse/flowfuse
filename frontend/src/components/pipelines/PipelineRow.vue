@@ -248,7 +248,7 @@ export default {
             if (stage.action !== StageAction.NONE && !endofPipeline) {
                 // we are mid-pipeline
                 const nextStage = this.pipeline.stages[$index + 1]
-                if (nextStage.instance?.protected?.enabled && this.teamMembership.role !== Roles.Owner) {
+                if (nextStage.instance?.protected?.enabled && this.teamMembership?.role !== Roles.Owner) {
                     return false
                 }
                 if (nextStage.device?.mode === 'developer') {

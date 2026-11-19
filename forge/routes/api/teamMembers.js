@@ -1,3 +1,4 @@
+const { ControllerError } = require('../../lib/errors')
 const { TeamRoles } = require('../../lib/roles.js')
 
 /**
@@ -104,9 +105,19 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    $ref: 'APIStatus'
+                    type: 'object',
+                    properties: {
+                        status: { type: 'string' },
+                        // false when the user was not a member of the team, so nothing was removed
+                        removed: { type: 'boolean' }
+                    },
+                    required: ['status'],
+                    additionalProperties: false
                 },
                 '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
                     $ref: 'APIError'
                 }
             }
@@ -122,9 +133,13 @@ module.exports = async function (app) {
                 await app.auditLog.Team.team.user.removed(request.session.User, null, request.team, request.user)
                 app.comms?.team?.notifyMembership(request.team.hashid, request.user.hashid, 'removed')
             }
-            reply.send({ status: 'okay' })
+            reply.send({ status: 'okay', removed: result })
         } catch (err) {
-            reply.code(400).send({ code: 'invalid_request', error: 'cannot remove only owner' })
+            if (err instanceof ControllerError) {
+                return reply.code(err.statusCode || 400).send({ code: err.code, error: err.error })
+            }
+            app.log.error(`Failed to remove team member: ${err.message}`)
+            reply.code(500).send({ code: 'unexpected_error', error: 'Unexpected error' })
         }
     })
 
@@ -230,7 +245,15 @@ module.exports = async function (app) {
                 reply.code(400).send({ code: 'invalid_request', error: 'Invalid permissions object' })
                 return
             }
+            const effectiveRole = (permissions, applicationId) => {
+                const override = permissions?.applications?.[applicationId]
+                return override !== undefined ? override : request.userRole.role
+            }
+            const lowered = applications.some(a => effectiveRole(newPermissions, a.hashid) < effectiveRole(request.userRole.permissions, a.hashid))
             await app.db.controllers.Team.changeUserTeamPermissions(request.params.teamId, request.params.userId, newPermissions)
+            if (lowered) {
+                await app.db.controllers.StorageSession.removeUserFromTeamSessions(request.user, request.team)
+            }
             // TODO: audit log it
             reply.send({ status: 'okay' })
         }

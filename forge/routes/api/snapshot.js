@@ -7,6 +7,8 @@
  * @memberof forge.routes.api
  */
 
+const { ValidationError } = require('sequelize')
+
 const { UpdatesCollection } = require('../../auditLog/formatters.js')
 
 module.exports = async function (app) {
@@ -52,6 +54,10 @@ module.exports = async function (app) {
                 } else {
                     return reply.code(400).send({ code: 'bad_request', error: 'Invalid ownerType' })
                 }
+            }
+            if (request.owner?.ApplicationId) {
+                // Lets needsPermission apply the user's application-level role
+                request.applicationId = app.db.models.Application.encodeHashid(request.owner.ApplicationId)
             }
             if (request.session.User) {
                 request.teamMembership = await request.session.User.getTeamMembership(request.owner.TeamId)
@@ -125,7 +131,21 @@ module.exports = async function (app) {
         const snapshot = {
             ...(request.snapshot.toJSON ? request.snapshot.toJSON() : request.snapshot)
         }
-        reply.send(projectSnapshotView.snapshotExport(snapshot))
+        const result = projectSnapshotView.snapshotExport(snapshot)
+        // Only Owners see the values of hidden env vars
+        const isOwner = request.session.User.admin || app.hasPermission(request.teamMembership, 'snapshot:edit', { applicationId: request.applicationId })
+        if (!isOwner && result.settings?.env) {
+            const env = {}
+            for (const [name, entry] of Object.entries(result.settings.env)) {
+                if (entry?.hidden === true) {
+                    env[name] = { ...entry, value: '' }
+                } else {
+                    env[name] = entry
+                }
+            }
+            result.settings = { ...result.settings, env }
+        }
+        reply.send(result)
     })
 
     /**
@@ -196,7 +216,15 @@ module.exports = async function (app) {
         // capture the original name/description for the audit log
         const snapshotBefore = { name: request.snapshot.name, description: request.snapshot.description }
         // perform the update
-        const snapshot = await snapshotController.updateSnapshot(request.snapshot, request.body)
+        let snapshot
+        try {
+            snapshot = await snapshotController.updateSnapshot(request.snapshot, request.body)
+        } catch (err) {
+            if (err instanceof ValidationError) {
+                return reply.code(400).send({ code: 'bad_request', error: err.message })
+            }
+            throw err
+        }
         // log the update
         const snapshotAfter = { name: snapshot.name, description: snapshot.description }
         const updates = new UpdatesCollection()
@@ -350,7 +378,7 @@ module.exports = async function (app) {
             reply.code(400).send({ code: 'bad_request', error: 'owner and snapshot are mandatory in the body' })
             return
         }
-        if (request.body.components?.credentials !== false) {
+        if (request.body.components?.flows !== false && request.body.components?.credentials !== false) {
             if (snapshot.flows.credentials?.$ && !request.body.credentialSecret) {
                 reply.code(400).send({ code: 'bad_request', error: 'Credential secret is required when importing a snapshot with credentials' })
                 return
@@ -377,6 +405,9 @@ module.exports = async function (app) {
             // if err message is a JSON.parse failure in decryptCreds, it's a bad secret
             if (/JSON\.parse.*decryptCreds/si.test(err.stack)) {
                 return reply.code(400).send({ code: 'bad_request', error: 'Invalid credential secret' })
+            }
+            if (err instanceof ValidationError) {
+                return reply.code(400).send({ code: 'bad_request', error: err.message })
             }
             throw err // handled by global error handler
         }

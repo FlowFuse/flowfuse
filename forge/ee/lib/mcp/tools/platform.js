@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { teamId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, appendQuery } = require('../schemas')
+const { pathId, teamId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, appendQuery } = require('../schemas')
 const { PLATFORM_UI_TOOL_NAMES, SESSION_GATED_GROUPS, noBrowserSessionGuidance } = require('../sessionGatedTools')
 
 function getProperty (properties, key) {
@@ -12,6 +12,26 @@ function getProperty (properties, key) {
         value = value[part]
     }
     return value
+}
+
+// The user's browser tabs on teams the caller's token can reach, as filtered by /user/teams.
+// A tab on no team (like /account) is only reachable when the token is not team-scoped,
+// matching how the MCP route forwards a pinned tab.
+async function getReachableBrowserSessions (app, user, inject, scope) {
+    const sessions = await app.db.controllers.BrowserSession.getSessionsByUser(user.hashid)
+    const response = await inject({ method: 'GET', url: '/api/v1/user/teams' })
+    if (response.statusCode !== 200) {
+        return []
+    }
+    const teamIds = new Set(response.json().teams.map(team => team.id))
+    const allTeams = !Array.isArray(scope?.teams) || scope.teams.length === 0
+    return sessions.filter(session => {
+        const teamId = session.context?.teamId
+        if (!teamId) {
+            return allTeams
+        }
+        return teamIds.has(teamId)
+    })
 }
 
 function getTeamProperty (team, key, defaultValue) {
@@ -108,7 +128,7 @@ module.exports = [
         description: 'FlowFuse platform automation tool: Get a single template by id. Hidden environment variable values are blanked in the response; visible ones are returned as set.',
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            templateId: z.string().describe('Template hashid')
+            templateId: pathId.describe('Template hashid')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/templates/${args.templateId}` })
@@ -121,7 +141,7 @@ module.exports = [
         description: 'FlowFuse platform automation tool: Get a single flow blueprint by id. By default the flow content is omitted from the response.',
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            flowBlueprintId: z.string().describe('Flow blueprint hashid'),
+            flowBlueprintId: pathId.describe('Flow blueprint hashid'),
             includeFlow: z.boolean().default(false).optional().describe('Whether to include the full flow JSON in the response. Omitted by default to keep the response small; set true to fetch it, e.g. to deploy it.')
         },
         handler: async (args, { inject }) => {
@@ -164,7 +184,7 @@ module.exports = [
             Use this to inspect the tier/plan a team is on, or to check a team type before assigning it to a new team.`,
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            teamTypeId: z.string().describe('Team type hashid')
+            teamTypeId: pathId.describe('Team type hashid')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/team-types/${args.teamTypeId}` })
@@ -182,8 +202,9 @@ module.exports = [
             Pick a session_id from the results and pass it as the target for subsequent tool invocations.
             If no sessions are returned, ask the user to open the FlowFuse platform in their browser and enable the MCP toggle (the plug icon next to the Expert button in the header).`,
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        _meta: { audience: 'mcp' },
         inputSchema: { }, // future - consider adding userId so that admin users can ask "what sessions does user X have?"
-        handler: async (args, { app, user }) => {
+        handler: async (args, { app, user, inject, scope }) => {
             if (!app.db.controllers.BrowserSession) {
                 return {
                     sessions: [],
@@ -191,8 +212,7 @@ module.exports = [
                 }
             }
 
-            const userId = user.hashid
-            const sessions = await app.db.controllers.BrowserSession.getSessionsByUser(userId)
+            const sessions = await getReachableBrowserSessions(app, user, inject, scope)
 
             if (sessions.length === 0) {
                 const baseUrl = app.config.base_url || ''
@@ -228,17 +248,18 @@ module.exports = [
             Call platform_list_browser_sessions first to get a valid session_id.
             The pin is remembered for this MCP connection until changed, the tab closes, or it expires.`,
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        _meta: { audience: 'mcp' },
         inputSchema: {
             session_id: z.string().describe('The sessionId of the browser tab to target, from platform_list_browser_sessions')
         },
-        handler: async (args, { app, user, mcpSessionId }) => {
+        handler: async (args, { app, user, mcpSessionId, inject, scope }) => {
             if (!app.db.controllers.BrowserSession) {
                 return {
                     success: false,
                     message: 'Browser sessions are not available on this platform. 3rd party automations like flow building will not be possible.'
                 }
             }
-            const sessions = await app.db.controllers.BrowserSession.getSessionsByUser(user.hashid)
+            const sessions = await getReachableBrowserSessions(app, user, inject, scope)
             const match = sessions.find(session => session.sessionId === args.session_id)
             if (!match) {
                 return {
@@ -300,6 +321,7 @@ module.exports = [
             If none is set, or the pinned tab is no longer live, call platform_list_browser_sessions and
             platform_set_active_browser_session to pick one.`,
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        _meta: { audience: 'mcp' },
         inputSchema: {},
         handler: async (args, { app, user, mcpSessionId }) => {
             if (!app.db.controllers.BrowserSession) {

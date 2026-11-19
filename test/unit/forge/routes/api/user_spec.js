@@ -3,6 +3,7 @@ const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
+const mcpToolPermissions = FF_UTIL.require('forge/lib/mcpToolPermissions')
 
 describe('User API', async function () {
     let app
@@ -120,6 +121,7 @@ describe('User API', async function () {
             TestObjects.elvis.email_verified = true
             TestObjects.elvis.password = 'eePassword'
             await TestObjects.elvis.save()
+            await app.db.models.UserSettings.destroy({ where: { UserId: TestObjects.elvis.id } })
         })
         // TODO: re-introduce the below once #1183 is complete
         // async function getAuditLog (limit = 1) {
@@ -151,6 +153,67 @@ describe('User API', async function () {
             result.should.have.property('username', TestObjects.alice.username)
             result.should.have.property('email', TestObjects.alice.email)
             result.should.not.have.property('sso_enabled')
+            result.should.have.property('settings')
+            result.settings.should.not.have.property('onboardingCompleted')
+        })
+        it('persists onboarding completion so it survives a new session', async function () {
+            await login('elvis', 'eePassword')
+            const putResponse = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/settings',
+                cookies: { sid: TestObjects.tokens.elvis },
+                payload: { onboardingCompleted: true }
+            })
+            putResponse.statusCode.should.equal(200)
+            putResponse.json().should.have.property('onboardingCompleted', true)
+
+            const getResponse = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.elvis }
+            })
+            getResponse.json().settings.should.have.property('onboardingCompleted', true)
+
+            // A fresh login (e.g. a different browser) must still see it
+            await login('elvis', 'eePassword')
+            const secondGetResponse = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.elvis }
+            })
+            secondGetResponse.json().settings.should.have.property('onboardingCompleted', true)
+        })
+        it('persists when the AI connector modal was last shown', async function () {
+            await login('elvis', 'eePassword')
+            const putResponse = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/settings',
+                cookies: { sid: TestObjects.tokens.elvis },
+                payload: { aiConnectorLastShownAt: 1700000000000 }
+            })
+            putResponse.statusCode.should.equal(200)
+            putResponse.json().should.have.property('aiConnectorLastShownAt', 1700000000000)
+
+            const getResponse = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.elvis }
+            })
+            getResponse.json().settings.should.have.property('aiConnectorLastShownAt', 1700000000000)
+        })
+        it('strips settings keys that are not on the allow-list', async function () {
+            await login('elvis', 'eePassword')
+            const putResponse = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/settings',
+                cookies: { sid: TestObjects.tokens.elvis },
+                payload: { onboardingCompleted: true, admin: true, favouriteColour: 'green' }
+            })
+            putResponse.statusCode.should.equal(200)
+            const settings = putResponse.json()
+            settings.should.have.property('onboardingCompleted', true)
+            settings.should.not.have.property('admin')
+            settings.should.not.have.property('favouriteColour')
         })
         describe('sso', function () {
             before(async function () {
@@ -299,6 +362,11 @@ describe('User API', async function () {
             secondTemp.should.have.property('name', 'sid')
             const secondLoginSessionId = secondLoginSession.cookies[0].value
 
+            const editorSession = await app.db.models.StorageSession.create({
+                sessions: JSON.stringify({ token1: { user: 'dave', client: 'node-red-editor', scope: ['*'], accessToken: 'token1', expires: Date.now() + 60000 } }),
+                ProjectId: TestObjects.Project1.id
+            })
+
             const response = await app.inject({
                 method: 'PUT',
                 url: '/api/v1/user/change_password',
@@ -340,6 +408,11 @@ describe('User API', async function () {
                 cookies: { sid: secondLoginSessionId }
             })
             checkSecondToken.statusCode.should.equal(401)
+
+            // Node-RED editor sessions should be removed
+            await editorSession.reload()
+            JSON.parse(editorSession.sessions).should.not.have.property('token1')
+            await editorSession.destroy()
 
             // The password_reset token should no longer exist
             ;(await app.db.models.AccessToken.count({ where: { scope: 'password:reset' } })).should.equal(0)
@@ -1018,9 +1091,34 @@ describe('User API', async function () {
             })
             deleteResponse.statusCode.should.equal(404)
         })
+        it('PAT can not delete PAT', async function () {
+            // Alice create token
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    name: 'Test Token',
+                    scope: ''
+                }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+            const token = json.token
+
+            // Verify PAT cannot delete it's self
+            const deleteResponse = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user/tokens/' + token.id,
+                headers: {
+                    authorization: `Bearer ${token}`
+                }
+            })
+            deleteResponse.statusCode.should.equal(403)
+        })
         it('Lists an MCP OAuth token as auto-renewing', async function () {
             const grantExpiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000
-            await app.db.controllers.AccessToken.createMCPOAuthToken(TestObjects.alice.id, { grantExpiresAt })
+            await app.db.controllers.AccessToken.createMCPOAuthToken(TestObjects.alice.id, { grantExpiresAt, toolPermissions: mcpToolPermissions.fromReadOnly(true) })
             await app.db.controllers.AccessToken.createPersonalAccessToken(TestObjects.alice, '', null, 'Plain Token')
 
             const response = await app.inject({
@@ -1037,12 +1135,43 @@ describe('User API', async function () {
             // the renewal cycle comes from the backend, matching the real rotation
             mcpToken.autoRenews.should.have.property('every', 1000 * 60 * 30)
             mcpToken.autoRenews.should.have.property('chosen', true)
+            mcpToken.toolPermissions.should.eql(mcpToolPermissions.fromReadOnly(true))
             new Date(mcpToken.autoRenews.until).getTime().should.equal(grantExpiresAt)
 
             // plain PATs do not carry it
             const plainToken = json.tokens.find(t => t.name === 'Plain Token')
             should.exist(plainToken)
             plainToken.should.not.have.property('autoRenews')
+            should.not.exist(plainToken.toolPermissions)
+        })
+        it('Returns an MCP token\'s tool permissions after an edit and logs the change', async function () {
+            const otherTeam = await app.db.models.Team.create({ name: 'MCPEditTeam', TeamTypeId: app.defaultTeamType.id })
+            await otherTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+            const readOnly = mcpToolPermissions.fromReadOnly(true).default
+            const writable = mcpToolPermissions.fromReadOnly(false).default
+            const created = await app.db.controllers.AccessToken.createMCPOAuthToken(TestObjects.alice.id, {
+                teamIds: [TestObjects.ATeam.hashid, otherTeam.hashid],
+                toolPermissions: { default: readOnly, teams: { [otherTeam.hashid]: writable } }
+            })
+            const row = await app.db.models.AccessToken.byRefreshToken(created.refreshToken)
+            try {
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user/tokens/' + row.hashid,
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: { scope: '', teamIds: [TestObjects.ATeam.hashid] }
+                })
+                response.statusCode.should.equal(200)
+                const json = response.json()
+                json.toolPermissions.should.eql({ default: readOnly, teams: {} })
+                json.readOnly.should.be.true()
+
+                const entry = await app.db.models.AuditLog.findOne({ where: { event: 'user.pat.updated' }, order: [['id', 'DESC']] })
+                JSON.stringify(entry.body).should.containEql('toolPermissions')
+            } finally {
+                await row.destroy()
+                await otherTeam.destroy()
+            }
         })
         it('Deleting a user removes any PATs from the db', async function () {
             const userToDelete = await app.db.models.User.create({ username: 'wayne', name: 'Wayne Vane', email: 'wayne@example.com', email_verified: true, password: 'wwPassword' })
@@ -1188,6 +1317,18 @@ describe('User API', async function () {
                 payload: { scope: '' }
             })
             updateResponse.statusCode.should.equal(200)
+        })
+
+        it('Rejects creating a PAT with a missing, empty or blank name', async function () {
+            for (const payload of [{ scope: '' }, { name: '', scope: '' }, { name: '   ', scope: '' }]) {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload
+                })
+                response.statusCode.should.equal(400)
+            }
         })
 
         it('PAT-authenticated POST /tokens returns 403', async function () {
@@ -1562,6 +1703,46 @@ describe('User API', async function () {
                 }
             })
 
+            it('team-scoped PAT cannot remove its user from a team outside its scope', async function () {
+                await login('bob', 'bbPassword')
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.bob },
+                    payload: { name: 'ATeam Only (leave)', scope: '', teamIds: [TestObjects.ATeam.hashid] }
+                })
+                createResponse.statusCode.should.equal(200)
+
+                const response = await app.inject({
+                    method: 'DELETE',
+                    url: `/api/v1/teams/${TestObjects.BTeam.hashid}/members/${TestObjects.bob.hashid}`,
+                    headers: { authorization: `Bearer ${createResponse.json().token}` }
+                })
+                response.statusCode.should.equal(403)
+                const role = await TestObjects.bob.getTeamMembership(TestObjects.BTeam.id)
+                should.exist(role)
+            })
+
+            it('read-only PAT cannot remove its user from a team', async function () {
+                await login('bob', 'bbPassword')
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.bob },
+                    payload: { name: 'ReadOnly (leave)', scope: '', readOnly: true }
+                })
+                createResponse.statusCode.should.equal(200)
+
+                const response = await app.inject({
+                    method: 'DELETE',
+                    url: `/api/v1/teams/${TestObjects.BTeam.hashid}/members/${TestObjects.bob.hashid}`,
+                    headers: { authorization: `Bearer ${createResponse.json().token}` }
+                })
+                response.statusCode.should.equal(403)
+                const role = await TestObjects.bob.getTeamMembership(TestObjects.BTeam.id)
+                should.exist(role)
+            })
+
             it('team-agnostic PAT (no teamScopes) can access any team the user belongs to', async function () {
                 await login('bob', 'bbPassword')
                 const createResponse = await app.inject({
@@ -1860,6 +2041,26 @@ describe('User API', async function () {
             ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(0)
             ;(await getUserTeams(TestObjects.tokens.grace)).should.have.length(2)
             ;(await getUserNotifications(TestObjects.tokens.grace)).should.have.length(0)
+        })
+
+        it('user cannot accept an expired invite', async function () {
+            await login('grace', 'ggPassword')
+
+            const invitor = TestObjects.alice
+            const team = await app.db.models.Team.byName('ATeam')
+            const result = await app.db.controllers.Invitation.createInvitations(invitor, team, ['grace'])
+            const invite = result.grace
+            await app.db.models.Invitation.update({ expiresAt: Date.now() - 1000 }, { where: { id: invite.id } })
+
+            const response = await app.inject({
+                method: 'PATCH',
+                url: '/api/v1/user/invitations/' + invite.hashid,
+                cookies: { sid: TestObjects.tokens.grace }
+            })
+            response.statusCode.should.equal(400)
+            response.json().should.have.property('code', 'invitation_expired')
+            ;(await getUserTeams(TestObjects.tokens.grace)).should.have.length(1)
+            ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(1)
         })
 
         it('user can reject an invite to a team', async function () {

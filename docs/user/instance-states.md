@@ -1,6 +1,8 @@
 ---
 navTitle: Instance States
 navOrder: 10
+meta:
+   description: Look up the stable and transitional states a hosted or remote Node-RED instance can be in on FlowFuse, and what each state means.
 ---
 
 # FlowFuse Node-RED Instance States

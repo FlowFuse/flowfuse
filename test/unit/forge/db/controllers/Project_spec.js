@@ -195,6 +195,27 @@ describe('Project controller', function () {
             result.palette.modules.should.have.property('node-red-node-ping', '0.3.3') // unchanged (still has project value)
             result.palette.modules.should.not.have.property('node-red-node-badwords') // template item NOT merged into project settings
         })
+        it('defaults a module saved without a version to any version in runtime settings', async function () {
+            const project = await app.db.models.Project.create({
+                name: 'testProject-001b',
+                type: '',
+                url: ''
+            })
+            await project.updateSetting('settings', {
+                palette: {
+                    modules: [
+                        { name: 'node-red-node-random', version: '1.2.3', local: true },
+                        { name: '@flowfuse-certified-nodes/redis', local: true }
+                    ]
+                }
+            })
+
+            const reloadedProject = await app.db.models.Project.byId(project.id)
+            const result = await app.db.controllers.Project.getRuntimeSettings(reloadedProject)
+
+            result.palette.modules.should.have.property('node-red-node-random', '1.2.3')
+            result.palette.modules.should.have.property('@flowfuse-certified-nodes/redis', '*')
+        })
     })
 
     describe('addProjectModule', function () {

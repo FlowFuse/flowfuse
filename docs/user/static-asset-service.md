@@ -1,6 +1,8 @@
 ---
 navTitle: Static asset service
 navOrder: 1
+meta:
+   description: Upload and manage files and folders on a hosted Node-RED instance with the Static Asset Service, and serve folders publicly on a static path.
 ---
 
 # Static asset service

@@ -38,6 +38,8 @@ const BANNED_NAME_LIST = [
     'registry'
 ]
 
+const NAME_PATTERN = /^[a-zA-Z][a-zA-Z0-9-]*$/
+
 /** @type {FFModel} */
 module.exports = {
     name: 'Project',
@@ -429,6 +431,7 @@ module.exports = {
             },
             static: {
                 BANNED_NAME_LIST,
+                NAME_PATTERN,
                 isNameUsed: async (name) => {
                     const safeName = name?.toLowerCase()
                     const count = await this.count({
@@ -725,6 +728,17 @@ module.exports = {
                     })
                     if (project) {
                         return project.TeamId
+                    }
+                },
+                getProjectApplicationId: async (id) => {
+                    const project = await this.findOne({
+                        where: { id },
+                        attributes: [
+                            'ApplicationId'
+                        ]
+                    })
+                    if (project && project.ApplicationId) {
+                        return M.Application.encodeHashid(project.ApplicationId)
                     }
                 },
                 generateCredentialSecret () {

@@ -119,7 +119,7 @@ module.exports = {
                     const limit = parseInt(pagination.limit) || 1000
 
                     if (pagination.cursor) {
-                        pagination.cursor = M.DeviceGroup.decodeHashid(pagination.cursor)
+                        pagination.cursor = M.DeviceGroup.decodeCursor(pagination.cursor)
                     }
 
                     if (where.ApplicationId) {

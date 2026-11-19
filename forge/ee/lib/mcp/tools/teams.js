@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { teamId, applicationId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError } = require('../schemas')
+const { pathId, teamId, applicationId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError } = require('../schemas')
 
 // Audit-log routes accept cursor+limit pagination, free-text query, event
 // (single name or array) and username. scope narrows which entity levels are
@@ -51,7 +51,7 @@ module.exports = [
             }
             const url = hasId
                 ? `/api/v1/teams/${args.teamId}`
-                : `/api/v1/teams/slug/${args.teamSlug}`
+                : `/api/v1/teams/slug/${encodeURIComponent(args.teamSlug)}`
             const response = await inject({ method: 'GET', url })
             return response
         }
@@ -173,6 +173,218 @@ module.exports = [
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/git/tokens` })
+            return response
+        }
+    },
+    {
+        name: 'platform_update_git_token',
+        title: 'Update Team Git Token',
+        description: `FlowFuse platform automation tool:
+            Renames a git token configured for a team. The name is the only editable field: this never changes or returns the stored credential, and the reply holds only the token's id, name and type.
+            Renaming a token to the name it already has succeeds without changing anything.
+            Only team owners can update git tokens. Use platform_list_team_git_tokens to find the token id.
+            Git integration is a plan-gated feature. A 404 means the token does not exist in this team, or git integration is not enabled for the team's plan.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            tokenId: pathId.describe('The hashid of the git token, as returned by platform_list_team_git_tokens'),
+            name: z.string().trim().min(1).max(255).describe('New name for the git token')
+        },
+        outputSchema: {
+            id: z.string(),
+            name: z.string(),
+            type: z.string()
+        },
+        handler: async (args, { inject }) => {
+            return inject({ method: 'PUT', url: `/api/v1/teams/${args.teamId}/git/tokens/${args.tokenId}`, payload: { name: args.name } })
+        }
+    },
+    {
+        name: 'platform_delete_git_token',
+        title: 'Delete Team Git Token',
+        description: `FlowFuse platform automation tool:
+            Permanently deletes a team git token. The stored token value is gone and cannot be recovered, so a new token has to be created to restore access.
+            Confirm with the user before calling this. The token itself is not revoked with the git provider.
+            A token that a pipeline stage still uses cannot be deleted: the call fails with 409 token_in_use and names the pipelines, which have to be pointed at another token first.
+            Only team owners can delete git tokens. Replies { status: "okay" } on success; a token that does not exist, or belongs to another team, returns 404, so repeating a call is harmless.`,
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            tokenId: pathId.describe('The hashid of the git token to delete, as returned by platform_list_team_git_tokens')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/git/tokens/${args.tokenId}` })
+            if (response.statusCode >= 400) {
+                return response
+            }
+            return { statusCode: response.statusCode, json: () => ({ status: 'okay' }) }
+        }
+    },
+    {
+        name: 'platform_create_team',
+        title: 'Create Team',
+        description: `FlowFuse platform automation tool:
+            Creates a new team. The calling user becomes the team's owner.
+            type is the hashid of a team type (tier/plan); call platform_list_team_types to find one. An unknown or inactive type is rejected with "invalid_team_type".
+            slug is optional: when omitted, one is generated from the name. Slugs may only contain letters, digits, hyphen and underscore, must be unique across the platform, and "create" is reserved.
+            Non-admin users can only create teams when the platform allows self-service team creation; otherwise the call fails as unauthorized.
+            On platforms with billing, the response may include a billingURL - a checkout link the user must visit to activate the team's subscription. Surface that link to the user. trial requests trial-mode setup and is only honoured for brand-new users (no other teams, account under a week old) on team types with trials enabled; otherwise it is rejected.
+            When the calling credential is a team-scoped token, the new team falls outside that scope: the call still succeeds, but follow-up calls against the team (reading it, updating it, inviting to it) return an access error and it will not appear in platform_list_teams.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        inputSchema: {
+            name: z.string().describe('Display name for the new team'),
+            type: z.string().describe('The hashid of the team type (tier/plan) for the team, as returned by platform_list_team_types'),
+            slug: z.string().regex(/^[a-z0-9-_]+$/i).optional().describe('URL identifier for the team: letters, digits, hyphen and underscore, unique across the platform ("create" is reserved). Generated from the name when omitted'),
+            trial: z.boolean().optional().describe('Request trial-mode setup. Only honoured when billing is active, the team type has trials enabled, and the user is brand new; rejected otherwise'),
+            billingInterval: z.enum(['month', 'year']).optional().describe('Billing cycle for the subscription checkout session, on platforms with billing')
+        },
+        handler: async (args, { inject }) => {
+            const payload = { name: args.name, type: args.type }
+            for (const key of ['slug', 'trial', 'billingInterval']) {
+                if (args[key] !== undefined) {
+                    payload[key] = args[key]
+                }
+            }
+            const response = await inject({ method: 'POST', url: '/api/v1/teams', payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_update_team',
+        title: 'Update Team',
+        description: `FlowFuse platform automation tool:
+            Renames a team and/or changes its slug. Only the fields you pass are changed; omitted (or empty) fields keep their stored value. Pass at least one of name or slug.
+            Changing the slug changes the team's URLs. Slugs may only contain letters, digits, hyphen and underscore, must be unique, and "create" is reserved - conflicts are rejected with a 400.
+            Team type, suspension, feature toggles and properties are deliberately not editable through this tool.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            name: z.string().min(1).optional().describe('New display name for the team'),
+            slug: z.string().regex(/^[a-z0-9-_]+$/i).optional().describe('New URL identifier for the team: letters, digits, hyphen and underscore, unique across the platform ("create" is reserved). Changing it changes the team URLs')
+        },
+        handler: async (args, { inject }) => {
+            const payload = {}
+            if (args.name !== undefined) {
+                payload.name = args.name
+            }
+            if (args.slug !== undefined) {
+                payload.slug = args.slug
+            }
+            // The route replies 200 with the unchanged team when there is nothing
+            // to update, which reads as a successful edit that never happened.
+            if (Object.keys(payload).length === 0) {
+                return toolError(400, 'invalid_request', 'Pass at least one of name or slug to update')
+            }
+            const response = await inject({ method: 'PUT', url: `/api/v1/teams/${args.teamId}`, payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_change_member_role',
+        title: 'Change Team Member Role',
+        description: `FlowFuse platform automation tool:
+            Changes an existing team member's role. Roles are numeric: 5=Dashboard, 10=Viewer, 30=Member, 50=Owner.
+            CAUTION: demoting a team's only owner is blocked when the new role is Member, but NOT when it is Viewer or Dashboard. Those succeed and leave the team with no owner at all, after which nobody but a platform admin can restore one, delete the team, or invite anyone to it. Check platform_list_team_members for how many owners a team has before demoting one, and confirm with the user first.
+            Members whose team membership is managed through SSO cannot be changed here; that fails with "Cannot modify team membership for an SSO managed user".
+            Other disallowed changes come back as a generic 403 "invalid_request" without detail - the usual causes are the user not being a member of the team, or demoting the only owner to Member. Check membership with platform_list_team_members first when unsure.
+            Setting the role the member already has succeeds as a no-op.`,
+        // destructiveHint: a single call can permanently orphan a team (see the
+        // CAUTION above), which is less recoverable than anything else here, so it
+        // belongs behind destructive tool access rather than plain write.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            userId: pathId.describe('The hashid of the team member whose role is changing'),
+            role: z.union([z.literal(5), z.literal(10), z.literal(30), z.literal(50)]).describe('New team role: 5=Dashboard, 10=Viewer, 30=Member, 50=Owner')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'PUT', url: `/api/v1/teams/${args.teamId}/members/${args.userId}`, payload: { role: args.role } })
+            return response
+        }
+    },
+    {
+        name: 'platform_invite_team_member',
+        title: 'Invite Team Member',
+        description: `FlowFuse platform automation tool:
+            Invites people to join a team, by username (existing platform users) or email address. The role is granted when the invitation is accepted; it defaults to 30=Member.
+            Up to 5 people can be invited per call (after de-duplication); more returns a 429 "too_many_invites".
+            Read both the status and the body. A fully successful call returns { status: "okay" }. Per-person failures (unknown user, already a member, already invited, email restrictions) come back as HTTP 200 with code "invitation_failed" and error as an object mapping each failed entry to its reason - treat those entries as NOT invited. A call rejected outright, for example because the team's user limit is reached, comes back as HTTP 400, also with code "invitation_failed", but error is a plain string and nobody was invited.
+            The route is also rate limited to 5 calls per 30 seconds, which is a second, different 429: "too_many_invites" means more than 5 invitees in one call and retrying unchanged will never work, while a rate-limit 429 clears on its own after a few seconds.
+            Email invitations to people without an account depend on the platform allowing external invitations and having email configured.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+        inputSchema: {
+            teamId,
+            user: z.string().describe('Comma-separated list of usernames and/or email addresses to invite (maximum 5 per call after de-duplication)'),
+            role: z.union([z.literal(5), z.literal(10), z.literal(30), z.literal(50)]).optional().describe('Team role granted on acceptance: 5=Dashboard, 10=Viewer, 30=Member, 50=Owner. Defaults to 30=Member')
+        },
+        handler: async (args, { inject }) => {
+            const payload = { user: args.user }
+            if (args.role !== undefined) {
+                payload.role = args.role
+            }
+            const response = await inject({ method: 'POST', url: `/api/v1/teams/${args.teamId}/invitations`, payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_resend_team_invitation',
+        title: 'Resend Team Invitation',
+        description: `FlowFuse platform automation tool:
+            Resends a pending team invitation email and extends the invitation's expiry date. Use platform_list_team_invitations to find the invitation id.
+            Returns 404 when the invitation does not exist or belongs to a different team. Resends are rate-limited on platforms with rate limits enabled.`,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            invitationId: pathId.describe('The hashid of the invitation to resend, as returned by platform_list_team_invitations')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'POST', url: `/api/v1/teams/${args.teamId}/invitations/${args.invitationId}` })
+            return response
+        }
+    },
+    {
+        name: 'platform_remove_team_member',
+        title: 'Remove Team Member',
+        description: `FlowFuse platform automation tool:
+            Removes a member from a team, taking away all of their access to it. This cannot be undone; they would have to be invited again.
+            Team owners can remove anyone. Any member can remove themselves (leave the team), but not other people.
+            The team's only owner cannot be removed, and members whose membership is managed through SSO cannot be removed here.
+            Removing someone also deletes any of their personal access tokens that were scoped only to this team. If you are removing the current user, that can include the token this session is using, so later calls may start failing.
+            Before calling this, confirm with the user. Use platform_list_team_members to find the user id and check how many owners the team has.
+            Replies { status: "okay" } on success. A user who is not a member of the team returns a 404.`,
+        // destructiveHint: the member loses all access to the team and has to be re-invited.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            userId: pathId.describe('The hashid of the member to remove, as returned by platform_list_team_members')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/members/${args.userId}` })
+            // The route answers 200 for a user who is not a member, with removed: false in the body.
+            if (response.statusCode === 200 && response.json().removed === false) {
+                return toolError(404, 'not_found', 'That user is not a member of this team. Check platform_list_team_members for the member ids')
+            }
+            return response
+        }
+    },
+    {
+        name: 'platform_revoke_team_invitation',
+        title: 'Revoke Team Invitation',
+        description: `FlowFuse platform automation tool:
+            Revokes a pending team invitation, so it can no longer be accepted. This cannot be undone; to let the person join later, invite them again with platform_invite_team_member.
+            The invitee's in-app notification about the invitation is removed too. No email is sent to tell them it was revoked.
+            Only team owners can revoke invitations. Use platform_list_team_invitations to find the invitation id.
+            Replies { status: "okay" } on success. An invitation that does not exist, or belongs to a different team, returns a 404.`,
+        // destructiveHint: the invitation is gone for good and has to be sent again.
+        // idempotentHint: a repeat call has no further effect, it just answers 404.
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+        inputSchema: {
+            teamId,
+            invitationId: pathId.describe('The hashid of the invitation to revoke, as returned by platform_list_team_invitations')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'DELETE', url: `/api/v1/teams/${args.teamId}/invitations/${args.invitationId}` })
             return response
         }
     }

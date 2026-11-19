@@ -68,7 +68,9 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const invitation = await app.db.models.Invitation.byId(request.params.invitationId, request.session.User)
-        if (invitation) {
+        if (invitation?.expiresAt && invitation.expiresAt.getTime() < Date.now()) {
+            reply.code(400).send({ code: 'invitation_expired', error: 'Invitation has expired' })
+        } else if (invitation) {
             await app.db.controllers.Invitation.acceptInvitation(invitation, request.session.User)
             await app.auditLog.User.user.invitation.accepted(request.session.User, null)
             reply.send({ status: 'okay' })

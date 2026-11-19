@@ -156,6 +156,7 @@ module.exports = async function (app) {
                     const m = /^ff\/v1\/([^/]+)\/c\/(.+)$/.exec(topic)
                     if (m) {
                         app.teamBroker.addUsedTopic(m[2], m[1])
+                            .catch(err => app.log.warn(`Failed to record used topic: ${err.message}`))
                     }
                 }
                 reply.logProperties = { username, topic, action, result: 'allow' }
@@ -203,6 +204,7 @@ module.exports = async function (app) {
                             if (mqttMatch(acl.pattern, request.body.topic)) {
                                 if (acl.action === 'both' || acl.action === 'publish') {
                                     app.teamBroker.addUsedTopic(request.body.topic, teamId)
+                                        .catch(err => app.log.warn(`Failed to record used topic: ${err.message}`))
                                     reply.logProperties = { username, topic, action, result: 'allow' }
                                     reply.send({ result: 'allow' })
                                     return

@@ -228,7 +228,12 @@ module.exports = async function (app) {
             const teamHash = request.application.Team?.hashid
             const applicationHash = request.application.hashid
 
-            await request.application.destroy()
+            // The Application model's beforeDestroy hook deletes the application's pipelines,
+            // so everything is removed in one transaction
+            await app.db.sequelize.transaction(async (transaction) => {
+                await request.application.destroy({ transaction })
+            })
+
             await app.auditLog.Team.application.deleted(request.session.User, null, request.application.Team, request.application)
 
             if (teamHash) {
@@ -410,7 +415,8 @@ module.exports = async function (app) {
         }
 
         const devices = await app.db.models.Device.getAll(paginationOptions, where, { includeInstanceApplication: false, includeDeviceGroup: true })
-        devices.devices = devices.devices.map(d => app.db.views.Device.device(d, { statusOnly: paginationOptions.statusOnly }))
+        const includeEditorUrl = app.canAccessDeviceEditor(request, request.application.hashid)
+        devices.devices = devices.devices.map(d => app.db.views.Device.device(d, { statusOnly: paginationOptions.statusOnly, includeEditorUrl }))
 
         reply.send(devices)
     })

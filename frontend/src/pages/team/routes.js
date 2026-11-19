@@ -7,6 +7,7 @@ import TeamAuditLog from './AuditLog.vue'
 import TeamBillOfMaterials from './BOM/index.vue'
 import TeamBilling from './Billing/index.vue'
 import BrokersRoutes from './Brokers/routes.js'
+import TeamBuild from './Build.vue'
 import TeamDashboards from './Dashboards/index.vue'
 
 import DeviceGroups from './DeviceGroups/index.vue'
@@ -18,6 +19,7 @@ import LibraryRoutes from './Library/routes.js'
 import TeamMembersMembers from './Members/General.vue'
 import TeamMembersInvitations from './Members/Invitations.vue'
 import TeamMembers from './Members/index.vue'
+import TeamOnboarding from './Onboarding.vue'
 import TeamPerformance from './Performance/index.vue'
 import TeamPipelines from './Pipelines/index.vue'
 import TeamSettingsDanger from './Settings/Danger.vue'
@@ -252,6 +254,44 @@ export default [
         name: 'register-device',
         meta: {
             title: 'Register Remote Instance',
+            layout: 'plain'
+        }
+    },
+    {
+        path: '/team/:team_slug/onboarding',
+        component: TeamOnboarding,
+        name: 'team-onboarding',
+        meta: {
+            title: 'Team - Getting Started',
+            layout: 'plain'
+        }
+    },
+    // One build route per thing being built: the route name reaches the Expert
+    // as pageName, which tells it what the user came to build
+    {
+        path: '/team/:team_slug/instances/build',
+        component: TeamBuild,
+        name: 'team-build-instance',
+        meta: {
+            title: 'Team - Build an Instance',
+            layout: 'plain'
+        }
+    },
+    {
+        path: '/team/:team_slug/devices/build',
+        component: TeamBuild,
+        name: 'team-build-device',
+        meta: {
+            title: 'Team - Build a Remote Instance',
+            layout: 'plain'
+        }
+    },
+    {
+        path: '/team/:team_slug/applications/build',
+        component: TeamBuild,
+        name: 'team-build-application',
+        meta: {
+            title: 'Team - Build an Application',
             layout: 'plain'
         }
     },

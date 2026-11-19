@@ -75,7 +75,7 @@ describe('Project/Device API', async function () {
     }
     async function setupProjectWithSnapshot () {
         TestObjects.deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
-        TestObjects.deviceProject.setTeam(TestObjects.ATeam)
+        await TestObjects.deviceProject.setTeam(TestObjects.ATeam)
         // Create a snapshot
         TestObjects.deviceProjectSnapshot = (await createSnapshot(TestObjects.deviceProject.id, 'test-snapshot', TestObjects.tokens.alice)).json()
     }
@@ -126,8 +126,8 @@ describe('Project/Device API', async function () {
             const device2 = await createDevice({ name: 'test-device-2', type: 'test-type', team: TestObjects.BTeam.hashid, as: TestObjects.tokens.bob })
             projectA = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
             projectB = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
-            projectA.setTeam(TestObjects.ATeam)
-            projectB.setTeam(TestObjects.BTeam)
+            await projectA.setTeam(TestObjects.ATeam)
+            await projectB.setTeam(TestObjects.BTeam)
             await addDeviceToProject(device1, projectA, TestObjects.tokens.alice)
             await addDeviceToProject(device2, projectB, TestObjects.tokens.bob)
         })
@@ -184,7 +184,7 @@ describe('Project/Device API', async function () {
             await setupProjectWithSnapshot(false)
             // Setup a second project
             const deviceProject2 = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
-            deviceProject2.setTeam(TestObjects.ATeam)
+            await deviceProject2.setTeam(TestObjects.ATeam)
             // Create a snapshot
             const otherSnapshot = (await createSnapshot(deviceProject2.id, 'test-snapshot-2', TestObjects.tokens.alice)).json()
 

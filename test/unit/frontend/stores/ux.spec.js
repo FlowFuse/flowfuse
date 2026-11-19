@@ -1,11 +1,20 @@
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import userApi from '@/api/user.js'
+import { EXPERT_SESSION_EXPIRY_MS } from '@/stores/product-expert-agents.js'
 import { useUxStore } from '@/stores/ux.js'
+
+vi.mock('@/api/user.js', () => ({
+    default: {
+        updateUserSettings: vi.fn().mockResolvedValue()
+    }
+}))
 
 describe('ux store', () => {
     beforeEach(() => {
         setActivePinia(createPinia())
+        userApi.updateUserSettings.mockClear()
     })
 
     it('initializes with default state', () => {
@@ -45,6 +54,279 @@ describe('ux store', () => {
         expect(store.isNewlyCreatedUser).toBe(false)
     })
 
+    describe('onboarding stage', () => {
+        function daysAgo (n) {
+            const date = new Date()
+            date.setDate(date.getDate() - n)
+            return date.toISOString()
+        }
+
+        it('starts undecided, and neither flag is set', () => {
+            const store = useUxStore()
+            expect(store.onboardingStage).toBe(null)
+            expect(store.isOnboarding).toBe(false)
+            expect(store.isOnboardingIntake).toBe(false)
+        })
+
+        it('enters intake alongside setNewlyCreatedUser', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            expect(store.onboardingStage).toBe('intake')
+            expect(store.isOnboarding).toBe(true)
+            expect(store.isOnboardingIntake).toBe(true)
+        })
+
+        it('is seeded from the account age while undecided', () => {
+            const store = useUxStore()
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(3) })
+            expect(store.onboardingStage).toBe('intake')
+        })
+
+        it('resolves straight to done for an account older than a week', () => {
+            const store = useUxStore()
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(30) })
+            expect(store.onboardingStage).toBe('done')
+            expect(store.isOnboarding).toBe(false)
+        })
+
+        // The Expert keeps being told onboarding is running after it moves the
+        // user into the editor, but the onboarding page is finished with
+        it('stays onboarding but leaves intake once building starts', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.startOnboardingBuild()
+            expect(store.isOnboarding).toBe(true)
+            expect(store.isOnboardingIntake).toBe(false)
+        })
+
+        it('stops onboarding when it ends', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.endOnboarding()
+            expect(store.isOnboarding).toBe(false)
+            expect(store.isOnboardingIntake).toBe(false)
+        })
+
+        // Persisted server-side so a later login, on any browser, does not
+        // re-enter the funnel
+        it('persists completion to the server when onboarding ends', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.endOnboarding()
+            expect(userApi.updateUserSettings).toHaveBeenCalledWith({ onboardingCompleted: true })
+        })
+
+        // The server is authoritative: a session that never persisted the
+        // stage locally (a new browser, or one that lost it on logout) must
+        // not be sent back into the funnel
+        it('resolves straight to done when the server reports onboarding as completed', () => {
+            const store = useUxStore()
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(3), settings: { onboardingCompleted: true } })
+            expect(store.onboardingStage).toBe('done')
+            expect(store.shouldEnterOnboarding).toBe(false)
+        })
+
+        // A stale localStorage stage (e.g. left over from before logout reset
+        // the store) must not override the server's completed flag
+        it('overrides a stale local intake stage when the server reports completion', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(3), settings: { onboardingCompleted: true } })
+            expect(store.onboardingStage).toBe('done')
+        })
+
+        // A stale localStorage stage (another account in the same browser, or
+        // one set by the Expert) must not put an old account into onboarding
+        it('overrides a stale local intake stage for an account older than a week', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(30) })
+            expect(store.onboardingStage).toBe('done')
+            expect(store.shouldEnterOnboarding).toBe(false)
+        })
+
+        it('keeps a stored building stage for an account just inside the week', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.startOnboardingBuild()
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(6) })
+            expect(store.onboardingStage).toBe('building')
+        })
+
+        it('resolves a stored building stage to done for an account just outside the week', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.startOnboardingBuild()
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(8) })
+            expect(store.onboardingStage).toBe('done')
+            expect(store.shouldEnterOnboarding).toBe(false)
+        })
+
+        it('leaves the local stage alone when the server has no completed flag', () => {
+            const store = useUxStore()
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(3), settings: { onboardingCompleted: false } })
+            expect(store.onboardingStage).toBe('intake')
+        })
+
+        // isNewlyCreatedUser is recomputed on every boot for a week, so a naive
+        // mirror would put someone back into onboarding after they had finished
+        it('is not restarted once onboarding has ended', () => {
+            const store = useUxStore()
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(1) })
+            store.endOnboarding()
+
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(1) })
+
+            expect(store.isNewlyCreatedUser).toBe(true)
+            expect(store.onboardingStage).toBe('done')
+        })
+
+        it('leaves isNewlyCreatedUser alone when onboarding ends', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.endOnboarding()
+            expect(store.isNewlyCreatedUser).toBe(true)
+        })
+    })
+
+    describe('entering onboarding', () => {
+        it('is not pending by default', () => {
+            expect(useUxStore().consumeOnboardingEntry()).toBe(false)
+        })
+
+        it('is pending after registration', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            expect(store.shouldEnterOnboarding).toBe(true)
+        })
+
+        it('only fires once', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            expect(store.consumeOnboardingEntry()).toBe(true)
+            expect(store.consumeOnboardingEntry()).toBe(false)
+        })
+
+        function daysAgo (n) {
+            const date = new Date()
+            date.setDate(date.getDate() - n)
+            return date.toISOString()
+        }
+
+        // Email verification is not a reliable hook, so the flag is raised
+        // where the stage first resolves instead
+        it('is raised when the stage first resolves for a new account', () => {
+            const store = useUxStore()
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(2) })
+            expect(store.onboardingStage).toBe('intake')
+            expect(store.shouldEnterOnboarding).toBe(true)
+        })
+
+        it('is not raised for an account older than a week', () => {
+            const store = useUxStore()
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(30) })
+            expect(store.shouldEnterOnboarding).toBe(false)
+        })
+
+        // Resolving the stage happens once, so this cannot fire on every boot
+        it('is not raised again on later boots', () => {
+            const store = useUxStore()
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(2) })
+            expect(store.consumeOnboardingEntry()).toBe(true)
+
+            store.checkIfIsNewlyCreatedUser({ createdAt: daysAgo(2) })
+
+            expect(store.shouldEnterOnboarding).toBe(false)
+        })
+
+        it('is dropped when onboarding ends before it was consumed', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.endOnboarding()
+            expect(store.consumeOnboardingEntry()).toBe(false)
+        })
+    })
+
+    describe('arriving with a stale onboarding stage', () => {
+        const provisioned = { aiOnboarding: true, instanceCount: 1 }
+
+        it('ends onboarding when the workspace has an instance and no conversation was ever sent', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.checkOnboardingOnArrival(provisioned)
+            expect(store.isOnboarding).toBe(false)
+            expect(store.shouldEnterOnboarding).toBe(false)
+            expect(store.onboardingEndedOnArrival).toBe(true)
+            expect(userApi.updateUserSettings).toHaveBeenCalledWith({ onboardingCompleted: true })
+        })
+
+        it('ends onboarding when the last conversation has expired', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.onboardingActiveAt = Date.now() - EXPERT_SESSION_EXPIRY_MS - 1000
+            store.checkOnboardingOnArrival(provisioned)
+            expect(store.isOnboarding).toBe(false)
+        })
+
+        it('ends a stale building stage too', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.startOnboardingBuild()
+            store.checkOnboardingOnArrival(provisioned)
+            expect(store.isOnboarding).toBe(false)
+        })
+
+        it('keeps onboarding while a conversation is alive, even one in another tab', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.markOnboardingActive()
+            store.checkOnboardingOnArrival(provisioned)
+            expect(store.isOnboardingIntake).toBe(true)
+            expect(store.onboardingEndedOnArrival).toBe(false)
+            expect(userApi.updateUserSettings).not.toHaveBeenCalled()
+        })
+
+        it('keeps onboarding for an empty workspace', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.checkOnboardingOnArrival({ aiOnboarding: true, instanceCount: 0 })
+            expect(store.isOnboardingIntake).toBe(true)
+        })
+
+        it('leaves a team without AI onboarding alone', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.checkOnboardingOnArrival({ aiOnboarding: false, instanceCount: 1 })
+            expect(store.isOnboardingIntake).toBe(true)
+        })
+
+        it('runs only once per page load, so an instance created later in intake does not end it', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.checkOnboardingOnArrival({ aiOnboarding: true, instanceCount: 0 })
+            store.checkOnboardingOnArrival(provisioned)
+            expect(store.isOnboardingIntake).toBe(true)
+        })
+
+        it('waits for a team that carries the instance count', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.checkOnboardingOnArrival({ aiOnboarding: true })
+            expect(store.onboardingArrivalChecked).toBe(false)
+            store.checkOnboardingOnArrival(provisioned)
+            expect(store.isOnboarding).toBe(false)
+        })
+
+        it('records activity only while onboarding', () => {
+            const store = useUxStore()
+            store.markOnboardingActive()
+            expect(store.onboardingActiveAt).toBe(null)
+            store.setNewlyCreatedUser()
+            store.markOnboardingActive()
+            expect(store.onboardingActiveAt).toBeTypeOf('number')
+        })
+    })
+
     it('validateUserAction only updates known keys', () => {
         const store = useUxStore()
         store.validateUserAction('hasOpenedDeviceEditor')
@@ -65,5 +347,28 @@ describe('ux store', () => {
         expect(store.overlay).toBe(false)
         expect(store.isNewlyCreatedUser).toBe(false)
         expect(store.userActions.hasOpenedDeviceEditor).toBe(false)
+    })
+
+    describe('building flag', () => {
+        it('starts off', () => {
+            expect(useUxStore().building).toBe(false)
+        })
+
+        it('startBuilding / stopBuilding toggle it', () => {
+            const store = useUxStore()
+            store.startBuilding()
+            expect(store.building).toBe(true)
+            store.stopBuilding()
+            expect(store.building).toBe(false)
+        })
+
+        it('does not touch the onboarding stage', () => {
+            const store = useUxStore()
+            store.setNewlyCreatedUser()
+            store.startBuilding()
+            store.stopBuilding()
+            expect(store.onboardingStage).toBe('intake')
+            expect(userApi.updateUserSettings).not.toHaveBeenCalled()
+        })
     })
 })

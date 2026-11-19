@@ -1111,6 +1111,109 @@ describe('Project API', function () {
 `)
                 })
             })
+            describe('Apply TeamType extra Catalogues', function () {
+                async function setTeamTypeCatalogues (cats) {
+                    const defaultTeamTypeProperties = app.defaultTeamType.properties
+                    defaultTeamTypeProperties.extraCatalogues = cats
+                    app.defaultTeamType.properties = defaultTeamTypeProperties
+                    await app.defaultTeamType.save()
+                }
+                let cats
+                before(async function () {
+                    const defaultTeamTypeProperties = app.defaultTeamType.properties
+                    cats = defaultTeamTypeProperties.extraCatalogues
+                })
+                afterEach(async function () {
+                    const defaultTeamTypeProperties = app.defaultTeamType.properties
+                    defaultTeamTypeProperties.extraCatalogues = cats
+                    app.defaultTeamType.properties = defaultTeamTypeProperties
+                    await app.defaultTeamType.save()
+                })
+                it('Should add extra catalogue to project', async function () {
+                    await setTeamTypeCatalogues([
+                        'https://example.com/team-type-cat.json'
+                    ])
+
+                    const projectName = generateProjectName()
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: projectName,
+                            applicationId: TestObjects.ApplicationA.hashid,
+                            projectType: TestObjects.projectType1.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: TestObjects.stack1.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(200)
+                    const result = response.json()
+
+                    const newProject = await app.db.models.Project.byId(result.id)
+                    const newAccessToken = (await newProject.refreshAuthTokens()).token
+                    const runtimeSettings = (await app.inject({
+                        method: 'GET',
+                        url: `/api/v1/projects/${newProject.id}/settings`,
+                        headers: {
+                            authorization: `Bearer ${newAccessToken}`
+                        }
+                    })).json()
+
+                    const settings = runtimeSettings.settings
+                    settings.should.have.property('palette')
+                    settings.palette.should.have.property('npmrc')
+                    settings.palette.should.have.property('catalogue')
+                    settings.palette.catalogue.should.containEql('https://example.com/team-type-cat.json')
+                })
+                it('Should add extra catalogue to project only if not present', async function () {
+                    await setTeamTypeCatalogues([
+                        'https://example.com/team-type-cat.json',
+                        'https://EXAMPLE.com/team-type-cat.json',
+                        'https://example.com/cat2.json'
+                    ])
+
+                    const projectName = generateProjectName()
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: projectName,
+                            applicationId: TestObjects.ApplicationA.hashid,
+                            projectType: TestObjects.projectType1.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: TestObjects.stack1.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(200)
+                    const result = response.json()
+
+                    const newProject = await app.db.models.Project.byId(result.id)
+                    const newAccessToken = (await newProject.refreshAuthTokens()).token
+                    const runtimeSettings = (await app.inject({
+                        method: 'GET',
+                        url: `/api/v1/projects/${newProject.id}/settings`,
+                        headers: {
+                            authorization: `Bearer ${newAccessToken}`
+                        }
+                    })).json()
+
+                    const settings = runtimeSettings.settings
+                    settings.should.have.property('palette')
+                    settings.palette.should.have.property('npmrc')
+                    settings.palette.should.have.property('catalogue')
+                    settings.palette.catalogue.should.have.length(6)
+                    settings.palette.catalogue.should.containEql('https://example.com/team-type-cat.json')
+                    settings.palette.catalogue.should.containEql('https://example.com/cat2.json')
+                    let index = settings.palette.catalogue.indexOf('https://example.com/team-type-cat.json')
+                    settings.palette.catalogue.splice(index, 1)
+                    index = settings.palette.catalogue.indexOf('https://example.com/cat2.json')
+                    settings.palette.catalogue.splice(index, 1)
+                    settings.palette.catalogue.should.not.containEql('https://example.com/cat2.json')
+                    settings.palette.catalogue.should.have.length(4)
+                })
+            })
         })
 
         describe('Apply Flow Blueprint', function () {
@@ -1710,7 +1813,7 @@ describe('Project API', function () {
                     method: 'PUT',
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     payload: {
-                        name: 'new project name'
+                        name: 'new-project-name'
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -1721,7 +1824,7 @@ describe('Project API', function () {
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     cookies: { sid: TestObjects.tokens.alice }
                 })
-                JSON.parse(newResponse.payload).should.have.property('name', 'new project name')
+                JSON.parse(newResponse.payload).should.have.property('name', 'new-project-name')
             })
 
             it('Updates the name fail for running instance', async function () {
@@ -1746,12 +1849,12 @@ describe('Project API', function () {
                     method: 'PUT',
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     payload: {
-                        name: 'new project name'
+                        name: 'new-project-name'
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
                 response.statusCode.should.equal(200)
-                JSON.parse(response.payload).should.have.property('name', 'new project name')
+                JSON.parse(response.payload).should.have.property('name', 'new-project-name')
             })
 
             it('Non-owner cannot change project name', async function () {
@@ -1760,11 +1863,28 @@ describe('Project API', function () {
                     method: 'PUT',
                     url: `/api/v1/projects/${TestObjects.project1.id}`,
                     payload: {
-                        name: 'new project name'
+                        name: 'new-project-name'
                     },
                     cookies: { sid: TestObjects.tokens.bob }
                 })
                 response.statusCode.should.equal(403)
+            })
+
+            it('Rejects a name that fails the create-time pattern', async function () {
+                await TestObjects.project1.reload()
+                const originalName = TestObjects.project1.name
+                for (const name of ['bad.name:1/x', 'Bad/Name!!<x>', '1starts-with-digit', 'has space']) {
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/projects/${TestObjects.project1.id}`,
+                        payload: { name },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(409)
+                    response.json().should.have.property('code', 'invalid_project_name')
+                }
+                await TestObjects.project1.reload()
+                TestObjects.project1.name.should.equal(originalName)
             })
         })
 

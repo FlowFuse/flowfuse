@@ -129,6 +129,19 @@ describe('product-expert store — tool permissions (HITL, #421)', () => {
             expect(store._approvalBatch).toBeNull()
         })
 
+        it('resolves a batch restored from persistence, not just one begun in this page load (#8527)', () => {
+            const store = useProductExpertStore()
+            const resume = vi.spyOn(store, 'resumeToolApprovals').mockResolvedValue()
+            // simulate the persisted state a refresh rehydrates instead of calling beginApprovalBatch
+            store._approvalBatch = { decisions: {}, toolKeys: { u1: 'write-flow' }, remaining: 1 }
+
+            store.resolveToolApproval({ id: 'u1', approved: true })
+
+            expect(permState.statuses.u1).toBe('approved')
+            expect(resume).toHaveBeenCalledWith({ u1: 'approved' })
+            expect(store._approvalBatch).toBeNull()
+        })
+
         it('records a session grant and marks the card always-allowed when always is set', () => {
             const store = useProductExpertStore()
             const resume = vi.spyOn(store, 'resumeToolApprovals').mockResolvedValue()

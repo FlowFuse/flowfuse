@@ -1,4 +1,8 @@
-const should = require('should') // eslint-disable-line
+const should = require('should')
+const sinon = require('sinon')
+
+const { sha256 } = require('../../../../../forge/db/utils')
+const mcpToolPermissions = require('../../../../../forge/lib/mcpToolPermissions')
 const setup = require('../setup')
 
 describe('AccessToken controller', function () {
@@ -336,12 +340,14 @@ describe('AccessToken controller', function () {
     })
 
     describe('MCP OAuth Tokens', function () {
-        function createToken (opts = {}) {
-            return app.db.controllers.AccessToken.createMCPOAuthToken(TestObjects.alice.id, opts)
+        function createToken ({ readOnly = false, ...opts } = {}) {
+            return app.db.controllers.AccessToken.createMCPOAuthToken(TestObjects.alice.id, {
+                toolPermissions: mcpToolPermissions.fromReadOnly(readOnly),
+                ...opts
+            })
         }
 
-        // Move the row's access and/or refresh token expiry, so the refresh
-        // behaviour can be exercised without waiting for real time to pass.
+        // Move the row's token expiries so refresh behaviour can be exercised at once.
         async function setRowExpiry (refreshToken, { accessMs, refreshMs } = {}) {
             const row = await app.db.models.AccessToken.byRefreshToken(refreshToken)
             const updates = {}
@@ -354,6 +360,14 @@ describe('AccessToken controller', function () {
             await app.db.models.AccessToken.update(updates, { where: { id: row.id } })
         }
 
+        // Move when a rotated-out token was retired, to exercise the grace window.
+        async function ageRotation (rotatedRefreshToken, ms) {
+            await app.db.models.AccessTokenRefreshRotation.update(
+                { rotatedAt: new Date(Date.now() + ms) },
+                { where: { tokenHash: sha256(rotatedRefreshToken) } }
+            )
+        }
+
         it('creates a user token with a refresh token that outlives the access token', async function () {
             const result = await createToken({ readOnly: true })
             result.token.should.be.a.String().and.startWith('ffpat')
@@ -364,6 +378,144 @@ describe('AccessToken controller', function () {
             row.should.have.property('readOnly', true)
             should.exist(row.refreshTokenExpiresAt)
             row.refreshTokenExpiresAt.getTime().should.be.greaterThan(row.expiresAt.getTime())
+        })
+
+        describe('grant', function () {
+            const readPlatform = { platform: { read: true, write: false, destructive: false }, flow_building: { read: false, write: false, destructive: false } }
+
+            async function loadGrant (refreshToken) {
+                const row = await app.db.models.AccessToken.byRefreshToken(refreshToken)
+                return app.db.models.MCPGrant.findOne({
+                    where: { AccessTokenId: row.id },
+                    include: [{ model: app.db.models.MCPGrantTeamPermission }]
+                })
+            }
+
+            it('stores the default permissions as given on a grant', async function () {
+                const result = await createToken({ toolPermissions: { default: readPlatform, teams: {} } })
+                const grant = await loadGrant(result.refreshToken)
+                grant.permissions.should.eql(readPlatform)
+                grant.MCPGrantTeamPermissions.should.have.length(0)
+            })
+
+            it('does not add a toolPermissions column to the token', async function () {
+                const result = await createToken()
+                const row = await app.db.models.AccessToken.byRefreshToken(result.refreshToken)
+                row.should.not.have.property('toolPermissions')
+            })
+
+            it('derives readOnly true when nothing in the default or any override allows write', async function () {
+                const result = await createToken({
+                    toolPermissions: {
+                        default: readPlatform,
+                        teams: { [TestObjects.team.hashid]: { platform: { read: true, write: false, destructive: false }, flow_building: { read: true, write: false, destructive: false } } }
+                    }
+                })
+                const row = await app.db.models.AccessToken.byRefreshToken(result.refreshToken)
+                row.should.have.property('readOnly', true)
+            })
+
+            it('derives readOnly false when only a team override allows write', async function () {
+                const result = await createToken({
+                    toolPermissions: {
+                        default: readPlatform,
+                        teams: { [TestObjects.team.hashid]: { platform: { read: true, write: true, destructive: false }, flow_building: { read: true, write: false, destructive: false } } }
+                    }
+                })
+                const row = await app.db.models.AccessToken.byRefreshToken(result.refreshToken)
+                row.should.have.property('readOnly', false)
+            })
+
+            it('persists team rows against the grant', async function () {
+                const teamPermissions = { platform: { read: true, write: true, destructive: true }, flow_building: { read: true, write: true, destructive: true } }
+                const result = await createToken({
+                    toolPermissions: { default: readPlatform, teams: { [TestObjects.team.hashid]: teamPermissions } }
+                })
+                const grant = await loadGrant(result.refreshToken)
+                grant.MCPGrantTeamPermissions.should.have.length(1)
+                grant.MCPGrantTeamPermissions[0].should.have.property('TeamId', TestObjects.team.id)
+                grant.MCPGrantTeamPermissions[0].permissions.should.eql(teamPermissions)
+            })
+
+            it('keeps the grant when the token is refreshed', async function () {
+                const result = await createToken({ toolPermissions: mcpToolPermissions.fromReadOnly(true) })
+                const before = await loadGrant(result.refreshToken)
+                const refreshed = await app.db.controllers.AccessToken.refreshToken(result.refreshToken)
+                const after = await loadGrant(refreshed.refreshToken)
+                after.should.have.property('id', before.id)
+            })
+
+            it('removes the grant and its team rows when the token is destroyed', async function () {
+                const result = await createToken({
+                    toolPermissions: { default: readPlatform, teams: { [TestObjects.team.hashid]: readPlatform } }
+                })
+                const row = await app.db.models.AccessToken.byRefreshToken(result.refreshToken)
+                await row.destroy()
+                ;(await app.db.models.MCPGrant.count()).should.equal(0)
+                ;(await app.db.models.MCPGrantTeamPermission.count()).should.equal(0)
+            })
+
+            describe('team scope edits', function () {
+                let otherTeam
+
+                before(async function () {
+                    otherTeam = await factory.createTeam({ name: 'grant-scope-other' })
+                })
+
+                async function tokenWithBothTeams () {
+                    const result = await createToken({
+                        teamIds: [TestObjects.team.hashid, otherTeam.hashid],
+                        toolPermissions: {
+                            default: readPlatform,
+                            teams: { [TestObjects.team.hashid]: readPlatform, [otherTeam.hashid]: readPlatform }
+                        }
+                    })
+                    return app.db.models.AccessToken.byRefreshToken(result.refreshToken)
+                }
+
+                it('removes team rows for teams dropped from the scopes', async function () {
+                    const row = await tokenWithBothTeams()
+                    await AccessTokenController.updatePersonalAccessToken(TestObjects.alice, row.id, 'ff', null, { teamIds: [TestObjects.team.hashid] })
+                    const grant = await app.db.models.MCPGrant.findOne({ where: { AccessTokenId: row.id }, include: [{ model: app.db.models.MCPGrantTeamPermission }] })
+                    grant.MCPGrantTeamPermissions.map(r => r.TeamId).should.eql([TestObjects.team.id])
+                })
+
+                it('reports readOnly from the grant once the only override allowing write is removed', async function () {
+                    const writePlatform = { platform: { read: true, write: true, destructive: false }, flow_building: { read: false, write: false, destructive: false } }
+                    const result = await createToken({
+                        teamIds: [TestObjects.team.hashid, otherTeam.hashid],
+                        toolPermissions: { default: readPlatform, teams: { [otherTeam.hashid]: writePlatform } }
+                    })
+                    const row = await app.db.models.AccessToken.byRefreshToken(result.refreshToken)
+                    const reloadWithGrant = () => app.db.models.AccessToken.findOne({
+                        where: { id: row.id },
+                        include: [{ model: app.db.models.MCPGrant, include: [{ model: app.db.models.MCPGrantTeamPermission }] }]
+                    })
+                    mcpToolPermissions.effectiveReadOnly(await reloadWithGrant(), app.db.models.Team.encodeHashid).should.be.false()
+                    await AccessTokenController.updatePersonalAccessToken(TestObjects.alice, row.id, 'ff', null, { teamIds: [TestObjects.team.hashid] })
+                    mcpToolPermissions.effectiveReadOnly(await reloadWithGrant(), app.db.models.Team.encodeHashid).should.be.true()
+                })
+
+                it('ignores a readOnly value for a token with a grant', async function () {
+                    const row = await tokenWithBothTeams()
+                    const updated = await AccessTokenController.updatePersonalAccessToken(TestObjects.alice, row.id, 'ff', null, { readOnly: false })
+                    mcpToolPermissions.effectiveReadOnly(updated, app.db.models.Team.encodeHashid).should.be.true()
+                })
+
+                it('returns the grant with the updated token', async function () {
+                    const row = await tokenWithBothTeams()
+                    const updated = await AccessTokenController.updatePersonalAccessToken(TestObjects.alice, row.id, 'ff', null, { teamIds: [TestObjects.team.hashid] })
+                    const summary = app.db.views.AccessToken.personalAccessTokenSummary(updated)
+                    summary.toolPermissions.should.eql({ default: readPlatform, teams: { [TestObjects.team.hashid]: readPlatform } })
+                })
+
+                it('keeps team rows when the scopes become unrestricted', async function () {
+                    const row = await tokenWithBothTeams()
+                    await AccessTokenController.updatePersonalAccessToken(TestObjects.alice, row.id, 'ff', null, { teamIds: [] })
+                    const grant = await app.db.models.MCPGrant.findOne({ where: { AccessTokenId: row.id }, include: [{ model: app.db.models.MCPGrantTeamPermission }] })
+                    grant.MCPGrantTeamPermissions.should.have.length(2)
+                })
+            })
         })
 
         it('rejects an expired access token but keeps the row so it can still be refreshed', async function () {
@@ -388,7 +540,7 @@ describe('AccessToken controller', function () {
             ;(await app.db.models.AccessToken.count()).should.equal(0)
         })
 
-        it('keeps the refresh token stable and slides its expiry on refresh', async function () {
+        it('rotates the refresh token and slides its expiry on refresh', async function () {
             const original = await createToken()
             // Bring the refresh expiry close so the slide back out to the full
             // lifetime is observable rather than a same-millisecond tie.
@@ -397,21 +549,25 @@ describe('AccessToken controller', function () {
 
             const refreshed = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
             refreshed.token.should.not.equal(original.token)
-            // The refresh token is not rotated.
-            refreshed.refreshToken.should.equal(original.refreshToken)
+            // The refresh token is rotated, and the new access token authenticates.
+            refreshed.refreshToken.should.be.a.String().and.not.equal(original.refreshToken)
+            should.exist(await app.db.controllers.AccessToken.getOrExpire(refreshed.token))
 
-            const after = await app.db.models.AccessToken.byRefreshToken(original.refreshToken)
+            const after = await app.db.models.AccessToken.byRefreshToken(refreshed.refreshToken)
             after.refreshTokenExpiresAt.getTime().should.be.greaterThan(before.refreshTokenExpiresAt.getTime())
         })
 
-        it('reuses the same access token for a repeat refresh within its lifetime', async function () {
+        it('re-mints an access token for a retried refresh within the grace window', async function () {
             const original = await createToken()
             await setRowExpiry(original.refreshToken, { accessMs: -5000 })
 
-            const first = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
-            const second = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
-            second.token.should.equal(first.token)
-            should.exist(await app.db.controllers.AccessToken.getOrExpire(first.token))
+            await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+            // The rotated-out token, presented again within grace, re-mints an access token only.
+            const retry = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+            should.exist(retry)
+            should.exist(await app.db.controllers.AccessToken.getOrExpire(retry.token))
+            should.not.exist(retry.refreshToken)
+            ;(await app.db.models.AccessToken.count()).should.equal(1)
         })
 
         it('fails to refresh once the refresh token lifetime has passed', async function () {
@@ -420,6 +576,108 @@ describe('AccessToken controller', function () {
 
             should.not.exist(await app.db.controllers.AccessToken.refreshToken(original.refreshToken))
             ;(await app.db.models.AccessToken.count()).should.equal(0)
+        })
+
+        it('revokes the grant when a rotated-out token is replayed after the grace window', async function () {
+            const original = await createToken()
+            await setRowExpiry(original.refreshToken, { accessMs: -5000 })
+            const first = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+
+            // Age the retired token beyond the grace window, then present it again.
+            await ageRotation(original.refreshToken, -120000)
+            const replay = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+            replay.should.have.property('replay', true)
+            ;(await app.db.models.AccessToken.count()).should.equal(0)
+            should.not.exist(await app.db.controllers.AccessToken.getOrExpire(first.token))
+        })
+
+        it('detects a replay of a token retired several rotations earlier', async function () {
+            const original = await createToken()
+            await setRowExpiry(original.refreshToken, { accessMs: -5000 })
+            // Rotate twice, leaving the original two rotations back.
+            const first = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+            await app.db.controllers.AccessToken.refreshToken(first.refreshToken)
+
+            // The full lineage still catches the original as a replay past grace.
+            await ageRotation(original.refreshToken, -120000)
+            const replay = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+            replay.should.have.property('replay', true)
+            ;(await app.db.models.AccessToken.count()).should.equal(0)
+        })
+
+        it('returns null for an unknown refresh token', async function () {
+            should.not.exist(await app.db.controllers.AccessToken.refreshToken('ffpat_unknown'))
+        })
+
+        it('lets only one of two simultaneous refreshes rotate the token', async function () {
+            const original = await createToken()
+            await setRowExpiry(original.refreshToken, { accessMs: -5000 })
+
+            const [a, b] = await Promise.all([
+                app.db.controllers.AccessToken.refreshToken(original.refreshToken),
+                app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+            ])
+
+            // Both callers succeed (no false null or replay) and the grant is intact.
+            should.exist(a)
+            should.exist(b)
+            a.should.not.have.property('replay')
+            b.should.not.have.property('replay')
+            ;(await app.db.models.AccessToken.count()).should.equal(1)
+            // Only one rotated the refresh token; the lagging one re-minted access only.
+            const rotations = [a, b].filter(result => result.refreshToken)
+            rotations.length.should.equal(1)
+            const live = []
+            for (const result of [a, b]) {
+                if (await app.db.controllers.AccessToken.getOrExpire(result.token)) {
+                    live.push(result)
+                }
+            }
+            // Only one token survives: the grace re-mint overwrites the single token column,
+            // so the loser can leave the winner's access token dead. Accepted limitation for
+            // single-client MCP (see refreshToken grace branch), hence aboveOrEqual not equal.
+            live.length.should.be.aboveOrEqual(1)
+        })
+
+        it('re-mints an access token when another refresh already claimed the rotation', async function () {
+            const original = await createToken()
+            await setRowExpiry(original.refreshToken, { accessMs: -5000 })
+            const row = await app.db.models.AccessToken.byRefreshToken(original.refreshToken)
+            // Record the claim as a concurrent refresh would, between the lookup and the rotation.
+            await app.db.models.AccessTokenRefreshRotation.create({
+                tokenHash: sha256(original.refreshToken),
+                rotatedAt: new Date(),
+                AccessTokenId: row.id
+            })
+
+            const result = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+            should.exist(result)
+            result.should.not.have.property('replay')
+            should.not.exist(result.refreshToken)
+            should.exist(await app.db.controllers.AccessToken.getOrExpire(result.token))
+        })
+
+        it('returns null and releases the claim when the grant is revoked mid-refresh', async function () {
+            const original = await createToken()
+            await setRowExpiry(original.refreshToken, { accessMs: -5000 })
+            sinon.stub(app.db.models.AccessToken, 'update').resolves([0])
+            try {
+                should.not.exist(await app.db.controllers.AccessToken.refreshToken(original.refreshToken))
+            } finally {
+                app.db.models.AccessToken.update.restore()
+            }
+            ;(await app.db.models.AccessTokenRefreshRotation.count({ where: { tokenHash: sha256(original.refreshToken) } })).should.equal(0)
+        })
+
+        it('rethrows errors other than a lost claim', async function () {
+            const original = await createToken()
+            await setRowExpiry(original.refreshToken, { accessMs: -5000 })
+            sinon.stub(app.db.models.AccessTokenRefreshRotation, 'create').rejects(new Error('db down'))
+            try {
+                await app.db.controllers.AccessToken.refreshToken(original.refreshToken).should.be.rejectedWith('db down')
+            } finally {
+                app.db.models.AccessTokenRefreshRotation.create.restore()
+            }
         })
 
         describe('with a grant expiry', function () {
@@ -450,7 +708,8 @@ describe('AccessToken controller', function () {
 
                 const refreshed = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
                 should.exist(refreshed)
-                const after = await app.db.models.AccessToken.byRefreshToken(original.refreshToken)
+                // Refresh rotates the token, so the row is now found via the new one.
+                const after = await app.db.models.AccessToken.byRefreshToken(refreshed.refreshToken)
                 after.refreshTokenExpiresAt.getTime().should.be.belowOrEqual(grantExpiresAt)
             })
 

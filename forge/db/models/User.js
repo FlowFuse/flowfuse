@@ -193,6 +193,7 @@ module.exports = {
         this.hasMany(M.Session)
         this.hasMany(M.Invitation, { foreignKey: 'invitorId' })
         this.hasMany(M.Invitation, { foreignKey: 'inviteeId' })
+        this.hasMany(M.UserSettings)
         this.belongsTo(M.Team, { as: 'defaultTeam' })
     },
     finders: function (M, app) {
@@ -289,11 +290,19 @@ module.exports = {
                 getAll: async (pagination = {}, where = {}) => {
                     const limit = parseInt(pagination.limit) || 1000
                     if (pagination.cursor) {
-                        pagination.cursor = M.User.decodeHashid(pagination.cursor)
+                        pagination.cursor = M.User.decodeCursor(pagination.cursor)
+                    }
+                    let searchWhere = buildPaginationSearchClause(pagination, where, ['User.username', 'User.name', 'User.email'])
+                    if (pagination.query) {
+                        const queryId = M.User.decodeHashid(pagination.query)
+                        if (queryId && queryId.length === 1) {
+                            // The query term is a valid hashid - go look it up
+                            searchWhere = { id: queryId }
+                        }
                     }
                     const [rows, count] = await Promise.all([
                         this.findAll({
-                            where: buildPaginationSearchClause(pagination, where, ['User.username', 'User.name', 'User.email']),
+                            where: searchWhere,
                             order: [['id', 'ASC']],
                             limit
                         }),
@@ -391,6 +400,28 @@ module.exports = {
                             UserId: this.id
                         }
                     })
+                },
+                getSetting: async function (key) {
+                    const result = await M.UserSettings.findOne({ where: { UserId: this.id, key } })
+                    return result ? result.value : undefined
+                },
+                updateSetting: async function (key, value) {
+                    return M.UserSettings.upsert({ UserId: this.id, key, value })
+                },
+                getAllSettings: async function () {
+                    const result = {}
+                    const settings = await this.getUserSettings()
+                    settings.forEach(setting => {
+                        result[setting.key] = setting.value
+                    })
+                    return result
+                },
+                updateSettings: async function (obj) {
+                    const updates = []
+                    for (const [key, value] of Object.entries(obj)) {
+                        updates.push(this.updateSetting(key, value))
+                    }
+                    return Promise.all(updates)
                 }
             }
         }

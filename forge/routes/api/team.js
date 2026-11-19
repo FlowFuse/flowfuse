@@ -1,5 +1,3 @@
-const crypto = require('crypto')
-
 const { Op } = require('sequelize')
 
 const { Roles } = require('../../lib/roles')
@@ -347,7 +345,9 @@ module.exports = async function (app) {
                 return app.hasPermission(request.teamMembership, 'project:read', { application })
             })
         }
-        const applicationsWithAssociationsStatuses = await app.db.views.Application.applicationAssociationsStatusList(applications)
+        const applicationsWithAssociationsStatuses = await app.db.views.Application.applicationAssociationsStatusList(applications, {
+            includeEditorUrl: (application) => app.canAccessDeviceEditor(request, application.hashid)
+        })
         reply.send({
             count: applicationsWithAssociationsStatuses.length,
             applications: applicationsWithAssociationsStatuses
@@ -420,8 +420,8 @@ module.exports = async function (app) {
                 includeSettings: true,
                 includeMeta
             })
-            if (request.session.ownerType === 'project') {
-                // This request is from a project token. Filter the list to return
+            if (request.session.ownerType === 'project' || request.session.ownerType === 'device') {
+                // This request is from a project or device token. Filter the list to return
                 // the minimal information needed
                 result = result.map(e => {
                     return { id: e.id, name: e.name }
@@ -515,17 +515,6 @@ module.exports = async function (app) {
         }
     })
 
-    async function createTeamApplication (user, team) {
-        const applicationName = `${user.name}'s Application`
-        const application = await app.db.models.Application.create({
-            name: applicationName.charAt(0).toUpperCase() + applicationName.slice(1),
-            TeamId: team.id
-        })
-        await app.auditLog.Team.application.created(user, null, team, application)
-        await app.auditLog.Application.application.created(user, null, application)
-        return application
-    }
-
     /**
      * Create a new team
      * /api/v1/teams
@@ -561,7 +550,7 @@ module.exports = async function (app) {
             // preHandler. To do so will require the perms model to know
             // to also check enabled features (and know that admin is allowed to
             // override in this instance)
-            reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
+            return reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
         }
 
         // TODO check license allows multiple teams
@@ -625,25 +614,11 @@ module.exports = async function (app) {
                     await app.billing.setupTrialTeamSubscription(team, request.session.User)
                     // In trial mode, we may also auto-create their first application and instance
                     if (app.settings.get('user:team:auto-create:instanceType')) {
-                        const instanceTypeId = app.settings.get('user:team:auto-create:instanceType')
-                        const instanceType = await app.db.models.ProjectType.byId(instanceTypeId)
-                        const instanceStack = await instanceType?.getDefaultStack() || (await instanceType.getProjectStacks())?.[0]
-                        const instanceTemplate = await app.db.models.ProjectTemplate.findOne({ where: { active: true } })
-                        if (!instanceType) {
-                            app.log.warn(`Unable to create Trial Instance in team ${team.hashid}: Instance type with id ${instanceTypeId} from 'user:team:auto-create:instanceType' not found`)
-                        } else if (!instanceStack) {
-                            app.log.warn(`Unable to create Trial Instance in team ${team.hashid}: Unable to find a stack for use with instance type ${instanceTypeId}`)
-                        } else if (!instanceTemplate) {
-                            app.log.warn(`Unable to create Trial Instance in team ${team.hashid}: Unable to find the default instance template`)
-                        } else {
-                            const safeTeamName = team.name.toLowerCase().replace(/[\W_]/g, '-')
-                            const safeUserName = request.session.User.username.toLowerCase().replace(/[\W_]/g, '-')
-                            const application = await createTeamApplication(request.session.User, team)
+                        try {
+                            await app.db.controllers.Team.provisionDefaultWorkspace(team, request.session.User)
                             defaultTeamCreated = true
-                            const instanceProperties = {
-                                name: `${safeTeamName}-${safeUserName}-${crypto.randomBytes(4).toString('hex')}`
-                            }
-                            await app.db.controllers.Project.create(team, application, request.session.User, instanceType, instanceStack, instanceTemplate, instanceProperties)
+                        } catch (err) {
+                            app.log.warn(`Unable to create Trial Instance in team ${team.hashid}: ${err.message}`)
                         }
                     }
                 } else {
@@ -657,7 +632,7 @@ module.exports = async function (app) {
             }
             // Haven't created an application yet, but settings say we should
             if (!defaultTeamCreated && app.settings.get('user:team:auto-create:application')) {
-                await createTeamApplication(request.session.User, team)
+                await app.db.controllers.Team.createDefaultApplication(team, request.session.User)
             }
             await appendBillingDetails(teamView, team, request)
             reply.send(teamView)
@@ -678,6 +653,53 @@ module.exports = async function (app) {
                 await app.auditLog.Platform.platform.team.deleted(0, null, team)
             }
             reply.code(400).send(resp)
+        }
+    })
+
+    /**
+     * Provision the default workspace (application + instance) in an empty team.
+     * Gives a team the same starting point a classic signup would have created.
+     * Only available when AI-led onboarding is enabled, as classic signups
+     * already provision at email verification.
+     * /api/v1/teams/:teamId/default-workspace
+     */
+    app.post('/:teamId/default-workspace', {
+        preHandler: app.needsPermission('team:default-workspace:create'),
+        schema: {
+            summary: 'Provision the default application and instance in an empty team',
+            tags: ['Teams'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        application: { $ref: 'ApplicationSummary' },
+                        instance: { $ref: 'Instance' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        if (!app.config.features.enabled('aiOnboarding')) {
+            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+        try {
+            const { application, instance } = await app.db.controllers.Team.provisionDefaultWorkspace(request.team, request.session.User)
+            reply.send({
+                application: app.db.views.Application.applicationSummary(application),
+                instance: await app.db.views.Project.project(instance, { includeSettings: false })
+            })
+        } catch (err) {
+            const statusCode = err.code === 'team_not_empty' ? 409 : 400
+            reply.code(statusCode).send({ code: err.code || 'unexpected_error', error: err.message })
         }
     })
 
@@ -801,6 +823,9 @@ module.exports = async function (app) {
             if (request.body.type) {
                 auditLogFunc = app.auditLog.Team.team.type.changed
                 let billingIntervalUpgrade = false
+                // If the request is from an admin, and the team has unmanaged billing, we allow the admin
+                // to override the limit checks and change the team type.
+                let isAdminOverridingLimits = false
                 const bodyOptions = { ...request.body }
                 const targetTypeId = bodyOptions.type
                 delete bodyOptions.type
@@ -821,6 +846,12 @@ module.exports = async function (app) {
                     const sameTeamType = targetTypeId === request.team.TeamType.hashid
 
                     billingIntervalUpgrade = sameTeamType && upgradingToYearlySubscription && currentlyOnMonthlySubscription
+
+                    // An admin user is changing the type of a team without a managed subscription.
+                    // Disable the limit checks for this operation
+                    if (request.session.User?.admin && subscription.isUnmanaged()) {
+                        isAdminOverridingLimits = true
+                    }
                 }
 
                 if (targetTypeId !== request.team.TeamType.hashid || billingIntervalUpgrade) {
@@ -829,13 +860,19 @@ module.exports = async function (app) {
                         reply.code(400).send({ code: 'invalid_team_type', error: 'Invalid team type' })
                         return
                     }
+                    if (app.billing && targetTeamType.id !== request.team.TeamTypeId && targetTeamType.getProperty('billing.requireContact', false) && !request.session.User?.admin) {
+                        reply.code(403).send({ code: 'contact_required', error: 'Contact required for this team type' })
+                        return
+                    }
                     updates = {
                         old: { id: request.team.TeamType.hashid, name: request.team.TeamType.name },
                         new: { id: targetTeamType.hashid, name: targetTeamType.name }
                     }
                     // Two stage process to update team type
                     // - first we check its allowed.
-                    await request.team.checkTeamTypeUpdateAllowed(targetTeamType)
+                    if (!isAdminOverridingLimits) {
+                        await request.team.checkTeamTypeUpdateAllowed(targetTeamType)
+                    }
                     // - then we apply it
                     await request.team.updateTeamType(targetTeamType, { interval: billingInterval })
                 } else {
@@ -882,20 +919,35 @@ module.exports = async function (app) {
                 }
             } else if (Object.hasOwn(request.body, 'features')) {
                 // Team owners can update feature overrides (e.g. opt out of AI)
-                const allowedFeatures = ['ai']
+                const allowedFeatures = ['ai', 'agentAutoDeploy', 'mcpThirdParty']
                 const requestedFeatures = request.body.features || {}
                 const currentProperties = typeof request.team.properties === 'string' ? JSON.parse(request.team.properties) : (request.team.properties || {})
                 currentProperties.features = currentProperties.features || {}
 
                 updates = new app.auditLog.formatters.UpdatesCollection()
+                let agentAutoDeployChanged = false
                 for (const key of allowedFeatures) {
                     if (Object.hasOwn(requestedFeatures, key)) {
-                        updates.push(`features.${key}`, currentProperties.features[key], requestedFeatures[key])
+                        if (key === 'agentAutoDeploy') {
+                            // Toggling agent auto deploy gets its own audit entry instead of a settings diff
+                            agentAutoDeployChanged = !!currentProperties.features[key] !== !!requestedFeatures[key]
+                        } else {
+                            updates.push(`features.${key}`, currentProperties.features[key], requestedFeatures[key])
+                        }
                         currentProperties.features[key] = requestedFeatures[key]
                     }
                 }
                 request.team.properties = currentProperties
                 await request.team.save()
+                if (agentAutoDeployChanged) {
+                    const agentAutoDeployAuditFunc = requestedFeatures.agentAutoDeploy
+                        ? app.auditLog.Team.team.agentAutoDeploy.enabled
+                        : app.auditLog.Team.team.agentAutoDeploy.disabled
+                    await agentAutoDeployAuditFunc(request.session.User, null, request.team)
+                    if (updates.length === 0) {
+                        app.comms?.team?.notify(request.team.hashid, 'updated')
+                    }
+                }
             } else if (Object.hasOwn(request.body, 'properties')) {
                 if (!request.session.User.admin) {
                     reply.code(403).send({ code: 'forbidden', error: 'Team properties can only be updated by admins' })

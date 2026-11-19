@@ -85,6 +85,7 @@ import EmptyState from '../../../components/EmptyState.vue'
 import FfLoading from '../../../components/Loading.vue'
 
 import usePermissions from '../../../composables/Permissions.js'
+import alerts from '../../../services/alerts.js'
 import { Roles } from '../../../utils/roles.js'
 
 import BrokerStatusBadge from './components/BrokerStatusBadge.vue'
@@ -93,6 +94,10 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
+
+// How long we wait on a broker that keeps reporting "still starting" before we
+// treat its agent as unreachable, stop spinning, and let the user try again.
+const STARTING_TIMEOUT = 60000
 
 export default {
     name: 'TeamBrokers',
@@ -112,7 +117,12 @@ export default {
             loadingState: false,
             brokerStatusPollingInterval: null,
             brokerState: '',
-            errorCode: ''
+            errorCode: '',
+            // When the current broker first started reporting "still starting",
+            // and whether we've already given up waiting on it (UI-only, resets
+            // on a refresh, a successful status, or another attempt to start).
+            startingSince: null,
+            startingTimedOut: false
         }
     },
     computed: {
@@ -361,14 +371,22 @@ export default {
                     if (response?.state === 'running') {
                         if (response?.status?.connected) {
                             this.brokerState = 'connected'
+                            this.resetStartingTimeout()
                         } else if (response?.status?.error === 'error_getting_status') {
-                            this.brokerState = 'starting'
+                            this.applyStartingState()
+                        } else if (this.activeBrokerId === 'team-broker') {
+                            // The team broker itself is always up, only its schema agent is not
+                            // collecting, so this is not a broker connection error
+                            this.brokerState = 'suspended'
+                            this.resetStartingTimeout()
                         } else {
                             this.brokerState = 'error'
                             this.errorCode = response.status.error || 'ENOTFOUND'
+                            this.resetStartingTimeout()
                         }
                     } else {
                         this.brokerState = 'suspended'
+                        this.resetStartingTimeout()
                     }
                     if (this.brokerState !== 'error') {
                         this.errorCode = ''
@@ -382,22 +400,57 @@ export default {
                     this.loadingState = false
                 })
         },
+        // Keep showing 'starting' while the agent is coming up, but if it never
+        // reports in we stop waiting, drop back to an idle state so the toggle is
+        // usable again, and tell the user once. The flag keeps us from spinning or
+        // re-alerting on every poll; it clears on a refresh, a successful status,
+        // or another attempt to start.
+        applyStartingState () {
+            if (this.startingTimedOut) {
+                this.brokerState = 'suspended'
+                return
+            }
+            if (!this.startingSince) {
+                this.startingSince = Date.now()
+            }
+            if (Date.now() - this.startingSince > STARTING_TIMEOUT) {
+                this.startingTimedOut = true
+                this.brokerState = 'suspended'
+                alerts.emit('Could not reach the broker agent. Please try again.', 'warning')
+            } else {
+                this.brokerState = 'starting'
+            }
+        },
+        resetStartingTimeout () {
+            this.startingSince = null
+            this.startingTimedOut = false
+        },
         clearBrokerStatusPollingInterval () {
             this.brokerState = ''
+            this.resetStartingTimeout()
             if (this.brokerStatusPollingInterval) {
                 clearInterval(this.brokerStatusPollingInterval)
             }
         },
         async toggleAgent () {
             this.loadingState = true
-            const state = await brokerAPI.getBrokerStatus(this.team.id, this.$route.params.brokerId)
-            if (state.state === 'running') {
-                await brokerAPI.suspendBroker(this.team.id, this.$route.params.brokerId)
-                this.brokerState = 'suspending'
-                this.loadingState = false
-            } else {
-                await brokerAPI.startBroker(this.team.id, this.$route.params.brokerId)
-                this.brokerState = 'starting'
+            try {
+                const state = await brokerAPI.getBrokerStatus(this.team.id, this.$route.params.brokerId)
+                if (state.state === 'running' && !this.startingTimedOut) {
+                    await brokerAPI.suspendBroker(this.team.id, this.$route.params.brokerId)
+                    this.brokerState = 'suspending'
+                } else {
+                    // Fresh attempt to start, so give the agent the full window again
+                    this.resetStartingTimeout()
+                    await brokerAPI.startBroker(this.team.id, this.$route.params.brokerId)
+                    this.brokerState = 'starting'
+                }
+            } catch (err) {
+                this.resetStartingTimeout()
+                this.brokerState = 'suspended'
+                alerts.emit('Could not reach the broker agent. Please try again.', 'warning')
+                console.error(err)
+            } finally {
                 this.loadingState = false
             }
         }

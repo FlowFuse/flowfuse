@@ -58,6 +58,10 @@ export default {
     &.horizontal {
         width: 100%;
         height: 6px;
+        // the base border-right is the drawer-edge divider for the vertical
+        // variant; in horizontal mode it painted a stray 1px tick at the
+        // right end of the bar
+        border-right: none;
 
         &::before {
             writing-mode: horizontal-tb;

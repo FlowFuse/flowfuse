@@ -2,6 +2,8 @@ const { Op } = require('sequelize')
 const should = require('should')
 const sinon = require('sinon')
 
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+
 const setup = require('../../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
@@ -100,6 +102,29 @@ describe('Team Broker API', function () {
             TestObjects.tokens[username] = response.cookies[0].value
         }
 
+        describe('Team Broker feature disabled for the team', function () {
+            before(async function () {
+                const properties = app.team.properties || {}
+                app.team.properties = { ...properties, features: { ...properties.features, teamBroker: false } }
+                await app.team.save()
+            })
+            after(async function () {
+                const { teamBroker, ...features } = app.team.properties.features
+                app.team.properties = { ...app.team.properties, features }
+                await app.team.save()
+            })
+            it('replies not_found saying the feature is not enabled', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team.hashid}/broker/clients`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(404)
+                response.json().should.have.property('code', 'not_found')
+                response.json().should.have.property('error', 'Not Found - Team Broker is not enabled for this team')
+            })
+        })
+
         describe('Work with MQTT Broker Users', function () {
             it('Create MQTT Broker User', async function () {
                 const response = await app.inject({
@@ -169,6 +194,19 @@ describe('Team Broker API', function () {
                 result.acls[1].should.have.property('pattern', 'bar/test')
             })
 
+            it('Modify an MQTT broker user who doesn\'t exist', async function () {
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${app.team.hashid}/broker/client/doesNotExist`,
+                    body: {
+                        acls: [{ pattern: 'foo/#', action: 'both' }]
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(404)
+                response.json().should.have.property('code', 'not_found')
+            })
+
             it('Get specific MQTT broker user for a team who doesn\'t exist', async function () {
                 const response = await app.inject({
                     method: 'GET',
@@ -176,6 +214,7 @@ describe('Team Broker API', function () {
                     cookies: { sid: TestObjects.tokens.bob }
                 })
                 response.statusCode.should.equal(404)
+                response.json().should.have.property('code', 'not_found')
             })
 
             it('Limit number of MQTT broker users allowed in a team', async function () {
@@ -336,6 +375,26 @@ describe('Team Broker API', function () {
                     cookies: { sid: TestObjects.tokens.bob }
                 })
                 response.statusCode.should.equal(404)
+                response.json().should.have.property('code', 'not_found')
+            })
+
+            it('Create MQTT Broker User without explict acl', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${app.team.hashid}/broker/client`,
+                    cookies: { sid: TestObjects.tokens.bob },
+                    body: {
+                        username: 'chris',
+                        password: 'ccPassword'
+                    }
+                })
+                response.statusCode.should.equal(201)
+                const result = response.json()
+                result.should.have.property('id')
+                result.should.have.property('username', 'chris')
+                result.should.have.property('acls')
+                result.acls.should.have.a.lengthOf(1)
+                result.acls[0].should.have.property('action', 'both')
             })
 
             describe('Links MQTT Broker Clients from an instance or device for nr-mqtt-nodes', function () {
@@ -842,6 +901,63 @@ describe('Team Broker API', function () {
                     await app.defaultTeamType.save()
                 })
             })
+
+            describe('Read clients with a device or instance token', function () {
+                const otherClientName = 'other-team-client'
+                let otherTeam, deviceToken, instanceToken, device, instance
+
+                before(async function () {
+                    otherTeam = await factory.createTeam({ name: 'tokenOtherTeam' })
+                    await otherTeam.addUser(app.user, { through: { role: Roles.Owner } })
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/teams/${otherTeam.hashid}/broker/client`,
+                        cookies: { sid: TestObjects.tokens.alice },
+                        body: {
+                            username: otherClientName,
+                            password: `${otherClientName}Password`,
+                            acls: [{ pattern: 'other/#', action: 'both' }]
+                        }
+                    })
+                    response.statusCode.should.equal(201)
+
+                    device = await factory.createDevice({ name: 'tokenReadDevice' }, app.team, null, app.application)
+                    deviceToken = (await app.db.controllers.AccessToken.createTokenForDevice(device)).token
+                    instance = await factory.createInstance({ name: 'token-read-instance' }, app.application, app.stack, app.template, app.projectType, { start: false })
+                    instanceToken = (await instance.refreshAuthTokens()).token
+                })
+
+                after(async function () {
+                    await app.db.models.TeamBrokerClient.destroy({ where: { TeamId: otherTeam.id } })
+                    await app.db.models.TeamBrokerClient.destroy({ where: { username: `instance:${instance.id}` } })
+                    await device.destroy()
+                    await instance.destroy()
+                })
+
+                async function get (url, token) {
+                    return app.inject({ method: 'GET', url, headers: { Authorization: `Bearer ${token}` } })
+                }
+
+                it('device token cannot list another team\'s broker clients', async function () {
+                    const response = await get(`/api/v1/teams/${otherTeam.hashid}/broker/clients`, deviceToken)
+                    response.statusCode.should.equal(404)
+                })
+
+                it('instance token cannot list another team\'s broker clients', async function () {
+                    const response = await get(`/api/v1/teams/${otherTeam.hashid}/broker/clients`, instanceToken)
+                    response.statusCode.should.equal(404)
+                })
+
+                it('device token cannot read another team\'s broker client', async function () {
+                    const response = await get(`/api/v1/teams/${otherTeam.hashid}/broker/client/${otherClientName}`, deviceToken)
+                    response.statusCode.should.equal(404)
+                })
+
+                it('device token can list own team\'s broker clients', async function () {
+                    const response = await get(`/api/v1/teams/${app.team.hashid}/broker/clients`, deviceToken)
+                    response.statusCode.should.equal(200)
+                })
+            })
         })
         describe('Test EMQX MQTT Broker user auth', function () {
             const testProjects = []
@@ -1310,14 +1426,23 @@ describe('Team Broker API', function () {
                 const result2 = response2.json()
                 result2.should.have.property('result', 'allow')
 
-                const topicsResponse = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/topics`,
-                    cookies: { sid: TestObjects.tokens.bob }
-                })
-
-                topicsResponse.statusCode.should.equal(200)
-                const topics = topicsResponse.json()
+                // addUsedTopic (triggered by the publish acl check above) writes the topic
+                // asynchronously and is not awaited by the route, so poll until it lands
+                // rather than assuming it's already visible
+                let topics
+                for (let attempt = 0; attempt < 10; attempt++) {
+                    const topicsResponse = await app.inject({
+                        method: 'GET',
+                        url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/topics`,
+                        cookies: { sid: TestObjects.tokens.bob }
+                    })
+                    topicsResponse.statusCode.should.equal(200)
+                    topics = topicsResponse.json()
+                    if (topics.topics.some(t => t.topic === 'foo/bar')) {
+                        break
+                    }
+                    await sleep(100)
+                }
                 // topics.topics[] should have 'foo/bar'
                 topics.topics.some(t => t.topic === 'foo/bar').should.be.true()
                 // topics.topics[] should not have 'foo/sub'

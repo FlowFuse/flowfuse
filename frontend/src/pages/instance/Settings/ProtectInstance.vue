@@ -76,7 +76,7 @@ export default {
         isOwner () {
             const flag = this.team.type.properties.features?.protectedInstance
             const enabled = flag === undefined || flag
-            return this.teamMembership.role === Roles.Owner && enabled
+            return this.teamMembership?.role === Roles.Owner && enabled
         }
     },
     watch: {

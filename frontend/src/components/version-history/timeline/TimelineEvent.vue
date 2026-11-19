@@ -27,7 +27,7 @@
             <div class="actions">
                 <ff-kebab-menu v-if="snapshotExists" ref="kebab">
                     <ff-kebab-item
-                        :disabled="!hasPermission('project:snapshot:rollback', applicationContext)"
+                        :disabled="!canRestore"
                         label="Restore Snapshot"
                         @click="$emit('restore-snapshot', event.data.snapshot, applicationContext)"
                     />
@@ -122,6 +122,12 @@ export default {
     computed: {
         applicationContext () {
             return this.instance.application ? { application: this.instance.application } : {}
+        },
+        canRestore () {
+            if (!this.hasPermission('project:snapshot:rollback', this.applicationContext)) {
+                return false
+            }
+            return !this.instance.protected?.enabled || this.hasPermission('project:edit', this.applicationContext)
         },
         createdAt () {
             return daysSince(this.event.createdAt, true)

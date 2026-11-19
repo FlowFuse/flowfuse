@@ -10,10 +10,6 @@ meta:
      - kubernetes
      - trial license
      - deployment models
-templateEngineOverride: njk,md    
-installationServiceHubspot:
-  formId: "22edc659-d098-4767-aeb1-6480daae41ad"
-  targetId: "hs-form-installation-service"
 ---
 
 # Installing FlowFuse
@@ -22,26 +18,27 @@ FlowFuse can be installed to run in Docker or Kubernetes based environments.
 
  - **Docker:**
     - [Quick Start Guide](/docs/quick-start)
-    - [Full Install](/docs/install/docker/README.md)
+    - [Full Install](/docs/install/docker/)
  - **Kubernetes:**
-    - [Install Guide](/docs/install/kubernetes/README.md)
+    - [Install Guide](/docs/install/kubernetes/)
 
 We also provide one-click installs of the Docker version:
 
- - [Digital Ocean Docker Install Guide](/docs/install/docker/digital-ocean.md)
- - [AWS Docker Install Guide](/docs/install/docker/aws-marketplace.md)
+ - [Digital Ocean Docker Install Guide](/docs/install/docker/digital-ocean/)
+ - [AWS Docker Install Guide](/docs/install/docker/aws-marketplace/)
+
+Whichever installation you choose, the platform needs outbound network access to a set of
+hostnames. If it runs behind a firewall or proxy, see
+[Networking requirements](/docs/install/networking-requirements/).
 
 ## Upgrading FlowFuse
 
-If you are upgrading FlowFuse, please refer to the [Upgrade Guide](/docs/upgrade/README.md)
+If you are upgrading FlowFuse, please refer to the [Upgrade Guide](/docs/upgrade/)
 for any specific actions required.
 
 ## Do You Need Help? Installation Service
 
 If you need assistance, request our complimentary Installation Service, and we will help you install FlowFuse.
 
-{% set formId = installationServiceHubspot.formId %}
-{% set targetId = installationServiceHubspot.targetId %}
-{% set cta = "cta-request-installation-service" %}
-{% set reference = "docs-install-intro" %}
-{% include "hubspot/hs-form.njk" %}
+::HubSpotForm{formId="22edc659-d098-4767-aeb1-6480daae41ad" cta="cta-request-installation-service" reference="docs-install-intro"}
+::

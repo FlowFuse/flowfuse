@@ -407,6 +407,10 @@ module.exports = async function (app) {
                 reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name not allowed' })
                 return
             }
+            if (app.db.models.Project.NAME_PATTERN.test(reqSafeName) === false) {
+                reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name not allowed' })
+                return
+            }
             if (await app.db.models.Project.isNameUsed(reqSafeName)) {
                 reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name in use' })
                 return
@@ -1000,6 +1004,22 @@ module.exports = async function (app) {
                         updateSettingsForCatalogue('@flowfuse-certified-nodes', cat)
                     }
                 }
+                if (team.getProperty('extraCatalogues', null)) {
+                    const extraCatalogues = team.getProperty('extraCatalogues', null)
+                    if (Array.isArray(extraCatalogues)) {
+                        for (const cat of extraCatalogues) {
+                            let catURL
+                            try {
+                                catURL = new URL(cat)
+                            } catch (_err) {
+                                continue // skip invalid URL
+                            }
+                            if (catURL.protocol === 'https:' && settings.settings.palette.catalogue.indexOf(catURL.toString()) === -1) {
+                                settings.settings.palette.catalogue.push(catURL.toString())
+                            }
+                        }
+                    }
+                }
             } catch (err) {
                 app.log.error('Failed to configure platform npm registry for project', err)
             }
@@ -1384,7 +1404,7 @@ module.exports = async function (app) {
             return
         }
 
-        if (/^[a-zA-Z][a-zA-Z0-9-]*$/.test(safeName) === false) {
+        if (app.db.models.Project.NAME_PATTERN.test(safeName) === false) {
             reply.code(409).send({ code: 'invalid_project_name', error: 'name not allowed' })
             return
         }

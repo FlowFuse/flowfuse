@@ -60,6 +60,7 @@ export default {
             try {
                 await userApi.verifyEmailToken(this.token)
                 clearTimeout(this.resendTimeout)
+                // No team is loaded yet for an unverified user, so the team page decides whether the tour fits
                 this.presentTour()
                 this.setNewlyCreatedUser()
                 this.$router.go()

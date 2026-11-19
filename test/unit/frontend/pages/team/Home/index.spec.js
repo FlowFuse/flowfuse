@@ -1,0 +1,98 @@
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
+import { afterEach, describe, expect, test, vi } from 'vitest'
+import { reactive } from 'vue'
+
+enableAutoUnmount(afterEach)
+
+const mocks = vi.hoisted(() => ({
+    contextStore: { team: { id: 't1', slug: 'ateam' } },
+    settingsStore: { featuresCheck: {} },
+    accountStore: { pendingTeamChange: false },
+    toursStore: { tours: {} },
+    teamAPI: {
+        getTeamInstanceCounts: vi.fn().mockResolvedValue({}),
+        getTeamAuditLog: vi.fn().mockResolvedValue({ log: [] })
+    }
+}))
+
+vi.mock('@/stores/context.js', () => ({ useContextStore: () => mocks.contextStore }))
+vi.mock('@/stores/account-settings.js', () => ({ useAccountSettingsStore: () => mocks.settingsStore }))
+vi.mock('@/stores/account.js', () => ({ useAccountStore: () => mocks.accountStore }))
+vi.mock('@/stores/ux-tours.js', () => ({ useUxToursStore: () => mocks.toursStore }))
+vi.mock('@/api/team.js', () => ({ default: mocks.teamAPI }))
+
+vi.mock('@/pages/team/Home/Expert/index.vue', () => ({
+    default: { name: 'TeamHomeExpert', template: '<div data-stub="expert-home" />' }
+}))
+
+import Home from '../../../../../../frontend/src/pages/team/Home/index.vue'
+
+mocks.contextStore = reactive(mocks.contextStore)
+mocks.settingsStore = reactive(mocks.settingsStore)
+
+async function mountHome ({ expert = false } = {}) {
+    mocks.settingsStore.featuresCheck = { isExpertAssistantFeatureEnabled: expert }
+    const wrapper = mount(Home, {
+        global: {
+            stubs: {
+                'ff-page': { template: '<div><slot name="header" /><slot /></div>' },
+                'ff-page-header': { template: '<div><slot name="breadcrumbs" /></div>' },
+                'ff-nav-breadcrumb': true,
+                'ff-loading': true,
+                'ff-button': true,
+                DashboardSection: { template: '<div data-stub="dashboard-section"><slot /></div>' },
+                RecentlyModifiedInstances: true,
+                RecentlyModifiedDevices: true,
+                InstanceStat: true,
+                AuditLog: true,
+                EmptyState: true,
+                TeamDeviceCreateDialog: true,
+                DeviceCredentialsDialog: true,
+                ConfirmInstanceDeleteDialog: true
+            },
+            directives: { 'ff-tooltip': {} },
+            mocks: {
+                $route: { query: {}, params: { team_slug: 'ateam' } },
+                $router: { push: vi.fn(), replace: vi.fn() }
+            }
+        }
+    })
+    await flushPromises()
+    return wrapper
+}
+
+describe('team Home variant switch', () => {
+    test('picks the variant off the gate', async () => {
+        let wrapper = await mountHome({ expert: false })
+        expect(wrapper.find('[data-stub="dashboard-section"]').exists()).toBe(true)
+        expect(wrapper.find('[data-stub="expert-home"]').exists()).toBe(false)
+
+        wrapper = await mountHome({ expert: true })
+        expect(wrapper.find('[data-stub="expert-home"]').exists()).toBe(true)
+        expect(wrapper.find('[data-stub="dashboard-section"]').exists()).toBe(false)
+    })
+
+    test('fetches dashboard data only for the variant that shows it', async () => {
+        mocks.teamAPI.getTeamInstanceCounts.mockClear()
+        mocks.teamAPI.getTeamAuditLog.mockClear()
+        await mountHome({ expert: true })
+        expect(mocks.teamAPI.getTeamInstanceCounts).not.toHaveBeenCalled()
+        expect(mocks.teamAPI.getTeamAuditLog).not.toHaveBeenCalled()
+
+        await mountHome({ expert: false })
+        expect(mocks.teamAPI.getTeamInstanceCounts).toHaveBeenCalled()
+        expect(mocks.teamAPI.getTeamAuditLog).toHaveBeenCalled()
+    })
+
+    test('swaps to the dashboard when the Expert feature is turned off mid-visit', async () => {
+        const wrapper = await mountHome({ expert: true })
+        expect(wrapper.find('[data-stub="expert-home"]').exists()).toBe(true)
+
+        mocks.settingsStore.featuresCheck = { isExpertAssistantFeatureEnabled: false }
+        await flushPromises()
+
+        expect(mocks.teamAPI.getTeamAuditLog).toHaveBeenCalled()
+        expect(wrapper.find('[data-stub="dashboard-section"]').exists()).toBe(true)
+        expect(wrapper.find('[data-stub="expert-home"]').exists()).toBe(false)
+    })
+})

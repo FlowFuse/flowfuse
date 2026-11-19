@@ -1,5 +1,7 @@
 ---
 navTitle: Changing the Stack
+meta:
+   description: Change the stack a Node-RED instance runs on from its Settings tab in FlowFuse, for example to upgrade to a newer Node-RED version.
 ---
 
 # Changing the Stack

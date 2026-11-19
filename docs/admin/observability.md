@@ -73,5 +73,5 @@ Once the cluster basics are in place, build a FlowFuse-specific dashboard from t
 
 ## Next steps
 
-- [Platform Monitoring](/docs/admin/monitoring.md) - details of the FlowFuse statistics endpoint used by Prometheus.
+- [Platform Monitoring](/docs/admin/monitoring/) - details of the FlowFuse statistics endpoint used by Prometheus.
 - [Installing FlowFuse on Kubernetes](/docs/install/kubernetes/) - deploying and configuring the platform on a cluster.

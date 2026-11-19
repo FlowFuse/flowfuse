@@ -3,7 +3,7 @@
         <div v-if="showHeader" class="json-viewer__header">
             <ff-button
                 v-if="collapsible"
-                kind="tertiary"
+                :kind="toggleKind"
                 size="small"
                 class="json-viewer__collapse-toggle"
                 :title="collapsed ? 'Expand' : 'Collapse'"
@@ -67,6 +67,10 @@ export default {
         defaultCollapsed: {
             type: Boolean,
             default: false
+        },
+        toggleKind: {
+            type: String,
+            default: 'tertiary'
         }
     },
     data () {

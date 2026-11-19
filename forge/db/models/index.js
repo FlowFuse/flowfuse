@@ -55,6 +55,7 @@ const modelTypes = [
     'PlatformSettings',
     'Organization',
     'User',
+    'UserSettings',
     'TeamType',
     'Team',
     'TeamMember',
@@ -68,6 +69,9 @@ const modelTypes = [
     'ProjectSnapshot',
     'AccessToken',
     'AccessTokenTeamScope',
+    'MCPGrant',
+    'MCPGrantTeamPermission',
+    'AccessTokenRefreshRotation',
     'AuthClient',
     'Device',
     'DeviceGroup',
@@ -85,7 +89,10 @@ const modelTypes = [
     'BrokerCredentials',
     'MQTTTopicSchema',
     'TeamBrokerAgent',
-    'AsyncLoginSession'
+    'AsyncLoginSession',
+    'DataSchemaGroup',
+    'DataSchema',
+    'DataSchemaVersion'
 ]
 
 // A local map of the known models.
@@ -169,6 +176,18 @@ async function init (app) {
                 } catch (err) {
                     return null
                 }
+            }
+            m.model.decodeCursor = function (cursor) {
+                // decodeHashid returns [] for an invalid hashid, which Sequelize
+                // renders as `id < ''` and PostgreSQL rejects with a 500
+                const [id] = m.model.decodeHashid(cursor) || []
+                if (id === undefined) {
+                    const err = new Error('Invalid cursor')
+                    err.statusCode = 400
+                    err.code = 'invalid_cursor'
+                    throw err
+                }
+                return id
             }
         }
 

@@ -1,4 +1,4 @@
-const should = require('should') // eslint-disable-line no-unused-vars
+const should = require('should')
 const sinon = require('sinon')
 
 const tools = require('../../../../../../../forge/ee/lib/mcp/tools/devices')
@@ -212,12 +212,17 @@ describe('MCP Devices Tools', function () {
             }
         }
 
+        beforeEach(function () {
+            inject.withArgs({ method: 'GET', url: '/api/v1/devices/device1' })
+                .resolves({ statusCode: 200, json: () => ({ id: 'device1', team: { id: 'deviceTeam' } }) })
+        })
+
         it('wraps a cache hit in the same shape as the live reply', async function () {
             // The cache holds the bare state string, so returning it as-is gave this tool two
             // different success contracts depending on whether the cache happened to be warm.
             const app = buildApp('running', sinon.stub())
 
-            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app })
+            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app, inject })
 
             response.should.eql({ state: 'running', health: null, snapshot: null, cached: true })
         })
@@ -226,16 +231,39 @@ describe('MCP Devices Tools', function () {
             const sendCommandAwaitReply = sinon.stub().resolves({ state: 'stopped', health: { ok: true }, snapshot: 'snap1' })
             const app = buildApp(null, sendCommandAwaitReply)
 
-            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app })
+            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app, inject })
 
             response.should.eql({ state: 'stopped', health: { ok: true }, snapshot: 'snap1', cached: false })
+        })
+
+        it('sends the command to the team the device belongs to, not the teamId argument', async function () {
+            const sendCommandAwaitReply = sinon.stub().resolves({ state: 'running' })
+            const app = buildApp(null, sendCommandAwaitReply)
+
+            await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app, inject })
+
+            sendCommandAwaitReply.firstCall.args[0].should.equal('deviceTeam')
+            sendCommandAwaitReply.firstCall.args[1].should.equal('device1')
+        })
+
+        it('returns the device route error without reading state when the device cannot be read', async function () {
+            const sendCommandAwaitReply = sinon.stub()
+            const app = buildApp('running', sendCommandAwaitReply)
+            const routeResponse = { statusCode: 404, json: () => ({ code: 'not_found', error: 'Not Found' }) }
+            inject.withArgs({ method: 'GET', url: '/api/v1/devices/device2' }).resolves(routeResponse)
+
+            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device2' }, { app, inject })
+
+            response.should.equal(routeResponse)
+            app.db.controllers.Device.getLiveCachedState.called.should.be.false()
+            sendCommandAwaitReply.called.should.be.false()
         })
 
         it('reports an unreachable device as an error, not as a successful result', async function () {
             const sendCommandAwaitReply = sinon.stub().rejects(new Error('timeout'))
             const app = buildApp(null, sendCommandAwaitReply)
 
-            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app })
+            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app, inject })
 
             response.statusCode.should.equal(504)
             response.json().code.should.equal('unexpected_error')
@@ -243,10 +271,78 @@ describe('MCP Devices Tools', function () {
         })
 
         it('reports missing device comms as an error', async function () {
-            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app: { comms: {} } })
+            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app: { comms: {} }, inject })
 
             response.statusCode.should.equal(503)
             response.json().code.should.equal('unexpected_error')
+        })
+    })
+
+    describe('platform_update_remote_instance_settings', function () {
+        const tool = getTool('platform_update_remote_instance_settings')
+
+        it('is marked destructive, since it overwrites or removes existing state', function () {
+            tool.annotations.destructiveHint.should.be.true()
+        })
+
+        it('puts only the provided settings onto the device settings route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ status: 'okay' }) }
+            inject.withArgs({
+                method: 'PUT',
+                url: '/api/v1/devices/device1/settings',
+                payload: { env: [{ name: 'FOO', value: 'bar' }], autoSnapshot: false }
+            }).resolves(routeResponse)
+
+            const response = await tool.handler({ remoteInstanceId: 'device1', env: [{ name: 'FOO', value: 'bar' }], autoSnapshot: false }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('forwards owner-level settings when provided', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ status: 'okay' }) })
+
+            await tool.handler({ remoteInstanceId: 'device1', palette: { allowInstall: false }, editor: { nodeRedVersion: '4.0.0' }, security: { localAuth: { enabled: true, user: 'admin', pass: 'pw' } } }, { inject })
+
+            inject.firstCall.args[0].payload.should.eql({
+                palette: { allowInstall: false },
+                editor: { nodeRedVersion: '4.0.0' },
+                security: { localAuth: { enabled: true, user: 'admin', pass: 'pw' } }
+            })
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 403, json: () => ({ code: 'unauthorized' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ remoteInstanceId: 'device1', env: [] }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_set_remote_instance_mode', function () {
+        const tool = getTool('platform_set_remote_instance_mode')
+
+        it('puts the mode onto the device mode route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ mode: 'developer' }) }
+            inject.withArgs({ method: 'PUT', url: '/api/v1/devices/device1/mode', payload: { mode: 'developer' } }).resolves(routeResponse)
+
+            const response = await tool.handler({ remoteInstanceId: 'device1', mode: 'developer' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('rejects a mode outside the enum', function () {
+            tool.inputSchema.mode.safeParse('paused').success.should.be.false()
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 400, json: () => ({ code: 'not_licensed' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ remoteInstanceId: 'device1', mode: 'autonomous' }, { inject })
+            response.should.equal(errorResponse)
         })
     })
 })

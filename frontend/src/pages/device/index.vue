@@ -3,6 +3,7 @@
         <Teleport v-if="mounted" to="#platform-banner">
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
+            <TeamBanner :team="team" />
         </Teleport>
         <SectionNavigationHeader :tabs="navigation">
             <template #breadcrumbs>
@@ -17,6 +18,11 @@
                         :lastSeenAt="device.lastSeenAt"
                     />
                     <DeviceModeBadge v-if="isDevModeAvailable " :mode="device.mode" />
+                    <div v-if="isLiteDevice" class="forge-badge">
+                        <span class="inline-flex space-x-2 items-center">
+                            <span class="ml-1"> Lite Agent</span>
+                        </span>
+                    </div>
                 </div>
             </template>
             <template #context>
@@ -40,7 +46,7 @@
                 -->
                 <div class="flex gap-2 align-center" style="height: 34px;">
                     <template v-if="isDevModeAvailable">
-                        <template v-if="neverConnected">
+                        <template v-if="neverConnected && !isLiteDevice">
                             <FinishSetupButton
                                 v-if="hasPermission('device:create', {application: device.application})"
                                 :is-primary="neverConnected"
@@ -57,7 +63,7 @@
                             />
                             <device-editor-link
                                 :device="device"
-                                :title="!editorAvailable ? 'You can edit flows directly when Developer Mode is enabled, and your Edge Instance is connected.' : 'Open Edge Instance Editor'"
+                                :title="editorLinkTitle"
                                 :disabled="!editorAvailable"
                                 :primary="editorAvailable"
                                 data-action="open-editor"
@@ -147,6 +153,7 @@ import DropdownMenu from '../../components/DropdownMenu.vue'
 import FinishSetupButton from '../../components/FinishSetup.vue'
 import SectionNavigationHeader from '../../components/SectionNavigationHeader.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
+import TeamBanner from '../../components/banners/TeamBanner.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import { useInstanceStates } from '../../composables/InstanceStates.js'
 import { useNavigationHelper } from '../../composables/NavigationHelper.js'
@@ -192,6 +199,7 @@ export default {
         DropdownMenu,
         SectionNavigationHeader,
         SubscriptionExpiredBanner,
+        TeamBanner,
         TeamTrialBanner,
         AssignDeviceDialog,
         DeviceAssignApplicationDialog,
@@ -242,6 +250,9 @@ export default {
         isDevModeAvailable: function () {
             return !!this.features.deviceEditor
         },
+        isLiteDevice: function () {
+            return this.device?.agentType === 'lite'
+        },
         developerMode: function () {
             return this.device && this.agentSupportsDeviceAccess && this.device.mode === 'developer'
         },
@@ -252,7 +263,8 @@ export default {
             return !this.isDevModeAvailable ||
                 !this.device ||
                 !this.agentSupportsDeviceAccess ||
-                !this.hasPermission('device:editor', this.permissionContext)
+                !this.hasPermission('device:editor', this.permissionContext) ||
+                this.isLiteDevice
         },
         disableModeToggleReason: function () {
             if (!this.device) {
@@ -260,6 +272,9 @@ export default {
             }
             if (!this.agentSupportsDeviceAccess) {
                 return 'Device Agent V0.8 or greater is required'
+            }
+            if (this.isLiteDevice) {
+                return 'Device is a Lite Agent, which does not support Fleet Mode'
             }
             if (!this.hasPermission('device:editor', this.permissionContext)) {
                 return 'Only an Owner or Member can change the Device Mode'
@@ -271,7 +286,15 @@ export default {
                 this.device &&
                 this.agentSupportsDeviceAccess &&
                 this.developerMode &&
-                this.device.status === 'running'
+                this.device.status === 'running' &&
+                !this.isLiteDevice &&
+                this.hasPermission('device:editor', this.permissionContext)
+        },
+        editorLinkTitle: function () {
+            if (!this.hasPermission('device:editor', this.permissionContext)) {
+                return 'Only an Owner or Member can open the Device Editor'
+            }
+            return !this.editorAvailable ? 'You can edit flows directly when Developer Mode is enabled, and your Edge Instance is connected.' : 'Open Edge Instance Editor'
         },
         deviceEditorURL: function () {
             return this.device.editor?.url || ''
@@ -345,7 +368,7 @@ export default {
                 // { name: 'Suspend', class: ['text-red-700'], action: this.showConfirmSuspendDialog, disabled: deviceStateChanging || flowActionsDisabled }
             ]
 
-            if (!this.neverConnected) {
+            if (!this.neverConnected && !this.isLiteDevice) {
                 // if we've never connected, we know we can't restart
                 result.push({ name: 'Restart', action: this.restartDevice, disabled: deviceStateChanging || flowActionsDisabled })
             }

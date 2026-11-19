@@ -97,8 +97,10 @@
                             Target Snapshot: <b>{{ instance.targetSnapshot?.name || 'none' }}</b>
                         </span>
                     </ff-button>
+                    <ExpertBuildButton v-if="hasPermission('device:create', applicationContext)" target="device" />
                     <ff-button
                         v-ff-tooltip:left="!hasPermission('device:create', applicationContext) && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
+                        v-ff-track="'ff-device-create-clicked'"
                         class="font-normal ff-btn-icon"
                         data-action="register-device"
                         kind="primary"
@@ -141,6 +143,7 @@
                         @click="deviceAction('removeFromProject', row.id)"
                     />
                     <ff-kebab-item
+                        v-if="row.agentType !== 'lite'"
                         kind="danger"
                         label="Regenerate Configuration"
                         @click="deviceAction('updateCredentials', row.id)"
@@ -167,15 +170,17 @@
                             </p>
                             <p>
                                 To manage your  <a
-                                    class="ff-link" href="https://flowfuse.com/docs/user/devices"
+                                    class="ff-link" href="https://flowfuse.com/docs/device-agent"
                                     target="_blank"
                                 >FlowFuse Device Agent</a>, and can be used to deploy and debug
                                 instances anywhere, from here, in FlowFuse.
                             </p>
                         </template>
                         <template #actions>
+                            <ExpertBuildButton v-if="hasPermission('device:create', applicationContext)" target="device" />
                             <ff-button
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
+                                v-ff-track="'ff-device-create-clicked'"
                                 class="font-normal ff-btn-icon"
                                 kind="primary"
                                 :disabled="remoteInstancesDisabled || teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
@@ -213,8 +218,10 @@
                             </p>
                         </template>
                         <template #actions>
+                            <ExpertBuildButton v-if="hasPermission('device:create', applicationContext)" target="device" />
                             <ff-button
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
+                                v-ff-track="'ff-device-create-clicked'"
                                 class="font-normal ff-btn-icon"
                                 kind="primary"
                                 :disabled="remoteInstancesDisabled || teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
@@ -252,8 +259,10 @@
                             </p>
                         </template>
                         <template #actions>
+                            <ExpertBuildButton v-if="hasPermission('device:create', applicationContext)" target="device" />
                             <ff-button
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
+                                v-ff-track="'ff-device-create-clicked'"
                                 class="font-normal ff-btn-icon"
                                 kind="primary"
                                 :disabled="remoteInstancesDisabled || teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
@@ -291,7 +300,7 @@
                 Describe your new Remote Instance here, e.g. "Raspberry Pi", "Allen-Bradley PLC", etc.
             </p>
             <p v-else>
-                Remote Instances are managed using the <a href="https://flowfuse.com/docs/user/devices/" target="_blank">FlowFuse Device Agent</a>. The agent will need to be setup on the hardware where you want your Remote Instance to run.
+                Remote Instances are managed using the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">FlowFuse Device Agent</a>. The agent will need to be setup on the hardware where you want your Remote Instance to run.
             </p>
         </template>
     </TeamDeviceCreateDialog>
@@ -411,6 +420,7 @@ import DevicesStatusBar from './charts/DeviceStatusBar.vue'
 import AddDeviceToGroupDialog from './dialogs/device-group-management/AddDeviceToGroupDialog.vue'
 import RemoveDeviceFromGroupDialog from './dialogs/device-group-management/RemoveDeviceFromGroupDialog.vue'
 
+import ExpertBuildButton from '@/components/expert/ExpertBuildButton.vue'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useLiveStatusStore } from '@/stores/live-status'
@@ -422,6 +432,7 @@ const POLL_TIME = 10000
 export default {
     name: 'DevicesBrowser',
     components: {
+        ExpertBuildButton,
         FfCheckbox,
         PopoverItem,
         FfPopover,
@@ -602,7 +613,7 @@ export default {
         },
         teamDeviceLimitReached () {
             const teamTypeDeviceLimit = getTeamProperty(this.team, 'devices.limit')
-            if (teamTypeDeviceLimit > 0 && this.teamDeviceCount >= teamTypeDeviceLimit) {
+            if (teamTypeDeviceLimit > -1 && this.teamDeviceCount >= teamTypeDeviceLimit) {
                 // Device specific limit has been reached
                 return true
             }

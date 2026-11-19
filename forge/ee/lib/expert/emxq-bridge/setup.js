@@ -3,6 +3,7 @@
 // periodic housekeeper), addBridge / removeBridge (low-level provision/teardown,
 // throw on error), validateBridge (read-only health check, never throws).
 
+const crypto = require('crypto')
 const http = require('http')
 const https = require('https')
 
@@ -14,11 +15,23 @@ const axios = require('axios')
 const httpAgent = new http.Agent({ keepAlive: false })
 const httpsAgent = new https.Agent({ keepAlive: false })
 
-const { connector, actionOut, sourceChat, sourceInflight, sourcePlatform, sourceMcpRes, ruleIn, ruleOut } = require('./templates.js')
+const { connector, actionOut, sourceChat, sourceInsightsChat, sourceInflight, sourcePlatform, sourceMcpRes, ruleIn, ruleOut } = require('./templates.js')
 
 // EMQX v5 IDs for connector/action/source resources are `<type>:<name>`.
 // Rule IDs are the rule's own `id` field.
 const connectorId = `mqtt:${connector.name}`
+
+// EMQX derives the connector's client ids from the connector name and the EMQX node name only.
+// Deployments with identical EMQX node names (same chart, spec and namespace) would otherwise
+// share client ids on the central broker and keep taking over each other's connection.
+// base_url is mixed in so a platform restored from another's database still gets its own prefix.
+function clientIdPrefix (instanceId, baseUrl) {
+    if (!instanceId) {
+        return undefined
+    }
+    const hash = crypto.createHash('sha256').update(`${instanceId}|${baseUrl || ''}`).digest('hex')
+    return `ff${hash.slice(0, 12)}`
+}
 
 function getConfig (app) {
     const teamBrokerEnabled = app.config.broker?.teamBroker?.enabled === true
@@ -33,6 +46,7 @@ function getConfig (app) {
         licenseExpired: app.license.status().expired,
         licenceId: app.license.get('id'), // used as the central-broker connector creds and topic prefix
         licenceJwt: app.license.raw(),
+        clientIdPrefix: clientIdPrefix(app.settings?.get('instanceId'), app.config.base_url),
         expertBrokerServerAddress: app.config.expert?.centralBroker?.server,
         ssl: app.config.expert?.centralBroker?.ssl ?? true,
         appBrokerServiceUrl: app.config.broker?.teamBroker?.api?.url,
@@ -132,12 +146,12 @@ async function discoverResources (client) {
 
 /**
  * Read-only health check. Returns false if config disabled, resources missing,
- * licence creds drifted, central broker address drifted, or any error (errors
+ * licence creds drifted, central broker address or client id prefix drifted, or any error (errors
  * are logged, not thrown).
  *
  * NOTE: this is an existence-and-identity check, not a config-correctness check.
  * It verifies that the connector, action, both sources, and both rules are
- * present (by name/id) and that the connector's `username` and `server` fields
+ * present (by name/id) and that the connector's `username`, `server` and `clientid_prefix` fields
  * still match config — but it does NOT verify rule SQL, action/source
  * `parameters`, `enable` flags, or that an action/source is still bound to our
  * connector. A hand-edited resource with a matching name will pass. For a
@@ -176,6 +190,10 @@ async function validateBridge (app, { cfg, client } = {}) {
             app.log.info('EMQX connector server does not match the central broker address')
             return false
         }
+        if ((connectorResp.data.clientid_prefix || '') !== (cfg.clientIdPrefix || '')) {
+            app.log.info('EMQX connector client id prefix does not match this platform')
+            return false
+        }
         const [actions, sources, rules] = await Promise.all([
             getList(client, '/actions'),
             getList(client, '/sources'),
@@ -187,10 +205,11 @@ async function validateBridge (app, { cfg, client } = {}) {
             return false
         }
         const hasSourceChat = sources.some(s => s.name === sourceChat.name && s.type === 'mqtt')
+        const hasSourceInsightsChat = sources.some(s => s.name === sourceInsightsChat.name && s.type === 'mqtt')
         const hasSourceInflight = sources.some(s => s.name === sourceInflight.name && s.type === 'mqtt')
         const hasSourcePlatform = sources.some(s => s.name === sourcePlatform.name && s.type === 'mqtt')
         const hasSourceMcpRes = sources.some(s => s.name === sourceMcpRes.name && s.type === 'mqtt')
-        if (!hasSourceChat || !hasSourceInflight || !hasSourcePlatform || !hasSourceMcpRes) {
+        if (!hasSourceChat || !hasSourceInsightsChat || !hasSourceInflight || !hasSourcePlatform || !hasSourceMcpRes) {
             app.log.info('Expert bridge sources not found')
             return false
         }
@@ -312,6 +331,10 @@ async function addBridge (app, { cfg, client } = {}) {
         password: cfg.licenceJwt
     }
 
+    if (cfg.clientIdPrefix) {
+        connectorPayload.clientid_prefix = cfg.clientIdPrefix
+    }
+
     if (cfg.ssl) {
         connectorPayload.ssl = {
             enable: true
@@ -325,6 +348,8 @@ async function addBridge (app, { cfg, client } = {}) {
     await post(client, '/actions', actionOut)
     app.log.info(`creating EMQX source ${sourceChat.name}`)
     await post(client, '/sources', sourceChat)
+    app.log.info(`creating EMQX source ${sourceInsightsChat.name}`)
+    await post(client, '/sources', sourceInsightsChat)
     app.log.info(`creating EMQX source ${sourceInflight.name}`)
     await post(client, '/sources', sourceInflight)
     app.log.info(`creating EMQX source ${sourcePlatform.name}`)
@@ -339,4 +364,4 @@ async function addBridge (app, { cfg, client } = {}) {
 
 module.exports = { syncBridge }
 // Exposed for unit tests
-module.exports._internal = { addBridge, removeBridge, validateBridge, discoverResources, getConfig, getList, makeClient, del, post }
+module.exports._internal = { clientIdPrefix, addBridge, removeBridge, validateBridge, discoverResources, getConfig, getList, makeClient, del, post }

@@ -8,9 +8,12 @@
             :class="{ 'has-mode-switcher': isInsightsModeEnabled && isEditorContext }"
             @scroll="handleScroll"
         >
-            <info-banner />
+            <info-banner v-if="!isFullPageSurface" />
 
             <expert-messages @resizing="scrollToBottom" />
+
+            <!-- Teleport target for the prompt suggestions rendered by the chat input -->
+            <div id="expert-suggestions-slot" />
 
             <div ref="scrollAnchor" class="scroll-anchor" />
         </div>
@@ -18,19 +21,24 @@
         <!-- Updates Available Banner -->
         <update-banner v-if="isEditorContext && isInstanceRunning" />
 
+        <task-list v-if="showTaskList" :items="activeTaskList.items" :title="activeTaskList.title" />
+
         <expert-chat-input ref="chatInput" @stop="handleStopGeneration" />
     </div>
 </template>
 
 <script>
 import { mapActions, mapState } from 'pinia'
+import { unref } from 'vue'
 
 import ExpertChatInput from './components/ExpertChatInput.vue'
 import ExpertMessages from './components/ExpertMessages.vue'
 import ExpertModeSwitcher from './components/ExpertModeSwitcher.vue'
 import InfoBanner from './components/InfoBanner.vue'
 import UpdateBanner from './components/UpdateBanner.vue'
+import TaskList from './components/messages/components/TaskList.vue'
 
+import { isFullPageSurface } from '@/components/expert/surfaces.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
@@ -44,12 +52,21 @@ export default {
         InfoBanner,
         ExpertMessages,
         ExpertChatInput,
-        UpdateBanner
+        UpdateBanner,
+        TaskList
     },
     inject: {
         togglePinWithWidth: {
             from: 'togglePinWithWidth',
             default: () => () => {} // No-op function when not provided
+        },
+        expertSurface: {
+            from: 'expert-surface',
+            default: 'drawer'
+        },
+        expertChatOpen: {
+            from: 'expert-chat-open',
+            default: true
         }
     },
     props: {
@@ -71,11 +88,15 @@ export default {
         }
     },
     computed: {
+        showTaskList () {
+            return !!this.activeTaskList && unref(this.expertChatOpen)
+        },
         ...mapState(useProductExpertStore, [
             'abortController',
             'agentMode',
             'messages',
-            'isInsightsAgent'
+            'isInsightsAgent',
+            'activeTaskList'
         ]),
         ...mapState(useUxDrawersStore, {
             isPinned: state => state.rightDrawer.fixed
@@ -84,6 +105,11 @@ export default {
         isEditorContext () {
             // In editor context, the route name includes 'editor'
             return this.$route?.name?.includes('editor') || false
+        },
+        isFullPageSurface () {
+            // On a full page surface the Expert opens the conversation itself, so the
+            // canned welcome message and the support banner stay out of it.
+            return isFullPageSurface(this.expertSurface)
         },
         isInsightsModeEnabled () {
             return !!this.featuresCheck?.isExpertInsightsFeatureEnabled
@@ -109,7 +135,9 @@ export default {
                 if (this.isInsightsAgent) {
                     await this.getCapabilities()
                 }
-                this.addWelcomeMessageIfNeeded()
+                if (!this.isFullPageSurface) {
+                    this.addWelcomeMessageIfNeeded()
+                }
             }
         },
         'instance.meta.state': {
@@ -140,14 +168,11 @@ export default {
         if (this.scrollCheckDebounce) {
             clearTimeout(this.scrollCheckDebounce)
         }
-        // Clean up session timer
-        this.resetSessionTimer()
     },
     methods: {
         ...mapActions(useProductExpertStore, [
             'setAgentMode',
             'setAbortController',
-            'resetSessionTimer',
             'addWelcomeMessageIfNeeded',
             'stopInflightChat'
         ]),

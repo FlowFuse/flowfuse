@@ -27,7 +27,7 @@ If you have not yet created a Node-RED instance that you want to manage within F
 ## Migrating the flows and credentials
 
 Install the Node-RED tools plugin as explained
-[in the documentation](/docs/migration/node-red-tools.md). After you created a snapshot for
+[in the documentation](/docs/migration/node-red-tools/). After you created a snapshot for
 the Node-RED instance you wish to move, you'll have copied over the flows and credentials.
 
 ## Migrating Environment Variables

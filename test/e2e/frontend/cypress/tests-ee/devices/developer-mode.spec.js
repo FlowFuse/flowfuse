@@ -13,6 +13,16 @@ describe('FlowFuse - Devices - With Billing', () => {
 
         cy.login('bob', 'bbPassword')
 
+        // Start in fleet mode, even if an earlier test's reset had not landed yet
+        cy.request('GET', '/api/v1/user/teams').then((response) => {
+            const team = response.body.teams.find((team) => team.name === 'BTeam')
+            return cy.request('GET', `/api/v1/teams/${team.id}/devices?limit=100`)
+        }).then((response) => {
+            response.body.devices
+                .filter((device) => device.mode === 'developer')
+                .forEach((device) => cy.request('PUT', `/api/v1/devices/${device.id}/mode`, { mode: 'autonomous' }))
+        })
+
         cy.visit('/team/bteam/devices')
     })
 

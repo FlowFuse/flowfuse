@@ -7,8 +7,8 @@ const isObject = (obj) => {
 /**
  * Generate a standard format body for the audit log display and database.
  * Any items null or missing must not generate a property in the body
- * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, sourceDevice?, targetDevice?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, pipeline?, pipelineStage?, pipelineStageTarget?, role?, projectType?, info?, deviceGroup?, interval?, threshold?, token?, pkg? } == {}} objects objects to include in body
- * @returns {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, pipeline?, pipelineStage?, pipelineStageTarget?, role?, projectType? info?, deviceGroup?, interval?, threshold?, token?, pkg? }}
+ * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, sourceDevice?, targetDevice?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, pipeline?, pipelineStage?, pipelineStageTarget?, role?, projectType?, info?, deviceGroup?, interval?, threshold?, token?, pkg?, gitToken?, libraryEntry?, dataSchema?, dataSchemaVersion?, dataSchemaGroup? } == {}} objects objects to include in body
+ * @returns {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, pipeline?, pipelineStage?, pipelineStageTarget?, role?, projectType? info?, deviceGroup?, interval?, threshold?, token?, pkg?, gitToken?, libraryEntry?, dataSchema?, dataSchemaVersion?, dataSchemaGroup? }}
  */
 const generateBody = ({
     error, team, application,
@@ -17,7 +17,8 @@ const generateBody = ({
     subscription, license, updates, snapshot, pipeline,
     pipelineStage, pipelineStageTarget, role, projectType,
     info, deviceGroup, interval, threshold, token, pkg,
-    database, table
+    database, table, gitToken, libraryEntry,
+    dataSchema, dataSchemaVersion, dataSchemaGroup
 } = {}) => {
     const body = {}
 
@@ -120,6 +121,21 @@ const generateBody = ({
     } else if (typeof table === 'string') {
         body.table = { name: table }
     }
+    if (isObject(gitToken)) {
+        body.gitToken = { id: gitToken.hashid ?? gitToken.id, name: gitToken.name, type: gitToken.type }
+    }
+    if (isObject(libraryEntry)) {
+        body.libraryEntry = { name: libraryEntry.name, type: libraryEntry.type, deleteCount: libraryEntry.deleteCount }
+    }
+    if (isObject(dataSchema)) {
+        body.dataSchema = { id: dataSchema.hashid ?? dataSchema.id, name: dataSchema.name }
+    }
+    if (isObject(dataSchemaVersion)) {
+        body.dataSchemaVersion = { version: dataSchemaVersion.version }
+    }
+    if (isObject(dataSchemaGroup)) {
+        body.dataSchemaGroup = { id: dataSchemaGroup.hashid ?? dataSchemaGroup.id, name: dataSchemaGroup.name }
+    }
 
     return body
 }
@@ -192,7 +208,12 @@ const formatLogEntry = (auditLogDbRow) => {
                 token: body?.token,
                 pkg: body?.pkg,
                 database: body?.database,
-                table: body?.table
+                table: body?.table,
+                gitToken: body?.gitToken,
+                libraryEntry: body?.libraryEntry,
+                dataSchema: body?.dataSchema,
+                dataSchemaVersion: body?.dataSchemaVersion,
+                dataSchemaGroup: body?.dataSchemaGroup
             })
 
             // if body has the keys:  `key`, `scope`, and `store` AND `store` === 'memory' or 'persistent'
@@ -212,6 +233,17 @@ const formatLogEntry = (auditLogDbRow) => {
             if (formatted.event === 'flows.set') {
                 formatted.body = formatted.body || {}
                 formatted.body.flowsSet = formatted.body?.flowsSet || { type: body.type }
+            }
+            if (formatted.event === 'nr-assistant.inject') {
+                formatted.body = formatted.body || {}
+                formatted.body.inject = formatted.body?.inject || {
+                    node: body.node,
+                    type: body.type,
+                    name: body.name,
+                    z: body.z,
+                    flowName: body.flowName,
+                    msgid: body.msgid
+                }
             }
             // TODO: Add other known Node-RED audit events
             // including: 'nodes.install', 'nodes.remove', 'library.set'

@@ -8,16 +8,7 @@
                     <span v-if="seg.type === 'arrow'" class="text-gray-400">→</span>
                     <span v-else-if="seg.type === 'sep'" class="text-gray-300 mx-0.5">|</span>
                     <span v-else-if="seg.type === 'nodesep'" class="text-gray-400 font-mono -mx-0.5">,</span>
-                    <span
-                        v-else
-                        class="px-1.5 py-0.5 rounded-sm font-mono text-xs"
-                        :title="seg.text"
-                        :class="{
-                            'bg-red-50 text-red-700 line-through': seg.kind === 'removed',
-                            'bg-green-50 text-green-700': seg.kind === 'added',
-                            'bg-gray-100 text-gray-600': seg.kind === 'unchanged'
-                        }"
-                    >{{ seg.text }}</span>
+                    <DiffValuePill v-else :kind="seg.kind" :text="seg.text" />
                 </template>
             </div>
         </div>
@@ -101,11 +92,14 @@
 <script>
 import { diffLines } from 'diff'
 
+import DiffValuePill from '../diff/DiffValuePill.vue'
+
 const CONTEXT = 3
 const LONG_LINE_THRESHOLD = 50
 
 export default {
     name: 'SnapshotDiffChangePanel',
+    components: { DiffValuePill },
     props: {
         prop: { type: String, default: '' },
         label: { type: String, default: null },

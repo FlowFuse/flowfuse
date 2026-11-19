@@ -1,6 +1,7 @@
 const { requestContext } = require('@fastify/request-context')
 const fp = require('fastify-plugin')
 
+const mcpToolPermissions = require('../../lib/mcpToolPermissions')
 const { Permissions } = require('../../lib/permissions')
 const { Roles } = require('../../lib/roles.js')
 
@@ -129,11 +130,11 @@ module.exports = fp(async function (app, opts) {
             throw new Error(`Unrecognised scope requested: '${scope}'`)
         }
         return async (request, reply) => {
-            // Third-party MCP callers may only act on teams with the AI feature
-            // enabled. The team comes from whatever the route already resolved
-            // (directly, or via an application, instance, or device), never from
-            // the tool arguments; a request with no team context is not gated.
-            if (requestContext.get('sourceContext')?.source === 'mcp') {
+            // Gate third-party MCP callers on the resolved team's ai/mcpThirdParty features.
+            // The team comes from the route (team/application/instance/device), never from
+            // tool arguments; with no team context the request is not gated.
+            const sourceContext = requestContext.get('sourceContext')
+            if (sourceContext?.source === 'mcp') {
                 const loadedTeam = request.team || request.application?.Team || request.project?.Team || request.device?.Team
                 const teamId = loadedTeam?.id ?? request.teamMembership?.TeamId
                 if (teamId !== undefined && teamId !== null) {
@@ -141,7 +142,31 @@ module.exports = fp(async function (app, opts) {
                     // type is loaded, re-fetching only when it isn't already.
                     const team = loadedTeam?.TeamType ? loadedTeam : await app.db.models.Team.byId(teamId)
                     if (team && !team.getFeatureProperty('ai', true)) {
-                        reply.code(403).send({ code: 'unauthorized', error: 'AI features are disabled for this team' })
+                        reply.code(403).send({
+                            code: 'unauthorized',
+                            error: 'AI features are disabled for this team. A team owner can re-enable AI Features from Team Settings > Danger.'
+                        })
+                        throw new Error()
+                    }
+                    if (team && !team.getFeatureProperty('mcpThirdParty', true)) {
+                        reply.code(403).send({
+                            code: 'unauthorized',
+                            error: 'MCP access is disabled for this team. A team owner can re-enable MCP access from Team Settings > Danger.'
+                        })
+                        throw new Error()
+                    }
+                }
+
+                const tool = sourceContext.toolName && app.comms?.platformAutomation?.findTool(sourceContext.toolName)
+                if (tool) {
+                    const category = mcpToolPermissions.classOf(tool.annotations)
+                    const teamHashid = resolveRequestTeamHashid(app, request)
+                    const permissions = mcpToolPermissions.forSession(request.session)
+                    const allowed = teamHashid
+                        ? mcpToolPermissions.resolve(permissions, teamHashid, 'platform', category)
+                        : mcpToolPermissions.anyTeamAllows(permissions, 'platform', category)
+                    if (!allowed) {
+                        reply.code(403).send({ code: 'unauthorized', error: `The token's permissions don't allow ${category} access to platform tools` })
                         throw new Error()
                     }
                 }
@@ -189,23 +214,24 @@ module.exports = fp(async function (app, opts) {
                     reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
                     throw new Error()
                 }
-                if (permission.self && (request.user && (request.user.id === request.session.User?.id))) {
-                    // This permission is permitted if the user is operating on themselves
-                    return
-                }
-                let userRole = request.teamMembership.role
-                if (app.config.features.enabled('rbacApplication')) {
-                    // Granular RBAC; if the request provides an application context for the request, check against
-                    // the teamMembership.permissions object
-                    const application = request.application?.hashid || request.applicationId
-                    if (application && request.teamMembership.permissions?.applications?.[application] !== undefined) {
-                        userRole = request.teamMembership.permissions.applications[application]
+                // A user operating on themselves does not need the role, but the
+                // token checks below still apply
+                const isSelf = permission.self && request.user && request.user.id === request.session.User?.id
+                if (!isSelf) {
+                    let userRole = request.teamMembership.role
+                    if (app.config.features.enabled('rbacApplication')) {
+                        // Granular RBAC; if the request provides an application context for the request, check against
+                        // the teamMembership.permissions object
+                        const application = request.application?.hashid || request.applicationId
+                        if (application && request.teamMembership.permissions?.applications?.[application] !== undefined) {
+                            userRole = request.teamMembership.permissions.applications[application]
+                        }
                     }
-                }
-                // console.log(request.url, scope, request.teamMembership.role, userRole)
-                if (userRole < permission.role) {
-                    reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
-                    throw new Error()
+                    // console.log(request.url, scope, request.teamMembership.role, userRole)
+                    if (userRole < permission.role) {
+                        reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
+                        throw new Error()
+                    }
                 }
             } else if (permission.self) {
                 // A request outside the context of a team.
@@ -251,7 +277,12 @@ module.exports = fp(async function (app, opts) {
         }
     }
 
+    function canAccessDeviceEditor (request, applicationId) {
+        return hasPermission(request.teamMembership, 'device:editor', { applicationId })
+    }
+
     app.decorate('hasPermission', hasPermission)
+    app.decorate('canAccessDeviceEditor', canAccessDeviceEditor)
     app.decorate('needsPermission', needsPermission)
     app.decorate('patTeamScopeFilter', patTeamScopeFilter)
 }, { name: 'app.routes.auth.permissions' })

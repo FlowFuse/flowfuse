@@ -1,8 +1,11 @@
 const should = require('should') // eslint-disable-line
+const sinon = require('sinon')
+
 const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
+const stubDriver = FF_UTIL.require('forge/containers/stub/index.js')
 
 describe('Users API', async function () {
     let app
@@ -154,6 +157,13 @@ describe('Users API', async function () {
             firstPage.users.should.have.length(2)
             firstPage.users[0].should.have.property('username', 'alice')
             firstPage.users[1].should.have.property('username', 'dave')
+        })
+        it('can search for users - hashid', async function () {
+            const firstPage = await getUsers(undefined, undefined, TestObjects.dave.hashid)
+            firstPage.should.have.property('meta')
+            firstPage.meta.should.not.have.property('next_cursor')
+            firstPage.users.should.have.length(1)
+            firstPage.users[0].should.have.property('username', 'dave')
         })
     })
 
@@ -593,6 +603,119 @@ describe('Users API', async function () {
 
             // TODO: test audit log has { code: 'invalid_request', error: 'cannot suspend self' }
             // Consider also testing response has code: 'invalid_request' ?
+        })
+    })
+
+    describe('Rename user', async function () {
+        let session
+        async function createEditorSession (username) {
+            session = await app.db.models.StorageSession.create({
+                sessions: JSON.stringify({ token1: { user: username, client: 'node-red-editor', scope: ['*'], accessToken: 'token1', expires: 1676376174919 } }),
+                ProjectId: app.project.id
+            })
+        }
+        beforeEach(function () {
+            sinon.spy(stubDriver, 'revokeUserToken')
+        })
+        afterEach(async function () {
+            stubDriver.revokeUserToken.restore()
+            await session?.destroy()
+            session = null
+            await TestObjects.chris.reload()
+            TestObjects.chris.username = 'chris'
+            await TestObjects.chris.save()
+            await TestObjects.elvis.reload()
+            TestObjects.elvis.username = 'elvis'
+            TestObjects.elvis.suspended = false
+            await TestObjects.elvis.save()
+        })
+
+        it('Self rename revokes editor sessions', async function () {
+            await createEditorSession('chris')
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user',
+                payload: { username: 'chris-renamed' },
+                cookies: { sid: TestObjects.tokens.chris }
+            })
+            response.should.have.property('statusCode', 200)
+
+            stubDriver.revokeUserToken.callCount.should.equal(1)
+            stubDriver.revokeUserToken.firstCall.args[1].should.equal('token1')
+            await session.reload()
+            JSON.parse(session.sessions).should.not.have.property('token1')
+        })
+
+        it('Admin rename and suspend in one request revokes editor sessions', async function () {
+            await createEditorSession('elvis')
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/users/${TestObjects.elvis.hashid}`,
+                payload: { username: 'elvis-renamed', suspended: true },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.should.have.property('statusCode', 200)
+            response.json().should.have.property('suspended', true)
+
+            stubDriver.revokeUserToken.calledWith(sinon.match.any, 'token1').should.be.true()
+            await session.reload()
+            JSON.parse(session.sessions).should.not.have.property('token1')
+        })
+
+        it('Failed rename does not revoke editor sessions', async function () {
+            await createEditorSession('chris')
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user',
+                payload: { username: 'bob' },
+                cookies: { sid: TestObjects.tokens.chris }
+            })
+            response.should.have.property('statusCode', 400)
+
+            stubDriver.revokeUserToken.callCount.should.equal(0)
+            await session.reload()
+            JSON.parse(session.sessions).should.have.property('token1')
+        })
+
+        it('Rename removes the npm token bound to the old username', async function () {
+            await app.db.controllers.AccessToken.createTokenForNPM(TestObjects.chris, TestObjects.ATeam)
+            ;(await app.db.models.AccessToken.count({ where: { ownerType: 'npm', ownerId: 'chris' } })).should.equal(1)
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user',
+                payload: { username: 'chris-renamed' },
+                cookies: { sid: TestObjects.tokens.chris }
+            })
+            response.should.have.property('statusCode', 200)
+            ;(await app.db.models.AccessToken.count({ where: { ownerType: 'npm', ownerId: 'chris' } })).should.equal(0)
+        })
+
+        it('Failed rename keeps the npm token', async function () {
+            await app.db.controllers.AccessToken.createTokenForNPM(TestObjects.chris, TestObjects.ATeam)
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user',
+                payload: { username: 'bob' },
+                cookies: { sid: TestObjects.tokens.chris }
+            })
+            response.should.have.property('statusCode', 400)
+            ;(await app.db.models.AccessToken.count({ where: { ownerType: 'npm', ownerId: 'chris' } })).should.equal(1)
+            await app.db.models.AccessToken.destroy({ where: { ownerType: 'npm', ownerId: 'chris' } })
+        })
+
+        it('Saving the same username does not revoke editor sessions', async function () {
+            await createEditorSession('chris')
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user',
+                payload: { username: 'chris' },
+                cookies: { sid: TestObjects.tokens.chris }
+            })
+            response.should.have.property('statusCode', 200)
+
+            stubDriver.revokeUserToken.callCount.should.equal(0)
+            await session.reload()
+            JSON.parse(session.sessions).should.have.property('token1')
         })
     })
 

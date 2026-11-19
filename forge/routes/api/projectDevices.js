@@ -50,7 +50,8 @@ module.exports = async function (app) {
         }
 
         const devices = await app.db.models.Device.getAll(paginationOptions, where, { includeInstanceApplication: true })
-        devices.devices = devices.devices.map(d => app.db.views.Device.device(d, { statusOnly: paginationOptions.statusOnly }))
+        const includeEditorUrl = app.canAccessDeviceEditor(request, app.db.models.Application.encodeHashid(request.project.ApplicationId))
+        devices.devices = devices.devices.map(d => app.db.views.Device.device(d, { statusOnly: paginationOptions.statusOnly, includeEditorUrl }))
 
         reply.send(devices)
     })

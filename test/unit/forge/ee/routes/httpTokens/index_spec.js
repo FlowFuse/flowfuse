@@ -1,6 +1,6 @@
 const sleep = require('util').promisify(setTimeout)
 
-const should = require('should') // eslint-disable-line
+const should = require('should')
 
 const setup = require('../../setup')
 
@@ -257,6 +257,23 @@ describe('NR HTTP Bearer Tokens', function () {
             cookies: { sid: TestObjects.tokens.alice }
         })
         modifyResponse.statusCode.should.equal(400)
+    })
+
+    it('cannot delete an Expert MCP HTTP token via API', async function () {
+        // create an Expert MCP token directly via the controller
+        const scope = ['ff-expert:mcp', 'instance']
+        const expiresAt = new Date(Date.now() + 1000 * 60 * 5) // expires in 5 minutes
+        const tokenName = 'FlowFuse Expert MCP Access Token'
+        const token = await app.db.controllers.AccessToken.createHTTPNodeToken(TestObjects.project, tokenName, scope, expiresAt)
+        // attempt to delete via the API
+        const deleteResponse = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/projects/${TestObjects.project.id}/httpTokens/${token.id}`,
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        deleteResponse.statusCode.should.equal(404)
+        const stillThere = await app.db.models.AccessToken.byId(token.id, 'http', '' + TestObjects.project.id)
+        should.exist(stillThere)
     })
 
     it('does not list Expert MCP tokens via API', async function () {

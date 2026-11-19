@@ -63,6 +63,18 @@ module.exports = {
                 if (instanceCount > 0) {
                     throw new Error('Cannot delete team that owns instances')
                 }
+                const scopes = await M.AccessTokenTeamScope.findAll({
+                    where: { TeamId: team.id },
+                    attributes: ['AccessTokenId']
+                })
+                for (const { AccessTokenId } of scopes) {
+                    const otherScopes = await M.AccessTokenTeamScope.count({
+                        where: { AccessTokenId, TeamId: { [Op.ne]: team.id } }
+                    })
+                    if (otherScopes === 0) {
+                        await M.AccessToken.destroy({ where: { id: AccessTokenId } })
+                    }
+                }
             },
             afterDestroy: async (team, opts) => {
                 // TODO: what needs tidying up after a team is deleted?
@@ -79,7 +91,8 @@ module.exports = {
                 await M.Application.destroy({
                     where: {
                         TeamId: team.id
-                    }
+                    },
+                    individualHooks: true
                 })
                 // Remove Team's device provisioning tokens
                 await M.AccessToken.destroy({
@@ -473,6 +486,20 @@ module.exports = {
                     } else {
                         return this.TeamType.getFeatureProperty(key, defaultValue)
                     }
+                },
+                /**
+                 * Whether this team is offered AI-led onboarding. This is the one place the rule
+                 * lives: signup uses it to leave the team empty, and the frontend reads it from
+                 * the team view. Requires this.TeamType to be loaded.
+                 * @returns {boolean}
+                 */
+                isAiOnboardingOffered: function () {
+                    if (!app.config.features.enabled('aiOnboarding') || !app.config.features.enabled('externalBroker')) {
+                        return false
+                    }
+                    return !!this.getFeatureProperty('teamBroker', false) &&
+                        !!this.getFeatureProperty('ai', true) &&
+                        !!this.getFeatureProperty('expertAssistant', true)
                 },
                 getInstanceTypeProperty: function (instanceType, property, defaultValue) {
                     // instanceType can be:

@@ -44,6 +44,31 @@ describe('Backend Sentry setup', () => {
         Sentry.setupFastifyErrorHandler.firstCall.args[0].should.equal(app)
     })
 
+    it('isolates the Sentry scope for WebSocket upgrade requests only', async function () {
+        const withIsolationScope = sinon.spy(Sentry, 'withIsolationScope')
+        app = await FF_UTIL.setupApp({
+            housekeeper: false,
+            telemetry: {
+                enabled: false,
+                backend: {
+                    sentry: {
+                        dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
+                    }
+                }
+            }
+        })
+
+        await app.inject({ method: 'GET', url: '/api/v1/settings' })
+        withIsolationScope.called.should.be.false()
+
+        await app.inject({
+            method: 'GET',
+            url: '/api/v1/settings',
+            headers: { connection: 'upgrade', upgrade: 'websocket' }
+        })
+        withIsolationScope.calledOnce.should.be.true()
+    })
+
     it('does not initialise Sentry when no backend DSN is configured', async function () {
         app = await FF_UTIL.setupApp({
             housekeeper: false,

@@ -13,7 +13,20 @@
                 <div v-if="errors.name" data-el="form-row-error" class="ml-4 text-red-400 text-xs">
                     {{ errors.name }}
                 </div>
-                <p class="schema-hint">This table will be created in your database's default schema.</p>
+            </div>
+            <div class="section table-schema">
+                <h3>Define schema</h3>
+                <ff-text-input
+                    v-model="newTable.schema"
+                    placeholder="public"
+                    type="string"
+                    :error="errors.schema"
+                    @change="validateForm"
+                />
+                <div v-if="errors.schema" data-el="form-row-error" class="ml-4 text-red-400 text-xs">
+                    {{ errors.schema }}
+                </div>
+                <p class="schema-hint">A schema that doesn't exist yet will be created.</p>
             </div>
             <div class="section table-columns">
                 <h3>Define Columns</h3>
@@ -42,6 +55,8 @@
 <script>
 import { mapActions, mapState } from 'pinia'
 import { defineComponent } from 'vue'
+
+import Alerts from '../../../../../../services/alerts.js'
 
 import TableColumn from './components/TableColumn.vue'
 
@@ -73,6 +88,10 @@ export default defineComponent({
         }
     },
     mounted () {
+        // newTable is persisted, so drafts saved before schema support have no schema
+        if (!this.newTable.schema) {
+            this.newTable.schema = 'public'
+        }
         this.setHeader()
     },
     methods: {
@@ -99,6 +118,18 @@ export default defineComponent({
                 this.errors.name = null
             }
 
+            if (typeof this.newTable.schema !== 'string' || this.newTable.schema.length === 0) {
+                this.errors.schema = 'A schema is mandatory.'
+            } else if (this.newTable.schema.length > 63) {
+                this.errors.schema = 'The schema must not exceed 63 characters.'
+            } else if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(this.newTable.schema)) {
+                this.errors.schema = 'No spaces allowed, must start with a letter or underscore, and only use letters, digits, or underscores.'
+            } else if (this.newTable.schema.startsWith('pg_') || this.newTable.schema === 'information_schema') {
+                this.errors.schema = 'This schema name is reserved by PostgreSQL.'
+            } else {
+                this.errors.schema = null
+            }
+
             // Handle errors associated to column definitions
             if (this.newTable.columns.length === 0) {
                 this.errors.columns = 'The table must have at least one column.'
@@ -120,8 +151,13 @@ export default defineComponent({
                 databaseId: this.$route.params.id
             })
                 .then(() => this.getTables(this.$route.params.id))
-                .then(() => this.closeRightDrawer())
-                .catch(e => e)
+                .then(() => {
+                    Alerts.emit('Table created successfully', 'confirmation')
+                    this.closeRightDrawer()
+                })
+                .catch(e => {
+                    Alerts.emit(e.response?.data?.error || 'Failed to create the table', 'warning')
+                })
         },
         setHeader () {
             this.setRightDrawerHeader({

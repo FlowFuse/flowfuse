@@ -97,9 +97,25 @@ function setTeam (team) {
     }
 }
 
+/**
+ * Registers the current route name so it is sent with every event that follows.
+ * PostHog already adds the URL, but that carries slugs and ids; the route name
+ * is what a breakdown by page needs.
+ *
+ * @param {String} name - the name of the route the user is on
+ */
+function setRoute (name) {
+    try {
+        window.posthog?.register({ 'route-name': name ?? null })
+    } catch (err) {
+        console.error('posthog error registering route')
+    }
+}
+
 export default {
     identify,
     capture,
     groupUpdate,
-    setTeam
+    setTeam,
+    setRoute
 }

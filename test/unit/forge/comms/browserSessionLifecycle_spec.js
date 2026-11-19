@@ -266,6 +266,32 @@ describe('BrowserSessionLifecycleHandler', function () {
             sessions.should.have.length(0)
         })
 
+        it('keeps the entry when the last will comes from the team the tab left', async function () {
+            client.emit('browser-session', {
+                teamId: 'team-new',
+                userId: 'user14',
+                sessionId: 'session1',
+                event: 'heartbeat',
+                payload: { visibility: 'visible' }
+            })
+            await new Promise(resolve => setImmediate(resolve))
+
+            for (const event of ['close', 'disconnected']) {
+                client.emit('browser-session', {
+                    teamId: 'team-old',
+                    userId: 'user14',
+                    sessionId: 'session1',
+                    event,
+                    payload: {}
+                })
+                await new Promise(resolve => setImmediate(resolve))
+            }
+
+            const sessions = await handler.getSessionsByUser('user14')
+            sessions.should.have.length(1)
+            sessions[0].should.have.property('teamId', 'team-new')
+        })
+
         it('is a no-op for a tab that never registered presence', async function () {
             client.emit('browser-session', {
                 userId: 'user13',

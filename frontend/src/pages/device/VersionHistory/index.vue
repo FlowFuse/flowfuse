@@ -1,4 +1,11 @@
 <template>
+    <div class="banner-wrapper">
+        <FeatureUnavailable
+            v-if="isLiteAgent"
+            message="The Lite Remote Agent does not currently support this feature"
+            :only-custom-message="true"
+        />
+    </div>
     <SectionTopMenu>
         <template #hero>
             <toggle-button-group :buttons="pageToggle" data-nav="page-toggle" title="View" :visually-hide-title="true" />
@@ -20,7 +27,7 @@
             </template>
         </template>
         <template #tools>
-            <section class="flex gap-2 items-center self-center flex-wrap">
+            <section v-if="!isLiteAgent" class="flex gap-2 items-center self-center flex-wrap">
                 <ff-checkbox
                     v-model="showDeviceSnapshotsOnly"
                     v-ff-tooltip:left="'Untick this to show snapshots from other Instances within this application'"
@@ -53,7 +60,6 @@
             </section>
         </template>
     </SectionTopMenu>
-
     <router-view v-slot="{ Component }">
         <transition name="page-fade" mode="out-in">
             <component
@@ -98,6 +104,7 @@
 import { ArrowUpTrayIcon, PlusSmallIcon } from '@heroicons/vue/24/outline'
 
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
 import SnapshotImportDialog from '../../../components/dialogs/SnapshotImportDialog.vue'
 import ToggleButtonGroup from '../../../components/elements/ToggleButtonGroup.vue'
 import usePermissions from '../../../composables/Permissions.js'
@@ -114,7 +121,8 @@ export default {
         SnapshotCreateDialog,
         PlusSmallIcon,
         ArrowUpTrayIcon,
-        SectionTopMenu
+        SectionTopMenu,
+        FeatureUnavailable
     },
     inheritAttrs: false,
     props: {
@@ -158,6 +166,9 @@ export default {
         }
     },
     computed: {
+        isLiteAgent () {
+            return this.device?.agentType === 'lite'
+        },
         developerMode () {
             return this.device?.mode === 'developer'
         },
@@ -174,7 +185,7 @@ export default {
             return !this.device?.ownerType
         },
         canCreateSnapshot () {
-            if (!this.developerMode || this.busy) {
+            if (!this.developerMode || this.busy || this.isLiteAgent) {
                 return false
             }
             return this.isOwnedByAnApplication

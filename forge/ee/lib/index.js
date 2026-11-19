@@ -18,6 +18,8 @@ async function commonFeatures (app, opts) {
     app.config.features.register('ffNodes', true, true)
     // Application level RBAC
     app.config.features.register('rbacApplication', true, true)
+    // Data schemas, enabled per team type
+    app.config.features.register('schemas', true, true)
     require('./autoUpdateStacks').init(app)
 
     // Expert
@@ -47,11 +49,22 @@ async function commonFeatures (app, opts) {
 
     app.config.features.register('expertInsights', isInsightsEnabled ?? false, true)
 
+    // Send insights chats over the external broker instead of HTTP whenever the Expert bridge is
+    // configured, as support chats do. expert.insights.mqtt: false keeps insights on HTTP.
+    const hasExpertBridge = typeof app.config?.expert?.centralBroker?.server === 'string' && app.config.expert.centralBroker.server.length > 0
+    const isInsightsMqtt = app.config?.expert?.insights?.mqtt ?? hasExpertBridge
+    app.config.features.register('expertInsightsMqtt', isInsightsEnabled && isInsightsMqtt === true, true)
+
     // Set the MCP third-party agent access flag. Defaults to true when AI
     // and expert are both enabled, so it activates automatically unless
     // explicitly disabled in the config.
     const isMcpThirdPartyEnabled = isAiEnabled && (app.config?.expert?.enabled ?? false)
     app.config.features.register('mcpThirdParty', isMcpThirdPartyEnabled, true)
+
+    // Set the AI-led onboarding flag. Hidden and config-only: off unless
+    // expert.onboarding.enabled is explicitly set in the config.
+    const isAiOnboardingEnabled = isAiEnabled && (app.config?.expert?.enabled ?? false) && app.config?.expert?.onboarding?.enabled === true
+    app.config.features.register('aiOnboarding', isAiOnboardingEnabled, true)
 }
 
 module.exports = fp(async function (app, opts) {
@@ -86,7 +99,7 @@ module.exports = fp(async function (app, opts) {
         const tiers = app.license.get('tiers')
         await commonFeatures(app, opts)
 
-        if (tiers.includes('hub')) {
+        if (tiers.includes('hub') || tiers.includes('testing')) {
             // `hub` does not include remote instances so we disable the feature flag for it
             //  - it will get re-enabled below if the license also includes `edge` or `fleet`
             app.config.features.register('remoteInstances', false, true)
@@ -99,7 +112,7 @@ module.exports = fp(async function (app, opts) {
             // Set the Bill of Materials Feature Flag
             app.config.features.register('bom', true, true)
         }
-        if (tiers.includes('edge') || tiers.includes('fleet')) {
+        if (tiers.includes('edge') || tiers.includes('fleet') || tiers.includes('testing')) {
             app.config.features.register('remoteInstances', true, true)
             // Set the Device Groups Feature Flag
             app.config.features.register('deviceGroups', true, true)

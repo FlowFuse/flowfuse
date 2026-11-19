@@ -17,6 +17,7 @@ const Permissions = {
     'team:read': { description: 'View a Team', role: Roles.Dashboard, access: 'read' },
     'team:edit': { description: 'Edit Team', role: Roles.Owner, access: 'write' },
     'team:delete': { description: 'Delete Team', role: Roles.Owner, access: 'write' },
+    'team:default-workspace:create': { description: 'Provision the default workspace in a Team', role: Roles.Member, access: 'write' },
     'team:audit-log': { description: 'Access Team Audit Log', role: Roles.Owner, access: 'read' },
     'team:device:bulk-delete': { description: 'Delete Devices', role: Roles.Owner, access: 'write' },
     'team:device:bulk-edit': { description: 'Edit Devices', role: Roles.Owner, access: 'write' },
@@ -217,6 +218,14 @@ const Permissions = {
     'team:database:create': { description: 'Create a new database for the team', role: Roles.Owner, access: 'write' },
     'team:database:delete': { description: 'Delete the team database', role: Roles.Owner, access: 'write' },
     'team:database:list': { description: 'List the team databases', role: Roles.Member, access: 'read' },
+
+    // Team Data Schemas
+    'team:schema:list': { description: 'List and read the team data schemas', role: Roles.Viewer, access: 'read' },
+    'team:schema:create': { description: 'Create data schemas and schema groups', role: Roles.Member, access: 'write' },
+    'team:schema:edit': { description: 'Edit data schemas, their drafts and schema groups', role: Roles.Member, access: 'write' },
+    'team:schema:publish': { description: 'Publish a data schema version', role: Roles.Member, access: 'write' },
+    'team:schema:deprecate': { description: 'Deprecate and undeprecate a data schema version', role: Roles.Member, access: 'write' },
+    'team:schema:delete': { description: 'Delete data schemas and schema groups', role: Roles.Member, access: 'write' },
 
     // MCP
     'team:mcp:list': { description: 'List the team MCP endpoints', role: Roles.Member, access: 'read' },

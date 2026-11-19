@@ -44,6 +44,7 @@ describe('product-tables store', () => {
         it('has a newTable with one empty column', () => {
             const store = useProductTablesStore()
             expect(store.newTable.name).toBe('')
+            expect(store.newTable.schema).toBe('public')
             expect(store.newTable.columns).toHaveLength(1)
             expect(store.newTable.columns[0].name).toBe('')
         })
@@ -119,6 +120,24 @@ describe('product-tables store', () => {
     })
 
     describe('getTables', () => {
+        it('orders tables by schema, public first, then by name, and selects the first one', async () => {
+            const store = useProductTablesStore()
+            tablesApi.getTables.mockResolvedValue([
+                { name: 'totals', schema: 'reporting' },
+                { name: 'shifts', schema: 'public' },
+                { name: 'events', schema: 'archive' },
+                { name: 'batches', schema: 'public' }
+            ])
+            await store.getTables('db-1')
+            expect(store.tables['db-1'].map(table => `${table.dbSchema}.${table.name}`)).toEqual([
+                'public.batches',
+                'public.shifts',
+                'archive.events',
+                'reporting.totals'
+            ])
+            expect(store.tableSelection).toEqual({ name: 'batches', dbSchema: 'public' })
+        })
+
         it('sorts and stores tables, sets tableSelection to first', async () => {
             const store = useProductTablesStore()
             tablesApi.getTables.mockResolvedValue([{ name: 'orders' }, { name: 'accounts' }])
@@ -192,24 +211,302 @@ describe('product-tables store', () => {
     })
 
     describe('getTableData', () => {
-        it('stores data and safe-keyed data on the table', async () => {
+        it('stores data, safe-keyed data and the table total on the table', async () => {
             const store = useProductTablesStore()
             store.tables = { 'db-1': [{ name: 'users' }] }
-            tablesApi.getTableData.mockResolvedValue([{ id: 1, name: 'Alice' }])
+            tablesApi.getTableData.mockResolvedValue({ count: 42, rows: [{ id: 1, name: 'Alice' }] })
             await store.getTableData({ databaseId: 'db-1', tableName: 'users', teamId: 'team-1' })
             const table = store.tables['db-1'][0]
             expect(table.payload.data).toEqual([{ id: 1, name: 'Alice' }])
             expect(table.payload.safe[0].safe_id).toBe(1)
+            expect(table.payload.total).toBe(42)
+            expect(table.payload.totalCapped).toBe(false)
+        })
+
+        it('notes when the table has more rows than were counted', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            tablesApi.getTableData.mockResolvedValue({ count: 10000, capped: true, primaryKey: ['id'], rows: [{ id: 1 }] })
+            await store.getTableData({ databaseId: 'db-1', tableName: 'users', teamId: 'team-1' })
+            expect(store.tables['db-1'][0].payload.total).toBe(10000)
+            expect(store.tables['db-1'][0].payload.totalCapped).toBe(true)
+            expect(store.tables['db-1'][0].payload.primaryKey).toEqual(['id'])
+        })
+
+        it('asks for the first page of 25 rows by default', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            tablesApi.getTableData.mockResolvedValue({ count: 0, rows: [] })
+            await store.getTableData({ databaseId: 'db-1', tableName: 'users', teamId: 'team-1' })
+            expect(tablesApi.getTableData).toHaveBeenCalledWith('team-1', 'db-1', 'users', undefined, { page: 1, limit: 25, signal: expect.any(AbortSignal) })
+        })
+
+        it('asks for the current page at the current page size', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            tablesApi.getTableData.mockResolvedValue({ count: 0, rows: [] })
+            store.setPageSize(50)
+            store.setPage(3)
+            await store.getTableData({ databaseId: 'db-1', tableName: 'users', teamId: 'team-1' })
+            expect(tablesApi.getTableData).toHaveBeenCalledWith('team-1', 'db-1', 'users', undefined, { page: 3, limit: 50, signal: expect.any(AbortSignal) })
         })
 
         it('only updates the table matching both name and schemaName when schemaName is given', async () => {
             const store = useProductTablesStore()
             store.tables = { 'db-1': [{ name: 'users', dbSchema: 'public' }, { name: 'users', dbSchema: 'reports' }] }
-            tablesApi.getTableData.mockResolvedValue([{ id: 1, name: 'Alice' }])
+            tablesApi.getTableData.mockResolvedValue({ count: 1, rows: [{ id: 1, name: 'Alice' }] })
             await store.getTableData({ databaseId: 'db-1', tableName: 'users', teamId: 'team-1', schemaName: 'reports' })
-            expect(tablesApi.getTableData).toHaveBeenCalledWith('team-1', 'db-1', 'users', 'reports')
+            expect(tablesApi.getTableData).toHaveBeenCalledWith('team-1', 'db-1', 'users', 'reports', { page: 1, limit: 25, signal: expect.any(AbortSignal) })
             expect(store.tables['db-1'][0].payload).toBeUndefined()
             expect(store.tables['db-1'][1].payload.data).toEqual([{ id: 1, name: 'Alice' }])
+        })
+    })
+
+    describe('getTableData when another request for rows comes along', () => {
+        const args = { databaseId: 'db-1', tableName: 'users', teamId: 'team-1' }
+        // a request that stays open until it is settled by hand, as the real one does until the server answers
+        const pending = () => {
+            const calls = []
+            tablesApi.getTableData.mockImplementation((...callArgs) => new Promise((resolve, reject) => {
+                calls.push({ signal: callArgs[4].signal, resolve, reject })
+            }))
+            return calls
+        }
+
+        it('drops the request that is still loading, and keeps its rows out of the table', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            const calls = pending()
+            const first = store.getTableData(args)
+            const second = store.getTableData(args)
+            expect(calls[0].signal.aborted).toBe(true)
+            expect(calls[1].signal.aborted).toBe(false)
+
+            // the browser fails a dropped request, which is not an error to pass on
+            calls[0].reject(new Error('canceled'))
+            await expect(first).resolves.toBeUndefined()
+            calls[1].resolve({ count: 1, rows: [{ id: 2 }] })
+            await second
+            expect(store.tables['db-1'][0].payload.data).toEqual([{ id: 2 }])
+        })
+
+        it('still passes on the failure of a request that was not dropped', async () => {
+            const store = useProductTablesStore()
+            tablesApi.getTableData.mockRejectedValue(new Error('nope'))
+            await expect(store.getTableData(args)).rejects.toThrow('nope')
+        })
+
+        it('drops the request that is still loading when asked to', async () => {
+            const store = useProductTablesStore()
+            const calls = pending()
+            const load = store.getTableData(args)
+            store.cancelTableData()
+            expect(calls[0].signal.aborted).toBe(true)
+            calls[0].reject(new Error('canceled'))
+            await load
+        })
+
+        it('stays loading while rows are on their way, whoever says it is done', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            const calls = pending()
+            store.setTableLoadingState(true)
+            const first = store.getTableData(args)
+            const second = store.getTableData(args)
+            calls[0].reject(new Error('canceled'))
+            await first
+            // what the caller of the dropped request does once it is over
+            store.setTableLoadingState(false)
+            expect(store.isLoading).toBe(true)
+
+            calls[1].resolve({ count: 0, rows: [] })
+            await second
+            store.setTableLoadingState(false)
+            expect(store.isLoading).toBe(false)
+        })
+    })
+
+    describe('getTableData when the table or the page changes underneath it', () => {
+        const args = { databaseId: 'db-1', tableName: 'users', teamId: 'team-1' }
+        const deferred = () => {
+            let resolve
+            const promise = new Promise(_resolve => { resolve = _resolve })
+            return { promise, resolve }
+        }
+
+        it('falls back to the last page when the table shrank and the current page is gone', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            store.setPage(5)
+            tablesApi.getTableData
+                .mockResolvedValueOnce({ count: 60, rows: [] })
+                .mockResolvedValueOnce({ count: 60, rows: [{ id: 51 }] })
+            await store.getTableData(args)
+            expect(tablesApi.getTableData).toHaveBeenNthCalledWith(1, 'team-1', 'db-1', 'users', undefined, { page: 5, limit: 25, signal: expect.any(AbortSignal) })
+            expect(tablesApi.getTableData).toHaveBeenNthCalledWith(2, 'team-1', 'db-1', 'users', undefined, { page: 3, limit: 25, signal: expect.any(AbortSignal) })
+            expect(store.page).toBe(3)
+            expect(store.tables['db-1'][0].payload.data).toEqual([{ id: 51 }])
+            expect(store.tables['db-1'][0].payload.total).toBe(60)
+        })
+
+        it('falls back to the first page, without asking again and again, when the table is now empty', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            store.setPage(4)
+            tablesApi.getTableData.mockResolvedValue({ count: 0, rows: [] })
+            await store.getTableData(args)
+            expect(tablesApi.getTableData).toHaveBeenCalledTimes(2)
+            expect(store.page).toBe(1)
+            expect(store.tables['db-1'][0].payload.data).toEqual([])
+        })
+
+        it('does not ask twice when the current page still exists', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            store.setPage(3)
+            tablesApi.getTableData.mockResolvedValue({ count: 60, rows: [{ id: 51 }] })
+            await store.getTableData(args)
+            expect(tablesApi.getTableData).toHaveBeenCalledTimes(1)
+            expect(store.page).toBe(3)
+        })
+
+        it('ignores a page that arrives after a newer page was asked for', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            const page2 = deferred()
+            const page3 = deferred()
+            tablesApi.getTableData.mockReturnValueOnce(page2.promise).mockReturnValueOnce(page3.promise)
+
+            store.setPage(2)
+            const loadingPage2 = store.getTableData(args)
+            store.setPage(3)
+            const loadingPage3 = store.getTableData(args)
+
+            page3.resolve({ count: 120, rows: [{ id: 51 }] })
+            await loadingPage3
+            page2.resolve({ count: 120, rows: [{ id: 26 }] })
+            await loadingPage2
+
+            expect(store.page).toBe(3)
+            expect(store.tables['db-1'][0].payload.data).toEqual([{ id: 51 }])
+        })
+
+        it('ignores a page that arrives after the page size was changed', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            const small = deferred()
+            const large = deferred()
+            tablesApi.getTableData.mockReturnValueOnce(small.promise).mockReturnValueOnce(large.promise)
+
+            const loadingSmall = store.getTableData(args)
+            store.setPageSize(50)
+            const loadingLarge = store.getTableData(args)
+
+            large.resolve({ count: 120, rows: [{ id: 1 }, { id: 2 }] })
+            await loadingLarge
+            small.resolve({ count: 120, rows: [{ id: 1 }] })
+            await loadingSmall
+
+            expect(store.tables['db-1'][0].payload.data).toEqual([{ id: 1 }, { id: 2 }])
+        })
+
+        it('does not move the page back when a stale response reports a smaller table', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            const page5 = deferred()
+            tablesApi.getTableData.mockReturnValueOnce(page5.promise).mockResolvedValueOnce({ count: 120, rows: [{ id: 26 }] })
+
+            store.setPage(5)
+            const loadingPage5 = store.getTableData(args)
+            store.setPage(2)
+            await store.getTableData(args)
+            page5.resolve({ count: 10, rows: [] })
+            await loadingPage5
+
+            expect(tablesApi.getTableData).toHaveBeenCalledTimes(2)
+            expect(store.page).toBe(2)
+            expect(store.tables['db-1'][0].payload.data).toEqual([{ id: 26 }])
+        })
+    })
+
+    describe('showing original values', () => {
+        it('shows formatted values until asked otherwise', () => {
+            const store = useProductTablesStore()
+            expect(store.showOriginalValues).toBe(false)
+            store.setShowOriginalValues(true)
+            expect(store.showOriginalValues).toBe(true)
+        })
+    })
+
+    describe('sorting', () => {
+        const args = { databaseId: 'db-1', tableName: 'users', teamId: 'team-1' }
+
+        it('has no sort to begin with, and asks for the rows in the table own order', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            tablesApi.getTableData.mockResolvedValue({ count: 0, rows: [] })
+            await store.getTableData(args)
+            expect(store.sort).toBeNull()
+            expect(tablesApi.getTableData.mock.calls[0][4]).toEqual({ page: 1, limit: 25, sort: undefined, dir: undefined, signal: expect.any(AbortSignal) })
+        })
+
+        it('asks for the rows sorted by the chosen column and direction', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            tablesApi.getTableData.mockResolvedValue({ count: 0, rows: [] })
+            store.setSort({ column: 'recorded_at', dir: 'desc' })
+            await store.getTableData(args)
+            expect(tablesApi.getTableData).toHaveBeenCalledWith('team-1', 'db-1', 'users', undefined, { page: 1, limit: 25, sort: 'recorded_at', dir: 'desc', signal: expect.any(AbortSignal) })
+        })
+
+        it('goes back to the first page when the sort changes or is cleared', () => {
+            const store = useProductTablesStore()
+            store.setPage(4)
+            store.setSort({ column: 'name', dir: 'asc' })
+            expect(store.page).toBe(1)
+
+            store.setPage(4)
+            store.setSort(null)
+            expect(store.sort).toBeNull()
+            expect(store.page).toBe(1)
+        })
+
+        it('drops the sort when another table is selected', () => {
+            const store = useProductTablesStore()
+            store.setSort({ column: 'name', dir: 'asc' })
+            store.updateTableSelection({ name: 'orders', dbSchema: 'public' })
+            expect(store.sort).toBeNull()
+        })
+
+        it('leaves out rows that arrive after the sort has changed', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users' }] }
+            let respond
+            tablesApi.getTableData.mockImplementationOnce(() => new Promise(resolve => { respond = resolve }))
+            const loading = store.getTableData(args)
+            store.setSort({ column: 'name', dir: 'asc' })
+            respond({ count: 1, rows: [{ id: 1 }] })
+            await loading
+            expect(store.tables['db-1'][0].payload).toBeUndefined()
+        })
+    })
+
+    describe('paging', () => {
+        it('goes back to the first page when the page size changes', () => {
+            const store = useProductTablesStore()
+            store.setPage(4)
+            store.setPageSize(100)
+            expect(store.pageSize).toBe(100)
+            expect(store.page).toBe(1)
+        })
+
+        it('goes back to the first page when another table is selected, keeping the page size', () => {
+            const store = useProductTablesStore()
+            store.setPageSize(50)
+            store.setPage(4)
+            store.updateTableSelection({ name: 'orders', dbSchema: 'public' })
+            expect(store.page).toBe(1)
+            expect(store.pageSize).toBe(50)
         })
     })
 
@@ -223,6 +520,41 @@ describe('product-tables store', () => {
     })
 
     describe('createTable', () => {
+        it('sends the schema with the table name', async () => {
+            const store = useProductTablesStore()
+            store.newTable = { name: 'orders', schema: 'reports', columns: [] }
+            tablesApi.createTable.mockResolvedValue({})
+            await store.createTable({ databaseId: 'db-1' })
+            expect(tablesApi.createTable.mock.calls[0][2]).toMatchObject({ name: 'orders', schema: 'reports' })
+        })
+
+        it('resets the draft after a successful create', async () => {
+            const store = useProductTablesStore()
+            store.newTable = { name: 'orders', schema: 'reports', columns: [{ name: 'id', type: 'bigint' }] }
+            tablesApi.createTable.mockResolvedValue({})
+            await store.createTable({ databaseId: 'db-1' })
+            expect(store.newTable.name).toBe('')
+            expect(store.newTable.schema).toBe('public')
+            expect(store.newTable.columns).toHaveLength(1)
+            expect(store.newTable.columns[0].name).toBe('')
+        })
+
+        it('keeps the draft when the create fails', async () => {
+            const store = useProductTablesStore()
+            store.newTable = { name: 'orders', schema: 'reports', columns: [] }
+            tablesApi.createTable.mockRejectedValue(new Error('conflict'))
+            await expect(store.createTable({ databaseId: 'db-1' })).rejects.toThrow('conflict')
+            expect(store.newTable).toMatchObject({ name: 'orders', schema: 'reports' })
+        })
+
+        it('sends the public schema when the draft has none', async () => {
+            const store = useProductTablesStore()
+            store.newTable = { name: 'orders', columns: [] }
+            tablesApi.createTable.mockResolvedValue({})
+            await store.createTable({ databaseId: 'db-1' })
+            expect(tablesApi.createTable.mock.calls[0][2]).toMatchObject({ schema: 'public' })
+        })
+
         it('strips hasDefault and unsigned when not set, then calls API', async () => {
             const store = useProductTablesStore()
             store.newTable = {

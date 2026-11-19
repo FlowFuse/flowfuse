@@ -86,9 +86,9 @@ On FlowFuse v2.6.0 or later, the File Storage service is used exclusively for Pe
 
 Before FlowFuse v2.6.0, this service was also the primary way to provide persistent storage to Node-RED in container-based environments, in addition to Persistent Context.
 
-{% note %}
+::note
 The File Storage service is only required in Docker or Kubernetes environments. If you are using the LocalFS platform driver, Node-RED already has direct access to the local filesystem.
-{% endnote %}
+::
 
 ### Configuring
 
