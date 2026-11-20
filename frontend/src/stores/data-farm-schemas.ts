@@ -83,9 +83,9 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         }
     }
 
-    async function createDraft (from?: string): Promise<void> {
+    async function createDraft (from?: string, content?: { schema: Record<string, unknown>, notes: string }): Promise<void> {
         try {
-            activeDraft.value = await schemasApi.createDraft(teamId(), activeSchema.value!.id, { from })
+            activeDraft.value = await schemasApi.createDraft(teamId(), activeSchema.value!.id, { from, ...content })
         } catch (err) {
             if (errorCode(err) !== 'draft_exists') throw err
             return refreshActiveSchema()

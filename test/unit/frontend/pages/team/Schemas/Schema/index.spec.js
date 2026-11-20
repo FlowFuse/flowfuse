@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { Roles } from '../../../../../../../forge/lib/roles.js'
 import TeamSchema from '../../../../../../../frontend/src/pages/team/Schemas/Schema/index.vue'
 import Alerts from '../../../../../../../frontend/src/services/alerts.js'
+import Dialog from '../../../../../../../frontend/src/services/dialog.js'
 import { useAccountSettingsStore } from '../../../../../../../frontend/src/stores/account-settings.js'
 import { useContextStore } from '../../../../../../../frontend/src/stores/context.js'
 import { useDataFarmSchemasStore } from '../../../../../../../frontend/src/stores/data-farm-schemas.ts'
@@ -12,6 +13,7 @@ import { useDataFarmSchemasStore } from '../../../../../../../frontend/src/store
 const router = vi.hoisted(() => ({ push: vi.fn() }))
 const dialog = vi.hoisted(() => ({ setError: vi.fn(), close: vi.fn() }))
 const edit = vi.hoisted(() => ({ text: '', notes: '' }))
+const routeGuard = vi.hoisted(() => ({ leave: null }))
 
 const EditorStub = {
     props: ['schemaText', 'notes', 'editorProblems', 'markers', 'draft', 'latestPublished', 'readOnly'],
@@ -22,7 +24,12 @@ const EditorStub = {
 
 vi.mock('vue-router', () => ({
     useRoute: () => ({ params: { team_slug: 'team', schemaId: 'abc' } }),
-    useRouter: () => router
+    useRouter: () => router,
+    onBeforeRouteLeave: (guard) => { routeGuard.leave = guard }
+}))
+
+vi.mock('../../../../../../../frontend/src/services/dialog.js', () => ({
+    default: { showAsync: vi.fn() }
 }))
 
 vi.mock('../../../../../../../frontend/src/services/alerts.js', () => ({
@@ -58,6 +65,11 @@ function mountPage (role, { draft = null, latestPublished = null, loadError = nu
         }
     })
     return { page, schemas }
+}
+
+const setText = async (page, text) => {
+    edit.text = text
+    await page.find('[data-test="set-text"]').trigger('click')
 }
 
 const publishFrom = (page) => page.findComponent({ name: 'PublishSchemaDialog' }).vm.$emit('publish', { version: '1.3.0', notes: '' })
@@ -233,5 +245,75 @@ describe('Team Schema page', () => {
         expect(dialog.close).toHaveBeenCalled()
         expect(Alerts.emit).toHaveBeenCalledWith('The draft was published or discarded by another request', 'warning')
         expect(dialog.setError).not.toHaveBeenCalled()
+    })
+
+    test('keeps the edited text when a save replaces the draft', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        const compact = '{"type": "object", "title": "compact"}'
+        schemas.saveDraft.mockImplementation(async ({ schema }) => { schemas.activeDraft = { ...DRAFT, schema } })
+        await setText(page, compact)
+        await page.find('[data-action="save-draft"]').trigger('click')
+        await flushPromises()
+        expect(page.findComponent(EditorStub).props('schemaText')).toBe(compact)
+    })
+
+    test('ignores key order when checking for unsaved edits', async () => {
+        const { page } = mountPage(Roles.Member, { draft: { ...DRAFT, schema: { type: 'object', title: 'a' }, problems: [{ path: '/title', message: 'bad title' }] } })
+        await setText(page, JSON.stringify({ title: 'a', type: 'object' }))
+        expect(page.find('[data-action="save-draft"]').attributes('disabled')).toBeDefined()
+        expect(page.find('[data-test="markers"]').text()).toBe('1')
+    })
+
+    test('marks a schema that is not an object and numbers that would change when saved', async () => {
+        const { page } = mountPage(Roles.Member, { draft: DRAFT })
+        await setText(page, '[]')
+        expect(page.find('[data-test="markers"]').text()).toBe('1')
+        await setText(page, '{"type": "number", "maximum": 1e400}')
+        expect(page.find('[data-test="markers"]').text()).toBe('1')
+        expect(page.find('[data-action="save-draft"]').attributes('disabled')).toBeDefined()
+    })
+
+    test('offers a new draft with the edits when the draft is gone on save', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT, latestPublished: PUBLISHED })
+        schemas.saveDraft.mockRejectedValue(apiError('The draft was published or discarded by another request', 'draft_changed'))
+        Dialog.showAsync.mockResolvedValue('confirm')
+        await setText(page, '{"type": "string"}')
+        await page.find('[data-action="save-draft"]').trigger('click')
+        await flushPromises()
+        expect(schemas.createDraft).toHaveBeenCalledWith('1.2.0', { schema: { type: 'string' }, notes: '' })
+        expect(Alerts.emit).toHaveBeenCalledWith('New draft started with your changes.', 'confirmation')
+    })
+
+    test('leaves the schema alone when the new draft offer is declined', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        schemas.saveDraft.mockRejectedValue(apiError('This schema has no draft', 'not_found'))
+        Dialog.showAsync.mockResolvedValue('cancel')
+        await setText(page, '{"type": "string"}')
+        await page.find('[data-action="save-draft"]').trigger('click')
+        await flushPromises()
+        expect(schemas.createDraft).not.toHaveBeenCalled()
+    })
+
+    test('offers a new draft when the draft is gone while saving before publish', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        schemas.saveDraft.mockRejectedValue(apiError('This schema has no draft', 'not_found'))
+        Dialog.showAsync.mockResolvedValue('cancel')
+        await setText(page, '{"type": "string"}')
+        publishFrom(page)
+        await flushPromises()
+        expect(dialog.close).toHaveBeenCalled()
+        expect(Dialog.showAsync).toHaveBeenCalled()
+        expect(schemas.publishDraft).not.toHaveBeenCalled()
+    })
+
+    test('asks before leaving with unsaved edits', async () => {
+        const { page } = mountPage(Roles.Member, { draft: DRAFT })
+        expect(await routeGuard.leave()).toBe(true)
+        expect(Dialog.showAsync).not.toHaveBeenCalled()
+        await setText(page, '{"type": "string"}')
+        Dialog.showAsync.mockResolvedValue('cancel')
+        expect(await routeGuard.leave()).toBe(false)
+        Dialog.showAsync.mockResolvedValue('confirm')
+        expect(await routeGuard.leave()).toBe(true)
     })
 })
