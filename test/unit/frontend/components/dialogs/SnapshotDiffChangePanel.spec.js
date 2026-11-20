@@ -3,10 +3,8 @@ import { expect } from 'vitest'
 
 import SnapshotDiffChangePanel from '../../../../../frontend/src/components/dialogs/SnapshotDiffChangePanel.vue'
 
-function changedText (wrapper, type) {
-    return wrapper.vm.lines
-        .filter(line => line.type === type)
-        .flatMap(line => (line.segments || []).filter(seg => seg.changed).map(seg => seg.text))
+function highlighted (wrapper, type) {
+    return wrapper.findAll(`.diff-word-${type}`).map(el => el.text())
 }
 
 describe('SnapshotDiffChangePanel', () => {
@@ -18,10 +16,8 @@ describe('SnapshotDiffChangePanel', () => {
             }
         })
 
-        expect(changedText(wrapper, 'removed')).toEqual(['12'])
-        expect(changedText(wrapper, 'added')).toEqual(['13'])
-        expect(wrapper.findAll('.diff-word-removed').map(el => el.text())).toEqual(['12'])
-        expect(wrapper.findAll('.diff-word-added').map(el => el.text())).toEqual(['13'])
+        expect(highlighted(wrapper, 'removed')).toEqual(['12'])
+        expect(highlighted(wrapper, 'added')).toEqual(['13'])
     })
 
     test('highlights only the changed words of a single-line value', () => {
@@ -29,8 +25,8 @@ describe('SnapshotDiffChangePanel', () => {
             props: { value1: 'hello old world', value2: 'hello new world' }
         })
 
-        expect(changedText(wrapper, 'removed')).toEqual(['old'])
-        expect(changedText(wrapper, 'added')).toEqual(['new'])
+        expect(highlighted(wrapper, 'removed')).toEqual(['old'])
+        expect(highlighted(wrapper, 'added')).toEqual(['new'])
     })
 
     test('keeps the whole line highlighted when the lines have nothing in common', () => {
@@ -38,9 +34,8 @@ describe('SnapshotDiffChangePanel', () => {
             props: { value1: 'alpha', value2: 'beta' }
         })
 
-        expect(wrapper.vm.lines.every(line => line.segments === undefined)).toBe(true)
-        expect(wrapper.findAll('.diff-word-removed')).toHaveLength(0)
-        expect(wrapper.findAll('.diff-word-added')).toHaveLength(0)
+        expect(highlighted(wrapper, 'removed')).toEqual([])
+        expect(highlighted(wrapper, 'added')).toEqual([])
     })
 
     test('keeps the whole line highlighted when the lines share only punctuation', () => {
@@ -51,8 +46,8 @@ describe('SnapshotDiffChangePanel', () => {
             }
         })
 
-        expect(wrapper.findAll('.diff-word-removed')).toHaveLength(0)
-        expect(wrapper.findAll('.diff-word-added')).toHaveLength(0)
+        expect(highlighted(wrapper, 'removed')).toEqual([])
+        expect(highlighted(wrapper, 'added')).toEqual([])
     })
 
     test('keeps the whole line highlighted when long lines are too different to diff by word', () => {
@@ -61,8 +56,8 @@ describe('SnapshotDiffChangePanel', () => {
             props: { value1: `shared ${words('a')}`, value2: `shared ${words('b')}` }
         })
 
-        expect(wrapper.findAll('.diff-word-removed')).toHaveLength(0)
-        expect(wrapper.findAll('.diff-word-added')).toHaveLength(0)
+        expect(highlighted(wrapper, 'removed')).toEqual([])
+        expect(highlighted(wrapper, 'added')).toEqual([])
     })
 
     test('pairs removed and added lines in order when the added block is longer', () => {
@@ -73,8 +68,8 @@ describe('SnapshotDiffChangePanel', () => {
             }
         })
 
-        expect(wrapper.findAll('.diff-word-removed').map(el => el.text())).toEqual(['one', 'two'])
-        expect(wrapper.findAll('.diff-word-added').map(el => el.text())).toEqual(['ONE', 'TWO'])
+        expect(highlighted(wrapper, 'removed')).toEqual(['one', 'two'])
+        expect(highlighted(wrapper, 'added')).toEqual(['ONE', 'TWO'])
     })
 
     test('leaves an added line with no removed line to pair with unmarked', () => {
@@ -85,7 +80,10 @@ describe('SnapshotDiffChangePanel', () => {
             }
         })
 
-        const added = wrapper.vm.lines.filter(line => line.type === 'added')
-        expect(added.some(line => line.segments === undefined)).toBe(true)
+        const [nameLine, unitLine] = wrapper.findAll('.diff-line-added')
+        expect(nameLine.text()).toContain('"name": "pump",')
+        expect(nameLine.findAll('.diff-word-added').map(el => el.text())).toEqual([','])
+        expect(unitLine.text()).toContain('"unit": "bar"')
+        expect(unitLine.findAll('.diff-word-added')).toHaveLength(0)
     })
 })
