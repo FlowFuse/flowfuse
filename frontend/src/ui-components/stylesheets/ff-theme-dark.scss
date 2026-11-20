@@ -166,10 +166,10 @@
     --ff-color-tile-ribbon-shadow-indigo:  var(--ff-palette-indigo-900);
     --ff-color-tile-ribbon-shadow-red:     var(--ff-palette-red-900);
 
-    --ff-color-diff-added-line-bg:         rgba(46, 160, 67, 0.15);
-    --ff-color-diff-added-num-bg:          rgba(63, 185, 80, 0.3);
-    --ff-color-diff-added-word-bg:         rgba(46, 160, 67, 0.4);
-    --ff-color-diff-removed-line-bg:       rgba(248, 81, 73, 0.1);
-    --ff-color-diff-removed-num-bg:        rgba(248, 81, 73, 0.3);
-    --ff-color-diff-removed-word-bg:       rgba(248, 81, 73, 0.4);
+    --ff-color-diff-added-line-bg:         var(--ff-palette-green-alpha-15-dark);
+    --ff-color-diff-added-num-bg:          var(--ff-palette-green-alpha-30-dark);
+    --ff-color-diff-added-word-bg:         var(--ff-palette-green-alpha-40-dark);
+    --ff-color-diff-removed-line-bg:       var(--ff-palette-red-alpha-10-dark);
+    --ff-color-diff-removed-num-bg:        var(--ff-palette-red-alpha-30-dark);
+    --ff-color-diff-removed-word-bg:       var(--ff-palette-red-alpha-40-dark);
 }
