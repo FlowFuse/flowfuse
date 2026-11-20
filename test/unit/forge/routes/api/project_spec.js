@@ -4077,8 +4077,17 @@ describe('Project API', function () {
         })
 
         it('Admin can copy over an instance from any application in the team', async function () {
-            const response = await copyOver(TestObjects.allowedInstance.id, TestObjects.restrictedInstance.id, TestObjects.tokens.alice)
+            const target = await app.factory.createInstance(
+                { name: generateProjectName() },
+                TestObjects.ApplicationB,
+                app.stack,
+                app.template,
+                app.projectType
+            )
+            const response = await copyOver(target.id, TestObjects.restrictedInstance.id, TestObjects.tokens.alice)
             response.statusCode.should.equal(200)
+            // The copy completes after the response, so wait for the stub driver to stop and restart the target
+            await sleep(STOP_DELAY + START_DELAY + 50)
         })
     })
 })
