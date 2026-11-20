@@ -20,7 +20,20 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
 
     const teamId = () => useContextStore().team?.id as string
 
-    async function fetchActiveSchema (schemaId: string): Promise<void> {
+    // Bumped on every load and on reset, so a response for an older load is dropped
+    let loadToken = 0
+
+    async function fetchActiveSchema (schemaId: string): Promise<boolean> {
+        const token = ++loadToken
+        try {
+            return await fetchSchemaParts(schemaId, token)
+        } catch (err) {
+            if (token !== loadToken) return false
+            throw err
+        }
+    }
+
+    async function fetchSchemaParts (schemaId: string, token: number): Promise<boolean> {
         const schema = await schemasApi.getSchema(teamId(), schemaId)
         const latest = schema.versions.find(version => version.status !== 'draft')
         const [latestVersion, draft] = await Promise.all([
@@ -32,9 +45,11 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
                 })
                 : null
         ])
+        if (token !== loadToken) return false
         activeSchema.value = schema
         activeLatestPublished.value = latestVersion
         activeDraft.value = draft
+        return true
     }
 
     async function refreshActiveSchema (): Promise<void> {
@@ -43,8 +58,7 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
 
     async function loadActiveSchema (schemaId: string): Promise<void> {
         schemaHydrated.value = false
-        await fetchActiveSchema(schemaId)
-        schemaHydrated.value = true
+        if (await fetchActiveSchema(schemaId)) schemaHydrated.value = true
     }
 
     async function createSchema (name: string): Promise<DataSchema> {
@@ -105,6 +119,7 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
     }
 
     function reset (): void {
+        loadToken++
         activeSchema.value = null
         activeDraft.value = null
         activeLatestPublished.value = null

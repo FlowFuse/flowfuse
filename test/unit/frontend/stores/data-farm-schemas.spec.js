@@ -172,6 +172,45 @@ describe('data-farm-schemas store', () => {
         expect(schemasApi.createSchema).toHaveBeenCalledWith('team-1', { name: 'Temp' })
     })
 
+    it('drops a slower load for a schema that was left', async () => {
+        let finishFirst
+        schemasApi.getSchema
+            .mockImplementationOnce(() => new Promise(resolve => { finishFirst = () => resolve({ ...schemaWith([PUBLISHED], false), id: 'first' }) }))
+            .mockResolvedValueOnce({ ...schemaWith([PUBLISHED], false), id: 'second' })
+        const store = useDataFarmSchemasStore()
+        const first = store.loadActiveSchema('first')
+        await store.loadActiveSchema('second')
+        finishFirst()
+        await first
+        expect(store.activeSchema.id).toBe('second')
+        expect(store.schemaHydrated).toBe(true)
+    })
+
+    it('ignores a failed load that was already replaced', async () => {
+        let failFirst
+        schemasApi.getSchema
+            .mockImplementationOnce(() => new Promise((resolve, reject) => { failFirst = () => reject(apiError('not_found')) }))
+            .mockResolvedValueOnce(schemaWith([PUBLISHED], false))
+        const store = useDataFarmSchemasStore()
+        const first = store.loadActiveSchema('first')
+        await store.loadActiveSchema('abc')
+        failFirst()
+        await expect(first).resolves.toBeUndefined()
+        expect(store.activeSchema.id).toBe('abc')
+    })
+
+    it('drops a load that finishes after reset', async () => {
+        let finish
+        schemasApi.getSchema.mockImplementationOnce(() => new Promise(resolve => { finish = () => resolve(schemaWith([PUBLISHED], false)) }))
+        const store = useDataFarmSchemasStore()
+        const load = store.loadActiveSchema('abc')
+        store.reset()
+        finish()
+        await load
+        expect(store.activeSchema).toBeNull()
+        expect(store.schemaHydrated).toBe(false)
+    })
+
     it('reset clears the active schema', async () => {
         schemasApi.getSchema.mockResolvedValue(schemaWith([PUBLISHED], false))
         const store = useDataFarmSchemasStore()
