@@ -60,6 +60,15 @@ describe('Create schema dialog', () => {
         expect(router.push).not.toHaveBeenCalled()
     })
 
+    test('ignores a second confirm while the schema is being created', async () => {
+        const { dialog, schemas } = mountDialog()
+        schemas.createSchema.mockReturnValue(new Promise(() => {}))
+        await dialog.find('input').setValue('Temp')
+        await dialog.find('[data-action="confirm"]').trigger('click')
+        await dialog.find('[data-action="confirm"]').trigger('click')
+        expect(schemas.createSchema).toHaveBeenCalledTimes(1)
+    })
+
     test('clears the name and error when reopened', async () => {
         const { dialog, schemas } = mountDialog()
         schemas.createSchema.mockRejectedValue({ response: { data: { error: 'The name is already in use in this team' } } })

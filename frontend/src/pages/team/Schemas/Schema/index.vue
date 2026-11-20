@@ -43,6 +43,7 @@
             :latest-version="latestPublished?.version ?? null"
             :existing-versions="existingVersions"
             :draft-notes="notes"
+            :publishing="publishing"
             @publish="publish"
         />
     </ff-page>
@@ -78,6 +79,7 @@ const { team } = storeToRefs(useContextStore())
 
 const notes = ref('')
 const publishDialog = ref<InstanceType<typeof PublishSchemaDialog> | null>(null)
+const publishing = ref(false)
 
 watch(() => route.params.schemaId, async (schemaId) => {
     try {
@@ -147,6 +149,8 @@ async function createDraft () {
 }
 
 async function publish (payload: { version: string, notes: string }) {
+    if (publishing.value) return
+    publishing.value = true
     try {
         await schemasStore.publishDraft(payload)
         publishDialog.value?.close()
@@ -156,6 +160,8 @@ async function publish (payload: { version: string, notes: string }) {
         if (draft.value) return publishDialog.value?.setError(message)
         publishDialog.value?.close()
         Alerts.emit(message, 'warning')
+    } finally {
+        publishing.value = false
     }
 }
 </script>

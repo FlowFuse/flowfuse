@@ -5,7 +5,7 @@ import PublishSchemaDialog from '../../../../../../../../frontend/src/pages/team
 
 function mountDialog () {
     const dialog = mount(PublishSchemaDialog, {
-        props: { schemaName: 'Temperature', latestVersion: '1.2.0', existingVersions: ['1.2.0', '1.1.0'], draftNotes: 'notes' },
+        props: { schemaName: 'Temperature', latestVersion: '1.2.0', existingVersions: ['1.2.0', '1.1.0'], draftNotes: 'notes', publishing: false },
         global: {
             stubs: {
                 'ff-dialog': { template: '<div><slot /><button data-action="confirm" @click="$emit(\'confirm\')" /></div>', methods: { show () {}, close () {} } },
