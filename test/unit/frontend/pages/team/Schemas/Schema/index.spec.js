@@ -5,16 +5,31 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { Roles } from '../../../../../../../forge/lib/roles.js'
 import TeamSchema from '../../../../../../../frontend/src/pages/team/Schemas/Schema/index.vue'
 import Alerts from '../../../../../../../frontend/src/services/alerts.js'
+import Dialog from '../../../../../../../frontend/src/services/dialog.js'
 import { useAccountSettingsStore } from '../../../../../../../frontend/src/stores/account-settings.js'
 import { useContextStore } from '../../../../../../../frontend/src/stores/context.js'
 import { useDataFarmSchemasStore } from '../../../../../../../frontend/src/stores/data-farm-schemas.ts'
 
 const router = vi.hoisted(() => ({ push: vi.fn() }))
 const dialog = vi.hoisted(() => ({ setError: vi.fn(), close: vi.fn() }))
+const edit = vi.hoisted(() => ({ text: '', notes: '' }))
+const routeGuard = vi.hoisted(() => ({ leave: null }))
+
+const EditorStub = {
+    props: ['schemaText', 'notes', 'editorProblems', 'markers', 'draft', 'latestPublished', 'readOnly'],
+    emits: ['update:schemaText', 'update:notes', 'update:editorProblems'],
+    template: '<div><button data-test="set-text" @click="$emit(\'update:schemaText\', edit.text)" /><button data-test="set-notes" @click="$emit(\'update:notes\', edit.notes)" /><span data-test="markers">{{ markers.length }}</span></div>',
+    data: () => ({ edit })
+}
 
 vi.mock('vue-router', () => ({
     useRoute: () => ({ params: { team_slug: 'team', schemaId: 'abc' } }),
-    useRouter: () => router
+    useRouter: () => router,
+    onBeforeRouteLeave: (guard) => { routeGuard.leave = guard }
+}))
+
+vi.mock('../../../../../../../frontend/src/services/dialog.js', () => ({
+    default: { showAsync: vi.fn() }
 }))
 
 vi.mock('../../../../../../../frontend/src/services/alerts.js', () => ({
@@ -23,7 +38,7 @@ vi.mock('../../../../../../../frontend/src/services/alerts.js', () => ({
 
 const DRAFT = { status: 'draft', schema: { type: 'object' }, notes: '', problems: [] }
 const PUBLISHED = { version: '1.2.0', status: 'published', schema: { type: 'object' }, notes: '', publishedAt: '2026-11-01T00:00:00Z', publishedBy: null }
-const apiError = (error) => Object.assign(new Error(error), { response: { data: { error } } })
+const apiError = (error, code) => Object.assign(new Error(error), { response: { data: { error, code } } })
 
 function mountPage (role, { draft = null, latestPublished = null, loadError = null } = {}) {
     const pinia = createTestingPinia({ createSpy: vi.fn })
@@ -43,13 +58,18 @@ function mountPage (role, { draft = null, latestPublished = null, loadError = nu
                 'ff-page': { template: '<div><slot name="header" /><slot /></div>' },
                 'ff-page-header': { template: '<div><slot name="status" /><slot name="context" /><slot name="tools" /></div>' },
                 'ff-button': { template: '<button><slot /></button>' },
-                'router-view': true,
+                'router-view': { setup: (_, { slots }) => () => slots.default({ Component: EditorStub }) },
                 PublishSchemaDialog: { name: 'PublishSchemaDialog', template: '<div />', methods: { show () {}, close: dialog.close, setError: dialog.setError } },
                 StatusBadge: { props: ['text'], template: '<span data-el="schema-status">{{ text }}</span>' }
             }
         }
     })
     return { page, schemas }
+}
+
+const setText = async (page, text) => {
+    edit.text = text
+    await page.find('[data-test="set-text"]').trigger('click')
 }
 
 const publishFrom = (page) => page.findComponent({ name: 'PublishSchemaDialog' }).vm.$emit('publish', { version: '1.3.0', notes: '' })
@@ -82,6 +102,95 @@ describe('Team Schema page', () => {
         expect(page.find('[data-action="create-draft"]').text()).toBe('Create draft from 1.2.0')
     })
 
+    test('enables Publish but not Save for an unchanged valid draft', () => {
+        const { page } = mountPage(Roles.Member, { draft: DRAFT })
+        expect(page.find('[data-action="save-draft"]').attributes('disabled')).toBeDefined()
+        expect(page.find('[data-action="publish"]').attributes('disabled')).toBeUndefined()
+    })
+
+    test('enables Save once the draft has unsaved edits', async () => {
+        const { page } = mountPage(Roles.Member, { draft: DRAFT })
+        edit.notes = 'new notes'
+        await page.find('[data-test="set-notes"]').trigger('click')
+        expect(page.find('[data-action="save-draft"]').attributes('disabled')).toBeUndefined()
+    })
+
+    test('disables Save and Publish when the draft uses a reference', async () => {
+        const { page } = mountPage(Roles.Member, { draft: DRAFT })
+        edit.text = JSON.stringify({ properties: { a: { $ref: '#' } } })
+        await page.find('[data-test="set-text"]').trigger('click')
+        expect(page.find('[data-action="save-draft"]').attributes('disabled')).toBeDefined()
+        expect(page.find('[data-action="publish"]').attributes('disabled')).toBeDefined()
+    })
+
+    test('blocks Publish but not Save while the saved draft has problems from the backend', async () => {
+        const { page } = mountPage(Roles.Member, { draft: { ...DRAFT, problems: [{ path: '/type', message: 'must be equal to one of the allowed values' }] } })
+        edit.notes = 'new notes'
+        await page.find('[data-test="set-notes"]').trigger('click')
+        expect(page.find('[data-action="save-draft"]').attributes('disabled')).toBeUndefined()
+        expect(page.find('[data-action="publish"]').attributes('disabled')).toBeDefined()
+    })
+
+    test('ignores a root $id the backend strips when deciding whether to save before publishing', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        edit.text = JSON.stringify({ $id: 'urn:x', ...DRAFT.schema })
+        await page.find('[data-test="set-text"]').trigger('click')
+        publishFrom(page)
+        await flushPromises()
+        expect(schemas.saveDraft).not.toHaveBeenCalled()
+        expect(schemas.publishDraft).toHaveBeenCalled()
+    })
+
+    test('keeps showing backend problems when only the notes change', async () => {
+        const { page } = mountPage(Roles.Member, { draft: { ...DRAFT, problems: [{ path: '/type', message: 'bad type' }] } })
+        edit.notes = 'new notes'
+        await page.find('[data-test="set-notes"]').trigger('click')
+        expect(page.find('[data-test="markers"]').text()).toBe('1')
+        expect(page.find('[data-action="publish"]').attributes('disabled')).toBeDefined()
+    })
+
+    test('hides backend problems while the document has unsaved edits', async () => {
+        const { page } = mountPage(Roles.Member, { draft: { ...DRAFT, problems: [{ path: '/type', message: 'bad type' }] } })
+        edit.text = JSON.stringify({ type: 'string' })
+        await page.find('[data-test="set-text"]').trigger('click')
+        expect(page.find('[data-test="markers"]').text()).toBe('0')
+    })
+
+    test('closes the dialog and shows a toast when the saved draft has problems', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        schemas.publishDraft.mockRejectedValue(Object.assign(new Error('problems'), { response: { data: { code: 'schema_has_problems', error: 'The draft has problems and cannot be published' } } }))
+        publishFrom(page)
+        await flushPromises()
+        expect(dialog.close).toHaveBeenCalled()
+        expect(Alerts.emit).toHaveBeenCalledWith('The draft has problems and cannot be published', 'warning')
+        expect(dialog.setError).not.toHaveBeenCalled()
+    })
+
+    test('disables Save when the draft is not a JSON object', async () => {
+        const { page } = mountPage(Roles.Member, { draft: DRAFT })
+        edit.text = '[]'
+        await page.find('[data-test="set-text"]').trigger('click')
+        expect(page.find('[data-action="save-draft"]').attributes('disabled')).toBeDefined()
+    })
+
+    test('saves unsaved edits before publishing', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: { ...DRAFT, schema: { type: 'object' } } })
+        schemas.activeDraft.schema = { type: 'object', title: 'saved elsewhere' }
+        await page.findComponent({ name: 'PublishSchemaDialog' }).vm.$emit('publish', { version: '1.0.0', notes: '' })
+        await new Promise(resolve => setTimeout(resolve))
+        expect(schemas.saveDraft).toHaveBeenCalledWith({ schema: { type: 'object' }, notes: '' })
+        expect(schemas.publishDraft).toHaveBeenCalledWith({ version: '1.0.0', notes: '' })
+        expect(schemas.saveDraft.mock.invocationCallOrder[0]).toBeLessThan(schemas.publishDraft.mock.invocationCallOrder[0])
+    })
+
+    test('publishes without saving when nothing changed', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        await page.findComponent({ name: 'PublishSchemaDialog' }).vm.$emit('publish', { version: '1.0.0', notes: '' })
+        await new Promise(resolve => setTimeout(resolve))
+        expect(schemas.saveDraft).not.toHaveBeenCalled()
+        expect(schemas.publishDraft).toHaveBeenCalled()
+    })
+
     test('shows a deprecated latest version', () => {
         const { page } = mountPage(Roles.Member, { latestPublished: { ...PUBLISHED, status: 'deprecated' } })
         expect(page.find('[data-el="schema-status"]').text()).toBe('Deprecated 1.2.0')
@@ -96,11 +205,24 @@ describe('Team Schema page', () => {
 
     test('shows a publish error in the dialog while the draft still exists', async () => {
         const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
-        schemas.publishDraft.mockRejectedValue(apiError('Version 1.3.0 already exists'))
+        schemas.publishDraft.mockRejectedValue(apiError('Version 1.3.0 already exists', 'version_exists'))
         publishFrom(page)
         await flushPromises()
         expect(dialog.setError).toHaveBeenCalledWith('Version 1.3.0 already exists')
         expect(dialog.close).not.toHaveBeenCalled()
+    })
+
+    test('closes the dialog and shows a toast when saving before publishing fails', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        schemas.saveDraft.mockRejectedValue(apiError('Schema document is too large', 'document_too_large'))
+        edit.text = JSON.stringify({ type: 'string' })
+        await page.find('[data-test="set-text"]').trigger('click')
+        publishFrom(page)
+        await flushPromises()
+        expect(schemas.publishDraft).not.toHaveBeenCalled()
+        expect(dialog.close).toHaveBeenCalled()
+        expect(Alerts.emit).toHaveBeenCalledWith('Schema document is too large', 'warning')
+        expect(dialog.setError).not.toHaveBeenCalled()
     })
 
     test('ignores a second publish while one is running', async () => {
@@ -123,5 +245,75 @@ describe('Team Schema page', () => {
         expect(dialog.close).toHaveBeenCalled()
         expect(Alerts.emit).toHaveBeenCalledWith('The draft was published or discarded by another request', 'warning')
         expect(dialog.setError).not.toHaveBeenCalled()
+    })
+
+    test('keeps the edited text when a save replaces the draft', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        const compact = '{"type": "object", "title": "compact"}'
+        schemas.saveDraft.mockImplementation(async ({ schema }) => { schemas.activeDraft = { ...DRAFT, schema } })
+        await setText(page, compact)
+        await page.find('[data-action="save-draft"]').trigger('click')
+        await flushPromises()
+        expect(page.findComponent(EditorStub).props('schemaText')).toBe(compact)
+    })
+
+    test('ignores key order when checking for unsaved edits', async () => {
+        const { page } = mountPage(Roles.Member, { draft: { ...DRAFT, schema: { type: 'object', title: 'a' }, problems: [{ path: '/title', message: 'bad title' }] } })
+        await setText(page, JSON.stringify({ title: 'a', type: 'object' }))
+        expect(page.find('[data-action="save-draft"]').attributes('disabled')).toBeDefined()
+        expect(page.find('[data-test="markers"]').text()).toBe('1')
+    })
+
+    test('marks a schema that is not an object and numbers that would change when saved', async () => {
+        const { page } = mountPage(Roles.Member, { draft: DRAFT })
+        await setText(page, '[]')
+        expect(page.find('[data-test="markers"]').text()).toBe('1')
+        await setText(page, '{"type": "number", "maximum": 1e400}')
+        expect(page.find('[data-test="markers"]').text()).toBe('1')
+        expect(page.find('[data-action="save-draft"]').attributes('disabled')).toBeDefined()
+    })
+
+    test('offers a new draft with the edits when the draft is gone on save', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT, latestPublished: PUBLISHED })
+        schemas.saveDraft.mockRejectedValue(apiError('The draft was published or discarded by another request', 'draft_changed'))
+        Dialog.showAsync.mockResolvedValue('confirm')
+        await setText(page, '{"type": "string"}')
+        await page.find('[data-action="save-draft"]').trigger('click')
+        await flushPromises()
+        expect(schemas.createDraft).toHaveBeenCalledWith('1.2.0', { schema: { type: 'string' }, notes: '' })
+        expect(Alerts.emit).toHaveBeenCalledWith('New draft started with your changes.', 'confirmation')
+    })
+
+    test('leaves the schema alone when the new draft offer is declined', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        schemas.saveDraft.mockRejectedValue(apiError('This schema has no draft', 'not_found'))
+        Dialog.showAsync.mockResolvedValue('cancel')
+        await setText(page, '{"type": "string"}')
+        await page.find('[data-action="save-draft"]').trigger('click')
+        await flushPromises()
+        expect(schemas.createDraft).not.toHaveBeenCalled()
+    })
+
+    test('offers a new draft when the draft is gone while saving before publish', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        schemas.saveDraft.mockRejectedValue(apiError('This schema has no draft', 'not_found'))
+        Dialog.showAsync.mockResolvedValue('cancel')
+        await setText(page, '{"type": "string"}')
+        publishFrom(page)
+        await flushPromises()
+        expect(dialog.close).toHaveBeenCalled()
+        expect(Dialog.showAsync).toHaveBeenCalled()
+        expect(schemas.publishDraft).not.toHaveBeenCalled()
+    })
+
+    test('asks before leaving with unsaved edits', async () => {
+        const { page } = mountPage(Roles.Member, { draft: DRAFT })
+        expect(await routeGuard.leave()).toBe(true)
+        expect(Dialog.showAsync).not.toHaveBeenCalled()
+        await setText(page, '{"type": "string"}')
+        Dialog.showAsync.mockResolvedValue('cancel')
+        expect(await routeGuard.leave()).toBe(false)
+        Dialog.showAsync.mockResolvedValue('confirm')
+        expect(await routeGuard.leave()).toBe(true)
     })
 })

@@ -20,7 +20,7 @@ const getDraft = async (teamId: string, schemaId: string): Promise<DataSchemaDra
     return client.get(`${schemaUrl(teamId, schemaId)}/draft`).then(res => res.data)
 }
 
-const createDraft = async (teamId: string, schemaId: string, body: { from?: string }): Promise<DataSchemaDraft> => {
+const createDraft = async (teamId: string, schemaId: string, body: { from?: string, schema?: Record<string, unknown>, notes?: string }): Promise<DataSchemaDraft> => {
     return client.post(`${schemaUrl(teamId, schemaId)}/draft`, body).then(res => res.data)
 }
 

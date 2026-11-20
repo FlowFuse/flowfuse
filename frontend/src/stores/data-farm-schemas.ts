@@ -15,8 +15,7 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
     const schemaHydrated = ref(false)
 
     const existingVersions = computed(() => (activeSchema.value?.versions ?? [])
-        .filter(version => version.status !== 'draft')
-        .map(version => version.version as string))
+        .flatMap(version => version.status !== 'draft' && version.version ? [version.version] : []))
 
     const teamId = () => useContextStore().team?.id as string
 
@@ -35,9 +34,9 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
 
     async function fetchSchemaParts (schemaId: string, token: number): Promise<boolean> {
         const schema = await schemasApi.getSchema(teamId(), schemaId)
-        const latest = schema.versions.find(version => version.status !== 'draft')
+        const latest = schema.versions.find(version => version.status !== 'draft')?.version
         const [latestVersion, draft] = await Promise.all([
-            latest ? schemasApi.getVersion(teamId(), schemaId, latest.version as string) : null,
+            latest ? schemasApi.getVersion(teamId(), schemaId, latest) : null,
             schema.hasDraft
                 ? schemasApi.getDraft(teamId(), schemaId).catch(err => {
                     if (errorCode(err) === 'not_found') return null
@@ -80,13 +79,13 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         activeSchema.value = {
             ...schema,
             hasDraft: !!entry,
-            versions: [entry, published, ...versions].filter(Boolean) as DataSchemaVersionSummary[]
+            versions: [...(entry ? [entry] : []), ...(published ? [published] : []), ...versions]
         }
     }
 
-    async function createDraft (from?: string): Promise<void> {
+    async function createDraft (from?: string, content?: { schema: Record<string, unknown>, notes: string }): Promise<void> {
         try {
-            activeDraft.value = await schemasApi.createDraft(teamId(), activeSchema.value!.id, { from })
+            activeDraft.value = await schemasApi.createDraft(teamId(), activeSchema.value!.id, { from, ...content })
         } catch (err) {
             if (errorCode(err) !== 'draft_exists') throw err
             return refreshActiveSchema()
