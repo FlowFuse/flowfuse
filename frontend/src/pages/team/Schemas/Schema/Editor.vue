@@ -9,7 +9,7 @@
                 </span>
                 <template v-if="view === 'json'">
                     <ff-button v-if="!jsonReadOnly" kind="secondary" size="small" data-action="format-json" @click="jsonEditor?.format()">Format</ff-button>
-                    <ff-button kind="secondary" size="small" data-action="copy-json" @click="copy">Copy</ff-button>
+                    <ff-button v-if="clipboardSupported" kind="secondary" size="small" data-action="copy-json" @click="copy">Copy</ff-button>
                     <template v-if="!jsonReadOnly">
                         <ff-button kind="secondary" size="small" data-action="import-json" @click="fileInput?.click()">Import .json</ff-button>
                         <input ref="fileInput" type="file" accept=".json,application/json" class="hidden" @change="importFile">
@@ -76,9 +76,16 @@ const fileInput = ref<HTMLInputElement | null>(null)
 
 const jsonReadOnly = computed(() => props.readOnly || !props.draft)
 
+// navigator.clipboard only exists on HTTPS or localhost
+const clipboardSupported = !!navigator.clipboard?.writeText
+
 async function copy () {
-    await navigator.clipboard.writeText(schemaText.value)
-    Alerts.emit('Copied to Clipboard.', 'confirmation')
+    try {
+        await navigator.clipboard.writeText(schemaText.value)
+        Alerts.emit('Copied to Clipboard.', 'confirmation')
+    } catch {
+        Alerts.emit('Failed to copy to the clipboard.', 'warning')
+    }
 }
 
 async function importFile (event: Event) {
