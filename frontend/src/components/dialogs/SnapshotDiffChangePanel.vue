@@ -79,7 +79,11 @@
                             >
                                 <span class="line-num border-r select-none shrink-0" :class="lineNumClass(line)">{{ line.oldNum || '' }}</span>
                                 <span class="line-num border-r select-none shrink-0" :class="lineNumClass(line)">{{ line.newNum || '' }}</span>
-                                <span class="px-2" :class="wrapped ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'">{{ linePrefix(line) }}{{ line.text }}</span>
+                                <span class="px-2" :class="wrapped ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'">{{ linePrefix(line) }}<span
+                                    v-for="(seg, s) in lineSegments(line)"
+                                    :key="s"
+                                    :class="seg.changed ? changedTextClass(line) : null"
+                                >{{ seg.text }}</span></span>
                             </div>
                         </template>
                     </div>
@@ -90,12 +94,13 @@
 </template>
 
 <script>
-import { diffLines } from 'diff'
+import { diffLines, diffWordsWithSpace } from 'diff'
 
 import DiffValuePill from '../diff/DiffValuePill.vue'
 
 const CONTEXT = 3
 const LONG_LINE_THRESHOLD = 50
+const MAX_WORD_EDITS = 200
 
 export default {
     name: 'SnapshotDiffChangePanel',
@@ -231,7 +236,7 @@ export default {
                 const result = []
                 if (v1 !== '') result.push({ type: 'removed', text: v1, oldNum: 1, newNum: null })
                 if (v2 !== '') result.push({ type: 'added', text: v2, oldNum: null, newNum: 1 })
-                return result
+                return this.markChangedText(result)
             }
 
             const flat = []
@@ -245,7 +250,47 @@ export default {
                     else flat.push({ type, text, oldNum: oldNum++, newNum: newNum++ })
                 }
             }
-            return this.collapseContext(flat)
+            return this.collapseContext(this.markChangedText(flat))
+        },
+        // Pairs each removed line with the added line that replaced it and marks the words that differ,
+        // so only those are highlighted instead of the whole line
+        markChangedText (flat) {
+            let i = 0
+            while (i < flat.length) {
+                if (flat[i].type !== 'removed') {
+                    i++
+                    continue
+                }
+                let removedEnd = i
+                while (removedEnd < flat.length && flat[removedEnd].type === 'removed') removedEnd++
+                let addedEnd = removedEnd
+                while (addedEnd < flat.length && flat[addedEnd].type === 'added') addedEnd++
+                const pairs = Math.min(removedEnd - i, addedEnd - removedEnd)
+                for (let k = 0; k < pairs; k++) {
+                    this.markLinePair(flat[i + k], flat[removedEnd + k])
+                }
+                i = addedEnd
+            }
+            return flat
+        },
+        markLinePair (removedLine, addedLine) {
+            // The word diff is quadratic for very different lines, so give up past MAX_WORD_EDITS and
+            // keep the whole line highlighted
+            const parts = diffWordsWithSpace(removedLine.text, addedLine.text, { maxEditLength: MAX_WORD_EDITS })
+            if (!parts) {
+                return
+            }
+            const sharedText = parts.filter(part => !part.added && !part.removed).map(part => part.value).join('')
+            // Lines sharing only whitespace and punctuation are a full replacement, so keep the whole line highlighted
+            if (!/[\p{L}\p{N}]/u.test(sharedText)) {
+                return
+            }
+            removedLine.segments = parts
+                .filter(part => !part.added)
+                .map(part => ({ text: part.value, changed: !!part.removed }))
+            addedLine.segments = parts
+                .filter(part => !part.removed)
+                .map(part => ({ text: part.value, changed: !!part.added }))
         },
         collapseContext (flat) {
             const result = []
@@ -296,13 +341,20 @@ export default {
             return String(v)
         },
         lineClass (line) {
-            if (line.type === 'added') return 'bg-green-50 text-green-800'
-            if (line.type === 'removed') return 'bg-red-50 text-red-800'
+            if (line.type === 'added') return 'diff-line-added'
+            if (line.type === 'removed') return 'diff-line-removed'
             return 'text-gray-400'
         },
+        lineSegments (line) {
+            return line.segments ?? [{ text: line.text, changed: false }]
+        },
+        changedTextClass (line) {
+            if (line.type === 'added') return 'diff-word-added'
+            return 'diff-word-removed'
+        },
         lineNumClass (line) {
-            if (line.type === 'added') return 'bg-green-100 text-green-600 border-green-200'
-            if (line.type === 'removed') return 'bg-red-100 text-red-500 border-red-200'
+            if (line.type === 'added') return 'diff-num-added'
+            if (line.type === 'removed') return 'diff-num-removed'
             return 'bg-gray-50 text-gray-400 border-gray-200'
         },
         linePrefix (line) {
@@ -315,6 +367,28 @@ export default {
 </script>
 
 <style scoped>
+.diff-line-added {
+    background-color: var(--ff-color-diff-added-line-bg);
+}
+.diff-line-removed {
+    background-color: var(--ff-color-diff-removed-line-bg);
+}
+.diff-num-added {
+    background-color: var(--ff-color-diff-added-num-bg);
+    border-color: transparent;
+}
+.diff-num-removed {
+    background-color: var(--ff-color-diff-removed-num-bg);
+    border-color: transparent;
+}
+.diff-word-added {
+    background-color: var(--ff-color-diff-added-word-bg);
+    border-radius: 0.2rem;
+}
+.diff-word-removed {
+    background-color: var(--ff-color-diff-removed-word-bg);
+    border-radius: 0.2rem;
+}
 .line-num {
     display: inline-block;
     width: 3rem;
