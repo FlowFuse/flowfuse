@@ -125,9 +125,9 @@ module.exports = function (env, argv) {
                 },
                 {
                     test: /\.(eot|ttf|woff|woff2)(\?\S*)?$/,
-                    loader: 'file-loader',
-                    options: {
-                        name: '[name][contenthash:8].[ext]'
+                    type: 'asset/resource',
+                    generator: {
+                        filename: '[name][contenthash:8][ext]'
                     }
                 },
                 {
