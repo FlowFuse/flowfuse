@@ -3,7 +3,7 @@
         ref="dialog"
         :header="`Publish ${schemaName}`"
         confirm-label="Publish"
-        :disable-primary="!version || !!error"
+        :disable-primary="!version || !!error || publishing"
         :close-on-confirm="false"
         data-el="publish-schema-dialog"
         @confirm="confirm"
@@ -43,6 +43,7 @@ const props = defineProps<{
     latestVersion: string | null
     existingVersions: string[]
     draftNotes: string | null
+    publishing: boolean
 }>()
 
 const emit = defineEmits<{

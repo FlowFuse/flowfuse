@@ -213,6 +213,15 @@ describe('Team Schema page', () => {
         expect(dialog.setError).not.toHaveBeenCalled()
     })
 
+    test('ignores a second publish while one is running', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        schemas.publishDraft.mockReturnValue(new Promise(() => {}))
+        publishFrom(page)
+        publishFrom(page)
+        await flushPromises()
+        expect(schemas.publishDraft).toHaveBeenCalledTimes(1)
+    })
+
     test('closes the dialog when the draft was published or discarded elsewhere', async () => {
         const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
         schemas.publishDraft.mockImplementation(async () => {

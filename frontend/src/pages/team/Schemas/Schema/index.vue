@@ -50,6 +50,7 @@
             :latest-version="latestPublished?.version ?? null"
             :existing-versions="existingVersions"
             :draft-notes="notes"
+            :publishing="publishing"
             @publish="publish"
         />
     </ff-page>
@@ -90,6 +91,7 @@ const notes = ref('')
 const schemaText = ref('')
 const editorProblems = ref(0)
 const publishDialog = ref<InstanceType<typeof PublishSchemaDialog> | null>(null)
+const publishing = ref(false)
 
 watch(() => route.params.schemaId, async (schemaId) => {
     try {
@@ -194,6 +196,8 @@ async function createDraft () {
 const VERSION_ERRORS = ['invalid_version', 'version_exists', 'version_not_higher']
 
 async function publish (payload: { version: string, notes: string }) {
+    if (publishing.value) return
+    publishing.value = true
     try {
         if (hasUnsavedChanges.value) await schemasStore.saveDraft({ schema: parsedSchema.value!, notes: notes.value })
         await schemasStore.publishDraft(payload)
@@ -204,6 +208,8 @@ async function publish (payload: { version: string, notes: string }) {
         if (draft.value && VERSION_ERRORS.includes(err.response?.data?.code)) return publishDialog.value?.setError(message)
         publishDialog.value?.close()
         Alerts.emit(message, 'warning')
+    } finally {
+        publishing.value = false
     }
 }
 </script>
