@@ -79,11 +79,11 @@
                             >
                                 <span class="line-num border-r select-none shrink-0" :class="lineNumClass(line)">{{ line.oldNum || '' }}</span>
                                 <span class="line-num border-r select-none shrink-0" :class="lineNumClass(line)">{{ line.newNum || '' }}</span>
-                                <span class="px-2" :class="wrapped ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'">{{ linePrefix(line) }}<template v-if="line.segments"><span
-                                    v-for="(seg, s) in line.segments"
+                                <span class="px-2" :class="wrapped ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'">{{ linePrefix(line) }}<span
+                                    v-for="(seg, s) in lineSegments(line)"
                                     :key="s"
                                     :class="seg.changed ? changedTextClass(line) : null"
-                                >{{ seg.text }}</span></template><template v-else>{{ line.text }}</template></span>
+                                >{{ seg.text }}</span></span>
                             </div>
                         </template>
                     </div>
@@ -100,6 +100,7 @@ import DiffValuePill from '../diff/DiffValuePill.vue'
 
 const CONTEXT = 3
 const LONG_LINE_THRESHOLD = 50
+const MAX_WORD_EDITS = 200
 
 export default {
     name: 'SnapshotDiffChangePanel',
@@ -273,10 +274,15 @@ export default {
             return flat
         },
         markLinePair (removedLine, addedLine) {
-            const parts = diffWordsWithSpace(removedLine.text, addedLine.text)
+            // The word diff is quadratic for very different lines, so give up past MAX_WORD_EDITS and
+            // keep the whole line highlighted
+            const parts = diffWordsWithSpace(removedLine.text, addedLine.text, { maxEditLength: MAX_WORD_EDITS })
+            if (!parts) {
+                return
+            }
             const sharedText = parts.filter(part => !part.added && !part.removed).map(part => part.value).join('')
-            // Lines with nothing meaningful in common are a full replacement, so keep the whole line highlighted
-            if (sharedText.trim() === '') {
+            // Lines sharing only whitespace and punctuation are a full replacement, so keep the whole line highlighted
+            if (!/[\p{L}\p{N}]/u.test(sharedText)) {
                 return
             }
             removedLine.segments = parts
@@ -338,6 +344,9 @@ export default {
             if (line.type === 'added') return 'diff-line-added'
             if (line.type === 'removed') return 'diff-line-removed'
             return 'text-gray-400'
+        },
+        lineSegments (line) {
+            return line.segments ?? [{ text: line.text, changed: false }]
         },
         changedTextClass (line) {
             if (line.type === 'added') return 'diff-word-added'

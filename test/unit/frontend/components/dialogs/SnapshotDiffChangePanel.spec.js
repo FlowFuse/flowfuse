@@ -43,6 +43,40 @@ describe('SnapshotDiffChangePanel', () => {
         expect(wrapper.findAll('.diff-word-added')).toHaveLength(0)
     })
 
+    test('keeps the whole line highlighted when the lines share only punctuation', () => {
+        const wrapper = mount(SnapshotDiffChangePanel, {
+            props: {
+                value1: { name: 'pump' },
+                value2: { unit: 'bar' }
+            }
+        })
+
+        expect(wrapper.findAll('.diff-word-removed')).toHaveLength(0)
+        expect(wrapper.findAll('.diff-word-added')).toHaveLength(0)
+    })
+
+    test('keeps the whole line highlighted when long lines are too different to diff by word', () => {
+        const words = (prefix) => Array.from({ length: 10000 }, (_, i) => `${prefix}${i}`).join(' ')
+        const wrapper = mount(SnapshotDiffChangePanel, {
+            props: { value1: `shared ${words('a')}`, value2: `shared ${words('b')}` }
+        })
+
+        expect(wrapper.findAll('.diff-word-removed')).toHaveLength(0)
+        expect(wrapper.findAll('.diff-word-added')).toHaveLength(0)
+    })
+
+    test('pairs removed and added lines in order when the added block is longer', () => {
+        const wrapper = mount(SnapshotDiffChangePanel, {
+            props: {
+                value1: 'start\nalpha one\nbeta two\nend',
+                value2: 'start\nalpha ONE\nbeta TWO\ngamma three\nend'
+            }
+        })
+
+        expect(wrapper.findAll('.diff-word-removed').map(el => el.text())).toEqual(['one', 'two'])
+        expect(wrapper.findAll('.diff-word-added').map(el => el.text())).toEqual(['ONE', 'TWO'])
+    })
+
     test('leaves an added line with no removed line to pair with unmarked', () => {
         const wrapper = mount(SnapshotDiffChangePanel, {
             props: {
