@@ -1,5 +1,6 @@
 <template>
-    <div ref="container" class="json-editor" :style="{ height: `${contentHeight}px` }" data-el="json-editor" />
+    <p v-if="loadFailed" class="json-editor json-editor--failed" data-el="json-editor-error">The editor failed to load. Reload the page to try again.</p>
+    <div v-else ref="container" class="json-editor" :style="{ height: `${contentHeight}px` }" data-el="json-editor" />
 </template>
 
 <script setup lang="ts">
@@ -22,6 +23,7 @@ const problems = defineModel<number>('problems', { default: 0 })
 
 const container = ref<HTMLElement | null>(null)
 const contentHeight = ref(0)
+const loadFailed = ref(false)
 const themeStore = useThemeStore()
 
 let monaco: typeof Monaco | null = null
@@ -81,11 +83,19 @@ function applyMarkers () {
 function countProblems () {
     const model = editor?.getModel()
     if (!monaco || !model) return
-    problems.value = monaco.editor.getModelMarkers({ resource: model.uri }).length
+    // Warnings such as duplicate keys don't stop a save or publish
+    problems.value = monaco.editor.getModelMarkers({ resource: model.uri })
+        .filter(marker => marker.severity === monaco!.MarkerSeverity.Error).length
 }
 
 onMounted(async () => {
-    monaco = await loadMonaco()
+    try {
+        monaco = await loadMonaco()
+    } catch (err) {
+        console.error(err)
+        loadFailed.value = true
+        return
+    }
     if (!container.value) return
     applyTheme()
     editor = monaco.editor.create(container.value, {
@@ -137,6 +147,13 @@ defineExpose({ format, replace })
 </script>
 
 <style scoped>
+.json-editor--failed {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ff-color-text-subtle);
+}
+
 .json-editor {
     min-height: 200px;
     max-height: 70vh;
