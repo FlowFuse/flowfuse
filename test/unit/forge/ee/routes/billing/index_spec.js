@@ -844,6 +844,39 @@ describe('Billing routes', function () {
             result.should.have.property('code', 'billing_required')
         })
 
+        it('Fails to create project within the free allowance if billing is not setup, and leaves no instance behind', async function () {
+            const freeTeamType = await app.factory.createTeamType({
+                name: generateName('free-allowance-type'),
+                properties: {
+                    instances: {
+                        [TestObjects.projectType1.hashid]: { active: true, free: 1 }
+                    }
+                }
+            })
+            const noBillingTeam = await app.factory.createTeam({ name: generateName('noBillingTeam'), TeamTypeId: freeTeamType.id })
+            await noBillingTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+
+            const application = await app.factory.createApplication({ name: generateName('test-app') }, noBillingTeam)
+
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/projects',
+                payload: {
+                    name: generateName('billing-project'),
+                    applicationId: application.hashid,
+                    projectType: TestObjects.projectType1.hashid,
+                    template: TestObjects.template1.hashid,
+                    stack: TestObjects.stack1.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(402)
+            response.json().should.have.property('code', 'billing_required')
+
+            const instanceCount = await app.db.models.Project.count({ where: { ApplicationId: application.id } })
+            instanceCount.should.equal(0)
+        })
+
         it('Create project with billing setup', async function () {
             // TestObjects.ATeam already has a subscription created via ../../setup
             const response = await app.inject({

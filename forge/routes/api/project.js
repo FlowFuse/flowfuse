@@ -194,6 +194,9 @@ module.exports = async function (app) {
                 reply.code(400).send({ code: 'invalid_source_project', error: 'Source Project Not Found' })
                 return
             }
+            if (!request.session.User.admin && !app.hasPermission(request.teamMembership, 'project:create', { application: sourceProject.Application })) {
+                return reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
+            }
         }
         let flows
         if (request.body.flows) {
@@ -379,6 +382,9 @@ module.exports = async function (app) {
             if (sourceProject.Team.id !== request.project.Team.id) {
                 reply.code(403).send('Source Project and Target not in same team')
                 return
+            }
+            if (!request.session.User?.admin && !app.hasPermission(request.teamMembership, 'project:edit', { application: sourceProject.Application })) {
+                return reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
             }
 
             await app.db.controllers.Project.setInflightState(request.project, 'importing')

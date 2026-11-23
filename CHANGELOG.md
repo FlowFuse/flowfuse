@@ -1,3 +1,18 @@
+#### 3.3.1: Release
+
+ - build(deps): bump @aws-sdk/client-sesv2 from 3.1164.0 to 3.1171.0 (#9198)
+ - fix: Check the user's role on the source application when copying an instance (#9259)
+ - fix: Check the instance can be started before creating it (#9260)
+ - Add support to only send instance name as SSO hint (#9261)
+ - Add comms heartbeat to detect lack of message flow (#8450)
+ - feat: Add the data schema versions, validate and diff API (#9248)
+ - feat: Add the data schema draft and publish API (#9247)
+ - feat: Add the data schema and schema group API (#9246)
+ - feat: Add data schema tables and models (#9245)
+ - feat: Add feature flag, permissions and audit events for data schemas (#9244)
+ - feat: Add document checks for data schemas (#9243)
+ - feat: Add version rules for data schemas (#9242)
+
 #### 3.3.0: Release
 
  - Enable performance view for Remote Agent 4.1 or later (#9183)
