@@ -83,8 +83,12 @@ module.exports = fp(async function (app, opts) {
                             const target = await app.db.models.OAuthSession.getAndRemoveById(request.query.t, false)
                             try {
                                 const redirect = new URL(target.redirect_uri)
+                                let hostname = redirect.host
+                                if (opts.sendIdpHintShort) {
+                                    hostname = redirect.host.split('.')[0]
+                                }
                                 opts.additionalAuthorizeParams = {
-                                    kc_idp_hint: redirect.host
+                                    kc_idp_hint: hostname
                                 }
                             } catch (err) {
                                 // ignore error in parsing URL and send no hint
