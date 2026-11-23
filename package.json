@@ -83,7 +83,7 @@
         "@redis/client": "^6.0.0",
         "@sentry/node": "^10.54.0",
         "@sentry/vue": "^11.11.0",
-        "@sentry/webpack-plugin": "^3.6.1",
+        "@sentry/webpack-plugin": "^11.16.0",
         "@vuepic/vue-datepicker": "^11.0.2",
         "ajv": "^8.20.0",
         "ajv-formats": "^3.0.1",
