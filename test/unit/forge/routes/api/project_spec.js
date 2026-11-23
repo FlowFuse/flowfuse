@@ -3988,4 +3988,106 @@ describe('Project API', function () {
             }
         })
     })
+
+    describe('Copy instance with application level roles', function () {
+        before(async function () {
+            const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
+            await app.close()
+            await setupApp({ license })
+
+            // Bob is a BTeam owner with no access to RestrictedApplication
+            TestObjects.RestrictedApplication = await app.factory.createApplication({ name: 'RestrictedApplication' }, TestObjects.BTeam)
+            TestObjects.restrictedInstance = await app.factory.createInstance(
+                { name: generateProjectName() },
+                TestObjects.RestrictedApplication,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+            TestObjects.allowedInstance = await app.factory.createInstance(
+                { name: generateProjectName() },
+                TestObjects.ApplicationB,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+            const bobMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: TestObjects.BTeam.id, UserId: TestObjects.bob.id } })
+            bobMembership.permissions = {
+                applications: {
+                    [TestObjects.RestrictedApplication.hashid]: Roles.None
+                }
+            }
+            await bobMembership.save()
+        })
+        after(async function () {
+            await app.close()
+            await setupApp()
+        })
+
+        function createCopy (sourceId, token) {
+            return app.inject({
+                method: 'POST',
+                url: '/api/v1/projects',
+                payload: {
+                    name: generateProjectName(),
+                    applicationId: TestObjects.ApplicationB.hashid,
+                    projectType: TestObjects.projectType1.hashid,
+                    template: TestObjects.template1.hashid,
+                    stack: TestObjects.stack1.hashid,
+                    sourceProject: {
+                        id: sourceId,
+                        options: { flows: true, credentials: true, envVars: true }
+                    }
+                },
+                cookies: { sid: token }
+            })
+        }
+
+        function copyOver (targetId, sourceId, token) {
+            return app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${targetId}`,
+                payload: {
+                    sourceProject: {
+                        id: sourceId,
+                        options: { flows: true, credentials: true, envVars: true }
+                    }
+                },
+                cookies: { sid: token }
+            })
+        }
+
+        it('Cannot create a copy of an instance in an application the user has no role in', async function () {
+            const response = await createCopy(TestObjects.restrictedInstance.id, TestObjects.tokens.bob)
+            response.statusCode.should.equal(403)
+            response.json().should.have.property('code', 'unauthorized')
+        })
+
+        it('Can create a copy of an instance in an application the user has a role in', async function () {
+            const response = await createCopy(TestObjects.allowedInstance.id, TestObjects.tokens.bob)
+            response.statusCode.should.equal(200)
+        })
+
+        it('Cannot copy over an instance from an application the user has no role in', async function () {
+            const response = await copyOver(TestObjects.allowedInstance.id, TestObjects.restrictedInstance.id, TestObjects.tokens.bob)
+            response.statusCode.should.equal(403)
+            response.json().should.have.property('code', 'unauthorized')
+        })
+
+        it('Admin can copy over an instance from any application in the team', async function () {
+            const target = await app.factory.createInstance(
+                { name: generateProjectName() },
+                TestObjects.ApplicationB,
+                app.stack,
+                app.template,
+                app.projectType
+            )
+            const response = await copyOver(target.id, TestObjects.restrictedInstance.id, TestObjects.tokens.alice)
+            response.statusCode.should.equal(200)
+            // The copy completes after the response, so wait for the stub driver to stop and restart the target
+            await sleep(STOP_DELAY + START_DELAY + 50)
+        })
+    })
 })
