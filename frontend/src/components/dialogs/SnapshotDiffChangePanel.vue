@@ -253,8 +253,7 @@ export default {
             return this.collapseContext(this.markChangedText(flat))
         },
         // Pairs each removed line with the added line that replaced it and marks the words that differ,
-        // so only those are highlighted instead of the whole line. Runs of different lengths can't be
-        // paired by position reliably, so their lines stay fully highlighted
+        // so only those are highlighted instead of the whole line
         markChangedText (flat) {
             let i = 0
             while (i < flat.length) {
@@ -266,15 +265,38 @@ export default {
                 while (removedEnd < flat.length && flat[removedEnd].type === 'removed') removedEnd++
                 let addedEnd = removedEnd
                 while (addedEnd < flat.length && flat[addedEnd].type === 'added') addedEnd++
-                const removedCount = removedEnd - i
-                if (removedCount === addedEnd - removedEnd) {
-                    for (let k = 0; k < removedCount; k++) {
-                        this.markLinePair(flat[i + k], flat[removedEnd + k])
-                    }
-                }
+                this.pairRuns(flat.slice(i, removedEnd), flat.slice(removedEnd, addedEnd))
                 i = addedEnd
             }
             return flat
+        },
+        // JSON properties are paired by key, so an inserted or deleted property doesn't shift the pairs.
+        // The remaining lines can only be paired by position, which is reliable only when both sides
+        // have the same number of them
+        pairRuns (removed, added) {
+            const unpairedRemoved = []
+            const unpairedAdded = new Set(added)
+            let searchFrom = 0
+            for (const removedLine of removed) {
+                const key = this.jsonKey(removedLine.text)
+                const index = key === null
+                    ? -1
+                    : added.findIndex((line, j) => j >= searchFrom && this.jsonKey(line.text) === key)
+                if (index === -1) {
+                    unpairedRemoved.push(removedLine)
+                    continue
+                }
+                this.markLinePair(removedLine, added[index])
+                unpairedAdded.delete(added[index])
+                searchFrom = index + 1
+            }
+            const remainingAdded = [...unpairedAdded]
+            if (unpairedRemoved.length !== remainingAdded.length) {
+                return
+            }
+            unpairedRemoved.forEach((removedLine, k) => {
+                this.markLinePair(removedLine, remainingAdded[k])
+            })
         },
         markLinePair (removedLine, addedLine) {
             // JSON properties with different keys are different lines, even when their values match

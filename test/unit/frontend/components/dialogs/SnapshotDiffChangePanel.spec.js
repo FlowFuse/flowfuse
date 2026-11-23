@@ -72,7 +72,7 @@ describe('SnapshotDiffChangePanel', () => {
         expect(highlighted(wrapper, 'added')).toEqual(['ONE', 'TWO'])
     })
 
-    test('keeps the whole lines highlighted when the removed and added blocks differ in length', () => {
+    test('pairs JSON properties by key when a property is inserted before the changed one', () => {
         const wrapper = mount(SnapshotDiffChangePanel, {
             props: {
                 value1: '{\n  "type": "inject"\n}',
@@ -80,8 +80,33 @@ describe('SnapshotDiffChangePanel', () => {
             }
         })
 
-        expect(wrapper.findAll('.diff-line-removed')).toHaveLength(1)
-        expect(wrapper.findAll('.diff-line-added')).toHaveLength(2)
+        const [idLine, typeLine] = wrapper.findAll('.diff-line-added')
+        expect(idLine.findAll('.diff-word-added')).toHaveLength(0)
+        expect(typeLine.findAll('.diff-word-added').map(el => el.text())).toEqual(['debug'])
+        expect(highlighted(wrapper, 'removed')).toEqual(['inject'])
+    })
+
+    test('highlights the added comma when a property is appended', () => {
+        const wrapper = mount(SnapshotDiffChangePanel, {
+            props: {
+                value1: { name: 'pump' },
+                value2: { name: 'pump', unit: 'bar' }
+            }
+        })
+
+        const [nameLine, unitLine] = wrapper.findAll('.diff-line-added')
+        expect(nameLine.findAll('.diff-word-added').map(el => el.text())).toEqual([','])
+        expect(unitLine.findAll('.diff-word-added')).toHaveLength(0)
+    })
+
+    test('keeps the whole lines highlighted when plain-text blocks differ in length', () => {
+        const wrapper = mount(SnapshotDiffChangePanel, {
+            props: {
+                value1: 'start\nalpha one\nbeta two\nend',
+                value2: 'start\nalpha ONE\nbeta TWO\ngamma three\nend'
+            }
+        })
+
         expect(highlighted(wrapper, 'removed')).toEqual([])
         expect(highlighted(wrapper, 'added')).toEqual([])
     })
