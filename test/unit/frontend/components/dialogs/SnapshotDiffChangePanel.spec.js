@@ -60,11 +60,11 @@ describe('SnapshotDiffChangePanel', () => {
         expect(highlighted(wrapper, 'added')).toEqual([])
     })
 
-    test('pairs removed and added lines in order when the added block is longer', () => {
+    test('pairs removed and added lines in order when both blocks have the same length', () => {
         const wrapper = mount(SnapshotDiffChangePanel, {
             props: {
                 value1: 'start\nalpha one\nbeta two\nend',
-                value2: 'start\nalpha ONE\nbeta TWO\ngamma three\nend'
+                value2: 'start\nalpha ONE\nbeta TWO\nend'
             }
         })
 
@@ -72,18 +72,41 @@ describe('SnapshotDiffChangePanel', () => {
         expect(highlighted(wrapper, 'added')).toEqual(['ONE', 'TWO'])
     })
 
-    test('leaves an added line with no removed line to pair with unmarked', () => {
+    test('keeps the whole lines highlighted when the removed and added blocks differ in length', () => {
         const wrapper = mount(SnapshotDiffChangePanel, {
             props: {
-                value1: { name: 'pump' },
-                value2: { name: 'pump', unit: 'bar' }
+                value1: '{\n  "type": "inject"\n}',
+                value2: '{\n  "id": "inject",\n  "type": "debug"\n}'
             }
         })
 
-        const [nameLine, unitLine] = wrapper.findAll('.diff-line-added')
-        expect(nameLine.text()).toContain('"name": "pump",')
-        expect(nameLine.findAll('.diff-word-added').map(el => el.text())).toEqual([','])
-        expect(unitLine.text()).toContain('"unit": "bar"')
-        expect(unitLine.findAll('.diff-word-added')).toHaveLength(0)
+        expect(wrapper.findAll('.diff-line-removed')).toHaveLength(1)
+        expect(wrapper.findAll('.diff-line-added')).toHaveLength(2)
+        expect(highlighted(wrapper, 'removed')).toEqual([])
+        expect(highlighted(wrapper, 'added')).toEqual([])
+    })
+
+    test('keeps the whole line highlighted when a JSON property changes key', () => {
+        const wrapper = mount(SnapshotDiffChangePanel, {
+            props: {
+                value1: { x: 10, name: 'pump' },
+                value2: { wires: 10, name: 'pump' }
+            }
+        })
+
+        expect(highlighted(wrapper, 'removed')).toEqual([])
+        expect(highlighted(wrapper, 'added')).toEqual([])
+    })
+
+    test('highlights only the value when a JSON property keeps its key', () => {
+        const wrapper = mount(SnapshotDiffChangePanel, {
+            props: {
+                value1: { x: 100, name: 'pump' },
+                value2: { x: 250, name: 'pump' }
+            }
+        })
+
+        expect(highlighted(wrapper, 'removed')).toEqual(['100'])
+        expect(highlighted(wrapper, 'added')).toEqual(['250'])
     })
 })

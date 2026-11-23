@@ -253,7 +253,8 @@ export default {
             return this.collapseContext(this.markChangedText(flat))
         },
         // Pairs each removed line with the added line that replaced it and marks the words that differ,
-        // so only those are highlighted instead of the whole line
+        // so only those are highlighted instead of the whole line. Runs of different lengths can't be
+        // paired by position reliably, so their lines stay fully highlighted
         markChangedText (flat) {
             let i = 0
             while (i < flat.length) {
@@ -265,15 +266,21 @@ export default {
                 while (removedEnd < flat.length && flat[removedEnd].type === 'removed') removedEnd++
                 let addedEnd = removedEnd
                 while (addedEnd < flat.length && flat[addedEnd].type === 'added') addedEnd++
-                const pairs = Math.min(removedEnd - i, addedEnd - removedEnd)
-                for (let k = 0; k < pairs; k++) {
-                    this.markLinePair(flat[i + k], flat[removedEnd + k])
+                const removedCount = removedEnd - i
+                if (removedCount === addedEnd - removedEnd) {
+                    for (let k = 0; k < removedCount; k++) {
+                        this.markLinePair(flat[i + k], flat[removedEnd + k])
+                    }
                 }
                 i = addedEnd
             }
             return flat
         },
         markLinePair (removedLine, addedLine) {
+            // JSON properties with different keys are different lines, even when their values match
+            if (this.jsonKey(removedLine.text) !== this.jsonKey(addedLine.text)) {
+                return
+            }
             // The word diff is quadratic for very different lines, so give up past MAX_WORD_EDITS and
             // keep the whole line highlighted
             const parts = diffWordsWithSpace(removedLine.text, addedLine.text, { maxEditLength: MAX_WORD_EDITS })
@@ -291,6 +298,10 @@ export default {
             addedLine.segments = parts
                 .filter(part => !part.removed)
                 .map(part => ({ text: part.value, changed: !!part.added }))
+        },
+        jsonKey (text) {
+            const match = text.match(/^\s*"((?:[^"\\]|\\.)*)"\s*:/)
+            return match ? match[1] : null
         },
         collapseContext (flat) {
             const result = []
