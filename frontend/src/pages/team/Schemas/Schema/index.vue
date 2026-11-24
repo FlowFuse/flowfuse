@@ -152,6 +152,7 @@ async function createDraft () {
 const publishDialogVersions = () => ({ latestVersion: latestPublished.value?.version ?? null, existingVersions: existingVersions.value })
 
 function showPublishDialog () {
+    if (publishing.value) return Alerts.emit('A publish is still in progress.', 'warning')
     let form = { version: '', notes: notes.value }
     // set when the dialog is cancelled while a publish is still running, which can't be taken back
     let cancelled = false
