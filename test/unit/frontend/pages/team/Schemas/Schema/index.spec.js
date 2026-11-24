@@ -10,10 +10,11 @@ import { useContextStore } from '../../../../../../../frontend/src/stores/contex
 import { useDataFarmSchemasStore } from '../../../../../../../frontend/src/stores/data-farm-schemas.ts'
 
 const router = vi.hoisted(() => ({ push: vi.fn() }))
+const route = vi.hoisted(() => ({ params: {} }))
 const dialog = vi.hoisted(() => ({ setError: vi.fn(), close: vi.fn() }))
 
 vi.mock('vue-router', () => ({
-    useRoute: () => ({ params: { team_slug: 'team', schemaId: 'abc' } }),
+    useRoute: () => route,
     useRouter: () => router
 }))
 
@@ -57,6 +58,7 @@ const publishFrom = (page) => page.findComponent({ name: 'PublishSchemaDialog' }
 describe('Team Schema page', () => {
     beforeEach(() => {
         vi.clearAllMocks()
+        route.params = { team_slug: 'team', schemaId: 'abc' }
     })
 
     test('shows the draft badge and draft actions to a Member', () => {
@@ -155,6 +157,19 @@ describe('Team Schema page', () => {
         await flushPromises()
         expect(Alerts.emit).toHaveBeenCalledWith('Not Found', 'warning')
         expect(router.push).toHaveBeenCalledWith({ name: 'team-schemas', params: { team_slug: 'team' } })
+    })
+
+    test('does not redirect when an action fails after the page was left', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        schemas.saveDraft.mockImplementation(async () => {
+            route.params = { team_slug: 'team' }
+            schemas.activeSchema = null
+            throw apiError('Internal Server Error')
+        })
+        await page.find('[data-action="save-draft"]').trigger('click')
+        await flushPromises()
+        expect(Alerts.emit).toHaveBeenCalledWith('Internal Server Error', 'warning')
+        expect(router.push).not.toHaveBeenCalled()
     })
 
     test('stays on the page when an action fails but the schema is still there', async () => {
