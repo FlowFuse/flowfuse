@@ -8,7 +8,10 @@
                 </template>
                 <template #status>
                     <StatusBadge :status="badge.status" :text="badge.text" data-el="schema-status" />
-                    <StatusBadge v-if="hasUnsavedChanges" status="warning" text="Unsaved changes" data-el="schema-unsaved" />
+                    <!-- the "safe" status is only used for its paler colours, the warning one is too loud next to the title -->
+                    <StatusBadge v-if="hasUnsavedChanges" status="safe" text="Unsaved changes" data-el="schema-unsaved">
+                        <template #icon><ExclamationTriangleIcon class="w-4 h-4" /></template>
+                    </StatusBadge>
                 </template>
                 <template #context>
                     <template v-if="!draft && latestPublished">
@@ -49,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { PlusIcon } from '@heroicons/vue/24/outline'
+import { ExclamationTriangleIcon, PlusIcon } from '@heroicons/vue/24/outline'
 import { storeToRefs } from 'pinia'
 import { computed, markRaw, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
