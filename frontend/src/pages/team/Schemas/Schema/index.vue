@@ -81,7 +81,8 @@ watch(() => route.params.schemaId, async (schemaId) => {
         router.push({ name: 'team-schemas', params: { team_slug: team.value?.slug } })
     }
 }, { immediate: true })
-watch(draft, (value) => { notes.value = value?.notes ?? '' }, { immediate: true })
+// Follows the draft when it appears, goes away or is saved. A reload that brings the same draft back leaves what was typed alone.
+watch([() => !!draft.value, () => draft.value?.notes], () => { notes.value = draft.value?.notes ?? '' }, { immediate: true })
 const routeSchemaHydrated = computed(() => schemaHydrated.value && schema.value?.id === route.params.schemaId)
 watch(routeSchemaHydrated, (hydrated) => uxLoading.setPageLoader(!hydrated, 'Loading Schema...'), { immediate: true })
 onBeforeUnmount(() => {
@@ -105,6 +106,12 @@ const tabs = [
     { label: 'Versions', to: { name: 'team-schema-versions' }, tag: 'team-schema-versions' }
 ]
 
+// Says why an action failed, and goes back to the list when the schema turned out to be gone
+function actionFailed (err, fallback: string) {
+    Alerts.emit(err.response?.data?.error || fallback, 'warning')
+    if (!schema.value) router.push({ name: 'team-schemas', params: { team_slug: team.value?.slug } })
+}
+
 async function confirmDiscard () {
     const result = await Dialog.showAsync({
         header: 'Discard draft',
@@ -119,7 +126,7 @@ async function confirmDiscard () {
         await schemasStore.discardDraft()
         Alerts.emit('Draft discarded.', 'confirmation')
     } catch (err) {
-        Alerts.emit(err.response?.data?.error || 'Failed to discard the draft.', 'warning')
+        actionFailed(err, 'Failed to discard the draft.')
     }
 }
 
@@ -128,7 +135,7 @@ async function saveDraft () {
         await schemasStore.saveDraft({ notes: notes.value })
         Alerts.emit('Draft saved.', 'confirmation')
     } catch (err) {
-        Alerts.emit(err.response?.data?.error || 'Failed to save the draft.', 'warning')
+        actionFailed(err, 'Failed to save the draft.')
     }
 }
 
@@ -136,7 +143,7 @@ async function createDraft () {
     try {
         await schemasStore.createDraft(latestPublished.value?.version ?? undefined)
     } catch (err) {
-        Alerts.emit(err.response?.data?.error || 'Failed to create a draft.', 'warning')
+        actionFailed(err, 'Failed to create a draft.')
     }
 }
 
@@ -171,10 +178,9 @@ async function publish (payload: { version: string, notes: string }) {
         Dialog.close()
         Alerts.emit(`Version ${payload.version} published.`, 'confirmation')
     } catch (err) {
-        const message = err.response?.data?.error || 'Failed to publish the draft.'
-        if (draft.value) return dialogStore.updateDialogPayload({ ...publishDialogVersions(), error: message })
+        if (draft.value) return dialogStore.updateDialogPayload({ ...publishDialogVersions(), error: err.response?.data?.error || 'Failed to publish the draft.' })
         Dialog.close()
-        Alerts.emit(message, 'warning')
+        actionFailed(err, 'Failed to publish the draft.')
     } finally {
         publishing.value = false
         dialogStore.updateDialogPayload({ publishing: false })
