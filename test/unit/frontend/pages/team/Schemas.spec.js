@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { Roles } from '../../../../../forge/lib/roles.js'
 import TeamSchemas from '../../../../../frontend/src/pages/team/Schemas/index.vue'
+import Alerts from '../../../../../frontend/src/services/alerts.js'
 import { useAccountSettingsStore } from '../../../../../frontend/src/stores/account-settings.js'
 import { useContextStore } from '../../../../../frontend/src/stores/context.js'
 import { useDataFarmSchemasStore } from '../../../../../frontend/src/stores/data-farm-schemas.ts'
@@ -18,6 +19,10 @@ vi.mock('vue-router', () => ({
 
 vi.mock('../../../../../frontend/src/services/dialog.js', () => ({
     default: Dialog
+}))
+
+vi.mock('../../../../../frontend/src/services/alerts.js', () => ({
+    default: { emit: vi.fn() }
 }))
 
 function mountPage ({ enabled = true, role = Roles.Member } = {}) {
@@ -42,9 +47,9 @@ function mountPage ({ enabled = true, role = Roles.Member } = {}) {
 // opens the create dialog, types a name and returns what the confirm button runs
 async function openCreateDialog (page, name) {
     await page.find('[data-action="create-schema"]').trigger('click')
-    const [options, onConfirm] = Dialog.show.mock.calls.at(-1)
+    const [options, onConfirm, onCancel] = Dialog.show.mock.calls.at(-1)
     options.is.on.change(name)
-    return { options, onConfirm }
+    return { options, onConfirm, onCancel }
 }
 
 describe('Team Schemas page', () => {
@@ -102,5 +107,32 @@ describe('Team Schemas page', () => {
         onConfirm()
         await flushPromises()
         expect(schemas.createSchema).toHaveBeenCalledTimes(1)
+    })
+
+    test('stays on the list and says the schema was created when the dialog was cancelled meanwhile', async () => {
+        const { page, schemas } = mountPage()
+        let finish
+        schemas.createSchema.mockReturnValue(new Promise(resolve => { finish = resolve }))
+        const { onConfirm, onCancel } = await openCreateDialog(page, 'Temp')
+        const creating = onConfirm()
+        onCancel()
+        finish({ id: 'abc', name: 'Temp' })
+        await creating
+        expect(router.push).not.toHaveBeenCalled()
+        expect(Dialog.close).not.toHaveBeenCalled()
+        expect(Alerts.emit).toHaveBeenCalledWith('Schema Temp created.', 'confirmation')
+    })
+
+    test('shows a failed create as an alert when the dialog was cancelled meanwhile', async () => {
+        const { page, schemas, dialogStore } = mountPage()
+        let fail
+        schemas.createSchema.mockReturnValue(new Promise((resolve, reject) => { fail = reject }))
+        const { onConfirm, onCancel } = await openCreateDialog(page, 'Temp')
+        const creating = onConfirm()
+        onCancel()
+        fail({ response: { data: { error: 'The name is already in use in this team' } } })
+        await creating
+        expect(Alerts.emit).toHaveBeenCalledWith('The name is already in use in this team', 'warning')
+        expect(dialogStore.updateDialogPayload).not.toHaveBeenCalledWith({ error: 'The name is already in use in this team' })
     })
 })

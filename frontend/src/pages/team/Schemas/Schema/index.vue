@@ -152,6 +152,8 @@ const publishDialogVersions = () => ({ latestVersion: latestPublished.value?.ver
 
 function showPublishDialog () {
     let form = { version: '', notes: notes.value }
+    // set when the dialog is cancelled while a publish is still running, which can't be taken back
+    let cancelled = false
     Dialog.show({
         header: `Publish ${schema.value?.name ?? ''}`,
         confirmLabel: 'Publish',
@@ -166,24 +168,26 @@ function showPublishDialog () {
                 }
             }
         }
-    }, () => publish(form))
+    }, () => publish(form, () => cancelled), () => { cancelled = true })
 }
 
-async function publish (payload: { version: string, notes: string }) {
+// `dialogCancelled` says whether the dialog was cancelled meanwhile: its outcome then shows as an alert, as the dialog is gone
+async function publish (payload: { version: string, notes: string }, dialogCancelled: () => boolean) {
     if (publishing.value) return
     publishing.value = true
     dialogStore.updateDialogPayload({ publishing: true })
     try {
         await schemasStore.publishDraft(payload)
-        Dialog.close()
+        if (!dialogCancelled()) Dialog.close()
         Alerts.emit(`Version ${payload.version} published.`, 'confirmation')
     } catch (err) {
+        if (dialogCancelled()) return actionFailed(err, 'Failed to publish the draft.')
         if (draft.value) return dialogStore.updateDialogPayload({ ...publishDialogVersions(), error: err.response?.data?.error || 'Failed to publish the draft.' })
         Dialog.close()
         actionFailed(err, 'Failed to publish the draft.')
     } finally {
         publishing.value = false
-        dialogStore.updateDialogPayload({ publishing: false })
+        if (!dialogCancelled()) dialogStore.updateDialogPayload({ publishing: false })
     }
 }
 </script>

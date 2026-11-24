@@ -59,9 +59,9 @@ function mountPage (role, { draft = null, latestPublished = null, loadError = nu
 // opens the publish dialog, types a version and returns what the confirm button runs
 async function openPublishDialog (page) {
     await page.find('[data-action="publish"]').trigger('click')
-    const [options, onConfirm] = Dialog.show.mock.calls.at(-1)
+    const [options, onConfirm, onCancel] = Dialog.show.mock.calls.at(-1)
     options.is.on.change({ version: '1.3.0', notes: '' })
-    return { options, onConfirm }
+    return { options, onConfirm, onCancel }
 }
 
 describe('Team Schema page', () => {
@@ -194,5 +194,32 @@ describe('Team Schema page', () => {
         await flushPromises()
         expect(Alerts.emit).toHaveBeenCalledWith('The draft was published or discarded by another request', 'warning')
         expect(router.push).not.toHaveBeenCalled()
+    })
+
+    test('shows a failed publish as an alert when the dialog was cancelled meanwhile', async () => {
+        const { page, schemas, dialogStore } = mountPage(Roles.Member, { draft: DRAFT })
+        let fail
+        schemas.publishDraft.mockReturnValue(new Promise((resolve, reject) => { fail = reject }))
+        const { onConfirm, onCancel } = await openPublishDialog(page)
+        const publishing = onConfirm()
+        onCancel()
+        fail(apiError('The draft has problems and cannot be published'))
+        await publishing
+        expect(Alerts.emit).toHaveBeenCalledWith('The draft has problems and cannot be published', 'warning')
+        expect(dialogStore.updateDialogPayload).not.toHaveBeenCalledWith(expect.objectContaining({ error: 'The draft has problems and cannot be published' }))
+        expect(Dialog.close).not.toHaveBeenCalled()
+    })
+
+    test('leaves the dialog alone when a publish succeeds after it was cancelled', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        let finish
+        schemas.publishDraft.mockReturnValue(new Promise(resolve => { finish = resolve }))
+        const { onConfirm, onCancel } = await openPublishDialog(page)
+        const publishing = onConfirm()
+        onCancel()
+        finish()
+        await publishing
+        expect(Dialog.close).not.toHaveBeenCalled()
+        expect(Alerts.emit).toHaveBeenCalledWith('Version 1.3.0 published.', 'confirmation')
     })
 })

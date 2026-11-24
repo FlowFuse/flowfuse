@@ -25,6 +25,7 @@ import { useRouter } from 'vue-router'
 import CreateSchemaDialog from './dialogs/CreateSchemaDialog.vue'
 
 import usePermissions from '@/composables/Permissions.js'
+import Alerts from '@/services/alerts.js'
 import Dialog from '@/services/dialog.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
@@ -43,6 +44,8 @@ const { hasPermission } = usePermissions()
 function showCreateDialog () {
     let name = ''
     let creating = false
+    // set when the dialog is cancelled while the schema is still being created, which can't be taken back
+    let cancelled = false
     Dialog.show({
         header: 'Create schema',
         confirmLabel: 'Create',
@@ -63,14 +66,17 @@ function showCreateDialog () {
         dialogStore.updateDialogPayload({ creating: true })
         try {
             const schema = await schemasStore.createSchema(name)
+            if (cancelled) return Alerts.emit(`Schema ${schema.name} created.`, 'confirmation')
             Dialog.close()
             router.push({ name: 'team-schema', params: { team_slug: team.value?.slug, schemaId: schema.id } })
         } catch (err) {
-            dialogStore.updateDialogPayload({ error: err.response?.data?.error || 'Failed to create the schema.' })
+            const message = err.response?.data?.error || 'Failed to create the schema.'
+            if (cancelled) return Alerts.emit(message, 'warning')
+            dialogStore.updateDialogPayload({ error: message })
         } finally {
             creating = false
-            dialogStore.updateDialogPayload({ creating: false })
+            if (!cancelled) dialogStore.updateDialogPayload({ creating: false })
         }
-    })
+    }, () => { cancelled = true })
 }
 </script>
