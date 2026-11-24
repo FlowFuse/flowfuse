@@ -282,6 +282,18 @@ describe('Team Schema page', () => {
         expect(page.vm.notes).toBe('typed, not saved')
     })
 
+    test('shows an unsaved changes badge until the edits match the saved draft', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: { ...DRAFT, notes: 'saved' } })
+        await flushPromises()
+        expect(page.find('[data-el="schema-unsaved"]').exists()).toBe(false)
+        edit.notes = 'new notes'
+        await page.find('[data-test="set-notes"]').trigger('click')
+        expect(page.find('[data-el="schema-unsaved"]').exists()).toBe(true)
+        schemas.activeDraft = { ...DRAFT, notes: 'new notes' }
+        await flushPromises()
+        expect(page.find('[data-el="schema-unsaved"]').exists()).toBe(false)
+    })
+
     test('clears the notes when the draft goes away', async () => {
         const { page, schemas } = mountPage(Roles.Member, { draft: { ...DRAFT, notes: 'saved' } })
         page.vm.notes = 'typed, not saved'

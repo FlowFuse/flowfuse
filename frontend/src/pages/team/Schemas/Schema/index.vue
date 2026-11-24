@@ -8,6 +8,7 @@
                 </template>
                 <template #status>
                     <StatusBadge :status="badge.status" :text="badge.text" data-el="schema-status" />
+                    <StatusBadge v-if="hasUnsavedChanges" status="warning" text="Unsaved changes" data-el="schema-unsaved" />
                 </template>
                 <template #context>
                     <template v-if="!draft && latestPublished">
