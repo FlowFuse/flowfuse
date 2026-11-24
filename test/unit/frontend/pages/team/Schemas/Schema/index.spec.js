@@ -501,4 +501,50 @@ describe('Team Schema page', () => {
         expect(Dialog.showAsync).toHaveBeenCalledTimes(2)
         expect(schemas.createDraft).toHaveBeenCalledTimes(1)
     })
+
+    describe('the new draft offer, once the page has moved on', () => {
+        const OTHER = { id: 'xyz', name: 'Pressure', group: null }
+
+        // Saves with unsaved edits on a draft that is gone, which opens the offer
+        async function openOffer (schemas, page) {
+            schemas.saveDraft.mockRejectedValue(apiError('The draft was published or discarded by another request', 'draft_changed'))
+            await setText(page, '{"type": "string"}')
+            await page.find('[data-action="save-draft"]').trigger('click')
+            await flushPromises()
+        }
+
+        test('does not start the draft on another schema that was opened while the offer was up', async () => {
+            const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT, latestPublished: PUBLISHED })
+            Dialog.showAsync.mockImplementation(async () => {
+                schemas.activeSchema = OTHER
+                return 'confirm'
+            })
+            await openOffer(schemas, page)
+            expect(schemas.createDraft).not.toHaveBeenCalled()
+        })
+
+        test('does not offer again when the draft fails after the page was left', async () => {
+            const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT, latestPublished: PUBLISHED })
+            Dialog.showAsync.mockResolvedValue('confirm')
+            schemas.createDraft.mockImplementation(async () => {
+                schemas.activeSchema = null
+                throw apiError('Schema document is too large', 'document_too_large')
+            })
+            await openOffer(schemas, page)
+            expect(Dialog.showAsync).toHaveBeenCalledTimes(1)
+        })
+
+        test('does not put the edits in another schema\'s editor', async () => {
+            const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT, latestPublished: PUBLISHED })
+            Dialog.showAsync.mockResolvedValue('confirm')
+            schemas.createDraft.mockImplementation(async () => {
+                schemas.activeSchema = OTHER
+                schemas.activeDraft = { ...DRAFT, schema: { type: 'object', title: 'other schema' } }
+                return false
+            })
+            await openOffer(schemas, page)
+            expect(JSON.parse(page.findComponent(EditorStub).props('schemaText'))).toEqual({ type: 'object', title: 'other schema' })
+            expect(Alerts.emit).not.toHaveBeenCalledWith('Someone else already started a new draft. Your changes are in the editor but are not saved.', 'warning')
+        })
+    })
 })

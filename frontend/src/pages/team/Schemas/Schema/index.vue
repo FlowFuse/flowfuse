@@ -192,6 +192,10 @@ const DRAFT_GONE = ['draft_changed', 'not_found']
 // The draft was published or discarded elsewhere while this page had unsaved edits.
 // `failure` is why the last try at a new draft did not work: the offer is then made again, as these changes are held nowhere else.
 async function offerNewDraft (changes: { schema: Record<string, unknown>, notes: string }, failure?: string) {
+    // The offer stays up when the page moves on, so by the time it is answered, or the draft request is,
+    // another schema may be open or none at all. The changes are for this schema only.
+    const schemaId = schema.value?.id
+    const movedOn = () => schema.value?.id !== schemaId
     const result = await Dialog.showAsync({
         header: 'Your changes were not saved',
         text: failure
@@ -199,10 +203,11 @@ async function offerNewDraft (changes: { schema: Record<string, unknown>, notes:
             : 'This draft was published or discarded by someone else. Start a new draft with your changes?',
         confirmLabel: failure ? 'Try again' : 'Start new draft'
     })
-    if (result !== 'confirm') return
+    if (result !== 'confirm' || movedOn()) return
     try {
         const created = await schemasStore.createDraft(latestPublished.value?.version, changes)
         if (created) return Alerts.emit('New draft started with your changes.', 'confirmation')
+        if (movedOn()) return
         // Someone else started a draft meanwhile and it was loaded instead. The changes go back into the editor,
         // once it has taken that draft's text, so they are not lost and it is up to the user to save over it.
         await nextTick()
@@ -210,6 +215,7 @@ async function offerNewDraft (changes: { schema: Record<string, unknown>, notes:
         notes.value = changes.notes
         Alerts.emit('Someone else already started a new draft. Your changes are in the editor but are not saved.', 'warning')
     } catch (err) {
+        if (movedOn()) return
         return offerNewDraft(changes, err.response?.data?.error || 'Failed to create a draft.')
     }
 }
