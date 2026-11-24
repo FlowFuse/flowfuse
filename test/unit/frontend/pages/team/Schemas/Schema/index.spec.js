@@ -407,4 +407,17 @@ describe('Team Schema page', () => {
         Dialog.showAsync.mockResolvedValue('confirm')
         expect(await routeGuard.leave()).toBe(true)
     })
+
+    test('forgets the editor\'s problem count when the draft is replaced', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT, latestPublished: PUBLISHED })
+        await page.findComponent(EditorStub).vm.$emit('update:editorProblems', 1)
+        await flushPromises()
+        expect(page.find('[data-action="publish"]').attributes('disabled')).toBeDefined()
+        // discarded and started again while the editor is not on screen to count the new text
+        schemas.activeDraft = null
+        await flushPromises()
+        schemas.activeDraft = { ...DRAFT }
+        await flushPromises()
+        expect(page.find('[data-action="publish"]').attributes('disabled')).toBeUndefined()
+    })
 })

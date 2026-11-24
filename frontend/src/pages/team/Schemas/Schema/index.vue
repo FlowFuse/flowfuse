@@ -97,6 +97,8 @@ watch(() => route.params.schemaId, async (schemaId) => {
 watch([schemaHydrated, () => schema.value?.id, () => !!draft.value, () => latestPublished.value?.version], () => {
     notes.value = draft.value?.notes ?? ''
     schemaText.value = JSON.stringify(draft.value?.schema ?? latestPublished.value?.schema ?? {}, null, 2)
+    // the editor's count was for the text this replaces, and the editor may not be on screen to count again
+    editorProblems.value = 0
 }, { immediate: true })
 const routeSchemaHydrated = computed(() => schemaHydrated.value && schema.value?.id === route.params.schemaId)
 watch(routeSchemaHydrated, (hydrated) => uxLoading.setPageLoader(!hydrated, 'Loading Schema...'), { immediate: true })
