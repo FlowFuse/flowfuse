@@ -124,4 +124,45 @@ describe('Team Schema page', () => {
         expect(Alerts.emit).toHaveBeenCalledWith('The draft was published or discarded by another request', 'warning')
         expect(dialog.setError).not.toHaveBeenCalled()
     })
+
+    test('keeps unsaved notes when the same draft is reloaded', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: { ...DRAFT, notes: 'saved' } })
+        page.vm.notes = 'typed, not saved'
+        schemas.activeDraft = { ...DRAFT, notes: 'saved' }
+        await flushPromises()
+        expect(page.vm.notes).toBe('typed, not saved')
+    })
+
+    test('follows the draft when its saved notes change, and clears the notes when it goes away', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: { ...DRAFT, notes: 'saved' } })
+        page.vm.notes = 'typed, not saved'
+        schemas.activeDraft = { ...DRAFT, notes: 'saved by someone else' }
+        await flushPromises()
+        expect(page.vm.notes).toBe('saved by someone else')
+        page.vm.notes = 'typed again'
+        schemas.activeDraft = null
+        await flushPromises()
+        expect(page.vm.notes).toBe('')
+    })
+
+    test('goes back to the schema list when an action finds the schema gone', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        schemas.saveDraft.mockImplementation(async () => {
+            schemas.activeSchema = null
+            throw apiError('Not Found')
+        })
+        await page.find('[data-action="save-draft"]').trigger('click')
+        await flushPromises()
+        expect(Alerts.emit).toHaveBeenCalledWith('Not Found', 'warning')
+        expect(router.push).toHaveBeenCalledWith({ name: 'team-schemas', params: { team_slug: 'team' } })
+    })
+
+    test('stays on the page when an action fails but the schema is still there', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        schemas.saveDraft.mockRejectedValue(apiError('The draft was published or discarded by another request'))
+        await page.find('[data-action="save-draft"]').trigger('click')
+        await flushPromises()
+        expect(Alerts.emit).toHaveBeenCalledWith('The draft was published or discarded by another request', 'warning')
+        expect(router.push).not.toHaveBeenCalled()
+    })
 })
