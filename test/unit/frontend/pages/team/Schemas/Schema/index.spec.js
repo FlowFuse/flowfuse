@@ -11,6 +11,7 @@ import { useDataFarmSchemasStore } from '../../../../../../../frontend/src/store
 import { useUxDialogStore } from '../../../../../../../frontend/src/stores/ux-dialog.js'
 
 const router = vi.hoisted(() => ({ push: vi.fn() }))
+const route = vi.hoisted(() => ({ params: {} }))
 const Dialog = vi.hoisted(() => ({ show: vi.fn(), showAsync: vi.fn(), close: vi.fn() }))
 
 vi.mock('../../../../../../../frontend/src/services/dialog.js', () => ({
@@ -18,7 +19,7 @@ vi.mock('../../../../../../../frontend/src/services/dialog.js', () => ({
 }))
 
 vi.mock('vue-router', () => ({
-    useRoute: () => ({ params: { team_slug: 'team', schemaId: 'abc' } }),
+    useRoute: () => route,
     useRouter: () => router
 }))
 
@@ -67,6 +68,7 @@ async function openPublishDialog (page) {
 describe('Team Schema page', () => {
     beforeEach(() => {
         vi.clearAllMocks()
+        route.params = { team_slug: 'team', schemaId: 'abc' }
     })
 
     test('shows the draft badge and draft actions to a Member', () => {
@@ -185,6 +187,19 @@ describe('Team Schema page', () => {
         await flushPromises()
         expect(Alerts.emit).toHaveBeenCalledWith('Not Found', 'warning')
         expect(router.push).toHaveBeenCalledWith({ name: 'team-schemas', params: { team_slug: 'team' } })
+    })
+
+    test('does not redirect when an action fails after the page was left', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        schemas.saveDraft.mockImplementation(async () => {
+            route.params = { team_slug: 'team' }
+            schemas.activeSchema = null
+            throw apiError('Internal Server Error')
+        })
+        await page.find('[data-action="save-draft"]').trigger('click')
+        await flushPromises()
+        expect(Alerts.emit).toHaveBeenCalledWith('Internal Server Error', 'warning')
+        expect(router.push).not.toHaveBeenCalled()
     })
 
     test('stays on the page when an action fails but the schema is still there', async () => {
