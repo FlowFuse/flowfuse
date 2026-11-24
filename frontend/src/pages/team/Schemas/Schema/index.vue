@@ -51,7 +51,7 @@
 <script setup lang="ts">
 import { PlusIcon } from '@heroicons/vue/24/outline'
 import { storeToRefs } from 'pinia'
-import { computed, markRaw, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, markRaw, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 
 import { locateDraftProblems } from './components/draftProblems'
@@ -198,8 +198,14 @@ async function offerNewDraft (changes: { schema: Record<string, unknown>, notes:
     })
     if (result !== 'confirm') return
     try {
-        await schemasStore.createDraft(latestPublished.value?.version, changes)
-        Alerts.emit('New draft started with your changes.', 'confirmation')
+        const created = await schemasStore.createDraft(latestPublished.value?.version, changes)
+        if (created) return Alerts.emit('New draft started with your changes.', 'confirmation')
+        // Someone else started a draft meanwhile and it was loaded instead. The changes go back into the editor,
+        // once it has taken that draft's text, so they are not lost and it is up to the user to save over it.
+        await nextTick()
+        schemaText.value = JSON.stringify(changes.schema, null, 2)
+        notes.value = changes.notes
+        Alerts.emit('Someone else already started a new draft. Your changes are in the editor but are not saved.', 'warning')
     } catch (err) {
         Alerts.emit(err.response?.data?.error || 'Failed to create a draft.', 'warning')
     }

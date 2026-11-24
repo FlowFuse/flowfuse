@@ -97,7 +97,8 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         }
     }
 
-    async function createDraft (from?: string, content?: { schema: Record<string, unknown>, notes: string }): Promise<void> {
+    // Resolves to whether this call created the draft. It did not when a draft already exists, which is loaded instead.
+    async function createDraft (from?: string, content?: { schema: Record<string, unknown>, notes: string }): Promise<boolean> {
         const token = loadToken
         let draft: DataSchemaDraft
         try {
@@ -105,11 +106,13 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         } catch (err) {
             if (errorCode(err) !== 'draft_exists') throw err
             if (token === loadToken) await refreshActiveSchema()
-            return
+            return false
         }
-        if (token !== loadToken) return
-        activeDraft.value = draft
-        setDraftEntry(draft)
+        if (token === loadToken) {
+            activeDraft.value = draft
+            setDraftEntry(draft)
+        }
+        return true
     }
 
     async function discardDraft (): Promise<void> {

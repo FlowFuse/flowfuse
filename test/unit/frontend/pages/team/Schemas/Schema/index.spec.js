@@ -396,6 +396,7 @@ describe('Team Schema page', () => {
     test('offers a new draft with the edits when the draft is gone on save', async () => {
         const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT, latestPublished: PUBLISHED })
         schemas.saveDraft.mockRejectedValue(apiError('The draft was published or discarded by another request', 'draft_changed'))
+        schemas.createDraft.mockResolvedValue(true)
         Dialog.showAsync.mockResolvedValue('confirm')
         await setText(page, '{"type": "string"}')
         await page.find('[data-action="save-draft"]').trigger('click')
@@ -447,5 +448,28 @@ describe('Team Schema page', () => {
         schemas.activeDraft = { ...DRAFT }
         await flushPromises()
         expect(page.find('[data-action="publish"]').attributes('disabled')).toBeUndefined()
+    })
+
+    test('puts the edits back in the editor when someone else already started the new draft', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT, latestPublished: PUBLISHED })
+        schemas.saveDraft.mockRejectedValue(apiError('The draft was published or discarded by another request', 'draft_changed'))
+        // the store finds a draft already there and loads it instead of creating one
+        schemas.createDraft.mockImplementation(async () => {
+            schemas.activeDraft = null
+            await flushPromises()
+            schemas.activeDraft = { ...DRAFT, schema: { type: 'object', title: 'theirs' }, notes: 'their notes' }
+            return false
+        })
+        Dialog.showAsync.mockResolvedValue('confirm')
+        edit.notes = 'my notes'
+        await page.find('[data-test="set-notes"]').trigger('click')
+        await setText(page, '{"type": "string"}')
+        await page.find('[data-action="save-draft"]').trigger('click')
+        await flushPromises()
+        expect(Alerts.emit).not.toHaveBeenCalledWith('New draft started with your changes.', 'confirmation')
+        expect(Alerts.emit).toHaveBeenCalledWith('Someone else already started a new draft. Your changes are in the editor but are not saved.', 'warning')
+        expect(JSON.parse(page.findComponent(EditorStub).props('schemaText'))).toEqual({ type: 'string' })
+        expect(page.findComponent(EditorStub).props('notes')).toBe('my notes')
+        expect(page.find('[data-action="save-draft"]').attributes('disabled')).toBeUndefined()
     })
 })
