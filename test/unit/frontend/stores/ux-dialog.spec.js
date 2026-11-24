@@ -48,6 +48,34 @@ describe('ux-dialog store', () => {
         expect(store.dialog.header).toBeNull()
     })
 
+    it('closes on confirm unless the payload says otherwise', () => {
+        const store = useUxDialogStore()
+        store.showDialogHandlers({ payload: { header: 'Delete?' }, onConfirm: vi.fn() })
+        expect(store.dialog.closeOnConfirm).toBe(true)
+        store.showDialogHandlers({ payload: { header: 'Create', closeOnConfirm: false }, onConfirm: vi.fn() })
+        expect(store.dialog.closeOnConfirm).toBe(false)
+    })
+
+    it('goes back to closing on confirm for the next dialog', () => {
+        const store = useUxDialogStore()
+        store.showDialogHandlers({ payload: { header: 'Create', closeOnConfirm: false }, onConfirm: vi.fn() })
+        store.showDialogHandlers({ payload: { header: 'Delete?' }, onConfirm: vi.fn() })
+        expect(store.dialog.closeOnConfirm).toBe(true)
+    })
+
+    it('updateDialogPayload changes the props of the component being shown', () => {
+        const store = useUxDialogStore()
+        store.showDialogHandlers({ payload: { is: { component: {}, payload: { name: 'a', error: '' } } }, onConfirm: vi.fn() })
+        store.updateDialogPayload({ error: 'Name taken' })
+        expect(store.dialog.is.payload).toEqual({ name: 'a', error: 'Name taken' })
+    })
+
+    it('updateDialogPayload does nothing once the dialog is cleared', () => {
+        const store = useUxDialogStore()
+        store.updateDialogPayload({ error: 'Name taken' })
+        expect(store.dialog.is).toBeNull()
+    })
+
     it('setDisablePrimary updates the flag', () => {
         const store = useUxDialogStore()
         store.setDisablePrimary(true)
