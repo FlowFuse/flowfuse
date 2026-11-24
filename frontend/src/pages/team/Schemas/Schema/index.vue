@@ -159,10 +159,11 @@ const tabs = [
     { label: 'Versions', to: { name: 'team-schema-versions' }, tag: 'team-schema-versions' }
 ]
 
-// Says why an action failed, and goes back to the list when the schema turned out to be gone
+// Says why an action failed, and goes back to the list when the schema turned out to be gone.
+// Leaving the page also clears the schema, so only redirect while still on a schema route.
 function actionFailed (err, fallback: string) {
     Alerts.emit(err.response?.data?.error || fallback, 'warning')
-    if (!schema.value) router.push({ name: 'team-schemas', params: { team_slug: team.value?.slug } })
+    if (!schema.value && route.params.schemaId) router.push({ name: 'team-schemas', params: { team_slug: team.value?.slug } })
 }
 
 async function confirmDiscard () {
