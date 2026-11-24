@@ -29,6 +29,7 @@ const themeStore = useThemeStore()
 let monaco: typeof Monaco | null = null
 let editor: Monaco.editor.IStandaloneCodeEditor | null = null
 let markersListener: Monaco.IDisposable | null = null
+let heightFrame = 0
 
 async function loadMonaco () {
     self.MonacoEnvironment = {
@@ -110,7 +111,12 @@ onMounted(async () => {
         scrollbar: { alwaysConsumeMouseWheel: false }
     })
     contentHeight.value = editor.getContentHeight()
-    editor.onDidContentSizeChange(({ contentHeight: height }) => { contentHeight.value = height })
+    // Monaco reports a new content height while it is handling a resize of this container. Changing the container's
+    // height there and then makes the browser raise a "ResizeObserver loop" error, so it waits for the next frame.
+    editor.onDidContentSizeChange(({ contentHeight: height }) => {
+        cancelAnimationFrame(heightFrame)
+        heightFrame = requestAnimationFrame(() => { contentHeight.value = height })
+    })
     markersListener = monaco.editor.onDidChangeMarkers(countProblems)
     editor.onDidChangeModelContent(() => { text.value = editor!.getValue() })
     applyMarkers()
@@ -125,6 +131,7 @@ watch(() => props.readOnly, (readOnly) => editor?.updateOptions({ readOnly }))
 watch(() => themeStore.effective, applyTheme, { flush: 'post' })
 
 onBeforeUnmount(() => {
+    cancelAnimationFrame(heightFrame)
     markersListener?.dispose()
     const model = editor?.getModel()
     editor?.dispose()
