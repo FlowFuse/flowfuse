@@ -13,7 +13,7 @@ import { useUxDialogStore } from '../../../../../../../frontend/src/stores/ux-di
 
 const router = vi.hoisted(() => ({ push: vi.fn() }))
 const edit = vi.hoisted(() => ({ text: '', notes: '' }))
-const routeGuard = vi.hoisted(() => ({ leave: null }))
+const routeGuard = vi.hoisted(() => ({ leave: null, update: null }))
 const route = vi.hoisted(() => ({ params: {} }))
 
 const EditorStub = {
@@ -26,7 +26,8 @@ const EditorStub = {
 vi.mock('vue-router', () => ({
     useRoute: () => route,
     useRouter: () => router,
-    onBeforeRouteLeave: (guard) => { routeGuard.leave = guard }
+    onBeforeRouteLeave: (guard) => { routeGuard.leave = guard },
+    onBeforeRouteUpdate: (guard) => { routeGuard.update = guard }
 }))
 
 vi.mock('../../../../../../../frontend/src/services/dialog.js', () => ({
@@ -546,5 +547,24 @@ describe('Team Schema page', () => {
             expect(JSON.parse(page.findComponent(EditorStub).props('schemaText'))).toEqual({ type: 'object', title: 'other schema' })
             expect(Alerts.emit).not.toHaveBeenCalledWith('Someone else already started a new draft. Your changes are in the editor but are not saved.', 'warning')
         })
+    })
+
+    test('asks before going straight to another schema with unsaved edits, but not when switching tabs', async () => {
+        const { page } = mountPage(Roles.Member, { draft: DRAFT })
+        const here = { params: { schemaId: 'abc' } }
+        const other = { params: { schemaId: 'xyz' } }
+        await setText(page, '{"type": "string"}')
+        expect(await routeGuard.update(here, here)).toBe(true)
+        expect(Dialog.showAsync).not.toHaveBeenCalled()
+        Dialog.showAsync.mockResolvedValue('cancel')
+        expect(await routeGuard.update(other, here)).toBe(false)
+        Dialog.showAsync.mockResolvedValue('confirm')
+        expect(await routeGuard.update(other, here)).toBe(true)
+    })
+
+    test('goes straight to another schema when nothing is unsaved', async () => {
+        mountPage(Roles.Member, { draft: DRAFT })
+        expect(await routeGuard.update({ params: { schemaId: 'xyz' } }, { params: { schemaId: 'abc' } })).toBe(true)
+        expect(Dialog.showAsync).not.toHaveBeenCalled()
     })
 })

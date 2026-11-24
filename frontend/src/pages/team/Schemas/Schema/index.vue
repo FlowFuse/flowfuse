@@ -52,7 +52,7 @@
 import { PlusIcon } from '@heroicons/vue/24/outline'
 import { storeToRefs } from 'pinia'
 import { computed, markRaw, nextTick, onBeforeUnmount, ref, watch } from 'vue'
-import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
+import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router'
 
 import { locateDraftProblems } from './components/draftProblems'
 import { findReferenceProblems } from './components/referenceProblems'
@@ -297,7 +297,7 @@ function warnBeforeUnload (event: BeforeUnloadEvent) {
 }
 window.addEventListener('beforeunload', warnBeforeUnload)
 onBeforeUnmount(() => window.removeEventListener('beforeunload', warnBeforeUnload))
-onBeforeRouteLeave(async () => {
+async function confirmLeaving () {
     if (!hasUnsavedChanges.value) return true
     const result = await Dialog.showAsync({
         header: 'Unsaved changes',
@@ -306,5 +306,9 @@ onBeforeRouteLeave(async () => {
         kind: 'danger'
     })
     return result === 'confirm'
-})
+}
+onBeforeRouteLeave(confirmLeaving)
+// Going straight to another schema keeps this page, so it is not a leave, but the edits would be dropped all the same.
+// Switching between the Editor and Versions tabs is an update too, and loses nothing.
+onBeforeRouteUpdate((to, from) => to.params.schemaId === from.params.schemaId || confirmLeaving())
 </script>

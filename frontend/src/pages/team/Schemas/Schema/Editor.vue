@@ -8,9 +8,9 @@
                     {{ problemCount }} {{ problemCount === 1 ? 'problem' : 'problems' }}
                 </span>
                 <template v-if="view === 'json'">
-                    <ff-button v-if="!jsonReadOnly" kind="secondary" size="small" data-action="format-json" @click="jsonEditor?.format()">Format</ff-button>
+                    <ff-button v-if="canChangeText" kind="secondary" size="small" data-action="format-json" @click="jsonEditor?.format()">Format</ff-button>
                     <ff-button v-if="clipboardSupported" kind="secondary" size="small" data-action="copy-json" @click="copy">Copy</ff-button>
-                    <template v-if="!jsonReadOnly">
+                    <template v-if="canChangeText">
                         <ff-button kind="secondary" size="small" data-action="import-json" @click="fileInput?.click()">Import .json</ff-button>
                         <input ref="fileInput" type="file" accept=".json,application/json" class="hidden" @change="importFile">
                     </template>
@@ -75,6 +75,8 @@ const jsonEditor = ref<InstanceType<typeof JsonEditor> | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 
 const jsonReadOnly = computed(() => props.readOnly || !props.draft)
+// Format and Import work through the editor, so they are no use when it failed to load
+const canChangeText = computed(() => !jsonReadOnly.value && !jsonEditor.value?.loadFailed)
 
 // navigator.clipboard only exists on HTTPS or localhost
 const clipboardSupported = !!navigator.clipboard?.writeText

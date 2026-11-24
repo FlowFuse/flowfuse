@@ -150,7 +150,7 @@ function replace (value: string) {
     editor.pushUndoStop()
 }
 
-defineExpose({ format, replace })
+defineExpose({ format, replace, loadFailed })
 </script>
 
 <style scoped>
