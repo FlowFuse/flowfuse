@@ -8,6 +8,7 @@
                 </template>
                 <template #status>
                     <StatusBadge :status="badge.status" :text="badge.text" data-el="schema-status" />
+                    <StatusBadge v-if="hasUnsavedChanges" status="warning" text="Unsaved changes" data-el="schema-unsaved" />
                 </template>
                 <template #context>
                     <template v-if="!draft && latestPublished">
@@ -161,10 +162,11 @@ const tabs = [
     { label: 'Versions', to: { name: 'team-schema-versions' }, tag: 'team-schema-versions' }
 ]
 
-// Says why an action failed, and goes back to the list when the schema turned out to be gone
+// Says why an action failed, and goes back to the list when the schema turned out to be gone.
+// Leaving the page also clears the schema, so only redirect while still on a schema route.
 function actionFailed (err, fallback: string) {
     Alerts.emit(err.response?.data?.error || fallback, 'warning')
-    if (!schema.value) router.push({ name: 'team-schemas', params: { team_slug: team.value?.slug } })
+    if (!schema.value && route.params.schemaId) router.push({ name: 'team-schemas', params: { team_slug: team.value?.slug } })
 }
 
 async function confirmDiscard () {
@@ -228,6 +230,7 @@ const VERSION_ERRORS = ['invalid_version', 'version_exists', 'version_not_higher
 const publishDialogVersions = () => ({ latestVersion: latestPublished.value?.version ?? null, existingVersions: existingVersions.value })
 
 function showPublishDialog () {
+    if (publishing.value) return Alerts.emit('A publish is still in progress.', 'warning')
     let form = { version: '', notes: notes.value }
     // set when the dialog is cancelled while a publish is still running, which can't be taken back
     let cancelled = false

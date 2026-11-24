@@ -14,6 +14,7 @@ import { useUxDialogStore } from '../../../../../../../frontend/src/stores/ux-di
 const router = vi.hoisted(() => ({ push: vi.fn() }))
 const edit = vi.hoisted(() => ({ text: '', notes: '' }))
 const routeGuard = vi.hoisted(() => ({ leave: null }))
+const route = vi.hoisted(() => ({ params: {} }))
 
 const EditorStub = {
     props: ['schemaText', 'notes', 'editorProblems', 'markers', 'draft', 'latestPublished', 'readOnly'],
@@ -23,7 +24,7 @@ const EditorStub = {
 }
 
 vi.mock('vue-router', () => ({
-    useRoute: () => ({ params: { team_slug: 'team', schemaId: 'abc' } }),
+    useRoute: () => route,
     useRouter: () => router,
     onBeforeRouteLeave: (guard) => { routeGuard.leave = guard }
 }))
@@ -88,6 +89,7 @@ async function publishFrom (page, form) {
 describe('Team Schema page', () => {
     beforeEach(() => {
         vi.clearAllMocks()
+        route.params = { team_slug: 'team', schemaId: 'abc' }
     })
 
     test('shows the draft badge and draft actions to a Member', () => {
@@ -280,6 +282,18 @@ describe('Team Schema page', () => {
         expect(page.vm.notes).toBe('typed, not saved')
     })
 
+    test('shows an unsaved changes badge until the edits match the saved draft', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: { ...DRAFT, notes: 'saved' } })
+        await flushPromises()
+        expect(page.find('[data-el="schema-unsaved"]').exists()).toBe(false)
+        edit.notes = 'new notes'
+        await page.find('[data-test="set-notes"]').trigger('click')
+        expect(page.find('[data-el="schema-unsaved"]').exists()).toBe(true)
+        schemas.activeDraft = { ...DRAFT, notes: 'new notes' }
+        await flushPromises()
+        expect(page.find('[data-el="schema-unsaved"]').exists()).toBe(false)
+    })
+
     test('clears the notes when the draft goes away', async () => {
         const { page, schemas } = mountPage(Roles.Member, { draft: { ...DRAFT, notes: 'saved' } })
         page.vm.notes = 'typed, not saved'
@@ -300,6 +314,20 @@ describe('Team Schema page', () => {
         expect(Alerts.emit).toHaveBeenCalledWith('Not Found', 'warning')
         expect(router.push).toHaveBeenCalledWith({ name: 'team-schemas', params: { team_slug: 'team' } })
         expect(Dialog.showAsync).not.toHaveBeenCalled()
+    })
+
+    test('does not redirect when an action fails after the page was left', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        schemas.saveDraft.mockImplementation(async () => {
+            route.params = { team_slug: 'team' }
+            schemas.activeSchema = null
+            throw apiError('Internal Server Error')
+        })
+        await setText(page, '{"type": "string"}')
+        await page.find('[data-action="save-draft"]').trigger('click')
+        await flushPromises()
+        expect(Alerts.emit).toHaveBeenCalledWith('Internal Server Error', 'warning')
+        expect(router.push).not.toHaveBeenCalled()
     })
 
     test('stays on the page when an action fails but the schema is still there', async () => {
