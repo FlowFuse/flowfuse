@@ -192,12 +192,15 @@ async function confirmDiscard () {
 
 const DRAFT_GONE = ['draft_changed', 'not_found']
 
-// The draft was published or discarded elsewhere while this page had unsaved edits
-async function offerNewDraft (changes: { schema: Record<string, unknown>, notes: string }) {
+// The draft was published or discarded elsewhere while this page had unsaved edits.
+// `failure` is why the last try at a new draft did not work: the offer is then made again, as these changes are held nowhere else.
+async function offerNewDraft (changes: { schema: Record<string, unknown>, notes: string }, failure?: string) {
     const result = await Dialog.showAsync({
         header: 'Your changes were not saved',
-        text: 'This draft was published or discarded by someone else. Start a new draft with your changes?',
-        confirmLabel: 'Start new draft'
+        text: failure
+            ? `Starting a new draft with your changes failed: ${failure}\nTry again?`
+            : 'This draft was published or discarded by someone else. Start a new draft with your changes?',
+        confirmLabel: failure ? 'Try again' : 'Start new draft'
     })
     if (result !== 'confirm') return
     try {
@@ -210,7 +213,7 @@ async function offerNewDraft (changes: { schema: Record<string, unknown>, notes:
         notes.value = changes.notes
         Alerts.emit('Someone else already started a new draft. Your changes are in the editor but are not saved.', 'warning')
     } catch (err) {
-        Alerts.emit(err.response?.data?.error || 'Failed to create a draft.', 'warning')
+        return offerNewDraft(changes, err.response?.data?.error || 'Failed to create a draft.')
     }
 }
 
