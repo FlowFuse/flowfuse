@@ -1,4 +1,5 @@
 let dialog
+let onClose
 const subscriptions = []
 
 /**
@@ -9,26 +10,37 @@ const subscriptions = []
  * @param {string} html The dialog html (instead of text - use with caution to avoid XSS)
  * @param {string} confirmLabel The dialog confirm button label
  * @param {string} cancelLabel The dialog cancel button label
+ * @param {boolean} closeOnConfirm Set to false to keep the dialog open after confirm, until `close()` is called (optional)
  */
 
 export default {
     // bind this service to a ff-dialog element
     // this is used in Platform.vue in order to control the showing/hiding
     // of the app's main dialog
-    bind: function (el, fcn) {
+    bind: function (el, fcn, closeFcn) {
         if (!el) {
             throw new Error('No dialog element provided')
         } else {
             dialog = el
+            onClose = closeFcn
             subscriptions.push(fcn)
         }
+    },
+
+    /**
+     * Close the dialog and clear what it was showing.
+     * For dialogs opened with `closeOnConfirm: false`, which stay open until their work is done.
+     */
+    close: function () {
+        dialog.close()
+        onClose?.()
     },
 
     /**
      * Show a dialog
      * @param {string|DialogOptions} msg The dialog message or a DialogOptions object
      * @param {Function} onConfirm A callback function to call when the confirm button is clicked
-     * @param {Function} onCancel (optional) A callback function to call when the cancel button is clicked
+     * @param {Function} [onCancel] A callback function to call when the cancel button is clicked
      * @example
      * // show a simple dialog
      * dialogService.show('Are you sure?', () => { console.info('confirmed') })

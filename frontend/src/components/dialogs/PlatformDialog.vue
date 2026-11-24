@@ -7,6 +7,7 @@
         :confirm-label="dialog.confirmLabel"
         :cancel-label="dialog.cancelLabel"
         :canBeCanceled="dialog.canBeCanceled"
+        :close-on-confirm="dialog.closeOnConfirm"
         :notices="dialog.notices"
         :box-class="dialog.boxClass"
         @cancel="dialogStore.clearDialog(true)"
@@ -47,6 +48,6 @@ const dialogEl = ref(null)
 onMounted(() => {
     dialogService.bind(dialogEl.value, (msg, onConfirm, onCancel) => {
         return dialogStore.showDialogHandlers({ payload: msg, onConfirm, onCancel })
-    })
+    }, () => dialogStore.clearDialog())
 })
 </script>

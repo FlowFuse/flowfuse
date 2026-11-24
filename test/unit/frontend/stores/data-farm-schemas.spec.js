@@ -230,4 +230,79 @@ describe('data-farm-schemas store', () => {
         expect(store.activeDraft).toBeNull()
         expect(store.schemaHydrated).toBe(false)
     })
+
+    describe('a draft action that answers after the page moved on', () => {
+        const NEW_DRAFT = { version: null, status: 'draft', schema: {}, notes: 'from abc', problems: [] }
+
+        // Opens schema abc, starts the action, opens schema xyz, and only then lets the action answer
+        async function answerAfterOpeningAnother (apiCall, answer, start) {
+            let finish
+            apiCall.mockReturnValue(new Promise((resolve, reject) => { finish = { resolve, reject } }))
+            schemasApi.getSchema.mockImplementation(async (teamId, schemaId) => ({ ...schemaWith([PUBLISHED], false), id: schemaId }))
+            const store = useDataFarmSchemasStore()
+            await store.loadActiveSchema('abc')
+            const action = start(store)
+            await store.loadActiveSchema('xyz')
+            answer(finish)
+            return { store, action }
+        }
+
+        const expectUntouched = (store) => {
+            expect(store.activeSchema.id).toBe('xyz')
+            expect(store.activeSchema.hasDraft).toBe(false)
+            expect(store.activeDraft).toBeNull()
+            expect(store.activeLatestPublished.version).toBe('1.1.0')
+        }
+
+        it('does not put a created draft on the schema that is open now', async () => {
+            const { store, action } = await answerAfterOpeningAnother(schemasApi.createDraft, finish => finish.resolve(NEW_DRAFT), store => store.createDraft())
+            await action
+            expectUntouched(store)
+        })
+
+        it('does not put a saved draft on the schema that is open now', async () => {
+            const { store, action } = await answerAfterOpeningAnother(schemasApi.updateDraft, finish => finish.resolve(NEW_DRAFT), store => store.saveDraft({ notes: 'from abc' }))
+            await action
+            expectUntouched(store)
+        })
+
+        it('does not publish onto the schema that is open now', async () => {
+            const { store, action } = await answerAfterOpeningAnother(schemasApi.publishDraft, finish => finish.resolve({ version: '2.0.0', status: 'published' }), store => store.publishDraft({ version: '2.0.0', notes: '' }))
+            await action
+            expectUntouched(store)
+        })
+
+        it('does not reload the schema that is open now when the old one\'s draft was gone', async () => {
+            const { store, action } = await answerAfterOpeningAnother(schemasApi.deleteDraft, finish => finish.reject(apiError('not_found')), store => store.discardDraft())
+            await expect(action).rejects.toThrow('not_found')
+            expectUntouched(store)
+            expect(schemasApi.getSchema).toHaveBeenCalledTimes(2)
+        })
+
+        it('does nothing once the page was left', async () => {
+            let finish
+            schemasApi.createDraft.mockReturnValue(new Promise(resolve => { finish = resolve }))
+            schemasApi.getSchema.mockResolvedValue(schemaWith([PUBLISHED], false))
+            const store = useDataFarmSchemasStore()
+            await store.loadActiveSchema('abc')
+            const action = store.createDraft()
+            store.reset()
+            finish(NEW_DRAFT)
+            await action
+            expect(store.activeSchema).toBeNull()
+            expect(store.activeDraft).toBeNull()
+        })
+    })
+
+    it('leaves nothing open when the schema itself turns out to be gone', async () => {
+        schemasApi.getSchema.mockResolvedValueOnce(schemaWith([DRAFT_SUMMARY], true))
+        schemasApi.getSchema.mockRejectedValueOnce(apiError('not_found'))
+        schemasApi.updateDraft.mockRejectedValue(Object.assign(apiError('not_found'), { message: 'save failed' }))
+        const store = useDataFarmSchemasStore()
+        await store.loadActiveSchema('abc')
+        await expect(store.saveDraft({ notes: 'x' })).rejects.toThrow('save failed')
+        expect(store.activeSchema).toBeNull()
+        expect(store.activeDraft).toBeNull()
+        expect(store.schemaHydrated).toBe(false)
+    })
 })

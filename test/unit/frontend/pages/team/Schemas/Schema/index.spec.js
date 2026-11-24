@@ -9,9 +9,9 @@ import Dialog from '../../../../../../../frontend/src/services/dialog.js'
 import { useAccountSettingsStore } from '../../../../../../../frontend/src/stores/account-settings.js'
 import { useContextStore } from '../../../../../../../frontend/src/stores/context.js'
 import { useDataFarmSchemasStore } from '../../../../../../../frontend/src/stores/data-farm-schemas.ts'
+import { useUxDialogStore } from '../../../../../../../frontend/src/stores/ux-dialog.js'
 
 const router = vi.hoisted(() => ({ push: vi.fn() }))
-const dialog = vi.hoisted(() => ({ setError: vi.fn(), close: vi.fn() }))
 const edit = vi.hoisted(() => ({ text: '', notes: '' }))
 const routeGuard = vi.hoisted(() => ({ leave: null }))
 
@@ -29,7 +29,7 @@ vi.mock('vue-router', () => ({
 }))
 
 vi.mock('../../../../../../../frontend/src/services/dialog.js', () => ({
-    default: { showAsync: vi.fn() }
+    default: { show: vi.fn(), showAsync: vi.fn(), close: vi.fn() }
 }))
 
 vi.mock('../../../../../../../frontend/src/services/alerts.js', () => ({
@@ -59,12 +59,11 @@ function mountPage (role, { draft = null, latestPublished = null, loadError = nu
                 'ff-page-header': { template: '<div><slot name="status" /><slot name="context" /><slot name="tools" /></div>' },
                 'ff-button': { template: '<button><slot /></button>' },
                 'router-view': { setup: (_, { slots }) => () => slots.default({ Component: EditorStub }) },
-                PublishSchemaDialog: { name: 'PublishSchemaDialog', template: '<div />', methods: { show () {}, close: dialog.close, setError: dialog.setError } },
                 StatusBadge: { props: ['text'], template: '<span data-el="schema-status">{{ text }}</span>' }
             }
         }
     })
-    return { page, schemas }
+    return { page, schemas, dialogStore: useUxDialogStore(pinia) }
 }
 
 const setText = async (page, text) => {
@@ -72,7 +71,19 @@ const setText = async (page, text) => {
     await page.find('[data-test="set-text"]').trigger('click')
 }
 
-const publishFrom = (page) => page.findComponent({ name: 'PublishSchemaDialog' }).vm.$emit('publish', { version: '1.3.0', notes: '' })
+// opens the publish dialog, types a version and returns what the confirm button runs
+async function openPublishDialog (page, form = { version: '1.3.0', notes: '' }) {
+    await page.find('[data-action="publish"]').trigger('click')
+    const [options, onConfirm, onCancel] = Dialog.show.mock.calls.at(-1)
+    options.is.on.change(form)
+    return { options, onConfirm, onCancel }
+}
+
+// opens the publish dialog and confirms it
+async function publishFrom (page, form) {
+    const { onConfirm } = await openPublishDialog(page, form)
+    await onConfirm()
+}
 
 describe('Team Schema page', () => {
     beforeEach(() => {
@@ -135,8 +146,7 @@ describe('Team Schema page', () => {
         const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
         edit.text = JSON.stringify({ $id: 'urn:x', ...DRAFT.schema })
         await page.find('[data-test="set-text"]').trigger('click')
-        publishFrom(page)
-        await flushPromises()
+        await publishFrom(page)
         expect(schemas.saveDraft).not.toHaveBeenCalled()
         expect(schemas.publishDraft).toHaveBeenCalled()
     })
@@ -157,13 +167,12 @@ describe('Team Schema page', () => {
     })
 
     test('closes the dialog and shows a toast when the saved draft has problems', async () => {
-        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        const { page, schemas, dialogStore } = mountPage(Roles.Member, { draft: DRAFT })
         schemas.publishDraft.mockRejectedValue(Object.assign(new Error('problems'), { response: { data: { code: 'schema_has_problems', error: 'The draft has problems and cannot be published' } } }))
-        publishFrom(page)
-        await flushPromises()
-        expect(dialog.close).toHaveBeenCalled()
+        await publishFrom(page)
+        expect(Dialog.close).toHaveBeenCalled()
         expect(Alerts.emit).toHaveBeenCalledWith('The draft has problems and cannot be published', 'warning')
-        expect(dialog.setError).not.toHaveBeenCalled()
+        expect(dialogStore.updateDialogPayload).not.toHaveBeenCalledWith(expect.objectContaining({ error: expect.stringMatching(/./) }))
     })
 
     test('disables Save when the draft is not a JSON object', async () => {
@@ -176,8 +185,7 @@ describe('Team Schema page', () => {
     test('saves unsaved edits before publishing', async () => {
         const { page, schemas } = mountPage(Roles.Member, { draft: { ...DRAFT, schema: { type: 'object' } } })
         schemas.activeDraft.schema = { type: 'object', title: 'saved elsewhere' }
-        await page.findComponent({ name: 'PublishSchemaDialog' }).vm.$emit('publish', { version: '1.0.0', notes: '' })
-        await new Promise(resolve => setTimeout(resolve))
+        await publishFrom(page, { version: '1.0.0', notes: '' })
         expect(schemas.saveDraft).toHaveBeenCalledWith({ schema: { type: 'object' }, notes: '' })
         expect(schemas.publishDraft).toHaveBeenCalledWith({ version: '1.0.0', notes: '' })
         expect(schemas.saveDraft.mock.invocationCallOrder[0]).toBeLessThan(schemas.publishDraft.mock.invocationCallOrder[0])
@@ -185,8 +193,7 @@ describe('Team Schema page', () => {
 
     test('publishes without saving when nothing changed', async () => {
         const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
-        await page.findComponent({ name: 'PublishSchemaDialog' }).vm.$emit('publish', { version: '1.0.0', notes: '' })
-        await new Promise(resolve => setTimeout(resolve))
+        await publishFrom(page, { version: '1.0.0', notes: '' })
         expect(schemas.saveDraft).not.toHaveBeenCalled()
         expect(schemas.publishDraft).toHaveBeenCalled()
     })
@@ -203,48 +210,133 @@ describe('Team Schema page', () => {
         expect(router.push).toHaveBeenCalledWith({ name: 'team-schemas', params: { team_slug: 'team' } })
     })
 
-    test('shows a publish error in the dialog while the draft still exists', async () => {
+    test('opens the publish dialog with the versions it checks against, and keeps it open on confirm', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: { ...DRAFT, notes: 'draft notes' }, latestPublished: PUBLISHED })
+        schemas.existingVersions = ['1.2.0']
+        const { options } = await openPublishDialog(page)
+        expect(options.header).toBe('Publish Temperature')
+        expect(options.closeOnConfirm).toBe(false)
+        expect(options.is.payload).toMatchObject({ latestVersion: '1.2.0', existingVersions: ['1.2.0'], draftNotes: 'draft notes' })
+    })
+
+    test('publishes what was typed and closes the dialog', async () => {
         const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        schemas.publishDraft.mockResolvedValue()
+        const { onConfirm } = await openPublishDialog(page)
+        await onConfirm()
+        expect(schemas.publishDraft).toHaveBeenCalledWith({ version: '1.3.0', notes: '' })
+        expect(Dialog.close).toHaveBeenCalled()
+        expect(Alerts.emit).toHaveBeenCalledWith('Version 1.3.0 published.', 'confirmation')
+    })
+
+    test('shows a version error in the dialog while the draft still exists', async () => {
+        const { page, schemas, dialogStore } = mountPage(Roles.Member, { draft: DRAFT })
         schemas.publishDraft.mockRejectedValue(apiError('Version 1.3.0 already exists', 'version_exists'))
-        publishFrom(page)
-        await flushPromises()
-        expect(dialog.setError).toHaveBeenCalledWith('Version 1.3.0 already exists')
-        expect(dialog.close).not.toHaveBeenCalled()
+        await publishFrom(page)
+        expect(dialogStore.updateDialogPayload).toHaveBeenCalledWith(expect.objectContaining({ error: 'Version 1.3.0 already exists' }))
+        expect(Dialog.close).not.toHaveBeenCalled()
     })
 
     test('closes the dialog and shows a toast when saving before publishing fails', async () => {
-        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        const { page, schemas, dialogStore } = mountPage(Roles.Member, { draft: DRAFT })
         schemas.saveDraft.mockRejectedValue(apiError('Schema document is too large', 'document_too_large'))
         edit.text = JSON.stringify({ type: 'string' })
         await page.find('[data-test="set-text"]').trigger('click')
-        publishFrom(page)
-        await flushPromises()
+        await publishFrom(page)
         expect(schemas.publishDraft).not.toHaveBeenCalled()
-        expect(dialog.close).toHaveBeenCalled()
+        expect(Dialog.close).toHaveBeenCalled()
         expect(Alerts.emit).toHaveBeenCalledWith('Schema document is too large', 'warning')
-        expect(dialog.setError).not.toHaveBeenCalled()
+        expect(dialogStore.updateDialogPayload).not.toHaveBeenCalledWith(expect.objectContaining({ error: expect.stringMatching(/./) }))
     })
 
     test('ignores a second publish while one is running', async () => {
         const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
         schemas.publishDraft.mockReturnValue(new Promise(() => {}))
-        publishFrom(page)
-        publishFrom(page)
+        const { onConfirm } = await openPublishDialog(page)
+        onConfirm()
+        onConfirm()
         await flushPromises()
         expect(schemas.publishDraft).toHaveBeenCalledTimes(1)
     })
 
     test('closes the dialog when the draft was published or discarded elsewhere', async () => {
-        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        const { page, schemas, dialogStore } = mountPage(Roles.Member, { draft: DRAFT })
         schemas.publishDraft.mockImplementation(async () => {
             schemas.activeDraft = null
             throw apiError('The draft was published or discarded by another request')
         })
-        publishFrom(page)
-        await flushPromises()
-        expect(dialog.close).toHaveBeenCalled()
+        const { onConfirm } = await openPublishDialog(page)
+        await onConfirm()
+        expect(Dialog.close).toHaveBeenCalled()
         expect(Alerts.emit).toHaveBeenCalledWith('The draft was published or discarded by another request', 'warning')
-        expect(dialog.setError).not.toHaveBeenCalled()
+        expect(dialogStore.updateDialogPayload).not.toHaveBeenCalledWith(expect.objectContaining({ error: 'The draft was published or discarded by another request' }))
+    })
+
+    test('keeps unsaved notes when the same draft is reloaded', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: { ...DRAFT, notes: 'saved' } })
+        page.vm.notes = 'typed, not saved'
+        schemas.activeDraft = { ...DRAFT, notes: 'saved' }
+        await flushPromises()
+        expect(page.vm.notes).toBe('typed, not saved')
+    })
+
+    test('clears the notes when the draft goes away', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: { ...DRAFT, notes: 'saved' } })
+        page.vm.notes = 'typed, not saved'
+        schemas.activeDraft = null
+        await flushPromises()
+        expect(page.vm.notes).toBe('')
+    })
+
+    test('goes back to the schema list when an action finds the schema gone', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        schemas.saveDraft.mockImplementation(async () => {
+            schemas.activeSchema = null
+            throw apiError('Not Found', 'not_found')
+        })
+        await setText(page, '{"type": "string"}')
+        await page.find('[data-action="save-draft"]').trigger('click')
+        await flushPromises()
+        expect(Alerts.emit).toHaveBeenCalledWith('Not Found', 'warning')
+        expect(router.push).toHaveBeenCalledWith({ name: 'team-schemas', params: { team_slug: 'team' } })
+        expect(Dialog.showAsync).not.toHaveBeenCalled()
+    })
+
+    test('stays on the page when an action fails but the schema is still there', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        schemas.saveDraft.mockRejectedValue(apiError('Schema document is too large', 'document_too_large'))
+        await setText(page, '{"type": "string"}')
+        await page.find('[data-action="save-draft"]').trigger('click')
+        await flushPromises()
+        expect(Alerts.emit).toHaveBeenCalledWith('Schema document is too large', 'warning')
+        expect(router.push).not.toHaveBeenCalled()
+    })
+
+    test('shows a failed publish as an alert when the dialog was cancelled meanwhile', async () => {
+        const { page, schemas, dialogStore } = mountPage(Roles.Member, { draft: DRAFT })
+        let fail
+        schemas.publishDraft.mockReturnValue(new Promise((resolve, reject) => { fail = reject }))
+        const { onConfirm, onCancel } = await openPublishDialog(page)
+        const publishing = onConfirm()
+        onCancel()
+        fail(apiError('The draft has problems and cannot be published'))
+        await publishing
+        expect(Alerts.emit).toHaveBeenCalledWith('The draft has problems and cannot be published', 'warning')
+        expect(dialogStore.updateDialogPayload).not.toHaveBeenCalledWith(expect.objectContaining({ error: 'The draft has problems and cannot be published' }))
+        expect(Dialog.close).not.toHaveBeenCalled()
+    })
+
+    test('leaves the dialog alone when a publish succeeds after it was cancelled', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        let finish
+        schemas.publishDraft.mockReturnValue(new Promise(resolve => { finish = resolve }))
+        const { onConfirm, onCancel } = await openPublishDialog(page)
+        const publishing = onConfirm()
+        onCancel()
+        finish()
+        await publishing
+        expect(Dialog.close).not.toHaveBeenCalled()
+        expect(Alerts.emit).toHaveBeenCalledWith('Version 1.3.0 published.', 'confirmation')
     })
 
     test('keeps the edited text when a save replaces the draft', async () => {
@@ -299,9 +391,8 @@ describe('Team Schema page', () => {
         schemas.saveDraft.mockRejectedValue(apiError('This schema has no draft', 'not_found'))
         Dialog.showAsync.mockResolvedValue('cancel')
         await setText(page, '{"type": "string"}')
-        publishFrom(page)
-        await flushPromises()
-        expect(dialog.close).toHaveBeenCalled()
+        await publishFrom(page)
+        expect(Dialog.close).toHaveBeenCalled()
         expect(Dialog.showAsync).toHaveBeenCalled()
         expect(schemas.publishDraft).not.toHaveBeenCalled()
     })
