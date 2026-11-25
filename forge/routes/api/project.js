@@ -339,7 +339,6 @@ module.exports = async function (app) {
             body: {
                 type: 'object',
                 properties: {
-                    name: { type: 'string' },
                     hostname: { type: 'string' },
                     settings: { type: 'object' },
                     launcherSettings: { type: 'object' },
@@ -409,6 +408,7 @@ module.exports = async function (app) {
         const projectName = request.project.name?.trim()
         if (reqName && projectName !== reqName) {
             reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'changing name not allowed' })
+            return
         }
 
         // Settings
