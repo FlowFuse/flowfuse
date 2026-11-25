@@ -406,23 +406,9 @@ module.exports = async function (app) {
 
         // Name
         const reqName = request.body.name?.trim()
-        const reqSafeName = reqName?.toLowerCase()
         const projectName = request.project.name?.trim()
         if (reqName && projectName !== reqName) {
-            if (app.db.models.Project.BANNED_NAME_LIST.includes(reqSafeName)) {
-                reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name not allowed' })
-                return
-            }
-            if (app.db.models.Project.NAME_PATTERN.test(reqSafeName) === false) {
-                reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name not allowed' })
-                return
-            }
-            if (await app.db.models.Project.isNameUsed(reqSafeName)) {
-                reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name in use' })
-                return
-            }
-
-            changesToPersist.name = { from: projectName, to: reqName }
+            reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'changing name not allowed' })
         }
 
         // Settings
