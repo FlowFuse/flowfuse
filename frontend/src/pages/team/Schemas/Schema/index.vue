@@ -4,7 +4,7 @@
             <ff-page-header :title="schema?.name" :tabs="tabs">
                 <template #breadcrumbs>
                     <ff-nav-breadcrumb :to="{ name: 'team-schemas', params: { team_slug: team?.slug } }">Schemas</ff-nav-breadcrumb>
-                    <ff-nav-breadcrumb v-if="schema?.group">{{ schema.group.name }}</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb v-if="schema?.group" has-chevron>{{ schema.group.name }}</ff-nav-breadcrumb>
                 </template>
                 <template #status>
                     <StatusBadge :status="badge.status" :text="badge.text" data-el="schema-status" />
