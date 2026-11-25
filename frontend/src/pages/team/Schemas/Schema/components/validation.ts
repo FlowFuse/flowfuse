@@ -55,6 +55,29 @@ export function valueLabel (value: unknown): string {
     return JSON.stringify(value)
 }
 
+const MAX_LISTED_VALUES = 10
+
+const listOr = (items: string[]) => items.length > 1 ? `${items.slice(0, -1).join(', ')} or ${items.at(-1)}` : items[0] ?? ''
+
+/**
+ * An error as the results table says it. AJV's own message is kept, apart from the keywords whose message leaves out
+ * what is expected although AJV gives it in `params`: the allowed values of `enum` and `const`, and a list of types.
+ */
+export function describeError (error: ValidationError): string {
+    const { keyword, params } = error
+    if (keyword === 'enum' && Array.isArray(params.allowedValues)) {
+        const values = params.allowedValues.map(value => JSON.stringify(value))
+        const shown = values.length > MAX_LISTED_VALUES ? [...values.slice(0, MAX_LISTED_VALUES), `${values.length - MAX_LISTED_VALUES} more`] : values
+        return `must be one of ${listOr(shown)}`
+    }
+    if (keyword === 'const' && Object.hasOwn(params, 'allowedValue')) return `must be ${JSON.stringify(params.allowedValue)}`
+    if (keyword === 'type') {
+        const types = Array.isArray(params.type) ? params.type : typeof params.type === 'string' ? params.type.split(',') : []
+        if (types.length) return `must be ${listOr(types.map(String))}`
+    }
+    return error.message
+}
+
 // The path of the field an error is about. An error for a field that is not allowed is reported on the object holding it
 function errorPath (error: ValidationError): string {
     if (error.keyword === 'additionalProperties' && typeof error.params.additionalProperty === 'string') {
@@ -105,7 +128,7 @@ export function validationRows (schema: Schema, payload: unknown, errors: Valida
             list.find(error => errorPath(error) === row.path) ??
             list[0]
         row.result = 'fail'
-        row.message = shown.message
+        row.message = describeError(shown)
     }
     // The message itself only gets a row of its own when it fails as a whole, as an object's fields say more
     if (rows[0].result !== 'fail' && isObject(schema) && isObject(payload)) rows.shift()
