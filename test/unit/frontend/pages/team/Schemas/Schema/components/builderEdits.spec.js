@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { addField, applyForm, formFor, formProblem, setOtherFieldsAllowed } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builderEdits.ts'
+import { addField, applyForm, formFor, formProblem, removeField, setOtherFieldsAllowed } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builderEdits.ts'
 
 const SCHEMA = () => ({
     type: 'object',
@@ -15,7 +15,9 @@ const SCHEMA = () => ({
     additionalProperties: false
 })
 
-const edit = (pointer, changes, root = SCHEMA()) => applyForm(root, pointer, { ...formFor(root, pointer), ...changes })
+const apply = (pointer, changes, root = SCHEMA()) => applyForm(root, pointer, { ...formFor(root, pointer), ...changes })
+const edit = (pointer, changes, root = SCHEMA()) => apply(pointer, changes, root).root
+const problem = (pointer, changes) => formProblem(SCHEMA(), pointer, { ...formFor(SCHEMA(), pointer), ...changes })
 
 describe('builder edits', () => {
     test('reads a field into the form', () => {
@@ -32,6 +34,7 @@ describe('builder edits', () => {
         expect(root.required).toEqual(['reading', 'unit'])
         expect(root.properties.reading['x-unit']).toBe('Cel')
         expect(root.additionalProperties).toBe(false)
+        expect(apply('/properties/value', { name: 'a/b' }).pointer).toBe('/properties/a~1b')
     })
 
     test('adds a field to the required list and takes it off', () => {
@@ -68,7 +71,68 @@ describe('builder edits', () => {
         expect(formProblem(SCHEMA(), '/properties/value', { ...form, name: 'unit' })).toBe('There is already a field called unit here.')
         expect(formProblem(SCHEMA(), '/properties/value', { ...form, minimum: 'low' })).toBe('minimum must be a number.')
         expect(formProblem(SCHEMA(), '/properties/unit', { ...formFor(SCHEMA(), '/properties/unit'), minLength: '1.5' })).toBe('minLength must be a whole number of 0 or more.')
-        expect(formProblem(SCHEMA(), '/properties/unit', { ...formFor(SCHEMA(), '/properties/unit'), pattern: '(' })).toBe('The pattern is not a valid regular expression.')
+        expect(problem('/properties/unit', { pattern: '(' })).toMatch('not a valid regular expression')
+    })
+
+    test('refuses a pattern the backend refuses', () => {
+        expect(problem('/properties/unit', { pattern: '^[a-z]+$' })).toBe('')
+        expect(problem('/properties/unit', { pattern: '(?=a)' })).toMatch('not a valid regular expression')
+        expect(problem('/properties/unit', { pattern: '(a)\\1' })).toMatch('not a valid regular expression')
+    })
+
+    test('reports a minimum above the maximum', () => {
+        expect(problem('/properties/value', { minimum: '10', maximum: '2' })).toBe('minimum must not be more than maximum.')
+        expect(problem('/properties/unit', { minLength: '5', maxLength: '2' })).toBe('minLength must not be more than maxLength.')
+        expect(problem('/properties/tags', { minItems: '3', maxItems: '1' })).toBe('minItems must not be more than maxItems.')
+    })
+
+    test('wants numbers as the allowed values of a number, and whole numbers for an integer', () => {
+        expect(problem('/properties/value', { allowedValues: ['1', 'two'] })).toBe('Allowed values must be numbers.')
+        expect(problem('/properties/value', { type: 'integer', allowedValues: ['1.5'] })).toBe('Allowed values must be whole numbers.')
+        expect(problem('/properties/value', { type: 'integer', allowedValues: ['1', '2'] })).toBe('')
+    })
+
+    test('ignores limits the type does not show', () => {
+        expect(problem('/properties/unit', { type: 'boolean', minLength: 'x' })).toBe('')
+    })
+
+    test('adds null to the allowed values of a field that may be null', () => {
+        expect(edit('/properties/unit', { nullable: true }).properties.unit.enum).toEqual(['Cel', 'degF', null])
+        expect(edit('/properties/fault_code', { allowedValues: [] }).properties.fault_code).not.toHaveProperty('enum')
+    })
+
+    test('drops the keywords a type change leaves without', () => {
+        const root = SCHEMA()
+        Object.assign(root.properties.value, { exclusiveMinimum: 0, exclusiveMaximum: 9, multipleOf: 2 })
+        Object.assign(root.properties.sensor, { minProperties: 1, maxProperties: 3 })
+        expect(edit('/properties/value', { minimum: '1' }, root).properties.value).toMatchObject({ exclusiveMinimum: 0, exclusiveMaximum: 9, multipleOf: 2 })
+        expect(edit('/properties/value', { type: 'string' }, root).properties.value).toEqual({ type: 'string', description: 'Measured temperature', 'x-unit': 'Cel' })
+        expect(edit('/properties/sensor', { type: 'string' }, root).properties.sensor).toEqual({ type: 'string' })
+    })
+
+    test('does not give an array without items an items schema', () => {
+        const root = { type: 'object', properties: { list: { type: 'array' } } }
+        expect(edit('/properties/list', { description: 'x' }, root).properties.list).toEqual({ type: 'array', description: 'x' })
+        expect(edit('/properties/list', { itemType: 'string' }, root).properties.list.items).toEqual({ type: 'string' })
+    })
+
+    test('keeps an additionalProperties schema unless the checkbox is changed', () => {
+        const root = { type: 'object', properties: { extra: { type: 'object', additionalProperties: { type: 'string' } } } }
+        expect(edit('/properties/extra', { description: 'x' }, root).properties.extra.additionalProperties).toEqual({ type: 'string' })
+        expect(edit('/properties/extra', { otherFields: true }, root).properties.extra.additionalProperties).toEqual({ type: 'string' })
+        expect(edit('/properties/extra', { otherFields: false }, root).properties.extra.additionalProperties).toBe(false)
+        expect(setOtherFieldsAllowed(root, '/properties/extra', true).properties.extra.additionalProperties).toEqual({ type: 'string' })
+    })
+
+    test('lets an object refuse fields it does not list, or allow them again', () => {
+        expect(edit('/properties/sensor', { otherFields: false }).properties.sensor.additionalProperties).toBe(false)
+        const root = SCHEMA()
+        root.properties.sensor.additionalProperties = false
+        expect(edit('/properties/sensor', { otherFields: true }, root).properties.sensor).not.toHaveProperty('additionalProperties')
+    })
+
+    test('removes a field', () => {
+        expect(Object.keys(removeField(SCHEMA(), '/properties/sensor').properties)).toEqual(['value', 'unit', 'fault_code', 'tags'])
     })
 
     test('adds a string field with a name not taken yet', () => {

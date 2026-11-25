@@ -22,6 +22,7 @@ describe('schema compare helpers', () => {
         expect(formatValue(['value', 'unit'])).toBe('["value","unit"]')
         expect(formatValue({ type: 'boolean' })).toBe('{"type":"boolean"}')
         expect(formatValue(200)).toBe('200')
+        expect(formatValue(undefined)).toBe('')
     })
 
     test('leaves the version $id out of the JSON diff', () => {
@@ -47,8 +48,13 @@ describe('schema compare helpers', () => {
             expect(defaultPair([DRAFT, V3, V2, V1], '9.9.9', 'nope')).toEqual({ from: '1.2.0', to: 'draft' })
         })
 
-        test('compares the oldest version with the next one when it is asked for both ways', () => {
-            expect(defaultPair([V3, V2, V1], '1.0.0', '1.0.0')).toEqual({ from: '1.1.0', to: '1.0.0' })
+        test('keeps a version picked on both sides', () => {
+            expect(defaultPair([V3, V2, V1], '1.0.0', '1.0.0')).toEqual({ from: '1.0.0', to: '1.0.0' })
+        })
+
+        test('takes the draft as the version compared to only', () => {
+            expect(defaultPair([DRAFT, V3, V2, V1], 'draft', '1.1.0')).toEqual({ from: '1.2.0', to: '1.1.0' })
+            expect(defaultPair([DRAFT, V3, V2, V1], 'draft')).toEqual({ from: '1.2.0', to: 'draft' })
         })
 
         test('needs two versions', () => {
