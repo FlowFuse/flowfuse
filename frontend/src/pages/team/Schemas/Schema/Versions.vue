@@ -26,6 +26,7 @@
                     <ff-kebab-menu v-if="entry.version">
                         <ff-kebab-item :label="`View ${entry.version}`" @click="view(entry.version)" />
                         <ff-kebab-item v-if="versions.length > 1" label="Compare with..." @click="compare(entry.version)" />
+                        <ff-kebab-item label="Validate a message" @click="validate(entry.version)" />
                         <ff-kebab-item
                             v-if="canEdit"
                             :label="hasDraft ? `Create draft from ${entry.version} (discard the draft first)` : `Create draft from ${entry.version}`"
@@ -93,6 +94,10 @@ function view (version: string) {
 
 function compare (from: string) {
     router.push({ name: 'team-schema-compare', query: { from } })
+}
+
+function validate (version: string) {
+    router.push({ name: 'team-schema-validate', query: { against: version } })
 }
 
 async function createDraftFrom (version: string) {

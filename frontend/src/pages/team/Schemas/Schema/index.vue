@@ -20,7 +20,7 @@
                     <div class="flex gap-2">
                         <ff-button v-if="canEdit" kind="secondary" data-action="edit-schema-details" @click="editDetails">Edit details</ff-button>
                         <ff-button v-if="editingDraft" kind="secondary" data-action="discard-draft" @click="confirmDiscard">Discard draft</ff-button>
-                        <ff-button kind="secondary" data-action="validate-message" disabled>Validate a message</ff-button>
+                        <ff-button v-if="route.name !== 'team-schema-validate'" kind="secondary" data-action="validate-message" :to="{ name: 'team-schema-validate' }">Validate a message</ff-button>
                         <template v-if="editingDraft">
                             <ff-button kind="secondary" data-action="save-draft" :disabled="!canSave || !hasUnsavedChanges" @click="saveDraft">Save draft</ff-button>
                             <ff-button v-if="canPublish" data-action="publish" :disabled="!canSave || problemCount > 0" @click="showPublishDialog">Publish</ff-button>

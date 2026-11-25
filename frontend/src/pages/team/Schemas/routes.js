@@ -1,5 +1,6 @@
 import SchemaCompare from './Schema/Compare.vue'
 import SchemaEditor from './Schema/Editor.vue'
+import SchemaValidate from './Schema/Validate.vue'
 import SchemaVersion from './Schema/Version.vue'
 import SchemaVersions from './Schema/Versions.vue'
 import TeamSchema from './Schema/index.vue'
@@ -30,6 +31,11 @@ export default [
                         name: 'team-schema-editor',
                         path: 'editor',
                         component: SchemaEditor
+                    },
+                    {
+                        name: 'team-schema-validate',
+                        path: 'validate',
+                        component: SchemaValidate
                     },
                     {
                         // one version is a page under the list, which keeps the Versions tab lit while it is open
