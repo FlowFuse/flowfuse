@@ -20,7 +20,9 @@ vi.mock('@/api/schemas', () => ({
         createDraft: vi.fn(),
         updateDraft: vi.fn(),
         deleteDraft: vi.fn(),
-        publishDraft: vi.fn()
+        publishDraft: vi.fn(),
+        deprecateVersion: vi.fn(),
+        undeprecateVersion: vi.fn()
     }
 }))
 
@@ -180,6 +182,39 @@ describe('data-farm-schemas store', () => {
         await store.loadActiveSchema('abc')
         await expect(store.publishDraft({ version: '1.0.0', notes: '' })).rejects.toThrow('schema_has_problems')
         expect(schemasApi.getSchema).toHaveBeenCalledTimes(1)
+    })
+
+    describe('deprecating a version', () => {
+        it('marks the version deprecated in the open schema, and the header\'s version when it is the newest', async () => {
+            schemasApi.getSchema.mockResolvedValue(schemaWith([{ version: '1.2.0', status: 'published' }, PUBLISHED], false))
+            schemasApi.deprecateVersion.mockResolvedValue({ version: '1.2.0', status: 'deprecated', schema: {}, updatedAt: 'now' })
+            const store = useDataFarmSchemasStore()
+            await store.loadActiveSchema('abc')
+            await store.setVersionDeprecated('1.2.0', true)
+            expect(schemasApi.deprecateVersion).toHaveBeenCalledWith('team-1', 'abc', '1.2.0')
+            expect(store.activeSchema.versions.map(version => version.status)).toEqual(['deprecated', 'published'])
+            expect(store.activeLatestPublished.status).toBe('deprecated')
+        })
+
+        it('restores a deprecated version, leaving the header\'s version alone when it is another one', async () => {
+            schemasApi.getSchema.mockResolvedValue(schemaWith([{ version: '1.3.0', status: 'published' }, DEPRECATED], false))
+            schemasApi.undeprecateVersion.mockResolvedValue({ version: '1.2.0', status: 'published', schema: {}, updatedAt: 'now' })
+            const store = useDataFarmSchemasStore()
+            await store.loadActiveSchema('abc')
+            await store.setVersionDeprecated('1.2.0', false)
+            expect(schemasApi.undeprecateVersion).toHaveBeenCalledWith('team-1', 'abc', '1.2.0')
+            expect(store.activeSchema.versions.map(version => version.status)).toEqual(['published', 'published'])
+            expect(store.activeLatestPublished.version).toBe('1.3.0')
+        })
+
+        it('reloads the schema and rethrows when the version was already changed elsewhere', async () => {
+            schemasApi.getSchema.mockResolvedValue(schemaWith([PUBLISHED], false))
+            schemasApi.deprecateVersion.mockRejectedValue(apiError('already_deprecated'))
+            const store = useDataFarmSchemasStore()
+            await store.loadActiveSchema('abc')
+            await expect(store.setVersionDeprecated('1.1.0', true)).rejects.toThrow('already_deprecated')
+            expect(schemasApi.getSchema).toHaveBeenCalledTimes(2)
+        })
     })
 
     describe('editing a schema\'s details', () => {
