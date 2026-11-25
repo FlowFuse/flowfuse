@@ -17,6 +17,8 @@ const { col, fn, DataTypes, Op, where, literal } = require('sequelize')
 
 const Controllers = require('../controllers')
 
+const { likeContaining } = require('../utils')
+
 const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA, KEY_PROTECTED, KEY_HEALTH_CHECK_INTERVAL, KEY_CUSTOM_HOSTNAME, KEY_DISABLE_AUTO_SAFE_MODE } = require('./ProjectSettings')
 
 const BANNED_NAME_LIST = [
@@ -676,7 +678,7 @@ module.exports = {
                     } else if (query) {
                         queryObject.where = where(
                             fn('lower', col('Project.name')),
-                            { [Op.like]: `%${query.toLowerCase()}%` }
+                            { [Op.like]: likeContaining(this.sequelize, query.toLowerCase()) }
                         )
                     }
                     if (excludeApplications) {
@@ -869,7 +871,7 @@ module.exports = {
                             [Op.and]: [
                                 where(
                                     fn('lower', col('Project.name')),
-                                    { [Op.like]: `%${query.toLowerCase()}%` }
+                                    { [Op.like]: likeContaining(this.sequelize, query.toLowerCase()) }
                                 )
                             ]
                         }

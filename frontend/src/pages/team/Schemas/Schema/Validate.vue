@@ -87,7 +87,6 @@ const router = useRouter()
 const schemasStore = useDataFarmSchemasStore()
 const { activeSchema: schema, activeDraft: draft, activeLatestPublished: latestPublished } = storeToRefs(schemasStore)
 
-// The saved draft and the latest published version, plus an older version when one was asked for
 const targets = computed(() => {
     const list: { title: string, value: string }[] = []
     if (draft.value) list.push({ title: 'Draft', value: 'draft' })
@@ -106,7 +105,6 @@ function pick (value: string) {
     router.replace({ query: { ...route.query, against: value } })
 }
 
-// The document checked against, for the rows of its fields and for an example message
 const document = ref<Record<string, unknown> | null>(null)
 watch([() => schema.value?.id, against, () => draft.value?.schema, () => latestPublished.value], async ([schemaId, target]) => {
     document.value = null
@@ -135,18 +133,24 @@ const parsed = computed<{ value?: unknown, error?: string }>(() => {
     }
 })
 
-// The latest check's answer, and what was checked, so a slower answer to an older check is dropped
+// What was checked comes with the answer, and an answer to an older check is dropped
 const result = ref<{ valid: boolean, errors: ValidationError[], payload: unknown, document: Record<string, unknown> } | null>(null)
 const checkFailed = ref('')
 let checkToken = 0
 
-const check = debounce(async (payload: unknown, target: string, checkedDocument: Record<string, unknown>) => {
-    const token = ++checkToken
+const check = debounce(async (token: number, payload: unknown, target: string, checkedDocument: Record<string, unknown>) => {
+    if (token !== checkToken) {
+        return
+    }
     try {
         const answer = await schemasStore.validateMessage(target, payload)
-        if (token === checkToken) result.value = { ...answer, payload, document: checkedDocument }
+        if (token === checkToken) {
+            result.value = { ...answer, payload, document: checkedDocument }
+        }
     } catch (err) {
-        if (token === checkToken) checkFailed.value = err.response?.data?.error || 'Failed to check the message.'
+        if (token === checkToken) {
+            checkFailed.value = err.response?.data?.error || 'Failed to check the message.'
+        }
     }
 }, 300)
 
@@ -155,7 +159,7 @@ watch([parsed, against, document], ([message, target, checkedDocument]) => {
     result.value = null
     checkFailed.value = ''
     if (!('value' in message) || !target || !checkedDocument) return
-    check(message.value, target, checkedDocument)
+    check(checkToken, message.value, target, checkedDocument)
 })
 
 const rows = computed<ValidationRow[]>(() => result.value ? validationRows(result.value.document, result.value.payload, result.value.errors) : [])
@@ -163,7 +167,12 @@ const problems = computed(() => rows.value.filter(row => row.result === 'fail').
 
 const hint = computed(() => {
     if (parsed.value.error) return ''
-    if (!payloadText.value.trim()) return 'Paste a message on the right to see how each field lines up with the schema.'
+    if (!payloadText.value.trim()) {
+        return 'Paste a message on the right to see how each field lines up with the schema.'
+    }
+    if (result.value) {
+        return 'The schema lists no fields, and the message has none to show.'
+    }
     return checkFailed.value ? '' : 'Checking the message...'
 })
 

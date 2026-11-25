@@ -359,6 +359,29 @@ describe('Team model', function () {
             })
         })
     })
+    describe('Search', function () {
+        before(async function () {
+            app = await setup()
+            const teamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
+            await app.db.models.Team.create({ name: "R&D 50% line_a's", TeamTypeId: teamType.id })
+        })
+        after(async function () {
+            await app.close()
+            app = null
+        })
+        const names = async (query) => (await app.db.models.Team.getAll({ query })).teams.map(team => team.name)
+
+        it('matches %, _ and a quote in the query as themselves', async function () {
+            ;(await names('50%')).should.eql(["R&D 50% line_a's"])
+            ;(await names('line_a')).should.eql(["R&D 50% line_a's"])
+            ;(await names("a's")).should.eql(["R&D 50% line_a's"])
+        })
+        it('does not take % and _ in the query as wildcards', async function () {
+            ;(await names('%')).should.eql(["R&D 50% line_a's"])
+            ;(await names('ATea_')).should.eql([])
+            ;(await names('A%m')).should.eql([])
+        })
+    })
     describe('License limits', function () {
         afterEach(async function () {
             if (app) {

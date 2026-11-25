@@ -385,6 +385,26 @@ describe('Team Schema page', () => {
         expect(page.find('[data-test="markers"]').text()).toBe('1')
     })
 
+    test('counts a moved field as an unsaved edit, but not a reordered required list or keywords', async () => {
+        const schema = { type: 'object', required: ['a', 'b'], properties: { a: { type: 'string' }, b: { type: 'string' } } }
+        const { page } = mountPage(Roles.Member, { draft: { ...DRAFT, schema } })
+        await setText(page, JSON.stringify({ properties: { a: { type: 'string' }, b: { type: 'string' } }, required: ['b', 'a'], type: 'object' }))
+        expect(page.find('[data-el="schema-unsaved"]').exists()).toBe(false)
+        await setText(page, JSON.stringify({ type: 'object', required: ['a', 'b'], properties: { b: { type: 'string' }, a: { type: 'string' } } }))
+        expect(page.find('[data-el="schema-unsaved"]').exists()).toBe(true)
+    })
+
+    test('counts a moved field named properties as an unsaved edit, and reordered keywords inside it as none', async () => {
+        const schema = { type: 'object', properties: { properties: { type: 'object', properties: { x: { type: 'string' }, y: { type: 'string' } } }, other: { type: 'string' } } }
+        const { page } = mountPage(Roles.Member, { draft: { ...DRAFT, schema } })
+        await setText(page, JSON.stringify({ properties: { properties: { properties: { x: { type: 'string' }, y: { type: 'string' } }, type: 'object' }, other: { type: 'string' } }, type: 'object' }))
+        expect(page.find('[data-el="schema-unsaved"]').exists()).toBe(false)
+        await setText(page, JSON.stringify({ type: 'object', properties: { other: { type: 'string' }, properties: { type: 'object', properties: { x: { type: 'string' }, y: { type: 'string' } } } } }))
+        expect(page.find('[data-el="schema-unsaved"]').exists()).toBe(true)
+        await setText(page, JSON.stringify({ type: 'object', properties: { properties: { type: 'object', properties: { y: { type: 'string' }, x: { type: 'string' } } }, other: { type: 'string' } } }))
+        expect(page.find('[data-el="schema-unsaved"]').exists()).toBe(true)
+    })
+
     test('marks a schema that is not an object and numbers that would change when saved', async () => {
         const { page } = mountPage(Roles.Member, { draft: DRAFT })
         await setText(page, '[]')

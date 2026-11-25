@@ -10,8 +10,17 @@ const router = vi.hoisted(() => ({ replace: vi.fn() }))
 const route = vi.hoisted(() => ({ query: {} }))
 
 vi.mock('vue-router', () => ({ useRouter: () => router, useRoute: () => route }))
-// the check runs as soon as the message changes, rather than after a pause in typing
-vi.mock('../../../../../../../frontend/src/utils/eventHandling', () => ({ debounce: (fn) => fn }))
+const pause = vi.hoisted(() => ({ held: false, calls: [] }))
+// the check runs as soon as the message changes, unless a test holds it back to play the pause in typing
+vi.mock('../../../../../../../frontend/src/utils/eventHandling', () => ({
+    debounce: (fn) => (...args) => {
+        if (pause.held) {
+            pause.calls.push(() => fn(...args))
+        } else {
+            fn(...args)
+        }
+    }
+}))
 
 const DRAFT_DOC = { type: 'object', required: ['value'], properties: { value: { type: 'number' } } }
 const PUBLISHED_DOC = { type: 'object', properties: { value: { type: 'string' } } }
@@ -47,7 +56,11 @@ const typePayload = async (page, text) => {
 const banner = (page) => page.find('[data-el="validate-banner"]')
 
 describe('Validate a message page', () => {
-    beforeEach(() => vi.clearAllMocks())
+    beforeEach(() => {
+        vi.clearAllMocks()
+        pause.held = false
+        pause.calls = []
+    })
 
     test('checks against the draft by default, offering the latest published version too', () => {
         const { page } = mountPage()
@@ -98,6 +111,27 @@ describe('Validate a message page', () => {
         schemas.validateMessage.mockRejectedValue(Object.assign(new Error('x'), { response: { data: { error: 'The schema has problems and cannot be used for validation' } } }))
         await typePayload(page, '{}')
         expect(banner(page).text()).toBe('The schema has problems and cannot be used for validation')
+    })
+
+    test('drops a pending check when the text is cleared or stops being JSON', async () => {
+        const { page, schemas } = mountPage()
+        pause.held = true
+        await typePayload(page, '{"value": 1}')
+        await typePayload(page, '')
+        await typePayload(page, '{"value": 1')
+        pause.calls.forEach(call => call())
+        await flushPromises()
+        expect(schemas.validateMessage).not.toHaveBeenCalled()
+        expect(page.find('[data-el="validate-results"]').exists()).toBe(false)
+    })
+
+    test('shows a result for a message that passes a schema with no fields', async () => {
+        const { page, schemas } = mountPage()
+        schemas.activeDraft = { status: 'draft', schema: { type: 'object' }, notes: '' }
+        await flushPromises()
+        await typePayload(page, '{}')
+        expect(banner(page).text()).toBe('Passes')
+        expect(page.find('[data-el="validate-hint"]').text()).not.toMatch(/Checking/)
     })
 
     test('puts the picked version in the address', async () => {

@@ -211,6 +211,29 @@ describe('data-farm-schemas store', () => {
         expect(schemasApi.diffVersions).toHaveBeenCalledWith('team-1', 'abc', '1.1.0', 'draft')
     })
 
+    it('reloads the schema and rethrows when the draft being compared is gone', async () => {
+        schemasApi.getSchema.mockResolvedValue(schemaWith([DRAFT_SUMMARY, PUBLISHED], true))
+        schemasApi.getDraft.mockRejectedValue(apiError('not_found'))
+        schemasApi.diffVersions.mockResolvedValue({ from: '1.1.0', to: 'draft', changes: [] })
+        const store = useDataFarmSchemasStore()
+        await store.loadActiveSchema('abc')
+        schemasApi.getDraft.mockRejectedValue(apiError('not_found'))
+        await expect(store.fetchComparison('1.1.0', 'draft')).rejects.toThrow('not_found')
+        expect(schemasApi.getSchema).toHaveBeenCalledTimes(2)
+    })
+
+    it('gives no comparison once another schema is open', async () => {
+        let finish
+        schemasApi.getSchema.mockImplementation(async (teamId, schemaId) => ({ ...schemaWith([PUBLISHED], false), id: schemaId }))
+        schemasApi.diffVersions.mockReturnValue(new Promise(resolve => { finish = resolve }))
+        const store = useDataFarmSchemasStore()
+        await store.loadActiveSchema('abc')
+        const comparison = store.fetchComparison('1.0.0', '1.1.0')
+        await store.loadActiveSchema('xyz')
+        finish({ from: '1.0.0', to: '1.1.0', changes: [] })
+        expect(await comparison).toBeNull()
+    })
+
     describe('deprecating a version', () => {
         it('marks the version deprecated in the open schema, and the header\'s version when it is the newest', async () => {
             schemasApi.getSchema.mockResolvedValue(schemaWith([{ version: '1.2.0', status: 'published' }, PUBLISHED], false))

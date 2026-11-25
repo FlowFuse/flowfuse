@@ -20,11 +20,12 @@
         </div>
         <SchemaBuilder
             v-if="view === 'builder'"
-            v-model:schema-text="schemaText"
+            :schema="schema"
             :read-only="jsonReadOnly"
-            :published="draft ? latestPublished?.schema : null"
+            :published="published"
             :published-version="latestPublished?.version"
             @edit-json="view = 'json'"
+            @update:schema-text="schemaText = $event"
         />
         <JsonEditor v-show="view === 'json'" ref="jsonEditor" v-model="schemaText" v-model:problems="editorProblems" :markers="markers" :read-only="jsonReadOnly" />
         <div v-if="draft" class="schema-notes" data-el="schema-notes">
@@ -50,11 +51,12 @@
 
 <script setup lang="ts">
 import { DocumentTextIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
-import { computed, ref } from 'vue'
+import { computed, ref, toRaw } from 'vue'
 
 import SchemaBuilder from './components/SchemaBuilder.vue'
-import { typeLabel } from './components/builder'
+import { parseSchema } from './components/builder'
 import type { ReferenceProblem } from './components/referenceProblems'
+import { type Schema, typeLabel } from './components/schemaTypes'
 
 import FfAccordion from '@/components/Accordion.vue'
 import JsonEditor from '@/components/JsonEditor.vue'
@@ -85,15 +87,9 @@ const view = ref('builder')
 const jsonEditor = ref<InstanceType<typeof JsonEditor> | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 
-// what the whole message is, shown beside the builder
-const rootType = computed(() => {
-    try {
-        const value = JSON.parse(schemaText.value)
-        return value && typeof value === 'object' && !Array.isArray(value) ? typeLabel(value) : ''
-    } catch {
-        return ''
-    }
-})
+const schema = computed(() => parseSchema(schemaText.value))
+const published = computed(() => props.draft && props.latestPublished ? toRaw(props.latestPublished.schema) as Schema : null)
+const rootType = computed(() => schema.value ? typeLabel(schema.value) : '')
 
 const jsonReadOnly = computed(() => props.readOnly || !props.draft)
 // Format and Import work through the editor, so they are no use when it failed to load

@@ -9,7 +9,7 @@ const SemVer = require('semver')
 const { col, fn, DataTypes, Op, where, literal } = require('sequelize')
 
 const Controllers = require('../controllers')
-const { generateToken, buildPaginationSearchClause } = require('../utils')
+const { generateToken, buildPaginationSearchClause, likeContaining } = require('../utils')
 
 const ALLOWED_SETTINGS = {
     autoSnapshot: 1,
@@ -494,8 +494,8 @@ module.exports = {
                     } else if (query) {
                         queryObject.where[Op.and].push({
                             [Op.or]: [
-                                where(fn('lower', col('Device.name')), { [Op.like]: `%${query.toLowerCase()}%` }),
-                                where(fn('lower', col('Device.type')), { [Op.like]: `%${query.toLowerCase()}%` })
+                                where(fn('lower', col('Device.name')), { [Op.like]: likeContaining(this.sequelize, query.toLowerCase()) }),
+                                where(fn('lower', col('Device.type')), { [Op.like]: likeContaining(this.sequelize, query.toLowerCase()) })
                             ]
                         })
                     }
@@ -919,7 +919,7 @@ module.exports = {
                             [Op.and]: [
                                 where(
                                     fn('lower', col('Device.name')),
-                                    { [Op.like]: `%${query.toLowerCase()}%` }
+                                    { [Op.like]: likeContaining(this.sequelize, query.toLowerCase()) }
                                 )
                             ]
 

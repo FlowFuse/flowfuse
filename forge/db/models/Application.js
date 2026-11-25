@@ -4,6 +4,8 @@
  */
 const { col, fn, DataTypes, Op, literal, where } = require('sequelize')
 
+const { likeContaining } = require('../utils')
+
 const { KEY_SETTINGS, KEY_HA } = require('./ProjectSettings')
 
 module.exports = {
@@ -158,8 +160,8 @@ module.exports = {
                     } else if (query) {
                         queryWheres.push({
                             [Op.or]: [
-                                where(fn('lower', col('Application.name')), { [Op.like]: `%${query.toLowerCase()}%` }),
-                                where(fn('lower', col('Application.description')), { [Op.like]: `%${query.toLowerCase()}%` })
+                                where(fn('lower', col('Application.name')), { [Op.like]: likeContaining(this.sequelize, query.toLowerCase()) }),
+                                where(fn('lower', col('Application.description')), { [Op.like]: likeContaining(this.sequelize, query.toLowerCase()) })
                             ]
                         })
                     }

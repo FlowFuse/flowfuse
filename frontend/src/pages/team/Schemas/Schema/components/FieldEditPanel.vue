@@ -24,13 +24,7 @@
             </label>
             <div v-if="takesAllowedValues" class="field-panel__item field-panel__item--wide">
                 <span class="field-panel__label">Allowed values</span>
-                <div class="field-panel__tags" data-form="field-allowed-values">
-                    <span v-for="(value, index) in form.allowedValues" :key="value" class="field-panel__tag font-mono">
-                        {{ value }}
-                        <button :aria-label="`Remove ${value}`" @click="form.allowedValues.splice(index, 1)"><XMarkIcon class="ff-icon-sm" /></button>
-                    </span>
-                    <input v-model="newValue" class="field-panel__tag-input" placeholder="Add a value" data-form="field-add-value" @keydown.enter.prevent="addValue" @keydown="addOnComma" @blur="addValue">
-                </div>
+                <ff-tag-input ref="allowedValues" v-model="form.allowedValues" aria-label="Allowed values" placeholder="Add a value" data-form="field-allowed-values" />
             </div>
             <template v-if="form.type === 'number' || form.type === 'integer'">
                 <label class="field-panel__item"><span class="field-panel__label">Minimum</span><ff-text-input v-model="form.minimum" data-form="field-minimum" /></label>
@@ -42,7 +36,7 @@
                 <label class="field-panel__item"><span class="field-panel__label">Pattern</span><ff-text-input v-model="form.pattern" class="font-mono" placeholder="^TS-\d{4}$" data-form="field-pattern" /></label>
                 <div class="field-panel__item">
                     <span class="field-panel__label">Format</span>
-                    <ff-listbox v-model="form.format" :options="formatOptions" placeholder="Any" data-form="field-format" />
+                    <ff-listbox v-model="form.format" :options="formatOptions" data-form="field-format" />
                 </div>
             </template>
             <template v-if="form.type === 'array'">
@@ -55,7 +49,7 @@
             </template>
             <div v-if="form.type === 'object'" class="field-panel__item">
                 <span class="field-panel__label">Fields not listed</span>
-                <ff-checkbox v-model="otherFields" data-form="field-other-fields">Allow them (additionalProperties)</ff-checkbox>
+                <ff-checkbox v-model="form.otherFields" data-form="field-other-fields">Allow them (additionalProperties)</ff-checkbox>
             </div>
         </div>
         <div class="field-panel__footer">
@@ -67,48 +61,32 @@
 </template>
 
 <script setup lang="ts">
-import { XMarkIcon } from '@heroicons/vue/20/solid'
 import { computed, ref } from 'vue'
 
-import { type FieldSchema } from './builder'
-import { FIELD_TYPES, ITEM_TYPES, STRING_FORMATS, applyForm, formFor, formProblem, schemaAt, setOtherFieldsAllowed } from './builderEdits'
+import { FIELD_TYPES, ITEM_TYPES, STRING_FORMATS, applyForm, formFor, formProblem } from './builderEdits'
+import type { Schema } from './schemaTypes'
 
 defineOptions({ name: 'FieldEditPanel' })
 
-const props = defineProps<{ root: FieldSchema, pointer: string }>()
-const emit = defineEmits<{ apply: [root: FieldSchema], cancel: [] }>()
+const props = defineProps<{ root: Schema, pointer: string }>()
+const emit = defineEmits<{ apply: [result: { root: Schema, pointer: string }], cancel: [] }>()
 
 const form = ref(formFor(props.root, props.pointer))
-const otherFields = ref(schemaAt(props.root, props.pointer).additionalProperties !== false)
-const newValue = ref('')
+const allowedValues = ref<{ commit: () => void } | null>(null)
 
 const typeOptions = FIELD_TYPES.map(type => ({ value: type, label: type }))
-const itemOptions = ITEM_TYPES.map(type => ({ value: type, label: type }))
+const itemOptions = [{ value: '', label: 'Any' }, ...ITEM_TYPES.map(type => ({ value: type, label: type }))]
 const formatOptions = [{ value: '', label: 'Any' }, ...STRING_FORMATS.map(format => ({ value: format, label: format }))]
 
 const takesAllowedValues = computed(() => ['string', 'number', 'integer'].includes(form.value.type))
 const problem = computed(() => formProblem(props.root, props.pointer, form.value))
 
-function addValue () {
-    const value = newValue.value.trim()
-    if (value && !form.value.allowedValues.includes(value)) form.value.allowedValues.push(value)
-    newValue.value = ''
-}
-function addOnComma (event: KeyboardEvent) {
-    if (event.key !== ',') return
-    event.preventDefault()
-    addValue()
-}
-
 function apply () {
-    addValue()
-    if (problem.value) return
-    let root = applyForm(props.root, props.pointer, form.value)
-    if (form.value.type === 'object') {
-        const renamed = props.pointer.slice(0, props.pointer.lastIndexOf('/properties/') + '/properties/'.length) + form.value.name.trim().replace(/~/g, '~0').replace(/\//g, '~1')
-        root = setOtherFieldsAllowed(root, renamed, otherFields.value)
+    allowedValues.value?.commit()
+    if (problem.value) {
+        return
     }
-    emit('apply', root)
+    emit('apply', applyForm(props.root, props.pointer, form.value))
 }
 </script>
 
@@ -141,43 +119,6 @@ function apply () {
         font-size: 0.875rem;
         font-weight: 600;
         color: var(--ff-color-text);
-    }
-
-    &__tags {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 0.375rem;
-        padding: 0.25rem 0.5rem;
-        border: 1px solid var(--ff-color-border-strong);
-        border-radius: 0.375rem;
-        background: var(--ff-color-bg-app);
-    }
-
-    &__tag {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-        padding: 0.125rem 0.375rem;
-        border: 1px solid var(--ff-color-border-strong);
-        border-radius: 0.25rem;
-        font-size: 0.8125rem;
-        color: var(--ff-color-text);
-
-        button {
-            display: flex;
-            color: var(--ff-color-text-subtle);
-        }
-    }
-
-    &__tag-input {
-        flex: 1;
-        min-width: 8rem;
-        border: none;
-        background: transparent;
-        font-size: 0.875rem;
-        color: var(--ff-color-text);
-        box-shadow: none;
     }
 
     &__footer {

@@ -1,31 +1,13 @@
-// The keywords of a field's schema the builder reads, and any others it keeps as they are
-export interface FieldSchema {
-    type?: string | string[]
-    description?: string
-    properties?: Record<string, FieldSchema>
-    required?: string[]
-    items?: FieldSchema
-    additionalProperties?: boolean | FieldSchema
-    enum?: unknown[]
-    minimum?: number
-    maximum?: number
-    minLength?: number
-    maxLength?: number
-    pattern?: string
-    format?: string
-    minItems?: number
-    maxItems?: number
-    uniqueItems?: boolean
-    [keyword: string]: unknown
-}
+import { escapePointer, isObject, pointerFor, unescapePointer } from './pointer'
+import { REFERENCE_KEYWORDS, referenceMessage } from './referenceProblems'
+import { COMBINATORS, type Schema, typeLabel, typesOf } from './schemaTypes'
 
 // Keywords the builder can't show as fields. A field using one is shown read-only, to be changed in the JSON
-export const JSON_ONLY_KEYWORDS = ['oneOf', 'anyOf', 'allOf', 'not', 'if', 'then', 'else', 'patternProperties', 'prefixItems', 'dependentSchemas', 'dependentRequired', 'unevaluatedProperties', 'unevaluatedItems', 'contains', 'propertyNames', 'const']
+export const JSON_ONLY_KEYWORDS = [...COMBINATORS, 'not', 'if', 'then', 'else', 'patternProperties', 'prefixItems', 'dependentSchemas', 'dependentRequired', 'unevaluatedProperties', 'unevaluatedItems', 'contains', 'propertyNames', 'const']
 
 export interface FieldRow {
     // JSON Pointer to the field's own schema, which is unique and stays put while the table changes
     pointer: string
-    // the field's path in a message, as the other schema pages show it
     path: string
     name: string
     depth: number
@@ -33,24 +15,36 @@ export interface FieldRow {
     required: boolean
     constraints: string
     description: string
-    // fields a row holds, for an object or an array of objects
     children: number | null
     expanded: boolean
     // the field's fields are too deep to show indented, so they open in a view of their own
     drillIn: boolean
     jsonOnly: boolean
-    // in the published version and deleted in the draft
+    problem: string
     deleted: boolean
 }
 
 // How many levels of fields the table shows indented. Fields deeper than that open in a drill-in view
 export const INLINE_LEVELS = 3
 
-const unescapePointer = (segment: string) => segment.replace(/~1/g, '/').replace(/~0/g, '~')
+export function schemaAt (root: Schema, pointer: string): Schema | undefined {
+    let current: unknown = root
+    for (const segment of pointer.split('/').slice(1).map(unescapePointer)) {
+        if (!isObject(current) || !Object.hasOwn(current, segment)) {
+            return undefined
+        }
+        current = current[segment]
+    }
+    return isObject(current) ? current as Schema : undefined
+}
 
-// The schema at a JSON Pointer, '' being the root
-export function schemaAt (root: FieldSchema, pointer: string): FieldSchema {
-    return pointer.split('/').slice(1).map(unescapePointer).reduce<unknown>((schema, segment) => (schema as Record<string, unknown> | undefined)?.[segment], root) as FieldSchema
+export function parseSchema (text: string): Schema | null {
+    try {
+        const value = JSON.parse(text)
+        return isObject(value) ? value as Schema : null
+    } catch {
+        return null
+    }
 }
 
 /**
@@ -64,7 +58,9 @@ export function fieldTrail (pointer: string): { name: string, pointer: string, p
     let path = ''
     for (let index = 0; index < segments.length; index++) {
         current += `/${segments[index]}`
-        if (segments[index] !== 'properties' || index + 1 >= segments.length) continue
+        if (segments[index] !== 'properties' || index + 1 >= segments.length) {
+            continue
+        }
         const name = segments[++index]
         current += `/${name}`
         path += `/${name}`
@@ -73,14 +69,12 @@ export function fieldTrail (pointer: string): { name: string, pointer: string, p
     return trail
 }
 
-const isObject = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value)
-const escapePointer = (segment: string) => segment.replace(/~/g, '~0').replace(/\//g, '~1')
+export const propertiesOf = (schema: Schema): Record<string, Schema> => isObject(schema.properties) ? schema.properties as Record<string, Schema> : {}
 
-export const typesOf = (schema: FieldSchema): string[] => Array.isArray(schema.type) ? schema.type : schema.type ? [schema.type] : []
-
-// The object schema holding a field's fields: the field itself, or its items for an array of objects
-export function fieldsHolder (schema: FieldSchema): { schema: FieldSchema, suffix: string } | null {
-    if (isObject(schema.properties) || typesOf(schema).includes('object')) return { schema, suffix: '' }
+export function fieldsHolder (schema: Schema): { schema: Schema, suffix: string } | null {
+    if (isObject(schema.properties) || typesOf(schema).includes('object')) {
+        return { schema, suffix: '' }
+    }
     const items = schema.items
     if (typesOf(schema).includes('array') && isObject(items) && (isObject(items.properties) || typesOf(items).includes('object'))) {
         return { schema: items, suffix: '/items' }
@@ -88,25 +82,39 @@ export function fieldsHolder (schema: FieldSchema): { schema: FieldSchema, suffi
     return null
 }
 
-export function isJsonOnly (schema: FieldSchema): boolean {
-    return JSON_ONLY_KEYWORDS.some(keyword => Object.hasOwn(schema, keyword)) || (isObject(schema.items) && isJsonOnly(schema.items))
+export function isJsonOnly (schema: Schema): boolean {
+    if (JSON_ONLY_KEYWORDS.some(keyword => Object.hasOwn(schema, keyword))) {
+        return true
+    }
+    if (Array.isArray(schema.items)) {
+        return true
+    }
+    return isObject(schema.items) && isJsonOnly(schema.items)
 }
 
-// The type as the mocks write it: `string | null`, `array of string`, `oneOf (2)`
-export function typeLabel (schema: FieldSchema): string {
-    const combinator = ['oneOf', 'anyOf', 'allOf'].find(keyword => Array.isArray(schema[keyword]))
-    if (combinator) return `${combinator} (${(schema[combinator] as unknown[]).length})`
-    if (Object.hasOwn(schema, 'const')) return 'const'
-    const types = typesOf(schema)
-    if (!types.length) return isObject(schema.properties) ? 'object' : 'any'
-    return types.map(type => type === 'array' && isObject(schema.items) ? `array of ${typeLabel(schema.items)}` : type).join(' | ')
+// A root may carry an $id
+export function referenceProblem (schema: Schema, isRoot = false): string {
+    const keyword = REFERENCE_KEYWORDS.find(name => Object.hasOwn(schema, name) && !(isRoot && name === '$id'))
+    if (keyword) {
+        return referenceMessage(keyword)
+    }
+    return isObject(schema.items) ? referenceProblem(schema.items) : ''
+}
+
+// `current` with `name` inserted after the nearest name before it in `published` that `current` still has
+export function insertAfterPublished (current: string[], name: string, published: string[]): string[] {
+    const earlier = published.slice(0, published.indexOf(name)).reverse().find(candidate => current.includes(candidate))
+    const next = [...current]
+    next.splice(earlier === undefined ? 0 : next.indexOf(earlier) + 1, 0, name)
+    return next
 }
 
 const short = (value: unknown) => typeof value === 'string' ? value : JSON.stringify(value)
 
-// The constraints of a field on one line, as the field table shows them
-export function constraintsSummary (schema: FieldSchema): string {
-    if (isJsonOnly(schema)) return 'Not editable in the builder'
+export function constraintsSummary (schema: Schema): string {
+    if (isJsonOnly(schema)) {
+        return 'Not editable in the builder'
+    }
     const parts: string[] = []
     if (Array.isArray(schema.enum)) parts.push(`one of ${schema.enum.map(short).join(', ')}`)
     if (schema.minimum !== undefined) parts.push(`min ${schema.minimum}`)
@@ -122,7 +130,7 @@ export function constraintsSummary (schema: FieldSchema): string {
     if (schema.uniqueItems) parts.push('unique items')
     const holder = fieldsHolder(schema)
     if (holder) {
-        const count = Object.keys(holder.schema.properties ?? {}).length
+        const count = Object.keys(propertiesOf(holder.schema)).length
         parts.push(`${count} ${count === 1 ? 'field' : 'fields'}`)
     }
     return parts.length ? parts.join(' · ') : 'None'
@@ -136,74 +144,96 @@ export function constraintsSummary (schema: FieldSchema): string {
  * With `focus`, the pointer of an object or array of objects, the table is drilled into it and lists its fields instead.
  * A root that is not an object has a single row of its own.
  */
-export function builderRows (root: FieldSchema, expanded: Set<string>, published?: FieldSchema | null, focus = ''): FieldRow[] {
+export function builderRows (root: Schema, expanded: Set<string>, published: Schema | null = null, focus = ''): FieldRow[] {
     const rows: FieldRow[] = []
 
-    function row (field: FieldSchema, name: string, pointer: string, path: string, depth: number, required: boolean, deleted: boolean): FieldRow {
-        const jsonOnly = isJsonOnly(field)
-        const inner = jsonOnly || deleted ? null : fieldsHolder(field)
-        const inline = depth < INLINE_LEVELS - 1
-        return {
-            pointer,
-            path,
-            name,
-            depth,
-            type: typeLabel(field),
-            required,
-            constraints: constraintsSummary(field),
-            description: typeof field.description === 'string' ? field.description : '',
-            children: inner ? Object.keys(inner.schema.properties ?? {}).length : null,
-            expanded: !!inner && inline && expanded.has(pointer),
-            drillIn: !!inner && !inline,
-            jsonOnly,
-            deleted
+    function visitFields (holder: Schema, before: Schema | null, pointer: string, path: string, depth: number) {
+        const fields = propertiesOf(holder)
+        const publishedFields = propertiesOf(before ?? {})
+        const publishedNames = Object.keys(publishedFields)
+        let order = Object.keys(fields)
+        for (const name of publishedNames.filter(candidate => !Object.hasOwn(fields, candidate))) {
+            order = insertAfterPublished(order, name, publishedNames)
         }
-    }
-
-    // `before` is the object's schema in the published version, when it has one there
-    function visitFields (holder: FieldSchema, before: FieldSchema | null, pointer: string, path: string, depth: number) {
-        const fields = isObject(holder.properties) ? holder.properties : {}
-        const names = Object.keys(fields)
-        const gone = Object.keys(before?.properties ?? {}).filter(name => !Object.hasOwn(fields, name))
-        // a deleted field goes after the last field before it in the published version that is still there
-        const order = [...names]
-        for (const name of gone) {
-            const earlier = Object.keys(before!.properties!).slice(0, Object.keys(before!.properties!).indexOf(name)).reverse()
-            const after = earlier.find(candidate => order.includes(candidate))
-            order.splice(after ? order.indexOf(after) + 1 : 0, 0, name)
-        }
+        const required = Array.isArray(holder.required) ? holder.required : []
+        const publishedRequired = Array.isArray(before?.required) ? before.required : []
         for (const name of order) {
             const deleted = !Object.hasOwn(fields, name)
-            const field = (deleted ? before!.properties![name] : fields[name]) ?? {}
-            const fieldPointer = `${pointer}/properties/${escapePointer(name)}`
-            const required = ((deleted ? before!.required : holder.required) ?? []).includes(name)
-            const entry = row(isObject(field) ? field : {}, name, fieldPointer, `${path}/${escapePointer(name)}`, depth, required, deleted)
-            rows.push(entry)
-            if (!entry.expanded) continue
-            const inner = fieldsHolder(field)!
-            visitFields(inner.schema, publishedHolder(before?.properties?.[name], inner.suffix), fieldPointer + inner.suffix, entry.path, depth + 1)
+            const source = deleted ? publishedFields[name] : fields[name]
+            const field = isObject(source) ? source as Schema : {}
+            const fieldPointer = pointerFor(pointer, name)
+            const fieldPath = `${path}/${escapePointer(name)}`
+            const problem = referenceProblem(field)
+            const jsonOnly = !!problem || isJsonOnly(field)
+            const inner = jsonOnly || deleted ? null : fieldsHolder(field)
+            const inline = depth < INLINE_LEVELS - 1
+            const open = !!inner && inline && expanded.has(fieldPointer)
+            rows.push({
+                pointer: fieldPointer,
+                path: fieldPath,
+                name,
+                depth,
+                type: typeLabel(field),
+                required: (deleted ? publishedRequired : required).includes(name),
+                constraints: problem || constraintsSummary(field),
+                description: typeof field.description === 'string' ? field.description : '',
+                children: inner ? Object.keys(propertiesOf(inner.schema)).length : null,
+                expanded: open,
+                drillIn: !!inner && !inline,
+                jsonOnly,
+                problem,
+                deleted
+            })
+            if (open && inner) {
+                visitFields(inner.schema, publishedHolder(publishedFields[name], inner.suffix), fieldPointer + inner.suffix, fieldPath, depth + 1)
+            }
         }
     }
 
-    // the published object matching an object of the draft, when the published version has it in the same shape
-    function publishedHolder (publishedField: unknown, suffix: string): FieldSchema | null {
-        const holder = isObject(publishedField) ? fieldsHolder(publishedField) : null
+    function publishedHolder (publishedField: unknown, suffix: string): Schema | null {
+        const holder = isObject(publishedField) ? fieldsHolder(publishedField as Schema) : null
         return holder?.suffix === suffix ? holder.schema : null
     }
 
-    const focused = focus ? fieldsHolder(schemaAt(root, focus) ?? {}) : null
+    const focused = focusedHolder(root, focus)
     if (focused) {
         const before = published ? publishedHolder(schemaAt(published, focus), focused.suffix) : null
         visitFields(focused.schema, before, focus + focused.suffix, fieldTrail(focus).at(-1)?.path ?? '', 0)
     } else if (fieldsHolder(root)?.suffix === '') {
         visitFields(root, published ? publishedHolder(published, '') : null, '', '', 0)
     } else {
-        rows.push(row(root, '(message)', '', '/', 0, true, false))
+        const problem = referenceProblem(root, true)
+        rows.push({
+            pointer: '',
+            path: '/',
+            name: '(message)',
+            depth: 0,
+            type: typeLabel(root),
+            required: true,
+            constraints: problem || constraintsSummary(root),
+            description: typeof root.description === 'string' ? root.description : '',
+            children: null,
+            expanded: false,
+            drillIn: false,
+            jsonOnly: !!problem || isJsonOnly(root),
+            problem,
+            deleted: false
+        })
     }
     return rows
 }
 
-// Whether the root object takes fields its schema doesn't list, which JSON Schema allows unless told otherwise
-export function allowsOtherFields (schema: FieldSchema): boolean {
-    return schema.additionalProperties !== false
+export function focusedHolder (root: Schema, focus: string): { schema: Schema, suffix: string } | null {
+    const field = focus ? schemaAt(root, focus) : undefined
+    return field ? fieldsHolder(field) : null
+}
+
+export type OtherFields = 'allowed' | 'none' | 'schema'
+
+// What an object does with fields its schema doesn't list: JSON Schema allows any unless told otherwise
+export function otherFields (schema: Schema): OtherFields {
+    if (schema.additionalProperties === false) {
+        return 'none'
+    }
+    return isObject(schema.additionalProperties) ? 'schema' : 'allowed'
 }

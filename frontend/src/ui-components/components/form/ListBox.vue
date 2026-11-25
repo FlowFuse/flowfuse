@@ -15,6 +15,7 @@
         <div class="relative">
             <ListboxButton
                 ref="trigger"
+                :aria-label="ariaLabel"
                 class="w-full rounded-md flex justify-between ff-button"
                 :class="[disabled ? 'cursor-not-allowed bg-gray-200 text-gray-500' : '']"
                 @click="() => { $nextTick(() => { updateItemsPosition() }) }"
@@ -175,6 +176,11 @@ export default {
             required: false,
             default: 'list-box',
             type: String
+        },
+        ariaLabel: {
+            required: false,
+            default: null,
+            type: [null, String]
         }
     },
     emits: ['update:modelValue', 'option-selected'],

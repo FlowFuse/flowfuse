@@ -1,25 +1,28 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, test } from 'vitest'
+import { markRaw } from 'vue'
 
 import FieldEditPanel from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/FieldEditPanel.vue'
+import TagInput from '../../../../../../../../frontend/src/ui-components/components/form/TagInput.vue'
 
 const ROOT = { type: 'object', required: ['unit'], properties: { unit: { type: 'string', enum: ['Cel'] }, sensor: { type: 'object', properties: {} } } }
 
 function mountPanel (pointer = '/properties/unit') {
     return mount(FieldEditPanel, {
-        props: { root: ROOT, pointer },
+        props: { root: markRaw(ROOT), pointer },
         global: {
             stubs: {
                 'ff-text-input': { props: ['modelValue'], emits: ['update:modelValue'], template: '<input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)">' },
                 'ff-listbox': { props: ['modelValue', 'options'], emits: ['update:modelValue'], template: '<select :value="modelValue" @change="$emit(\'update:modelValue\', $event.target.value)"><option v-for="o in options" :key="o.value" :value="o.value">{{ o.label }}</option></select>' },
                 'ff-checkbox': { props: ['modelValue'], emits: ['update:modelValue'], template: '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)">' },
+                'ff-tag-input': TagInput,
                 'ff-button': { props: ['disabled'], template: '<button :disabled="disabled"><slot /></button>' }
             }
         }
     })
 }
 
-const applied = (panel) => panel.emitted('apply').at(-1)[0]
+const applied = (panel) => panel.emitted('apply').at(-1)[0].root
 
 describe('Field edit panel', () => {
     test('applies the changes made in it', async () => {
@@ -32,7 +35,7 @@ describe('Field edit panel', () => {
 
     test('adds allowed values on Enter or a comma, and removes them', async () => {
         const panel = mountPanel()
-        const input = panel.find('[data-form="field-add-value"]')
+        const input = panel.find('[data-form="field-allowed-values"] input')
         await input.setValue('degF')
         await input.trigger('keydown', { key: 'Enter' })
         await input.setValue('K')
@@ -40,6 +43,13 @@ describe('Field edit panel', () => {
         await panel.find('[aria-label="Remove Cel"]').trigger('click')
         await panel.find('[data-action="field-apply"]').trigger('click')
         expect(applied(panel).properties.unit.enum).toEqual(['degF', 'K'])
+    })
+
+    test('applies a value typed but not yet entered', async () => {
+        const panel = mountPanel()
+        await panel.find('[data-form="field-allowed-values"] input').setValue('K')
+        await panel.find('[data-action="field-apply"]').trigger('click')
+        expect(applied(panel).properties.unit.enum).toEqual(['Cel', 'K'])
     })
 
     test('says why a field cannot be applied, and does not apply it', async () => {
@@ -62,6 +72,13 @@ describe('Field edit panel', () => {
         await panel.find('[data-form="field-other-fields"]').setValue(false)
         await panel.find('[data-action="field-apply"]').trigger('click')
         expect(applied(panel).properties.sensor.additionalProperties).toBe(false)
+    })
+
+    test('emits the pointer the field has after a rename', async () => {
+        const panel = mountPanel()
+        await panel.find('[data-form="field-name"]').setValue('units')
+        await panel.find('[data-action="field-apply"]').trigger('click')
+        expect(panel.emitted('apply').at(-1)[0].pointer).toBe('/properties/units')
     })
 
     test('cancels', async () => {
