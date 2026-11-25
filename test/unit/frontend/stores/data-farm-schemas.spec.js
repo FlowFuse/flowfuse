@@ -6,6 +6,8 @@ import { useDataFarmSchemasStore } from '@/stores/data-farm-schemas'
 
 vi.mock('@/api/schemas', () => ({
     default: {
+        listSchemas: vi.fn(),
+        listGroups: vi.fn(),
         createSchema: vi.fn(),
         getSchema: vi.fn(),
         getVersion: vi.fn(),
@@ -178,8 +180,10 @@ describe('data-farm-schemas store', () => {
     it('creates a schema for the active team', async () => {
         schemasApi.createSchema.mockResolvedValue({ id: 'new' })
         const store = useDataFarmSchemasStore()
-        expect(await store.createSchema('Temp')).toEqual({ id: 'new' })
+        expect(await store.createSchema({ name: 'Temp', description: '', groupId: '' })).toEqual({ id: 'new' })
         expect(schemasApi.createSchema).toHaveBeenCalledWith('team-1', { name: 'Temp' })
+        await store.createSchema({ name: 'Temp', description: 'Reading from a sensor', groupId: 'g1' })
+        expect(schemasApi.createSchema).toHaveBeenLastCalledWith('team-1', { name: 'Temp', description: 'Reading from a sensor', groupId: 'g1' })
     })
 
     it('drops a slower load for a schema that was left', async () => {
@@ -304,5 +308,90 @@ describe('data-farm-schemas store', () => {
         expect(store.activeSchema).toBeNull()
         expect(store.activeDraft).toBeNull()
         expect(store.schemaHydrated).toBe(false)
+    })
+
+    describe('the list', () => {
+        const GROUPS = [{ id: 'g1', name: 'Energy', schemaCount: 2 }, { id: 'g2', name: 'Line', schemaCount: 0 }]
+        const summary = (id) => ({ id, name: id, description: '', group: null, latestVersion: null, hasDraft: true })
+        // answers each list request from what was asked for, so tests can tell the sections apart
+        const answerByGroup = (pages) => schemasApi.listSchemas.mockImplementation(async (teamId, { groupId, query, cursor }) => {
+            const page = pages[`${groupId}${query ? `?${query}` : ''}${cursor ? `@${cursor}` : ''}`]
+            return { meta: { next_cursor: page.next }, count: page.count, schemas: page.ids.map(summary) }
+        })
+
+        beforeEach(() => {
+            schemasApi.listGroups.mockResolvedValue({ count: GROUPS.length, groups: GROUPS })
+        })
+
+        it('loads the groups, then a first page of each group and of the schemas in no group', async () => {
+            answerByGroup({ g1: { ids: ['a', 'b'], count: 2 }, g2: { ids: [], count: 0 }, none: { ids: ['c'], count: 1 } })
+            const store = useDataFarmSchemasStore()
+            await store.loadList()
+            expect(schemasApi.listSchemas).toHaveBeenCalledTimes(3)
+            expect(schemasApi.listSchemas).toHaveBeenCalledWith('team-1', { groupId: 'none', cursor: undefined, limit: 20 })
+            expect(store.groups.map(group => group.name)).toEqual(['Energy', 'Line'])
+            expect(store.groupSchemas.g1.schemas.map(schema => schema.id)).toEqual(['a', 'b'])
+            expect(store.groupSchemas.g2.count).toBe(0)
+            expect(store.groupSchemas.none.schemas.map(schema => schema.id)).toEqual(['c'])
+            expect(store.listHydrated).toBe(true)
+        })
+
+        it('adds the next page of a group to what is loaded, and stops offering more at the end', async () => {
+            answerByGroup({ g1: { ids: ['a', 'b'], count: 3, next: 'b' }, 'g1@b': { ids: ['c'], count: 3 }, g2: { ids: [], count: 0 }, none: { ids: [], count: 0 } })
+            const store = useDataFarmSchemasStore()
+            await store.loadList()
+            expect(store.groupSchemas.g1.nextCursor).toBe('b')
+            await store.loadMoreOfGroup('g1')
+            expect(store.groupSchemas.g1.schemas.map(schema => schema.id)).toEqual(['a', 'b', 'c'])
+            expect(store.groupSchemas.g1.nextCursor).toBeUndefined()
+        })
+
+        it('searches each group for a query, and keeps searching when more of a group is loaded', async () => {
+            answerByGroup({ 'g1?temp': { ids: ['a'], count: 2, next: 'a' }, 'g1?temp@a': { ids: ['b'], count: 2 }, 'g2?temp': { ids: [], count: 0 }, 'none?temp': { ids: ['c'], count: 1 } })
+            const store = useDataFarmSchemasStore()
+            await store.loadList('temp')
+            expect(store.listQuery).toBe('temp')
+            expect(store.groupSchemas.g2.count).toBe(0)
+            await store.loadMoreOfGroup('g1')
+            expect(store.groupSchemas.g1.schemas.map(schema => schema.id)).toEqual(['a', 'b'])
+        })
+
+        it('loads every schema of a group whose own name matches the query', async () => {
+            answerByGroup({ g1: { ids: ['a', 'b'], count: 2 }, 'g2?ener': { ids: [], count: 0 }, 'none?ener': { ids: [], count: 0 } })
+            const store = useDataFarmSchemasStore()
+            await store.loadList('ener')
+            expect(store.groupSchemas.g1.schemas.map(schema => schema.id)).toEqual(['a', 'b'])
+        })
+
+        it('keeps the list of the latest search when an older one answers last', async () => {
+            let answerFirst
+            schemasApi.listGroups.mockImplementationOnce(() => new Promise(resolve => { answerFirst = resolve }))
+            answerByGroup({ 'g1?te': { ids: ['older'], count: 1 }, 'g2?te': { ids: [], count: 0 }, 'none?te': { ids: [], count: 0 }, 'g1?temp': { ids: ['latest'], count: 1 }, 'g2?temp': { ids: [], count: 0 }, 'none?temp': { ids: [], count: 0 } })
+            const store = useDataFarmSchemasStore()
+            const first = store.loadList('te')
+            await store.loadList('temp')
+            answerFirst({ count: GROUPS.length, groups: GROUPS })
+            await first
+            expect(store.listQuery).toBe('temp')
+            expect(store.groupSchemas.g1.schemas.map(schema => schema.id)).toEqual(['latest'])
+        })
+
+        it('drops a list that answers after the page was left', async () => {
+            answerByGroup({ g1: { ids: ['a'], count: 1 }, g2: { ids: [], count: 0 }, none: { ids: [], count: 0 } })
+            const store = useDataFarmSchemasStore()
+            const loading = store.loadList()
+            store.resetList()
+            await loading
+            expect(store.groups).toEqual([])
+            expect(store.listHydrated).toBe(false)
+        })
+
+        it('leaves the open schema alone when the list is cleared', async () => {
+            schemasApi.getSchema.mockResolvedValue(schemaWith([PUBLISHED], false))
+            const store = useDataFarmSchemasStore()
+            await store.loadActiveSchema('abc')
+            store.resetList()
+            expect(store.activeSchema.id).toBe('abc')
+        })
     })
 })

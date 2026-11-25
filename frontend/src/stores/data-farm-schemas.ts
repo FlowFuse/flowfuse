@@ -3,10 +3,23 @@ import { computed, ref } from 'vue'
 
 import schemasApi from '@/api/schemas'
 import { useContextStore } from '@/stores/context.js'
-import type { DataSchema, DataSchemaDraft, DataSchemaVersion, DataSchemaVersionSummary } from '@/types'
+import type { DataSchema, DataSchemaDraft, DataSchemaGroup, DataSchemaSummary, DataSchemaVersion, DataSchemaVersionSummary } from '@/types'
 
 const errorCode = (err: unknown) => (err as { response?: { data?: { code?: string } } })?.response?.data?.code
 const draftGone = (err: unknown) => ['draft_changed', 'not_found'].includes(errorCode(err) ?? '')
+
+// The schemas loaded so far for one part of the list, and whether the server has more
+export interface SchemaListPage {
+    schemas: DataSchemaSummary[]
+    count: number
+    nextCursor?: string
+}
+
+// The section of the list for schemas that are in no group. It is not a group on the server.
+export const UNGROUPED = 'none'
+const LIST_PAGE_SIZE = 20
+
+export const groupMatches = (group: DataSchemaGroup, query: string) => !!query && group.name.toLowerCase().includes(query.toLowerCase())
 
 export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
     const activeSchema = ref<DataSchema | null>(null)
@@ -68,8 +81,50 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         if (await fetchActiveSchema(schemaId)) schemaHydrated.value = true
     }
 
-    async function createSchema (name: string): Promise<DataSchema> {
-        return schemasApi.createSchema(teamId(), { name })
+    // --- The list page: the team's groups, and the schemas of each group loaded a page at a time
+
+    const groups = ref<DataSchemaGroup[]>([])
+    // keyed by group id, plus UNGROUPED
+    const groupSchemas = ref<Record<string, SchemaListPage>>({})
+    const listHydrated = ref(false)
+    // what the list is searched for, empty when it is not
+    const listQuery = ref('')
+
+    // Bumped on every list load and on reset, so an answer for an older request is dropped
+    let listToken = 0
+
+    // A group whose own name matches the search keeps all of its schemas, so its section is not searched
+    async function fetchListPage (groupId: string, query: string, among: DataSchemaGroup[], cursor?: string): Promise<SchemaListPage> {
+        const group = among.find(group => group.id === groupId)
+        const params = { groupId, query: (group && groupMatches(group, query)) || !query ? undefined : query, cursor, limit: LIST_PAGE_SIZE }
+        const page = await schemasApi.listSchemas(teamId(), params)
+        return { schemas: page.schemas, count: page.count, nextCursor: page.meta.next_cursor }
+    }
+
+    // Loads the groups and the first schemas of each. With a query, each group only gets the schemas that match it.
+    async function loadList (query = ''): Promise<void> {
+        const token = ++listToken
+        const { groups: teamGroups } = await schemasApi.listGroups(teamId())
+        const keys = [...teamGroups.map(group => group.id), UNGROUPED]
+        const pages = await Promise.all(keys.map(groupId => fetchListPage(groupId, query, teamGroups)))
+        if (token !== listToken) return
+        groups.value = teamGroups
+        groupSchemas.value = Object.fromEntries(keys.map((key, index) => [key, pages[index]]))
+        listQuery.value = query
+        listHydrated.value = true
+    }
+
+    async function loadMoreOfGroup (groupId: string): Promise<void> {
+        const token = listToken
+        const loaded = groupSchemas.value[groupId]
+        const next = await fetchListPage(groupId, listQuery.value, groups.value, loaded.nextCursor)
+        if (token !== listToken) return
+        groupSchemas.value[groupId] = { ...next, schemas: [...loaded.schemas, ...next.schemas] }
+    }
+
+    // The description and the group are optional, and left out of the request when empty
+    async function createSchema ({ name, description, groupId }: { name: string, description?: string, groupId?: string }): Promise<DataSchema> {
+        return schemasApi.createSchema(teamId(), { name, ...(description && { description }), ...(groupId && { groupId }) })
     }
 
     // The draft actions below answer for the schema that was open when they were called.
@@ -144,6 +199,15 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         setDraftEntry(null, published)
     }
 
+    // Kept apart from `reset`: the schema page clears the open schema when it is left, which is often for the list
+    function resetList (): void {
+        listToken++
+        groups.value = []
+        groupSchemas.value = {}
+        listHydrated.value = false
+        listQuery.value = ''
+    }
+
     function reset (): void {
         loadToken++
         activeSchema.value = null
@@ -158,6 +222,13 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         activeLatestPublished,
         schemaHydrated,
         existingVersions,
+        groups,
+        groupSchemas,
+        listHydrated,
+        listQuery,
+        loadList,
+        loadMoreOfGroup,
+        resetList,
         loadActiveSchema,
         createSchema,
         saveDraft,
