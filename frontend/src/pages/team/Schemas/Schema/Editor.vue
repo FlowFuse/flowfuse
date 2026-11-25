@@ -7,6 +7,7 @@
                     <ExclamationCircleIcon class="ff-icon-sm" />
                     {{ problemCount }} {{ problemCount === 1 ? 'problem' : 'problems' }}
                 </span>
+                <span v-if="view === 'builder' && rootType" class="schema-root-type" data-el="builder-root-type">Root type <span class="font-mono">{{ rootType }}</span></span>
                 <template v-if="view === 'json'">
                     <ff-button v-if="canChangeText" kind="secondary" size="small" data-action="format-json" @click="jsonEditor?.format()">Format</ff-button>
                     <ff-button v-if="clipboardSupported" kind="secondary" size="small" data-action="copy-json" @click="copy">Copy</ff-button>
@@ -17,6 +18,7 @@
                 </template>
             </div>
         </div>
+        <SchemaBuilder v-if="view === 'builder'" :schema-text="schemaText" @edit-json="view = 'json'" />
         <JsonEditor v-show="view === 'json'" ref="jsonEditor" v-model="schemaText" v-model:problems="editorProblems" :markers="markers" :read-only="jsonReadOnly" />
         <div v-if="draft" class="schema-notes" data-el="schema-notes">
             <label for="schema-version-notes" class="schema-notes__label">
@@ -43,6 +45,8 @@
 import { DocumentTextIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import { computed, ref } from 'vue'
 
+import SchemaBuilder from './components/SchemaBuilder.vue'
+import { typeLabel } from './components/builder'
 import type { ReferenceProblem } from './components/referenceProblems'
 
 import FfAccordion from '@/components/Accordion.vue'
@@ -70,9 +74,19 @@ const views = [
     { title: 'Builder', value: 'builder' },
     { title: 'JSON', value: 'json' }
 ]
-const view = ref('json')
+const view = ref('builder')
 const jsonEditor = ref<InstanceType<typeof JsonEditor> | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
+
+// what the whole message is, shown beside the builder
+const rootType = computed(() => {
+    try {
+        const value = JSON.parse(schemaText.value)
+        return value && typeof value === 'object' && !Array.isArray(value) ? typeLabel(value) : ''
+    } catch {
+        return ''
+    }
+})
 
 const jsonReadOnly = computed(() => props.readOnly || !props.draft)
 // Format and Import work through the editor, so they are no use when it failed to load
@@ -99,6 +113,15 @@ async function importFile (event: Event) {
 </script>
 
 <style scoped lang="scss">
+.schema-root-type {
+    font-size: 0.875rem;
+    color: var(--ff-color-text-subtle);
+
+    .font-mono {
+        color: var(--ff-color-text);
+    }
+}
+
 .schema-notes {
     &__label {
         display: flex;
