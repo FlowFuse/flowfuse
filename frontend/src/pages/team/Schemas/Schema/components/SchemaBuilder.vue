@@ -10,30 +10,59 @@
                     <ff-data-table-row v-if="!rows.length">
                         <ff-data-table-cell class="status-message" :colspan="columns.length" data-el="builder-no-fields">This schema has no fields yet</ff-data-table-cell>
                     </ff-data-table-row>
-                    <ff-data-table-row v-for="row in rows" :key="row.pointer" :data-el="`builder-row-${row.path}`">
-                        <ff-data-table-cell class="schema-builder__field-cell">
-                            <div class="schema-builder__field" :style="{ '--depth': row.depth }">
-                                <span v-for="level in row.depth" :key="level" class="schema-builder__guide" />
-                                <button v-if="row.children !== null" class="schema-builder__toggle" :aria-expanded="row.expanded" :aria-label="`${row.expanded ? 'Collapse' : 'Expand'} ${row.name}`" data-action="builder-toggle" @click="toggle(row.pointer)">
-                                    <ChevronDownIcon v-if="row.expanded" class="ff-icon-sm" />
-                                    <ChevronRightIcon v-else class="ff-icon-sm" />
-                                </button>
-                                <span class="font-mono font-medium">{{ row.name }}</span>
-                            </div>
-                        </ff-data-table-cell>
-                        <ff-data-table-cell class="font-mono schema-builder__muted">{{ row.type }}</ff-data-table-cell>
-                        <ff-data-table-cell :class="row.required ? 'schema-builder__yes' : 'schema-builder__muted'">{{ row.required ? 'Yes' : 'No' }}</ff-data-table-cell>
-                        <ff-data-table-cell class="schema-builder__muted" :class="{ 'font-mono': !row.jsonOnly && row.constraints !== 'None' }">{{ row.constraints }}</ff-data-table-cell>
-                        <ff-data-table-cell>
-                            <button v-if="row.jsonOnly" class="schema-builder__link" data-action="builder-edit-in-json" @click="emit('edit-json')">Edit in JSON →</button>
-                            <span v-else>{{ row.description }}</span>
+                    <template v-for="entry in entries" :key="entry.key">
+                        <ff-data-table-row v-if="entry.kind === 'add'" :data-el="`builder-add-${entry.path}`">
+                            <ff-data-table-cell :colspan="columns.length">
+                                <div class="schema-builder__field">
+                                    <span v-for="level in entry.depth" :key="level" class="schema-builder__guide" />
+                                    <button class="schema-builder__link" data-action="builder-add-field" @click="add(entry.holder)">+ Add field to {{ entry.name }}</button>
+                                </div>
+                            </ff-data-table-cell>
+                        </ff-data-table-row>
+                        <ff-data-table-row v-else-if="entry.kind === 'panel'" data-el="builder-editing">
+                            <ff-data-table-cell class="schema-builder__panel-cell" :colspan="columns.length">
+                                <FieldEditPanel :root="schema" :pointer="entry.row.pointer" @apply="applied(entry.row.pointer, $event)" @cancel="editing = null" />
+                            </ff-data-table-cell>
+                        </ff-data-table-row>
+                        <ff-data-table-row v-else :data-el="`builder-row-${entry.row.path}`">
+                            <ff-data-table-cell class="schema-builder__field-cell">
+                                <div class="schema-builder__field">
+                                    <span v-for="level in entry.row.depth" :key="level" class="schema-builder__guide" />
+                                    <button v-if="entry.row.children !== null" class="schema-builder__toggle" :aria-expanded="entry.row.expanded" :aria-label="`${entry.row.expanded ? 'Collapse' : 'Expand'} ${entry.row.name}`" data-action="builder-toggle" @click="toggle(entry.row.pointer)">
+                                        <ChevronDownIcon v-if="entry.row.expanded" class="ff-icon-sm" />
+                                        <ChevronRightIcon v-else class="ff-icon-sm" />
+                                    </button>
+                                    <span class="font-mono font-medium">{{ entry.row.name }}</span>
+                                </div>
+                            </ff-data-table-cell>
+                            <ff-data-table-cell class="font-mono schema-builder__muted">{{ entry.row.type }}</ff-data-table-cell>
+                            <ff-data-table-cell :class="entry.row.required ? 'schema-builder__yes' : 'schema-builder__muted'">{{ entry.row.required ? 'Yes' : 'No' }}</ff-data-table-cell>
+                            <ff-data-table-cell class="schema-builder__muted" :class="{ 'font-mono': !entry.row.jsonOnly && entry.row.constraints !== 'None' }">{{ entry.row.constraints }}</ff-data-table-cell>
+                            <ff-data-table-cell>
+                                <button v-if="entry.row.jsonOnly" class="schema-builder__link" data-action="builder-edit-in-json" @click="emit('edit-json')">Edit in JSON →</button>
+                                <span v-else>{{ entry.row.description }}</span>
+                            </ff-data-table-cell>
+                            <ff-data-table-cell v-if="!readOnly">
+                                <ff-kebab-menu v-if="!entry.row.jsonOnly && entry.row.pointer">
+                                    <ff-kebab-item label="Edit" @click="editing = entry.row.pointer" />
+                                </ff-kebab-menu>
+                            </ff-data-table-cell>
+                        </ff-data-table-row>
+                    </template>
+                    <ff-data-table-row v-if="!readOnly && holdsFields">
+                        <ff-data-table-cell :colspan="columns.length">
+                            <ff-button kind="secondary" class="w-full" data-action="builder-add-root-field" @click="add('')">
+                                <template #icon-left><PlusIcon /></template>
+                                Add field
+                            </ff-button>
                         </ff-data-table-cell>
                     </ff-data-table-row>
                 </template>
             </ff-data-table>
             <div v-if="holdsFields" class="schema-builder__other-fields" data-el="builder-other-fields">
                 <p class="schema-builder__label">Fields not listed in the schema</p>
-                <p>{{ otherFields ? 'Allowed (additionalProperties: true)' : 'Not allowed (additionalProperties: false)' }}</p>
+                <ff-checkbox v-if="!readOnly" :model-value="otherFields" data-action="builder-other-fields" @update:model-value="setOtherFields">Allow them (additionalProperties)</ff-checkbox>
+                <p v-else>{{ otherFields ? 'Allowed (additionalProperties: true)' : 'Not allowed (additionalProperties: false)' }}</p>
             </div>
         </template>
     </div>
@@ -41,21 +70,25 @@
 
 <script setup lang="ts">
 import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/vue/20/solid'
+import { PlusIcon } from '@heroicons/vue/24/outline'
 import { computed, ref } from 'vue'
 
-import { type FieldSchema, allowsOtherFields, builderRows, fieldsHolder } from './builder'
+import FieldEditPanel from './FieldEditPanel.vue'
+import { type FieldRow, type FieldSchema, allowsOtherFields, builderRows, fieldsHolder } from './builder'
+import { addField, schemaAt, setOtherFieldsAllowed, splitPointer } from './builderEdits'
 
 defineOptions({ name: 'SchemaBuilder' })
 
-const props = defineProps<{ schemaText: string }>()
-const emit = defineEmits<{ 'edit-json': [] }>()
+const props = defineProps<{ schemaText: string, readOnly: boolean }>()
+const emit = defineEmits<{ 'edit-json': [], 'update:schemaText': [text: string] }>()
 
 const columns = [
     { label: 'Field', key: 'name', class: ['w-1/5'] },
     { label: 'Type', key: 'type', class: ['w-40'] },
     { label: 'Required', key: 'required', class: ['w-28'] },
     { label: 'Constraints', key: 'constraints' },
-    { label: 'Description', key: 'description' }
+    { label: 'Description', key: 'description' },
+    ...(props.readOnly ? [] : [{ label: '', key: 'actions', class: ['w-16'] }])
 ]
 
 // The builder is another view of the JSON, so it reads the same text, and only a schema object can be shown
@@ -76,6 +109,60 @@ function toggle (pointer: string) {
 }
 
 const rows = computed(() => schema.value ? builderRows(schema.value, expanded.value) : [])
+// the pointer of the field whose edit panel is open
+const editing = ref<string | null>(null)
+
+type RowEntry = { kind: 'field' | 'panel', key: string, row: FieldRow }
+type AddEntry = { kind: 'add', key: string, holder: string, path: string, name: string, depth: number }
+type Entry = RowEntry | AddEntry
+
+// The field rows, with the edit panel under the field being edited and an add row closing each expanded object
+const entries = computed<Entry[]>(() => {
+    const list: Entry[] = []
+    const open: FieldRow[] = []
+    const closeTo = (depth: number) => {
+        while (open.length && open.at(-1)!.depth >= depth) {
+            const parent = open.pop()!
+            if (props.readOnly) continue
+            const holder = parent.pointer + (fieldsHolder(schemaAt(schema.value!, parent.pointer))?.suffix ?? '')
+            list.push({ kind: 'add', key: `add:${parent.pointer}`, holder, path: parent.path, name: parent.name, depth: parent.depth + 1 })
+        }
+    }
+    for (const row of rows.value) {
+        closeTo(row.depth)
+        list.push({ kind: 'field', key: row.pointer, row })
+        if (editing.value === row.pointer) list.push({ kind: 'panel', key: `panel:${row.pointer}`, row })
+        if (row.expanded) open.push(row)
+    }
+    closeTo(0)
+    return list
+})
+
+const write = (root: FieldSchema) => emit('update:schemaText', JSON.stringify(root, null, 2))
+
+// A renamed field gets a new pointer, which the expanded fields under it follow
+function applied (pointer: string, root: FieldSchema) {
+    const { holder } = splitPointer(pointer)
+    const before = Object.keys(schemaAt(schema.value!, holder).properties ?? {})
+    const after = Object.keys(schemaAt(root, holder).properties ?? {})
+    const renamed = after.find(name => !before.includes(name))
+    if (renamed) {
+        const moved = `${holder}/properties/${renamed.replace(/~/g, '~0').replace(/\//g, '~1')}`
+        expanded.value = new Set([...expanded.value].map(entry => entry === pointer || entry.startsWith(`${pointer}/`) ? moved + entry.slice(pointer.length) : entry))
+    }
+    editing.value = null
+    write(root)
+}
+
+function add (holder: string) {
+    const added = addField(schema.value!, holder)
+    write(added.root)
+    editing.value = added.pointer
+}
+
+function setOtherFields (allowed: boolean) {
+    write(setOtherFieldsAllowed(schema.value!, '', allowed))
+}
 // only an object has fields, listed or not
 const holdsFields = computed(() => !!schema.value && fieldsHolder(schema.value)?.suffix === '')
 const otherFields = computed(() => schema.value ? allowsOtherFields(schema.value) : true)
@@ -131,6 +218,10 @@ const otherFields = computed(() => schema.value ? allowsOtherFields(schema.value
 
     &__yes {
         color: var(--ff-color-status-success-text);
+    }
+
+    &__panel-cell {
+        padding: 0;
     }
 
     &__link {
