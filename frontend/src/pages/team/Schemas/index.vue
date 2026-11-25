@@ -100,7 +100,10 @@ const failed = (fallback: string) => (err) => Alerts.emit(err.response?.data?.er
 watch(() => team.value?.id, (teamId) => {
     if (!teamId || !featuresCheck.value.isJsonSchemasFeatureEnabled) return
     schemasStore.resetList()
-    schemasStore.loadList(searchText.value.trim()).catch(failed('Failed to load the schemas.'))
+    schemasStore.loadList(searchText.value.trim()).catch((err) => {
+        uxLoading.setPageLoader(false)
+        failed('Failed to load the schemas.')(err)
+    })
 }, { immediate: true })
 watch(listHydrated, (hydrated) => uxLoading.setPageLoader(!hydrated, 'Loading Schemas...'), { immediate: true })
 watch(searchText, debounce((text: string) => schemasStore.loadList(text.trim()).catch(failed('Failed to search the schemas.')), 300))
