@@ -1,4 +1,6 @@
-import { type FieldSchema, typesOf } from './builder'
+import { type FieldSchema, schemaAt, typesOf } from './builder'
+
+export { schemaAt }
 
 // The types a field can have in the builder, `null` being offered on its own and as "Also allow null"
 export const FIELD_TYPES = ['string', 'number', 'integer', 'boolean', 'object', 'array', 'null'] as const
@@ -40,11 +42,6 @@ export interface FieldForm {
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value))
 const unescape = (segment: string) => segment.replace(/~1/g, '/').replace(/~0/g, '~')
 const numberText = (value: unknown) => typeof value === 'number' ? String(value) : ''
-
-// The schema at a JSON Pointer, '' being the root
-export function schemaAt (root: FieldSchema, pointer: string): FieldSchema {
-    return pointer.split('/').slice(1).map(unescape).reduce<unknown>((schema, segment) => (schema as Record<string, unknown> | undefined)?.[segment], root) as FieldSchema
-}
 
 // The object schema holding a field, and the field's name in it
 export function splitPointer (pointer: string): { holder: string, name: string } {
