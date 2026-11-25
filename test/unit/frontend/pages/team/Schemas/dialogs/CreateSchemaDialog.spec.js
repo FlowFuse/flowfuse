@@ -9,10 +9,11 @@ function mountDialog (props = {}) {
     const pinia = createPinia()
     setActivePinia(pinia)
     const dialog = mount(CreateSchemaDialog, {
-        props: { error: '', creating: false, groups: [], ...props },
+        props: { error: '', busy: false, groups: [], ...props },
         global: {
             plugins: [pinia],
             stubs: {
+                'ff-combobox': { name: 'ff-combobox', props: ['modelValue', 'options'], emits: ['update:modelValue'], template: '<div data-el="combobox" />' },
                 FormRow: {
                     name: 'FormRow',
                     props: ['modelValue', 'error', 'options'],
@@ -36,7 +37,7 @@ describe('Create schema dialog', () => {
 
     test('offers the groups of the team, with no group picked to start with', async () => {
         const { dialog } = mountDialog({ groups: [{ id: 'g1', name: 'Energy' }] })
-        const group = dialog.findAllComponents({ name: 'FormRow' }).at(-1)
+        const group = dialog.findComponent({ name: 'ff-combobox' })
         expect(group.props('options')).toEqual([{ label: 'No group', value: 'none' }, { label: 'Energy', value: 'g1' }])
         expect(group.props('modelValue')).toBe('none')
         await group.vm.$emit('update:modelValue', 'g1')
@@ -46,7 +47,7 @@ describe('Create schema dialog', () => {
     })
 
     test('leaves the group out for a team with no groups', () => {
-        expect(mountDialog().dialog.findAllComponents({ name: 'FormRow' })).toHaveLength(2)
+        expect(mountDialog().dialog.find('[data-el="combobox"]').exists()).toBe(false)
     })
 
     test('can be confirmed with a name and no description', async () => {
@@ -67,7 +68,7 @@ describe('Create schema dialog', () => {
     test('cannot be confirmed again while the schema is being created', async () => {
         const { dialog, dialogStore } = mountDialog()
         await dialog.find('input').setValue('Temp')
-        await dialog.setProps({ creating: true })
+        await dialog.setProps({ busy: true })
         expect(dialogStore.dialog.disablePrimary).toBe(true)
     })
 

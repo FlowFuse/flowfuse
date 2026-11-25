@@ -8,7 +8,12 @@
                 <textarea v-model="description" class="w-full" rows="3" />
             </template>
         </FormRow>
-        <FormRow v-if="groups.length" v-model="groupId" :options="groupOptions" data-form="schema-group">Group</FormRow>
+        <FormRow v-if="groups.length" data-form="schema-group">
+            Group
+            <template #input>
+                <ff-combobox v-model="groupId" class="w-full" :options="groupOptions" />
+            </template>
+        </FormRow>
     </form>
 </template>
 
@@ -25,7 +30,7 @@ defineOptions({ name: 'CreateSchemaDialog' })
 // Shown inside the platform dialog, which owns the header and the buttons
 const props = defineProps<{
     error: string
-    creating: boolean
+    busy: boolean
     groups: DataSchemaGroup[]
 }>()
 
@@ -40,5 +45,5 @@ const groupId = ref(UNGROUPED)
 const groupOptions = computed(() => [{ label: 'No group', value: UNGROUPED }, ...props.groups.map(group => ({ label: group.name, value: group.id }))])
 
 watch([name, description, groupId], () => emit('change', { name: name.value.trim(), description: description.value.trim(), groupId: groupId.value === UNGROUPED ? '' : groupId.value }))
-watch(() => !name.value.trim() || props.creating, (disabled) => dialogStore.setDisablePrimary(disabled), { immediate: true })
+watch(() => !name.value.trim() || props.busy, (disabled) => dialogStore.setDisablePrimary(disabled), { immediate: true })
 </script>

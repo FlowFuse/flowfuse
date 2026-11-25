@@ -19,6 +19,8 @@ function mountTable (props = {}) {
                 'ff-data-table': { template: '<table><tbody><slot name="rows" /></tbody></table>' },
                 'ff-data-table-row': { template: '<tr><slot /></tr>' },
                 'ff-data-table-cell': { template: '<td><slot /></td>' },
+                'ff-kebab-menu': { template: '<div data-el="kebab-menu"><slot /></div>' },
+                'ff-kebab-item': { props: ['label'], template: '<button :data-item="label">{{ label }}</button>' },
                 'ff-button': { template: '<button><slot /></button>' },
                 'router-link': { props: ['to'], template: '<a :data-schema="to.params.schemaId"><slot /></a>' },
                 StatusBadge: { props: ['text'], template: '<span data-el="draft-badge">{{ text }}</span>' }
@@ -85,6 +87,23 @@ describe('Schemas table', () => {
         await table.find('[data-el="schema-group-g1"] [data-action="toggle-group"]').trigger('click')
         await table.setProps({ query: 'schema' })
         expect(rowIds(table)).toEqual(['a', 'b', 'c'])
+    })
+
+    test('offers Rename and Delete on every group but not on Ungrouped, and says which group', async () => {
+        const table = mountTable({ canRename: true, canDelete: true })
+        expect(table.findAll('[data-el="kebab-menu"]')).toHaveLength(2)
+        expect(table.find('[data-el="schema-group-none"] [data-el="kebab-menu"]').exists()).toBe(false)
+        await table.find('[data-el="schema-group-g1"] [data-item="Rename"]').trigger('click')
+        expect(table.emitted('rename-group')[0]).toEqual([GROUPS[0]])
+        await table.find('[data-el="schema-group-g2"] [data-item="Delete"]').trigger('click')
+        expect(table.emitted('delete-group')[0]).toEqual([GROUPS[1]])
+    })
+
+    test('offers only what is allowed, and no menu at all when nothing is', () => {
+        const renameOnly = mountTable({ canRename: true })
+        expect(renameOnly.find('[data-item="Rename"]').exists()).toBe(true)
+        expect(renameOnly.find('[data-item="Delete"]').exists()).toBe(false)
+        expect(mountTable().find('[data-el="kebab-menu"]').exists()).toBe(false)
     })
 
     test('says so when a search finds nothing', () => {

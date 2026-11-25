@@ -13,6 +13,19 @@ const listGroups = async (teamId: string): Promise<{ count: number, groups: Data
     return client.get(`/api/v1/teams/${teamId}/schemas/groups`).then(res => res.data)
 }
 
+const createGroup = async (teamId: string, name: string): Promise<DataSchemaGroup> => {
+    return client.post(`/api/v1/teams/${teamId}/schemas/groups`, { name }).then(res => res.data)
+}
+
+const renameGroup = async (teamId: string, groupId: string, name: string): Promise<DataSchemaGroup> => {
+    return client.put(`/api/v1/teams/${teamId}/schemas/groups/${groupId}`, { name }).then(res => res.data)
+}
+
+// The schemas of a deleted group are kept, without a group
+const deleteGroup = async (teamId: string, groupId: string): Promise<void> => {
+    return client.delete(`/api/v1/teams/${teamId}/schemas/groups/${groupId}`).then(res => res.data)
+}
+
 const createSchema = async (teamId: string, body: { name: string, description?: string, groupId?: string }): Promise<DataSchema> => {
     return client.post(`/api/v1/teams/${teamId}/schemas`, body).then(res => res.data)
 }
@@ -48,6 +61,9 @@ const publishDraft = async (teamId: string, schemaId: string, body: { version: s
 export default {
     listSchemas,
     listGroups,
+    createGroup,
+    renameGroup,
+    deleteGroup,
     createSchema,
     getSchema,
     getVersion,

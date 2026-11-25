@@ -6,10 +6,16 @@
                     Define the shape of the data your flows send and receive. Nodes validate messages against a published version of a schema.
                 </template>
                 <template #tools>
-                    <ff-button v-if="hasPermission('team:schema:create')" data-action="create-schema" @click="showCreateDialog">
-                        <template #icon-left><PlusIcon /></template>
-                        Create schema
-                    </ff-button>
+                    <div class="flex gap-2">
+                        <ff-button v-if="hasPermission('team:schema:create')" kind="secondary" data-action="new-schema-group" @click="showNewGroupDialog">
+                            <template #icon-left><PlusIcon /></template>
+                            New group
+                        </ff-button>
+                        <ff-button v-if="hasPermission('team:schema:create')" data-action="create-schema" @click="showCreateDialog">
+                            <template #icon-left><PlusIcon /></template>
+                            Create schema
+                        </ff-button>
+                    </div>
                 </template>
             </ff-page-header>
         </template>
@@ -40,6 +46,10 @@
                     :groups="groups"
                     :group-schemas="groupSchemas"
                     :query="listQuery"
+                    :can-rename="hasPermission('team:schema:edit')"
+                    :can-delete="hasPermission('team:schema:delete')"
+                    @rename-group="showRenameGroupDialog"
+                    @delete-group="showDeleteGroupDialog"
                     @load-more="schemasStore.loadMoreOfGroup($event).catch(failed('Failed to load more schemas.'))"
                 />
             </div>
@@ -50,11 +60,12 @@
 <script setup lang="ts">
 import { MagnifyingGlassIcon, PlusIcon } from '@heroicons/vue/24/outline'
 import { storeToRefs } from 'pinia'
-import { computed, markRaw, onBeforeUnmount, ref, watch } from 'vue'
+import { type Component, computed, markRaw, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import SchemasTable from './components/SchemasTable.vue'
 import CreateSchemaDialog from './dialogs/CreateSchemaDialog.vue'
+import GroupDialog from './dialogs/GroupDialog.vue'
 
 import EmptyState from '@/components/EmptyState.vue'
 import usePermissions from '@/composables/Permissions.js'
@@ -65,6 +76,7 @@ import { useContextStore } from '@/stores/context.js'
 import { UNGROUPED, useDataFarmSchemasStore } from '@/stores/data-farm-schemas'
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
 import { useUxLoadingStore } from '@/stores/ux-loading.js'
+import type { DataSchemaGroup } from '@/types'
 import { debounce } from '@/utils/eventHandling'
 
 defineOptions({ name: 'TeamSchemas' })
@@ -102,43 +114,104 @@ const summary = computed(() => listQuery.value
     ? pluralize('result', schemaCount.value)
     : `${pluralize('schema', schemaCount.value)} in ${pluralize('group', groups.value.length)}`)
 
-function showCreateDialog () {
-    let details = { name: '', description: '', groupId: '' }
-    let creating = false
-    // set when the dialog is cancelled while the schema is still being created, which can't be taken back
+// Opens a form in the platform dialog, which stays open until `submit` has worked. An error from the server shows on the form.
+// `done` is told when the dialog was cancelled while the request was still out. That can't be taken back, so the outcome is a toast.
+function showFormDialog<Values, Result> ({ header, confirmLabel, component, payload = {}, values, submit, done, failure }: {
+    header: string
+    confirmLabel: string
+    component: Component
+    payload?: Record<string, unknown>
+    values: Values
+    submit: (values: Values) => Promise<Result>
+    done: (result: Result, cancelled: boolean) => void
+    failure: string
+}) {
+    let busy = false
     let cancelled = false
     Dialog.show({
-        header: 'Create schema',
-        confirmLabel: 'Create',
+        header,
+        confirmLabel,
         closeOnConfirm: false,
         is: {
-            component: markRaw(CreateSchemaDialog),
-            payload: { error: '', creating: false, groups: groups.value },
+            component: markRaw(component),
+            payload: { ...payload, error: '', busy: false },
             on: {
-                change: (value: typeof details) => {
-                    details = value
+                change: (value: Values) => {
+                    values = value
                     dialogStore.updateDialogPayload({ error: '' })
                 }
             }
         }
     }, async () => {
-        if (creating) return
-        creating = true
-        dialogStore.updateDialogPayload({ creating: true })
+        if (busy) return
+        busy = true
+        dialogStore.updateDialogPayload({ busy: true })
         try {
-            const schema = await schemasStore.createSchema(details)
-            if (cancelled) return Alerts.emit(`Schema ${schema.name} created.`, 'confirmation')
-            Dialog.close()
-            router.push({ name: 'team-schema', params: { team_slug: team.value?.slug, schemaId: schema.id } })
+            const result = await submit(values)
+            if (!cancelled) Dialog.close()
+            done(result, cancelled)
         } catch (err) {
-            const message = err.response?.data?.error || 'Failed to create the schema.'
+            const message = err.response?.data?.error || failure
             if (cancelled) return Alerts.emit(message, 'warning')
             dialogStore.updateDialogPayload({ error: message })
         } finally {
-            creating = false
-            if (!cancelled) dialogStore.updateDialogPayload({ creating: false })
+            busy = false
+            if (!cancelled) dialogStore.updateDialogPayload({ busy: false })
         }
     }, () => { cancelled = true })
+}
+
+function showCreateDialog () {
+    showFormDialog({
+        header: 'Create schema',
+        confirmLabel: 'Create',
+        component: CreateSchemaDialog,
+        payload: { groups: groups.value },
+        values: { name: '', description: '', groupId: '' },
+        submit: (details) => schemasStore.createSchema(details),
+        done: (schema, cancelled) => {
+            if (cancelled) return Alerts.emit(`Schema ${schema.name} created.`, 'confirmation')
+            router.push({ name: 'team-schema', params: { team_slug: team.value?.slug, schemaId: schema.id } })
+        },
+        failure: 'Failed to create the schema.'
+    })
+}
+
+function showNewGroupDialog () {
+    showFormDialog({
+        header: 'New group',
+        confirmLabel: 'Create',
+        component: GroupDialog,
+        values: '',
+        submit: (name) => schemasStore.createGroup(name).then(() => name),
+        done: (name) => Alerts.emit(`Group ${name} created.`, 'confirmation'),
+        failure: 'Failed to create the group.'
+    })
+}
+
+function showRenameGroupDialog (group: DataSchemaGroup) {
+    showFormDialog({
+        header: 'Rename group',
+        confirmLabel: 'Rename',
+        component: GroupDialog,
+        payload: { name: group.name },
+        values: group.name,
+        submit: (name) => schemasStore.renameGroup(group.id, name).then(() => name),
+        done: (name) => Alerts.emit(`Group renamed to ${name}.`, 'confirmation'),
+        failure: 'Failed to rename the group.'
+    })
+}
+
+function showDeleteGroupDialog (group: DataSchemaGroup) {
+    const kept = group.schemaCount === 1 ? 'Its schema is kept and moves to Ungrouped.' : `Its ${group.schemaCount} schemas are kept and move to Ungrouped.`
+    Dialog.show({
+        header: 'Delete group',
+        text: `Are you sure you want to delete the group ${group.name}?${group.schemaCount ? ` ${kept}` : ''}`,
+        confirmLabel: 'Delete',
+        kind: 'danger'
+    }, () => schemasStore.deleteGroup(group.id)
+        .then(() => Alerts.emit(`Group ${group.name} deleted.`, 'confirmation'))
+        .catch(failed('Failed to delete the group.')))
 }
 </script>
 

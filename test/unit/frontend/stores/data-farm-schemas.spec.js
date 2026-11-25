@@ -8,6 +8,9 @@ vi.mock('@/api/schemas', () => ({
     default: {
         listSchemas: vi.fn(),
         listGroups: vi.fn(),
+        createGroup: vi.fn(),
+        renameGroup: vi.fn(),
+        deleteGroup: vi.fn(),
         createSchema: vi.fn(),
         getSchema: vi.fn(),
         getVersion: vi.fn(),
@@ -374,6 +377,27 @@ describe('data-farm-schemas store', () => {
             await first
             expect(store.listQuery).toBe('temp')
             expect(store.groupSchemas.g1.schemas.map(schema => schema.id)).toEqual(['latest'])
+        })
+
+        it('creates, renames and deletes a group for the active team, loading the list again each time with the search that is on', async () => {
+            answerByGroup({ g1: { ids: [], count: 0 }, 'g2?ener': { ids: [], count: 0 }, 'none?ener': { ids: [], count: 0 } })
+            const store = useDataFarmSchemasStore()
+            await store.loadList('ener')
+            await store.createGroup('Quality')
+            expect(schemasApi.createGroup).toHaveBeenCalledWith('team-1', 'Quality')
+            await store.renameGroup('g1', 'Power')
+            expect(schemasApi.renameGroup).toHaveBeenCalledWith('team-1', 'g1', 'Power')
+            await store.deleteGroup('g2')
+            expect(schemasApi.deleteGroup).toHaveBeenCalledWith('team-1', 'g2')
+            expect(schemasApi.listGroups).toHaveBeenCalledTimes(4)
+            expect(schemasApi.listSchemas).toHaveBeenLastCalledWith('team-1', expect.objectContaining({ groupId: 'none', query: 'ener' }))
+        })
+
+        it('leaves the list alone when a change to a group is refused', async () => {
+            schemasApi.createGroup.mockRejectedValue(apiError('name_conflict'))
+            const store = useDataFarmSchemasStore()
+            await expect(store.createGroup('Energy')).rejects.toBeTruthy()
+            expect(schemasApi.listGroups).not.toHaveBeenCalled()
         })
 
         it('drops a list that answers after the page was left', async () => {

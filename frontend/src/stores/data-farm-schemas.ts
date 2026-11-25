@@ -123,6 +123,22 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
     }
 
     // The description and the group are optional, and left out of the request when empty
+    // A change to the groups moves sections, counts and the order around, so the list is loaded again after one
+    async function createGroup (name: string): Promise<void> {
+        await schemasApi.createGroup(teamId(), name)
+        await loadList(listQuery.value)
+    }
+
+    async function renameGroup (groupId: string, name: string): Promise<void> {
+        await schemasApi.renameGroup(teamId(), groupId, name)
+        await loadList(listQuery.value)
+    }
+
+    async function deleteGroup (groupId: string): Promise<void> {
+        await schemasApi.deleteGroup(teamId(), groupId)
+        await loadList(listQuery.value)
+    }
+
     async function createSchema ({ name, description, groupId }: { name: string, description?: string, groupId?: string }): Promise<DataSchema> {
         return schemasApi.createSchema(teamId(), { name, ...(description && { description }), ...(groupId && { groupId }) })
     }
@@ -228,6 +244,9 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         listQuery,
         loadList,
         loadMoreOfGroup,
+        createGroup,
+        renameGroup,
+        deleteGroup,
         resetList,
         loadActiveSchema,
         createSchema,
