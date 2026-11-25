@@ -26,9 +26,8 @@
                     <ff-kebab-menu v-if="entry.version">
                         <ff-kebab-item
                             v-if="canEdit"
-                            :label="`Create draft from ${entry.version}`"
+                            :label="hasDraft ? `Create draft from ${entry.version} (discard the draft first)` : `Create draft from ${entry.version}`"
                             :disabled="hasDraft"
-                            :title="hasDraft ? 'Discard the draft first' : undefined"
                             @click="createDraftFrom(entry.version)"
                         />
                         <template v-if="canDeprecate">

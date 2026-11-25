@@ -101,9 +101,8 @@ describe('Schema versions tab', () => {
 
     test('does not start a draft while the schema has one, and says what to do first', () => {
         const { tab } = mountTab(Roles.Member)
-        const item = row(tab, '1.2.0').find('[data-item="Create draft from 1.2.0"]')
+        const item = row(tab, '1.2.0').find('[data-item="Create draft from 1.2.0 (discard the draft first)"]')
         expect(item.attributes('disabled')).toBeDefined()
-        expect(item.attributes('title')).toBe('Discard the draft first')
     })
 
     test('starts a draft from the picked version and opens the editor', async () => {
