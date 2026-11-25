@@ -103,7 +103,6 @@ export default {
     props: {
         prop: { type: String, default: '' },
         label: { type: String, default: null },
-        // what the label names, shown before it
         heading: { type: String, default: 'Property' },
         // off for values that are pretty-printed JSON already
         prettifiable: { type: Boolean, default: true },

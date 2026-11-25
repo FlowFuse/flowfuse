@@ -6,10 +6,10 @@
                 <p class="schema-compare__summary" data-el="schema-compare-summary">{{ summary }}</p>
                 <div class="flex items-center gap-2">
                     <span class="schema-compare__label">From</span>
-                    <ff-listbox :model-value="pair.from" :options="options" class="w-40" data-el="compare-from" @update:model-value="pick({ from: $event })" />
+                    <ff-listbox :model-value="pair.from" :options="fromOptions" aria-label="From version" class="w-40" data-el="compare-from" @update:model-value="pick({ from: $event })" />
                     <ArrowRightIcon class="ff-icon-sm schema-compare__arrow" />
                     <span class="schema-compare__label">To</span>
-                    <ff-listbox :model-value="pair.to" :options="options" class="w-40" data-el="compare-to" @update:model-value="pick({ to: $event })" />
+                    <ff-listbox :model-value="pair.to" :options="toOptions" aria-label="To version" class="w-40" data-el="compare-to" @update:model-value="pick({ to: $event })" />
                 </div>
             </div>
             <template v-if="comparison">
@@ -33,6 +33,7 @@
                     <SnapshotDiffChangePanel heading="JSON" :prettifiable="false" :label="schema?.name" :value1="diffText(comparison.from)" :value2="diffText(comparison.to)" />
                 </div>
             </template>
+            <p v-else-if="failed" class="schema-compare__empty" data-el="schema-compare-failed">The versions could not be compared.</p>
             <ff-loading v-else message="Comparing versions..." />
         </template>
     </div>
@@ -43,15 +44,16 @@ import { ArrowRightIcon } from '@heroicons/vue/20/solid'
 import { storeToRefs } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import type { LocationQueryValue } from 'vue-router'
 
 import { defaultPair, diffText, fieldPath, formatValue } from './components/compare'
 
-import type { SchemaChange } from '@/api/schemas'
 import SnapshotDiffChangePanel from '@/components/dialogs/SnapshotDiffChangePanel.vue'
 import DiffTypeBadge from '@/components/diff/DiffTypeBadge.vue'
 import DiffValuePill from '@/components/diff/DiffValuePill.vue'
 import Alerts from '@/services/alerts.js'
 import { useDataFarmSchemasStore } from '@/stores/data-farm-schemas'
+import type { SchemaComparison } from '@/stores/data-farm-schemas'
 
 // the schema page hands every tab the editor's state for the draft, which this one has no use for
 defineOptions({ name: 'SchemaCompare', inheritAttrs: false })
@@ -68,29 +70,38 @@ const columns = [
 ]
 
 const versions = computed(() => schema.value?.versions ?? [])
-const options = computed(() => versions.value.map(entry => entry.status === 'draft'
+const toOptions = computed(() => versions.value.map(entry => entry.status === 'draft'
     ? { value: 'draft', label: 'Draft' }
     : { value: entry.version, label: entry.status === 'deprecated' ? `${entry.version} (deprecated)` : entry.version }))
+const fromOptions = computed(() => toOptions.value.filter(option => option.value !== 'draft'))
 
-// the versions in the address win, so a comparison can be linked to
-const pair = computed(() => defaultPair(versions.value, route.query.from as string, route.query.to as string))
+// A query value repeated in the address is an array
+const queryValue = (value: LocationQueryValue | LocationQueryValue[]) => (Array.isArray(value) ? value[0] : value) ?? undefined
+
+const pair = computed(() => defaultPair(versions.value, queryValue(route.query.from), queryValue(route.query.to)))
 
 function pick (change: { from?: string, to?: string }) {
     router.replace({ query: { ...pair.value, ...change } })
 }
 
-const comparison = ref<{ changes: SchemaChange[], from: Record<string, unknown>, to: Record<string, unknown> } | null>(null)
+const comparison = ref<SchemaComparison | null>(null)
+const failed = ref(false)
 
-// Only the answer for the versions still picked is shown
-watch([() => schema.value?.id, () => pair.value?.from, () => pair.value?.to], async ([schemaId, from, to]) => {
+watch([() => schema.value?.id, () => pair.value?.from, () => pair.value?.to], async ([schemaId, from, to], _, onCleanup) => {
+    let stale = false
+    onCleanup(() => {
+        stale = true
+    })
     comparison.value = null
+    failed.value = false
     if (!schemaId || !from || !to) return
-    const current = () => schema.value?.id === schemaId && pair.value?.from === from && pair.value?.to === to
     try {
         const loaded = await schemasStore.fetchComparison(from, to)
-        if (current()) comparison.value = loaded
+        if (!stale) comparison.value = loaded
     } catch (err) {
-        if (current()) Alerts.emit(err.response?.data?.error || 'Failed to compare the versions.', 'warning')
+        if (stale) return
+        failed.value = true
+        Alerts.emit(err.response?.data?.error || 'Failed to compare the versions.', 'warning')
     }
 }, { immediate: true })
 
