@@ -8,9 +8,9 @@ vi.mock('../../../../../../../../frontend/src/services/dialog.js', () => ({ defa
 
 const SCHEMA = { type: 'object', required: ['location'], properties: { location: { type: 'object', properties: { site: { type: 'string' } } }, calibration: { anyOf: [{ type: 'number' }] } }, additionalProperties: false }
 
-function mountBuilder (schemaText = JSON.stringify(SCHEMA), readOnly = true) {
+function mountBuilder (schemaText = JSON.stringify(SCHEMA), readOnly = true, published = null) {
     const builder = mount(SchemaBuilder, {
-        props: { schemaText, readOnly, 'onUpdate:schemaText': (text) => builder.setProps({ schemaText: text }) },
+        props: { schemaText, readOnly, published, publishedVersion: '1.2.0', 'onUpdate:schemaText': (text) => builder.setProps({ schemaText: text }) },
         global: {
             stubs: {
                 'ff-data-table': { template: '<table><tbody><slot name="rows" /></tbody></table>' },
@@ -20,6 +20,7 @@ function mountBuilder (schemaText = JSON.stringify(SCHEMA), readOnly = true) {
                 'ff-checkbox': { props: ['modelValue'], emits: ['update:modelValue'], template: '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)">' },
                 'ff-kebab-menu': { template: '<div><slot /></div>' },
                 'ff-kebab-item': { props: ['label', 'disabled'], template: '<button :data-item="label" :disabled="disabled">{{ label }}</button>' },
+                DiffTypeBadge: { props: ['type'], template: '<b>{{ type }}</b>' },
                 FieldEditPanel: { props: ['pointer'], emits: ['apply', 'cancel'], template: '<div data-el="panel" :data-pointer="pointer" />' }
             }
         }
@@ -132,6 +133,17 @@ describe('Schema builder', () => {
             await flushPromises()
             expect(text(builder)).toMatchObject({ properties: { calibration: {} } })
             expect(text(builder)).not.toHaveProperty('required')
+        })
+
+        test('shows a field the draft deleted and puts it back', async () => {
+            const published = { ...SCHEMA, properties: { serial: { type: 'string' }, ...SCHEMA.properties } }
+            const builder = mountBuilder(undefined, false, published)
+            const row = builder.find('[data-el="builder-row-/serial"]')
+            expect(row.attributes('data-deleted')).toBe('true')
+            expect(row.text()).toContain('In 1.2.0, deleted in this draft')
+            await row.find('[data-action="builder-restore"]').trigger('click')
+            expect(Object.keys(text(builder).properties)).toEqual(['serial', 'location', 'calibration'])
+            expect(builder.find('[data-el="builder-row-/serial"]').attributes('data-deleted')).toBeUndefined()
         })
 
         test('offers no editing when read-only', () => {

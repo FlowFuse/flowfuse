@@ -37,6 +37,8 @@ export interface FieldRow {
     children: number | null
     expanded: boolean
     jsonOnly: boolean
+    // in the published version and deleted in the draft
+    deleted: boolean
 }
 
 const isObject = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -97,41 +99,63 @@ export function constraintsSummary (schema: FieldSchema): string {
 /**
  * The rows of the field table: every field of the root object, and the fields of an expanded object or array of objects
  * under it. `expanded` holds the pointers of the expanded fields.
+ * With `published`, a field it has that the root no longer has stays in the table as deleted, after the field it
+ * followed there, so it can be put back.
  * A root that is not an object has a single row of its own.
  */
-export function builderRows (root: FieldSchema, expanded: Set<string>): FieldRow[] {
+export function builderRows (root: FieldSchema, expanded: Set<string>, published?: FieldSchema | null): FieldRow[] {
     const rows: FieldRow[] = []
 
-    function visitFields (holder: FieldSchema, pointer: string, path: string, depth: number) {
-        const required = Array.isArray(holder.required) ? holder.required : []
-        for (const [name, schema] of Object.entries(isObject(holder.properties) ? holder.properties : {})) {
-            const field = isObject(schema) ? schema as FieldSchema : {}
+    function row (field: FieldSchema, name: string, pointer: string, path: string, depth: number, required: boolean, deleted: boolean): FieldRow {
+        const jsonOnly = isJsonOnly(field)
+        const inner = jsonOnly || deleted ? null : fieldsHolder(field)
+        return {
+            pointer,
+            path,
+            name,
+            depth,
+            type: typeLabel(field),
+            required,
+            constraints: constraintsSummary(field),
+            description: typeof field.description === 'string' ? field.description : '',
+            children: inner ? Object.keys(inner.schema.properties ?? {}).length : null,
+            expanded: !!inner && expanded.has(pointer),
+            jsonOnly,
+            deleted
+        }
+    }
+
+    // `before` is the object's schema in the published version, when it has one there
+    function visitFields (holder: FieldSchema, before: FieldSchema | null, pointer: string, path: string, depth: number) {
+        const fields = isObject(holder.properties) ? holder.properties : {}
+        const names = Object.keys(fields)
+        const gone = Object.keys(before?.properties ?? {}).filter(name => !Object.hasOwn(fields, name))
+        // a deleted field goes after the last field before it in the published version that is still there
+        const order = [...names]
+        for (const name of gone) {
+            const earlier = Object.keys(before!.properties!).slice(0, Object.keys(before!.properties!).indexOf(name)).reverse()
+            const after = earlier.find(candidate => order.includes(candidate))
+            order.splice(after ? order.indexOf(after) + 1 : 0, 0, name)
+        }
+        for (const name of order) {
+            const deleted = !Object.hasOwn(fields, name)
+            const field = (deleted ? before!.properties![name] : fields[name]) ?? {}
             const fieldPointer = `${pointer}/properties/${escapePointer(name)}`
-            const fieldPath = `${path}/${escapePointer(name)}`
-            const jsonOnly = isJsonOnly(field)
-            const inner = jsonOnly ? null : fieldsHolder(field)
-            const open = !!inner && expanded.has(fieldPointer)
-            rows.push({
-                pointer: fieldPointer,
-                path: fieldPath,
-                name,
-                depth,
-                type: typeLabel(field),
-                required: required.includes(name),
-                constraints: constraintsSummary(field),
-                description: typeof field.description === 'string' ? field.description : '',
-                children: inner ? Object.keys(inner.schema.properties ?? {}).length : null,
-                expanded: open,
-                jsonOnly
-            })
-            if (open && inner) visitFields(inner.schema, fieldPointer + inner.suffix, fieldPath, depth + 1)
+            const required = ((deleted ? before!.required : holder.required) ?? []).includes(name)
+            const entry = row(isObject(field) ? field : {}, name, fieldPointer, `${path}/${escapePointer(name)}`, depth, required, deleted)
+            rows.push(entry)
+            if (!entry.expanded) continue
+            const inner = fieldsHolder(field)!
+            const publishedField = before?.properties?.[name]
+            const publishedInner = publishedField && isObject(publishedField) ? fieldsHolder(publishedField) : null
+            visitFields(inner.schema, publishedInner?.suffix === inner.suffix ? publishedInner.schema : null, fieldPointer + inner.suffix, entry.path, depth + 1)
         }
     }
 
     if (fieldsHolder(root)?.suffix === '') {
-        visitFields(root, '', '', 0)
+        visitFields(root, published && fieldsHolder(published)?.suffix === '' ? published : null, '', '', 0)
     } else {
-        rows.push({ pointer: '', path: '/', name: '(message)', depth: 0, type: typeLabel(root), required: true, constraints: constraintsSummary(root), description: typeof root.description === 'string' ? root.description : '', children: null, expanded: false, jsonOnly: isJsonOnly(root) })
+        rows.push(row(root, '(message)', '', '/', 0, true, false))
     }
     return rows
 }

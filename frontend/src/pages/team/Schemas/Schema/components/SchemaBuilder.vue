@@ -24,6 +24,23 @@
                                 <FieldEditPanel :root="schema" :pointer="entry.row.pointer" @apply="applied(entry.row.pointer, $event)" @cancel="editing = null" />
                             </ff-data-table-cell>
                         </ff-data-table-row>
+                        <ff-data-table-row v-else-if="entry.row.deleted" class="schema-builder__deleted" :data-el="`builder-row-${entry.row.path}`" data-deleted="true">
+                            <ff-data-table-cell>
+                                <div class="schema-builder__field">
+                                    <span v-for="level in entry.row.depth" :key="level" class="schema-builder__guide" />
+                                    <span class="font-mono schema-builder__struck">{{ entry.row.name }}</span>
+                                    <DiffTypeBadge type="deleted" />
+                                </div>
+                            </ff-data-table-cell>
+                            <ff-data-table-cell class="font-mono schema-builder__muted">{{ entry.row.type }}</ff-data-table-cell>
+                            <ff-data-table-cell class="schema-builder__muted">{{ entry.row.required ? 'Yes' : 'No' }}</ff-data-table-cell>
+                            <ff-data-table-cell class="schema-builder__muted">
+                                In {{ publishedVersion }}, deleted in this draft
+                                <button v-if="!readOnly" class="schema-builder__link ml-2" data-action="builder-restore" @click="restore(entry.row.pointer)">Restore</button>
+                            </ff-data-table-cell>
+                            <ff-data-table-cell class="schema-builder__muted">{{ entry.row.description }}</ff-data-table-cell>
+                            <ff-data-table-cell v-if="!readOnly" />
+                        </ff-data-table-row>
                         <ff-data-table-row v-else :data-el="`builder-row-${entry.row.path}`">
                             <ff-data-table-cell class="schema-builder__field-cell">
                                 <div class="schema-builder__field">
@@ -78,13 +95,15 @@ import { computed, ref } from 'vue'
 
 import FieldEditPanel from './FieldEditPanel.vue'
 import { type FieldRow, type FieldSchema, allowsOtherFields, builderRows, fieldsHolder } from './builder'
-import { addField, deleteField, moveField, nestedPaths, schemaAt, setOtherFieldsAllowed, splitPointer } from './builderEdits'
+import { addField, deleteField, moveField, nestedPaths, restoreField, schemaAt, setOtherFieldsAllowed, splitPointer } from './builderEdits'
 
+import DiffTypeBadge from '@/components/diff/DiffTypeBadge.vue'
 import Dialog from '@/services/dialog.js'
 
 defineOptions({ name: 'SchemaBuilder' })
 
-const props = defineProps<{ schemaText: string, readOnly: boolean }>()
+// `published` is the latest published document, for showing the fields the draft deleted from it
+const props = defineProps<{ schemaText: string, readOnly: boolean, published?: FieldSchema | null, publishedVersion?: string }>()
 const emit = defineEmits<{ 'edit-json': [], 'update:schemaText': [text: string] }>()
 
 const columns = [
@@ -113,7 +132,7 @@ function toggle (pointer: string) {
     expanded.value = next
 }
 
-const rows = computed(() => schema.value ? builderRows(schema.value, expanded.value) : [])
+const rows = computed(() => schema.value ? builderRows(schema.value, expanded.value, props.published) : [])
 // the pointer of the field whose edit panel is open
 const editing = ref<string | null>(null)
 
@@ -166,6 +185,10 @@ function add (holder: string) {
     const added = addField(schema.value!, holder)
     write(added.root)
     editing.value = added.pointer
+}
+
+function restore (pointer: string) {
+    write(restoreField(schema.value!, props.published!, pointer))
 }
 
 function move (pointer: string, offset: -1 | 1) {
@@ -252,6 +275,11 @@ const otherFields = computed(() => schema.value ? allowsOtherFields(schema.value
 
     &__yes {
         color: var(--ff-color-status-success-text);
+    }
+
+    &__struck {
+        text-decoration: line-through;
+        color: var(--ff-color-text-subtle);
     }
 
     &__panel-cell {

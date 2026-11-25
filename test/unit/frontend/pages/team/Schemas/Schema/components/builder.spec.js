@@ -72,4 +72,18 @@ describe('builder rows', () => {
         expect(allowsOtherFields({ type: 'object' })).toBe(true)
         expect(allowsOtherFields({ type: 'object', additionalProperties: false })).toBe(false)
     })
+
+    test('keeps fields the draft deleted from the published version, after the field they followed', () => {
+        const published = { type: 'object', required: ['serial'], properties: { value: { type: 'number' }, serial: { type: 'string', description: 'Device serial' }, unit: { type: 'string' } } }
+        const draft = { type: 'object', properties: { value: { type: 'number' }, unit: { type: 'string' }, alarm: { type: 'boolean' } } }
+        const rows = builderRows(draft, new Set(), published)
+        expect(rows.map(row => [row.path, row.deleted])).toEqual([['/value', false], ['/serial', true], ['/unit', false], ['/alarm', false]])
+        expect(rows[1]).toMatchObject({ required: true, type: 'string', description: 'Device serial', children: null })
+    })
+
+    test('keeps deleted fields inside an expanded object too', () => {
+        const published = { type: 'object', properties: { sensor: { type: 'object', properties: { id: { type: 'string' }, line: { type: 'integer' } } } } }
+        const draft = { type: 'object', properties: { sensor: { type: 'object', properties: { line: { type: 'integer' } } } } }
+        expect(builderRows(draft, new Set(['/properties/sensor']), published).map(row => [row.path, row.deleted])).toEqual([['/sensor', false], ['/sensor/id', true], ['/sensor/line', false]])
+    })
 })

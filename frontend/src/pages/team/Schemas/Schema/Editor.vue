@@ -18,7 +18,14 @@
                 </template>
             </div>
         </div>
-        <SchemaBuilder v-if="view === 'builder'" v-model:schema-text="schemaText" :read-only="jsonReadOnly" @edit-json="view = 'json'" />
+        <SchemaBuilder
+            v-if="view === 'builder'"
+            v-model:schema-text="schemaText"
+            :read-only="jsonReadOnly"
+            :published="draft ? latestPublished?.schema : null"
+            :published-version="latestPublished?.version"
+            @edit-json="view = 'json'"
+        />
         <JsonEditor v-show="view === 'json'" ref="jsonEditor" v-model="schemaText" v-model:problems="editorProblems" :markers="markers" :read-only="jsonReadOnly" />
         <div v-if="draft" class="schema-notes" data-el="schema-notes">
             <label for="schema-version-notes" class="schema-notes__label">

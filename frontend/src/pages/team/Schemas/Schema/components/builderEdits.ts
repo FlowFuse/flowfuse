@@ -224,3 +224,21 @@ export function nestedPaths (root: FieldSchema, pointer: string, path: string): 
     visit(schemaAt(root, pointer), path)
     return paths
 }
+
+// The root with a deleted field put back exactly as the published version has it: in the same place among the fields
+// still there, and on the required list when it was required there
+export function restoreField (root: FieldSchema, published: FieldSchema, pointer: string): FieldSchema {
+    const next = clone(root)
+    const { holder: holderPointer, name } = splitPointer(pointer)
+    const holder = schemaAt(next, holderPointer)
+    const before = schemaAt(published, holderPointer)
+    const publishedNames = Object.keys(before.properties ?? {})
+    const entries = Object.entries(holder.properties ?? {})
+    const earlier = publishedNames.slice(0, publishedNames.indexOf(name)).reverse().find(candidate => entries.some(([key]) => key === candidate))
+    entries.splice(earlier ? entries.findIndex(([key]) => key === earlier) + 1 : 0, 0, [name, clone(before.properties![name])])
+    holder.properties = Object.fromEntries(entries)
+    if ((before.required ?? []).includes(name) && !(holder.required ?? []).includes(name)) {
+        holder.required = [...(holder.required ?? []), name]
+    }
+    return next
+}
