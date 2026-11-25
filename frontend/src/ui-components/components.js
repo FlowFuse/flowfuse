@@ -24,6 +24,7 @@ import FFDropdownOption from './components/form/DropdownOption.vue'
 import FFListbox from './components/form/ListBox.vue'
 import FFRadioButton from './components/form/RadioButton.vue'
 import FFRadioGroup from './components/form/RadioGroup.vue'
+import FFTagInput from './components/form/TagInput.vue'
 import FFTextInput from './components/form/TextInput.vue'
 import FFTileSelection from './components/form/TileSelection.vue'
 import FFTileSelectionOption from './components/form/TileSelectionOption.vue'
@@ -57,6 +58,7 @@ export default {
     FFPagination,
     // Form Elements
     FFTextInput,
+    FFTagInput,
     FFDropdown,
     FFListbox,
     FFCombobox,

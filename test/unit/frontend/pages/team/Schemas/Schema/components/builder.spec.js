@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
 
-import { allowsOtherFields, builderRows, constraintsSummary, fieldTrail, typeLabel } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builder.ts'
+import { builderRows, constraintsSummary, fieldTrail, otherFields, parseSchema, referenceProblem, schemaAt } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builder.ts'
+import { typeLabel } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/schemaTypes.ts'
 
 const SCHEMA = {
     type: 'object',
@@ -66,11 +67,48 @@ describe('builder rows', () => {
         expect(typeLabel({ type: 'array', items: { type: ['string', 'null'] } })).toBe('array of string | null')
         expect(typeLabel({ properties: {} })).toBe('object')
         expect(typeLabel({})).toBe('any')
+        expect(typeLabel({ const: 1 })).toBe('const')
     })
 
     test('allows fields the schema does not list unless it says otherwise', () => {
-        expect(allowsOtherFields({ type: 'object' })).toBe(true)
-        expect(allowsOtherFields({ type: 'object', additionalProperties: false })).toBe(false)
+        expect(otherFields({ type: 'object' })).toBe('allowed')
+        expect(otherFields({ type: 'object', additionalProperties: true })).toBe('allowed')
+        expect(otherFields({ type: 'object', additionalProperties: false })).toBe('none')
+        expect(otherFields({ type: 'object', additionalProperties: { type: 'string' } })).toBe('schema')
+    })
+
+    test('shows a tuple of items read-only', () => {
+        const root = { type: 'object', properties: { pair: { type: 'array', items: [{ type: 'string' }, { type: 'number' }] } } }
+        expect(builderRows(root, new Set())[0]).toMatchObject({ jsonOnly: true, children: null, constraints: 'Not editable in the builder' })
+    })
+
+    test('reports a reference keyword on a field, on its items and on the root', () => {
+        const root = { type: 'object', properties: { a: { $ref: '#/$defs/a' }, b: { type: 'array', items: { $dynamicRef: '#x' } }, c: { type: 'string' } } }
+        const rows = builderRows(root, new Set())
+        expect(rows.map(row => [row.path, row.problem, row.jsonOnly])).toEqual([['/a', '$ref is not supported yet', true], ['/b', '$dynamicRef is not supported yet', true], ['/c', '', false]])
+        expect(rows[0].constraints).toBe('$ref is not supported yet')
+        expect(builderRows({ $ref: '#' }, new Set())[0]).toMatchObject({ path: '/', problem: '$ref is not supported yet', jsonOnly: true })
+        expect(referenceProblem({ $id: 'urn:x' }, true)).toBe('')
+        expect(referenceProblem({ $id: 'urn:x' })).toBe('$id is not supported yet')
+    })
+
+    test('copes with a required that is not a list', () => {
+        const rows = builderRows({ type: 'object', required: 'a', properties: { a: { type: 'string' } } }, new Set())
+        expect(rows[0].required).toBe(false)
+    })
+
+    test('finds a schema by pointer, or nothing', () => {
+        const root = { type: 'object', properties: { 'a/b': { type: 'string' } } }
+        expect(schemaAt(root, '/properties/a~1b')).toEqual({ type: 'string' })
+        expect(schemaAt(root, '/properties/toString')).toBeUndefined()
+        expect(schemaAt(root, '/properties/missing/properties/x')).toBeUndefined()
+        expect(schemaAt(root, '')).toBe(root)
+    })
+
+    test('parses only a schema object', () => {
+        expect(parseSchema('{"type": "string"}')).toEqual({ type: 'string' })
+        expect(parseSchema('[]')).toBeNull()
+        expect(parseSchema('{"type": ')).toBeNull()
     })
 
     describe('deep nesting', () => {

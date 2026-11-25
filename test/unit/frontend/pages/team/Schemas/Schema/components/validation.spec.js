@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'vitest'
 
 import { validatePayload } from '../../../../../../../../forge/ee/lib/schemas/document.js'
-import { describeError, exampleFromSchema, sampleForPattern, typeLabel, validationRows } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/validation.ts'
+import { typeLabel } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/schemaTypes.ts'
+import { exampleFromSchema, sampleForPattern, validationRows } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/validation.ts'
 
 const SCHEMA = {
     type: 'object',
@@ -56,19 +57,6 @@ describe('validation rows', () => {
         })
     })
 
-    test('describes enum, const and type errors from what AJV gives, and keeps its message for the rest', () => {
-        const error = (keyword, params, message = 'ajv says') => describeError({ path: '/a', keyword, params, message })
-        expect(error('enum', { allowedValues: ['a', 2, null, true] })).toBe('must be one of "a", 2, null or true')
-        expect(error('enum', { allowedValues: ['only'] })).toBe('must be one of "only"')
-        expect(error('enum', { allowedValues: Array.from({ length: 12 }, (_, index) => index) })).toBe('must be one of 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 or 2 more')
-        expect(error('const', { allowedValue: { on: true } })).toBe('must be {"on":true}')
-        expect(error('type', { type: 'integer' })).toBe('must be integer')
-        expect(error('type', { type: 'string,null' })).toBe('must be string or null')
-        expect(error('type', { type: ['string', 'number', 'null'] })).toBe('must be string, number or null')
-        expect(error('pattern', { pattern: '^a' }, 'must match pattern "^a"')).toBe('must match pattern "^a"')
-        expect(error('enum', {})).toBe('ajv says')
-    })
-
     test('shows a oneOf failure once, with the oneOf message', () => {
         const row = rowsFor(SCHEMA, { value: 1, unit: 'Cel', calibration: { offset: 'x' } }).find(row => row.path === '/calibration')
         expect([row.result, row.message, row.type]).toEqual(['fail', 'must match exactly one schema in oneOf', 'oneOf (2)'])
@@ -78,6 +66,27 @@ describe('validation rows', () => {
         expect(summary(rowsFor(SCHEMA, { value: 1, unit: 'Cel', temp_f: 78.5 })).at(-1)).toEqual(['/temp_f', 'extra', 'Not in schema (additionalProperties: true)'])
         const closed = { ...SCHEMA, additionalProperties: false }
         expect(summary(rowsFor(closed, { value: 1, unit: 'Cel', temp_f: 78.5 })).at(-1)).toEqual(['/temp_f', 'fail', 'must NOT have additional properties'])
+    })
+
+    test('says what decides a field the schema does not list', () => {
+        const schema = { type: 'object', properties: {}, patternProperties: { '^x-': { type: 'string' } }, additionalProperties: { type: 'number' } }
+        expect(summary(rowsFor(schema, { 'x-a': 'ok', other: 1 }))).toEqual([
+            ['/x-a', 'extra', 'Checked by patternProperties'],
+            ['/other', 'extra', 'Checked by the additionalProperties schema']
+        ])
+    })
+
+    test('keeps the index and field of an error inside an array item', () => {
+        const schema = { type: 'object', properties: { readings: { type: 'array', items: { type: 'object', properties: { value: { type: 'number' } } } } } }
+        expect(summary(rowsFor(schema, { readings: [{ value: 1 }, { value: 'x' }] }))).toEqual([['/readings', 'fail', '/1/value: must be number']])
+    })
+
+    test('has no rows for a message that passes a schema with no fields', () => {
+        expect(rowsFor({ type: 'object' }, {})).toEqual([])
+    })
+
+    test('does not fail a missing field on its own', () => {
+        expect(summary(validationRows(SCHEMA, { value: 1 }, []))).toContainEqual(['/unit', 'optional', 'Not present (optional)'])
     })
 
     test('leaves out the fields of an object the message does not have', () => {
@@ -101,6 +110,7 @@ describe('example from the schema', () => {
         'every type and constraint': SCHEMA,
         formats: { type: 'object', required: ['at', 'day', 'mail', 'link', 'id'], properties: { at: { type: 'string', format: 'date-time' }, day: { type: 'string', format: 'date' }, mail: { type: 'string', format: 'email' }, link: { type: 'string', format: 'uri' }, id: { type: 'string', format: 'uuid' } } },
         bounds: { type: 'object', properties: { low: { type: 'integer', minimum: 5, maximum: 9 }, high: { type: 'number', maximum: -3 }, open: { type: 'number', exclusiveMinimum: 10 }, code: { type: 'string', minLength: 6 } } },
+        'patterns with lengths': { type: 'object', properties: { code: { type: 'string', pattern: '^[a-z]{3}-\\d{2}$' } } },
         'arrays of objects': { type: 'array', minItems: 2, items: { type: 'object', required: ['id'], properties: { id: { type: 'string', pattern: '^[A-Z]{2}-\\d+$' } } } },
         'examples and defaults': { type: 'object', properties: { a: { type: 'string', examples: ['picked'] }, b: { type: 'number', default: 7 }, c: { const: 'fixed' } } },
         allOf: { allOf: [{ type: 'object', properties: { a: { type: 'string' } } }, { type: 'object', properties: { b: { type: 'boolean' } } }] }

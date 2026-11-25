@@ -183,6 +183,32 @@ describe('Schema document checks', function () {
             ])
         })
 
+        it('names the allowed values, the constant and the types an error is about', function () {
+            const doc = {
+                type: 'object',
+                properties: {
+                    unit: { enum: ['Cel', 'degF', 1, null] },
+                    kind: { const: { on: true } },
+                    code: { type: ['string', 'null'] },
+                    level: { type: 'integer' },
+                    big: { enum: Array.from({ length: 12 }, (_, index) => index) }
+                }
+            }
+            const result = validatePayload(doc, { unit: 'x', kind: 1, code: 4, level: 'a', big: 99 })
+            result.errors.map(e => [e.path, e.message]).should.eql([
+                ['/unit', 'must be one of "Cel", "degF", 1 or null'],
+                ['/kind', 'must be {"on":true}'],
+                ['/code', 'must be string or null'],
+                ['/level', 'must be integer'],
+                ['/big', 'must be one of 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 and 2 more']
+            ])
+        })
+
+        it('reports a field that is not allowed on the field path', function () {
+            const result = validatePayload({ type: 'object', properties: { a: { type: 'string' } }, additionalProperties: false }, { a: 'x', 'b/c': 1 })
+            result.errors.map(e => [e.path, e.keyword, e.message]).should.eql([['/b~1c', 'additionalProperties', 'must NOT have additional properties']])
+        })
+
         it('reports a missing required field on the field path', function () {
             const result = validatePayload(temperature, { value: 1 })
             result.errors.should.have.length(1)
