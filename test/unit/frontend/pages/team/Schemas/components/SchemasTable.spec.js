@@ -48,6 +48,8 @@ describe('Schemas table', () => {
         const row = mountTable().find('[data-el="schema-row-a"]')
         expect(row.find('a').attributes('data-schema')).toBe('a')
         expect(row.text()).toContain('kWh from sub-meters')
+        // the description is cut short when it does not fit, so the whole of it is in its title
+        expect(row.find('.schema-row__description').attributes('title')).toBe('kWh from sub-meters')
         expect(row.find('[data-el="schema-latest-version"]').text()).toBe('1.2.0')
         expect(row.find('[data-el="schema-draft"]').text()).toBe('Draft')
         const unpublished = mountTable().find('[data-el="schema-row-b"]')
