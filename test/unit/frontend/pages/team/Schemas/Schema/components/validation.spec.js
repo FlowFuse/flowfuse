@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 
 import { validatePayload } from '../../../../../../../../forge/ee/lib/schemas/document.js'
-import { exampleFromSchema, sampleForPattern, typeLabel, validationRows } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/validation.ts'
+import { describeError, exampleFromSchema, sampleForPattern, typeLabel, validationRows } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/validation.ts'
 
 const SCHEMA = {
     type: 'object',
@@ -44,6 +44,29 @@ describe('validation rows', () => {
             ['/tags', 'must NOT have duplicate items (items ## 1 and 0 are identical)']
         ])
         expect(rows.find(row => row.path === '/unit')).toMatchObject({ present: false, value: 'missing' })
+    })
+
+    test('says what is allowed when the message has something else', () => {
+        const rows = rowsFor(SCHEMA, { value: 'hot', unit: 'kelvin', fault_code: 42 })
+        const messages = Object.fromEntries(rows.filter(row => row.result === 'fail').map(row => [row.path, row.message]))
+        expect(messages).toEqual({
+            '/value': 'must be number',
+            '/unit': 'must be one of "Cel" or "degF"',
+            '/fault_code': 'must be string or null'
+        })
+    })
+
+    test('describes enum, const and type errors from what AJV gives, and keeps its message for the rest', () => {
+        const error = (keyword, params, message = 'ajv says') => describeError({ path: '/a', keyword, params, message })
+        expect(error('enum', { allowedValues: ['a', 2, null, true] })).toBe('must be one of "a", 2, null or true')
+        expect(error('enum', { allowedValues: ['only'] })).toBe('must be one of "only"')
+        expect(error('enum', { allowedValues: Array.from({ length: 12 }, (_, index) => index) })).toBe('must be one of 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 or 2 more')
+        expect(error('const', { allowedValue: { on: true } })).toBe('must be {"on":true}')
+        expect(error('type', { type: 'integer' })).toBe('must be integer')
+        expect(error('type', { type: 'string,null' })).toBe('must be string or null')
+        expect(error('type', { type: ['string', 'number', 'null'] })).toBe('must be string, number or null')
+        expect(error('pattern', { pattern: '^a' }, 'must match pattern "^a"')).toBe('must match pattern "^a"')
+        expect(error('enum', {})).toBe('ajv says')
     })
 
     test('shows a oneOf failure once, with the oneOf message', () => {
