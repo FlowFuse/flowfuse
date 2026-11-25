@@ -184,6 +184,15 @@ describe('data-farm-schemas store', () => {
         expect(schemasApi.getSchema).toHaveBeenCalledTimes(1)
     })
 
+    it('fetches one version of the open schema without keeping it', async () => {
+        schemasApi.getSchema.mockResolvedValue(schemaWith([DEPRECATED, PUBLISHED], false))
+        const store = useDataFarmSchemasStore()
+        await store.loadActiveSchema('abc')
+        expect((await store.fetchVersion('1.1.0')).version).toBe('1.1.0')
+        expect(schemasApi.getVersion).toHaveBeenLastCalledWith('team-1', 'abc', '1.1.0')
+        expect(store.activeLatestPublished.version).toBe('1.2.0')
+    })
+
     describe('deprecating a version', () => {
         it('marks the version deprecated in the open schema, and the header\'s version when it is the newest', async () => {
             schemasApi.getSchema.mockResolvedValue(schemaWith([{ version: '1.2.0', status: 'published' }, PUBLISHED], false))

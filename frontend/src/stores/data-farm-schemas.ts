@@ -231,6 +231,11 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         setDraftEntry(null, published)
     }
 
+    // One published or deprecated version of the open schema, with its document. Not kept here: it is only looked at.
+    async function fetchVersion (version: string): Promise<DataSchemaVersion> {
+        return schemasApi.getVersion(teamId(), activeSchema.value!.id, version)
+    }
+
     // Deprecates a published version, or takes that back. If it turns out to be in that state already,
     // the schema changed elsewhere and is loaded again.
     async function setVersionDeprecated (version: string, deprecated: boolean): Promise<void> {
@@ -291,6 +296,7 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         createDraft,
         discardDraft,
         publishDraft,
+        fetchVersion,
         setVersionDeprecated,
         reset
     }

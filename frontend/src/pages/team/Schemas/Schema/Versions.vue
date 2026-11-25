@@ -9,7 +9,7 @@
             <ff-data-table-row v-for="entry in versions" :key="entry.version ?? 'draft'" :data-el="`schema-version-${entry.version ?? 'draft'}`">
                 <ff-data-table-cell data-el="version-number">
                     <router-link v-if="entry.status === 'draft'" class="schema-version__link" :to="{ name: 'team-schema-editor' }">Draft</router-link>
-                    <span v-else class="font-mono">{{ entry.version }}</span>
+                    <router-link v-else class="schema-version__link font-mono" :to="{ name: 'team-schema-version', params: { version: entry.version } }">{{ entry.version }}</router-link>
                 </ff-data-table-cell>
                 <ff-data-table-cell data-el="version-status">
                     <StatusBadge :status="STATUS[entry.status].status" :text="STATUS[entry.status].text" />
@@ -22,8 +22,9 @@
                 <ff-data-table-cell data-el="version-when">
                     {{ entry.status === 'draft' ? `Created ${daysSince(entry.createdAt, true)}` : daysSince(entry.publishedAt, true) }}
                 </ff-data-table-cell>
-                <ff-data-table-cell v-if="hasMenu">
+                <ff-data-table-cell>
                     <ff-kebab-menu v-if="entry.version">
+                        <ff-kebab-item :label="`View ${entry.version}`" @click="router.push({ name: 'team-schema-version', params: { version: entry.version } })" />
                         <ff-kebab-item
                             v-if="canEdit"
                             :label="`Create draft from ${entry.version}`"
@@ -74,16 +75,15 @@ const hasDraft = computed(() => versions.value.some(entry => entry.status === 'd
 
 const canEdit = computed(() => hasPermission('team:schema:edit'))
 const canDeprecate = computed(() => hasPermission('team:schema:deprecate'))
-const hasMenu = computed(() => canEdit.value || canDeprecate.value)
 
-const columns = computed(() => [
+const columns = [
     { label: 'Version', key: 'version', class: ['w-32'] },
     { label: 'Status', key: 'status', class: ['w-36'] },
     { label: 'Notes', key: 'notes' },
     { label: 'Published by', key: 'publishedBy', class: ['w-48'] },
     { label: 'Published', key: 'publishedAt', class: ['w-44'] },
-    ...(hasMenu.value ? [{ label: '', key: 'actions', class: ['w-16'] }] : [])
-])
+    { label: '', key: 'actions', class: ['w-16'] }
+]
 
 const failed = (err, fallback: string) => Alerts.emit(err.response?.data?.error || fallback, 'warning')
 
