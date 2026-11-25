@@ -333,6 +333,11 @@ describe('Data Schemas API', function () {
                     ungrouped.count.should.equal(0)
                 })
 
+                it('matches % and _ in the search as themselves', async function () {
+                    ;(await list('/grouped?query=%25')).json().count.should.equal(0)
+                    ;(await list('/grouped?query=press_status')).json().count.should.equal(0)
+                })
+
                 it('does not include another team\'s schemas', async function () {
                     const other = await createSchema()
                     const ids = (await list('/grouped')).json().sections.flatMap(section => section.schemas.map(s => s.id))
