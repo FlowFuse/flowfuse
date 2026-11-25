@@ -1,7 +1,10 @@
-import { mount } from '@vue/test-utils'
-import { describe, expect, test } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 import SchemaBuilder from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/SchemaBuilder.vue'
+import Dialog from '../../../../../../../../frontend/src/services/dialog.js'
+
+vi.mock('../../../../../../../../frontend/src/services/dialog.js', () => ({ default: { showAsync: vi.fn() } }))
 
 const SCHEMA = { type: 'object', required: ['location'], properties: { location: { type: 'object', properties: { site: { type: 'string' } } }, calibration: { anyOf: [{ type: 'number' }] } }, additionalProperties: false }
 
@@ -16,7 +19,7 @@ function mountBuilder (schemaText = JSON.stringify(SCHEMA), readOnly = true) {
                 'ff-button': { template: '<button><slot /></button>' },
                 'ff-checkbox': { props: ['modelValue'], emits: ['update:modelValue'], template: '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)">' },
                 'ff-kebab-menu': { template: '<div><slot /></div>' },
-                'ff-kebab-item': { props: ['label'], template: '<button :data-item="label">{{ label }}</button>' },
+                'ff-kebab-item': { props: ['label', 'disabled'], template: '<button :data-item="label" :disabled="disabled">{{ label }}</button>' },
                 FieldEditPanel: { props: ['pointer'], emits: ['apply', 'cancel'], template: '<div data-el="panel" :data-pointer="pointer" />' }
             }
         }
@@ -27,6 +30,8 @@ function mountBuilder (schemaText = JSON.stringify(SCHEMA), readOnly = true) {
 const paths = (builder) => builder.findAll('[data-el^="builder-row-"]').map(row => row.attributes('data-el').replace('builder-row-', ''))
 
 describe('Schema builder', () => {
+    beforeEach(() => vi.clearAllMocks())
+
     test('expands and collapses an object', async () => {
         const builder = mountBuilder()
         expect(paths(builder)).toEqual(['/location', '/calibration'])
@@ -95,6 +100,38 @@ describe('Schema builder', () => {
             const builder = mountBuilder(undefined, false)
             await builder.find('[data-action="builder-other-fields"]').setValue(true)
             expect(text(builder)).not.toHaveProperty('additionalProperties')
+        })
+
+        test('moves a field up and down, but not past either end', async () => {
+            const builder = mountBuilder(undefined, false)
+            expect(builder.find('[data-el="builder-row-/location"] [data-item="Move up"]').attributes('disabled')).toBeDefined()
+            await builder.find('[data-el="builder-row-/location"] [data-item="Move down"]').trigger('click')
+            expect(Object.keys(text(builder).properties)).toEqual(['calibration', 'location'])
+            expect(builder.find('[data-el="builder-row-/location"] [data-item="Move down"]').attributes('disabled')).toBeDefined()
+        })
+
+        test('deletes a field with nothing inside it straight away', async () => {
+            const builder = mountBuilder(undefined, false)
+            await builder.find('[data-el="builder-row-/calibration"] [data-item="Delete field"]').trigger('click')
+            await flushPromises()
+            expect(Dialog.showAsync).not.toHaveBeenCalled()
+            expect(Object.keys(text(builder).properties)).toEqual(['location'])
+        })
+
+        test('deletes an object only once that is confirmed, listing the fields that go with it', async () => {
+            const builder = mountBuilder(undefined, false)
+            Dialog.showAsync.mockResolvedValueOnce('cancel')
+            await builder.find('[data-el="builder-row-/location"] [data-item="Delete field"]').trigger('click')
+            await flushPromises()
+            expect(builder.emitted('update:schemaText')).toBeUndefined()
+            const [options] = Dialog.showAsync.mock.calls[0]
+            expect(options.header).toBe('Delete location?')
+            expect(options.text).toBe('This removes location and the 1 field inside it from the draft:\n\n/location/site\n\nlocation is also removed from the required list of the root object.')
+            Dialog.showAsync.mockResolvedValueOnce('confirm')
+            await builder.find('[data-el="builder-row-/location"] [data-item="Delete field"]').trigger('click')
+            await flushPromises()
+            expect(text(builder)).toMatchObject({ properties: { calibration: {} } })
+            expect(text(builder)).not.toHaveProperty('required')
         })
 
         test('offers no editing when read-only', () => {

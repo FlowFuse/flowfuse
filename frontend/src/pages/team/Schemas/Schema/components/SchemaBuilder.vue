@@ -43,8 +43,11 @@
                                 <span v-else>{{ entry.row.description }}</span>
                             </ff-data-table-cell>
                             <ff-data-table-cell v-if="!readOnly">
-                                <ff-kebab-menu v-if="!entry.row.jsonOnly && entry.row.pointer">
-                                    <ff-kebab-item label="Edit" @click="editing = entry.row.pointer" />
+                                <ff-kebab-menu v-if="entry.row.pointer">
+                                    <ff-kebab-item v-if="!entry.row.jsonOnly" label="Edit" @click="editing = entry.row.pointer" />
+                                    <ff-kebab-item label="Move up" :disabled="entry.first" @click="move(entry.row.pointer, -1)" />
+                                    <ff-kebab-item label="Move down" :disabled="entry.last" @click="move(entry.row.pointer, 1)" />
+                                    <ff-kebab-item label="Delete field" kind="danger" @click="remove(entry.row)" />
                                 </ff-kebab-menu>
                             </ff-data-table-cell>
                         </ff-data-table-row>
@@ -75,7 +78,9 @@ import { computed, ref } from 'vue'
 
 import FieldEditPanel from './FieldEditPanel.vue'
 import { type FieldRow, type FieldSchema, allowsOtherFields, builderRows, fieldsHolder } from './builder'
-import { addField, schemaAt, setOtherFieldsAllowed, splitPointer } from './builderEdits'
+import { addField, deleteField, moveField, nestedPaths, schemaAt, setOtherFieldsAllowed, splitPointer } from './builderEdits'
+
+import Dialog from '@/services/dialog.js'
 
 defineOptions({ name: 'SchemaBuilder' })
 
@@ -112,7 +117,8 @@ const rows = computed(() => schema.value ? builderRows(schema.value, expanded.va
 // the pointer of the field whose edit panel is open
 const editing = ref<string | null>(null)
 
-type RowEntry = { kind: 'field' | 'panel', key: string, row: FieldRow }
+// `first` and `last` say where a field is among the fields of its object, for moving it
+type RowEntry = { kind: 'field' | 'panel', key: string, row: FieldRow, first?: boolean, last?: boolean }
 type AddEntry = { kind: 'add', key: string, holder: string, path: string, name: string, depth: number }
 type Entry = RowEntry | AddEntry
 
@@ -130,7 +136,9 @@ const entries = computed<Entry[]>(() => {
     }
     for (const row of rows.value) {
         closeTo(row.depth)
-        list.push({ kind: 'field', key: row.pointer, row })
+        const siblings = row.pointer ? Object.keys(schemaAt(schema.value!, splitPointer(row.pointer).holder).properties ?? {}) : []
+        const name = row.pointer ? splitPointer(row.pointer).name : ''
+        list.push({ kind: 'field', key: row.pointer, row, first: siblings[0] === name, last: siblings.at(-1) === name })
         if (editing.value === row.pointer) list.push({ kind: 'panel', key: `panel:${row.pointer}`, row })
         if (row.expanded) open.push(row)
     }
@@ -158,6 +166,32 @@ function add (holder: string) {
     const added = addField(schema.value!, holder)
     write(added.root)
     editing.value = added.pointer
+}
+
+function move (pointer: string, offset: -1 | 1) {
+    write(moveField(schema.value!, pointer, offset))
+}
+
+// An object takes its fields with it, so deleting one is confirmed first, listing what goes
+async function remove (row: FieldRow) {
+    const nested = nestedPaths(schema.value!, row.pointer, row.path)
+    if (nested.length) {
+        const holder = splitPointer(row.pointer).holder
+        const result = await Dialog.showAsync({
+            header: `Delete ${row.name}?`,
+            text: [
+                `This removes ${row.name} and the ${nested.length} ${nested.length === 1 ? 'field' : 'fields'} inside it from the draft:`,
+                '',
+                ...nested,
+                ...(row.required ? ['', `${row.name} is also removed from the required list of ${holder ? splitPointer(holder.replace(/\/items$/, '')).name : 'the root object'}.`] : [])
+            ].join('\n'),
+            confirmLabel: `Delete ${row.name}`,
+            kind: 'danger'
+        })
+        if (result !== 'confirm') return
+    }
+    if (editing.value === row.pointer || editing.value?.startsWith(`${row.pointer}/`)) editing.value = null
+    write(deleteField(schema.value!, row.pointer))
 }
 
 function setOtherFields (allowed: boolean) {

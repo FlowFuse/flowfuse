@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { addField, applyForm, formFor, formProblem, setOtherFieldsAllowed } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builderEdits.ts'
+import { addField, applyForm, deleteField, formFor, formProblem, moveField, nestedPaths, setOtherFieldsAllowed } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builderEdits.ts'
 
 const SCHEMA = () => ({
     type: 'object',
@@ -82,5 +82,24 @@ describe('builder edits', () => {
     test('allows fields an object does not list by leaving the keyword out, as that is the default', () => {
         expect(setOtherFieldsAllowed(SCHEMA(), '', true)).not.toHaveProperty('additionalProperties')
         expect(setOtherFieldsAllowed(SCHEMA(), '/properties/sensor', false).properties.sensor.additionalProperties).toBe(false)
+    })
+
+    test('moves a field among the fields of its object, staying put at either end', () => {
+        expect(Object.keys(moveField(SCHEMA(), '/properties/unit', -1).properties)).toEqual(['unit', 'value', 'fault_code', 'sensor', 'tags'])
+        expect(Object.keys(moveField(SCHEMA(), '/properties/unit', 1).properties)).toEqual(['value', 'fault_code', 'unit', 'sensor', 'tags'])
+        expect(Object.keys(moveField(SCHEMA(), '/properties/value', -1).properties)).toEqual(['value', 'unit', 'fault_code', 'sensor', 'tags'])
+    })
+
+    test('deletes a field, taking it off the required list', () => {
+        const root = deleteField(SCHEMA(), '/properties/value')
+        expect(root.properties).not.toHaveProperty('value')
+        expect(root.required).toEqual(['unit'])
+        expect(deleteField(SCHEMA(), '/properties/sensor/properties/id').properties.sensor).toEqual({ type: 'object', properties: {} })
+    })
+
+    test('lists the fields inside a field, at any depth', () => {
+        const root = { type: 'object', properties: { location: { type: 'object', properties: { site: { type: 'string' }, cell: { type: 'object', properties: { id: {} } }, readings: { type: 'array', items: { type: 'object', properties: { at: {} } } } } } } }
+        expect(nestedPaths(root, '/properties/location', '/location')).toEqual(['/location/site', '/location/cell', '/location/cell/id', '/location/readings', '/location/readings/at'])
+        expect(nestedPaths(root, '/properties/location/properties/site', '/location/site')).toEqual([])
     })
 })

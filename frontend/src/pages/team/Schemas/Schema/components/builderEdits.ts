@@ -1,4 +1,4 @@
-import { type FieldSchema, typesOf } from './builder'
+import { type FieldSchema, fieldsHolder, typesOf } from './builder'
 
 // The types a field can have in the builder, `null` being offered on its own and as "Also allow null"
 export const FIELD_TYPES = ['string', 'number', 'integer', 'boolean', 'object', 'array', 'null'] as const
@@ -181,4 +181,46 @@ export function setOtherFieldsAllowed (root: FieldSchema, holderPointer: string,
     if (allowed) delete holder.additionalProperties
     else holder.additionalProperties = false
     return next
+}
+
+// The root with a field moved one place up (-1) or down (1) among the fields of its object
+export function moveField (root: FieldSchema, pointer: string, offset: -1 | 1): FieldSchema {
+    const next = clone(root)
+    const { holder: holderPointer, name } = splitPointer(pointer)
+    const holder = schemaAt(next, holderPointer)
+    const entries = Object.entries(holder.properties ?? {})
+    const from = entries.findIndex(([key]) => key === name)
+    const to = from + offset
+    if (from === -1 || to < 0 || to >= entries.length) return next
+    const [moved] = entries.splice(from, 1)
+    entries.splice(to, 0, moved)
+    holder.properties = Object.fromEntries(entries)
+    return next
+}
+
+// The root without a field, which also leaves the required list of its object
+export function deleteField (root: FieldSchema, pointer: string): FieldSchema {
+    const next = clone(root)
+    const { holder: holderPointer, name } = splitPointer(pointer)
+    const holder = schemaAt(next, holderPointer)
+    delete holder.properties![name]
+    const required = (holder.required ?? []).filter(entry => entry !== name)
+    if (required.length) holder.required = required
+    else delete holder.required
+    return next
+}
+
+// The message paths of every field inside a field, at any depth, for saying what deleting it takes with it
+export function nestedPaths (root: FieldSchema, pointer: string, path: string): string[] {
+    const paths: string[] = []
+    const visit = (schema: FieldSchema, prefix: string) => {
+        const holder = fieldsHolder(schema)
+        for (const [name, child] of Object.entries(holder?.schema.properties ?? {})) {
+            const childPath = `${prefix}/${name}`
+            paths.push(childPath)
+            visit(child, childPath)
+        }
+    }
+    visit(schemaAt(root, pointer), path)
+    return paths
 }
