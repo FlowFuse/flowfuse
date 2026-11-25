@@ -111,4 +111,12 @@ describe('builder edits', () => {
         expect(root.properties.serial).toEqual({ type: 'string', minLength: 4 })
         expect(root.required).toEqual(['serial'])
     })
+
+    test('deleting and restoring a field gives back the published schema', () => {
+        const published = SCHEMA()
+        for (const name of ['value', 'unit']) {
+            const restored = restoreField(deleteField(published, `/properties/${name}`), published, `/properties/${name}`)
+            expect(JSON.stringify(restored)).toEqual(JSON.stringify(published))
+        }
+    })
 })

@@ -223,7 +223,7 @@ export function nestedPaths (root: FieldSchema, pointer: string, path: string): 
 }
 
 // The root with a deleted field put back exactly as the published version has it: in the same place among the fields
-// still there, and on the required list when it was required there
+// still there, and in the same place on the required list when it was required there
 export function restoreField (root: FieldSchema, published: FieldSchema, pointer: string): FieldSchema {
     const next = clone(root)
     const { holder: holderPointer, name } = splitPointer(pointer)
@@ -234,8 +234,12 @@ export function restoreField (root: FieldSchema, published: FieldSchema, pointer
     const earlier = publishedNames.slice(0, publishedNames.indexOf(name)).reverse().find(candidate => entries.some(([key]) => key === candidate))
     entries.splice(earlier ? entries.findIndex(([key]) => key === earlier) + 1 : 0, 0, [name, clone(before.properties![name])])
     holder.properties = Object.fromEntries(entries)
-    if ((before.required ?? []).includes(name) && !(holder.required ?? []).includes(name)) {
-        holder.required = [...(holder.required ?? []), name]
+    const publishedRequired = before.required ?? []
+    const required = holder.required ?? []
+    if (publishedRequired.includes(name) && !required.includes(name)) {
+        const earlierRequired = publishedRequired.slice(0, publishedRequired.indexOf(name)).reverse().find(candidate => required.includes(candidate))
+        required.splice(earlierRequired ? required.indexOf(earlierRequired) + 1 : 0, 0, name)
+        holder.required = required
     }
     return next
 }
