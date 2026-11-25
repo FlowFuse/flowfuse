@@ -1,4 +1,4 @@
-const should = require('should')
+const should = require('should') // eslint-disable-line
 const sinon = require('sinon')
 
 const FF_UTIL = require('flowforge-test-utils')

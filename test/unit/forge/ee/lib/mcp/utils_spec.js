@@ -1,4 +1,4 @@
-const should = require('should')
+const should = require('should') // eslint-disable-line no-unused-vars
 
 const { redactDatabaseCredentials } = require('../../../../../../forge/ee/lib/mcp/utils')
 
