@@ -1,9 +1,9 @@
 <template>
     <ff-data-table-row class="schema-row" :data-el="`schema-row-${schema.id}`">
-        <ff-data-table-cell>
+        <ff-data-table-cell class="schema-row__main">
             <div class="schema-row__in-group">
                 <router-link class="schema-row__name" :to="{ name: 'team-schema', params: { schemaId: schema.id } }">{{ schema.name }}</router-link>
-                <p v-if="schema.description" class="schema-row__description">{{ schema.description }}</p>
+                <p v-if="schema.description" class="schema-row__description truncate" :title="schema.description">{{ schema.description }}</p>
             </div>
         </ff-data-table-cell>
         <ff-data-table-cell data-el="schema-latest-version">
@@ -33,6 +33,11 @@ defineProps<{
 
 <style scoped lang="scss">
 .schema-row {
+    // lets the cell shrink below its content, so a long description is cut short and the other columns keep their place
+    &__main {
+        max-width: 0;
+    }
+
     &__name {
         font-weight: 500;
         color: var(--ff-color-link);
@@ -46,6 +51,7 @@ defineProps<{
         margin: 0.125rem 0 0;
         font-size: 0.875rem;
         color: var(--ff-color-text-subtle);
+        cursor: default;
     }
 
     // lines the name up with its group's name, past the chevron
