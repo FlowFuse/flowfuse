@@ -4,10 +4,9 @@ import type { DataSchema, DataSchemaDraft, DataSchemaGroup, DataSchemaSummary, D
 
 const schemaUrl = (teamId: string, schemaId: string) => `/api/v1/teams/${teamId}/schemas/${schemaId}`
 
-// One change between two versions, at a JSON Pointer path into the schema document
 export interface SchemaChange { path: string, type: 'added' | 'changed' | 'deleted', detail: { from?: unknown, to?: unknown } }
 
-// Where a message breaks a schema. `path` points into the message, at a missing field's own path for `required`
+// Where a message breaks a schema. `path` points into the message, at the field itself for `required` and `additionalProperties`
 export interface ValidationError { path: string, keyword: string, message: string, params: Record<string, unknown> }
 
 // One page of schemas, as the list endpoints return it
@@ -87,14 +86,14 @@ const undeprecateVersion = async (teamId: string, schemaId: string, version: str
     return client.post(`${schemaUrl(teamId, schemaId)}/versions/${version}/undeprecate`).then(res => res.data)
 }
 
-// What was added, changed or deleted from one version to another. `to` can also be `draft`
+// `to` can also be `draft`
 const diffVersions = async (teamId: string, schemaId: string, from: string, to: string): Promise<{ from: string, to: string, changes: SchemaChange[] }> => {
     return client.get(`${schemaUrl(teamId, schemaId)}/diff`, { params: { from, to } }).then(res => res.data)
 }
 
 // Checks a message against a version, or the saved draft when `against` is `draft`. Nothing is stored
 const validateMessage = async (teamId: string, schemaId: string, against: string, payload: unknown): Promise<{ valid: boolean, errors: ValidationError[] }> => {
-    const url = against === 'draft' ? `${schemaUrl(teamId, schemaId)}/draft/validate` : `${schemaUrl(teamId, schemaId)}/versions/${against}/validate`
+    const url = against === 'draft' ? `${schemaUrl(teamId, schemaId)}/draft/validate` : `${schemaUrl(teamId, schemaId)}/versions/${encodeURIComponent(against)}/validate`
     return client.post(url, { payload }).then(res => res.data)
 }
 

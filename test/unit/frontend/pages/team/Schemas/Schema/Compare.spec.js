@@ -107,4 +107,37 @@ describe('Schema compare page', () => {
         await flushPromises()
         expect(Alerts.emit).toHaveBeenCalledWith('Version 9.9.9 not found', 'warning')
     })
+
+    test('shows an error instead of the spinner when the comparison failed', async () => {
+        const { page } = mountCompare({ comparison: new Error('x') })
+        await flushPromises()
+        expect(page.find('[data-el="schema-compare-failed"]').exists()).toBe(true)
+        expect(page.find('[data-el="loading"]').exists()).toBe(false)
+    })
+
+    test('offers the draft as the version compared to only', async () => {
+        const { page } = mountCompare()
+        await flushPromises()
+        const values = (el) => page.find(`[data-el="${el}"]`).findAll('option').map(option => option.element.value)
+        expect(values('compare-from')).toEqual(['1.1.0', '1.0.0'])
+        expect(values('compare-to')).toEqual(['draft', '1.1.0', '1.0.0'])
+    })
+
+    test('takes the first of a version repeated in the address', async () => {
+        const { schemas } = mountCompare({ query: { from: ['1.0.0', '1.1.0'], to: ['1.1.0', 'draft'] } })
+        await flushPromises()
+        expect(schemas.fetchComparison).toHaveBeenCalledWith('1.0.0', '1.1.0')
+    })
+
+    test('compares a version with itself when both sides were picked', async () => {
+        const { schemas } = mountCompare({ query: { from: '1.0.0', to: '1.0.0' } })
+        await flushPromises()
+        expect(schemas.fetchComparison).toHaveBeenCalledWith('1.0.0', '1.0.0')
+    })
+
+    test('labels both listboxes', () => {
+        const { page } = mountCompare()
+        expect(page.findComponent('[data-el="compare-from"]').attributes('aria-label')).toBe('From version')
+        expect(page.findComponent('[data-el="compare-to"]').attributes('aria-label')).toBe('To version')
+    })
 })

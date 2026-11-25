@@ -1,3 +1,4 @@
+const { Sequelize } = require('sequelize')
 const should = require('should')
 
 const utils = require('../../../../forge/db/utils.js')
@@ -5,6 +6,61 @@ const utils = require('../../../../forge/db/utils.js')
 describe('db utils', () => {
     it('should export an object', () => {
         should(utils).be.Object()
+    })
+
+    describe('escapeLike', () => {
+        it('puts a backslash before %, _ and \\', () => {
+            utils.escapeLike('50%_a\\b').should.equal('50\\%\\_a\\\\b')
+        })
+        it('leaves other text alone', () => {
+            utils.escapeLike("it's ok").should.equal("it's ok")
+        })
+    })
+
+    describe('likeContaining', () => {
+        const sqlite = new Sequelize({ dialect: 'sqlite', storage: ':memory:', logging: false })
+        const postgres = new Sequelize({ dialect: 'postgres', logging: false })
+        after(async () => {
+            await sqlite.close()
+            await postgres.close()
+        })
+        const patternFor = (sequelize, text) => utils.likeContaining(sequelize, text).val
+
+        for (const [dialect, sequelize] of [['sqlite', sqlite], ['postgres', postgres]]) {
+            describe(dialect, () => {
+                it('wraps the text in wildcards and names the escape character', () => {
+                    patternFor(sequelize, 'abc').should.equal("'%abc%' ESCAPE '\\'")
+                })
+                it('escapes %, _ and \\ in the text', () => {
+                    patternFor(sequelize, 'a%b_c\\d').should.equal("'%a\\%b\\_c\\\\d%' ESCAPE '\\'")
+                })
+                it('doubles single quotes', () => {
+                    patternFor(sequelize, "x' OR '1'='1").should.equal("'%x'' OR ''1''=''1%' ESCAPE '\\'")
+                })
+                it('drops NUL characters', () => {
+                    patternFor(sequelize, 'a\0b').should.equal("'%ab%' ESCAPE '\\'")
+                })
+            })
+        }
+
+        describe('against sqlite', () => {
+            const matches = async (value, text) => {
+                const [rows] = await sqlite.query(`SELECT 1 AS hit WHERE '${value.replace(/'/g, "''")}' LIKE ${patternFor(sqlite, text)}`)
+                return rows.length === 1
+            }
+            it('matches the characters as themselves', async () => {
+                should(await matches('50% off', '%')).be.true()
+                should(await matches('a_b', '_')).be.true()
+                should(await matches('a\\b', '\\')).be.true()
+                should(await matches("it's", "t's")).be.true()
+            })
+            it('does not treat them as wildcards', async () => {
+                should(await matches('abc', '%')).be.false()
+                should(await matches('abc', '_')).be.false()
+                should(await matches('abc', 'a_c')).be.false()
+                should(await matches('abc', '\\')).be.false()
+            })
+        })
     })
 
     describe('getCanonicalEmail', () => {
