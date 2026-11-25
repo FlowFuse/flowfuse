@@ -67,6 +67,8 @@ describe('Schema versions tab', () => {
         const { tab } = mountTab(Roles.Member)
         expect(['draft', '1.2.0', '1.1.0'].map(version => cell(tab, version, 'status'))).toEqual(['Draft', 'Published', 'Deprecated'])
         expect(cell(tab, '1.2.0', 'notes')).toBe('adds unit')
+        // notes are cut short when they do not fit, so the whole of them is in their title
+        expect(row(tab, '1.2.0').find('.schema-version__notes').attributes('title')).toBe('adds unit')
         expect(cell(tab, '1.2.0', 'by')).toBe('Alex')
         expect(cell(tab, '1.2.0', 'when')).toMatch(/ago$/)
         expect(cell(tab, '1.1.0', 'by')).toBe('')

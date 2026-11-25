@@ -14,8 +14,8 @@
                 <ff-data-table-cell data-el="version-status">
                     <StatusBadge :status="STATUS[entry.status].status" :text="STATUS[entry.status].text" />
                 </ff-data-table-cell>
-                <ff-data-table-cell data-el="version-notes">
-                    <span class="schema-version__notes">{{ entry.notes }}</span>
+                <ff-data-table-cell class="schema-version__notes-cell" data-el="version-notes">
+                    <p v-if="entry.notes" class="schema-version__notes truncate" :title="entry.notes">{{ entry.notes }}</p>
                 </ff-data-table-cell>
                 <!-- a draft has no publisher yet, so it shows who started it and when -->
                 <ff-data-table-cell data-el="version-by">{{ (entry.status === 'draft' ? entry.createdBy : entry.publishedBy)?.name }}</ff-data-table-cell>
@@ -134,8 +134,14 @@ async function restore (version: string) {
         }
     }
 
+    // lets the cell shrink below its content, so long notes are cut short and the other columns keep their place
+    &__notes-cell {
+        max-width: 0;
+    }
+
     &__notes {
-        white-space: pre-line;
+        margin: 0;
+        cursor: default;
     }
 }
 </style>
