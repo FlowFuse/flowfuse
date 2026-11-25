@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { builderRows, constraintsSummary, fieldTrail, otherFields, parseSchema, referenceProblem, schemaAt } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builder.ts'
+import { builderRows, constraintsSummary, fieldTrail, insertAfterPublished, otherFields, parseSchema, referenceProblem, schemaAt } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builder.ts'
 import { typeLabel } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/schemaTypes.ts'
 
 const SCHEMA = {
@@ -123,6 +123,13 @@ describe('builder rows', () => {
         const published = { type: 'object', properties: { sensor: { type: 'object', properties: { id: { type: 'string' }, line: { type: 'integer' } } } } }
         const draft = { type: 'object', properties: { sensor: { type: 'object', properties: { line: { type: 'integer' } } } } }
         expect(builderRows(draft, new Set(['/properties/sensor']), published).map(row => [row.path, row.deleted])).toEqual([['/sensor', false], ['/sensor/id', true], ['/sensor/line', false]])
+    })
+
+    test('inserts a name after the nearest earlier published name that is still there', () => {
+        expect(insertAfterPublished(['a', 'c'], 'b', ['a', 'b', 'c'])).toEqual(['a', 'b', 'c'])
+        expect(insertAfterPublished(['c'], 'b', ['a', 'b', 'c'])).toEqual(['b', 'c'])
+        expect(insertAfterPublished(['a', 'c'], 'd', ['a', 'b', 'c', 'd'])).toEqual(['a', 'c', 'd'])
+        expect(insertAfterPublished(['a', 'x', 'c'], 'd', ['a', 'b', 'c', 'd'])).toEqual(['a', 'x', 'c', 'd'])
     })
 
     describe('deep nesting', () => {
