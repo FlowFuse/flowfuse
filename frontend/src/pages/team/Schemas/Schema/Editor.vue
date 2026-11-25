@@ -18,7 +18,7 @@
                 </template>
             </div>
         </div>
-        <SchemaBuilder v-if="view === 'builder'" :schema-text="schemaText" @edit-json="view = 'json'" />
+        <SchemaBuilder v-if="view === 'builder'" :schema="schema" @edit-json="view = 'json'" />
         <JsonEditor v-show="view === 'json'" ref="jsonEditor" v-model="schemaText" v-model:problems="editorProblems" :markers="markers" :read-only="jsonReadOnly" />
         <div v-if="draft" class="schema-notes" data-el="schema-notes">
             <label for="schema-version-notes" class="schema-notes__label">
@@ -46,8 +46,9 @@ import { DocumentTextIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outli
 import { computed, ref } from 'vue'
 
 import SchemaBuilder from './components/SchemaBuilder.vue'
-import { typeLabel } from './components/builder'
+import { parseSchema } from './components/builder'
 import type { ReferenceProblem } from './components/referenceProblems'
+import { typeLabel } from './components/schemaTypes'
 
 import FfAccordion from '@/components/Accordion.vue'
 import JsonEditor from '@/components/JsonEditor.vue'
@@ -78,15 +79,8 @@ const view = ref('builder')
 const jsonEditor = ref<InstanceType<typeof JsonEditor> | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 
-// what the whole message is, shown beside the builder
-const rootType = computed(() => {
-    try {
-        const value = JSON.parse(schemaText.value)
-        return value && typeof value === 'object' && !Array.isArray(value) ? typeLabel(value) : ''
-    } catch {
-        return ''
-    }
-})
+const schema = computed(() => parseSchema(schemaText.value))
+const rootType = computed(() => schema.value ? typeLabel(schema.value) : '')
 
 const jsonReadOnly = computed(() => props.readOnly || !props.draft)
 // Format and Import work through the editor, so they are no use when it failed to load

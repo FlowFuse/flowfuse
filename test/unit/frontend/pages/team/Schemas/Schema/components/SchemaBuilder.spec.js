@@ -2,12 +2,13 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, test } from 'vitest'
 
 import SchemaBuilder from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/SchemaBuilder.vue'
+import { parseSchema } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builder.ts'
 
 const SCHEMA = { type: 'object', required: ['location'], properties: { location: { type: 'object', properties: { site: { type: 'string' } } }, calibration: { anyOf: [{ type: 'number' }] } }, additionalProperties: false }
 
-function mountBuilder (schemaText = JSON.stringify(SCHEMA)) {
+function mountBuilder (text = JSON.stringify(SCHEMA)) {
     return mount(SchemaBuilder, {
-        props: { schemaText },
+        props: { schema: parseSchema(text) },
         global: {
             stubs: {
                 'ff-data-table': { template: '<table><tbody><slot name="rows" /></tbody></table>' },
@@ -66,6 +67,34 @@ describe('Schema builder', () => {
         expect(paths(builder)).toEqual(['/a/b', '/a/b/c'])
         await builder.find('[data-action="builder-trail-root"]').trigger('click')
         expect(paths(builder)[0]).toBe('/a')
+        expect(builder.find('[data-el="builder-trail"]').exists()).toBe(false)
+    })
+
+    test('shows the error of a field using a reference, with a way to the JSON', async () => {
+        const builder = mountBuilder('{"type": "object", "properties": {"a": {"$ref": "#/$defs/a"}}}')
+        expect(builder.find('[data-el="builder-row-problem"]').text()).toBe('$ref is not supported yet')
+        await builder.find('[data-action="builder-edit-in-json"]').trigger('click')
+        expect(builder.emitted('edit-json')).toHaveLength(1)
+    })
+
+    test('reads the other fields setting from the object drilled into', async () => {
+        const nested = { type: 'object', properties: { a: { type: 'object', properties: { b: { type: 'object', properties: { c: { type: 'object', additionalProperties: { type: 'string' }, properties: { d: { type: 'string' } } } } } } } } }
+        const builder = mountBuilder(JSON.stringify(nested))
+        await builder.find('[data-el="builder-row-/a"] [data-action="builder-toggle"]').trigger('click')
+        await builder.find('[data-el="builder-row-/a/b"] [data-action="builder-toggle"]').trigger('click')
+        expect(builder.find('[data-el="builder-other-fields"]').text()).toContain('Allowed (additionalProperties: true)')
+        await builder.find('[data-el="builder-row-/a/b/c"] [data-action="builder-drill-in"]').trigger('click')
+        expect(builder.find('[data-el="builder-other-fields"]').text()).toContain('checked against the schema')
+    })
+
+    test('goes back to the whole message when the field drilled into goes away', async () => {
+        const nested = { type: 'object', properties: { a: { type: 'object', properties: { b: { type: 'object', properties: { c: { type: 'object', properties: { d: { type: 'string' } } } } } } } } }
+        const builder = mountBuilder(JSON.stringify(nested))
+        await builder.find('[data-el="builder-row-/a"] [data-action="builder-toggle"]').trigger('click')
+        await builder.find('[data-el="builder-row-/a/b"] [data-action="builder-toggle"]').trigger('click')
+        await builder.find('[data-el="builder-row-/a/b/c"] [data-action="builder-drill-in"]').trigger('click')
+        await builder.setProps({ schema: parseSchema('{"type": "object", "properties": {"x": {"type": "string"}}}') })
+        expect(paths(builder)).toEqual(['/x'])
         expect(builder.find('[data-el="builder-trail"]').exists()).toBe(false)
     })
 
