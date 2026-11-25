@@ -626,12 +626,21 @@ describe('MCP Instances Tools', function () {
 
         it('puts only the provided fields onto the instance route', async function () {
             const routeResponse = { statusCode: 200, json: () => ({ id: instanceId }) }
-            inject.withArgs({ method: 'PUT', url: `/api/v1/projects/${instanceId}`, payload: { name: 'renamed-instance' } }).resolves(routeResponse)
+            inject.withArgs({ method: 'PUT', url: `/api/v1/projects/${instanceId}`, payload: { launcherSettings: { healthCheckInterval: 10000 } } }).resolves(routeResponse)
 
-            const response = await tool.handler({ instanceId, name: 'renamed-instance' }, { inject })
+            const response = await tool.handler({ instanceId, launcherSettings: { healthCheckInterval: 10000 } }, { inject })
 
             inject.calledOnce.should.be.true()
             response.should.equal(routeResponse)
+        })
+
+        it('does not offer a rename', async function () {
+            tool.inputSchema.should.not.have.property('name')
+
+            const response = await tool.handler({ instanceId, name: 'renamed-instance' }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
         })
 
         it('forwards settings, launcherSettings, projectType, stack and sourceProject', async function () {
@@ -657,10 +666,10 @@ describe('MCP Instances Tools', function () {
         })
 
         it('passes through an error response', async function () {
-            const errorResponse = { statusCode: 409, json: () => ({ code: 'invalid_project_name' }) }
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
             inject.resolves(errorResponse)
 
-            const response = await tool.handler({ instanceId, name: 'taken' }, { inject })
+            const response = await tool.handler({ instanceId, launcherSettings: { healthCheckInterval: 10000 } }, { inject })
             response.should.equal(errorResponse)
         })
     })
