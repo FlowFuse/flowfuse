@@ -15,6 +15,11 @@
             <span v-else class="schema-row__none">None</span>
         </ff-data-table-cell>
         <ff-data-table-cell data-el="schema-updated">{{ daysSince(schema.updatedAt, true) }}</ff-data-table-cell>
+        <ff-data-table-cell v-if="canEdit">
+            <ff-kebab-menu>
+                <ff-kebab-item label="Edit details" @click="emit('edit')" />
+            </ff-kebab-menu>
+        </ff-data-table-cell>
     </ff-data-table-row>
 </template>
 
@@ -28,6 +33,11 @@ defineOptions({ name: 'SchemaRow' })
 
 defineProps<{
     schema: DataSchemaSummary
+    canEdit?: boolean
+}>()
+
+const emit = defineEmits<{
+    edit: []
 }>()
 </script>
 

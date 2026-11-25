@@ -25,7 +25,7 @@ vi.mock('../../../../../frontend/src/services/alerts.js', () => ({
     default: { emit: vi.fn() }
 }))
 
-const SchemasTableStub = { name: 'SchemasTable', props: ['groups', 'groupSchemas', 'query', 'canRename', 'canDelete'], emits: ['load-more', 'rename-group', 'delete-group'], template: '<div data-el="schemas-table" />' }
+const SchemasTableStub = { name: 'SchemasTable', props: ['groups', 'groupSchemas', 'query', 'canEdit', 'canRename', 'canDelete'], emits: ['load-more', 'edit-schema', 'rename-group', 'delete-group'], template: '<div data-el="schemas-table" />' }
 
 // `list` is what the store holds once the list has loaded; without it the page is still loading
 function mountPage ({ enabled = true, role = Roles.Member, teamId, list } = {}) {
@@ -40,6 +40,7 @@ function mountPage ({ enabled = true, role = Roles.Member, teamId, list } = {}) 
     store.createGroup.mockResolvedValue()
     store.renameGroup.mockResolvedValue()
     store.deleteGroup.mockResolvedValue()
+    store.updateSchema.mockResolvedValue({ name: 'Temp' })
     if (list) {
         store.groups = list.groups ?? []
         store.groupSchemas = list.groupSchemas ?? {}
@@ -227,6 +228,38 @@ describe('Team Schemas page', () => {
             const viewer = mountPage({ teamId: 'team-1', role: Roles.Viewer, list: LIST }).page
             expect(viewer.find('[data-action="new-schema-group"]').exists()).toBe(false)
             expect(viewer.findComponent(SchemasTableStub).props()).toMatchObject({ canRename: false, canDelete: false })
+        })
+    })
+
+    describe('editing a schema', () => {
+        const SCHEMA = { id: 'abc', name: 'Temperature', description: 'Old', group: { id: 'g1', name: 'Energy' } }
+        const LIST = { groups: [{ id: 'g1', name: 'Energy', schemaCount: 1 }], groupSchemas: { g1: { schemas: [SCHEMA], count: 1 }, none: { schemas: [], count: 0 } } }
+
+        test('opens the details of the schema the table names, with the team\'s groups, and saves the changes', async () => {
+            const { page, schemas } = mountPage({ teamId: 'team-1', list: LIST })
+            await page.findComponent(SchemasTableStub).vm.$emit('edit-schema', SCHEMA)
+            const [options, onConfirm] = Dialog.show.mock.calls.at(-1)
+            expect(options.header).toBe('Edit details')
+            expect(options.is.payload).toMatchObject({ schema: SCHEMA, groups: LIST.groups })
+            options.is.on.change({ name: 'Temp', description: 'Old', groupId: '' })
+            await onConfirm()
+            expect(schemas.updateSchema).toHaveBeenCalledWith(SCHEMA, { name: 'Temp', description: 'Old', groupId: '' })
+            expect(Dialog.close).toHaveBeenCalled()
+            expect(Alerts.emit).toHaveBeenCalledWith('Schema Temp updated.', 'confirmation')
+        })
+
+        test('keeps the dialog open with the server\'s message when the name is taken', async () => {
+            const { page, schemas, dialogStore } = mountPage({ teamId: 'team-1', list: LIST })
+            schemas.updateSchema.mockRejectedValue({ response: { data: { error: 'The name is already in use in this team' } } })
+            await page.findComponent(SchemasTableStub).vm.$emit('edit-schema', SCHEMA)
+            await Dialog.show.mock.calls.at(-1)[1]()
+            expect(dialogStore.updateDialogPayload).toHaveBeenCalledWith({ error: 'The name is already in use in this team' })
+            expect(Dialog.close).not.toHaveBeenCalled()
+        })
+
+        test('lets a Member edit and a Viewer not', () => {
+            expect(mountPage({ teamId: 'team-1', list: LIST }).page.findComponent(SchemasTableStub).props('canEdit')).toBe(true)
+            expect(mountPage({ teamId: 'team-1', role: Roles.Viewer, list: LIST }).page.findComponent(SchemasTableStub).props('canEdit')).toBe(false)
         })
     })
 

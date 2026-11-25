@@ -18,6 +18,7 @@
                 </template>
                 <template #tools>
                     <div class="flex gap-2">
+                        <ff-button v-if="canEdit" kind="secondary" data-action="edit-schema-details" @click="editDetails">Edit details</ff-button>
                         <ff-button v-if="editingDraft" kind="secondary" data-action="discard-draft" @click="confirmDiscard">Discard draft</ff-button>
                         <ff-button kind="secondary" data-action="validate-message" disabled>Validate a message</ff-button>
                         <template v-if="editingDraft">
@@ -54,9 +55,12 @@ import { storeToRefs } from 'pinia'
 import { computed, markRaw, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router'
 
+import { showEditSchemaDialog } from '../composables/schemaDialogs'
+
 import { locateDraftProblems } from './components/draftProblems'
 import { findReferenceProblems } from './components/referenceProblems'
 import { findShapeProblems } from './components/shapeProblems'
+
 import PublishSchemaDialog from './dialogs/PublishSchemaDialog.vue'
 
 import StatusBadge from '@/components/StatusBadge.vue'
@@ -109,6 +113,14 @@ onBeforeUnmount(() => {
 })
 
 const canEdit = computed(() => hasPermission('team:schema:edit'))
+
+async function editDetails () {
+    try {
+        showEditSchemaDialog(schema.value!, await schemasStore.fetchGroups())
+    } catch (err) {
+        Alerts.emit(err.response?.data?.error || 'Failed to load the groups.', 'warning')
+    }
+}
 const canPublish = computed(() => hasPermission('team:schema:publish'))
 const editingDraft = computed(() => !!draft.value && canEdit.value)
 

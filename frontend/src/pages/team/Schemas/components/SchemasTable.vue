@@ -23,7 +23,7 @@
                     </ff-data-table-cell>
                 </ff-data-table-row>
                 <template v-if="!collapsed.has(section.id)">
-                    <SchemaRow v-for="schema in section.page.schemas" :key="schema.id" :schema="schema" />
+                    <SchemaRow v-for="schema in section.page.schemas" :key="schema.id" :schema="schema" :can-edit="canEdit" @edit="emit('edit-schema', schema)" />
                     <ff-data-table-row v-if="section.page.nextCursor">
                         <ff-data-table-cell :colspan="columns.length">
                             <ff-button kind="tertiary" size="small" data-action="load-more" @click="emit('load-more', section.id)">Load more</ff-button>
@@ -42,7 +42,7 @@ import { computed, ref, watch } from 'vue'
 import SchemaRow from './SchemaRow.vue'
 
 import { type SchemaListPage, UNGROUPED, groupMatches } from '@/stores/data-farm-schemas'
-import type { DataSchemaGroup } from '@/types'
+import type { DataSchemaGroup, DataSchemaSummary } from '@/types'
 
 defineOptions({ name: 'SchemasTable' })
 
@@ -50,22 +50,26 @@ const props = defineProps<{
     groups: DataSchemaGroup[]
     groupSchemas: Record<string, SchemaListPage>
     query: string
+    canEdit?: boolean
     canRename?: boolean
     canDelete?: boolean
 }>()
 
 const emit = defineEmits<{
     'load-more': [groupId: string]
+    'edit-schema': [schema: DataSchemaSummary]
     'rename-group': [group: DataSchemaGroup]
     'delete-group': [group: DataSchemaGroup]
 }>()
 
-const columns = [
+// the last column holds a schema's menu, which only those who can edit get
+const columns = computed(() => [
     { label: 'Name', key: 'name' },
     { label: 'Latest version', key: 'latestVersion', class: ['w-44'] },
     { label: 'Draft', key: 'hasDraft', class: ['w-32'] },
-    { label: 'Updated', key: 'updatedAt', class: ['w-40'] }
-]
+    { label: 'Updated', key: 'updatedAt', class: ['w-40'] },
+    ...(props.canEdit ? [{ label: '', key: 'actions', class: ['w-16'] }] : [])
+])
 
 // One section per group, then the schemas in no group, which only get a section when there are any.
 // A search keeps the groups that match it by name or hold a schema that does.

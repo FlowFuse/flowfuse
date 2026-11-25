@@ -18,6 +18,11 @@ const listGrouped = async (teamId: string, params: { query?: string, limit?: num
     return client.get(`/api/v1/teams/${teamId}/schemas/grouped`, { params }).then(res => res.data)
 }
 
+// Every group of the team, sorted by name. The list page gets its groups from `listGrouped`
+const listGroups = async (teamId: string): Promise<{ count: number, groups: DataSchemaGroup[] }> => {
+    return client.get(`/api/v1/teams/${teamId}/schemas/groups`).then(res => res.data)
+}
+
 const createGroup = async (teamId: string, name: string): Promise<DataSchemaGroup> => {
     return client.post(`/api/v1/teams/${teamId}/schemas/groups`, { name }).then(res => res.data)
 }
@@ -33,6 +38,11 @@ const deleteGroup = async (teamId: string, groupId: string): Promise<void> => {
 
 const createSchema = async (teamId: string, body: { name: string, description?: string, groupId?: string }): Promise<DataSchema> => {
     return client.post(`/api/v1/teams/${teamId}/schemas`, body).then(res => res.data)
+}
+
+// `groupId: null` takes the schema out of its group
+const updateSchema = async (teamId: string, schemaId: string, body: { name?: string, description?: string, groupId?: string | null }): Promise<DataSchema> => {
+    return client.put(schemaUrl(teamId, schemaId), body).then(res => res.data)
 }
 
 const getSchema = async (teamId: string, schemaId: string): Promise<DataSchema> => {
@@ -66,10 +76,12 @@ const publishDraft = async (teamId: string, schemaId: string, body: { version: s
 export default {
     listSchemas,
     listGrouped,
+    listGroups,
     createGroup,
     renameGroup,
     deleteGroup,
     createSchema,
+    updateSchema,
     getSchema,
     getVersion,
     getDraft,
