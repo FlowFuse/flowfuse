@@ -1,23 +1,7 @@
-import type { ValidationError } from '@/api/schemas'
+import { escapePointer, isObject } from './pointer'
+import { COMBINATORS, type Schema, typeLabel, typesOf } from './schemaTypes'
 
-// The keywords of a JSON Schema read here, and any others
-interface Schema {
-    type?: string | string[]
-    properties?: Record<string, Schema>
-    required?: string[]
-    items?: Schema
-    format?: string
-    pattern?: string
-    minimum?: number
-    maximum?: number
-    exclusiveMinimum?: number
-    exclusiveMaximum?: number
-    minLength?: number
-    maxLength?: number
-    minItems?: number
-    uniqueItems?: boolean
-    [keyword: string]: unknown
-}
+import type { ValidationError } from '@/api/schemas'
 
 export type RowResult = 'pass' | 'fail' | 'optional' | 'extra'
 
@@ -25,28 +9,40 @@ export interface ValidationRow {
     path: string
     type: string
     value: string
-    // whether the message has the field at all
     present: boolean
     result: RowResult
     message: string
 }
 
-const COMBINATORS = ['oneOf', 'anyOf', 'allOf']
 const MISSING = Symbol('missing')
 
-const isObject = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value)
-const escapePointer = (segment: string) => segment.replace(/~/g, '~0').replace(/\//g, '~1')
-
-// What a field's schema allows, the way the builder and the mocks write it: `string | null`, `array of string`, `oneOf (2)`
-export function typeLabel (schema: Schema): string {
-    if (!isObject(schema)) return ''
-    const combinator = COMBINATORS.find(keyword => Array.isArray(schema[keyword]))
-    if (combinator) return `${combinator} (${(schema[combinator] as unknown[]).length})`
-    const types = Array.isArray(schema.type) ? schema.type : schema.type ? [schema.type] : []
-    return types.map(type => type === 'array' && isObject(schema.items) && schema.items.type ? `array of ${typeLabel(schema.items)}` : type).join(' | ')
+const DEFAULT_MESSAGES: Record<RowResult, string> = {
+    pass: 'Passes',
+    fail: '',
+    optional: 'Not present (optional)',
+    extra: 'Not in schema (additionalProperties: true)'
 }
 
-// A value from the message, short enough for one cell
+// What lets an object have a field its schema does not list
+function extraMessage (objectSchema: Schema, name: string): string {
+    const patterns = isObject(objectSchema.patternProperties) ? Object.keys(objectSchema.patternProperties) : []
+    if (patterns.some(pattern => matches(pattern, name))) {
+        return 'Checked by patternProperties'
+    }
+    if (isObject(objectSchema.additionalProperties)) {
+        return 'Checked by the additionalProperties schema'
+    }
+    return DEFAULT_MESSAGES.extra
+}
+
+function matches (pattern: string, text: string): boolean {
+    try {
+        return new RegExp(pattern, 'u').test(text)
+    } catch {
+        return false
+    }
+}
+
 export function valueLabel (value: unknown): string {
     if (isObject(value)) {
         const count = Object.keys(value).length
@@ -55,60 +51,33 @@ export function valueLabel (value: unknown): string {
     return JSON.stringify(value)
 }
 
-const MAX_LISTED_VALUES = 10
-
-const listOr = (items: string[]) => items.length > 1 ? `${items.slice(0, -1).join(', ')} or ${items.at(-1)}` : items[0] ?? ''
-
-/**
- * An error as the results table says it. AJV's own message is kept, apart from the keywords whose message leaves out
- * what is expected although AJV gives it in `params`: the allowed values of `enum` and `const`, and a list of types.
- */
-export function describeError (error: ValidationError): string {
-    const { keyword, params } = error
-    if (keyword === 'enum' && Array.isArray(params.allowedValues)) {
-        const values = params.allowedValues.map(value => JSON.stringify(value))
-        const shown = values.length > MAX_LISTED_VALUES ? [...values.slice(0, MAX_LISTED_VALUES), `${values.length - MAX_LISTED_VALUES} more`] : values
-        return `must be one of ${listOr(shown)}`
-    }
-    if (keyword === 'const' && Object.hasOwn(params, 'allowedValue')) return `must be ${JSON.stringify(params.allowedValue)}`
-    if (keyword === 'type') {
-        const types = Array.isArray(params.type) ? params.type : typeof params.type === 'string' ? params.type.split(',') : []
-        if (types.length) return `must be ${listOr(types.map(String))}`
-    }
-    return error.message
-}
-
-// The path of the field an error is about. An error for a field that is not allowed is reported on the object holding it
-function errorPath (error: ValidationError): string {
-    if (error.keyword === 'additionalProperties' && typeof error.params.additionalProperty === 'string') {
-        return `${error.path}/${escapePointer(error.params.additionalProperty)}`
-    }
-    return error.path
-}
-
 /**
  * One row per field of the schema, and per field the message has that the schema does not list.
  * Fields of an object the message does not have are left out, as they can only be missing too.
- * Each error goes to the row of its field, or of the closest field above it, for errors inside arrays and inside
- * `oneOf` / `anyOf` branches. A row with several errors shows the combinator's own one, or else the first.
+ * A row fails only from an error of the server. Each error goes to the row of its field, or of the closest field
+ * above it, for errors inside arrays and inside `oneOf` / `anyOf` branches. A row with several errors shows the
+ * combinator's own one, or else the first.
  */
 export function validationRows (schema: Schema, payload: unknown, errors: ValidationError[]): ValidationRow[] {
     const rows: ValidationRow[] = []
 
-    function visit (fieldSchema: Schema, value: unknown, path: string, required: boolean) {
+    function visit (fieldSchema: Schema, value: unknown, path: string) {
         const present = value !== MISSING
-        rows.push({ path: path || '/', type: typeLabel(fieldSchema), value: present ? valueLabel(value) : 'missing', present, result: present ? 'pass' : required ? 'fail' : 'optional', message: '' })
-        if (!present || !isObject(fieldSchema) || !isObject(value) || !isObject(fieldSchema.properties)) return
-        const requiredFields: string[] = Array.isArray(fieldSchema.required) ? fieldSchema.required : []
+        rows.push({ path: path || '/', type: typeLabel(fieldSchema), value: present ? valueLabel(value) : 'missing', present, result: present ? 'pass' : 'optional', message: '' })
+        if (!present || !isObject(fieldSchema) || !isObject(value) || !isObject(fieldSchema.properties)) {
+            return
+        }
         for (const [name, child] of Object.entries(fieldSchema.properties)) {
-            visit(child, Object.hasOwn(value, name) ? value[name] : MISSING, `${path}/${escapePointer(name)}`, requiredFields.includes(name))
+            visit(child, Object.hasOwn(value, name) ? value[name] : MISSING, `${path}/${escapePointer(name)}`)
         }
         for (const name of Object.keys(value)) {
-            if (Object.hasOwn(fieldSchema.properties, name)) continue
-            rows.push({ path: `${path}/${escapePointer(name)}`, type: 'not in schema', value: valueLabel(value[name]), present: true, result: 'extra', message: '' })
+            if (Object.hasOwn(fieldSchema.properties, name)) {
+                continue
+            }
+            rows.push({ path: `${path}/${escapePointer(name)}`, type: 'not in schema', value: valueLabel(value[name]), present: true, result: 'extra', message: extraMessage(fieldSchema, name) })
         }
     }
-    visit(schema, payload, '', true)
+    visit(schema, payload, '')
 
     const byPath = new Map(rows.map(row => [row.path, row]))
     const rowFor = (path: string) => {
@@ -120,23 +89,26 @@ export function validationRows (schema: Schema, payload: unknown, errors: Valida
     }
     const rowErrors = new Map<ValidationRow, ValidationError[]>()
     for (const error of errors) {
-        const row = rowFor(errorPath(error))
+        const row = rowFor(error.path)
         rowErrors.set(row, [...(rowErrors.get(row) ?? []), error])
     }
     for (const [row, list] of rowErrors) {
-        const shown = list.find(error => errorPath(error) === row.path && COMBINATORS.includes(error.keyword)) ??
-            list.find(error => errorPath(error) === row.path) ??
+        const shown = list.find(error => error.path === row.path && COMBINATORS.includes(error.keyword)) ??
+            list.find(error => error.path === row.path) ??
             list[0]
         row.result = 'fail'
-        row.message = describeError(shown)
+        const inside = shown.path.slice(row.path === '/' ? 0 : row.path.length)
+        row.message = inside ? `${inside}: ${shown.message}` : shown.message
     }
     // The message itself only gets a row of its own when it fails as a whole, as an object's fields say more
-    if (rows[0].result !== 'fail' && isObject(schema) && isObject(payload)) rows.shift()
+    if (rows[0].result !== 'fail' && isObject(schema) && isObject(payload)) {
+        rows.shift()
+    }
     for (const row of rows) {
-        if (row.message) continue
-        if (row.result === 'pass') row.message = 'Passes'
-        if (row.result === 'optional') row.message = 'Not present (optional)'
-        if (row.result === 'extra') row.message = 'Not in schema (additionalProperties: true)'
+        if (row.message) {
+            continue
+        }
+        row.message = DEFAULT_MESSAGES[row.result]
     }
     return rows
 }
@@ -228,8 +200,8 @@ export function exampleFromSchema (schema: Schema): unknown {
             return isObject(merged) && isObject(example) ? { ...merged, ...example } : example
         }, {})
     }
-    const types = Array.isArray(schema.type) ? schema.type : [schema.type]
-    const type = types.find(candidate => candidate && candidate !== 'null') ?? types[0] ?? (isObject(schema.properties) ? 'object' : undefined)
+    const types = typesOf(schema)
+    const type = types.find(candidate => candidate !== 'null') ?? types[0] ?? (isObject(schema.properties) ? 'object' : undefined)
     switch (type) {
     case 'object':
         return Object.fromEntries(Object.entries(schema.properties ?? {}).map(([name, child]) => [name, exampleFromSchema(child)]))

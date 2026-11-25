@@ -6,7 +6,7 @@ const schemaUrl = (teamId: string, schemaId: string) => `/api/v1/teams/${teamId}
 
 export interface SchemaChange { path: string, type: 'added' | 'changed' | 'deleted', detail: { from?: unknown, to?: unknown } }
 
-// Where a message breaks a schema. `path` points into the message, at a missing field's own path for `required`
+// Where a message breaks a schema. `path` points into the message, at the field itself for `required` and `additionalProperties`
 export interface ValidationError { path: string, keyword: string, message: string, params: Record<string, unknown> }
 
 // One page of schemas, as the list endpoints return it
@@ -93,7 +93,7 @@ const diffVersions = async (teamId: string, schemaId: string, from: string, to: 
 
 // Checks a message against a version, or the saved draft when `against` is `draft`. Nothing is stored
 const validateMessage = async (teamId: string, schemaId: string, against: string, payload: unknown): Promise<{ valid: boolean, errors: ValidationError[] }> => {
-    const url = against === 'draft' ? `${schemaUrl(teamId, schemaId)}/draft/validate` : `${schemaUrl(teamId, schemaId)}/versions/${against}/validate`
+    const url = against === 'draft' ? `${schemaUrl(teamId, schemaId)}/draft/validate` : `${schemaUrl(teamId, schemaId)}/versions/${encodeURIComponent(against)}/validate`
     return client.post(url, { payload }).then(res => res.data)
 }
 
