@@ -2,7 +2,7 @@ const crypto = require('crypto')
 
 const bcrypt = require('bcrypt')
 const Hashids = require('hashids/cjs')
-const { Op, fn, col, where } = require('sequelize')
+const { Op, fn, col, literal, where } = require('sequelize')
 
 const hashids = {}
 
@@ -31,6 +31,19 @@ let randomWords
  * @param {Object} filterMap pairs of filters to apply
  * @returns a `where` object that can be passed to sequelize query
  */
+/**
+ * A LIKE pattern matching values that contain `text`, with `%`, `_` and `\` in it taken as themselves.
+ * Sequelize has no way to add the ESCAPE clause, which SQLite needs to honour the backslashes, so the pattern is
+ * written out as a quoted SQL string. Both supported databases take `''` as a quote and a backslash as itself in it.
+ * @param {String} text the text to look for
+ * @returns a literal to compare a column with using `Op.like`
+ */
+const likeContaining = (text) => {
+    const pattern = `%${text.replace(/[\\%_]/g, '\\$&')}%`
+    const quoted = pattern.replace(/\0/g, '').replace(/'/g, "''")
+    return literal(`'${quoted}' ESCAPE '\\'`)
+}
+
 const buildPaginationSearchClause = (params, whereClause = {}, columns = [], filterMap = {}) => {
     whereClause = { ...whereClause }
     if (params.cursor) {
@@ -61,7 +74,7 @@ const buildPaginationSearchClause = (params, whereClause = {}, columns = [], fil
         }
     }
     if (params.query && columns.length) {
-        const searchTerm = `%${params.query.toLowerCase()}%`
+        const searchTerm = likeContaining(params.query.toLowerCase())
         const searchClauses = columns.map(colName => {
             return where(fn('lower', col(colName)), { [Op.like]: searchTerm })
         })

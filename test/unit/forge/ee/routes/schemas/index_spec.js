@@ -271,6 +271,21 @@ describe('Data Schemas API', function () {
                 body.schemas.map(s => s.name).should.eql(['Meter reading', 'Press status'])
             })
 
+            it('matches %, _, \\ and quotes in the search as themselves', async function () {
+                const odd = await app.db.models.DataSchema.create({ name: "50% of line_a's \\ load", TeamId: listTeam.id })
+                const names = async (query) => (await list(`?query=${encodeURIComponent(query)}`)).json().schemas.map(s => s.name)
+                try {
+                    ;(await names('%')).should.eql([odd.name])
+                    ;(await names('line_a')).should.eql([odd.name])
+                    ;(await names('_')).should.eql([odd.name])
+                    ;(await names("a's \\ l")).should.eql([odd.name])
+                    ;(await names("x' OR '1'='1")).should.eql([])
+                    ;(await names('press_status')).should.eql([])
+                } finally {
+                    await odd.destroy()
+                }
+            })
+
             it('filters by exact name', async function () {
                 ;(await list('?name=Alarm')).json().schemas.map(s => s.name).should.eql(['Alarm'])
                 ;(await list('?name=alarm')).json().schemas.should.have.length(0)
