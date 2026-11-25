@@ -22,7 +22,7 @@
         <template v-if="listHydrated">
             <EmptyState v-if="isEmpty" data-el="schemas-empty">
                 <template #img>
-                    <img src="../../../images/empty-states/team-schemas.svg" alt="">
+                    <SchemasEmptyIllustration />
                 </template>
                 <template #header>No schemas yet</template>
                 <template #message>
@@ -63,6 +63,7 @@ import { storeToRefs } from 'pinia'
 import { type Component, computed, markRaw, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
+import SchemasEmptyIllustration from './components/SchemasEmptyIllustration.vue'
 import SchemasTable from './components/SchemasTable.vue'
 import CreateSchemaDialog from './dialogs/CreateSchemaDialog.vue'
 import GroupDialog from './dialogs/GroupDialog.vue'
