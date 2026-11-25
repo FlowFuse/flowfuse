@@ -22,6 +22,25 @@ let randomWords
 })()
 
 /**
+ * Escape `%`, `_` and `\` so a LIKE pattern takes them as themselves
+ * @param {String} text the text to look for
+ * @returns {String} the text, ready to be put in a pattern that has `ESCAPE '\'`
+ */
+const escapeLike = (text) => text.replace(/[\\%_]/g, '\\$&')
+
+/**
+ * A literal to compare a column with using `Op.like`, matching values that contain `text`
+ * @param {import('sequelize').Sequelize} sequelize the instance whose dialect quotes the pattern
+ * @param {String} text the text to look for
+ */
+const likeContaining = (sequelize, text) => {
+    // A NUL is dropped first: PostgreSQL rejects it and sequelize would write it as `\0`, an escaped zero to LIKE
+    const pattern = `%${escapeLike(text.replace(/\0/g, ''))}%`
+    // Sequelize has no ESCAPE option for Op.like, and SQLite only honours the backslashes when told to
+    return literal(`${sequelize.escape(pattern)} ESCAPE '\\'`)
+}
+
+/**
  * Generate a properly formed where-object for sequelize findAll, that applies
  * the required pagination, search and filter logic
  *
@@ -31,19 +50,6 @@ let randomWords
  * @param {Object} filterMap pairs of filters to apply
  * @returns a `where` object that can be passed to sequelize query
  */
-/**
- * A LIKE pattern matching values that contain `text`, with `%`, `_` and `\` in it taken as themselves.
- * Sequelize has no way to add the ESCAPE clause, which SQLite needs to honour the backslashes, so the pattern is
- * written out as a quoted SQL string. Both supported databases take `''` as a quote and a backslash as itself in it.
- * @param {String} text the text to look for
- * @returns a literal to compare a column with using `Op.like`
- */
-const likeContaining = (text) => {
-    const pattern = `%${text.replace(/[\\%_]/g, '\\$&')}%`
-    const quoted = pattern.replace(/\0/g, '').replace(/'/g, "''")
-    return literal(`'${quoted}' ESCAPE '\\'`)
-}
-
 const buildPaginationSearchClause = (params, whereClause = {}, columns = [], filterMap = {}) => {
     whereClause = { ...whereClause }
     if (params.cursor) {
@@ -74,7 +80,7 @@ const buildPaginationSearchClause = (params, whereClause = {}, columns = [], fil
         }
     }
     if (params.query && columns.length) {
-        const searchTerm = likeContaining(params.query.toLowerCase())
+        const searchTerm = likeContaining(app.db.sequelize, params.query.toLowerCase())
         const searchClauses = columns.map(colName => {
             return where(fn('lower', col(colName)), { [Op.like]: searchTerm })
         })
@@ -375,6 +381,8 @@ module.exports = {
         return hashids[type]
     },
     buildPaginationSearchClause,
+    escapeLike,
+    likeContaining,
     getCanonicalEmail,
     randomStrings,
     randomPhrase,

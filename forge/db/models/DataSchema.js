@@ -6,7 +6,7 @@
 
 const { DataTypes, QueryTypes, literal } = require('sequelize')
 
-const { buildPaginationSearchClause } = require('../utils')
+const { buildPaginationSearchClause, escapeLike } = require('../utils')
 
 const nameValidator = { msg: 'Schema name cannot be empty' }
 
@@ -154,7 +154,6 @@ module.exports = {
                     const conditions = ['"TeamId" = :teamId']
                     const namedByQuery = query ? groups.filter(group => group.name.toLowerCase().includes(query)).map(group => group.id) : []
                     if (query) {
-                        // The term escapes % and _ with a backslash, which SQLite only honours when told to
                         const like = (column) => `lower("${column}") LIKE :term ESCAPE '\\'`
                         const matches = [like('name'), like('description')]
                         if (namedByQuery.length) {
@@ -172,7 +171,7 @@ module.exports = {
                             WHERE ${conditions.join(' AND ')}
                         ) AS "ranked"
                         WHERE "position" <= :limit`, {
-                        replacements: { teamId, term: `%${query.replace(/[\\%_]/g, '\\$&')}%`, namedByQuery, limit },
+                        replacements: { teamId, term: `%${escapeLike(query)}%`, namedByQuery, limit },
                         type: QueryTypes.SELECT
                     })
                     const schemas = await this.findAll({
