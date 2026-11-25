@@ -159,7 +159,7 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
             ...(values.groupId !== (schema.group?.id ?? '') && { groupId: values.groupId || null })
         })
         if (token === loadToken && activeSchema.value?.id === schema.id) activeSchema.value = updated
-        if (listHydrated.value) await loadList(listQuery.value)
+        if (listHydrated.value) await reloadList()
         return updated
     }
 

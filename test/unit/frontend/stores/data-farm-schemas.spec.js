@@ -226,6 +226,15 @@ describe('data-farm-schemas store', () => {
             expect(store.activeSchema).toBeNull()
         })
 
+        it('saves and only warns when the list on screen could not be loaded again', async () => {
+            schemasApi.listGrouped.mockResolvedValueOnce({ count: 0, sections: [] }).mockRejectedValueOnce(new Error('offline'))
+            schemasApi.updateSchema.mockResolvedValue({ ...SCHEMA, name: 'Temp' })
+            const store = useDataFarmSchemasStore()
+            await store.loadList()
+            expect(await store.updateSchema(SCHEMA, { name: 'Temp', description: 'Old', groupId: 'g1' })).toEqual({ ...SCHEMA, name: 'Temp' })
+            expect(Alerts.emit).toHaveBeenCalledWith('Failed to reload the schemas.', 'warning')
+        })
+
         it('fetches the team\'s groups for the picker', async () => {
             schemasApi.listGroups.mockResolvedValue({ count: 1, groups: [{ id: 'g1', name: 'Energy' }] })
             expect(await useDataFarmSchemasStore().fetchGroups()).toEqual([{ id: 'g1', name: 'Energy' }])
