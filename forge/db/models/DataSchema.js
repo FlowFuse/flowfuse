@@ -4,7 +4,7 @@
  * @namespace forge.db.models.DataSchema
  */
 
-const { DataTypes, literal } = require('sequelize')
+const { DataTypes, QueryTypes, literal } = require('sequelize')
 
 const { buildPaginationSearchClause } = require('../utils')
 
@@ -133,6 +133,64 @@ module.exports = {
                         count,
                         schemas: rows
                     }
+                },
+                /**
+                 * The team's schemas a group at a time: every group sorted by name, then the schemas
+                 * without a group, each with its number of schemas and the first `limit` of them.
+                 * The number of queries does not grow with the number of groups.
+                 *
+                 * With a `query`, a group whose own name matches keeps all of its schemas and every
+                 * other section only has the schemas whose name or description match. Sections are
+                 * never left out, so a group nothing matched in comes back empty.
+                 *
+                 * More of a section is `forTeam` filtered by its group, from the section's `next_cursor`.
+                 * @param {number} teamId
+                 * @param {{ limit?: number, query?: string }} options
+                 */
+                groupedForTeam: async (teamId, options = {}) => {
+                    const limit = Math.min(parseInt(options.limit) || 20, 100)
+                    const query = (options.query || '').toLowerCase()
+                    const groups = await M.DataSchemaGroup.forTeam(teamId)
+                    const conditions = ['"TeamId" = :teamId']
+                    const namedByQuery = query ? groups.filter(group => group.name.toLowerCase().includes(query)).map(group => group.id) : []
+                    if (query) {
+                        const matches = ['lower("name") LIKE :term', 'lower("description") LIKE :term']
+                        if (namedByQuery.length) {
+                            matches.push('"DataSchemaGroupId" IN (:namedByQuery)')
+                        }
+                        conditions.push(`(${matches.join(' OR ')})`)
+                    }
+                    // The first schemas of every section in one go, each row carrying its section's total
+                    const firstRows = await this.sequelize.query(`
+                        SELECT "id", "DataSchemaGroupId", "total" FROM (
+                            SELECT "id", "DataSchemaGroupId",
+                                ROW_NUMBER() OVER (PARTITION BY "DataSchemaGroupId" ORDER BY "id") AS "position",
+                                COUNT(*) OVER (PARTITION BY "DataSchemaGroupId") AS "total"
+                            FROM "DataSchemas"
+                            WHERE ${conditions.join(' AND ')}
+                        ) AS "ranked"
+                        WHERE "position" <= :limit`, {
+                        replacements: { teamId, term: `%${query}%`, namedByQuery, limit },
+                        type: QueryTypes.SELECT
+                    })
+                    const schemas = await this.findAll({
+                        where: { id: firstRows.map(row => row.id) },
+                        include: [groupInclude],
+                        attributes: summaryAttributes,
+                        order: [['id', 'ASC']]
+                    })
+                    const section = (group) => {
+                        const groupId = group ? group.id : null
+                        const rows = schemas.filter(schema => schema.DataSchemaGroupId === groupId)
+                        const count = parseInt(firstRows.find(row => row.DataSchemaGroupId === groupId)?.total) || 0
+                        return {
+                            group,
+                            meta: { next_cursor: count > rows.length ? rows[rows.length - 1].hashid : undefined },
+                            count,
+                            schemas: rows
+                        }
+                    }
+                    return [...groups.map(section), section(null)]
                 }
             },
             instance: {

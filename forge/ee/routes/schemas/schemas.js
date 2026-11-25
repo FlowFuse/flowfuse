@@ -86,6 +86,56 @@ module.exports = async function (app) {
         }
     })
 
+    app.get('/grouped', {
+        preHandler: app.needsPermission('team:schema:list'),
+        schema: {
+            summary: 'List the data schemas in a team a group at a time',
+            description: 'Every group sorted by name, then the schemas without a group (`group` is null), each with its number of schemas and the first of them. With a `query`, a group whose name matches keeps all of its schemas and the other sections only have the schemas whose name or description match. More of a section comes from the schema list filtered by `groupId`, starting at the section\'s `next_cursor`.',
+            tags: ['Data Schemas'],
+            querystring: {
+                type: 'object',
+                properties: {
+                    limit: { type: 'number', description: 'How many schemas to return for each section, 20 by default and 100 at most' },
+                    query: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        count: { type: 'number', description: 'The number of schemas across every section' },
+                        sections: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    group: { allOf: [{ $ref: 'DataSchemaGroup' }], nullable: true },
+                                    meta: { $ref: 'PaginationMeta' },
+                                    count: { type: 'number' },
+                                    schemas: { type: 'array', items: { $ref: 'DataSchemaSummary' } }
+                                },
+                                required: ['group', 'meta', 'count', 'schemas']
+                            }
+                        }
+                    },
+                    required: ['count', 'sections']
+                },
+                ...errors
+            }
+        }
+    }, async (request, reply) => {
+        const sections = await app.db.models.DataSchema.groupedForTeam(request.team.id, request.query)
+        reply.send({
+            count: sections.reduce((total, section) => total + section.count, 0),
+            sections: sections.map(section => ({
+                group: section.group ? app.db.views.DataSchemaGroup.group(section.group) : null,
+                meta: section.meta,
+                count: section.count,
+                schemas: section.schemas.map(app.db.views.DataSchema.schemaSummary)
+            }))
+        })
+    })
+
     app.post('/', {
         preHandler: app.needsPermission('team:schema:create'),
         schema: {

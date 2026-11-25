@@ -93,36 +93,32 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
     // Bumped on every list load and on reset, so an answer for an older request is dropped
     let listToken = 0
 
-    // A group whose own name matches the search keeps all of its schemas, so its section is not searched
-    async function fetchListPage (groupId: string, query: string, among: DataSchemaGroup[], cursor?: string): Promise<SchemaListPage> {
-        const group = among.find(group => group.id === groupId)
-        const params = { groupId, query: (group && groupMatches(group, query)) || !query ? undefined : query, cursor, limit: LIST_PAGE_SIZE }
-        const page = await schemasApi.listSchemas(teamId(), params)
-        return { schemas: page.schemas, count: page.count, nextCursor: page.meta.next_cursor }
-    }
+    const toPage = (page: { meta: { next_cursor?: string }, count: number, schemas: DataSchemaSummary[] }): SchemaListPage =>
+        ({ schemas: page.schemas, count: page.count, nextCursor: page.meta.next_cursor })
 
-    // Loads the groups and the first schemas of each. With a query, each group only gets the schemas that match it.
+    // Loads every group with its first schemas in one request. With a query, a group whose own name matches
+    // keeps all of its schemas and the other sections only have the schemas that match.
     async function loadList (query = ''): Promise<void> {
         const token = ++listToken
-        const { groups: teamGroups } = await schemasApi.listGroups(teamId())
-        const keys = [...teamGroups.map(group => group.id), UNGROUPED]
-        const pages = await Promise.all(keys.map(groupId => fetchListPage(groupId, query, teamGroups)))
+        const { sections } = await schemasApi.listGrouped(teamId(), { query: query || undefined, limit: LIST_PAGE_SIZE })
         if (token !== listToken) return
-        groups.value = teamGroups
-        groupSchemas.value = Object.fromEntries(keys.map((key, index) => [key, pages[index]]))
+        groups.value = sections.flatMap(section => section.group ? [section.group] : [])
+        groupSchemas.value = Object.fromEntries(sections.map(section => [section.group?.id ?? UNGROUPED, toPage(section)]))
         listQuery.value = query
         listHydrated.value = true
     }
 
+    // More of one section, searched the way the list was: not at all for a group whose own name matches
     async function loadMoreOfGroup (groupId: string): Promise<void> {
         const token = listToken
         const loaded = groupSchemas.value[groupId]
-        const next = await fetchListPage(groupId, listQuery.value, groups.value, loaded.nextCursor)
+        const group = groups.value.find(group => group.id === groupId)
+        const query = (group && groupMatches(group, listQuery.value)) || !listQuery.value ? undefined : listQuery.value
+        const next = toPage(await schemasApi.listSchemas(teamId(), { groupId, query, cursor: loaded.nextCursor, limit: LIST_PAGE_SIZE }))
         if (token !== listToken) return
         groupSchemas.value[groupId] = { ...next, schemas: [...loaded.schemas, ...next.schemas] }
     }
 
-    // The description and the group are optional, and left out of the request when empty
     // A change to the groups moves sections, counts and the order around, so the list is loaded again after one
     async function createGroup (name: string): Promise<void> {
         await schemasApi.createGroup(teamId(), name)
@@ -139,6 +135,7 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         await loadList(listQuery.value)
     }
 
+    // The description and the group are optional, and left out of the request when empty
     async function createSchema ({ name, description, groupId }: { name: string, description?: string, groupId?: string }): Promise<DataSchema> {
         return schemasApi.createSchema(teamId(), { name, ...(description && { description }), ...(groupId && { groupId }) })
     }

@@ -7,7 +7,7 @@ import { useDataFarmSchemasStore } from '@/stores/data-farm-schemas'
 vi.mock('@/api/schemas', () => ({
     default: {
         listSchemas: vi.fn(),
-        listGroups: vi.fn(),
+        listGrouped: vi.fn(),
         createGroup: vi.fn(),
         renameGroup: vi.fn(),
         deleteGroup: vi.fn(),
@@ -316,22 +316,17 @@ describe('data-farm-schemas store', () => {
     describe('the list', () => {
         const GROUPS = [{ id: 'g1', name: 'Energy', schemaCount: 2 }, { id: 'g2', name: 'Line', schemaCount: 0 }]
         const summary = (id) => ({ id, name: id, description: '', group: null, latestVersion: null, hasDraft: true })
-        // answers each list request from what was asked for, so tests can tell the sections apart
-        const answerByGroup = (pages) => schemasApi.listSchemas.mockImplementation(async (teamId, { groupId, query, cursor }) => {
-            const page = pages[`${groupId}${query ? `?${query}` : ''}${cursor ? `@${cursor}` : ''}`]
-            return { meta: { next_cursor: page.next }, count: page.count, schemas: page.ids.map(summary) }
-        })
+        const page = (ids, count = ids.length, next) => ({ meta: { next_cursor: next }, count, schemas: ids.map(summary) })
+        // the whole list as the server sends it: a section per group, then the schemas in no group
+        const grouped = (g1, g2, none) => ({ count: g1.count + g2.count + none.count, sections: [{ group: GROUPS[0], ...g1 }, { group: GROUPS[1], ...g2 }, { group: null, ...none }] })
 
-        beforeEach(() => {
-            schemasApi.listGroups.mockResolvedValue({ count: GROUPS.length, groups: GROUPS })
-        })
-
-        it('loads the groups, then a first page of each group and of the schemas in no group', async () => {
-            answerByGroup({ g1: { ids: ['a', 'b'], count: 2 }, g2: { ids: [], count: 0 }, none: { ids: ['c'], count: 1 } })
+        it('loads every group and its first schemas in one request', async () => {
+            schemasApi.listGrouped.mockResolvedValue(grouped(page(['a', 'b']), page([]), page(['c'])))
             const store = useDataFarmSchemasStore()
             await store.loadList()
-            expect(schemasApi.listSchemas).toHaveBeenCalledTimes(3)
-            expect(schemasApi.listSchemas).toHaveBeenCalledWith('team-1', { groupId: 'none', cursor: undefined, limit: 20 })
+            expect(schemasApi.listGrouped).toHaveBeenCalledTimes(1)
+            expect(schemasApi.listGrouped).toHaveBeenCalledWith('team-1', { query: undefined, limit: 20 })
+            expect(schemasApi.listSchemas).not.toHaveBeenCalled()
             expect(store.groups.map(group => group.name)).toEqual(['Energy', 'Line'])
             expect(store.groupSchemas.g1.schemas.map(schema => schema.id)).toEqual(['a', 'b'])
             expect(store.groupSchemas.g2.count).toBe(0)
@@ -340,47 +335,53 @@ describe('data-farm-schemas store', () => {
         })
 
         it('adds the next page of a group to what is loaded, and stops offering more at the end', async () => {
-            answerByGroup({ g1: { ids: ['a', 'b'], count: 3, next: 'b' }, 'g1@b': { ids: ['c'], count: 3 }, g2: { ids: [], count: 0 }, none: { ids: [], count: 0 } })
+            schemasApi.listGrouped.mockResolvedValue(grouped(page(['a', 'b'], 3, 'b'), page([]), page([])))
+            schemasApi.listSchemas.mockResolvedValue(page(['c'], 3))
             const store = useDataFarmSchemasStore()
             await store.loadList()
             expect(store.groupSchemas.g1.nextCursor).toBe('b')
             await store.loadMoreOfGroup('g1')
+            expect(schemasApi.listSchemas).toHaveBeenCalledWith('team-1', { groupId: 'g1', query: undefined, cursor: 'b', limit: 20 })
             expect(store.groupSchemas.g1.schemas.map(schema => schema.id)).toEqual(['a', 'b', 'c'])
             expect(store.groupSchemas.g1.nextCursor).toBeUndefined()
         })
 
-        it('searches each group for a query, and keeps searching when more of a group is loaded', async () => {
-            answerByGroup({ 'g1?temp': { ids: ['a'], count: 2, next: 'a' }, 'g1?temp@a': { ids: ['b'], count: 2 }, 'g2?temp': { ids: [], count: 0 }, 'none?temp': { ids: ['c'], count: 1 } })
+        it('searches in the same one request, and keeps searching when more of a group is loaded', async () => {
+            schemasApi.listGrouped.mockResolvedValue(grouped(page(['a'], 2, 'a'), page([]), page(['c'])))
+            schemasApi.listSchemas.mockResolvedValue(page(['b'], 2))
             const store = useDataFarmSchemasStore()
             await store.loadList('temp')
+            expect(schemasApi.listGrouped).toHaveBeenCalledWith('team-1', { query: 'temp', limit: 20 })
             expect(store.listQuery).toBe('temp')
-            expect(store.groupSchemas.g2.count).toBe(0)
             await store.loadMoreOfGroup('g1')
+            expect(schemasApi.listSchemas).toHaveBeenCalledWith('team-1', { groupId: 'g1', query: 'temp', cursor: 'a', limit: 20 })
             expect(store.groupSchemas.g1.schemas.map(schema => schema.id)).toEqual(['a', 'b'])
         })
 
-        it('loads every schema of a group whose own name matches the query', async () => {
-            answerByGroup({ g1: { ids: ['a', 'b'], count: 2 }, 'g2?ener': { ids: [], count: 0 }, 'none?ener': { ids: [], count: 0 } })
+        it('loads more of a group whose own name matches the query without searching it', async () => {
+            schemasApi.listGrouped.mockResolvedValue(grouped(page(['a'], 2, 'a'), page([]), page([])))
+            schemasApi.listSchemas.mockResolvedValue(page(['b'], 2))
             const store = useDataFarmSchemasStore()
             await store.loadList('ener')
-            expect(store.groupSchemas.g1.schemas.map(schema => schema.id)).toEqual(['a', 'b'])
+            await store.loadMoreOfGroup('g1')
+            expect(schemasApi.listSchemas).toHaveBeenCalledWith('team-1', { groupId: 'g1', query: undefined, cursor: 'a', limit: 20 })
         })
 
         it('keeps the list of the latest search when an older one answers last', async () => {
             let answerFirst
-            schemasApi.listGroups.mockImplementationOnce(() => new Promise(resolve => { answerFirst = resolve }))
-            answerByGroup({ 'g1?te': { ids: ['older'], count: 1 }, 'g2?te': { ids: [], count: 0 }, 'none?te': { ids: [], count: 0 }, 'g1?temp': { ids: ['latest'], count: 1 }, 'g2?temp': { ids: [], count: 0 }, 'none?temp': { ids: [], count: 0 } })
+            schemasApi.listGrouped.mockImplementationOnce(() => new Promise(resolve => { answerFirst = resolve }))
+            schemasApi.listGrouped.mockResolvedValueOnce(grouped(page(['latest']), page([]), page([])))
             const store = useDataFarmSchemasStore()
             const first = store.loadList('te')
             await store.loadList('temp')
-            answerFirst({ count: GROUPS.length, groups: GROUPS })
+            answerFirst(grouped(page(['older']), page([]), page([])))
             await first
             expect(store.listQuery).toBe('temp')
             expect(store.groupSchemas.g1.schemas.map(schema => schema.id)).toEqual(['latest'])
         })
 
         it('creates, renames and deletes a group for the active team, loading the list again each time with the search that is on', async () => {
-            answerByGroup({ g1: { ids: [], count: 0 }, 'g2?ener': { ids: [], count: 0 }, 'none?ener': { ids: [], count: 0 } })
+            schemasApi.listGrouped.mockResolvedValue(grouped(page([]), page([]), page([])))
             const store = useDataFarmSchemasStore()
             await store.loadList('ener')
             await store.createGroup('Quality')
@@ -389,19 +390,19 @@ describe('data-farm-schemas store', () => {
             expect(schemasApi.renameGroup).toHaveBeenCalledWith('team-1', 'g1', 'Power')
             await store.deleteGroup('g2')
             expect(schemasApi.deleteGroup).toHaveBeenCalledWith('team-1', 'g2')
-            expect(schemasApi.listGroups).toHaveBeenCalledTimes(4)
-            expect(schemasApi.listSchemas).toHaveBeenLastCalledWith('team-1', expect.objectContaining({ groupId: 'none', query: 'ener' }))
+            expect(schemasApi.listGrouped).toHaveBeenCalledTimes(4)
+            expect(schemasApi.listGrouped).toHaveBeenLastCalledWith('team-1', { query: 'ener', limit: 20 })
         })
 
         it('leaves the list alone when a change to a group is refused', async () => {
             schemasApi.createGroup.mockRejectedValue(apiError('name_conflict'))
             const store = useDataFarmSchemasStore()
             await expect(store.createGroup('Energy')).rejects.toBeTruthy()
-            expect(schemasApi.listGroups).not.toHaveBeenCalled()
+            expect(schemasApi.listGrouped).not.toHaveBeenCalled()
         })
 
         it('drops a list that answers after the page was left', async () => {
-            answerByGroup({ g1: { ids: ['a'], count: 1 }, g2: { ids: [], count: 0 }, none: { ids: [], count: 0 } })
+            schemasApi.listGrouped.mockResolvedValue(grouped(page(['a']), page([]), page([])))
             const store = useDataFarmSchemasStore()
             const loading = store.loadList()
             store.resetList()
