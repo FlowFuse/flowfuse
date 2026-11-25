@@ -4,13 +4,18 @@ import type { DataSchema, DataSchemaDraft, DataSchemaGroup, DataSchemaSummary, D
 
 const schemaUrl = (teamId: string, schemaId: string) => `/api/v1/teams/${teamId}/schemas/${schemaId}`
 
+// One page of schemas, as the list endpoints return it
+interface SchemaPage { meta: { next_cursor?: string }, count: number, schemas: DataSchemaSummary[] }
+
 // One page of the team's schemas. `groupId` is a group's id, or `none` for schemas without a group
-const listSchemas = async (teamId: string, params: { groupId?: string, query?: string, cursor?: string, limit?: number }): Promise<{ meta: { next_cursor?: string }, count: number, schemas: DataSchemaSummary[] }> => {
+const listSchemas = async (teamId: string, params: { groupId?: string, query?: string, cursor?: string, limit?: number }): Promise<SchemaPage> => {
     return client.get(`/api/v1/teams/${teamId}/schemas`, { params }).then(res => res.data)
 }
 
-const listGroups = async (teamId: string): Promise<{ count: number, groups: DataSchemaGroup[] }> => {
-    return client.get(`/api/v1/teams/${teamId}/schemas/groups`).then(res => res.data)
+// The whole list in one request: every group, then the schemas without one (`group` is null), each with its first schemas.
+// With a `query`, a group whose name matches keeps all of its schemas and the other sections only have their matches.
+const listGrouped = async (teamId: string, params: { query?: string, limit?: number }): Promise<{ count: number, sections: Array<SchemaPage & { group: DataSchemaGroup | null }> }> => {
+    return client.get(`/api/v1/teams/${teamId}/schemas/grouped`, { params }).then(res => res.data)
 }
 
 const createSchema = async (teamId: string, body: { name: string, description?: string, groupId?: string }): Promise<DataSchema> => {
@@ -47,7 +52,7 @@ const publishDraft = async (teamId: string, schemaId: string, body: { version: s
 
 export default {
     listSchemas,
-    listGroups,
+    listGrouped,
     createSchema,
     getSchema,
     getVersion,
