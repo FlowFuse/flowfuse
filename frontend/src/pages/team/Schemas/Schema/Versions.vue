@@ -24,7 +24,8 @@
                 </ff-data-table-cell>
                 <ff-data-table-cell>
                     <ff-kebab-menu v-if="entry.version">
-                        <ff-kebab-item :label="`View ${entry.version}`" @click="router.push({ name: 'team-schema-version', params: { version: entry.version } })" />
+                        <ff-kebab-item :label="`View ${entry.version}`" @click="view(entry.version)" />
+                        <ff-kebab-item v-if="versions.length > 1" label="Compare with..." @click="compare(entry.version)" />
                         <ff-kebab-item
                             v-if="canEdit"
                             :label="hasDraft ? `Create draft from ${entry.version} (discard the draft first)` : `Create draft from ${entry.version}`"
@@ -85,6 +86,14 @@ const columns = [
 ]
 
 const failed = (err, fallback: string) => Alerts.emit(err.response?.data?.error || fallback, 'warning')
+
+function view (version: string) {
+    router.push({ name: 'team-schema-version', params: { version } })
+}
+
+function compare (from: string) {
+    router.push({ name: 'team-schema-compare', query: { from } })
+}
 
 async function createDraftFrom (version: string) {
     try {

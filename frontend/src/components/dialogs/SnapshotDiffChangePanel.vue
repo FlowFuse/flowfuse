@@ -28,7 +28,7 @@
                 >
                     <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                 </svg>
-                <span>Property</span>
+                <span>{{ heading }}</span>
                 <span class="font-semibold text-gray-700">{{ label ?? prop }}</span>
                 <span class="ml-auto flex items-center gap-2">
                     <template v-if="!collapsed">
@@ -103,6 +103,10 @@ export default {
     props: {
         prop: { type: String, default: '' },
         label: { type: String, default: null },
+        // what the label names, shown before it
+        heading: { type: String, default: 'Property' },
+        // off for values that are pretty-printed JSON already
+        prettifiable: { type: Boolean, default: true },
         value1: { type: [String, Number, Boolean, Array, Object], default: undefined },
         value2: { type: [String, Number, Boolean, Array, Object], default: undefined },
         compact: { type: Boolean, default: false },
@@ -124,7 +128,7 @@ export default {
             return this.lines.some(l => l.text && l.text.length > LONG_LINE_THRESHOLD)
         },
         canPrettify () {
-            return this.looksLikeJson(this.value1) || this.looksLikeJson(this.value2)
+            return this.prettifiable && (this.looksLikeJson(this.value1) || this.looksLikeJson(this.value2))
         },
         compactSegments () {
             const segments = []

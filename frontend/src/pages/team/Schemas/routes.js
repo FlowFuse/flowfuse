@@ -1,3 +1,4 @@
+import SchemaCompare from './Schema/Compare.vue'
 import SchemaEditor from './Schema/Editor.vue'
 import SchemaVersion from './Schema/Version.vue'
 import SchemaVersions from './Schema/Versions.vue'
@@ -38,6 +39,11 @@ export default [
                                 name: 'team-schema-versions',
                                 path: '',
                                 component: SchemaVersions
+                            },
+                            {
+                                name: 'team-schema-compare',
+                                path: 'compare',
+                                component: SchemaCompare
                             },
                             {
                                 name: 'team-schema-version',

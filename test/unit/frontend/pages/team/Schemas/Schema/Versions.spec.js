@@ -94,9 +94,20 @@ describe('Schema versions tab', () => {
         expect(row(tab, '1.1.0').find('[data-item="Deprecate 1.1.0"]').exists()).toBe(false)
     })
 
-    test('lets a viewer open a version and nothing else', () => {
+    test('lets a viewer only view and compare a version', () => {
         const { tab } = mountTab(Roles.Viewer)
-        expect(tab.findAll('[data-item]').map(item => item.attributes('data-item'))).toEqual(['View 1.2.0', 'View 1.1.0'])
+        expect(row(tab, '1.2.0').findAll('[data-item]').map(item => item.attributes('data-item'))).toEqual(['View 1.2.0', 'Compare with...'])
+    })
+
+    test('opens the comparison from a version\'s menu, from that version', async () => {
+        const { tab } = mountTab(Roles.Viewer)
+        await row(tab, '1.1.0').find('[data-item="Compare with..."]').trigger('click')
+        expect(router.push).toHaveBeenCalledWith({ name: 'team-schema-compare', query: { from: '1.1.0' } })
+    })
+
+    test('offers no comparison while the schema has a single version', () => {
+        const { tab } = mountTab(Roles.Member, [PUBLISHED])
+        expect(row(tab, '1.2.0').find('[data-item="Compare with..."]').exists()).toBe(false)
     })
 
     test('opens a version from its number and from its menu', async () => {

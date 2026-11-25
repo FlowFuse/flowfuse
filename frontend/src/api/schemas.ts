@@ -4,6 +4,9 @@ import type { DataSchema, DataSchemaDraft, DataSchemaGroup, DataSchemaSummary, D
 
 const schemaUrl = (teamId: string, schemaId: string) => `/api/v1/teams/${teamId}/schemas/${schemaId}`
 
+// One change between two versions, at a JSON Pointer path into the schema document
+export interface SchemaChange { path: string, type: 'added' | 'changed' | 'deleted', detail: { from?: unknown, to?: unknown } }
+
 // One page of schemas, as the list endpoints return it
 interface SchemaPage { meta: { next_cursor?: string }, count: number, schemas: DataSchemaSummary[] }
 
@@ -81,6 +84,11 @@ const undeprecateVersion = async (teamId: string, schemaId: string, version: str
     return client.post(`${schemaUrl(teamId, schemaId)}/versions/${version}/undeprecate`).then(res => res.data)
 }
 
+// What was added, changed or deleted from one version to another. `to` can also be `draft`
+const diffVersions = async (teamId: string, schemaId: string, from: string, to: string): Promise<{ from: string, to: string, changes: SchemaChange[] }> => {
+    return client.get(`${schemaUrl(teamId, schemaId)}/diff`, { params: { from, to } }).then(res => res.data)
+}
+
 export default {
     listSchemas,
     listGrouped,
@@ -98,5 +106,6 @@ export default {
     deleteDraft,
     publishDraft,
     deprecateVersion,
-    undeprecateVersion
+    undeprecateVersion,
+    diffVersions
 }

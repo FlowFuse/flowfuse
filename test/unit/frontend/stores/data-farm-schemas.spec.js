@@ -22,6 +22,7 @@ vi.mock('@/api/schemas', () => ({
         updateDraft: vi.fn(),
         deleteDraft: vi.fn(),
         publishDraft: vi.fn(),
+        diffVersions: vi.fn(),
         deprecateVersion: vi.fn(),
         undeprecateVersion: vi.fn()
     }
@@ -196,6 +197,18 @@ describe('data-farm-schemas store', () => {
         expect((await store.fetchVersion('1.1.0')).version).toBe('1.1.0')
         expect(schemasApi.getVersion).toHaveBeenLastCalledWith('team-1', 'abc', '1.1.0')
         expect(store.activeLatestPublished.version).toBe('1.2.0')
+    })
+
+    it('compares a version with the saved draft', async () => {
+        schemasApi.getSchema.mockResolvedValue(schemaWith([DRAFT_SUMMARY, PUBLISHED], true))
+        schemasApi.getVersion.mockResolvedValue({ version: '1.1.0', schema: { type: 'object' } })
+        schemasApi.getDraft.mockResolvedValue({ status: 'draft', schema: { type: 'array' }, notes: '' })
+        const changes = [{ path: '/type', type: 'changed', detail: { from: 'object', to: 'array' } }]
+        schemasApi.diffVersions.mockResolvedValue({ from: '1.1.0', to: 'draft', changes })
+        const store = useDataFarmSchemasStore()
+        await store.loadActiveSchema('abc')
+        expect(await store.fetchComparison('1.1.0', 'draft')).toEqual({ changes, from: { type: 'object' }, to: { type: 'array' } })
+        expect(schemasApi.diffVersions).toHaveBeenCalledWith('team-1', 'abc', '1.1.0', 'draft')
     })
 
     describe('deprecating a version', () => {
