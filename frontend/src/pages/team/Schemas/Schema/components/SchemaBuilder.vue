@@ -5,6 +5,14 @@
             <ff-button kind="secondary" size="small" data-action="builder-to-json" @click="emit('edit-json')">Go to JSON</ff-button>
         </div>
         <template v-else>
+            <nav v-if="trail.length" class="schema-builder__trail" aria-label="Fields" data-el="builder-trail">
+                <button class="schema-builder__link" data-action="builder-trail-root" @click="focus = ''">All fields</button>
+                <template v-for="(step, index) in trail" :key="step.pointer">
+                    <ChevronRightIcon class="ff-icon-sm schema-builder__muted" />
+                    <span v-if="index === trail.length - 1" class="font-mono font-medium" aria-current="location">{{ step.name }}</span>
+                    <button v-else class="schema-builder__link font-mono" data-action="builder-trail-step" @click="focus = step.pointer">{{ step.name }}</button>
+                </template>
+            </nav>
             <ff-data-table :columns="columns" data-el="builder-fields">
                 <template #rows>
                     <ff-data-table-row v-if="!rows.length">
@@ -28,7 +36,10 @@
                             <ff-data-table-cell class="schema-builder__field-cell">
                                 <div class="schema-builder__field">
                                     <span v-for="level in entry.row.depth" :key="level" class="schema-builder__guide" />
-                                    <button v-if="entry.row.children !== null" class="schema-builder__toggle" :aria-expanded="entry.row.expanded" :aria-label="`${entry.row.expanded ? 'Collapse' : 'Expand'} ${entry.row.name}`" data-action="builder-toggle" @click="toggle(entry.row.pointer)">
+                                    <button v-if="entry.row.drillIn" class="schema-builder__toggle" :aria-label="`Open ${entry.row.name}`" data-action="builder-drill-in" @click="focus = entry.row.pointer">
+                                        <ArrowRightCircleIcon class="ff-icon-sm" />
+                                    </button>
+                                    <button v-else-if="entry.row.children !== null" class="schema-builder__toggle" :aria-expanded="entry.row.expanded" :aria-label="`${entry.row.expanded ? 'Collapse' : 'Expand'} ${entry.row.name}`" data-action="builder-toggle" @click="toggle(entry.row.pointer)">
                                         <ChevronDownIcon v-if="entry.row.expanded" class="ff-icon-sm" />
                                         <ChevronRightIcon v-else class="ff-icon-sm" />
                                     </button>
@@ -54,7 +65,7 @@
                     </template>
                     <ff-data-table-row v-if="!readOnly && holdsFields">
                         <ff-data-table-cell :colspan="columns.length">
-                            <ff-button kind="secondary" class="w-full" data-action="builder-add-root-field" @click="add('')">
+                            <ff-button kind="secondary" class="w-full" data-action="builder-add-root-field" @click="add(focusHolder)">
                                 <template #icon-left><PlusIcon /></template>
                                 Add field
                             </ff-button>
@@ -72,13 +83,13 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/vue/20/solid'
+import { ArrowRightCircleIcon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/vue/20/solid'
 import { PlusIcon } from '@heroicons/vue/24/outline'
 import { computed, ref } from 'vue'
 
 import FieldEditPanel from './FieldEditPanel.vue'
-import { type FieldRow, type FieldSchema, allowsOtherFields, builderRows, fieldsHolder } from './builder'
-import { addField, deleteField, moveField, nestedPaths, schemaAt, setOtherFieldsAllowed, splitPointer } from './builderEdits'
+import { type FieldRow, type FieldSchema, allowsOtherFields, builderRows, fieldTrail, fieldsHolder, schemaAt } from './builder'
+import { addField, deleteField, moveField, nestedPaths, setOtherFieldsAllowed, splitPointer } from './builderEdits'
 
 import Dialog from '@/services/dialog.js'
 
@@ -113,7 +124,14 @@ function toggle (pointer: string) {
     expanded.value = next
 }
 
-const rows = computed(() => schema.value ? builderRows(schema.value, expanded.value) : [])
+// The field drilled into, '' for the whole message. A field that is no longer an object, or is gone, shows the whole message
+const focus = ref('')
+const shownFocus = computed(() => schema.value && focus.value && fieldsHolder(schemaAt(schema.value, focus.value) ?? {}) ? focus.value : '')
+const trail = computed(() => fieldTrail(shownFocus.value))
+
+const rows = computed(() => schema.value ? builderRows(schema.value, expanded.value, shownFocus.value) : [])
+// the object new fields go into from the Add field button: the one drilled into, or the message
+const focusHolder = computed(() => shownFocus.value + (shownFocus.value ? fieldsHolder(schemaAt(schema.value!, shownFocus.value))!.suffix : ''))
 // the pointer of the field whose edit panel is open
 const editing = ref<string | null>(null)
 
@@ -219,6 +237,14 @@ const otherFields = computed(() => schema.value ? allowsOtherFields(schema.value
         p {
             margin: 0;
         }
+    }
+
+    &__trail {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.375rem;
+        font-size: 0.875rem;
     }
 
     &__field {
