@@ -9168,6 +9168,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/teams/{teamId}/schemas/grouped": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the data schemas in a team a group at a time
+         * @description Every group sorted by name, then the schemas without a group (`group` is null), each with its number of schemas and the first of them. With a `query`, a group whose name matches keeps all of its schemas and the other sections only have the schemas whose name or description match. More of a section comes from the schema list filtered by `groupId`, starting at the section's `next_cursor`.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description How many schemas to return for each section, 20 by default and 100 at most */
+                    limit?: number;
+                    query?: string;
+                };
+                header?: never;
+                path: {
+                    teamId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description The number of schemas across every section */
+                            count: number;
+                            sections: {
+                                group: components["schemas"]["DataSchemaGroup"] | null;
+                                meta: components["schemas"]["PaginationMeta"];
+                                count: number;
+                                schemas: components["schemas"]["DataSchemaSummary"][];
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teams/{teamId}/schemas/{schemaId}": {
         parameters: {
             query?: never;
@@ -9357,78 +9429,6 @@ export interface paths {
                 /** @description Default Response */
                 "4XX": {
                     headers: {
-    "/api/v1/teams/{teamId}/schemas/grouped": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List the data schemas in a team a group at a time
-         * @description Every group sorted by name, then the schemas without a group (`group` is null), each with its number of schemas and the first of them. With a `query`, a group whose name matches keeps all of its schemas and the other sections only have the schemas whose name or description match. More of a section comes from the schema list filtered by `groupId`, starting at the section's `next_cursor`.
-         */
-        get: {
-            parameters: {
-                query?: {
-                    /** @description How many schemas to return for each section, 20 by default and 100 at most */
-                    limit?: number;
-                    query?: string;
-                };
-                header?: never;
-                path: {
-                    teamId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @description The number of schemas across every section */
-                            count: number;
-                            sections: {
-                                group: components["schemas"]["DataSchemaGroup"] | null;
-                                meta: components["schemas"]["PaginationMeta"];
-                                count: number;
-                                schemas: components["schemas"]["DataSchemaSummary"][];
-                            }[];
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-                /** @description Default Response */
-                "4XX": {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["APIError"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
                         [name: string]: unknown;
                     };
                     content: {
