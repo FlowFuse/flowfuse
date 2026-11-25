@@ -306,7 +306,7 @@ export function deleteField (root: Schema, pointer: string): Schema {
     return next
 }
 
-// The message paths of every field inside a field, at any depth, escaped like the paths of the table rows
+// Escaped like the paths of the table rows
 export function nestedPaths (root: Schema, pointer: string, path: string): string[] {
     const paths: string[] = []
     const visit = (schema: Schema, prefix: string) => {

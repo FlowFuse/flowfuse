@@ -165,6 +165,29 @@ describe('Schema builder', () => {
             expect(text(builder)).not.toHaveProperty('required')
         })
 
+        test('names the array holding a deleted field and caps the list of nested fields', async () => {
+            const fields = Object.fromEntries(Array.from({ length: 12 }, (_, index) => [`f${index}`, { type: 'string' }]))
+            const schema = { type: 'object', properties: { items: { type: 'array', items: { type: 'object', required: ['group'], properties: { group: { type: 'object', properties: fields } } } } } }
+            const builder = mountBuilder(JSON.stringify(schema), false)
+            await builder.find('[data-el="builder-row-/items"] [data-action="builder-toggle"]').trigger('click')
+            Dialog.showAsync.mockResolvedValueOnce('cancel')
+            await builder.find('[data-el="builder-row-/items/group"] [data-item="Delete field"]').trigger('click')
+            await flushPromises()
+            const lines = Dialog.showAsync.mock.calls[0][0].text.split('\n')
+            expect(lines.filter(line => line.startsWith('/items/group/'))).toHaveLength(10)
+            expect(lines).toContain('and 2 more')
+            expect(lines.at(-1)).toBe('group is also removed from the required list of items.')
+        })
+
+        test('escapes the nested paths like the table does', async () => {
+            const schema = { type: 'object', properties: { box: { type: 'object', properties: { 'a/b': { type: 'string' } } } } }
+            const builder = mountBuilder(JSON.stringify(schema), false)
+            Dialog.showAsync.mockResolvedValueOnce('cancel')
+            await builder.find('[data-el="builder-row-/box"] [data-item="Delete field"]').trigger('click')
+            await flushPromises()
+            expect(Dialog.showAsync.mock.calls[0][0].text).toContain('/box/a~1b')
+        })
+
         test('offers no editing when read-only', () => {
             const builder = mountBuilder()
             expect(builder.find('[data-item="Edit"]').exists()).toBe(false)

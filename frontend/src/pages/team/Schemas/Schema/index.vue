@@ -58,6 +58,7 @@ import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from 'vu
 import { showEditSchemaDialog } from '../composables/schemaDialogs'
 
 import { locateDraftProblems } from './components/draftProblems'
+import { isObject } from './components/pointer'
 import { findReferenceProblems } from './components/referenceProblems'
 import { findShapeProblems } from './components/shapeProblems'
 
@@ -135,12 +136,25 @@ const parsedSchema = computed<Record<string, unknown> | null>(() => {
 const referenceProblems = computed(() => findReferenceProblems(schemaText.value))
 const canSave = computed(() => !!parsedSchema.value && referenceProblems.value.length === 0 && shapeProblems.value.length === 0)
 
-// Key order doesn't change a schema, so compare with keys sorted
-function canonicalJson (value: unknown): string {
-    return JSON.stringify(value, (_key, inner) => inner && typeof inner === 'object' && !Array.isArray(inner)
-        ? Object.fromEntries(Object.keys(inner).sort().map(key => [key, inner[key]]))
-        : inner)
+// The order of the keywords of a schema and of the names in `required` doesn't change what it accepts, the order of its fields does
+function canonical (value: unknown, isFieldMap = false): unknown {
+    if (Array.isArray(value)) {
+        return value.map(item => canonical(item))
+    }
+    if (!isObject(value)) {
+        return value
+    }
+    const keys = isFieldMap ? Object.keys(value) : Object.keys(value).sort()
+    return Object.fromEntries(keys.map(key => {
+        if (!isFieldMap && key === 'required' && Array.isArray(value[key])) {
+            return [key, [...value[key]].sort()]
+        }
+        return [key, canonical(value[key], !isFieldMap && key === 'properties')]
+    }))
 }
+
+const canonicalJson = (value: unknown): string => JSON.stringify(canonical(value))
+
 // The backend strips the root $id on save
 const schemaChanged = computed(() => {
     if (!draft.value) return false
