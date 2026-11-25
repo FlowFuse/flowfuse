@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { allowsOtherFields, builderRows, constraintsSummary, typeLabel } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builder.ts'
+import { allowsOtherFields, builderRows, constraintsSummary, fieldTrail, typeLabel } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builder.ts'
 
 const SCHEMA = {
     type: 'object',
@@ -85,5 +85,41 @@ describe('builder rows', () => {
         const published = { type: 'object', properties: { sensor: { type: 'object', properties: { id: { type: 'string' }, line: { type: 'integer' } } } } }
         const draft = { type: 'object', properties: { sensor: { type: 'object', properties: { line: { type: 'integer' } } } } }
         expect(builderRows(draft, new Set(['/properties/sensor']), published).map(row => [row.path, row.deleted])).toEqual([['/sensor', false], ['/sensor/id', true], ['/sensor/line', false]])
+    })
+
+    describe('deep nesting', () => {
+        const DEEP = { type: 'object', properties: { a: { type: 'object', properties: { b: { type: 'object', properties: { c: { type: 'object', properties: { d: { type: 'object', properties: { e: { type: 'string' } } } } } } } } } } }
+        const ALL = new Set(['/properties/a', '/properties/a/properties/b', '/properties/a/properties/b/properties/c'])
+
+        test('shows three levels indented, and opens deeper fields in a view of their own', () => {
+            const rows = builderRows(DEEP, ALL)
+            expect(rows.map(row => [row.path, row.depth, row.expanded, row.drillIn])).toEqual([['/a', 0, true, false], ['/a/b', 1, true, false], ['/a/b/c', 2, false, true]])
+        })
+
+        test('lists the fields of the field drilled into, with the same limit from there', () => {
+            const rows = builderRows(DEEP, new Set(['/properties/a/properties/b/properties/c/properties/d']), null, '/properties/a/properties/b/properties/c')
+            expect(rows.map(row => [row.path, row.depth, row.pointer])).toEqual([['/a/b/c/d', 0, '/properties/a/properties/b/properties/c/properties/d'], ['/a/b/c/d/e', 1, '/properties/a/properties/b/properties/c/properties/d/properties/e']])
+        })
+
+        test('drills into an array of objects through its items', () => {
+            const root = { type: 'object', properties: { list: { type: 'array', items: { type: 'object', properties: { at: { type: 'string' } } } } } }
+            expect(builderRows(root, new Set(), null, '/properties/list').map(row => [row.path, row.pointer])).toEqual([['/list/at', '/properties/list/items/properties/at']])
+        })
+
+        test('keeps the fields the draft deleted in the field drilled into', () => {
+            const published = { type: 'object', properties: { a: { type: 'object', properties: { b: { type: 'object', properties: { c: { type: 'object', properties: { d: { type: 'string' }, gone: { type: 'string' } } } } } } } } }
+            const draft = JSON.parse(JSON.stringify(published))
+            delete draft.properties.a.properties.b.properties.c.properties.gone
+            expect(builderRows(draft, new Set(), published, '/properties/a/properties/b/properties/c').map(row => [row.path, row.deleted])).toEqual([['/a/b/c/d', false], ['/a/b/c/gone', true]])
+        })
+
+        test('gives the trail to a field', () => {
+            expect(fieldTrail('/properties/a/properties/list/items/properties/c')).toEqual([
+                { name: 'a', pointer: '/properties/a', path: '/a' },
+                { name: 'list', pointer: '/properties/a/properties/list', path: '/a/list' },
+                { name: 'c', pointer: '/properties/a/properties/list/items/properties/c', path: '/a/list/c' }
+            ])
+            expect(fieldTrail('')).toEqual([])
+        })
     })
 })

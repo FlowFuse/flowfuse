@@ -97,6 +97,16 @@ describe('Schema builder', () => {
             expect(Object.keys(text(builder).properties)).toEqual(['location', 'calibration', 'new_field'])
         })
 
+        test('adds a field to the object drilled into', async () => {
+            const deep = { type: 'object', properties: { a: { type: 'object', properties: { b: { type: 'object', properties: { c: { type: 'array', items: { type: 'object', properties: { d: { type: 'string' } } } } } } } } } }
+            const builder = mountBuilder(JSON.stringify(deep), false)
+            await builder.find('[data-el="builder-row-/a"] [data-action="builder-toggle"]').trigger('click')
+            await builder.find('[data-el="builder-row-/a/b"] [data-action="builder-toggle"]').trigger('click')
+            await builder.find('[data-el="builder-row-/a/b/c"] [data-action="builder-drill-in"]').trigger('click')
+            await builder.find('[data-action="builder-add-root-field"]').trigger('click')
+            expect(Object.keys(text(builder).properties.a.properties.b.properties.c.items.properties)).toEqual(['d', 'new_field'])
+        })
+
         test('allows fields the schema does not list, or not', async () => {
             const builder = mountBuilder(undefined, false)
             await builder.find('[data-action="builder-other-fields"]').setValue(true)
@@ -151,6 +161,22 @@ describe('Schema builder', () => {
             expect(builder.find('[data-item="Edit"]').exists()).toBe(false)
             expect(builder.find('[data-action="builder-add-root-field"]').exists()).toBe(false)
         })
+    })
+
+    test('opens fields deeper than three levels in a view of their own, with a trail back', async () => {
+        const deep = { type: 'object', properties: { a: { type: 'object', properties: { b: { type: 'object', properties: { c: { type: 'object', properties: { d: { type: 'string' } } } } } } } } }
+        const builder = mountBuilder(JSON.stringify(deep))
+        await builder.find('[data-el="builder-row-/a"] [data-action="builder-toggle"]').trigger('click')
+        await builder.find('[data-el="builder-row-/a/b"] [data-action="builder-toggle"]').trigger('click')
+        expect(builder.find('[data-el="builder-row-/a/b/c"] [data-action="builder-toggle"]').exists()).toBe(false)
+        await builder.find('[data-el="builder-row-/a/b/c"] [data-action="builder-drill-in"]').trigger('click')
+        expect(paths(builder)).toEqual(['/a/b/c/d'])
+        expect(builder.find('[data-el="builder-trail"]').text()).toBe('All fieldsabc')
+        await builder.find('[data-action="builder-trail-step"]').trigger('click')
+        expect(paths(builder)).toEqual(['/a/b', '/a/b/c'])
+        await builder.find('[data-action="builder-trail-root"]').trigger('click')
+        expect(paths(builder)[0]).toBe('/a')
+        expect(builder.find('[data-el="builder-trail"]').exists()).toBe(false)
     })
 
     test('says so when the schema has no fields', () => {

@@ -36,9 +36,41 @@ export interface FieldRow {
     // fields a row holds, for an object or an array of objects
     children: number | null
     expanded: boolean
+    // the field's fields are too deep to show indented, so they open in a view of their own
+    drillIn: boolean
     jsonOnly: boolean
     // in the published version and deleted in the draft
     deleted: boolean
+}
+
+// How many levels of fields the table shows indented. Fields deeper than that open in a drill-in view
+export const INLINE_LEVELS = 3
+
+const unescapePointer = (segment: string) => segment.replace(/~1/g, '/').replace(/~0/g, '~')
+
+// The schema at a JSON Pointer, '' being the root
+export function schemaAt (root: FieldSchema, pointer: string): FieldSchema {
+    return pointer.split('/').slice(1).map(unescapePointer).reduce<unknown>((schema, segment) => (schema as Record<string, unknown> | undefined)?.[segment], root) as FieldSchema
+}
+
+/**
+ * The fields leading to a field, for the drill-in breadcrumb: each with its pointer and its path in a message.
+ * `pointer` is a field's pointer, which goes through `properties` and, for arrays of objects, `items`.
+ */
+export function fieldTrail (pointer: string): { name: string, pointer: string, path: string }[] {
+    const trail: { name: string, pointer: string, path: string }[] = []
+    const segments = pointer.split('/').slice(1)
+    let current = ''
+    let path = ''
+    for (let index = 0; index < segments.length; index++) {
+        current += `/${segments[index]}`
+        if (segments[index] !== 'properties' || index + 1 >= segments.length) continue
+        const name = segments[++index]
+        current += `/${name}`
+        path += `/${name}`
+        trail.push({ name: unescapePointer(name), pointer: current, path })
+    }
+    return trail
 }
 
 const isObject = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -98,17 +130,19 @@ export function constraintsSummary (schema: FieldSchema): string {
 
 /**
  * The rows of the field table: every field of the root object, and the fields of an expanded object or array of objects
- * under it. `expanded` holds the pointers of the expanded fields.
+ * under it, down to `INLINE_LEVELS` levels. `expanded` holds the pointers of the expanded fields.
  * With `published`, a field it has that the root no longer has stays in the table as deleted, after the field it
  * followed there, so it can be put back.
+ * With `focus`, the pointer of an object or array of objects, the table is drilled into it and lists its fields instead.
  * A root that is not an object has a single row of its own.
  */
-export function builderRows (root: FieldSchema, expanded: Set<string>, published?: FieldSchema | null): FieldRow[] {
+export function builderRows (root: FieldSchema, expanded: Set<string>, published?: FieldSchema | null, focus = ''): FieldRow[] {
     const rows: FieldRow[] = []
 
     function row (field: FieldSchema, name: string, pointer: string, path: string, depth: number, required: boolean, deleted: boolean): FieldRow {
         const jsonOnly = isJsonOnly(field)
         const inner = jsonOnly || deleted ? null : fieldsHolder(field)
+        const inline = depth < INLINE_LEVELS - 1
         return {
             pointer,
             path,
@@ -119,7 +153,8 @@ export function builderRows (root: FieldSchema, expanded: Set<string>, published
             constraints: constraintsSummary(field),
             description: typeof field.description === 'string' ? field.description : '',
             children: inner ? Object.keys(inner.schema.properties ?? {}).length : null,
-            expanded: !!inner && expanded.has(pointer),
+            expanded: !!inner && inline && expanded.has(pointer),
+            drillIn: !!inner && !inline,
             jsonOnly,
             deleted
         }
@@ -146,14 +181,22 @@ export function builderRows (root: FieldSchema, expanded: Set<string>, published
             rows.push(entry)
             if (!entry.expanded) continue
             const inner = fieldsHolder(field)!
-            const publishedField = before?.properties?.[name]
-            const publishedInner = publishedField && isObject(publishedField) ? fieldsHolder(publishedField) : null
-            visitFields(inner.schema, publishedInner?.suffix === inner.suffix ? publishedInner.schema : null, fieldPointer + inner.suffix, entry.path, depth + 1)
+            visitFields(inner.schema, publishedHolder(before?.properties?.[name], inner.suffix), fieldPointer + inner.suffix, entry.path, depth + 1)
         }
     }
 
-    if (fieldsHolder(root)?.suffix === '') {
-        visitFields(root, published && fieldsHolder(published)?.suffix === '' ? published : null, '', '', 0)
+    // the published object matching an object of the draft, when the published version has it in the same shape
+    function publishedHolder (publishedField: unknown, suffix: string): FieldSchema | null {
+        const holder = isObject(publishedField) ? fieldsHolder(publishedField) : null
+        return holder?.suffix === suffix ? holder.schema : null
+    }
+
+    const focused = focus ? fieldsHolder(schemaAt(root, focus) ?? {}) : null
+    if (focused) {
+        const before = published ? publishedHolder(schemaAt(published, focus), focused.suffix) : null
+        visitFields(focused.schema, before, focus + focused.suffix, fieldTrail(focus).at(-1)?.path ?? '', 0)
+    } else if (fieldsHolder(root)?.suffix === '') {
+        visitFields(root, published ? publishedHolder(published, '') : null, '', '', 0)
     } else {
         rows.push(row(root, '(message)', '', '/', 0, true, false))
     }
