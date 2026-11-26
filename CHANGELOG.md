@@ -1,3 +1,10 @@
+#### 3.3.2: Release
+
+ - Prevent Instance/Project rename via API (#9289)
+ - fix: Remove rename from the MCP instance update tool (#9295)
+ - fix: Redirect newly signed up user to where they were trying to get to (#9314)
+ - feat: Show character level changes in the snapshot diff viewer (#9257)
+
 #### 3.3.1: Release
 
  - build(deps): bump @aws-sdk/client-sesv2 from 3.1164.0 to 3.1171.0 (#9198)
