@@ -91,6 +91,7 @@ describe('Team Schema page', () => {
     beforeEach(() => {
         vi.clearAllMocks()
         route.params = { team_slug: 'team', schemaId: 'abc' }
+        route.name = 'team-schema-editor'
     })
 
     test('shows the draft badge and draft actions to a Member', () => {
@@ -569,7 +570,10 @@ describe('Team Schema page', () => {
     })
 
     describe('with one version\'s page open', () => {
-        beforeEach(() => { route.params = { team_slug: 'team', schemaId: 'abc', version: '1.0.0' } })
+        beforeEach(() => {
+            route.params = { team_slug: 'team', schemaId: 'abc', version: '1.0.0' }
+            route.name = 'team-schema-version'
+        })
 
         test('leaves out Edit details, which is about the schema and not the version', () => {
             const { page } = mountPage(Roles.Member, { latestPublished: PUBLISHED })
@@ -592,7 +596,6 @@ describe('Team Schema page', () => {
             const button = page.find('[data-action="create-draft"]')
             expect(button.text()).toBe('Create draft from 1.0.0')
             expect(button.attributes('disabled')).toBeDefined()
-            expect(page.find('[data-action="save-draft"]').exists()).toBe(true)
         })
 
         test('shows the newest published version as the status, not the draft', () => {
@@ -610,6 +613,29 @@ describe('Team Schema page', () => {
         test('offers a Viewer no draft', () => {
             const { page } = mountPage(Roles.Viewer, { latestPublished: PUBLISHED })
             expect(page.find('[data-action="create-draft"]').exists()).toBe(false)
+        })
+    })
+
+    describe('the actions each page gets', () => {
+        const actions = (page) => page.findAll('[data-action]').map(button => button.attributes('data-action'))
+
+        test('the Versions list has the ones about the schema and its draft, not Save and Publish', () => {
+            route.name = 'team-schema-versions'
+            expect(actions(mountPage(Roles.Member, { draft: DRAFT, latestPublished: PUBLISHED }).page)).toEqual(['edit-schema-details', 'discard-draft'])
+            expect(actions(mountPage(Roles.Member, { latestPublished: PUBLISHED }).page)).toEqual(['edit-schema-details', 'create-draft'])
+        })
+
+        test('a version\'s page has the ones about that version', () => {
+            route.name = 'team-schema-version'
+            route.params.version = '1.0.0'
+            expect(actions(mountPage(Roles.Member, { draft: DRAFT, latestPublished: PUBLISHED }).page)).toEqual(['validate-message', 'create-draft'])
+        })
+
+        test.each(['team-schema-compare', 'team-schema-validate'])('%s has none, and still shows the schema\'s status', (name) => {
+            route.name = name
+            const { page } = mountPage(Roles.Member, { draft: DRAFT, latestPublished: PUBLISHED })
+            expect(actions(page)).toEqual([])
+            expect(page.find('[data-el="schema-status"]').exists()).toBe(true)
         })
     })
 
