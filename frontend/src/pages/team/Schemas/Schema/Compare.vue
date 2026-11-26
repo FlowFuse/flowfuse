@@ -1,17 +1,18 @@
 <template>
-    <div class="flex flex-col gap-4" data-el="schema-compare">
-        <p v-if="!pair" class="schema-compare__empty" data-el="schema-compare-unavailable">A schema needs two versions before they can be compared.</p>
-        <template v-else>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <p class="schema-compare__summary" data-el="schema-compare-summary">{{ summary }}</p>
-                <div class="flex items-center gap-2">
-                    <span class="schema-compare__label">From</span>
-                    <ff-listbox :model-value="pair.from" :options="fromOptions" aria-label="From version" class="w-40" data-el="compare-from" @update:model-value="pick({ from: $event })" />
-                    <ArrowRightIcon class="ff-icon-sm schema-compare__arrow" />
-                    <span class="schema-compare__label">To</span>
-                    <ff-listbox :model-value="pair.to" :options="toOptions" aria-label="To version" class="w-40" data-el="compare-to" @update:model-value="pick({ to: $event })" />
-                </div>
-            </div>
+    <div class="flex flex-col gap-6" data-el="schema-compare">
+        <TabToolbar>
+            <BackToVersions />
+            <p v-if="!pair" class="schema-compare__empty" data-el="schema-compare-unavailable">A schema needs two versions before they can be compared.</p>
+            <p v-else class="schema-compare__summary" data-el="schema-compare-summary">{{ summary }}</p>
+            <template v-if="pair" #tools>
+                <span class="schema-compare__label">From</span>
+                <ff-listbox :model-value="pair.from" :options="fromOptions" aria-label="From version" data-el="compare-from" @update:model-value="pick({ from: $event })" />
+                <ArrowRightIcon class="ff-icon-sm schema-compare__arrow" />
+                <span class="schema-compare__label">To</span>
+                <ff-listbox :model-value="pair.to" :options="toOptions" aria-label="To version" data-el="compare-to" @update:model-value="pick({ to: $event })" />
+            </template>
+        </TabToolbar>
+        <template v-if="pair">
             <template v-if="comparison">
                 <ff-data-table v-if="comparison.changes.length" :columns="columns" data-el="schema-changes">
                     <template #rows>
@@ -46,6 +47,8 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { LocationQueryValue } from 'vue-router'
 
+import BackToVersions from './components/BackToVersions.vue'
+import TabToolbar from './components/TabToolbar.vue'
 import { defaultPair, diffText, fieldPath, formatValue } from './components/compare'
 
 import SnapshotDiffChangePanel from '@/components/dialogs/SnapshotDiffChangePanel.vue'
@@ -105,7 +108,8 @@ watch([() => schema.value?.id, () => pair.value?.from, () => pair.value?.to], as
     }
 }, { immediate: true })
 
-const label = (key: string) => key === 'draft' ? 'the draft' : key
+// the draft compared is the one on the server, not what may be unsaved in the editor
+const label = (key: string) => key === 'draft' ? 'the last saved draft' : key
 const summary = computed(() => {
     if (!comparison.value || !pair.value) return ''
     const count = comparison.value.changes.length
@@ -118,12 +122,10 @@ const summary = computed(() => {
     &__summary,
     &__empty {
         margin: 0;
-        font-size: 0.875rem;
         color: var(--ff-color-text);
     }
 
     &__label {
-        font-size: 0.875rem;
         color: var(--ff-color-text-subtle);
     }
 

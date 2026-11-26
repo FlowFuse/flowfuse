@@ -58,7 +58,7 @@ describe('Schema compare page', () => {
         expect(page.find('[data-el="loading"]').exists()).toBe(true)
         await flushPromises()
         expect(schemas.fetchComparison).toHaveBeenCalledWith('1.0.0', 'draft')
-        expect(page.find('[data-el="schema-compare-summary"]').text()).toBe('3 changes from 1.0.0 to the draft')
+        expect(page.find('[data-el="schema-compare-summary"]').text()).toBe('3 changes from 1.0.0 to the last saved draft')
         expect(rows(page)).toEqual([
             '/unit/descriptionchangedSenML unit→SenML unit name',
             '/alarmadded{"type":"boolean"}',
@@ -93,7 +93,7 @@ describe('Schema compare page', () => {
         const { page } = mountCompare({ comparison: { changes: [], from: {}, to: {} } })
         await flushPromises()
         expect(page.find('[data-el="schema-compare-same"]').exists()).toBe(true)
-        expect(page.find('[data-el="schema-compare-summary"]').text()).toBe('0 changes from 1.1.0 to the draft')
+        expect(page.find('[data-el="schema-compare-summary"]').text()).toBe('0 changes from 1.1.0 to the last saved draft')
     })
 
     test('needs two versions to compare', () => {
