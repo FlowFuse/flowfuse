@@ -1828,8 +1828,15 @@ describe('Project API', function () {
                 })
             })
         })
-        describe('Change project name', function () {
-            it('Updates the name', async function () {
+        describe('Deny Change project name', function () {
+            after(async function () {
+                TestObjects.project1.name = 'project1'
+                await TestObjects.project1.save()
+                TestObjects.project1.state = 'running'
+                await TestObjects.project1.save()
+            })
+
+            it('Fail to Update the name', async function () {
                 // Setup some flows/credentials
                 await addFlowsToProject(app,
                     TestObjects.project1.id,
@@ -1852,74 +1859,7 @@ describe('Project API', function () {
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
-                response.statusCode.should.equal(200)
-                await sleep(STOP_DELAY + START_DELAY + 50)
-                const newResponse = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/projects/${TestObjects.project1.id}`,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                JSON.parse(newResponse.payload).should.have.property('name', 'new-project-name')
-            })
-
-            it('Updates the name fail for running instance', async function () {
-                // Setup some flows/credentials
-                await addFlowsToProject(app,
-                    TestObjects.project1.id,
-                    TestObjects.tokens.project,
-                    TestObjects.tokens.alice,
-                    [{ id: 'node1' }],
-                    { testCreds: 'abc' },
-                    'key1',
-                    {}
-                )
-
-                TestObjects.project1.name = 'project1'
-                await TestObjects.project1.save()
-                TestObjects.project1.state = 'running'
-                await TestObjects.project1.save()
-
-                // call "Update a project" with a new name
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/projects/${TestObjects.project1.id}`,
-                    payload: {
-                        name: 'new-project-name'
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                response.statusCode.should.equal(200)
-                JSON.parse(response.payload).should.have.property('name', 'new-project-name')
-            })
-
-            it('Non-owner cannot change project name', async function () {
-            // call "Update a project" with a new name
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/projects/${TestObjects.project1.id}`,
-                    payload: {
-                        name: 'new-project-name'
-                    },
-                    cookies: { sid: TestObjects.tokens.bob }
-                })
-                response.statusCode.should.equal(403)
-            })
-
-            it('Rejects a name that fails the create-time pattern', async function () {
-                await TestObjects.project1.reload()
-                const originalName = TestObjects.project1.name
-                for (const name of ['bad.name:1/x', 'Bad/Name!!<x>', '1starts-with-digit', 'has space']) {
-                    const response = await app.inject({
-                        method: 'PUT',
-                        url: `/api/v1/projects/${TestObjects.project1.id}`,
-                        payload: { name },
-                        cookies: { sid: TestObjects.tokens.alice }
-                    })
-                    response.statusCode.should.equal(409)
-                    response.json().should.have.property('code', 'invalid_project_name')
-                }
-                await TestObjects.project1.reload()
-                TestObjects.project1.name.should.equal(originalName)
+                response.statusCode.should.equal(409)
             })
         })
 
