@@ -59,7 +59,7 @@ function mountPage (role, { draft = null, latestPublished = null, loadError = nu
             stubs: {
                 'ff-page': { template: '<div><slot name="header" /><slot /></div>' },
                 'ff-page-header': { template: '<div><slot name="status" /><slot name="context" /><slot name="tools" /></div>' },
-                'ff-button': { template: '<button><slot /></button>' },
+                'ff-button': { props: ['disabled', 'to'], template: '<button :disabled="disabled" :data-to="to && JSON.stringify(to)"><slot /></button>' },
                 'router-view': { setup: (_, { slots }) => () => slots.default({ Component: EditorStub }) },
                 StatusBadge: { props: ['text'], template: '<span data-el="schema-status">{{ text }}</span>' }
             }
@@ -566,6 +566,51 @@ describe('Team Schema page', () => {
         mountPage(Roles.Member, { draft: DRAFT })
         expect(await routeGuard.update({ params: { schemaId: 'xyz' } }, { params: { schemaId: 'abc' } })).toBe(true)
         expect(Dialog.showAsync).not.toHaveBeenCalled()
+    })
+
+    describe('with one version\'s page open', () => {
+        beforeEach(() => { route.params = { team_slug: 'team', schemaId: 'abc', version: '1.0.0' } })
+
+        test('leaves out Edit details, which is about the schema and not the version', () => {
+            const { page } = mountPage(Roles.Member, { latestPublished: PUBLISHED })
+            expect(page.find('[data-action="edit-schema-details"]').exists()).toBe(false)
+        })
+
+        test('starts a draft from the open version, not the newest, and opens the editor', async () => {
+            const { page, schemas } = mountPage(Roles.Member, { latestPublished: PUBLISHED })
+            schemas.createDraft.mockResolvedValue(true)
+            const button = page.find('[data-action="create-draft"]')
+            expect(button.text()).toBe('Create draft from 1.0.0')
+            await button.trigger('click')
+            await flushPromises()
+            expect(schemas.createDraft).toHaveBeenCalledWith('1.0.0')
+            expect(router.push).toHaveBeenCalledWith({ name: 'team-schema-editor' })
+        })
+
+        test('still names the version to start a draft from while there is a draft, but does not offer it', () => {
+            const { page } = mountPage(Roles.Member, { draft: DRAFT, latestPublished: PUBLISHED })
+            const button = page.find('[data-action="create-draft"]')
+            expect(button.text()).toBe('Create draft from 1.0.0')
+            expect(button.attributes('disabled')).toBeDefined()
+            expect(page.find('[data-action="save-draft"]').exists()).toBe(true)
+        })
+
+        test('shows the newest published version as the status, not the draft', () => {
+            const { page } = mountPage(Roles.Member, { draft: DRAFT, latestPublished: PUBLISHED })
+            expect(page.find('[data-el="schema-status"]').text()).toBe('Published 1.2.0')
+        })
+
+        test('offers to validate a message against the open version', () => {
+            const { page } = mountPage(Roles.Member, { latestPublished: PUBLISHED })
+            const button = page.find('[data-action="validate-message"]')
+            expect(button.text()).toBe('Validate a message against 1.0.0')
+            expect(JSON.parse(button.attributes('data-to'))).toEqual({ name: 'team-schema-validate', query: { against: '1.0.0' } })
+        })
+
+        test('offers a Viewer no draft', () => {
+            const { page } = mountPage(Roles.Viewer, { latestPublished: PUBLISHED })
+            expect(page.find('[data-action="create-draft"]').exists()).toBe(false)
+        })
     })
 
     describe('editing the details', () => {
