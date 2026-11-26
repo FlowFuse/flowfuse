@@ -18,16 +18,47 @@
                 </template>
                 <template #tools>
                     <div class="flex gap-2">
-                        <ff-button v-if="canEdit" kind="secondary" data-action="edit-schema-details" @click="editDetails">Edit details</ff-button>
-                        <ff-button v-if="editingDraft" kind="secondary" data-action="discard-draft" @click="confirmDiscard">Discard draft</ff-button>
-                        <ff-button kind="secondary" data-action="validate-message" disabled>Validate a message</ff-button>
+                        <ff-button
+                            v-if="canEdit && !viewedVersion" kind="secondary" data-action="edit-schema-details"
+                            @click="editDetails"
+                        >
+                            Edit details
+                        </ff-button>
+                        <ff-button
+                            v-if="editingDraft" kind="secondary" data-action="discard-draft"
+                            @click="confirmDiscard"
+                        >
+                            Discard draft
+                        </ff-button>
+                        <!-- not built yet. On a version's page it is to check against that version, which its label already says -->
+                        <ff-button kind="secondary" data-action="validate-message" disabled>
+                            {{ viewedVersion ? `Validate a message against ${viewedVersion}` : 'Validate a message' }}
+                        </ff-button>
                         <template v-if="editingDraft">
-                            <ff-button kind="secondary" data-action="save-draft" :disabled="!canSave || !hasUnsavedChanges" @click="saveDraft">Save draft</ff-button>
-                            <ff-button v-if="canPublish" data-action="publish" :disabled="!canSave || problemCount > 0" @click="showPublishDialog">Publish</ff-button>
+                            <ff-button
+                                kind="secondary" data-action="save-draft"
+                                :disabled="!canSave || !hasUnsavedChanges" @click="saveDraft"
+                            >
+                                Save draft
+                            </ff-button>
+                            <ff-button
+                                v-if="canPublish" data-action="publish" :disabled="!canSave || problemCount > 0"
+                                @click="showPublishDialog"
+                            >
+                                Publish
+                            </ff-button>
                         </template>
-                        <ff-button v-else-if="canEdit" data-action="create-draft" @click="createDraft">
-                            <template #icon-left><PlusIcon /></template>
-                            {{ latestPublished ? `Create draft from ${latestPublished.version}` : 'Create draft' }}
+                        <ff-button
+                            v-if="canEdit && (viewedVersion || !draft)"
+                            data-action="create-draft"
+                            :disabled="!!draft"
+                            :title="draft ? 'Discard the draft first' : undefined"
+                            @click="createDraft"
+                        >
+                            <template #icon-left>
+                                <PlusIcon />
+                            </template>
+                            {{ draftSource ? `Create draft from ${draftSource}` : 'Create draft' }}
                         </ff-button>
                     </div>
                 </template>
@@ -114,6 +145,9 @@ onBeforeUnmount(() => {
 
 const canEdit = computed(() => hasPermission('team:schema:edit'))
 
+const viewedVersion = computed(() => route.params.version as string | undefined)
+const draftSource = computed(() => viewedVersion.value ?? latestPublished.value?.version ?? undefined)
+
 async function editDetails () {
     try {
         showEditSchemaDialog(schema.value!, await schemasStore.fetchGroups())
@@ -156,7 +190,7 @@ const markers = computed(() => [...shapeProblems.value, ...referenceProblems.val
 const problemCount = computed(() => Math.max(editorProblems.value, markers.value.length))
 
 const badge = computed(() => {
-    if (draft.value) return { status: 'info', text: 'Draft' }
+    if (draft.value && !viewedVersion.value) return { status: 'info', text: 'Draft' }
     if (latestPublished.value?.status === 'deprecated') return { status: 'warning', text: `Deprecated ${latestPublished.value.version}` }
     if (latestPublished.value) return { status: 'success', text: `Published ${latestPublished.value.version}` }
     return { status: 'info', text: 'No versions' }
@@ -245,7 +279,8 @@ async function saveDraft () {
 
 async function createDraft () {
     try {
-        await schemasStore.createDraft(latestPublished.value?.version ?? undefined)
+        await schemasStore.createDraft(draftSource.value)
+        if (viewedVersion.value) router.push({ name: 'team-schema-editor' })
     } catch (err) {
         actionFailed(err, 'Failed to create a draft.')
     }
