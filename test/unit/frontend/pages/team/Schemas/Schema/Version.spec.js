@@ -29,7 +29,7 @@ function mountPage ({ schema = { id: 'abc' }, answer = async () => VERSION } = {
         global: {
             plugins: [pinia],
             stubs: {
-                'ff-button': { template: '<button><slot /></button>' },
+                'ff-button': { props: ['to'], template: '<button :data-to="to && to.name"><slot /></button>' },
                 'router-link': { props: ['to'], template: '<a :data-to="to.name"><slot /></a>' },
                 StatusBadge: { props: ['text'], template: '<span>{{ text }}</span>' },
                 JsonEditor: { props: ['modelValue', 'readOnly'], template: '<pre data-el="json-editor" :data-read-only="readOnly">{{ modelValue }}</pre>' }
