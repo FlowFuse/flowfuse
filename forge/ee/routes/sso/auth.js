@@ -231,13 +231,15 @@ module.exports = fp(async function (app, opts) {
                 // Valid session
                 reply.setCookie('sid', result.cookie.value, result.cookie.options)
                 let redirectTo = '/'
+                if (request.session.newSSOUser) {
+                    // For a newly provisioned user, redirect to the settings page by default,
+                    // unless a different redirect was specified in the RelayState
+                    delete request.session.newSSOUser
+                    redirectTo = '/account/settings'
+                }
                 if (request.body?.RelayState) {
                     const state = JSON.parse(request.body.RelayState)
                     redirectTo = localPath(state.redirectTo)
-                }
-                if (request.session.newSSOUser) {
-                    delete request.session.newSSOUser
-                    redirectTo = '/account/settings'
                 }
                 reply.redirect(redirectTo)
                 return
