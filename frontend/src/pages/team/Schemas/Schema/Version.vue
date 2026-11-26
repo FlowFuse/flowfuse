@@ -1,13 +1,17 @@
 <template>
     <div v-if="version" class="flex flex-col gap-6" data-el="schema-version">
-        <div class="flex flex-wrap items-baseline gap-3">
-            <router-link class="schema-version__back" :to="{ name: 'team-schema-versions' }" data-action="back-to-versions">
-                <ChevronLeftIcon class="ff-icon ff-icon-sm" />
-                All versions
-            </router-link>
-            <span class="font-medium" data-el="version-number">{{ version.version }}</span>
-            <StatusBadge class="schema-version__status" :status="status.status" :text="status.text" data-el="version-status" />
-            <span class="schema-version__published" data-el="version-published">{{ published }}</span>
+        <!-- as tall as the Editor tab's toolbar, so the editor below does not move when going between the two -->
+        <div class="flex min-h-8 flex-wrap items-center justify-between gap-4">
+            <div class="flex flex-wrap items-baseline gap-3">
+                <router-link class="schema-version__back" :to="{ name: 'team-schema-versions' }" data-action="back-to-versions">
+                    <ChevronLeftIcon class="ff-icon ff-icon-sm" />
+                    All versions
+                </router-link>
+                <span class="font-medium" data-el="version-number">{{ version.version }}</span>
+                <StatusBadge class="schema-version__status" :status="status.status" :text="status.text" data-el="version-status" />
+                <span class="schema-version__published" data-el="version-published">{{ published }}</span>
+            </div>
+            <ff-button v-if="clipboardSupported" kind="secondary" size="small" data-action="copy-json" @click="copy">Copy</ff-button>
         </div>
         <JsonEditor v-model="schemaText" :read-only="true" />
         <div v-if="version.notes" data-el="version-notes">
@@ -60,6 +64,18 @@ watch([() => route.params.version, () => schemasStore.activeSchema?.id], async (
     }
 }, { immediate: true })
 
+// navigator.clipboard only exists on HTTPS or localhost
+const clipboardSupported = !!navigator.clipboard?.writeText
+
+async function copy () {
+    try {
+        await navigator.clipboard.writeText(schemaText.value)
+        Alerts.emit('Copied to Clipboard.', 'confirmation')
+    } catch {
+        Alerts.emit('Failed to copy to the clipboard.', 'warning')
+    }
+}
+
 const status = computed(() => version.value?.status === 'deprecated'
     ? { status: 'warning', text: 'Deprecated' }
     : { status: 'success', text: 'Published' })
@@ -80,7 +96,8 @@ const published = computed(() => {
         // Its own box has empty space on its left, which would set the link in from the editor below.
         .ff-icon {
             display: inline-block;
-            vertical-align: middle;
+            // centres the icon on the capital letters next to it
+            vertical-align: -0.2em;
             margin: 0 0.25rem 0 -0.34rem;
         }
 
