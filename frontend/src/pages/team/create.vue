@@ -272,7 +272,6 @@ export default {
                 if (err.response.data) {
                     if (/slug/.test(err.response.data.error)) {
                         this.input.slugError = 'Slug already in use'
-                    } else {
                     } else if (err.response.data.error === 'license limit reached') {
                         Alerts.emit('Creating Team would exceed license limits', 'warning' )
                     } else {
