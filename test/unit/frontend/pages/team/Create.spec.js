@@ -41,7 +41,7 @@ async function submitTeam (error) {
 test('shows the license limit error returned by team creation', async () => {
     const emit = vi.spyOn(Alerts, 'emit')
     const wrapper = await submitTeam('Error: license limit reached')
-    expect(emit).toHaveBeenCalledWith('Failed to create team: Error: license limit reached', 'warning', 7500)
+    expect(emit).toHaveBeenCalledWith('Creating Team would exceed license limits', 'warning')
     expect(wrapper.vm.input.slugError).toBe('')
 })
 

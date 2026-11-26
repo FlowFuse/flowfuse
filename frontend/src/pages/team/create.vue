@@ -273,7 +273,10 @@ export default {
                     if (/slug/.test(err.response.data.error)) {
                         this.input.slugError = 'Slug already in use'
                     } else {
-                        Alerts.emit('Failed to create team: ' + err.response.data.error, 'warning', 7500)
+                    } else if (err.response.data.error === 'license limit reached') {
+                        Alerts.emit('Creating Team would exceed license limits', 'warning' )
+                    } else {
+                        Alerts.emit(`Failed to create Team - ${err.response.data.error}`, 'warning')
                     }
                 }
             }).finally(() => {
