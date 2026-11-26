@@ -409,7 +409,7 @@ module.exports = async function (app) {
         const reqSafeName = reqName?.toLowerCase()
         const projectName = request.project.name?.trim()
         if (reqName && projectName !== reqName) {
-            if (app.db.models.Project.BANNED_NAME_LIST.includes(reqSafeName)) {
+            if (!app.db.controllers.Project.validateProjectName(reqSafeName)) {
                 reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name not allowed' })
                 return
             }
@@ -1405,7 +1405,7 @@ module.exports = async function (app) {
             return
         }
         const safeName = name.trim().toLowerCase()
-        if (app.db.models.Project.BANNED_NAME_LIST.includes(safeName)) {
+        if (!app.db.controllers.Project.validateProjectName(safeName)) {
             reply.code(409).send({ code: 'invalid_project_name', error: 'name not allowed' })
             return
         }
