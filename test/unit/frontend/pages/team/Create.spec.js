@@ -5,6 +5,7 @@ import { afterEach, expect, test, vi } from 'vitest'
 import client from '../../../../../frontend/src/api/client.ts'
 import teamTypesApi from '../../../../../frontend/src/api/teamTypes.js'
 import CreateTeam from '../../../../../frontend/src/pages/team/create.vue'
+import Alerts from '../../../../../frontend/src/services/alerts.js'
 
 enableAutoUnmount(afterEach)
 afterEach(() => vi.restoreAllMocks())
@@ -38,13 +39,15 @@ async function submitTeam (error) {
 }
 
 test('shows the license limit error returned by team creation', async () => {
+    const emit = vi.spyOn(Alerts, 'emit')
     const wrapper = await submitTeam('Error: license limit reached')
-    expect(wrapper.get('[role="alert"]').text()).toContain('license limit reached')
+    expect(emit).toHaveBeenCalledWith('Failed to create team: Error: license limit reached', 'warning', 7500)
     expect(wrapper.vm.input.slugError).toBe('')
 })
 
 test('keeps duplicate slug errors on the slug field', async () => {
+    const emit = vi.spyOn(Alerts, 'emit')
     const wrapper = await submitTeam('slug must be unique')
     expect(wrapper.vm.input.slugError).toBe('Slug already in use')
-    expect(wrapper.find('[role="alert"]').exists()).toBe(false)
+    expect(emit).not.toHaveBeenCalled()
 })
