@@ -566,7 +566,7 @@ module.exports = {
 
         name = name.trim()
         const safeName = name?.toLowerCase()
-        if (!this.validateProjectName(safeName)) {
+        if (!app.db.controllers.Project.validateProjectName(safeName)) {
             throw new ControllerError('invalid_project_name', 'name not allowed', 409)
         }
 
