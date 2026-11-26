@@ -533,7 +533,7 @@ module.exports = async function (app) {
         /// Persist the changes
         const updates = new app.auditLog.formatters.UpdatesCollection()
         const transaction = await app.db.sequelize.transaction() // start a transaction
-        const changesToProjectDefinition = (changesToPersist.stack || changesToPersist.projectType || changesToPersist.name) && !changesToPersist.projectType?.firstUpdate
+        const changesToProjectDefinition = (changesToPersist.stack || changesToPersist.projectType) && !changesToPersist.projectType?.firstUpdate
         let repliedEarly = false
         try {
             let resumeProject, targetState
@@ -550,13 +550,6 @@ module.exports = async function (app) {
                 const result = await suspendProject(request.project, suspendOptions)
                 resumeProject = result.resumeProject
                 targetState = result.targetState
-            }
-
-            if (changesToPersist.name) {
-                request.project.name = changesToPersist.name.to
-                await request.project.save({ transaction })
-
-                updates.push('name', changesToPersist.name.from, changesToPersist.name.to)
             }
 
             if (changesToPersist.settings) {
