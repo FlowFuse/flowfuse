@@ -2,6 +2,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import schemasApi from '@/api/schemas'
+import Alerts from '@/services/alerts.js'
 import { useDataFarmSchemasStore } from '@/stores/data-farm-schemas'
 
 vi.mock('@/api/schemas', () => ({
@@ -24,6 +25,10 @@ vi.mock('@/api/schemas', () => ({
         deprecateVersion: vi.fn(),
         undeprecateVersion: vi.fn()
     }
+}))
+
+vi.mock('@/services/alerts.js', () => ({
+    default: { emit: vi.fn() }
 }))
 
 vi.mock('@/stores/context.js', () => ({
@@ -265,6 +270,15 @@ describe('data-farm-schemas store', () => {
             expect(store.activeSchema).toBeNull()
         })
 
+        it('saves and only warns when the list on screen could not be loaded again', async () => {
+            schemasApi.listGrouped.mockResolvedValueOnce({ count: 0, sections: [] }).mockRejectedValueOnce(new Error('offline'))
+            schemasApi.updateSchema.mockResolvedValue({ ...SCHEMA, name: 'Temp' })
+            const store = useDataFarmSchemasStore()
+            await store.loadList()
+            expect(await store.updateSchema(SCHEMA, { name: 'Temp', description: 'Old', groupId: 'g1' })).toEqual({ ...SCHEMA, name: 'Temp' })
+            expect(Alerts.emit).toHaveBeenCalledWith('Failed to reload the schemas.', 'warning')
+        })
+
         it('fetches the team\'s groups for the picker', async () => {
             schemasApi.listGroups.mockResolvedValue({ count: 1, groups: [{ id: 'g1', name: 'Energy' }] })
             expect(await useDataFarmSchemasStore().fetchGroups()).toEqual([{ id: 'g1', name: 'Energy' }])
@@ -490,6 +504,15 @@ describe('data-farm-schemas store', () => {
             const store = useDataFarmSchemasStore()
             await expect(store.createGroup('Energy')).rejects.toBeTruthy()
             expect(schemasApi.listGrouped).not.toHaveBeenCalled()
+        })
+
+        it('only warns when a group was created but the list could not be loaded again', async () => {
+            schemasApi.createGroup.mockResolvedValue({})
+            schemasApi.listGrouped.mockRejectedValue(new Error('offline'))
+            const store = useDataFarmSchemasStore()
+            await store.createGroup('Quality')
+            expect(schemasApi.createGroup).toHaveBeenCalledWith('team-1', 'Quality')
+            expect(Alerts.emit).toHaveBeenCalledWith('Failed to reload the schemas.', 'warning')
         })
 
         it('drops a list that answers after the page was left', async () => {
