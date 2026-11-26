@@ -51,7 +51,7 @@ This release introduces the new Embedded Editor which integrates the Node-RED ed
 
 The following configuration change must be applied otherwise users will not be able to login to Node-RED 4.0 instances.
 
-The following configuration needs to be added in the values passed to the ingress-nginx helm chart. See [full configuration](https://flowfuse.com/docs/install/kubernetes/aws/#nginx-ingress) for the reference.
+The following configuration needs to be added in the values passed to the ingress-nginx helm chart. See [full configuration](https://github.com/FlowFuse/flowfuse/blob/01b0ac279/docs/install/kubernetes/aws.md#nginx-ingress) for the reference.
 
 ```
 controller:
