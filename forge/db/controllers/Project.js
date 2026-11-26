@@ -589,6 +589,11 @@ module.exports = {
         // Throws an exception if not allowed
         try {
             await team.checkInstanceTypeCreateAllowed(type, transaction)
+            // The instance is started at the end of create, so check that is allowed
+            // before creating anything
+            if (app.license.active() && app.billing) {
+                await team.checkInstanceStartAllowed()
+            }
         } catch (err) {
             await transaction.rollback()
             throw err
