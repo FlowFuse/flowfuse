@@ -113,7 +113,7 @@ When registering your hardware you would have been presented the following dialo
 
 If you're no longer able to see that dialog, you can regenerate the configuration by following the [Regenerating Configurations](#regenerating-configurations) steps, or clicking **"Finish Setup"** on the Remote Instance's page:
 
-<img alt="New Remote Instance overview page with the Finish Setup button" src="images/finish-setup.png" width="750px" style="margin: auto; margin-bottom: 12px;" />
+<img alt="Remote Instance overview page with the Finish Setup button" src="images/finish-setup.png" width="750px" style="margin: auto; margin-bottom: 12px;" />
 
 When the quick connect command has been run, the terminal window will report that the Remote Instance has connected to the platform and 
 will output a new `command` for you to use to start the Remote Instance agent with the new configuration.
