@@ -39,7 +39,7 @@ function mountCompare ({ query = {}, versions = VERSIONS, comparison = { changes
                 'ff-data-table-cell': { template: '<td><slot /></td>' },
                 'ff-listbox': { props: ['modelValue', 'options'], emits: ['update:modelValue'], template: '<select :value="modelValue" @change="$emit(\'update:modelValue\', $event.target.value)"><option v-for="o in options" :key="o.value" :value="o.value">{{ o.label }}</option></select>' },
                 'ff-loading': { template: '<div data-el="loading" />' },
-                SnapshotDiffChangePanel: { props: ['value1', 'value2'], template: '<pre data-el="json-diff">{{ value1 }}|{{ value2 }}</pre>' },
+                SnapshotDiffChangePanel: { props: ['value1', 'value2'], emits: ['update:collapsed'], template: '<pre data-el="json-diff" @click="$emit(\'update:collapsed\', true)">{{ value1 }}|{{ value2 }}</pre>' },
                 DiffTypeBadge: { props: ['type'], template: '<b>{{ type }}</b>' },
                 DiffValuePill: { props: ['kind', 'text'], template: '<i :data-kind="kind">{{ text }}</i>' }
             }
@@ -139,5 +139,26 @@ describe('Schema compare page', () => {
         const { page } = mountCompare()
         expect(page.findComponent('[data-el="compare-from"]').attributes('aria-label')).toBe('From version')
         expect(page.findComponent('[data-el="compare-to"]').attributes('aria-label')).toBe('To version')
+    })
+
+    test('hides the changes when their heading is clicked, and shows them again', async () => {
+        const { page } = mountCompare()
+        await flushPromises()
+        const toggle = page.find('[data-action="toggle-changes"]')
+        expect(toggle.attributes('aria-expanded')).toBe('true')
+        await toggle.trigger('click')
+        expect(toggle.attributes('aria-expanded')).toBe('false')
+        expect(page.find('[data-el="schema-changes"]').attributes('style')).toContain('display: none')
+        await toggle.trigger('click')
+        expect(page.find('[data-el="schema-changes"]').attributes('style') ?? '').not.toContain('display: none')
+    })
+
+    test('keeps the changes to half the height only while the JSON is open below them', async () => {
+        const { page } = mountCompare()
+        await flushPromises()
+        const section = page.find('[data-el="schema-changes-section"]')
+        expect(section.classes()).toContain('max-h-1/2')
+        await page.find('[data-el="json-diff"]').trigger('click')
+        expect(section.classes()).not.toContain('max-h-1/2')
     })
 })

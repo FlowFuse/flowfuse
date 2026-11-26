@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { defaultPair, diffText, fieldPath, formatValue } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/compare.ts'
+import { defaultPair, fieldPath, formatValue, withoutId } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/compare.ts'
 
 const DRAFT = { version: null, status: 'draft' }
 const V3 = { version: '1.2.0', status: 'published' }
@@ -26,7 +26,7 @@ describe('schema compare helpers', () => {
     })
 
     test('leaves the version $id out of the JSON diff', () => {
-        expect(JSON.parse(diffText({ $id: 'urn:x:1.0.0', type: 'object' }))).toEqual({ type: 'object' })
+        expect(withoutId({ $id: 'urn:x:1.0.0', type: 'object' })).toEqual({ type: 'object' })
     })
 
     describe('versions picked by default', () => {
