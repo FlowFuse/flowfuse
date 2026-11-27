@@ -17,13 +17,13 @@ The FlowFuse Device Agent can be installed on any Mac, Linux, or Windows-support
 
 ## Official FlowFuse Hardware Partners
 
-<a href="https://developer.community.boschrexroth.com/t5/Store-and-How-to/FlowFuse-Node-RED/ba-p/82135"><img src="https://upload.wikimedia.org/wikipedia/commons/0/0d/Logo_of_Bosch_Rexroth_AG.svg"  width="150" height="75"></a>
+<a href="https://developer.community.boschrexroth.com/t5/Store-and-How-to/FlowFuse-Node-RED/ba-p/82135"><img alt="Bosch Rexroth logo" src="https://upload.wikimedia.org/wikipedia/commons/0/0d/Logo_of_Bosch_Rexroth_AG.svg"  width="150" height="75"></a>
 
 - [ctrlX - Node-RED App](/docs/hardware/ctrlx-node-red/)
 - [ctrlX - Device Agent App](/docs/hardware/ctrlx-device-agent/) - will be available soon
 
 ## Other Hardware Guides
 
-<a href="/docs/hardware/raspbian/"><img src="https://upload.wikimedia.org/wikipedia/de/c/cb/Raspberry_Pi_Logo.svg"  width="80" height="30"></a>
+<a href="/docs/hardware/raspbian/"><img alt="Raspberry Pi logo" src="https://upload.wikimedia.org/wikipedia/de/c/cb/Raspberry_Pi_Logo.svg"  width="80" height="30"></a>
 
 - [Raspberry Pi](/docs/hardware/raspbian/)
