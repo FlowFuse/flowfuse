@@ -26,6 +26,7 @@ function mountBuilder (text = JSON.stringify(SCHEMA), readOnly = true, published
                 'ff-data-table-cell': { template: '<td><slot /></td>' },
                 'ff-button': { template: '<button><slot /></button>' },
                 'ff-checkbox': { props: ['modelValue'], emits: ['update:modelValue'], template: '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)">' },
+                'ff-drag-handle': { emits: ['dragstart', 'dragend'], template: '<span draggable="true" @dragstart="$emit(\'dragstart\', $event)" @dragend="$emit(\'dragend\', $event)" />' },
                 'ff-kebab-menu': { template: '<div><slot /></div>' },
                 'ff-kebab-item': { props: ['label', 'disabled'], template: '<button :data-item="label" :disabled="disabled">{{ label }}</button>' },
                 DiffTypeBadge: { props: ['type'], template: '<b>{{ type }}</b>' },
@@ -167,6 +168,28 @@ describe('Schema builder', () => {
             await builder.find('[data-el="builder-row-/location"] [data-item="Move down"]').trigger('click')
             expect(Object.keys(text(builder).properties)).toEqual(['calibration', 'location'])
             expect(builder.find('[data-el="builder-row-/location"] [data-item="Move down"]').attributes('disabled')).toBeDefined()
+        })
+
+        test('moves a field when its row is dropped on a sibling, but not on another level', async () => {
+            const builder = mountBuilder(JSON.stringify({ ...SCHEMA, properties: { ...SCHEMA.properties, other: { type: 'string' } } }), false)
+            const drag = async (from, to) => {
+                const dataTransfer = { setData: vi.fn(), setDragImage: vi.fn(), effectAllowed: '', dropEffect: '' }
+                await builder.find(`[data-el="builder-row-${from}"] [data-action="builder-drag"]`).trigger('dragstart', { dataTransfer })
+                await builder.find(`[data-el="builder-row-${to}"]`).trigger('drop', { dataTransfer, clientY: 1000 })
+            }
+            await drag('/location', '/calibration')
+            expect(Object.keys(text(builder).properties)).toEqual(['calibration', 'location', 'other'])
+            expect(text(builder).required).toEqual(['location'])
+            await drag('/other', '/calibration')
+            expect(Object.keys(text(builder).properties)).toEqual(['calibration', 'other', 'location'])
+            const written = builder.emitted('update:schemaText').length
+            await builder.find('[data-el="builder-row-/location"] [data-action="builder-toggle"]').trigger('click')
+            await drag('/calibration', '/location/site')
+            expect(builder.emitted('update:schemaText')).toHaveLength(written)
+        })
+
+        test('offers no handle to drag in read-only mode', () => {
+            expect(mountBuilder().find('[data-action="builder-drag"]').exists()).toBe(false)
         })
 
         test('deletes a field with nothing inside it straight away', async () => {

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { addField, allowedValuesFor, applyForm, deleteField, formFor, formProblem, moveField, nestedPaths, removeField, restoreField, setOtherFieldsAllowed } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builderEdits.ts'
+import { addField, allowedValuesFor, applyForm, deleteField, formFor, formProblem, moveField, moveFieldTo, nestedPaths, removeField, restoreField, setOtherFieldsAllowed } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builderEdits.ts'
 
 const SCHEMA = () => ({
     type: 'object',
@@ -134,6 +134,14 @@ describe('builder edits', () => {
         expect(problem('/properties/unit', { type: 'boolean', minLength: 'x' })).toBe('')
     })
 
+    test('keeps allowed values of other types when only null is allowed or stopped', () => {
+        const root = { type: 'object', properties: { code: { type: 'string', enum: ['a', 1] } } }
+        const allowed = applyForm(root, '/properties/code', { ...formFor(root, '/properties/code'), nullable: true }).root
+        expect(allowed.properties.code.enum).toEqual(['a', 1, null])
+        const stopped = applyForm(allowed, '/properties/code', { ...formFor(allowed, '/properties/code'), nullable: false }).root
+        expect(stopped.properties.code).toEqual({ type: 'string', enum: ['a', 1] })
+    })
+
     test('adds null to the allowed values of a field that may be null', () => {
         expect(edit('/properties/unit', { nullable: true }).properties.unit.enum).toEqual(['Cel', 'degF', null])
         expect(edit('/properties/fault_code', { allowedValues: [] }).properties.fault_code).not.toHaveProperty('enum')
@@ -190,6 +198,15 @@ describe('builder edits', () => {
         expect(Object.keys(moveField(SCHEMA(), '/properties/unit', -1).properties)).toEqual(['unit', 'value', 'fault_code', 'sensor', 'tags'])
         expect(Object.keys(moveField(SCHEMA(), '/properties/unit', 1).properties)).toEqual(['value', 'fault_code', 'unit', 'sensor', 'tags'])
         expect(Object.keys(moveField(SCHEMA(), '/properties/value', -1).properties)).toEqual(['value', 'unit', 'fault_code', 'sensor', 'tags'])
+    })
+
+    test('moves a field to an index among the fields of its object, leaving required alone', () => {
+        const moved = moveFieldTo(SCHEMA(), '/properties/value', 3)
+        expect(Object.keys(moved.properties)).toEqual(['unit', 'fault_code', 'sensor', 'value', 'tags'])
+        expect(moved.required).toEqual(['value', 'unit'])
+        expect(Object.keys(moveFieldTo(SCHEMA(), '/properties/tags', 0).properties)).toEqual(['tags', 'value', 'unit', 'fault_code', 'sensor'])
+        expect(Object.keys(moveFieldTo(SCHEMA(), '/properties/sensor/properties/id', 0).properties.sensor.properties)).toEqual(['id'])
+        expect(Object.keys(moveFieldTo(SCHEMA(), '/properties/value', 9).properties)).toEqual(['value', 'unit', 'fault_code', 'sensor', 'tags'])
     })
 
     test('deletes a field, taking it off the required list', () => {

@@ -241,9 +241,17 @@ export function applyForm (root: Schema, pointer: string, form: FieldForm): { ro
     if (form.description.trim() !== before.description.trim()) {
         set('description', form.description.trim())
     }
-    if (['string', 'number', 'integer'].includes(type) && (changed('allowedValues') || nullableChanged)) {
+    if (['string', 'number', 'integer'].includes(type) && changed('allowedValues')) {
         const values: unknown[] = form.allowedValues.map(value => type === 'string' ? value : Number(value))
         if (values.length && form.nullable) {
+            values.push(null)
+        }
+        set('enum', values.length ? values : undefined)
+    } else if (nullableChanged && Array.isArray(field.enum)) {
+        // The form shows allowed values as text, so they are kept as they are: rebuilt from the form, a 1 next to
+        // strings would become "1"
+        const values = field.enum.filter(value => value !== null)
+        if (form.nullable) {
             values.push(null)
         }
         set('enum', values.length ? values : undefined)
@@ -309,13 +317,13 @@ export function setOtherFieldsAllowed (root: Schema, holderPointer: string, allo
     return next
 }
 
-export function moveField (root: Schema, pointer: string, offset: -1 | 1): Schema {
+// Takes a field out of its object's list and puts it back at an index of the list without it
+export function moveFieldTo (root: Schema, pointer: string, to: number): Schema {
     const next = structuredClone(root)
     const { holder: holderPointer, name } = splitPointer(pointer)
     const holder = schemaAt(next, holderPointer)!
     const entries = Object.entries(propertiesOf(holder))
     const from = entries.findIndex(([key]) => key === name)
-    const to = from + offset
     if (from === -1 || to < 0 || to >= entries.length) {
         return next
     }
@@ -323,6 +331,12 @@ export function moveField (root: Schema, pointer: string, offset: -1 | 1): Schem
     entries.splice(to, 0, moved)
     holder.properties = Object.fromEntries(entries)
     return next
+}
+
+export function moveField (root: Schema, pointer: string, offset: -1 | 1): Schema {
+    const { holder, name } = splitPointer(pointer)
+    const from = Object.keys(propertiesOf(schemaAt(root, holder)!)).indexOf(name)
+    return moveFieldTo(root, pointer, from + offset)
 }
 
 // Unlike removeField, the name also leaves the required list of its object
