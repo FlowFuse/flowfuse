@@ -165,4 +165,11 @@
     --ff-color-tile-bevel-top:             var(--ff-palette-bevel-top);
     --ff-color-tile-ribbon-shadow-indigo:  var(--ff-palette-indigo-900);
     --ff-color-tile-ribbon-shadow-red:     var(--ff-palette-red-900);
+
+    --ff-color-diff-added-line-bg:         var(--ff-palette-green-alpha-15-dark);
+    --ff-color-diff-added-num-bg:          var(--ff-palette-green-alpha-30-dark);
+    --ff-color-diff-added-word-bg:         var(--ff-palette-green-alpha-40-dark);
+    --ff-color-diff-removed-line-bg:       var(--ff-palette-red-alpha-10-dark);
+    --ff-color-diff-removed-num-bg:        var(--ff-palette-red-alpha-30-dark);
+    --ff-color-diff-removed-word-bg:       var(--ff-palette-red-alpha-40-dark);
 }
