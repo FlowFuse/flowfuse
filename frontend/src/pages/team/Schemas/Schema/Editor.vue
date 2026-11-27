@@ -1,23 +1,23 @@
 <template>
     <div class="flex flex-col gap-6" data-el="schema-editor">
-        <div class="flex flex-wrap items-center justify-between gap-4">
-            <ToggleButtonGroup v-model="view" :buttons="views" :uses-links="false" size="small" title="View" visually-hide-title />
-            <div class="flex items-center gap-2">
+        <TabToolbar>
+            <ToggleButtonGroup v-model="view" :buttons="views" :uses-links="false" title="View" visually-hide-title />
+            <template #tools>
                 <span v-if="problemCount" class="flex items-center gap-1 text-sm text-red-500" data-el="schema-problems">
                     <ExclamationCircleIcon class="ff-icon-sm" />
                     {{ problemCount }} {{ problemCount === 1 ? 'problem' : 'problems' }}
                 </span>
                 <span v-if="view === 'builder' && rootType" class="schema-root-type" data-el="builder-root-type">Root type <span class="font-mono">{{ rootType }}</span></span>
                 <template v-if="view === 'json'">
-                    <ff-button v-if="canChangeText" kind="secondary" size="small" data-action="format-json" @click="jsonEditor?.format()">Format</ff-button>
-                    <ff-button v-if="clipboardSupported" kind="secondary" size="small" data-action="copy-json" @click="copy">Copy</ff-button>
+                    <ff-button v-if="canChangeText" kind="secondary" data-action="format-json" @click="jsonEditor?.format()">Format</ff-button>
+                    <ff-button v-if="clipboardSupported" kind="secondary" data-action="copy-json" @click="copy">Copy</ff-button>
                     <template v-if="canChangeText">
-                        <ff-button kind="secondary" size="small" data-action="import-json" @click="fileInput?.click()">Import .json</ff-button>
+                        <ff-button kind="secondary" data-action="import-json" @click="fileInput?.click()">Import .json</ff-button>
                         <input ref="fileInput" type="file" accept=".json,application/json" class="hidden" @change="importFile">
                     </template>
                 </template>
-            </div>
-        </div>
+            </template>
+        </TabToolbar>
         <SchemaBuilder v-if="view === 'builder'" :schema="schema" :read-only="jsonReadOnly" @edit-json="view = 'json'" @update:schema-text="schemaText = $event" />
         <JsonEditor v-show="view === 'json'" ref="jsonEditor" v-model="schemaText" v-model:problems="editorProblems" :markers="markers" :read-only="jsonReadOnly" />
         <div v-if="draft" class="schema-notes" data-el="schema-notes">
@@ -46,6 +46,7 @@ import { DocumentTextIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outli
 import { computed, ref } from 'vue'
 
 import SchemaBuilder from './components/SchemaBuilder.vue'
+import TabToolbar from './components/TabToolbar.vue'
 import { parseSchema } from './components/builder'
 import type { ReferenceProblem } from './components/referenceProblems'
 import { typeLabel } from './components/schemaTypes'

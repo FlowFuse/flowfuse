@@ -1,14 +1,14 @@
 <template>
     <div v-if="version" class="flex flex-col gap-6" data-el="schema-version">
-        <div class="flex flex-wrap items-baseline gap-3">
-            <router-link class="schema-version__back" :to="{ name: 'team-schema-versions' }" data-action="back-to-versions">
-                <ChevronLeftIcon class="ff-icon ff-icon-sm" />
-                All versions
-            </router-link>
+        <TabToolbar>
+            <BackToVersions />
             <span class="font-medium" data-el="version-number">{{ version.version }}</span>
-            <StatusBadge class="schema-version__status" :status="status.status" :text="status.text" data-el="version-status" />
+            <StatusBadge :status="status.status" :text="status.text" data-el="version-status" />
             <span class="schema-version__published" data-el="version-published">{{ published }}</span>
-        </div>
+            <template #tools>
+                <ff-button v-if="clipboardSupported" kind="secondary" data-action="copy-json" @click="copy">Copy</ff-button>
+            </template>
+        </TabToolbar>
         <JsonEditor v-model="schemaText" :read-only="true" />
         <div v-if="version.notes" data-el="version-notes">
             <p class="schema-version__label">
@@ -21,9 +21,12 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronLeftIcon, DocumentTextIcon } from '@heroicons/vue/24/outline'
+import { DocumentTextIcon } from '@heroicons/vue/24/outline'
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+
+import BackToVersions from './components/BackToVersions.vue'
+import TabToolbar from './components/TabToolbar.vue'
 
 import JsonEditor from '@/components/JsonEditor.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
@@ -60,6 +63,18 @@ watch([() => route.params.version, () => schemasStore.activeSchema?.id], async (
     }
 }, { immediate: true })
 
+// navigator.clipboard only exists on HTTPS or localhost
+const clipboardSupported = !!navigator.clipboard?.writeText
+
+async function copy () {
+    try {
+        await navigator.clipboard.writeText(schemaText.value)
+        Alerts.emit('Copied to Clipboard.', 'confirmation')
+    } catch {
+        Alerts.emit('Failed to copy to the clipboard.', 'warning')
+    }
+}
+
 const status = computed(() => version.value?.status === 'deprecated'
     ? { status: 'warning', text: 'Deprecated' }
     : { status: 'success', text: 'Published' })
@@ -72,33 +87,7 @@ const published = computed(() => {
 
 <style scoped lang="scss">
 .schema-version {
-    &__back {
-        font-weight: 600;
-        color: var(--ff-color-link);
-
-        // The icon sits in the line of text, so the link shares a baseline with what follows it.
-        // Its own box has empty space on its left, which would set the link in from the editor below.
-        .ff-icon {
-            display: inline-block;
-            vertical-align: middle;
-            margin: 0 0.25rem 0 -0.34rem;
-        }
-
-        &:hover {
-            text-decoration: underline;
-        }
-    }
-
-    // The badge has no text baseline of its own to line up by (it starts with an icon),
-    // so it is centred on the row and lifted until its label sits on the baseline of the text around it
-    &__status {
-        align-self: center;
-        position: relative;
-        top: -0.125rem;
-    }
-
     &__published {
-        font-size: 0.875rem;
         color: var(--ff-color-text-subtle);
     }
 

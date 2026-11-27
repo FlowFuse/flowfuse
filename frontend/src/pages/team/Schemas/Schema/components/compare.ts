@@ -30,11 +30,11 @@ export function formatValue (value: unknown): string {
     return JSON.stringify(value)
 }
 
-// The top level $id differs for every version, so it is left out
-export function diffText (document: Record<string, unknown>): string {
+// The top level $id differs for every version, so it is left out of what is compared
+export function withoutId (document: Record<string, unknown>): Record<string, unknown> {
     const rest = { ...document }
     delete rest.$id
-    return JSON.stringify(rest, null, 2)
+    return rest
 }
 
 export interface VersionEntry { version: string | null, status: string }
