@@ -113,7 +113,9 @@ describe('example from the schema', () => {
         'patterns with lengths': { type: 'object', properties: { code: { type: 'string', pattern: '^[a-z]{3}-\\d{2}$' } } },
         'arrays of objects': { type: 'array', minItems: 2, items: { type: 'object', required: ['id'], properties: { id: { type: 'string', pattern: '^[A-Z]{2}-\\d+$' } } } },
         'examples and defaults': { type: 'object', properties: { a: { type: 'string', examples: ['picked'] }, b: { type: 'number', default: 7 }, c: { const: 'fixed' } } },
-        allOf: { allOf: [{ type: 'object', properties: { a: { type: 'string' } } }, { type: 'object', properties: { b: { type: 'boolean' } } }] }
+        allOf: { allOf: [{ type: 'object', properties: { a: { type: 'string' } } }, { type: 'object', properties: { b: { type: 'boolean' } } }] },
+        'fields next to anyOf': { type: 'object', properties: { id: { type: 'string' }, kind: { type: 'string' } }, anyOf: [{ required: ['id'] }, { required: ['kind'] }] },
+        'fields next to oneOf branches': { properties: { id: { type: 'string' } }, required: ['id'], oneOf: [{ properties: { kind: { const: 'a' } }, required: ['kind'] }, { properties: { kind: { const: 'b' } } }] }
     }
 
     for (const [name, schema] of Object.entries(FIXTURES)) {
@@ -122,6 +124,11 @@ describe('example from the schema', () => {
             expect(validatePayload(schema, example)).toEqual({ valid: true, errors: [] })
         })
     }
+
+    test('fills the fields listed next to a oneOf or anyOf, and the first branch', () => {
+        expect(exampleFromSchema(FIXTURES['fields next to anyOf'])).toEqual({ id: 'text', kind: 'text' })
+        expect(exampleFromSchema(FIXTURES['fields next to oneOf branches'])).toEqual({ id: 'text', kind: 'a' })
+    })
 
     test('prefers examples, then the default, the const and the first allowed value', () => {
         expect(exampleFromSchema(FIXTURES['examples and defaults'])).toEqual({ a: 'picked', b: 7, c: 'fixed' })
