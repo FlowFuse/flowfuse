@@ -17,7 +17,7 @@ The user must already exist on the FlowFuse platform before they can sign in via
 
 1. Click 'Create SSO Configuration' to create a new config
 
-   ![](./images/create-sso-config-ldap.png)
+   ![Create SSO Configuration form with LDAP selected](./images/create-sso-config-ldap.png)
 
 2. Give the configuration a name to help identify it, and provide the email domain
    name this configuration should apply to. Ensure the LDAP option is selected - this
@@ -33,7 +33,7 @@ The user must already exist on the FlowFuse platform before they can sign in via
 The following fields are provided for configuring LDAP. You will need to refer to
 your LDAP service provider details for the correct values to enter:
 
-   ![](./images/edit-sso-config-ldap.png)
+   ![LDAP settings: server, username, password, base DN, user search filter and Enable TLS](./images/edit-sso-config-ldap.png)
 
 
  - `Server` - the address of the LDAP server, including port number.

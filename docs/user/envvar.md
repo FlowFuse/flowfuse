@@ -44,7 +44,7 @@ The image below shows an instance with the following environment variables:
 * `INSTANCE_VAR` - added to the instance, editable
 
 
-<img src="images/project-envvar.png" width="500" />
+<img alt="Instance Environment settings listing template, platform and instance environment variables" src="images/project-envvar.png" width="500" />
 
 ## Standard environment variables
 
