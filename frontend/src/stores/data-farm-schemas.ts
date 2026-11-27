@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
-import schemasApi from '@/api/schemas'
+import schemasApi, { type SchemaChange } from '@/api/schemas'
 import Alerts from '@/services/alerts.js'
 import { useContextStore } from '@/stores/context.js'
 import type { DataSchema, DataSchemaDraft, DataSchemaGroup, DataSchemaSummary, DataSchemaVersion, DataSchemaVersionSummary } from '@/types'
@@ -14,6 +14,12 @@ export interface SchemaListPage {
     schemas: DataSchemaSummary[]
     count: number
     nextCursor?: string
+}
+
+export interface SchemaComparison {
+    changes: SchemaChange[]
+    from: Record<string, unknown>
+    to: Record<string, unknown>
 }
 
 // The section of the list for schemas that are in no group. It is not a group on the server.
@@ -242,6 +248,28 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         return schemasApi.getVersion(teamId(), activeSchema.value!.id, version)
     }
 
+    // Two versions of the open schema and what changed between them, or null when another schema was opened meanwhile.
+    // `draft` stands for the saved draft, and a draft that is gone loads the schema again.
+    async function fetchComparison (from: string, to: string): Promise<SchemaComparison | null> {
+        const token = loadToken
+        const schemaId = activeSchema.value!.id
+        const documentOf = async (version: string) => version === 'draft'
+            ? (await schemasApi.getDraft(teamId(), schemaId)).schema
+            : (await schemasApi.getVersion(teamId(), schemaId, version)).schema
+        try {
+            const [diff, fromDocument, toDocument] = await Promise.all([
+                schemasApi.diffVersions(teamId(), schemaId, from, to),
+                documentOf(from),
+                documentOf(to)
+            ])
+            if (token !== loadToken) return null
+            return { changes: diff.changes, from: fromDocument, to: toDocument }
+        } catch (err) {
+            if (token === loadToken && draftGone(err)) await refreshActiveSchema()
+            throw err
+        }
+    }
+
     // Deprecates a published version, or takes that back. If it turns out to be in that state already,
     // the schema changed elsewhere and is loaded again.
     async function setVersionDeprecated (version: string, deprecated: boolean): Promise<void> {
@@ -303,6 +331,7 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         discardDraft,
         publishDraft,
         fetchVersion,
+        fetchComparison,
         setVersionDeprecated,
         reset
     }

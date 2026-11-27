@@ -1,5 +1,6 @@
 <template>
-    <div class="text-xs border-b border-gray-200 overflow-hidden">
+    <!-- a column that can be shorter than its lines: where its height is limited, the lines scroll under the header -->
+    <div class="text-xs border-b border-gray-200 overflow-hidden flex flex-col min-h-0">
         <!-- Compact mode (structural props: name, type, position, wires, tab …) -->
         <div v-if="compact" class="flex items-start gap-3 px-3 py-2">
             <span class="text-gray-500 shrink-0 w-20 pt-0.5 truncate">{{ label ?? prop }}</span>
@@ -17,7 +18,7 @@
         <template v-else>
             <!-- Collapsible header -->
             <div
-                class="px-3 py-1 bg-gray-50 border-b border-gray-100 text-gray-500 sticky top-0 flex items-center gap-1 cursor-pointer select-none hover:bg-gray-100"
+                class="px-3 py-1 bg-gray-50 border-b border-gray-100 text-gray-500 sticky top-0 flex shrink-0 items-center gap-1 cursor-pointer select-none hover:bg-gray-100"
                 @click="collapsed = !collapsed"
             >
                 <svg
@@ -28,7 +29,7 @@
                 >
                     <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                 </svg>
-                <span>Property</span>
+                <span>{{ heading }}</span>
                 <span class="font-semibold text-gray-700">{{ label ?? prop }}</span>
                 <span class="ml-auto flex items-center gap-2">
                     <template v-if="!collapsed">
@@ -56,10 +57,10 @@
                     <span class="text-gray-400">{{ changeSummary }}</span>
                 </span>
             </div>
-            <div v-show="!collapsed" class="font-mono">
+            <div v-show="!collapsed" class="font-mono min-h-0 overflow-y-auto">
                 <div class="diff-scroll-container" :class="{ 'diff-wrap': wrapped }">
                     <div class="diff-content">
-                        <template v-for="(line, i) in lines" :key="i">
+                        <template v-for="(line, i) in visibleLines" :key="i">
                             <!-- Collapsed unchanged section -->
                             <div
                                 v-if="line.type === 'collapsed'"
@@ -86,6 +87,8 @@
                                 >{{ seg.text }}</span></span>
                             </div>
                         </template>
+                        <!-- more lines are drawn when this comes into view -->
+                        <div v-if="lines.length > shownLines" ref="moreLines" class="h-5" />
                     </div>
                 </div>
             </div>
@@ -95,6 +98,9 @@
 
 <script>
 import { diffLines, diffWordsWithSpace } from 'diff'
+
+import { useRevealMore } from '../../composables/RevealMore'
+import { jsonLineDiff } from '../../utils/jsonLineDiff'
 
 import DiffValuePill from '../diff/DiffValuePill.vue'
 
@@ -108,15 +114,28 @@ export default {
     props: {
         prop: { type: String, default: '' },
         label: { type: String, default: null },
+        heading: { type: String, default: 'Property' },
+        // Compares two objects or arrays by their structure, not as text. A text diff of two documents of
+        // thousands of lines that differ a lot takes seconds.
+        structured: { type: Boolean, default: false },
         value1: { type: [String, Number, Boolean, Array, Object], default: undefined },
         value2: { type: [String, Number, Boolean, Array, Object], default: undefined },
         compact: { type: Boolean, default: false },
         initiallyExpanded: { type: Boolean, default: true }
     },
+    emits: ['update:collapsed'],
+    setup () {
+        // a diff can be thousands of lines long
+        const { shown, sentinel, reset } = useRevealMore(200)
+        return { shownLines: shown, moreLines: sentinel, resetShownLines: reset }
+    },
     data () {
         return { lines: [], collapsed: !this.initiallyExpanded, wrapped: false, prettified: false }
     },
     computed: {
+        visibleLines () {
+            return this.lines.length > this.shownLines ? this.lines.slice(0, this.shownLines) : this.lines
+        },
         changeSummary () {
             const added = this.lines.filter(l => l.type === 'added').length
             const removed = this.lines.filter(l => l.type === 'removed').length
@@ -186,6 +205,9 @@ export default {
     watch: {
         value1: { immediate: true, handler: 'rebuildLines' },
         value2: 'rebuildLines',
+        collapsed (val) {
+            this.$emit('update:collapsed', val)
+        },
         initiallyExpanded (val) {
             if (!this.compact) this.collapsed = !val
         }
@@ -194,6 +216,7 @@ export default {
         rebuildLines () {
             if (!this.compact) {
                 this.prettified = false
+                this.resetShownLines()
                 this.lines = this.buildLines(this.value1, this.value2)
             }
         },
@@ -229,6 +252,10 @@ export default {
             this.lines = this.buildLines(this.value1, this.value2)
         },
         buildLines (v1Raw, v2Raw) {
+            if (this.structured && typeof v1Raw === 'object' && typeof v2Raw === 'object' && v1Raw && v2Raw) {
+                return this.collapseContext(jsonLineDiff(v1Raw, v2Raw))
+            }
+
             const v1 = this.stringify(v1Raw)
             const v2 = this.stringify(v2Raw)
 
