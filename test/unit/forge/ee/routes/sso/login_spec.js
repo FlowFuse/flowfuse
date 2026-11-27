@@ -1,6 +1,11 @@
 const should = require('should')
 
+const { getLoginRedirect } = require('../../../../../../forge/ee/routes/sso/auth.js')
 const setup = require('../../setup')
+
+function getRelayState (location) {
+    return JSON.parse(new URL(location).searchParams.get('RelayState'))
+}
 
 describe('SSO login for providers the SAML flow cannot start', function () {
     let app
@@ -73,6 +78,26 @@ describe('SSO login for providers the SAML flow cannot start', function () {
         response.headers.location.should.startWith('https://sso.saml.com/entry')
     })
 
+    it('does not include a redirect in the RelayState when none is requested', async function () {
+        const response = await app.inject({ method: 'GET', url: '/ee/sso/login?u=user%40saml.com' })
+        response.statusCode.should.equal(302)
+        const state = getRelayState(response.headers.location)
+        state.should.have.property('provider')
+        state.should.not.have.property('redirectTo')
+    })
+
+    it('includes the requested redirect in the RelayState for an email', async function () {
+        const response = await app.inject({ method: 'GET', url: '/ee/sso/login?u=user%40saml.com&r=%2Fteam%2Fabc' })
+        response.statusCode.should.equal(302)
+        getRelayState(response.headers.location).should.have.property('redirectTo', '/team/abc')
+    })
+
+    it('includes the requested redirect in the RelayState for a provider id', async function () {
+        const response = await app.inject({ method: 'GET', url: `/ee/sso/login?p=${app.samlProvider.hashid}&r=%2Fteam%2Fabc` })
+        response.statusCode.should.equal(302)
+        getRelayState(response.headers.location).should.have.property('redirectTo', '/team/abc')
+    })
+
     it('redirects home for an unknown provider id', async function () {
         const response = await app.inject({ method: 'GET', url: '/ee/sso/login?p=unknown' })
         response.statusCode.should.equal(302)
@@ -104,5 +129,39 @@ describe('SSO login for providers the SAML flow cannot start', function () {
         })
         response.statusCode.should.equal(302)
         response.headers.should.have.property('location', '/')
+    })
+})
+
+describe('SSO login redirect', function () {
+    it('sends an existing user home when no redirect is requested', function () {
+        getLoginRedirect(JSON.stringify({ provider: 'abc' }), false).should.equal('/')
+        getLoginRedirect(undefined, false).should.equal('/')
+    })
+
+    it('sends a new user to their account settings when no redirect is requested', function () {
+        getLoginRedirect(JSON.stringify({ provider: 'abc' }), true).should.equal('/account/settings')
+        getLoginRedirect(undefined, true).should.equal('/account/settings')
+    })
+
+    it('sends an existing user to the requested redirect', function () {
+        getLoginRedirect(JSON.stringify({ provider: 'abc', redirectTo: '/team/abc' }), false).should.equal('/team/abc')
+    })
+
+    it('sends a new user to the requested redirect', function () {
+        getLoginRedirect(JSON.stringify({ provider: 'abc', redirectTo: '/team/abc' }), true).should.equal('/team/abc')
+    })
+
+    it('ignores a non-local requested redirect', function () {
+        getLoginRedirect(JSON.stringify({ provider: 'abc', redirectTo: 'https://example.com' }), false).should.equal('/')
+        getLoginRedirect(JSON.stringify({ provider: 'abc', redirectTo: '//example.com' }), false).should.equal('/')
+    })
+
+    it('falls back to the default for a malformed RelayState', function () {
+        const warnings = []
+        const log = { warn: msg => warnings.push(msg) }
+        getLoginRedirect('not json', false, log).should.equal('/')
+        getLoginRedirect('not json', true, log).should.equal('/account/settings')
+        getLoginRedirect('null', true, log).should.equal('/account/settings')
+        warnings.should.have.length(2)
     })
 })
