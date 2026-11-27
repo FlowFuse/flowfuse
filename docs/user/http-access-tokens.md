@@ -22,7 +22,7 @@ To create a token, click the Add Token button. Given your token a name and an op
 
 You will be shown the token value - this is the only time it will be shown so make a note of it before closing the dialog.
 
-![](./images/bearer-token-dialog.png)
+![Dialog showing the new HTTP access token value](./images/bearer-token-dialog.png)
 
 ### Using an access token
 
@@ -41,7 +41,7 @@ curl -H "Authorization: Bearer ffhttp_FKc_S4qlTBV1H411hmhneHcSJ6F_FGNQLPYbnoD3-B
 To access it from another Node-RED instance, you can use the `HTTP Request` node by enabling the 'Use authentication'
 option, selecting 'bearer authentication' and providing the token:
 
-![](./images/bearer-token-nr-request.png)
+![HTTP Request node with bearer authentication enabled and the token entered](./images/bearer-token-nr-request.png)
 
 ### Remote Instances
 

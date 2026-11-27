@@ -183,7 +183,7 @@ exclude the code nodes.
 
 This can be done in the FlowFuse Template.
 
-<img src="../images/file-node-template.png" width=500 />
+<img alt="Template Palette settings with file nodes listed under Exclude nodes by filename" src="../images/file-node-template.png" width=500 />
 
 Adding `10-file.js` to the list of "Excluded nodes by filename" section will ensure that the core file nodes are not loaded by Node-RED.
 
