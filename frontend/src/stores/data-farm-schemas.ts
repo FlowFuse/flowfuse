@@ -237,6 +237,25 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         setDraftEntry(null, published)
     }
 
+    // Deprecates a published version, or takes that back. If it turns out to be in that state already,
+    // the schema changed elsewhere and is loaded again.
+    async function setVersionDeprecated (version: string, deprecated: boolean): Promise<void> {
+        const token = loadToken
+        const request = deprecated ? schemasApi.deprecateVersion : schemasApi.undeprecateVersion
+        let updated: DataSchemaVersion
+        try {
+            updated = await request(teamId(), activeSchema.value!.id, version)
+        } catch (err) {
+            const changed = ['already_deprecated', 'not_deprecated', 'not_found'].includes(errorCode(err) ?? '')
+            if (token === loadToken && changed) await refreshActiveSchema()
+            throw err
+        }
+        if (token !== loadToken) return
+        const schema = activeSchema.value!
+        activeSchema.value = { ...schema, versions: schema.versions.map(entry => entry.version === version ? { ...entry, status: updated.status, updatedAt: updated.updatedAt } : entry) }
+        if (activeLatestPublished.value?.version === version) activeLatestPublished.value = updated
+    }
+
     // Kept apart from `reset`: the schema page clears the open schema when it is left, which is often for the list
     function resetList (): void {
         listToken++
@@ -278,6 +297,7 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         createDraft,
         discardDraft,
         publishDraft,
+        setVersionDeprecated,
         reset
     }
 })

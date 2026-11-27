@@ -73,6 +73,14 @@ const publishDraft = async (teamId: string, schemaId: string, body: { version: s
     return client.post(`${schemaUrl(teamId, schemaId)}/draft/publish`, body).then(res => res.data)
 }
 
+const deprecateVersion = async (teamId: string, schemaId: string, version: string): Promise<DataSchemaVersion> => {
+    return client.post(`${schemaUrl(teamId, schemaId)}/versions/${version}/deprecate`).then(res => res.data)
+}
+
+const undeprecateVersion = async (teamId: string, schemaId: string, version: string): Promise<DataSchemaVersion> => {
+    return client.post(`${schemaUrl(teamId, schemaId)}/versions/${version}/undeprecate`).then(res => res.data)
+}
+
 export default {
     listSchemas,
     listGrouped,
@@ -88,5 +96,7 @@ export default {
     createDraft,
     updateDraft,
     deleteDraft,
-    publishDraft
+    publishDraft,
+    deprecateVersion,
+    undeprecateVersion
 }
