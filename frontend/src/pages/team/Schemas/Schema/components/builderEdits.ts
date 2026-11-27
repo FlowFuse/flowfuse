@@ -1,6 +1,6 @@
 import { RE2JS } from 're2js'
 
-import { fieldsHolder, otherFields, propertiesOf, schemaAt } from './builder'
+import { fieldsHolder, insertAfterPublished, otherFields, propertiesOf, schemaAt } from './builder'
 import { escapePointer, pointerFor, unescapePointer } from './pointer'
 import { type Schema, typesOf } from './schemaTypes'
 
@@ -366,4 +366,22 @@ export function nestedPaths (root: Schema, pointer: string, path: string): strin
     }
     visit(schemaAt(root, pointer)!, path)
     return paths
+}
+
+// The root with a deleted field put back as the published version has it: among the fields still there, and on the required list when it was required there
+export function restoreField (root: Schema, published: Schema, pointer: string): Schema {
+    const next = structuredClone(root)
+    const { holder: holderPointer, name } = splitPointer(pointer)
+    const holder = schemaAt(next, holderPointer)!
+    const before = schemaAt(published, holderPointer)!
+    const publishedFields = propertiesOf(before)
+    const fields = propertiesOf(holder)
+    const restored = { ...fields, [name]: structuredClone(publishedFields[name]) }
+    holder.properties = Object.fromEntries(insertAfterPublished(Object.keys(fields), name, Object.keys(publishedFields)).map(key => [key, restored[key]]))
+    const publishedRequired = Array.isArray(before.required) ? before.required : []
+    const required = Array.isArray(holder.required) ? holder.required : []
+    if (publishedRequired.includes(name) && !required.includes(name)) {
+        holder.required = insertAfterPublished(required, name, publishedRequired)
+    }
+    return next
 }

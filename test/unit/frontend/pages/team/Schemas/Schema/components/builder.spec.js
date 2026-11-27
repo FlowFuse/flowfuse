@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { builderRows, constraintsSummary, fieldTrail, otherFields, parseSchema, referenceProblem, rootNotes, schemaAt } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builder.ts'
+import { builderRows, constraintsSummary, fieldTrail, insertAfterPublished, otherFields, parseSchema, referenceProblem, rootNotes, schemaAt } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builder.ts'
 import { typeLabel } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/schemaTypes.ts'
 
 const SCHEMA = {
@@ -131,6 +131,27 @@ describe('builder rows', () => {
         expect(parseSchema('{"type": ')).toBeNull()
     })
 
+    test('keeps fields the draft deleted from the published version, after the field they followed', () => {
+        const published = { type: 'object', required: ['serial'], properties: { value: { type: 'number' }, serial: { type: 'string', description: 'Device serial' }, unit: { type: 'string' } } }
+        const draft = { type: 'object', properties: { value: { type: 'number' }, unit: { type: 'string' }, alarm: { type: 'boolean' } } }
+        const rows = builderRows(draft, new Set(), published)
+        expect(rows.map(row => [row.path, row.deleted])).toEqual([['/value', false], ['/serial', true], ['/unit', false], ['/alarm', false]])
+        expect(rows[1]).toMatchObject({ required: true, type: 'string', description: 'Device serial', children: null })
+    })
+
+    test('keeps deleted fields inside an expanded object too', () => {
+        const published = { type: 'object', properties: { sensor: { type: 'object', properties: { id: { type: 'string' }, line: { type: 'integer' } } } } }
+        const draft = { type: 'object', properties: { sensor: { type: 'object', properties: { line: { type: 'integer' } } } } }
+        expect(builderRows(draft, new Set(['/properties/sensor']), published).map(row => [row.path, row.deleted])).toEqual([['/sensor', false], ['/sensor/id', true], ['/sensor/line', false]])
+    })
+
+    test('inserts a name after the nearest earlier published name that is still there', () => {
+        expect(insertAfterPublished(['a', 'c'], 'b', ['a', 'b', 'c'])).toEqual(['a', 'b', 'c'])
+        expect(insertAfterPublished(['c'], 'b', ['a', 'b', 'c'])).toEqual(['b', 'c'])
+        expect(insertAfterPublished(['a', 'c'], 'd', ['a', 'b', 'c', 'd'])).toEqual(['a', 'c', 'd'])
+        expect(insertAfterPublished(['a', 'x', 'c'], 'd', ['a', 'b', 'c', 'd'])).toEqual(['a', 'x', 'c', 'd'])
+    })
+
     describe('deep nesting', () => {
         const DEEP = { type: 'object', properties: { a: { type: 'object', properties: { b: { type: 'object', properties: { c: { type: 'object', properties: { d: { type: 'object', properties: { e: { type: 'string' } } } } } } } } } } }
         const ALL = new Set(['/properties/a', '/properties/a/properties/b', '/properties/a/properties/b/properties/c'])
@@ -141,13 +162,20 @@ describe('builder rows', () => {
         })
 
         test('lists the fields of the field drilled into, with the same limit from there', () => {
-            const rows = builderRows(DEEP, new Set(['/properties/a/properties/b/properties/c/properties/d']), '/properties/a/properties/b/properties/c')
+            const rows = builderRows(DEEP, new Set(['/properties/a/properties/b/properties/c/properties/d']), null, '/properties/a/properties/b/properties/c')
             expect(rows.map(row => [row.path, row.depth, row.pointer])).toEqual([['/a/b/c/d', 0, '/properties/a/properties/b/properties/c/properties/d'], ['/a/b/c/d/e', 1, '/properties/a/properties/b/properties/c/properties/d/properties/e']])
         })
 
         test('drills into an array of objects through its items', () => {
             const root = { type: 'object', properties: { list: { type: 'array', items: { type: 'object', properties: { at: { type: 'string' } } } } } }
-            expect(builderRows(root, new Set(), '/properties/list').map(row => [row.path, row.pointer])).toEqual([['/list/at', '/properties/list/items/properties/at']])
+            expect(builderRows(root, new Set(), null, '/properties/list').map(row => [row.path, row.pointer])).toEqual([['/list/at', '/properties/list/items/properties/at']])
+        })
+
+        test('keeps the fields the draft deleted in the field drilled into', () => {
+            const published = { type: 'object', properties: { a: { type: 'object', properties: { b: { type: 'object', properties: { c: { type: 'object', properties: { d: { type: 'string' }, gone: { type: 'string' } } } } } } } } }
+            const draft = JSON.parse(JSON.stringify(published))
+            delete draft.properties.a.properties.b.properties.c.properties.gone
+            expect(builderRows(draft, new Set(), published, '/properties/a/properties/b/properties/c').map(row => [row.path, row.deleted])).toEqual([['/a/b/c/d', false], ['/a/b/c/gone', true]])
         })
 
         test('gives the trail to a field', () => {

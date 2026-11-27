@@ -1,4 +1,4 @@
-import { escapePointer, isObject, unescapePointer } from './pointer'
+import { escapePointer, isObject, pointerFor, unescapePointer } from './pointer'
 import { REFERENCE_KEYWORDS, referenceMessage } from './referenceProblems'
 import { COMBINATORS, type Schema, typeLabel, typesOf } from './schemaTypes'
 
@@ -21,6 +21,7 @@ export interface FieldRow {
     drillIn: boolean
     jsonOnly: boolean
     problem: string
+    deleted: boolean
 }
 
 // How many levels of fields the table shows indented. Fields deeper than that open in a drill-in view
@@ -104,6 +105,14 @@ export function referenceProblem (schema: Schema, isRoot = false): string {
     return isObject(schema.items) ? referenceProblem(schema.items) : ''
 }
 
+// `current` with `name` inserted after the nearest name before it in `published` that `current` still has
+export function insertAfterPublished (current: string[], name: string, published: string[]): string[] {
+    const earlier = published.slice(0, published.indexOf(name)).reverse().find(candidate => current.includes(candidate))
+    const next = [...current]
+    next.splice(earlier === undefined ? 0 : next.indexOf(earlier) + 1, 0, name)
+    return next
+}
+
 /**
  * What the builder can't show of a root that lists fields: keywords of the root itself, which a field's row has no place for.
  * A root that is not an object has a row of its own that says so instead.
@@ -154,21 +163,33 @@ export function constraintsSummary (schema: Schema): string {
 /**
  * The rows of the field table: every field of the root object, and the fields of an expanded object or array of objects
  * under it, down to `INLINE_LEVELS` levels. `expanded` holds the pointers of the expanded fields.
+ * With `published`, a field it has that the root no longer has stays in the table as deleted, after the field it
+ * followed there, so it can be put back.
  * With `focus`, the pointer of an object or array of objects, the table is drilled into it and lists its fields instead.
  * A root that is not an object has a single row of its own.
  */
-export function builderRows (root: Schema, expanded: Set<string>, focus = ''): FieldRow[] {
+export function builderRows (root: Schema, expanded: Set<string>, published: Schema | null = null, focus = ''): FieldRow[] {
     const rows: FieldRow[] = []
 
-    function visitFields (holder: Schema, pointer: string, path: string, depth: number) {
+    function visitFields (holder: Schema, before: Schema | null, pointer: string, path: string, depth: number) {
+        const fields = propertiesOf(holder)
+        const publishedFields = propertiesOf(before ?? {})
+        const publishedNames = Object.keys(publishedFields)
+        let order = Object.keys(fields)
+        for (const name of publishedNames.filter(candidate => !Object.hasOwn(fields, candidate))) {
+            order = insertAfterPublished(order, name, publishedNames)
+        }
         const required = Array.isArray(holder.required) ? holder.required : []
-        for (const [name, schema] of Object.entries(propertiesOf(holder))) {
-            const field = isObject(schema) ? schema as Schema : {}
-            const fieldPointer = `${pointer}/properties/${escapePointer(name)}`
+        const publishedRequired = Array.isArray(before?.required) ? before.required : []
+        for (const name of order) {
+            const deleted = !Object.hasOwn(fields, name)
+            const source = deleted ? publishedFields[name] : fields[name]
+            const field = isObject(source) ? source as Schema : {}
+            const fieldPointer = pointerFor(pointer, name)
             const fieldPath = `${path}/${escapePointer(name)}`
             const problem = referenceProblem(field)
             const jsonOnly = !!problem || isJsonOnly(field)
-            const inner = jsonOnly ? null : fieldsHolder(field)
+            const inner = jsonOnly || deleted ? null : fieldsHolder(field)
             const inline = depth < INLINE_LEVELS - 1
             const open = !!inner && inline && expanded.has(fieldPointer)
             rows.push({
@@ -177,26 +198,33 @@ export function builderRows (root: Schema, expanded: Set<string>, focus = ''): F
                 name,
                 depth,
                 type: typeLabel(field),
-                required: required.includes(name),
+                required: (deleted ? publishedRequired : required).includes(name),
                 constraints: problem || constraintsSummary(field),
                 description: typeof field.description === 'string' ? field.description : '',
                 children: inner ? Object.keys(propertiesOf(inner.schema)).length : null,
                 expanded: open,
                 drillIn: !!inner && !inline,
                 jsonOnly,
-                problem
+                problem,
+                deleted
             })
             if (open && inner) {
-                visitFields(inner.schema, fieldPointer + inner.suffix, fieldPath, depth + 1)
+                visitFields(inner.schema, publishedHolder(publishedFields[name], inner.suffix), fieldPointer + inner.suffix, fieldPath, depth + 1)
             }
         }
     }
 
+    function publishedHolder (publishedField: unknown, suffix: string): Schema | null {
+        const holder = isObject(publishedField) ? fieldsHolder(publishedField as Schema) : null
+        return holder?.suffix === suffix ? holder.schema : null
+    }
+
     const focused = focusedHolder(root, focus)
     if (focused) {
-        visitFields(focused.schema, focus + focused.suffix, fieldTrail(focus).at(-1)?.path ?? '', 0)
+        const before = published ? publishedHolder(schemaAt(published, focus), focused.suffix) : null
+        visitFields(focused.schema, before, focus + focused.suffix, fieldTrail(focus).at(-1)?.path ?? '', 0)
     } else if (fieldsHolder(root)?.suffix === '') {
-        visitFields(root, '', '', 0)
+        visitFields(root, published ? publishedHolder(published, '') : null, '', '', 0)
     } else {
         const problem = referenceProblem(root, true)
         rows.push({
@@ -212,7 +240,8 @@ export function builderRows (root: Schema, expanded: Set<string>, focus = ''): F
             expanded: false,
             drillIn: false,
             jsonOnly: !!problem || isJsonOnly(root),
-            problem
+            problem,
+            deleted: false
         })
     }
     return rows

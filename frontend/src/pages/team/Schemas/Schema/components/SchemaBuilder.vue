@@ -39,6 +39,24 @@
                                     <FieldEditPanel :root="schema" :pointer="entry.row.pointer" @apply="applied(entry.row.pointer, $event)" @cancel="cancelEdit" />
                                 </ff-data-table-cell>
                             </ff-data-table-row>
+                            <ff-data-table-row v-else-if="entry.row.deleted" :data-el="`builder-row-${entry.row.path}`" data-deleted="true">
+                                <ff-data-table-cell v-if="!readOnly" />
+                                <ff-data-table-cell>
+                                    <div class="schema-builder__field">
+                                        <span v-for="level in entry.row.depth" :key="level" class="schema-builder__guide" />
+                                        <span class="font-mono line-through">{{ entry.row.name }}</span>
+                                        <DiffTypeBadge type="deleted" />
+                                    </div>
+                                </ff-data-table-cell>
+                                <ff-data-table-cell class="font-mono schema-builder__muted">{{ entry.row.type }}</ff-data-table-cell>
+                                <ff-data-table-cell class="schema-builder__muted">{{ entry.row.required ? 'Yes' : 'No' }}</ff-data-table-cell>
+                                <ff-data-table-cell class="schema-builder__muted">
+                                    In {{ publishedVersion }}, deleted in this draft
+                                    <button v-if="!readOnly" class="schema-builder__link ml-2" data-action="builder-restore" @click="restore(entry.row.pointer)">Restore</button>
+                                </ff-data-table-cell>
+                                <ff-data-table-cell class="schema-builder__muted">{{ entry.row.description }}</ff-data-table-cell>
+                                <ff-data-table-cell v-if="!readOnly" />
+                            </ff-data-table-row>
                             <ff-data-table-row v-else :data-el="`builder-row-${entry.row.path}`" v-bind="reorderRow(entry)">
                                 <ff-data-table-cell v-if="!readOnly" class="schema-builder__drag-cell">
                                     <ff-drag-handle v-if="entry.row.pointer" data-action="builder-drag" v-bind="reorder.handle(entry.holder, entry.index)" />
@@ -103,16 +121,17 @@ import { computed, nextTick, onDeactivated, ref, watch } from 'vue'
 
 import FieldEditPanel from './FieldEditPanel.vue'
 import { type FieldRow, type OtherFields, builderRows, fieldTrail, fieldsHolder, focusedHolder, otherFields, propertiesOf, rootNotes, schemaAt } from './builder'
-import { addField, deleteField, moveField, moveFieldTo, nestedPaths, removeField, setOtherFieldsAllowed, splitPointer } from './builderEdits'
+import { addField, deleteField, moveField, moveFieldTo, nestedPaths, removeField, restoreField, setOtherFieldsAllowed, splitPointer } from './builderEdits'
 import { pointerFor } from './pointer'
 import type { Schema } from './schemaTypes'
 
+import DiffTypeBadge from '@/components/diff/DiffTypeBadge.vue'
 import { useDragReorder } from '@/composables/DragReorder.js'
 import Dialog from '@/services/dialog.js'
 
 defineOptions({ name: 'SchemaBuilder' })
 
-const props = defineProps<{ schema: Schema | null, readOnly: boolean }>()
+const props = defineProps<{ schema: Schema | null, readOnly: boolean, published?: Schema | null, publishedVersion?: string }>()
 const emit = defineEmits<{ 'edit-json': [], 'update:schemaText': [text: string] }>()
 
 const columns = computed(() => [
@@ -161,7 +180,7 @@ watch(holder, value => {
 const trail = computed(() => fieldTrail(focus.value))
 const notes = computed(() => props.schema ? rootNotes(props.schema) : [])
 const regionLabel = computed(() => trail.value.length ? `Fields of ${trail.value.at(-1)?.name}` : 'Fields')
-const rows = computed(() => props.schema ? builderRows(props.schema, expanded.value, focus.value) : [])
+const rows = computed(() => props.schema ? builderRows(props.schema, expanded.value, props.published, focus.value) : [])
 const objectSchema = computed(() => {
     if (holder.value) {
         return holder.value.schema
@@ -243,6 +262,10 @@ function cancelEdit () {
     }
     editing.value = null
     added.value = null
+}
+
+function restore (pointer: string) {
+    write(restoreField(props.schema!, props.published!, pointer))
 }
 
 function move (pointer: string, offset: -1 | 1) {

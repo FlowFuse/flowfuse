@@ -21,7 +21,16 @@
         </TabToolbar>
         <!-- kept while the JSON is on screen, so what was expanded or opened in the builder is still so on coming back -->
         <KeepAlive>
-            <SchemaBuilder v-if="view === 'builder'" class="min-h-0" :schema="schema" :read-only="jsonReadOnly" @edit-json="view = 'json'" @update:schema-text="schemaText = $event" />
+            <SchemaBuilder
+                v-if="view === 'builder'"
+                class="min-h-0"
+                :schema="schema"
+                :read-only="jsonReadOnly"
+                :published="published"
+                :published-version="latestPublished?.version"
+                @edit-json="view = 'json'"
+                @update:schema-text="schemaText = $event"
+            />
         </KeepAlive>
         <JsonEditor v-show="view === 'json'" ref="jsonEditor" v-model="schemaText" v-model:problems="editorProblems" fit :markers="markers" :read-only="jsonReadOnly" />
         <!-- the notes take what they need, up to half the height, and the schema above has the rest -->
@@ -50,13 +59,13 @@
 
 <script setup lang="ts">
 import { DocumentTextIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
-import { computed, ref } from 'vue'
+import { computed, ref, toRaw } from 'vue'
 
 import SchemaBuilder from './components/SchemaBuilder.vue'
 import TabToolbar from './components/TabToolbar.vue'
 import { parseSchema } from './components/builder'
 import type { ReferenceProblem } from './components/referenceProblems'
-import { typeLabel } from './components/schemaTypes'
+import { type Schema, typeLabel } from './components/schemaTypes'
 
 import FfAccordion from '@/components/Accordion.vue'
 import JsonEditor from '@/components/JsonEditor.vue'
@@ -88,6 +97,7 @@ const jsonEditor = ref<InstanceType<typeof JsonEditor> | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 
 const schema = computed(() => parseSchema(schemaText.value))
+const published = computed(() => props.draft && props.latestPublished ? toRaw(props.latestPublished.schema) as Schema : null)
 const rootType = computed(() => schema.value ? typeLabel(schema.value) : '')
 
 const jsonReadOnly = computed(() => props.readOnly || !props.draft)

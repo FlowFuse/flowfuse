@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { addField, allowedValuesFor, applyForm, deleteField, formFor, formProblem, moveField, moveFieldTo, nestedPaths, removeField, setOtherFieldsAllowed } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builderEdits.ts'
+import { addField, allowedValuesFor, applyForm, deleteField, formFor, formProblem, moveField, moveFieldTo, nestedPaths, removeField, restoreField, setOtherFieldsAllowed } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builderEdits.ts'
 
 const SCHEMA = () => ({
     type: 'object',
@@ -220,5 +220,22 @@ describe('builder edits', () => {
         const root = { type: 'object', properties: { location: { type: 'object', properties: { site: { type: 'string' }, cell: { type: 'object', properties: { id: {} } }, readings: { type: 'array', items: { type: 'object', properties: { at: {} } } } } } } }
         expect(nestedPaths(root, '/properties/location', '/location')).toEqual(['/location/site', '/location/cell', '/location/cell/id', '/location/readings', '/location/readings/at'])
         expect(nestedPaths(root, '/properties/location/properties/site', '/location/site')).toEqual([])
+    })
+
+    test('restores a deleted field as the published version has it, in its place and on the required list', () => {
+        const published = { type: 'object', required: ['serial'], properties: { value: { type: 'number' }, serial: { type: 'string', minLength: 4 }, unit: { type: 'string' } } }
+        const draft = { type: 'object', properties: { value: { type: 'number' }, unit: { type: 'string' } } }
+        const root = restoreField(draft, published, '/properties/serial')
+        expect(Object.keys(root.properties)).toEqual(['value', 'serial', 'unit'])
+        expect(root.properties.serial).toEqual({ type: 'string', minLength: 4 })
+        expect(root.required).toEqual(['serial'])
+    })
+
+    test('deleting and restoring a field gives back the published schema', () => {
+        const published = SCHEMA()
+        for (const name of ['value', 'unit']) {
+            const restored = restoreField(deleteField(published, `/properties/${name}`), published, `/properties/${name}`)
+            expect(JSON.stringify(restored)).toEqual(JSON.stringify(published))
+        }
     })
 })
