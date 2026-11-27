@@ -8,7 +8,10 @@ import { useDataFarmSchemasStore } from '@/stores/data-farm-schemas'
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
 import type { DataSchemaGroup, DataSchemaSummary } from '@/types'
 
-// Opens a form in the platform dialog, which stays open until `submit` has worked. An error from the server shows on the form.
+// The errors from the server that are about the name, which is where the form shows an error. Any other one
+// (the schema or the group is gone, the request failed) is not about anything in the form.
+const NAME_ERRORS = ['name_conflict', 'invalid_request']
+
 // `done` is told when the dialog was cancelled while the request was still out. That can't be taken back, so the outcome is a toast.
 export function showFormDialog<Values, Result> ({ header, confirmLabel, component, payload = {}, values, submit, done, failure }: {
     header: string
@@ -47,7 +50,7 @@ export function showFormDialog<Values, Result> ({ header, confirmLabel, componen
             done(result, cancelled)
         } catch (err) {
             const message = err.response?.data?.error || failure
-            if (cancelled) return Alerts.emit(message, 'warning')
+            if (cancelled || !NAME_ERRORS.includes(err.response?.data?.code)) return Alerts.emit(message, 'warning')
             dialogStore.updateDialogPayload({ error: message })
         } finally {
             busy = false
