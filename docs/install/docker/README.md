@@ -394,7 +394,7 @@ FlowFuse includes a File Storage service that can be enabled to provide persiste
 
 To disable the default File nodes, edit the Template and add `10-file.js,23-watch.js` to the "Exclude nodes by filename" section
 
-<img src="../images/file-node-template.png" width=500 />
+<img alt="Template Palette settings with file nodes listed under Exclude nodes by filename" src="../images/file-node-template.png" width=500 />
 
 FlowFuse Docker Compose files includes FlowFuse File Storage component by default and starts it along with the platform.
 

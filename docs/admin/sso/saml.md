@@ -59,7 +59,7 @@ The following instructions give more details information on how to setup SSO.
 
 1. Click 'Create SSO Configuration' to create a new config
 
-   ![](./images/create-sso-config.png)
+   ![Create SSO Configuration form with SAML selected](./images/create-sso-config.png)
 
 2. Give the configuration a name to help identify it, and provide the email domain
    name this configuration should apply to. Ensure the SAML option is selected - this
@@ -70,7 +70,7 @@ The following instructions give more details information on how to setup SSO.
    At this point, the configuration has been created and metadata generated for the
    configuration, but it is not active.
 
-   ![](./images/edit-sso-config.png)
+   ![Edit SSO Configuration form for SAML, showing the ACS URL and Entity ID and the identity provider fields](./images/edit-sso-config.png)
 
 
 4. Copy the `ACS URL` and `Entity ID / Issuer` values as you will need to configure

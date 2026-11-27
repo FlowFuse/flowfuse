@@ -35,7 +35,7 @@ meta:
 
 The Admin Settings can be accessed from the main menu:
 
-<img src="images/admin-menu-option.png" width=300 />
+<img alt="Admin Settings option in the FlowFuse main menu" src="images/admin-menu-option.png" width=300 />
 
 ### Admin Settings
 
