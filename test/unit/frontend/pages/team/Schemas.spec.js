@@ -28,7 +28,8 @@ vi.mock('../../../../../frontend/src/services/alerts.js', () => ({
 const SchemasTableStub = { name: 'SchemasTable', props: ['groups', 'groupSchemas', 'query', 'canRename', 'canDelete'], emits: ['load-more', 'rename-group', 'delete-group'], template: '<div data-el="schemas-table" />' }
 
 // `list` is what the store holds once the list has loaded; without it the page is still loading
-function mountPage ({ enabled = true, role = Roles.Member, teamId, list } = {}) {
+// `loadError` makes the first try at loading the list fail
+function mountPage ({ enabled = true, role = Roles.Member, teamId, list, loadError } = {}) {
     const pinia = createTestingPinia({ createSpy: vi.fn })
     useAccountSettingsStore(pinia).featuresCheck = { isJsonSchemasFeatureEnabled: enabled }
     const context = useContextStore(pinia)
@@ -36,6 +37,7 @@ function mountPage ({ enabled = true, role = Roles.Member, teamId, list } = {}) 
     context.teamMembership = { role }
     const store = useDataFarmSchemasStore(pinia)
     store.loadList.mockResolvedValue()
+    if (loadError) store.loadList.mockRejectedValueOnce(loadError)
     store.loadMoreOfGroup.mockResolvedValue()
     store.createGroup.mockResolvedValue()
     store.renameGroup.mockResolvedValue()
@@ -315,6 +317,31 @@ describe('Team Schemas page', () => {
             mount(TeamSchemas, { global: { plugins: [pinia], stubs: { 'ff-page': true, 'ff-page-header': true } } })
             await flushPromises()
             expect(Alerts.emit).toHaveBeenCalledWith('Not Found', 'warning')
+        })
+
+        test('says in the page that the list could not be loaded, and loads it again when asked', async () => {
+            const { page, schemas } = mountPage({ teamId: 'team-1', loadError: { response: { data: { error: 'Not Found' } } } })
+            await flushPromises()
+            expect(page.find('[data-el="schemas-load-failed"]').exists()).toBe(true)
+            await page.find('[data-action="retry-load-schemas"]').trigger('click')
+            await flushPromises()
+            expect(page.find('[data-el="schemas-load-failed"]').exists()).toBe(false)
+            expect(schemas.resetList).toHaveBeenCalled()
+        })
+
+        test('puts the search box back to what the list shows when a search fails', async () => {
+            vi.useFakeTimers()
+            const { page, schemas } = mountPage({ teamId: 'team-1', list: { ...LIST, query: 'temp' } })
+            schemas.loadList.mockRejectedValueOnce({ response: { data: { error: 'Boom' } } })
+            await page.find('input').setValue('tempera')
+            await vi.advanceTimersByTimeAsync(300)
+            expect(Alerts.emit).toHaveBeenCalledWith('Boom', 'warning')
+            expect(page.find('input').element.value).toBe('temp')
+            // going back is not a search of its own
+            const calls = schemas.loadList.mock.calls.length
+            await vi.advanceTimersByTimeAsync(300)
+            expect(schemas.loadList).toHaveBeenCalledTimes(calls)
+            vi.useRealTimers()
         })
 
         test('clears the list when the page is left', () => {
