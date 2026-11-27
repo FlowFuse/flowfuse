@@ -241,9 +241,17 @@ export function applyForm (root: Schema, pointer: string, form: FieldForm): { ro
     if (form.description.trim() !== before.description.trim()) {
         set('description', form.description.trim())
     }
-    if (['string', 'number', 'integer'].includes(type) && (changed('allowedValues') || nullableChanged)) {
+    if (['string', 'number', 'integer'].includes(type) && changed('allowedValues')) {
         const values: unknown[] = form.allowedValues.map(value => type === 'string' ? value : Number(value))
         if (values.length && form.nullable) {
+            values.push(null)
+        }
+        set('enum', values.length ? values : undefined)
+    } else if (nullableChanged && Array.isArray(field.enum)) {
+        // The form shows allowed values as text, so they are kept as they are: rebuilt from the form, a 1 next to
+        // strings would become "1"
+        const values = field.enum.filter(value => value !== null)
+        if (form.nullable) {
             values.push(null)
         }
         set('enum', values.length ? values : undefined)

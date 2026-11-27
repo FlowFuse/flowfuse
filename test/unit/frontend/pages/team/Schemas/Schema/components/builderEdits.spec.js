@@ -134,6 +134,14 @@ describe('builder edits', () => {
         expect(problem('/properties/unit', { type: 'boolean', minLength: 'x' })).toBe('')
     })
 
+    test('keeps allowed values of other types when only null is allowed or stopped', () => {
+        const root = { type: 'object', properties: { code: { type: 'string', enum: ['a', 1] } } }
+        const allowed = applyForm(root, '/properties/code', { ...formFor(root, '/properties/code'), nullable: true }).root
+        expect(allowed.properties.code.enum).toEqual(['a', 1, null])
+        const stopped = applyForm(allowed, '/properties/code', { ...formFor(allowed, '/properties/code'), nullable: false }).root
+        expect(stopped.properties.code).toEqual({ type: 'string', enum: ['a', 1] })
+    })
+
     test('adds null to the allowed values of a field that may be null', () => {
         expect(edit('/properties/unit', { nullable: true }).properties.unit.enum).toEqual(['Cel', 'degF', null])
         expect(edit('/properties/fault_code', { allowedValues: [] }).properties.fault_code).not.toHaveProperty('enum')
