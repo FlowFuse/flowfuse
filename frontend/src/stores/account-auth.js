@@ -244,6 +244,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
             useDataFarmApplicationsStore().reset()
             useDataFarmHostedInstancesStore().reset()
             useDataFarmSchemasStore().reset()
+            useDataFarmSchemasStore().resetList()
             useDataFarmTeamsStore().reset()
             useProductTablesStore().$reset()
             useProductBrokersStore().$reset()

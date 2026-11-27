@@ -137,6 +137,7 @@ export const useAccountStore = defineStore('account', {
             useDataFarmApplicationsStore().reset()
             useDataFarmHostedInstancesStore().reset()
             useDataFarmSchemasStore().reset()
+            useDataFarmSchemasStore().resetList()
         }
     }
 })

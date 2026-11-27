@@ -13,24 +13,65 @@
                 </template>
             </ff-page-header>
         </template>
+        <!-- the platform's banner, with its text on the left and its button on the right -->
+        <div v-if="loadFailed" class="ff-page-banner justify-between! gap-4" data-el="schemas-load-failed">
+            <p>The schemas could not be loaded.</p>
+            <ff-button kind="secondary" size="small" data-action="retry-load-schemas" @click="load">Try again</ff-button>
+        </div>
+        <template v-else-if="listHydrated">
+            <EmptyState v-if="isEmpty" data-el="schemas-empty">
+                <template #img>
+                    <SchemasEmptyIllustration />
+                </template>
+                <template #header>No schemas yet</template>
+                <template #message>
+                    <p>A schema describes the shape of a message, so the nodes in your flows can check the data they send and receive.</p>
+                </template>
+                <template v-if="hasPermission('team:schema:create')" #actions>
+                    <ff-button data-action="create-first-schema" @click="showCreateDialog">
+                        <template #icon-left><PlusIcon /></template>
+                        Create schema
+                    </ff-button>
+                </template>
+            </EmptyState>
+            <div v-else class="flex flex-col gap-4">
+                <div class="flex flex-wrap items-center gap-4">
+                    <ff-text-input v-model="searchText" class="schemas-search" placeholder="Search schemas" data-form="search-schemas">
+                        <template #icon><MagnifyingGlassIcon /></template>
+                    </ff-text-input>
+                    <span class="schemas-summary" data-el="schemas-summary">{{ summary }}</span>
+                </div>
+                <SchemasTable
+                    :groups="groups"
+                    :group-schemas="groupSchemas"
+                    :query="listQuery"
+                    @load-more="schemasStore.loadMoreOfGroup($event).catch(failed('Failed to load more schemas.'))"
+                />
+            </div>
+        </template>
     </ff-page>
 </template>
 
 <script setup lang="ts">
-import { PlusIcon } from '@heroicons/vue/24/outline'
+import { MagnifyingGlassIcon, PlusIcon } from '@heroicons/vue/24/outline'
 import { storeToRefs } from 'pinia'
-import { markRaw } from 'vue'
+import { computed, markRaw, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
+import SchemasEmptyIllustration from './components/SchemasEmptyIllustration.vue'
+import SchemasTable from './components/SchemasTable.vue'
 import CreateSchemaDialog from './dialogs/CreateSchemaDialog.vue'
 
+import EmptyState from '@/components/EmptyState.vue'
 import usePermissions from '@/composables/Permissions.js'
 import Alerts from '@/services/alerts.js'
 import Dialog from '@/services/dialog.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
-import { useDataFarmSchemasStore } from '@/stores/data-farm-schemas'
+import { UNGROUPED, useDataFarmSchemasStore } from '@/stores/data-farm-schemas'
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
+import { useUxLoadingStore } from '@/stores/ux-loading.js'
+import { debounce } from '@/utils/eventHandling'
 
 defineOptions({ name: 'TeamSchemas' })
 
@@ -41,8 +82,64 @@ const { featuresCheck } = storeToRefs(useAccountSettingsStore())
 const { team } = storeToRefs(useContextStore())
 const { hasPermission } = usePermissions()
 
+const { groups, groupSchemas, listHydrated, listQuery } = storeToRefs(schemasStore)
+const uxLoading = useUxLoadingStore()
+const searchText = ref('')
+
+const failed = (fallback: string) => (err) => Alerts.emit(err.response?.data?.error || fallback, 'warning')
+
+// Set when the list could not be loaded at all, which leaves nothing to show but a way to try again
+const loadFailed = ref(false)
+
+async function load () {
+    loadFailed.value = false
+    schemasStore.resetList()
+    try {
+        await schemasStore.loadList(searchText.value.trim())
+    } catch (err) {
+        loadFailed.value = true
+        failed('Failed to load the schemas.')(err)
+    }
+}
+
+// The team is not known yet on a hard refresh, and the list is the team's
+watch(() => team.value?.id, (teamId) => {
+    if (!teamId || !featuresCheck.value.isJsonSchemasFeatureEnabled) return
+    load()
+}, { immediate: true })
+watch([listHydrated, loadFailed], ([hydrated, failed]) => uxLoading.setPageLoader(!hydrated && !failed, 'Loading Schemas...'), { immediate: true })
+
+// A search that fails leaves the list as it was, so the box goes back to what the list shows
+let restoringSearch = false
+watch(searchText, debounce(async (text: string) => {
+    if (restoringSearch) {
+        restoringSearch = false
+        return
+    }
+    try {
+        await schemasStore.loadList(text.trim())
+    } catch (err) {
+        failed('Failed to search the schemas.')(err)
+        if (searchText.value !== listQuery.value) {
+            restoringSearch = true
+            searchText.value = listQuery.value
+        }
+    }
+}, 300))
+onBeforeUnmount(() => {
+    schemasStore.resetList()
+    uxLoading.setPageLoader(false)
+})
+
+const pluralize = (noun: string, count: number) => `${count} ${noun}${count === 1 ? '' : 's'}`
+const schemaCount = computed(() => Object.values(groupSchemas.value).reduce((total, page) => total + page.count, 0))
+const isEmpty = computed(() => !listQuery.value && groups.value.length === 0 && !groupSchemas.value[UNGROUPED]?.count)
+const summary = computed(() => listQuery.value
+    ? pluralize('result', schemaCount.value)
+    : `${pluralize('schema', schemaCount.value)} in ${pluralize('group', groups.value.length)}`)
+
 function showCreateDialog () {
-    let name = ''
+    let details = { name: '', description: '', groupId: '' }
     let creating = false
     // set when the dialog is cancelled while the schema is still being created, which can't be taken back
     let cancelled = false
@@ -52,10 +149,10 @@ function showCreateDialog () {
         closeOnConfirm: false,
         is: {
             component: markRaw(CreateSchemaDialog),
-            payload: { error: '', creating: false },
+            payload: { error: '', creating: false, groups: groups.value },
             on: {
-                change: (value: string) => {
-                    name = value
+                change: (value: typeof details) => {
+                    details = value
                     dialogStore.updateDialogPayload({ error: '' })
                 }
             }
@@ -65,7 +162,7 @@ function showCreateDialog () {
         creating = true
         dialogStore.updateDialogPayload({ creating: true })
         try {
-            const schema = await schemasStore.createSchema(name)
+            const schema = await schemasStore.createSchema(details)
             if (cancelled) return Alerts.emit(`Schema ${schema.name} created.`, 'confirmation')
             Dialog.close()
             router.push({ name: 'team-schema', params: { team_slug: team.value?.slug, schemaId: schema.id } })
@@ -80,3 +177,15 @@ function showCreateDialog () {
     }, () => { cancelled = true })
 }
 </script>
+
+<style scoped lang="scss">
+.schemas-search {
+    width: 20rem;
+    max-width: 100%;
+}
+
+.schemas-summary {
+    font-size: 0.875rem;
+    color: var(--ff-color-text-subtle);
+}
+</style>

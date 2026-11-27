@@ -289,6 +289,79 @@ describe('Data Schemas API', function () {
                 page2.schemas.map(s => s.name).should.eql(['Alarm'])
                 ;(await list('?cursor=bad')).statusCode.should.equal(400)
             })
+
+            describe('a group at a time', function () {
+                const names = (section) => section.schemas.map(s => s.name)
+
+                it('lists every group by name, empty ones included, then the schemas without a group', async function () {
+                    const empty = await app.db.models.DataSchemaGroup.create({ name: 'Assembly', TeamId: listTeam.id })
+                    const response = await list('/grouped')
+                    await empty.destroy()
+                    response.statusCode.should.equal(200)
+                    const body = response.json()
+                    body.count.should.equal(3)
+                    body.sections.map(section => section.group?.name ?? null).should.eql(['Assembly', 'Energy', null])
+                    body.sections.map(section => section.count).should.eql([0, 1, 2])
+                    body.sections[1].group.should.have.properties({ id: group.hashid, schemaCount: 1 })
+                    names(body.sections[1]).should.eql(['Meter reading'])
+                    body.sections[1].schemas[0].group.should.eql({ id: group.hashid, name: 'Energy' })
+                    names(body.sections[2]).should.eql(['Press status', 'Alarm'])
+                })
+
+                it('returns the first schemas of each section, and where to carry on from', async function () {
+                    const [energy, ungrouped] = (await list('/grouped?limit=1')).json().sections
+                    names(energy).should.eql(['Meter reading'])
+                    should.not.exist(energy.meta.next_cursor)
+                    names(ungrouped).should.eql(['Press status'])
+                    ungrouped.count.should.equal(2)
+                    const more = (await list(`?groupId=none&limit=1&cursor=${ungrouped.meta.next_cursor}`)).json()
+                    more.schemas.map(s => s.name).should.eql(['Alarm'])
+                })
+
+                it('falls back to the default for a limit that is not a positive number', async function () {
+                    for (const limit of ['0', '-5']) {
+                        const [energy, ungrouped] = (await list(`/grouped?limit=${limit}`)).json().sections
+                        energy.count.should.equal(1)
+                        ungrouped.count.should.equal(2)
+                        ungrouped.schemas.should.have.length(2)
+                    }
+                })
+
+                it('searches names and descriptions within each section, keeping the sections nothing matched in', async function () {
+                    const body = (await list('/grouped?query=PRESS')).json()
+                    body.count.should.equal(1)
+                    const [energy, ungrouped] = body.sections
+                    energy.count.should.equal(0)
+                    energy.schemas.should.have.length(0)
+                    names(ungrouped).should.eql(['Press status'])
+                })
+
+                it('keeps every schema of a group whose own name matches the search', async function () {
+                    const [energy, ungrouped] = (await list('/grouped?query=nerg')).json().sections
+                    names(energy).should.eql(['Meter reading'])
+                    ungrouped.count.should.equal(0)
+                })
+
+                it('matches % and _ in the search as themselves', async function () {
+                    ;(await list('/grouped?query=%25')).json().count.should.equal(0)
+                    ;(await list('/grouped?query=press_status')).json().count.should.equal(0)
+                })
+
+                it('does not include another team\'s schemas', async function () {
+                    const other = await createSchema()
+                    const ids = (await list('/grouped')).json().sections.flatMap(section => section.schemas.map(s => s.id))
+                    ids.should.not.containEql(other.id)
+                })
+
+                it('needs a member of the team', async function () {
+                    const response = await app.inject({
+                        method: 'GET',
+                        url: `/api/v1/teams/${listTeam.hashid}/schemas/grouped`,
+                        cookies: { sid: TestObjects.tokens.chris }
+                    })
+                    response.statusCode.should.be.oneOf(403, 404)
+                })
+            })
         })
     })
 

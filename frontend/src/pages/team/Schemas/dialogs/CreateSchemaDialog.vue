@@ -1,12 +1,24 @@
 <template>
-    <FormRow v-model="name" data-el="create-schema-dialog" data-form="schema-name" :error="error">Name</FormRow>
+    <form class="space-y-4" data-el="create-schema-dialog" @submit.prevent>
+        <FormRow v-model="name" data-form="schema-name" :error="error">Name</FormRow>
+        <FormRow data-form="schema-description">
+            Description
+            <template #description>Optional. Shown under the name in the list of schemas.</template>
+            <template #input>
+                <textarea v-model="description" class="w-full" rows="3" />
+            </template>
+        </FormRow>
+        <FormRow v-if="groups.length" v-model="groupId" :options="groupOptions" data-form="schema-group">Group</FormRow>
+    </form>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import FormRow from '@/components/FormRow.vue'
+import { UNGROUPED } from '@/stores/data-farm-schemas'
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
+import type { DataSchemaGroup } from '@/types'
 
 defineOptions({ name: 'CreateSchemaDialog' })
 
@@ -14,15 +26,19 @@ defineOptions({ name: 'CreateSchemaDialog' })
 const props = defineProps<{
     error: string
     creating: boolean
+    groups: DataSchemaGroup[]
 }>()
 
 const emit = defineEmits<{
-    change: [string]
+    change: [{ name: string, description: string, groupId: string }]
 }>()
 
 const dialogStore = useUxDialogStore()
 const name = ref('')
+const description = ref('')
+const groupId = ref(UNGROUPED)
+const groupOptions = computed(() => [{ label: 'No group', value: UNGROUPED }, ...props.groups.map(group => ({ label: group.name, value: group.id }))])
 
-watch(name, (value) => emit('change', value.trim()))
+watch([name, description, groupId], () => emit('change', { name: name.value.trim(), description: description.value.trim(), groupId: groupId.value === UNGROUPED ? '' : groupId.value }))
 watch(() => !name.value.trim() || props.creating, (disabled) => dialogStore.setDisablePrimary(disabled), { immediate: true })
 </script>
