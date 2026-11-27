@@ -1384,7 +1384,7 @@ module.exports = async function (app) {
             return
         }
         const safeName = name.trim().toLowerCase()
-        if (app.db.models.Project.BANNED_NAME_LIST.includes(safeName)) {
+        if (!app.db.controllers.Project.validateProjectName(safeName)) {
             reply.code(409).send({ code: 'invalid_project_name', error: 'name not allowed' })
             return
         }

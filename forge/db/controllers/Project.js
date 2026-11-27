@@ -566,7 +566,7 @@ module.exports = {
 
         name = name.trim()
         const safeName = name?.toLowerCase()
-        if (app.db.models.Project.BANNED_NAME_LIST.includes(safeName)) {
+        if (!app.db.controllers.Project.validateProjectName(safeName)) {
             throw new ControllerError('invalid_project_name', 'name not allowed', 409)
         }
 
@@ -977,7 +977,18 @@ module.exports = {
         } else if (app.comms) {
             await this.publishLiveState(app, project)
         }
+    },
+
+    validateProjectName: function (app, safeName) {
+        if (app.db.models.Project.BANNED_NAME_LIST.includes(safeName)) {
+            return false
+        }
+        if (safeName.startsWith('mqtt-schema-agent-')) {
+            return false
+        }
+        return true
     }
+
 }
 
 function decryptCreds (key, cipher) {

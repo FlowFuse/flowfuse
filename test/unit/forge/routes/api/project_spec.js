@@ -347,6 +347,41 @@ describe('Project API', function () {
             const result = response.json()
             result.should.have.property('error', 'name not allowed')
         })
+        it('Fails for project name on banned list', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/projects',
+                payload: {
+                    name: 'www',
+                    applicationId: TestObjects.ApplicationA.hashid,
+                    projectType: TestObjects.projectType1.hashid,
+                    template: TestObjects.template1.hashid,
+                    stack: TestObjects.stack1.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(409)
+            const result = response.json()
+            result.should.have.property('error', 'name not allowed')
+        })
+
+        it('Fails for project name starting with mqtt-schema-agent-', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/projects',
+                payload: {
+                    name: 'mqtt-schema-agent-',
+                    applicationId: TestObjects.ApplicationA.hashid,
+                    projectType: TestObjects.projectType1.hashid,
+                    template: TestObjects.template1.hashid,
+                    stack: TestObjects.stack1.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(409)
+            const result = response.json()
+            result.should.have.property('error', 'name not allowed')
+        })
 
         it('Create a project', async function () {
             const projectName = generateProjectName()
