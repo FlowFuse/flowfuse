@@ -13,8 +13,14 @@
                     <button v-else class="schema-builder__link font-mono" data-action="builder-trail-step" @click="open(step.pointer)">{{ step.name }}</button>
                 </template>
             </nav>
-            <div ref="fieldsRegion" class="schema-builder__fields" tabindex="-1" :aria-label="regionLabel" data-el="builder-fields-region">
-                <ff-data-table :columns="columns" data-el="builder-fields">
+            <div v-if="!focus && notes.length" class="schema-builder__blocked" data-el="builder-root-notes">
+                <div>
+                    <p v-for="note in notes" :key="note">{{ note }}</p>
+                </div>
+                <ff-button kind="secondary" size="small" data-action="builder-root-to-json" @click="emit('edit-json')">Edit in JSON</ff-button>
+            </div>
+            <div ref="fieldsRegion" class="schema-builder__fields flex min-h-0 flex-col" tabindex="-1" :aria-label="regionLabel" data-el="builder-fields-region">
+                <ff-data-table class="schema-builder__table min-h-0" :columns="columns" data-el="builder-fields">
                     <template #rows>
                         <ff-data-table-row v-if="!rows.length">
                             <ff-data-table-cell class="status-message" :colspan="columns.length" data-el="builder-no-fields">This schema has no fields yet</ff-data-table-cell>
@@ -44,6 +50,8 @@
                                             <ChevronDownIcon v-if="entry.row.expanded" class="ff-icon-sm" />
                                             <ChevronRightIcon v-else class="ff-icon-sm" />
                                         </button>
+                                        <!-- takes the room a toggle would, so the names of a level line up -->
+                                        <span v-else class="ff-icon-sm shrink-0" aria-hidden="true" />
                                         <span class="font-mono font-medium">{{ entry.row.name }}</span>
                                     </div>
                                 </ff-data-table-cell>
@@ -88,7 +96,7 @@ import { PlusIcon } from '@heroicons/vue/24/outline'
 import { computed, nextTick, ref, watch } from 'vue'
 
 import FieldEditPanel from './FieldEditPanel.vue'
-import { type FieldRow, type OtherFields, builderRows, fieldTrail, fieldsHolder, focusedHolder, otherFields, schemaAt } from './builder'
+import { type FieldRow, type OtherFields, builderRows, fieldTrail, fieldsHolder, focusedHolder, otherFields, rootNotes, schemaAt } from './builder'
 import { addField, removeField, setOtherFieldsAllowed } from './builderEdits'
 import type { Schema } from './schemaTypes'
 
@@ -139,6 +147,7 @@ watch(holder, value => {
 })
 
 const trail = computed(() => fieldTrail(focus.value))
+const notes = computed(() => props.schema ? rootNotes(props.schema) : [])
 const regionLabel = computed(() => trail.value.length ? `Fields of ${trail.value.at(-1)?.name}` : 'Fields')
 const rows = computed(() => props.schema ? builderRows(props.schema, expanded.value, focus.value) : [])
 const objectSchema = computed(() => {
@@ -288,6 +297,15 @@ function setOtherFields (allowed: boolean) {
 
         &:hover {
             text-decoration: underline;
+        }
+    }
+
+    &__table {
+        border-bottom: 1px solid var(--ff-color-border-strong);
+        border-radius: 0 0 6px 6px;
+
+        :deep(tbody tr:last-of-type td) {
+            border-bottom: none;
         }
     }
 
