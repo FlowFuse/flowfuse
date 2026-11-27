@@ -10,7 +10,7 @@
         <slot name="icon">
             <AnimIconStarting v-if="status === null" class="w-4 h-4" />
             <ExclamationCircleIcon v-if="status === 'error' || status === 'crashed'" class="w-4 h-4" />
-            <ExclamationTriangleIcon v-if="status === 'suspended' || status === 'stopped' || status === 'warning'" class="w-4 h-4" />
+            <ExclamationTriangleIcon v-if="status === 'suspended' || status === 'stopped' || status === 'warning' || status === 'warning-outline'" class="w-4 h-4" />
             <PlayIcon v-if="['running', 'connected'].includes(status)" class="w-4 h-4" />
             <InformationCircleIcon v-if="status === 'info'" class="w-4 h-4" />
             <CheckCircleIcon v-if="status === 'success'" class="w-4 h-4" />

@@ -295,6 +295,12 @@
         border-color: var(--ff-color-status-warning-border);
         color: var(--ff-color-status-warning-text);
     }
+    /* a quieter warning: the same text and icon on a plain background, with the paler yellow border of the safe badge */
+    .forge-status-warning-outline {
+        background-color: var(--ff-color-status-neutral-bg);
+        border-color: var(--ff-color-status-safe-border);
+        color: var(--ff-color-status-warning-text);
+    }
     .forge-status-success,
     .forge-status-connected,
     .forge-status-running,

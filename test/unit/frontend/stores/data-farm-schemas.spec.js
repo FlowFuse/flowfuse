@@ -96,9 +96,19 @@ describe('data-farm-schemas store', () => {
         schemasApi.createDraft.mockRejectedValue(apiError('draft_exists'))
         const store = useDataFarmSchemasStore()
         await store.loadActiveSchema('abc')
-        await store.createDraft('1.1.0')
+        expect(await store.createDraft('1.1.0')).toBe(false)
         expect(schemasApi.createDraft).toHaveBeenCalledWith('team-1', 'abc', { from: '1.1.0' })
         expect(schemasApi.getSchema).toHaveBeenCalledTimes(2)
+    })
+
+    it('creates a draft with the given content', async () => {
+        schemasApi.getSchema.mockResolvedValue(schemaWith([PUBLISHED], false))
+        schemasApi.createDraft.mockResolvedValue({ version: null, status: 'draft', schema: { type: 'string' }, notes: 'n', problems: [] })
+        const store = useDataFarmSchemasStore()
+        await store.loadActiveSchema('abc')
+        await store.createDraft('1.1.0', { schema: { type: 'string' }, notes: 'n' })
+        expect(schemasApi.createDraft).toHaveBeenCalledWith('team-1', 'abc', { from: '1.1.0', schema: { type: 'string' }, notes: 'n' })
+        expect(store.activeDraft.schema).toEqual({ type: 'string' })
     })
 
     it('creates a draft from the response without reloading', async () => {
@@ -106,7 +116,7 @@ describe('data-farm-schemas store', () => {
         schemasApi.createDraft.mockResolvedValue({ version: null, status: 'draft', schema: {}, notes: '', problems: [] })
         const store = useDataFarmSchemasStore()
         await store.loadActiveSchema('abc')
-        await store.createDraft('1.1.0')
+        expect(await store.createDraft('1.1.0')).toBe(true)
         expect(store.activeDraft.status).toBe('draft')
         expect(store.activeSchema.hasDraft).toBe(true)
         expect(store.activeSchema.versions.map(version => version.status)).toEqual(['draft', 'published'])
