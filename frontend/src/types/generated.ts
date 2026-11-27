@@ -3882,7 +3882,6 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        name?: string;
                         hostname?: string;
                         settings?: Record<string, never>;
                         launcherSettings?: Record<string, never>;
