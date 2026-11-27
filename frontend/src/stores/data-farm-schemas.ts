@@ -116,7 +116,9 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         const query = (group && groupMatches(group, listQuery.value)) || !listQuery.value ? undefined : listQuery.value
         const next = toPage(await schemasApi.listSchemas(teamId(), { groupId, query, cursor: loaded.nextCursor, limit: LIST_PAGE_SIZE }))
         if (token !== listToken) return
-        groupSchemas.value[groupId] = { ...next, schemas: [...loaded.schemas, ...next.schemas] }
+        const schemas = [...loaded.schemas, ...next.schemas]
+        // A full page comes with a cursor even when it was the last one, so the count says whether there is more
+        groupSchemas.value[groupId] = { schemas, count: next.count, nextCursor: schemas.length < next.count ? next.nextCursor : undefined }
     }
 
     async function createSchema ({ name, description, groupId }: { name: string, description?: string, groupId?: string }): Promise<DataSchema> {

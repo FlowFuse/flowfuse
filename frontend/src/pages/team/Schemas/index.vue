@@ -13,7 +13,12 @@
                 </template>
             </ff-page-header>
         </template>
-        <template v-if="listHydrated">
+        <!-- the platform's banner, with its text on the left and its button on the right -->
+        <div v-if="loadFailed" class="ff-page-banner justify-between! gap-4" data-el="schemas-load-failed">
+            <p>The schemas could not be loaded.</p>
+            <ff-button kind="secondary" size="small" data-action="retry-load-schemas" @click="load">Try again</ff-button>
+        </div>
+        <template v-else-if="listHydrated">
             <EmptyState v-if="isEmpty" data-el="schemas-empty">
                 <template #img>
                     <SchemasEmptyIllustration />
@@ -83,17 +88,44 @@ const searchText = ref('')
 
 const failed = (fallback: string) => (err) => Alerts.emit(err.response?.data?.error || fallback, 'warning')
 
+// Set when the list could not be loaded at all, which leaves nothing to show but a way to try again
+const loadFailed = ref(false)
+
+async function load () {
+    loadFailed.value = false
+    schemasStore.resetList()
+    try {
+        await schemasStore.loadList(searchText.value.trim())
+    } catch (err) {
+        loadFailed.value = true
+        failed('Failed to load the schemas.')(err)
+    }
+}
+
 // The team is not known yet on a hard refresh, and the list is the team's
 watch(() => team.value?.id, (teamId) => {
     if (!teamId || !featuresCheck.value.isJsonSchemasFeatureEnabled) return
-    schemasStore.resetList()
-    schemasStore.loadList(searchText.value.trim()).catch((err) => {
-        uxLoading.setPageLoader(false)
-        failed('Failed to load the schemas.')(err)
-    })
+    load()
 }, { immediate: true })
-watch(listHydrated, (hydrated) => uxLoading.setPageLoader(!hydrated, 'Loading Schemas...'), { immediate: true })
-watch(searchText, debounce((text: string) => schemasStore.loadList(text.trim()).catch(failed('Failed to search the schemas.')), 300))
+watch([listHydrated, loadFailed], ([hydrated, failed]) => uxLoading.setPageLoader(!hydrated && !failed, 'Loading Schemas...'), { immediate: true })
+
+// A search that fails leaves the list as it was, so the box goes back to what the list shows
+let restoringSearch = false
+watch(searchText, debounce(async (text: string) => {
+    if (restoringSearch) {
+        restoringSearch = false
+        return
+    }
+    try {
+        await schemasStore.loadList(text.trim())
+    } catch (err) {
+        failed('Failed to search the schemas.')(err)
+        if (searchText.value !== listQuery.value) {
+            restoringSearch = true
+            searchText.value = listQuery.value
+        }
+    }
+}, 300))
 onBeforeUnmount(() => {
     schemasStore.resetList()
     uxLoading.setPageLoader(false)
