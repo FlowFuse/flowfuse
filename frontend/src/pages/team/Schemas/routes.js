@@ -1,4 +1,5 @@
 import SchemaEditor from './Schema/Editor.vue'
+import SchemaVersion from './Schema/Version.vue'
 import SchemaVersions from './Schema/Versions.vue'
 import TeamSchema from './Schema/index.vue'
 import TeamSchemas from './index.vue'
@@ -30,9 +31,20 @@ export default [
                         component: SchemaEditor
                     },
                     {
-                        name: 'team-schema-versions',
+                        // one version is a page under the list, which keeps the Versions tab lit while it is open
                         path: 'versions',
-                        component: SchemaVersions
+                        children: [
+                            {
+                                name: 'team-schema-versions',
+                                path: '',
+                                component: SchemaVersions
+                            },
+                            {
+                                name: 'team-schema-version',
+                                path: ':version',
+                                component: SchemaVersion
+                            }
+                        ]
                     }
                 ]
             }

@@ -42,7 +42,7 @@ function mountTab (role, versions = [DRAFT, PUBLISHED, DEPRECATED]) {
                 'ff-data-table-cell': { template: '<td><slot /></td>' },
                 'ff-kebab-menu': { template: '<div data-el="kebab-menu"><slot /></div>' },
                 'ff-kebab-item': { props: ['label', 'disabled'], template: '<button :data-item="label" :disabled="disabled">{{ label }}</button>' },
-                'router-link': { props: ['to'], template: '<a :data-to="to.name"><slot /></a>' },
+                'router-link': { props: ['to'], template: '<a :data-to="to.params ? to.name + \':\' + to.params.version : to.name"><slot /></a>' },
                 StatusBadge: { props: ['text'], template: '<span>{{ text }}</span>' }
             }
         }
@@ -94,9 +94,16 @@ describe('Schema versions tab', () => {
         expect(row(tab, '1.1.0').find('[data-item="Deprecate 1.1.0"]').exists()).toBe(false)
     })
 
-    test('gives a viewer no menus', () => {
+    test('lets a viewer open a version and nothing else', () => {
         const { tab } = mountTab(Roles.Viewer)
-        expect(tab.find('[data-el="kebab-menu"]').exists()).toBe(false)
+        expect(tab.findAll('[data-item]').map(item => item.attributes('data-item'))).toEqual(['View 1.2.0', 'View 1.1.0'])
+    })
+
+    test('opens a version from its number and from its menu', async () => {
+        const { tab } = mountTab(Roles.Member)
+        expect(row(tab, '1.2.0').find('a').attributes('data-to')).toBe('team-schema-version:1.2.0')
+        await row(tab, '1.1.0').find('[data-item="View 1.1.0"]').trigger('click')
+        expect(router.push).toHaveBeenCalledWith({ name: 'team-schema-version', params: { version: '1.1.0' } })
     })
 
     test('does not start a draft while the schema has one, and says what to do first', () => {
