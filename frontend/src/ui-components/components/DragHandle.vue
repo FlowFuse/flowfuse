@@ -1,5 +1,5 @@
 <template>
-    <span class="ff-drag-handle" :title="label" draggable="true" data-el="ff-drag-handle" @dragstart="start" @dragend="emit('dragend', $event)">
+    <span class="ff-drag-handle" :aria-label="label" draggable="true" data-el="ff-drag-handle" @dragstart="start" @dragend="emit('dragend', $event)">
         <Bars2Icon class="ff-icon-sm" aria-hidden="true" />
     </span>
 </template>
@@ -31,10 +31,22 @@ function start (event) {
 </script>
 
 <style lang="scss">
+// The whole box around the icon is the handle: hit testing on the icon alone only finds its two bars, so the
+// cursor flickers in the gap between them. The label is an aria-label rather than a title, as Chrome on macOS
+// puts the arrow back while a title tooltip shows.
 .ff-drag-handle {
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+    margin: -0.25rem;
+    border-radius: 0.25rem;
     cursor: grab;
     color: var(--ff-color-text-subtle);
+
+    svg {
+        pointer-events: none;
+    }
 
     &:hover {
         color: var(--ff-color-text);

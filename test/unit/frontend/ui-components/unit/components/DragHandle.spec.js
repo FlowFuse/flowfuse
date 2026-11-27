@@ -20,7 +20,7 @@ describe('ff-drag-handle', () => {
 
     test('tells of a drag starting and ending, and names itself', async () => {
         const wrapper = mount(FfDragHandle, { props: { label: 'Drag field' } })
-        expect(wrapper.attributes('title')).toBe('Drag field')
+        expect(wrapper.attributes('aria-label')).toBe('Drag field')
         await wrapper.trigger('dragstart', { dataTransfer: dataTransfer() })
         await wrapper.trigger('dragend')
         expect(wrapper.emitted()).toHaveProperty('dragstart')

@@ -136,7 +136,8 @@ const emit = defineEmits<{ 'edit-json': [], 'update:schemaText': [text: string] 
 
 const columns = computed(() => [
     ...(props.readOnly ? [] : [{ label: '', key: 'drag', class: ['w-8'] }]),
-    { label: 'Field', key: 'name', class: ['w-1/5'] },
+    // the names start after the chevron's slot and the gap next to it, so the heading does too
+    { label: 'Field', key: 'name', class: ['w-1/5'], tableLabelClass: 'pl-5.5' },
     { label: 'Type', key: 'type', class: ['w-40'] },
     { label: 'Required', key: 'required', class: ['w-28'] },
     { label: 'Constraints', key: 'constraints' },
