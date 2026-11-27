@@ -274,6 +274,8 @@ function fillExample () {
         width: 100%;
         font-family: monospace;
         font-size: 0.8125rem;
+        // a bare textarea has no background of its own and would take the page's: this is the one the platform's inputs have
+        background-color: var(--ff-color-bg-app);
     }
 
     &__icon-cell {

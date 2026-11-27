@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col gap-4" data-el="schema-builder">
-        <div v-if="!schema" class="schema-builder__blocked" data-el="builder-blocked">
+        <div v-if="!schema" class="ff-page-banner schema-builder__banner" data-el="builder-blocked">
             <p>The builder needs the JSON to be a valid schema object. Fix it in the JSON view first.</p>
             <ff-button kind="secondary" size="small" data-action="builder-to-json" @click="emit('edit-json')">Go to JSON</ff-button>
         </div>
@@ -13,7 +13,7 @@
                     <button v-else class="schema-builder__link font-mono" data-action="builder-trail-step" @click="open(step.pointer)">{{ step.name }}</button>
                 </template>
             </nav>
-            <div v-if="!focus && notes.length" class="schema-builder__blocked" data-el="builder-root-notes">
+            <div v-if="!focus && notes.length" class="ff-page-banner schema-builder__banner" data-el="builder-root-notes">
                 <div>
                     <p v-for="note in notes" :key="note">{{ note }}</p>
                 </div>
@@ -241,17 +241,11 @@ function setOtherFields (allowed: boolean) {
 
 <style scoped lang="scss">
 .schema-builder {
-    &__blocked {
-        display: flex;
+    // the platform's banner, with its text on the left and its button on the right
+    &__banner {
         flex-wrap: wrap;
-        align-items: center;
         justify-content: space-between;
         gap: 1rem;
-        padding: 12px 16px;
-        border: 1px solid var(--ff-color-border);
-        border-radius: 0.625rem;
-        background: var(--ff-color-bg-surface);
-        font-size: 0.875rem;
 
         p {
             margin: 0;

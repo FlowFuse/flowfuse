@@ -31,7 +31,7 @@
                     <DocumentTextIcon class="ff-icon" />
                     Version notes
                 </label>
-                <textarea id="schema-version-notes" v-model="notes" class="mt-2 w-full" rows="3" :disabled="readOnly" />
+                <textarea id="schema-version-notes" v-model="notes" class="schema-notes__input mt-2 w-full" rows="3" :disabled="readOnly" />
             </div>
             <FfAccordion v-else-if="latestPublished?.notes" class="schema-notes" variant="bare" data-el="schema-notes">
                 <template #label>
@@ -41,7 +41,7 @@
                     </p>
                 </template>
                 <template #content>
-                    <p class="schema-notes__text">{{ latestPublished.notes }}</p>
+                    <ff-well class="schema-notes__text min-h-0 overflow-y-auto">{{ latestPublished.notes }}</ff-well>
                 </template>
             </FfAccordion>
         </div>
@@ -145,20 +145,20 @@ async function importFile (event: Event) {
         }
     }
 
+    // a column too, so the notes scroll inside their box
     & > :deep(.ff-accordion--content) {
+        display: flex;
+        flex-direction: column;
         min-height: 0;
-        overflow-y: auto;
-        padding: 12px 16px;
-        border: 1px solid var(--ff-color-border);
-        border-radius: 0.625rem;
-        background: var(--ff-color-bg-surface);
     }
 
     &__text {
-        margin: 0;
-        font-size: 0.875rem;
         white-space: pre-line;
-        color: var(--ff-color-text);
+    }
+
+    // a bare textarea has no background of its own and would take the page's: this is the one the platform's inputs have
+    &__input {
+        background-color: var(--ff-color-bg-app);
     }
 }
 </style>
