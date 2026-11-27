@@ -185,21 +185,33 @@ function sampleNumber (schema: Schema, integer: boolean): number {
  * A string with a `pattern` too involved to follow is a placeholder to replace.
  */
 export function exampleFromSchema (schema: Schema): unknown {
-    if (!isObject(schema)) return null
+    return sample(schema) ?? null
+}
+
+// Two examples for the same value: objects are combined, otherwise the later one wins unless it has nothing to say
+function combine (first: unknown, second: unknown): unknown {
+    if (isObject(first) && isObject(second)) return { ...first, ...second }
+    return second === undefined ? first : second
+}
+
+// Undefined when the schema says nothing about the value, so that a branch with only `required` doesn't replace it
+function sample (schema: Schema): unknown {
+    if (!isObject(schema)) return undefined
     if (Array.isArray(schema.examples) && schema.examples.length) return schema.examples[0]
     if (Object.hasOwn(schema, 'default')) return schema.default
     if (Object.hasOwn(schema, 'const')) return schema.const
     if (Array.isArray(schema.enum) && schema.enum.length) return schema.enum[0]
+    // A schema can list fields and combine branches at the same level, so the value also has to match the first
+    // branch of each `oneOf` / `anyOf` and every part of `allOf`
+    const parts: Schema[] = Array.isArray(schema.allOf) ? [...schema.allOf as Schema[]] : []
     for (const keyword of ['oneOf', 'anyOf']) {
         const branches = schema[keyword]
-        if (Array.isArray(branches) && branches.length) return exampleFromSchema(branches[0])
+        if (Array.isArray(branches) && branches.length) parts.push(branches[0])
     }
-    if (Array.isArray(schema.allOf)) {
-        return (schema.allOf as Schema[]).reduce((merged: unknown, part) => {
-            const example = exampleFromSchema(part)
-            return isObject(merged) && isObject(example) ? { ...merged, ...example } : example
-        }, {})
-    }
+    return parts.reduce((merged: unknown, part) => combine(merged, sample(part)), sampleOwnType(schema))
+}
+
+function sampleOwnType (schema: Schema): unknown {
     const types = typesOf(schema)
     const type = types.find(candidate => candidate !== 'null') ?? types[0] ?? (isObject(schema.properties) ? 'object' : undefined)
     switch (type) {
@@ -226,7 +238,9 @@ export function exampleFromSchema (schema: Schema): unknown {
         return sampleNumber(schema, true)
     case 'boolean':
         return false
-    default:
+    case 'null':
         return null
+    default:
+        return undefined
     }
 }
