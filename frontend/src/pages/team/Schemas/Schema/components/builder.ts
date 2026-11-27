@@ -86,6 +86,10 @@ export function isJsonOnly (schema: Schema): boolean {
     if (JSON_ONLY_KEYWORDS.some(keyword => Object.hasOwn(schema, keyword))) {
         return true
     }
+    // the builder shows one type, with or without null
+    if (typesOf(schema).filter(type => type !== 'null').length > 1) {
+        return true
+    }
     if (Array.isArray(schema.items)) {
         return true
     }

@@ -71,11 +71,21 @@ export function splitPointer (pointer: string): { holder: string, name: string }
     return { holder: pointer.slice(0, index), name: unescapePointer(pointer.slice(index + '/properties/'.length)) }
 }
 
+// What the form shows as the type of a field that states none, and so takes any value
+export const ANY_TYPE = 'any'
+
+// The one type a field's form shows: the type it states apart from null, `object` for a field that lists fields
+// without stating a type, and `any` for a field that states none
+export function mainType (field: Schema): string {
+    const types = typesOf(field)
+    return types.find(type => type !== 'null') ?? types[0] ?? (field.properties ? 'object' : ANY_TYPE)
+}
+
 export function formFor (root: Schema, pointer: string): FieldForm {
     const field = schemaAt(root, pointer)!
     const { holder, name } = splitPointer(pointer)
     const types = typesOf(field)
-    const main = types.find(type => type !== 'null') ?? types[0] ?? 'string'
+    const main = mainType(field)
     const required = schemaAt(root, holder)!.required
     return {
         name,
@@ -170,29 +180,43 @@ function setOtherFields (schema: Schema, allowed: boolean) {
 
 /**
  * The root with one field changed as the form says, and the field's pointer after it.
- * The field keeps its place among its siblings when renamed, the required list of the object holding it follows
- * its name and required flag, and keywords the form doesn't cover are kept apart from constraints the new type doesn't take.
+ *
+ * Only what was changed in the form is written. The form can't show all of a field (a type the schema doesn't state,
+ * values of mixed types, keywords it has no input for), so writing back what it shows would change a field that was
+ * only opened: applying a form that was not touched leaves the field exactly as it was.
+ *
+ * The field keeps its place among its siblings when renamed, the required list of the object holding it follows its
+ * name and required flag, and a change of type drops the constraints the new type doesn't take.
  */
 export function applyForm (root: Schema, pointer: string, form: FieldForm): { root: Schema, pointer: string } {
+    const before = formFor(root, pointer)
     const next = structuredClone(root)
     const { holder: holderPointer, name: current } = splitPointer(pointer)
     const holder = schemaAt(next, holderPointer)!
     const field = holder.properties![current]
     const name = form.name.trim()
     const type = form.type
-    const takes = CONSTRAINTS[type]
-    const otherFieldsBefore = otherFields(field) !== 'none'
+    const takes = CONSTRAINTS[type] ?? ALL_CONSTRAINTS
+    const typeChanged = type !== before.type
+    const nullableChanged = form.nullable !== before.nullable
+    const changed = (key: keyof FieldForm) => typeChanged || JSON.stringify(form[key]) !== JSON.stringify(before[key])
 
-    if (type !== typesOf(field).find(candidate => candidate !== 'null')) {
+    if (typeChanged) {
         for (const keyword of ALL_CONSTRAINTS) {
             if (!takes.includes(keyword)) {
                 delete field[keyword]
             }
         }
+        if (type === 'object' && !field.properties) {
+            field.properties = {}
+        }
     }
-    field.type = form.nullable && type !== 'null' ? [type, 'null'] : type
-    if (type === 'object' && !field.properties) {
-        field.properties = {}
+    if (typeChanged || nullableChanged) {
+        if (type === ANY_TYPE) {
+            delete field.type
+        } else {
+            field.type = form.nullable && type !== 'null' ? [type, 'null'] : type
+        }
     }
     if (type === 'array' && form.itemType !== (typesOf(field.items ?? {})[0] ?? '')) {
         if (form.itemType) {
@@ -209,8 +233,10 @@ export function applyForm (root: Schema, pointer: string, form: FieldForm): { ro
             field[keyword] = value
         }
     }
-    set('description', form.description.trim())
-    if (takes.includes('enum')) {
+    if (form.description.trim() !== before.description.trim()) {
+        set('description', form.description.trim())
+    }
+    if (['string', 'number', 'integer'].includes(type) && (changed('allowedValues') || nullableChanged)) {
         const values: unknown[] = form.allowedValues.map(value => type === 'string' ? value : Number(value))
         if (values.length && form.nullable) {
             values.push(null)
@@ -219,33 +245,35 @@ export function applyForm (root: Schema, pointer: string, form: FieldForm): { ro
     }
     const limits = LIMITS[type]
     if (limits) {
-        set(limits.min, parseNumber(form[limits.min]))
-        set(limits.max, parseNumber(form[limits.max]))
+        if (changed(limits.min)) set(limits.min, parseNumber(form[limits.min]))
+        if (changed(limits.max)) set(limits.max, parseNumber(form[limits.max]))
     }
     if (type === 'string') {
-        set('pattern', form.pattern)
-        set('format', form.format)
+        if (changed('pattern')) set('pattern', form.pattern)
+        if (changed('format')) set('format', form.format)
     }
-    if (type === 'array') {
+    if (type === 'array' && changed('uniqueItems')) {
         set('uniqueItems', form.uniqueItems || undefined)
     }
-    if (type === 'object' && form.otherFields !== otherFieldsBefore) {
+    if (type === 'object' && form.otherFields !== before.otherFields) {
         setOtherFields(field, form.otherFields)
     }
 
     if (name !== current) {
         holder.properties = Object.fromEntries(Object.entries(holder.properties!).map(([key, value]) => [key === current ? name : key, value]))
     }
-    const currentRequired = Array.isArray(holder.required) ? holder.required : []
-    const required = currentRequired.filter(entry => entry !== current)
-    if (form.required) {
-        const position = currentRequired.indexOf(current)
-        required.splice(position === -1 ? required.length : position, 0, name)
-    }
-    if (required.length) {
-        holder.required = required
-    } else {
-        delete holder.required
+    if (name !== current || form.required !== before.required) {
+        const currentRequired = Array.isArray(holder.required) ? holder.required : []
+        const required = currentRequired.filter(entry => entry !== current)
+        if (form.required) {
+            const position = currentRequired.indexOf(current)
+            required.splice(position === -1 ? required.length : position, 0, name)
+        }
+        if (required.length) {
+            holder.required = required
+        } else {
+            delete holder.required
+        }
     }
     return { root: next, pointer: pointerFor(holderPointer, name) }
 }

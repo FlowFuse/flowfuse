@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col gap-4" data-el="schema-builder">
-        <div v-if="!schema" class="schema-builder__blocked" data-el="builder-blocked">
+        <div v-if="!schema" class="ff-page-banner schema-builder__banner" data-el="builder-blocked">
             <p>The builder needs the JSON to be a valid schema object. Fix it in the JSON view first.</p>
             <ff-button kind="secondary" size="small" data-action="builder-to-json" @click="emit('edit-json')">Go to JSON</ff-button>
         </div>
@@ -13,7 +13,7 @@
                     <button v-else class="schema-builder__link font-mono" data-action="builder-trail-step" @click="open(step.pointer)">{{ step.name }}</button>
                 </template>
             </nav>
-            <div v-if="!focus && notes.length" class="schema-builder__blocked" data-el="builder-root-notes">
+            <div v-if="!focus && notes.length" class="ff-page-banner schema-builder__banner" data-el="builder-root-notes">
                 <div>
                     <p v-for="note in notes" :key="note">{{ note }}</p>
                 </div>
@@ -35,7 +35,7 @@
                                 </ff-data-table-cell>
                             </ff-data-table-row>
                             <ff-data-table-row v-else-if="entry.kind === 'panel'" data-el="builder-editing">
-                                <ff-data-table-cell class="schema-builder__panel-cell" :colspan="columns.length">
+                                <ff-data-table-cell class="p-0!" :colspan="columns.length">
                                     <FieldEditPanel :root="schema" :pointer="entry.row.pointer" @apply="applied(entry.row.pointer, $event)" @cancel="cancelEdit" />
                                 </ff-data-table-cell>
                             </ff-data-table-row>
@@ -82,7 +82,7 @@
                                 </ff-data-table-cell>
                                 <ff-data-table-cell v-if="!readOnly">
                                     <ff-kebab-menu v-if="entry.row.pointer">
-                                        <ff-kebab-item v-if="!entry.row.jsonOnly" label="Edit" @click="editing = entry.row.pointer" />
+                                        <ff-kebab-item v-if="!entry.row.jsonOnly" label="Edit" @click="edit(entry.row.pointer)" />
                                         <ff-kebab-item label="Move up" :disabled="entry.first" @click="move(entry.row.pointer, -1)" />
                                         <ff-kebab-item label="Move down" :disabled="entry.last" @click="move(entry.row.pointer, 1)" />
                                         <ff-kebab-item label="Delete field" kind="danger" @click="remove(entry.row)" />
@@ -113,7 +113,7 @@
 <script setup lang="ts">
 import { ArrowRightCircleIcon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/vue/20/solid'
 import { PlusIcon } from '@heroicons/vue/24/outline'
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onDeactivated, ref, watch } from 'vue'
 
 import FieldEditPanel from './FieldEditPanel.vue'
 import { type FieldRow, type OtherFields, builderRows, fieldTrail, fieldsHolder, focusedHolder, otherFields, propertiesOf, rootNotes, schemaAt } from './builder'
@@ -240,7 +240,8 @@ function applied (pointer: string, result: { root: Schema, pointer: string }) {
 }
 
 function add (holderPointer: string) {
-    const result = addField(props.schema!, holderPointer)
+    const pending = editing.value && editing.value === added.value ? editing.value : null
+    const result = addField(pending ? removeField(props.schema!, pending) : props.schema!, holderPointer)
     write(result.root)
     editing.value = result.pointer
     added.value = result.pointer
@@ -291,6 +292,17 @@ async function remove (row: FieldRow) {
     write(deleteField(props.schema!, row.pointer))
 }
 
+function edit (pointer: string) {
+    if (pointer !== editing.value) {
+        cancelEdit()
+    }
+    editing.value = pointer
+}
+
+// The builder is kept while the JSON is on screen. A panel left open would come back holding what the field
+// was before the JSON was changed, so it is closed as cancelled.
+onDeactivated(cancelEdit)
+
 function setOtherFields (allowed: boolean) {
     write(setOtherFieldsAllowed(props.schema!, holderPointer.value, allowed))
 }
@@ -298,17 +310,11 @@ function setOtherFields (allowed: boolean) {
 
 <style scoped lang="scss">
 .schema-builder {
-    &__blocked {
-        display: flex;
+    // the platform's banner, with its text on the left and its button on the right
+    &__banner {
         flex-wrap: wrap;
-        align-items: center;
         justify-content: space-between;
         gap: 1rem;
-        padding: 12px 16px;
-        border: 1px solid var(--ff-color-border);
-        border-radius: 0.625rem;
-        background: var(--ff-color-bg-surface);
-        font-size: 0.875rem;
 
         p {
             margin: 0;
@@ -354,10 +360,6 @@ function setOtherFields (allowed: boolean) {
 
     &__yes {
         color: var(--ff-color-status-success-text);
-    }
-
-    &__panel-cell {
-        padding: 0;
     }
 
     &__link {

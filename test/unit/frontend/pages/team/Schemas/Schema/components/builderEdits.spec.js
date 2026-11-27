@@ -28,6 +28,38 @@ describe('builder edits', () => {
         expect(formFor(SCHEMA(), '/properties/sensor/properties/id')).toMatchObject({ required: true, pattern: '^TS-\\d{4}$' })
     })
 
+    describe('a field opened and applied without a change', () => {
+        const untouched = (field) => {
+            const root = { type: 'object', required: [], properties: { f: structuredClone(field) } }
+            return applyForm(root, '/properties/f', formFor(root, '/properties/f')).root
+        }
+        test.each([
+            ['lists fields without stating a type', { properties: { a: { type: 'string' } }, required: ['a'] }],
+            ['states no type and has a limit', { minimum: 0, description: 'x' }],
+            ['states no type and allows values of several types', { enum: [1, 'a', true] }],
+            ['may be null and allows values without null among them', { type: ['string', 'null'], enum: ['a'] }],
+            ['is an object that lists no fields', { type: 'object' }],
+            ['has keywords the form does not cover', { type: 'number', multipleOf: 5, exclusiveMinimum: 0, default: 5, 'x-custom': 1 }]
+        ])('stays as it was when it %s', (_, field) => {
+            const root = untouched(field)
+            expect(root.properties.f).toEqual(field)
+            // an empty required list is not removed either
+            expect(root.required).toEqual([])
+        })
+    })
+
+    test('shows a field that states no type as taking any, or as an object when it lists fields', () => {
+        const root = { type: 'object', properties: { any: { minimum: 0 }, shape: { properties: { w: {} } } } }
+        expect(formFor(root, '/properties/any').type).toBe('any')
+        expect(formFor(root, '/properties/shape').type).toBe('object')
+    })
+
+    test('writes only what was changed on a field that states no type, and gives it one when asked', () => {
+        const root = { type: 'object', properties: { any: { minimum: 0, enum: [1, 'a'] } } }
+        expect(edit('/properties/any', { description: 'Anything' }, root).properties.any).toEqual({ minimum: 0, enum: [1, 'a'], description: 'Anything' })
+        expect(edit('/properties/any', { type: 'number', allowedValues: [] }, root).properties.any).toEqual({ minimum: 0, type: 'number' })
+    })
+
     test('renames a field in place, in the required list too, keeping keywords the form does not cover', () => {
         const root = edit('/properties/value', { name: 'reading' })
         expect(Object.keys(root.properties)).toEqual(['reading', 'unit', 'fault_code', 'sensor', 'tags'])
