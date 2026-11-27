@@ -9,11 +9,17 @@
             <template v-for="section in sections" :key="section.id">
                 <ff-data-table-row class="schema-group" :data-el="`schema-group-${section.id}`">
                     <ff-data-table-cell :colspan="columns.length">
-                        <button class="schema-group__toggle" type="button" :aria-expanded="!collapsed.has(section.id)" data-action="toggle-group" @click="toggle(section.id)">
-                            <ChevronRightIcon class="ff-icon ff-icon-sm transition-transform" :class="{ 'rotate-90': !collapsed.has(section.id) }" />
-                            <span class="schema-group__name">{{ section.name }}</span>
-                            <span class="schema-group__count">{{ pluralize('schema', section.page.count) }}</span>
-                        </button>
+                        <div class="schema-group__header">
+                            <button class="schema-group__toggle" type="button" :aria-expanded="!collapsed.has(section.id)" data-action="toggle-group" @click="toggle(section.id)">
+                                <ChevronRightIcon class="ff-icon ff-icon-sm transition-transform" :class="{ 'rotate-90': !collapsed.has(section.id) }" />
+                                <span class="schema-group__name">{{ section.name }}</span>
+                                <span class="schema-group__count">{{ pluralize('schema', section.page.count) }}</span>
+                            </button>
+                            <ff-kebab-menu v-if="section.group && (canRename || canDelete)">
+                                <ff-kebab-item v-if="canRename" label="Rename" @click="emit('rename-group', section.group)" />
+                                <ff-kebab-item v-if="canDelete" label="Delete" kind="danger" @click="emit('delete-group', section.group)" />
+                            </ff-kebab-menu>
+                        </div>
                     </ff-data-table-cell>
                 </ff-data-table-row>
                 <template v-if="!collapsed.has(section.id)">
@@ -44,10 +50,14 @@ const props = defineProps<{
     groups: DataSchemaGroup[]
     groupSchemas: Record<string, SchemaListPage>
     query: string
+    canRename?: boolean
+    canDelete?: boolean
 }>()
 
 const emit = defineEmits<{
     'load-more': [groupId: string]
+    'rename-group': [group: DataSchemaGroup]
+    'delete-group': [group: DataSchemaGroup]
 }>()
 
 const columns = [
@@ -64,8 +74,8 @@ const sections = computed(() => {
     return [
         ...props.groups
             .filter(group => !props.query || groupMatches(group, props.query) || props.groupSchemas[group.id]?.count)
-            .map(group => ({ id: group.id, name: group.name, page: props.groupSchemas[group.id] })),
-        ...(ungrouped?.count ? [{ id: UNGROUPED, name: 'Ungrouped', page: ungrouped }] : [])
+            .map(group => ({ id: group.id, name: group.name, group, page: props.groupSchemas[group.id] })),
+        ...(ungrouped?.count ? [{ id: UNGROUPED, name: 'Ungrouped', group: null, page: ungrouped }] : [])
     ].filter(section => section.page)
 })
 
@@ -85,11 +95,19 @@ const pluralize = (noun: string, count: number) => `${count} ${noun}${count === 
         background: var(--ff-color-bg-surface);
     }
 
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        // fixed, so a section without a menu is as tall as the ones with one
+        height: 2rem;
+    }
+
     &__toggle {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        width: 100%;
+        flex: 1;
         text-align: left;
     }
 

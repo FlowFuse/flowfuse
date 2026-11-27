@@ -25,7 +25,7 @@ vi.mock('../../../../../frontend/src/services/alerts.js', () => ({
     default: { emit: vi.fn() }
 }))
 
-const SchemasTableStub = { name: 'SchemasTable', props: ['groups', 'groupSchemas', 'query'], emits: ['load-more'], template: '<div data-el="schemas-table" />' }
+const SchemasTableStub = { name: 'SchemasTable', props: ['groups', 'groupSchemas', 'query', 'canRename', 'canDelete'], emits: ['load-more', 'rename-group', 'delete-group'], template: '<div data-el="schemas-table" />' }
 
 // `list` is what the store holds once the list has loaded; without it the page is still loading
 // `loadError` makes the first try at loading the list fail
@@ -39,6 +39,9 @@ function mountPage ({ enabled = true, role = Roles.Member, teamId, list, loadErr
     store.loadList.mockResolvedValue()
     if (loadError) store.loadList.mockRejectedValueOnce(loadError)
     store.loadMoreOfGroup.mockResolvedValue()
+    store.createGroup.mockResolvedValue()
+    store.renameGroup.mockResolvedValue()
+    store.deleteGroup.mockResolvedValue()
     if (list) {
         store.groups = list.groups ?? []
         store.groupSchemas = list.groupSchemas ?? {}
@@ -151,6 +154,82 @@ describe('Team Schemas page', () => {
         await creating
         expect(Alerts.emit).toHaveBeenCalledWith('The name is already in use in this team', 'warning')
         expect(dialogStore.updateDialogPayload).not.toHaveBeenCalledWith({ error: 'The name is already in use in this team' })
+    })
+
+    describe('groups', () => {
+        const GROUP = { id: 'g1', name: 'Energy', schemaCount: 3 }
+        const LIST = { groups: [GROUP], groupSchemas: { g1: { schemas: [], count: 3 }, none: { schemas: [], count: 0 } } }
+        const lastDialog = () => Dialog.show.mock.calls.at(-1)
+
+        test('creates a group from the header button and says so', async () => {
+            const { page, schemas } = mountPage()
+            await page.find('[data-action="new-schema-group"]').trigger('click')
+            const [options, onConfirm] = lastDialog()
+            expect(options.header).toBe('New group')
+            options.is.on.change('Quality')
+            await onConfirm()
+            expect(schemas.createGroup).toHaveBeenCalledWith('Quality')
+            expect(Dialog.close).toHaveBeenCalled()
+            expect(Alerts.emit).toHaveBeenCalledWith('Group Quality created.', 'confirmation')
+        })
+
+        test('keeps the dialog open with the server\'s message when the name is taken', async () => {
+            const { page, schemas, dialogStore } = mountPage()
+            schemas.createGroup.mockRejectedValue({ response: { data: { error: 'The name is already in use in this team' } } })
+            await page.find('[data-action="new-schema-group"]').trigger('click')
+            const [options, onConfirm] = lastDialog()
+            options.is.on.change('Energy')
+            await onConfirm()
+            expect(dialogStore.updateDialogPayload).toHaveBeenCalledWith({ error: 'The name is already in use in this team' })
+            expect(Dialog.close).not.toHaveBeenCalled()
+        })
+
+        test('renames a group, starting from its current name', async () => {
+            const { page, schemas } = mountPage({ teamId: 'team-1', list: LIST })
+            await page.findComponent(SchemasTableStub).vm.$emit('rename-group', GROUP)
+            const [options, onConfirm] = lastDialog()
+            expect(options.header).toBe('Rename group')
+            expect(options.is.payload.name).toBe('Energy')
+            options.is.on.change('Power')
+            await onConfirm()
+            expect(schemas.renameGroup).toHaveBeenCalledWith('g1', 'Power')
+            expect(Alerts.emit).toHaveBeenCalledWith('Group renamed to Power.', 'confirmation')
+        })
+
+        test('asks before deleting a group, saying its schemas are kept', async () => {
+            const { page, schemas } = mountPage({ teamId: 'team-1', list: LIST })
+            await page.findComponent(SchemasTableStub).vm.$emit('delete-group', GROUP)
+            const [options, onConfirm] = lastDialog()
+            expect(options.kind).toBe('danger')
+            expect(options.text).toBe('Are you sure you want to delete the group Energy? Its 3 schemas are kept and move to Ungrouped.')
+            expect(schemas.deleteGroup).not.toHaveBeenCalled()
+            await onConfirm()
+            expect(schemas.deleteGroup).toHaveBeenCalledWith('g1')
+            expect(Alerts.emit).toHaveBeenCalledWith('Group Energy deleted.', 'confirmation')
+        })
+
+        test('says nothing about schemas when deleting an empty group', async () => {
+            const { page } = mountPage({ teamId: 'team-1', list: LIST })
+            await page.findComponent(SchemasTableStub).vm.$emit('delete-group', { ...GROUP, schemaCount: 0 })
+            expect(lastDialog()[0].text).toBe('Are you sure you want to delete the group Energy?')
+        })
+
+        test('says so when a group can\'t be deleted', async () => {
+            const { page, schemas } = mountPage({ teamId: 'team-1', list: LIST })
+            schemas.deleteGroup.mockRejectedValue({ response: { data: { error: 'Not Found' } } })
+            await page.findComponent(SchemasTableStub).vm.$emit('delete-group', GROUP)
+            await lastDialog()[1]()
+            expect(Alerts.emit).toHaveBeenCalledWith('Not Found', 'warning')
+        })
+
+        test('lets a Member manage groups and a Viewer not', () => {
+            const member = mountPage({ teamId: 'team-1', list: LIST }).page
+            expect(member.find('[data-action="new-schema-group"]').exists()).toBe(true)
+            expect(member.findComponent(SchemasTableStub).props()).toMatchObject({ canRename: true, canDelete: true })
+            const viewer = mountPage({ teamId: 'team-1', role: Roles.Viewer, list: LIST }).page
+            expect(viewer.find('[data-action="new-schema-group"]').exists()).toBe(false)
+            expect(viewer.findComponent(SchemasTableStub).props()).toMatchObject({ canRename: false, canDelete: false })
+        })
     })
 
     describe('the list', () => {

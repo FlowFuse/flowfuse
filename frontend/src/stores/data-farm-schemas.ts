@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
 import schemasApi from '@/api/schemas'
+import Alerts from '@/services/alerts.js'
 import { useContextStore } from '@/stores/context.js'
 import type { DataSchema, DataSchemaDraft, DataSchemaGroup, DataSchemaSummary, DataSchemaVersion, DataSchemaVersionSummary } from '@/types'
 
@@ -121,6 +122,26 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         groupSchemas.value[groupId] = { schemas, count: next.count, nextCursor: schemas.length < next.count ? next.nextCursor : undefined }
     }
 
+    // A change to the groups moves sections, counts and the order around, so the list is loaded again after one.
+    // The change itself has worked by then, so a failed reload is only a warning
+    const reloadList = () => loadList(listQuery.value).catch(() => Alerts.emit('Failed to reload the schemas.', 'warning'))
+
+    async function createGroup (name: string): Promise<void> {
+        await schemasApi.createGroup(teamId(), name)
+        await reloadList()
+    }
+
+    async function renameGroup (groupId: string, name: string): Promise<void> {
+        await schemasApi.renameGroup(teamId(), groupId, name)
+        await reloadList()
+    }
+
+    async function deleteGroup (groupId: string): Promise<void> {
+        await schemasApi.deleteGroup(teamId(), groupId)
+        await reloadList()
+    }
+
+    // The description and the group are optional, and left out of the request when empty
     async function createSchema ({ name, description, groupId }: { name: string, description?: string, groupId?: string }): Promise<DataSchema> {
         return schemasApi.createSchema(teamId(), { name, ...(description && { description }), ...(groupId && { groupId }) })
     }
@@ -226,6 +247,9 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         listQuery,
         loadList,
         loadMoreOfGroup,
+        createGroup,
+        renameGroup,
+        deleteGroup,
         resetList,
         loadActiveSchema,
         createSchema,

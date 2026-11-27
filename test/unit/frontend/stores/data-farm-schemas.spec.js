@@ -2,12 +2,16 @@ import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import schemasApi from '@/api/schemas'
+import Alerts from '@/services/alerts.js'
 import { useDataFarmSchemasStore } from '@/stores/data-farm-schemas'
 
 vi.mock('@/api/schemas', () => ({
     default: {
         listSchemas: vi.fn(),
         listGrouped: vi.fn(),
+        createGroup: vi.fn(),
+        renameGroup: vi.fn(),
+        deleteGroup: vi.fn(),
         createSchema: vi.fn(),
         getSchema: vi.fn(),
         getVersion: vi.fn(),
@@ -17,6 +21,10 @@ vi.mock('@/api/schemas', () => ({
         deleteDraft: vi.fn(),
         publishDraft: vi.fn()
     }
+}))
+
+vi.mock('@/services/alerts.js', () => ({
+    default: { emit: vi.fn() }
 }))
 
 vi.mock('@/stores/context.js', () => ({
@@ -385,6 +393,36 @@ describe('data-farm-schemas store', () => {
             await first
             expect(store.listQuery).toBe('temp')
             expect(store.groupSchemas.g1.schemas.map(schema => schema.id)).toEqual(['latest'])
+        })
+
+        it('creates, renames and deletes a group for the active team, loading the list again each time with the search that is on', async () => {
+            schemasApi.listGrouped.mockResolvedValue(grouped(page([]), page([]), page([])))
+            const store = useDataFarmSchemasStore()
+            await store.loadList('ener')
+            await store.createGroup('Quality')
+            expect(schemasApi.createGroup).toHaveBeenCalledWith('team-1', 'Quality')
+            await store.renameGroup('g1', 'Power')
+            expect(schemasApi.renameGroup).toHaveBeenCalledWith('team-1', 'g1', 'Power')
+            await store.deleteGroup('g2')
+            expect(schemasApi.deleteGroup).toHaveBeenCalledWith('team-1', 'g2')
+            expect(schemasApi.listGrouped).toHaveBeenCalledTimes(4)
+            expect(schemasApi.listGrouped).toHaveBeenLastCalledWith('team-1', { query: 'ener', limit: 20 })
+        })
+
+        it('leaves the list alone when a change to a group is refused', async () => {
+            schemasApi.createGroup.mockRejectedValue(apiError('name_conflict'))
+            const store = useDataFarmSchemasStore()
+            await expect(store.createGroup('Energy')).rejects.toBeTruthy()
+            expect(schemasApi.listGrouped).not.toHaveBeenCalled()
+        })
+
+        it('only warns when a group was created but the list could not be loaded again', async () => {
+            schemasApi.createGroup.mockResolvedValue({})
+            schemasApi.listGrouped.mockRejectedValue(new Error('offline'))
+            const store = useDataFarmSchemasStore()
+            await store.createGroup('Quality')
+            expect(schemasApi.createGroup).toHaveBeenCalledWith('team-1', 'Quality')
+            expect(Alerts.emit).toHaveBeenCalledWith('Failed to reload the schemas.', 'warning')
         })
 
         it('drops a list that answers after the page was left', async () => {
