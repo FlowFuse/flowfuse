@@ -1,9 +1,12 @@
-import { mount } from '@vue/test-utils'
-import { describe, expect, test } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { markRaw } from 'vue'
 
 import SchemaBuilder from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/SchemaBuilder.vue'
 import { parseSchema } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builder.ts'
+import Dialog from '../../../../../../../../frontend/src/services/dialog.js'
+
+vi.mock('../../../../../../../../frontend/src/services/dialog.js', () => ({ default: { showAsync: vi.fn() } }))
 
 // the app passes the parsed schema as a plain object, which structuredClone needs
 const parse = (text) => {
@@ -23,8 +26,9 @@ function mountBuilder (text = JSON.stringify(SCHEMA), readOnly = true) {
                 'ff-data-table-cell': { template: '<td><slot /></td>' },
                 'ff-button': { template: '<button><slot /></button>' },
                 'ff-checkbox': { props: ['modelValue'], emits: ['update:modelValue'], template: '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)">' },
+                'ff-drag-handle': { emits: ['dragstart', 'dragend'], template: '<span draggable="true" @dragstart="$emit(\'dragstart\', $event)" @dragend="$emit(\'dragend\', $event)" />' },
                 'ff-kebab-menu': { template: '<div><slot /></div>' },
-                'ff-kebab-item': { props: ['label'], template: '<button :data-item="label">{{ label }}</button>' },
+                'ff-kebab-item': { props: ['label', 'disabled'], template: '<button :data-item="label" :disabled="disabled">{{ label }}</button>' },
                 FieldEditPanel: { props: ['pointer'], emits: ['apply', 'cancel'], template: '<div data-el="panel" :data-pointer="pointer" />' }
             }
         }
@@ -35,6 +39,8 @@ function mountBuilder (text = JSON.stringify(SCHEMA), readOnly = true) {
 const paths = (builder) => builder.findAll('[data-el^="builder-row-"]').map(row => row.attributes('data-el').replace('builder-row-', ''))
 
 describe('Schema builder', () => {
+    beforeEach(() => vi.clearAllMocks())
+
     test('expands and collapses an object', async () => {
         const builder = mountBuilder()
         expect(paths(builder)).toEqual(['/location', '/calibration'])
@@ -153,6 +159,83 @@ describe('Schema builder', () => {
             const builder = mountBuilder(undefined, false)
             await builder.find('[data-action="builder-other-fields"]').setValue(true)
             expect(text(builder)).not.toHaveProperty('additionalProperties')
+        })
+
+        test('moves a field up and down, but not past either end', async () => {
+            const builder = mountBuilder(undefined, false)
+            expect(builder.find('[data-el="builder-row-/location"] [data-item="Move up"]').attributes('disabled')).toBeDefined()
+            await builder.find('[data-el="builder-row-/location"] [data-item="Move down"]').trigger('click')
+            expect(Object.keys(text(builder).properties)).toEqual(['calibration', 'location'])
+            expect(builder.find('[data-el="builder-row-/location"] [data-item="Move down"]').attributes('disabled')).toBeDefined()
+        })
+
+        test('moves a field when its row is dropped on a sibling, but not on another level', async () => {
+            const builder = mountBuilder(JSON.stringify({ ...SCHEMA, properties: { ...SCHEMA.properties, other: { type: 'string' } } }), false)
+            const drag = async (from, to) => {
+                const dataTransfer = { setData: vi.fn(), setDragImage: vi.fn(), effectAllowed: '', dropEffect: '' }
+                await builder.find(`[data-el="builder-row-${from}"] [data-action="builder-drag"]`).trigger('dragstart', { dataTransfer })
+                await builder.find(`[data-el="builder-row-${to}"]`).trigger('drop', { dataTransfer, clientY: 1000 })
+            }
+            await drag('/location', '/calibration')
+            expect(Object.keys(text(builder).properties)).toEqual(['calibration', 'location', 'other'])
+            expect(text(builder).required).toEqual(['location'])
+            await drag('/other', '/calibration')
+            expect(Object.keys(text(builder).properties)).toEqual(['calibration', 'other', 'location'])
+            const written = builder.emitted('update:schemaText').length
+            await builder.find('[data-el="builder-row-/location"] [data-action="builder-toggle"]').trigger('click')
+            await drag('/calibration', '/location/site')
+            expect(builder.emitted('update:schemaText')).toHaveLength(written)
+        })
+
+        test('offers no handle to drag in read-only mode', () => {
+            expect(mountBuilder().find('[data-action="builder-drag"]').exists()).toBe(false)
+        })
+
+        test('deletes a field with nothing inside it straight away', async () => {
+            const builder = mountBuilder(undefined, false)
+            await builder.find('[data-el="builder-row-/calibration"] [data-item="Delete field"]').trigger('click')
+            await flushPromises()
+            expect(Dialog.showAsync).not.toHaveBeenCalled()
+            expect(Object.keys(text(builder).properties)).toEqual(['location'])
+        })
+
+        test('deletes an object only once that is confirmed, listing the fields that go with it', async () => {
+            const builder = mountBuilder(undefined, false)
+            Dialog.showAsync.mockResolvedValueOnce('cancel')
+            await builder.find('[data-el="builder-row-/location"] [data-item="Delete field"]').trigger('click')
+            await flushPromises()
+            expect(builder.emitted('update:schemaText')).toBeUndefined()
+            const [options] = Dialog.showAsync.mock.calls[0]
+            expect(options.header).toBe('Delete location?')
+            expect(options.text).toBe('This removes location and the 1 field inside it from the draft:\n\n/location/site\n\nlocation is also removed from the required list of the root object.')
+            Dialog.showAsync.mockResolvedValueOnce('confirm')
+            await builder.find('[data-el="builder-row-/location"] [data-item="Delete field"]').trigger('click')
+            await flushPromises()
+            expect(text(builder)).toMatchObject({ properties: { calibration: {} } })
+            expect(text(builder)).not.toHaveProperty('required')
+        })
+
+        test('names the array holding a deleted field and caps the list of nested fields', async () => {
+            const fields = Object.fromEntries(Array.from({ length: 12 }, (_, index) => [`f${index}`, { type: 'string' }]))
+            const schema = { type: 'object', properties: { items: { type: 'array', items: { type: 'object', required: ['group'], properties: { group: { type: 'object', properties: fields } } } } } }
+            const builder = mountBuilder(JSON.stringify(schema), false)
+            await builder.find('[data-el="builder-row-/items"] [data-action="builder-toggle"]').trigger('click')
+            Dialog.showAsync.mockResolvedValueOnce('cancel')
+            await builder.find('[data-el="builder-row-/items/group"] [data-item="Delete field"]').trigger('click')
+            await flushPromises()
+            const lines = Dialog.showAsync.mock.calls[0][0].text.split('\n')
+            expect(lines.filter(line => line.startsWith('/items/group/'))).toHaveLength(10)
+            expect(lines).toContain('and 2 more')
+            expect(lines.at(-1)).toBe('group is also removed from the required list of items.')
+        })
+
+        test('escapes the nested paths like the table does', async () => {
+            const schema = { type: 'object', properties: { box: { type: 'object', properties: { 'a/b': { type: 'string' } } } } }
+            const builder = mountBuilder(JSON.stringify(schema), false)
+            Dialog.showAsync.mockResolvedValueOnce('cancel')
+            await builder.find('[data-el="builder-row-/box"] [data-item="Delete field"]').trigger('click')
+            await flushPromises()
+            expect(Dialog.showAsync.mock.calls[0][0].text).toContain('/box/a~1b')
         })
 
         test('offers no editing when read-only', () => {

@@ -3,6 +3,7 @@ import FFButton from './components/Button.vue'
 import FFCheck from './components/Check.vue'
 import FFDialogBox from './components/DialogBox.vue'
 import FFDivider from './components/Divider.vue'
+import FFDragHandle from './components/DragHandle.vue'
 import FFHelpTooltip from './components/Help.vue'
 
 // Data Table
@@ -47,6 +48,7 @@ export default {
     FFDialogBox,
 
     FFDivider,
+    FFDragHandle,
     FFHelpTooltip,
     FFKebabItem,
     FFCheck,

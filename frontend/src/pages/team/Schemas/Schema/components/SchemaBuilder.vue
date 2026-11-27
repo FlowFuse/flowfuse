@@ -39,7 +39,10 @@
                                     <FieldEditPanel :root="schema" :pointer="entry.row.pointer" @apply="applied(entry.row.pointer, $event)" @cancel="cancelEdit" />
                                 </ff-data-table-cell>
                             </ff-data-table-row>
-                            <ff-data-table-row v-else :data-el="`builder-row-${entry.row.path}`">
+                            <ff-data-table-row v-else :data-el="`builder-row-${entry.row.path}`" v-bind="reorderRow(entry)">
+                                <ff-data-table-cell v-if="!readOnly" class="schema-builder__drag-cell">
+                                    <ff-drag-handle v-if="entry.row.pointer" data-action="builder-drag" v-bind="reorder.handle(entry.holder, entry.index)" />
+                                </ff-data-table-cell>
                                 <ff-data-table-cell class="schema-builder__field-cell">
                                     <div class="schema-builder__field" :style="{ '--depth': entry.row.depth }">
                                         <span v-for="level in entry.row.depth" :key="level" class="schema-builder__guide" />
@@ -64,8 +67,11 @@
                                     <span v-else>{{ entry.row.description }}</span>
                                 </ff-data-table-cell>
                                 <ff-data-table-cell v-if="!readOnly">
-                                    <ff-kebab-menu v-if="!entry.row.jsonOnly && entry.row.pointer">
-                                        <ff-kebab-item label="Edit" @click="edit(entry.row.pointer)" />
+                                    <ff-kebab-menu v-if="entry.row.pointer">
+                                        <ff-kebab-item v-if="!entry.row.jsonOnly" label="Edit" @click="edit(entry.row.pointer)" />
+                                        <ff-kebab-item label="Move up" :disabled="entry.first" @click="move(entry.row.pointer, -1)" />
+                                        <ff-kebab-item label="Move down" :disabled="entry.last" @click="move(entry.row.pointer, 1)" />
+                                        <ff-kebab-item label="Delete field" kind="danger" @click="remove(entry.row)" />
                                     </ff-kebab-menu>
                                 </ff-data-table-cell>
                             </ff-data-table-row>
@@ -96,9 +102,13 @@ import { PlusIcon } from '@heroicons/vue/24/outline'
 import { computed, nextTick, onDeactivated, ref, watch } from 'vue'
 
 import FieldEditPanel from './FieldEditPanel.vue'
-import { type FieldRow, type OtherFields, builderRows, fieldTrail, fieldsHolder, focusedHolder, otherFields, rootNotes, schemaAt } from './builder'
-import { addField, removeField, setOtherFieldsAllowed } from './builderEdits'
+import { type FieldRow, type OtherFields, builderRows, fieldTrail, fieldsHolder, focusedHolder, otherFields, propertiesOf, rootNotes, schemaAt } from './builder'
+import { addField, deleteField, moveField, moveFieldTo, nestedPaths, removeField, setOtherFieldsAllowed, splitPointer } from './builderEdits'
+import { pointerFor } from './pointer'
 import type { Schema } from './schemaTypes'
+
+import { useDragReorder } from '@/composables/DragReorder.js'
+import Dialog from '@/services/dialog.js'
 
 defineOptions({ name: 'SchemaBuilder' })
 
@@ -106,7 +116,9 @@ const props = defineProps<{ schema: Schema | null, readOnly: boolean }>()
 const emit = defineEmits<{ 'edit-json': [], 'update:schemaText': [text: string] }>()
 
 const columns = computed(() => [
-    { label: 'Field', key: 'name', class: ['w-1/5'] },
+    ...(props.readOnly ? [] : [{ label: '', key: 'drag', class: ['w-8'] }]),
+    // the names start after the chevron's slot and the gap next to it, so the heading does too
+    { label: 'Field', key: 'name', class: ['w-1/5'], tableLabelClass: 'pl-5.5' },
     { label: 'Type', key: 'type', class: ['w-40'] },
     { label: 'Required', key: 'required', class: ['w-28'] },
     { label: 'Constraints', key: 'constraints' },
@@ -165,7 +177,7 @@ const holderPointer = computed(() => holder.value ? focus.value + holder.value.s
 const editing = ref<string | null>(null)
 const added = ref<string | null>(null)
 
-type RowEntry = { kind: 'field' | 'panel', key: string, row: FieldRow }
+type RowEntry = { kind: 'field' | 'panel', key: string, row: FieldRow, holder?: string, index?: number, first?: boolean, last?: boolean }
 type AddEntry = { kind: 'add', key: string, holder: string, path: string, name: string, depth: number }
 type Entry = RowEntry | AddEntry
 
@@ -173,6 +185,13 @@ type Entry = RowEntry | AddEntry
 const entries = computed<Entry[]>(() => {
     const list: Entry[] = []
     const parents: FieldRow[] = []
+    const namesByHolder = new Map<string, string[]>()
+    const namesOf = (holderPointer: string) => {
+        if (!namesByHolder.has(holderPointer)) {
+            namesByHolder.set(holderPointer, Object.keys(propertiesOf(schemaAt(props.schema!, holderPointer)!)))
+        }
+        return namesByHolder.get(holderPointer)!
+    }
     const closeTo = (depth: number) => {
         while (parents.length && parents.at(-1)!.depth >= depth) {
             const parent = parents.pop()!
@@ -185,7 +204,10 @@ const entries = computed<Entry[]>(() => {
     }
     for (const row of rows.value) {
         closeTo(row.depth)
-        list.push({ kind: 'field', key: row.pointer, row })
+        const names = row.pointer ? namesOf(splitPointer(row.pointer).holder) : []
+        const name = row.pointer ? splitPointer(row.pointer).name : ''
+        const holder = row.pointer ? splitPointer(row.pointer).holder : ''
+        list.push({ kind: 'field', key: row.pointer, row, holder, index: names.indexOf(name), first: names[0] === name, last: names.at(-1) === name })
         if (editing.value === row.pointer) {
             list.push({ kind: 'panel', key: `panel:${row.pointer}`, row })
         }
@@ -221,6 +243,54 @@ function cancelEdit () {
     }
     editing.value = null
     added.value = null
+}
+
+function move (pointer: string, offset: -1 | 1) {
+    write(moveField(props.schema!, pointer, offset))
+}
+
+// Dragging reorders the fields of one object, which is the group a row is dragged within
+const reorder = useDragReorder({
+    onMove ({ group, from, to }) {
+        const name = Object.keys(propertiesOf(schemaAt(props.schema!, group)!))[from]
+        write(moveFieldTo(props.schema!, pointerFor(group, name), to))
+    }
+})
+
+function reorderRow (entry: RowEntry) {
+    if (props.readOnly || !entry.row.pointer) {
+        return {}
+    }
+    return reorder.row(entry.holder!, entry.index!)
+}
+
+const NESTED_SHOWN = 10
+
+async function remove (row: FieldRow) {
+    const nested = nestedPaths(props.schema!, row.pointer, row.path)
+    if (nested.length) {
+        const holderName = fieldTrail(splitPointer(row.pointer).holder).at(-1)?.name ?? 'the root object'
+        const hidden = nested.length - NESTED_SHOWN
+        const result = await Dialog.showAsync({
+            header: `Delete ${row.name}?`,
+            text: [
+                `This removes ${row.name} and the ${nested.length} ${nested.length === 1 ? 'field' : 'fields'} inside it from the draft:`,
+                '',
+                ...nested.slice(0, NESTED_SHOWN),
+                ...(hidden > 0 ? [`and ${hidden} more`] : []),
+                ...(row.required ? ['', `${row.name} is also removed from the required list of ${holderName}.`] : [])
+            ].join('\n'),
+            confirmLabel: `Delete ${row.name}`,
+            kind: 'danger'
+        })
+        if (result !== 'confirm') {
+            return
+        }
+    }
+    if (editing.value === row.pointer || editing.value?.startsWith(`${row.pointer}/`)) {
+        editing.value = null
+    }
+    write(deleteField(props.schema!, row.pointer))
 }
 
 function edit (pointer: string) {
@@ -295,6 +365,10 @@ function setOtherFields (allowed: boolean) {
         border-left: 1px solid var(--ff-color-border-strong);
         margin-left: 0.5rem;
         margin-right: -0.5rem;
+    }
+
+    &__drag-cell {
+        padding-right: 0;
     }
 
     &__toggle {

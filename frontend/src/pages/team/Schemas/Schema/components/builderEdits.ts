@@ -1,7 +1,7 @@
 import { RE2JS } from 're2js'
 
-import { otherFields, schemaAt } from './builder'
-import { pointerFor, unescapePointer } from './pointer'
+import { fieldsHolder, otherFields, propertiesOf, schemaAt } from './builder'
+import { escapePointer, pointerFor, unescapePointer } from './pointer'
 import { type Schema, typesOf } from './schemaTypes'
 
 export const FIELD_TYPES = ['string', 'number', 'integer', 'boolean', 'object', 'array', 'null'] as const
@@ -315,4 +315,55 @@ export function setOtherFieldsAllowed (root: Schema, holderPointer: string, allo
     const next = structuredClone(root)
     setOtherFields(schemaAt(next, holderPointer)!, allowed)
     return next
+}
+
+// Takes a field out of its object's list and puts it back at an index of the list without it
+export function moveFieldTo (root: Schema, pointer: string, to: number): Schema {
+    const next = structuredClone(root)
+    const { holder: holderPointer, name } = splitPointer(pointer)
+    const holder = schemaAt(next, holderPointer)!
+    const entries = Object.entries(propertiesOf(holder))
+    const from = entries.findIndex(([key]) => key === name)
+    if (from === -1 || to < 0 || to >= entries.length) {
+        return next
+    }
+    const [moved] = entries.splice(from, 1)
+    entries.splice(to, 0, moved)
+    holder.properties = Object.fromEntries(entries)
+    return next
+}
+
+export function moveField (root: Schema, pointer: string, offset: -1 | 1): Schema {
+    const { holder, name } = splitPointer(pointer)
+    const from = Object.keys(propertiesOf(schemaAt(root, holder)!)).indexOf(name)
+    return moveFieldTo(root, pointer, from + offset)
+}
+
+// Unlike removeField, the name also leaves the required list of its object
+export function deleteField (root: Schema, pointer: string): Schema {
+    const next = removeField(root, pointer)
+    const { holder: holderPointer, name } = splitPointer(pointer)
+    const holder = schemaAt(next, holderPointer)!
+    const required = Array.isArray(holder.required) ? holder.required.filter(entry => entry !== name) : []
+    if (required.length) {
+        holder.required = required
+    } else {
+        delete holder.required
+    }
+    return next
+}
+
+// Escaped like the paths of the table rows
+export function nestedPaths (root: Schema, pointer: string, path: string): string[] {
+    const paths: string[] = []
+    const visit = (schema: Schema, prefix: string) => {
+        const holder = fieldsHolder(schema)
+        for (const [name, child] of Object.entries(propertiesOf(holder?.schema ?? {}))) {
+            const childPath = `${prefix}/${escapePointer(name)}`
+            paths.push(childPath)
+            visit(child, childPath)
+        }
+    }
+    visit(schemaAt(root, pointer)!, path)
+    return paths
 }

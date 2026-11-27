@@ -68,7 +68,7 @@ export function fieldTrail (pointer: string): { name: string, pointer: string, p
     return trail
 }
 
-const propertiesOf = (schema: Schema): Record<string, Schema> => isObject(schema.properties) ? schema.properties as Record<string, Schema> : {}
+export const propertiesOf = (schema: Schema): Record<string, Schema> => isObject(schema.properties) ? schema.properties as Record<string, Schema> : {}
 
 export function fieldsHolder (schema: Schema): { schema: Schema, suffix: string } | null {
     if (isObject(schema.properties) || typesOf(schema).includes('object')) {
