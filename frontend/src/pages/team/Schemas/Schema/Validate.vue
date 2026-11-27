@@ -89,13 +89,19 @@ const router = useRouter()
 const schemasStore = useDataFarmSchemasStore()
 const { activeSchema: schema, activeDraft: draft, activeLatestPublished: latestPublished } = storeToRefs(schemasStore)
 
+// The older version the page was asked to check against. The draft and the latest published version are always
+// on offer; this one stays on offer too after another target is picked, so it can be gone back to.
+const openedFor = ref<string>()
+watch(() => route.query.against as string | undefined, (asked) => {
+    if (asked && asked !== 'draft' && asked !== latestPublished.value?.version) openedFor.value = asked
+}, { immediate: true })
+
 const targets = computed(() => {
     const list: { title: string, value: string }[] = []
     if (draft.value) list.push({ title: 'Draft', value: 'draft' })
     if (latestPublished.value?.version) list.push({ title: `Published ${latestPublished.value.version}`, value: latestPublished.value.version })
-    const asked = route.query.against as string | undefined
-    const known = schema.value?.versions.some(entry => entry.version === asked)
-    if (asked && asked !== 'draft' && known && !list.some(target => target.value === asked)) list.push({ title: asked, value: asked })
+    const known = schema.value?.versions.some(entry => entry.version === openedFor.value)
+    if (openedFor.value && known && !list.some(target => target.value === openedFor.value)) list.push({ title: openedFor.value, value: openedFor.value })
     return list
 })
 // The draft is what is being worked on, so it is checked unless a version was asked for
