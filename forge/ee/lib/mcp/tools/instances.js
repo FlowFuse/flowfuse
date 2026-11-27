@@ -390,15 +390,14 @@ module.exports = [
         name: 'platform_update_hosted_instance_settings',
         title: 'Update Hosted Instance Settings',
         description: `FlowFuse platform automation tool:
-            Updates a hosted instance: rename it, change its settings or launcher settings, switch its instance type or stack, or copy configuration and flows from another instance. Only the fields you pass are changed.
-            CAUTION: changing name, projectType, or stack replies as soon as the change is accepted and then RESTARTS the instance in the background - confirm with the user first, and check platform_get_hosted_instance_status to see it come back. Changing projectType additionally requires passing a matching stack. Names must be unique across the platform (409 "invalid_project_name" otherwise).
+            Updates a hosted instance: change its settings or launcher settings, switch its instance type or stack, or copy configuration and flows from another instance. Only the fields you pass are changed. An instance cannot be renamed after it has been created.
+            CAUTION: changing projectType or stack replies as soon as the change is accepted and then RESTARTS the instance in the background - confirm with the user first, and check platform_get_hosted_instance_status to see it come back. Changing projectType additionally requires passing a matching stack.
             settings are merged field-by-field into the existing settings. Values the template locks are silently dropped rather than rejected; "settings_validation" is raised for malformed input instead. To change ONLY environment variables prefer platform_update_hosted_instance_env, which works with Member permissions.
             sourceProject copies flows/configuration from another instance in the same team onto this one, overwriting its current content - treat it as destructive and confirm with the user. The response returns while the copy runs in the background.`,
-        // destructiveHint: sourceProject overwrites the target instance flows, and name/stack/type changes restart it.
+        // destructiveHint: sourceProject overwrites the target instance flows, and stack/type changes restart it.
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             instanceId: hostedInstanceId.describe('The id (UUID) of the hosted instance to update'),
-            name: z.string().optional().describe('New name for the instance. Must be unique across the platform; changing it restarts the instance'),
             settings: z.record(z.string(), z.any()).optional().describe('Instance settings to merge in (palette, editor, security, and so on), validated against the template. For env-only changes use platform_update_hosted_instance_env instead'),
             launcherSettings: z.object({
                 healthCheckInterval: z.number().optional().describe('Launcher health-check interval in milliseconds, minimum 5000'),
@@ -413,13 +412,13 @@ module.exports = [
         },
         handler: async (args, { inject }) => {
             const payload = {}
-            for (const key of ['name', 'settings', 'launcherSettings', 'projectType', 'stack', 'sourceProject']) {
+            for (const key of ['settings', 'launcherSettings', 'projectType', 'stack', 'sourceProject']) {
                 if (args[key] !== undefined) {
                     payload[key] = args[key]
                 }
             }
             if (Object.keys(payload).length === 0) {
-                return toolError(400, 'invalid_request', 'Pass at least one of name, settings, launcherSettings, projectType, stack or sourceProject to update')
+                return toolError(400, 'invalid_request', 'Pass at least one of settings, launcherSettings, projectType, stack or sourceProject to update')
             }
             const response = await inject({ method: 'PUT', url: `/api/v1/projects/${args.instanceId}`, payload })
             return response
