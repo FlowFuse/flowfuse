@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
-import schemasApi, { type SchemaChange } from '@/api/schemas'
+import schemasApi, { type SchemaChange, type ValidationError } from '@/api/schemas'
 import Alerts from '@/services/alerts.js'
 import { useContextStore } from '@/stores/context.js'
 import type { DataSchema, DataSchemaDraft, DataSchemaGroup, DataSchemaSummary, DataSchemaVersion, DataSchemaVersionSummary } from '@/types'
@@ -270,6 +270,11 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         }
     }
 
+    // Checks a message against a version of the open schema, or its saved draft
+    async function validateMessage (against: string, payload: unknown): Promise<{ valid: boolean, errors: ValidationError[] }> {
+        return schemasApi.validateMessage(teamId(), activeSchema.value!.id, against, payload)
+    }
+
     // Deprecates a published version, or takes that back. If it turns out to be in that state already,
     // the schema changed elsewhere and is loaded again.
     async function setVersionDeprecated (version: string, deprecated: boolean): Promise<void> {
@@ -332,6 +337,7 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         publishDraft,
         fetchVersion,
         fetchComparison,
+        validateMessage,
         setVersionDeprecated,
         reset
     }

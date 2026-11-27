@@ -17,24 +17,28 @@
                     </template>
                 </template>
                 <template #tools>
+                    <!-- each action shows only on the pages that have what it acts on -->
                     <div class="flex gap-2">
                         <ff-button
-                            v-if="canEdit && !viewedVersion" kind="secondary" data-action="edit-schema-details"
+                            v-if="canEdit && (onEditor || onVersions)" kind="secondary" data-action="edit-schema-details"
                             @click="editDetails"
                         >
                             Edit details
                         </ff-button>
                         <ff-button
-                            v-if="editingDraft" kind="secondary" data-action="discard-draft"
+                            v-if="editingDraft && (onEditor || onVersions)" kind="secondary" data-action="discard-draft"
                             @click="confirmDiscard"
                         >
                             Discard draft
                         </ff-button>
-                        <!-- not built yet. On a version's page it is to check against that version, which its label already says -->
-                        <ff-button kind="secondary" data-action="validate-message" disabled>
+                        <!-- on a version's page the message is checked against that version -->
+                        <ff-button
+                            v-if="onEditor || viewedVersion" kind="secondary" data-action="validate-message"
+                            :to="{ name: 'team-schema-validate', query: viewedVersion ? { against: viewedVersion } : {} }"
+                        >
                             {{ viewedVersion ? `Validate a message against ${viewedVersion}` : 'Validate a message' }}
                         </ff-button>
-                        <template v-if="editingDraft">
+                        <template v-if="editingDraft && onEditor">
                             <ff-button
                                 kind="secondary" data-action="save-draft"
                                 :disabled="!canSave || !hasUnsavedChanges" @click="saveDraft"
@@ -49,7 +53,7 @@
                             </ff-button>
                         </template>
                         <ff-button
-                            v-if="canEdit && (viewedVersion || !draft)"
+                            v-if="canEdit && (viewedVersion || (!draft && (onEditor || onVersions)))"
                             data-action="create-draft"
                             :disabled="!!draft"
                             :title="draft ? 'Discard the draft first' : undefined"
@@ -145,6 +149,13 @@ onBeforeUnmount(() => {
 
 const canEdit = computed(() => hasPermission('team:schema:edit'))
 
+// Which page of the schema is open decides the actions in the header:
+// * the Editor tab has them all, as the draft is on screen
+// * the Versions list has the ones about the schema and its draft as a whole, but not Save and Publish, which act on the editor's text
+// * a version's page has the ones about that version
+// * comparing versions and validating a message have none
+const onEditor = computed(() => route.name === 'team-schema-editor')
+const onVersions = computed(() => route.name === 'team-schema-versions')
 const viewedVersion = computed(() => route.params.version as string | undefined)
 const draftSource = computed(() => viewedVersion.value ?? latestPublished.value?.version ?? undefined)
 

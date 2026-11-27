@@ -250,6 +250,33 @@ function setId (doc, schemaId, version) {
     return { $id: `urn:flowfuse:schema:${schemaId}:${version}`, ...removeId(doc) }
 }
 
+const MAX_LISTED_VALUES = 10
+
+const listOr = (items) => items.length > 1 ? `${items.slice(0, -1).join(', ')} or ${items[items.length - 1]}` : items[0]
+
+/**
+ * AJV's message, apart from the keywords whose message leaves out what is expected although `params` has it:
+ * the allowed values of `enum` and `const`, and the types of `type`
+ */
+function describeError (error) {
+    const { keyword, params } = error
+    if (keyword === 'enum' && Array.isArray(params.allowedValues)) {
+        const values = params.allowedValues.map(value => JSON.stringify(value))
+        if (values.length > MAX_LISTED_VALUES) {
+            return `must be one of ${values.slice(0, MAX_LISTED_VALUES).join(', ')} and ${values.length - MAX_LISTED_VALUES} more`
+        }
+        return `must be one of ${listOr(values)}`
+    }
+    if (keyword === 'const' && Object.hasOwn(params, 'allowedValue')) {
+        return `must be ${JSON.stringify(params.allowedValue)}`
+    }
+    if (keyword === 'type') {
+        const types = Array.isArray(params.type) ? params.type : String(params.type).split(',')
+        return `must be ${listOr(types)}`
+    }
+    return error.message
+}
+
 /**
  * Validate a payload against a schema document. Nothing is stored or cached.
  * Throws a `SchemaDocumentError` when the payload is over the size or depth limit or the document has problems.
@@ -276,7 +303,10 @@ function validatePayload (doc, payload) {
         if (error.keyword === 'required') {
             path = `${path}/${escapePointer(error.params.missingProperty)}`
         }
-        return { path, keyword: error.keyword, message: error.message, params: error.params }
+        if (error.keyword === 'additionalProperties') {
+            path = `${path}/${escapePointer(error.params.additionalProperty)}`
+        }
+        return { path, keyword: error.keyword, message: describeError(error), params: error.params }
     })
     return { valid: false, errors }
 }

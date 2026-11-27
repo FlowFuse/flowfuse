@@ -169,6 +169,7 @@ describe('Data Schemas API - versions, validate and diff', function () {
             const body = response.json()
             body.valid.should.be.false()
             body.errors.map(e => [e.path, e.keyword]).should.eql([['/value', 'required'], ['/sensor', 'type']])
+            body.errors[1].message.should.equal('must be string')
         })
 
         it('validates any JSON value, including null', async function () {
