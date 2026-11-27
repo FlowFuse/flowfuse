@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { builderRows, constraintsSummary, fieldTrail, insertAfterPublished, otherFields, parseSchema, referenceProblem, schemaAt } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builder.ts'
+import { builderRows, constraintsSummary, fieldTrail, insertAfterPublished, otherFields, parseSchema, referenceProblem, rootNotes, schemaAt } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builder.ts'
 import { typeLabel } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/schemaTypes.ts'
 
 const SCHEMA = {
@@ -68,6 +68,20 @@ describe('builder rows', () => {
         expect(typeLabel({ properties: {} })).toBe('object')
         expect(typeLabel({})).toBe('any')
         expect(typeLabel({ const: 1 })).toBe('const')
+    })
+
+    test('labels a schema by the type it states or the fields it lists, over a combinator it also has', () => {
+        expect(typeLabel({ type: 'object', properties: {}, anyOf: [{}, {}, {}] })).toBe('object')
+        expect(typeLabel({ properties: {}, oneOf: [{}] })).toBe('object')
+        expect(typeLabel({ anyOf: [{}, {}, {}] })).toBe('anyOf (3)')
+    })
+
+    test('notes what a root with fields has at its top level that the builder cannot show', () => {
+        expect(rootNotes({ type: 'object', properties: {} })).toEqual([])
+        expect(rootNotes({ type: 'object', properties: {}, anyOf: [{}], if: {} })).toEqual(['The schema also uses anyOf, if at its top level, which the builder can\'t show.'])
+        expect(rootNotes({ $id: 'urn:x', type: 'object', $defs: {} })).toEqual(['$defs is not supported yet, at the top level of the schema.'])
+        // a root that is not an object says so on its own row
+        expect(rootNotes({ oneOf: [{ type: 'string' }] })).toEqual([])
     })
 
     test('allows fields the schema does not list unless it says otherwise', () => {

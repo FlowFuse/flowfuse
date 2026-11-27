@@ -1,5 +1,6 @@
 <template>
-    <div class="flex flex-col gap-6" data-el="schema-editor">
+    <!-- fills the page and no more: the schema and the version notes share its height and each scrolls within itself -->
+    <div class="flex min-h-0 flex-1 flex-col gap-6" data-el="schema-editor">
         <TabToolbar>
             <ToggleButtonGroup v-model="view" :buttons="views" :uses-links="false" title="View" visually-hide-title />
             <template #tools>
@@ -18,34 +19,41 @@
                 </template>
             </template>
         </TabToolbar>
-        <SchemaBuilder
-            v-if="view === 'builder'"
-            :schema="schema"
-            :read-only="jsonReadOnly"
-            :published="published"
-            :published-version="latestPublished?.version"
-            @edit-json="view = 'json'"
-            @update:schema-text="schemaText = $event"
-        />
-        <JsonEditor v-show="view === 'json'" ref="jsonEditor" v-model="schemaText" v-model:problems="editorProblems" :markers="markers" :read-only="jsonReadOnly" />
-        <div v-if="draft" class="schema-notes" data-el="schema-notes">
-            <label for="schema-version-notes" class="schema-notes__label">
-                <DocumentTextIcon class="ff-icon" />
-                Version notes
-            </label>
-            <textarea id="schema-version-notes" v-model="notes" class="mt-2 w-full" rows="3" :disabled="readOnly" />
-        </div>
-        <FfAccordion v-else-if="latestPublished?.notes" class="schema-notes" variant="bare" data-el="schema-notes">
-            <template #label>
-                <p class="schema-notes__label">
+        <!-- kept while the JSON is on screen, so what was expanded or opened in the builder is still so on coming back -->
+        <KeepAlive>
+            <SchemaBuilder
+                v-if="view === 'builder'"
+                class="min-h-0"
+                :schema="schema"
+                :read-only="jsonReadOnly"
+                :published="published"
+                :published-version="latestPublished?.version"
+                @edit-json="view = 'json'"
+                @update:schema-text="schemaText = $event"
+            />
+        </KeepAlive>
+        <JsonEditor v-show="view === 'json'" ref="jsonEditor" v-model="schemaText" v-model:problems="editorProblems" fit :markers="markers" :read-only="jsonReadOnly" />
+        <!-- the notes take what they need, up to half the height, and the schema above has the rest -->
+        <div v-if="draft || latestPublished?.notes" class="flex max-h-1/2 shrink-0 flex-col">
+            <div v-if="draft" class="schema-notes" data-el="schema-notes">
+                <label for="schema-version-notes" class="schema-notes__label">
                     <DocumentTextIcon class="ff-icon" />
                     Version notes
-                </p>
-            </template>
-            <template #content>
-                <p class="schema-notes__text">{{ latestPublished.notes }}</p>
-            </template>
-        </FfAccordion>
+                </label>
+                <textarea id="schema-version-notes" v-model="notes" class="mt-2 w-full" rows="3" :disabled="readOnly" />
+            </div>
+            <FfAccordion v-else-if="latestPublished?.notes" class="schema-notes" variant="bare" data-el="schema-notes">
+                <template #label>
+                    <p class="schema-notes__label">
+                        <DocumentTextIcon class="ff-icon" />
+                        Version notes
+                    </p>
+                </template>
+                <template #content>
+                    <p class="schema-notes__text">{{ latestPublished.notes }}</p>
+                </template>
+            </FfAccordion>
+        </div>
     </div>
 </template>
 
@@ -127,6 +135,11 @@ async function importFile (event: Event) {
 }
 
 .schema-notes {
+    // a column that can be shorter than the notes, which then scroll under their label
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+
     &__label {
         display: flex;
         align-items: center;
@@ -143,6 +156,8 @@ async function importFile (event: Event) {
     }
 
     & > :deep(.ff-accordion--content) {
+        min-height: 0;
+        overflow-y: auto;
         padding: 12px 16px;
         border: 1px solid var(--ff-color-border);
         border-radius: 0.625rem;

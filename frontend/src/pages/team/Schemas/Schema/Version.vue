@@ -1,5 +1,6 @@
 <template>
-    <div v-if="version" class="flex flex-col gap-6" data-el="schema-version">
+    <!-- fills the page and no more: the version and its notes share the height and each scrolls within itself -->
+    <div v-if="version" class="flex min-h-0 flex-1 flex-col gap-6" data-el="schema-version">
         <TabToolbar>
             <BackToVersions />
             <span class="font-medium" data-el="version-number">{{ version.version }}</span>
@@ -9,13 +10,14 @@
                 <ff-button v-if="clipboardSupported" kind="secondary" data-action="copy-json" @click="copy">Copy</ff-button>
             </template>
         </TabToolbar>
-        <JsonEditor v-model="schemaText" :read-only="true" />
-        <div v-if="version.notes" data-el="version-notes">
-            <p class="schema-version__label">
+        <JsonEditor v-model="schemaText" :read-only="true" fit />
+        <!-- the notes take what they need, up to half the height, and scroll under their label -->
+        <div v-if="version.notes" class="flex max-h-1/2 min-h-0 shrink-0 flex-col" data-el="version-notes">
+            <p class="schema-version__label shrink-0">
                 <DocumentTextIcon class="ff-icon" />
                 Version notes
             </p>
-            <p class="schema-version__notes">{{ version.notes }}</p>
+            <p class="schema-version__notes min-h-0 overflow-y-auto">{{ version.notes }}</p>
         </div>
     </div>
 </template>
