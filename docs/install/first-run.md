@@ -26,7 +26,7 @@ Open FlowFuse in your browser `http://forge.example.com` (Change `.example.com` 
 
 Click the **START SETUP** button
 
-<img src="images/setup-01.png" width=500 />
+<img alt="FlowFuse first-run setup screen with the Start Setup button" src="images/setup-01.png" width=500 />
 
 ## 2. Create an Administrator
 
@@ -38,7 +38,7 @@ configured and enabled the `user:reset-password` option in Admin settings. Other
 make sure you make a note of the password you set. We will provide tools to manage passwords
 outside of the platform in a future release.
 
-<img src="images/setup-02-user.png" width=500 />
+<img alt="Setup step to create the first administrator account" src="images/setup-02-user.png" width=500 />
 
 ## 3. Upload a license
 
@@ -46,7 +46,7 @@ FlowFuse Community Edition is Open Source and can be used freely without a licen
 
 If you have a FlowFuse Enterprise Edition license you can upload it here.
 
-<img src="images/setup-03-license.png" width=500 />
+<img alt="Setup step to upload an Enterprise Edition license" src="images/setup-03-license.png" width=500 />
 
 ## 4. Finish setup
 
