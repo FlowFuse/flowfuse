@@ -22,6 +22,7 @@ import TeamMembers from './Members/index.vue'
 import TeamOnboarding from './Onboarding.vue'
 import TeamPerformance from './Performance/index.vue'
 import TeamPipelines from './Pipelines/index.vue'
+import SchemasRoutes from './Schemas/routes.js'
 import TeamSettingsDanger from './Settings/Danger.vue'
 import TeamSettingsDevices from './Settings/Devices.vue'
 import TeamSettingsGeneral from './Settings/General.vue'
@@ -52,6 +53,7 @@ export default [
                 children: [
                     ...BrokersRoutes,
                     ...TablesRoutes,
+                    ...SchemasRoutes,
                     {
                         path: 'overview',
                         name: 'team-home',
