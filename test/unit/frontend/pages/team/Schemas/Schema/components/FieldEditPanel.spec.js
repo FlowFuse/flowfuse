@@ -7,17 +7,19 @@ import TagInput from '../../../../../../../../frontend/src/ui-components/compone
 
 const ROOT = { type: 'object', required: ['unit'], properties: { unit: { type: 'string', enum: ['Cel'] }, sensor: { type: 'object', properties: {} } } }
 
+const STUBS = {
+    'ff-text-input': { props: ['modelValue'], emits: ['update:modelValue'], template: '<input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)">' },
+    'ff-listbox': { props: ['modelValue', 'options'], emits: ['update:modelValue'], template: '<select :value="modelValue" @change="$emit(\'update:modelValue\', $event.target.value)"><option v-for="o in options" :key="o.value" :value="o.value">{{ o.label }}</option></select>' },
+    'ff-checkbox': { props: ['modelValue'], emits: ['update:modelValue'], template: '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)">' },
+    'ff-tag-input': TagInput,
+    'ff-button': { props: ['disabled'], template: '<button :disabled="disabled"><slot /></button>' }
+}
+
 function mountPanel (pointer = '/properties/unit') {
     return mount(FieldEditPanel, {
         props: { root: markRaw(ROOT), pointer },
         global: {
-            stubs: {
-                'ff-text-input': { props: ['modelValue'], emits: ['update:modelValue'], template: '<input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)">' },
-                'ff-listbox': { props: ['modelValue', 'options'], emits: ['update:modelValue'], template: '<select :value="modelValue" @change="$emit(\'update:modelValue\', $event.target.value)"><option v-for="o in options" :key="o.value" :value="o.value">{{ o.label }}</option></select>' },
-                'ff-checkbox': { props: ['modelValue'], emits: ['update:modelValue'], template: '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)">' },
-                'ff-tag-input': TagInput,
-                'ff-button': { props: ['disabled'], template: '<button :disabled="disabled"><slot /></button>' }
-            }
+            stubs: STUBS
         }
     })
 }
@@ -79,6 +81,31 @@ describe('Field edit panel', () => {
         await panel.find('[data-form="field-name"]').setValue('units')
         await panel.find('[data-action="field-apply"]').trigger('click')
         expect(panel.emitted('apply').at(-1)[0].pointer).toBe('/properties/units')
+    })
+
+    test('drops the allowed values the new type cannot have, so a type change is not held up by them', async () => {
+        const panel = mountPanel()
+        const input = panel.find('[data-form="field-allowed-values"] input')
+        await input.setValue('12')
+        await input.trigger('keydown', { key: 'Enter' })
+        await panel.find('[data-form="field-type"]').setValue('number')
+        expect(panel.find('[data-el="field-problem"]').exists()).toBe(false)
+        await panel.find('[data-action="field-apply"]').trigger('click')
+        expect(applied(panel).properties.unit).toEqual({ type: 'number', enum: [12] })
+    })
+
+    test('shows Any as picked for a format or an item type the field does not state, and what it states when the lists lack it', async () => {
+        const root = markRaw({ type: 'object', properties: { text: { type: 'string' }, period: { type: 'string', format: 'duration' }, list: { type: 'array' } } })
+        const mountFor = (pointer) => mount(FieldEditPanel, { props: { root, pointer }, global: { stubs: STUBS } })
+        const text = mountFor('/properties/text')
+        expect(text.find('[data-form="field-format"]').element.value).toBe('any')
+        expect(mountFor('/properties/period').find('[data-form="field-format"]').element.value).toBe('duration')
+        expect(mountFor('/properties/list').find('[data-form="field-item-type"]').element.value).toBe('any')
+        // picking Any writes no format, and an untouched one is left as it was
+        await text.find('[data-form="field-format"]').setValue('email')
+        await text.find('[data-form="field-format"]').setValue('any')
+        await text.find('[data-action="field-apply"]').trigger('click')
+        expect(applied(text).properties.text).toEqual({ type: 'string' })
     })
 
     test('cancels', async () => {

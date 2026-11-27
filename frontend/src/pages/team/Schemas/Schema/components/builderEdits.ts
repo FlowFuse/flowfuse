@@ -129,14 +129,19 @@ function limitsProblem (form: FieldForm, limits: Limits): string {
     return ''
 }
 
+// Whether a value typed into the allowed values is one a field of this type can have
+const fitsType = (type: string, value: string) => type === 'number' ? Number.isFinite(Number(value)) : type === 'integer' ? Number.isInteger(Number(value)) : true
+
+// The allowed values a field keeps when its type changes: the ones the new type can have
+export function allowedValuesFor (type: string, values: string[]): string[] {
+    return values.filter(value => fitsType(type, value))
+}
+
 function allowedValuesProblem (form: FieldForm): string {
-    if (form.type === 'number') {
-        return form.allowedValues.every(value => Number.isFinite(Number(value))) ? '' : 'Allowed values must be numbers.'
+    if (form.allowedValues.every(value => fitsType(form.type, value))) {
+        return ''
     }
-    if (form.type === 'integer') {
-        return form.allowedValues.every(value => Number.isInteger(Number(value))) ? '' : 'Allowed values must be whole numbers.'
-    }
-    return ''
+    return form.type === 'integer' ? 'Allowed values must be whole numbers.' : 'Allowed values must be numbers.'
 }
 
 function patternProblem (pattern: string): string {

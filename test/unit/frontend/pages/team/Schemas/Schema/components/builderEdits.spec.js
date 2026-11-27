@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { addField, applyForm, deleteField, formFor, formProblem, moveField, nestedPaths, removeField, setOtherFieldsAllowed } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builderEdits.ts'
+import { addField, allowedValuesFor, applyForm, deleteField, formFor, formProblem, moveField, nestedPaths, removeField, setOtherFieldsAllowed } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builderEdits.ts'
 
 const SCHEMA = () => ({
     type: 'object',
@@ -116,6 +116,12 @@ describe('builder edits', () => {
         expect(problem('/properties/value', { minimum: '10', maximum: '2' })).toBe('minimum must not be more than maximum.')
         expect(problem('/properties/unit', { minLength: '5', maxLength: '2' })).toBe('minLength must not be more than maxLength.')
         expect(problem('/properties/tags', { minItems: '3', maxItems: '1' })).toBe('minItems must not be more than maxItems.')
+    })
+
+    test('keeps the allowed values a type can have', () => {
+        expect(allowedValuesFor('number', ['1.5', 'abc', '2'])).toEqual(['1.5', '2'])
+        expect(allowedValuesFor('integer', ['1.5', 'abc', '2'])).toEqual(['2'])
+        expect(allowedValuesFor('string', ['1.5', 'abc'])).toEqual(['1.5', 'abc'])
     })
 
     test('wants numbers as the allowed values of a number, and whole numbers for an integer', () => {
