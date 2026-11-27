@@ -18,7 +18,7 @@
                         <ff-button kind="secondary" data-action="validate-message" disabled>Validate a message</ff-button>
                         <template v-if="editingDraft">
                             <ff-button kind="secondary" data-action="save-draft" @click="saveDraft">Save draft</ff-button>
-                            <ff-button v-if="canPublish" data-action="publish" @click="publishDialog?.show()">Publish</ff-button>
+                            <ff-button v-if="canPublish" data-action="publish" @click="showPublishDialog">Publish</ff-button>
                         </template>
                         <ff-button v-else-if="canEdit" data-action="create-draft" @click="createDraft">
                             <template #icon-left><PlusIcon /></template>
@@ -37,22 +37,13 @@
                 :read-only="!canEdit"
             />
         </router-view>
-        <PublishSchemaDialog
-            ref="publishDialog"
-            :schema-name="schema?.name ?? ''"
-            :latest-version="latestPublished?.version ?? null"
-            :existing-versions="existingVersions"
-            :draft-notes="notes"
-            :publishing="publishing"
-            @publish="publish"
-        />
     </ff-page>
 </template>
 
 <script setup lang="ts">
 import { PlusIcon } from '@heroicons/vue/24/outline'
 import { storeToRefs } from 'pinia'
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, markRaw, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import PublishSchemaDialog from './dialogs/PublishSchemaDialog.vue'
@@ -64,6 +55,7 @@ import Dialog from '@/services/dialog.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useDataFarmSchemasStore } from '@/stores/data-farm-schemas'
+import { useUxDialogStore } from '@/stores/ux-dialog.js'
 import { useUxLoadingStore } from '@/stores/ux-loading.js'
 
 defineOptions({ name: 'TeamSchema' })
@@ -71,6 +63,7 @@ defineOptions({ name: 'TeamSchema' })
 const route = useRoute()
 const router = useRouter()
 const schemasStore = useDataFarmSchemasStore()
+const dialogStore = useUxDialogStore()
 const uxLoading = useUxLoadingStore()
 const { activeSchema: schema, activeDraft: draft, activeLatestPublished: latestPublished, schemaHydrated, existingVersions } = storeToRefs(schemasStore)
 const { featuresCheck } = storeToRefs(useAccountSettingsStore())
@@ -78,7 +71,6 @@ const { hasPermission } = usePermissions()
 const { team } = storeToRefs(useContextStore())
 
 const notes = ref('')
-const publishDialog = ref<InstanceType<typeof PublishSchemaDialog> | null>(null)
 const publishing = ref(false)
 
 watch(() => route.params.schemaId, async (schemaId) => {
@@ -156,19 +148,48 @@ async function createDraft () {
     }
 }
 
-async function publish (payload: { version: string, notes: string }) {
+// what the dialog shows of the schema, which changes when a failed publish reloads it
+const publishDialogVersions = () => ({ latestVersion: latestPublished.value?.version ?? null, existingVersions: existingVersions.value })
+
+function showPublishDialog () {
+    if (publishing.value) return Alerts.emit('A publish is still in progress.', 'warning')
+    let form = { version: '', notes: notes.value }
+    // set when the dialog is cancelled while a publish is still running, which can't be taken back
+    let cancelled = false
+    Dialog.show({
+        header: `Publish ${schema.value?.name ?? ''}`,
+        confirmLabel: 'Publish',
+        closeOnConfirm: false,
+        is: {
+            component: markRaw(PublishSchemaDialog),
+            payload: { ...publishDialogVersions(), draftNotes: notes.value, error: '', publishing: false },
+            on: {
+                change: (value: { version: string, notes: string }) => {
+                    form = value
+                    dialogStore.updateDialogPayload({ error: '' })
+                }
+            }
+        }
+    }, () => publish(form, () => cancelled), () => { cancelled = true })
+}
+
+// `dialogCancelled` says whether the dialog was cancelled meanwhile: its outcome then shows as an alert, as the dialog is gone
+async function publish (payload: { version: string, notes: string }, dialogCancelled: () => boolean) {
     if (publishing.value) return
     publishing.value = true
+    dialogStore.updateDialogPayload({ publishing: true })
     try {
         await schemasStore.publishDraft(payload)
-        publishDialog.value?.close()
+        if (!dialogCancelled()) Dialog.close()
         Alerts.emit(`Version ${payload.version} published.`, 'confirmation')
     } catch (err) {
-        if (draft.value) return publishDialog.value?.setError(err.response?.data?.error || 'Failed to publish the draft.')
-        publishDialog.value?.close()
+        if (dialogCancelled()) return actionFailed(err, 'Failed to publish the draft.')
+        if (draft.value) return dialogStore.updateDialogPayload({ ...publishDialogVersions(), error: err.response?.data?.error || 'Failed to publish the draft.' })
+        Dialog.close()
         actionFailed(err, 'Failed to publish the draft.')
     } finally {
         publishing.value = false
+        if (!dialogCancelled()) dialogStore.updateDialogPayload({ publishing: false })
     }
 }
 </script>

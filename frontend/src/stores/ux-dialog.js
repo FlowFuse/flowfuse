@@ -6,6 +6,7 @@ export const useUxDialogStore = defineStore('ux-dialog', {
             boxClass: null,
             cancelLabel: null,
             canBeCanceled: true,
+            closeOnConfirm: true,
             confirmLabel: null,
             contentClass: '',
             disablePrimary: false,
@@ -47,6 +48,9 @@ export const useUxDialogStore = defineStore('ux-dialog', {
                 if (Object.prototype.hasOwnProperty.call(payload, 'canBeCanceled')) {
                     this.dialog.canBeCanceled = payload.canBeCanceled
                 }
+                if (Object.prototype.hasOwnProperty.call(payload, 'closeOnConfirm')) {
+                    this.dialog.closeOnConfirm = payload.closeOnConfirm
+                }
                 this.dialog.boxClass = payload.boxClass
             }
             this.dialog.onConfirm = onConfirm
@@ -54,6 +58,12 @@ export const useUxDialogStore = defineStore('ux-dialog', {
         },
         setDisablePrimary (value) {
             this.dialog.disablePrimary = value
+        },
+        // changes the props of the component the dialog is showing, e.g. to hand it an error from the server
+        updateDialogPayload (payload) {
+            if (this.dialog.is) {
+                Object.assign(this.dialog.is.payload, payload)
+            }
         },
         setDialogDevices (devices) {
             this.dialog.is.payload.devices = devices

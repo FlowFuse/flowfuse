@@ -8,10 +8,15 @@ import Alerts from '../../../../../../../frontend/src/services/alerts.js'
 import { useAccountSettingsStore } from '../../../../../../../frontend/src/stores/account-settings.js'
 import { useContextStore } from '../../../../../../../frontend/src/stores/context.js'
 import { useDataFarmSchemasStore } from '../../../../../../../frontend/src/stores/data-farm-schemas.ts'
+import { useUxDialogStore } from '../../../../../../../frontend/src/stores/ux-dialog.js'
 
 const router = vi.hoisted(() => ({ push: vi.fn() }))
 const route = vi.hoisted(() => ({ params: {} }))
-const dialog = vi.hoisted(() => ({ setError: vi.fn(), close: vi.fn() }))
+const Dialog = vi.hoisted(() => ({ show: vi.fn(), showAsync: vi.fn(), close: vi.fn() }))
+
+vi.mock('../../../../../../../frontend/src/services/dialog.js', () => ({
+    default: Dialog
+}))
 
 vi.mock('vue-router', () => ({
     useRoute: () => route,
@@ -45,15 +50,20 @@ function mountPage (role, { draft = null, latestPublished = null, loadError = nu
                 'ff-page-header': { template: '<div><slot name="status" /><slot name="context" /><slot name="tools" /></div>' },
                 'ff-button': { template: '<button><slot /></button>' },
                 'router-view': true,
-                PublishSchemaDialog: { name: 'PublishSchemaDialog', template: '<div />', methods: { show () {}, close: dialog.close, setError: dialog.setError } },
                 StatusBadge: { props: ['text'], template: '<span data-el="schema-status">{{ text }}</span>' }
             }
         }
     })
-    return { page, schemas }
+    return { page, schemas, dialogStore: useUxDialogStore(pinia) }
 }
 
-const publishFrom = (page) => page.findComponent({ name: 'PublishSchemaDialog' }).vm.$emit('publish', { version: '1.3.0', notes: '' })
+// opens the publish dialog, types a version and returns what the confirm button runs
+async function openPublishDialog (page) {
+    await page.find('[data-action="publish"]').trigger('click')
+    const [options, onConfirm, onCancel] = Dialog.show.mock.calls.at(-1)
+    options.is.on.change({ version: '1.3.0', notes: '' })
+    return { options, onConfirm, onCancel }
+}
 
 describe('Team Schema page', () => {
     beforeEach(() => {
@@ -96,35 +106,55 @@ describe('Team Schema page', () => {
         expect(router.push).toHaveBeenCalledWith({ name: 'team-schemas', params: { team_slug: 'team' } })
     })
 
-    test('shows a publish error in the dialog while the draft still exists', async () => {
+    test('opens the publish dialog with the versions it checks against, and keeps it open on confirm', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: { ...DRAFT, notes: 'draft notes' }, latestPublished: PUBLISHED })
+        schemas.existingVersions = ['1.2.0']
+        const { options } = await openPublishDialog(page)
+        expect(options.header).toBe('Publish Temperature')
+        expect(options.closeOnConfirm).toBe(false)
+        expect(options.is.payload).toMatchObject({ latestVersion: '1.2.0', existingVersions: ['1.2.0'], draftNotes: 'draft notes' })
+    })
+
+    test('publishes what was typed and closes the dialog', async () => {
         const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        schemas.publishDraft.mockResolvedValue()
+        const { onConfirm } = await openPublishDialog(page)
+        await onConfirm()
+        expect(schemas.publishDraft).toHaveBeenCalledWith({ version: '1.3.0', notes: '' })
+        expect(Dialog.close).toHaveBeenCalled()
+        expect(Alerts.emit).toHaveBeenCalledWith('Version 1.3.0 published.', 'confirmation')
+    })
+
+    test('shows a publish error in the dialog while the draft still exists', async () => {
+        const { page, schemas, dialogStore } = mountPage(Roles.Member, { draft: DRAFT })
         schemas.publishDraft.mockRejectedValue(apiError('Version 1.3.0 already exists'))
-        publishFrom(page)
-        await flushPromises()
-        expect(dialog.setError).toHaveBeenCalledWith('Version 1.3.0 already exists')
-        expect(dialog.close).not.toHaveBeenCalled()
+        const { onConfirm } = await openPublishDialog(page)
+        await onConfirm()
+        expect(dialogStore.updateDialogPayload).toHaveBeenCalledWith(expect.objectContaining({ error: 'Version 1.3.0 already exists' }))
+        expect(Dialog.close).not.toHaveBeenCalled()
     })
 
     test('ignores a second publish while one is running', async () => {
         const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
         schemas.publishDraft.mockReturnValue(new Promise(() => {}))
-        publishFrom(page)
-        publishFrom(page)
+        const { onConfirm } = await openPublishDialog(page)
+        onConfirm()
+        onConfirm()
         await flushPromises()
         expect(schemas.publishDraft).toHaveBeenCalledTimes(1)
     })
 
     test('closes the dialog when the draft was published or discarded elsewhere', async () => {
-        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        const { page, schemas, dialogStore } = mountPage(Roles.Member, { draft: DRAFT })
         schemas.publishDraft.mockImplementation(async () => {
             schemas.activeDraft = null
             throw apiError('The draft was published or discarded by another request')
         })
-        publishFrom(page)
-        await flushPromises()
-        expect(dialog.close).toHaveBeenCalled()
+        const { onConfirm } = await openPublishDialog(page)
+        await onConfirm()
+        expect(Dialog.close).toHaveBeenCalled()
         expect(Alerts.emit).toHaveBeenCalledWith('The draft was published or discarded by another request', 'warning')
-        expect(dialog.setError).not.toHaveBeenCalled()
+        expect(dialogStore.updateDialogPayload).not.toHaveBeenCalledWith(expect.objectContaining({ error: 'The draft was published or discarded by another request' }))
     })
 
     test('keeps unsaved notes when the same draft is reloaded', async () => {
@@ -179,5 +209,32 @@ describe('Team Schema page', () => {
         await flushPromises()
         expect(Alerts.emit).toHaveBeenCalledWith('The draft was published or discarded by another request', 'warning')
         expect(router.push).not.toHaveBeenCalled()
+    })
+
+    test('shows a failed publish as an alert when the dialog was cancelled meanwhile', async () => {
+        const { page, schemas, dialogStore } = mountPage(Roles.Member, { draft: DRAFT })
+        let fail
+        schemas.publishDraft.mockReturnValue(new Promise((resolve, reject) => { fail = reject }))
+        const { onConfirm, onCancel } = await openPublishDialog(page)
+        const publishing = onConfirm()
+        onCancel()
+        fail(apiError('The draft has problems and cannot be published'))
+        await publishing
+        expect(Alerts.emit).toHaveBeenCalledWith('The draft has problems and cannot be published', 'warning')
+        expect(dialogStore.updateDialogPayload).not.toHaveBeenCalledWith(expect.objectContaining({ error: 'The draft has problems and cannot be published' }))
+        expect(Dialog.close).not.toHaveBeenCalled()
+    })
+
+    test('leaves the dialog alone when a publish succeeds after it was cancelled', async () => {
+        const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+        let finish
+        schemas.publishDraft.mockReturnValue(new Promise(resolve => { finish = resolve }))
+        const { onConfirm, onCancel } = await openPublishDialog(page)
+        const publishing = onConfirm()
+        onCancel()
+        finish()
+        await publishing
+        expect(Dialog.close).not.toHaveBeenCalled()
+        expect(Alerts.emit).toHaveBeenCalledWith('Version 1.3.0 published.', 'confirmation')
     })
 })

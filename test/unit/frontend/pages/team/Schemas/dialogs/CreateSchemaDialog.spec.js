@@ -1,26 +1,18 @@
-import { createTestingPinia } from '@pinia/testing'
-import { flushPromises, mount } from '@vue/test-utils'
-import { beforeEach, describe, expect, test, vi } from 'vitest'
+import { mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
+import { describe, expect, test } from 'vitest'
 
 import CreateSchemaDialog from '../../../../../../../frontend/src/pages/team/Schemas/dialogs/CreateSchemaDialog.vue'
-import { useContextStore } from '../../../../../../../frontend/src/stores/context.js'
-import { useDataFarmSchemasStore } from '../../../../../../../frontend/src/stores/data-farm-schemas.ts'
+import { useUxDialogStore } from '../../../../../../../frontend/src/stores/ux-dialog.js'
 
-const router = vi.hoisted(() => ({ push: vi.fn() }))
-
-vi.mock('vue-router', () => ({
-    useRouter: () => router
-}))
-
-function mountDialog () {
-    const pinia = createTestingPinia({ createSpy: vi.fn })
-    useContextStore(pinia).team = { slug: 'team' }
-    const schemas = useDataFarmSchemasStore(pinia)
+function mountDialog (props = {}) {
+    const pinia = createPinia()
+    setActivePinia(pinia)
     const dialog = mount(CreateSchemaDialog, {
+        props: { error: '', creating: false, ...props },
         global: {
             plugins: [pinia],
             stubs: {
-                'ff-dialog': { template: '<div><slot /><button data-action="confirm" @click="$emit(\'confirm\')" /></div>', methods: { show () {}, close () {} } },
                 FormRow: {
                     props: ['modelValue', 'error'],
                     emits: ['update:modelValue'],
@@ -29,53 +21,34 @@ function mountDialog () {
             }
         }
     })
-    dialog.vm.show()
-    return { dialog, schemas }
-}
-
-async function submitName (dialog, name) {
-    await dialog.find('input').setValue(name)
-    await dialog.find('[data-action="confirm"]').trigger('click')
-    await flushPromises()
+    return { dialog, dialogStore: useUxDialogStore(pinia) }
 }
 
 describe('Create schema dialog', () => {
-    beforeEach(() => {
-        vi.clearAllMocks()
+    test('reports the trimmed name', async () => {
+        const { dialog } = mountDialog()
+        await dialog.find('input').setValue('  Temp ')
+        expect(dialog.emitted('change').at(-1)[0]).toBe('Temp')
     })
 
-    test('creates a schema with the trimmed name and opens it', async () => {
-        const { dialog, schemas } = mountDialog()
-        schemas.createSchema.mockResolvedValue({ id: 'abc' })
-        await submitName(dialog, '  Temp ')
-        expect(schemas.createSchema).toHaveBeenCalledWith('Temp')
-        expect(router.push).toHaveBeenCalledWith({ name: 'team-schema', params: { team_slug: 'team', schemaId: 'abc' } })
-    })
-
-    test('shows a name conflict on the field and stays put', async () => {
-        const { dialog, schemas } = mountDialog()
-        schemas.createSchema.mockRejectedValue({ response: { data: { error: 'The name is already in use in this team' } } })
-        await submitName(dialog, 'Temp')
-        expect(dialog.find('[data-el="error"]').text()).toBe('The name is already in use in this team')
-        expect(router.push).not.toHaveBeenCalled()
-    })
-
-    test('ignores a second confirm while the schema is being created', async () => {
-        const { dialog, schemas } = mountDialog()
-        schemas.createSchema.mockReturnValue(new Promise(() => {}))
+    test('cannot be confirmed without a name', async () => {
+        const { dialog, dialogStore } = mountDialog()
+        expect(dialogStore.dialog.disablePrimary).toBe(true)
+        await dialog.find('input').setValue('   ')
+        expect(dialogStore.dialog.disablePrimary).toBe(true)
         await dialog.find('input').setValue('Temp')
-        await dialog.find('[data-action="confirm"]').trigger('click')
-        await dialog.find('[data-action="confirm"]').trigger('click')
-        expect(schemas.createSchema).toHaveBeenCalledTimes(1)
+        expect(dialogStore.dialog.disablePrimary).toBe(false)
     })
 
-    test('clears the name and error when reopened', async () => {
-        const { dialog, schemas } = mountDialog()
-        schemas.createSchema.mockRejectedValue({ response: { data: { error: 'The name is already in use in this team' } } })
-        await submitName(dialog, 'Temp')
-        dialog.vm.show()
-        await dialog.vm.$nextTick()
-        expect(dialog.find('input').element.value).toBe('')
-        expect(dialog.find('[data-el="error"]').text()).toBe('')
+    test('cannot be confirmed again while the schema is being created', async () => {
+        const { dialog, dialogStore } = mountDialog()
+        await dialog.find('input').setValue('Temp')
+        await dialog.setProps({ creating: true })
+        expect(dialogStore.dialog.disablePrimary).toBe(true)
+    })
+
+    test('shows an error from the server on the field', async () => {
+        const { dialog } = mountDialog({ error: 'The name is already in use in this team' })
+        expect(dialog.find('[data-el="error"]').text()).toBe('The name is already in use in this team')
     })
 })
