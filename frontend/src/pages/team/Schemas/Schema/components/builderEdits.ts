@@ -309,13 +309,13 @@ export function setOtherFieldsAllowed (root: Schema, holderPointer: string, allo
     return next
 }
 
-export function moveField (root: Schema, pointer: string, offset: -1 | 1): Schema {
+// Takes a field out of its object's list and puts it back at an index of the list without it
+export function moveFieldTo (root: Schema, pointer: string, to: number): Schema {
     const next = structuredClone(root)
     const { holder: holderPointer, name } = splitPointer(pointer)
     const holder = schemaAt(next, holderPointer)!
     const entries = Object.entries(propertiesOf(holder))
     const from = entries.findIndex(([key]) => key === name)
-    const to = from + offset
     if (from === -1 || to < 0 || to >= entries.length) {
         return next
     }
@@ -323,6 +323,12 @@ export function moveField (root: Schema, pointer: string, offset: -1 | 1): Schem
     entries.splice(to, 0, moved)
     holder.properties = Object.fromEntries(entries)
     return next
+}
+
+export function moveField (root: Schema, pointer: string, offset: -1 | 1): Schema {
+    const { holder, name } = splitPointer(pointer)
+    const from = Object.keys(propertiesOf(schemaAt(root, holder)!)).indexOf(name)
+    return moveFieldTo(root, pointer, from + offset)
 }
 
 // Unlike removeField, the name also leaves the required list of its object

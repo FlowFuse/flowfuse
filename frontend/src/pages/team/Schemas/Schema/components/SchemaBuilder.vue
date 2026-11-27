@@ -39,7 +39,10 @@
                                     <FieldEditPanel :root="schema" :pointer="entry.row.pointer" @apply="applied(entry.row.pointer, $event)" @cancel="cancelEdit" />
                                 </ff-data-table-cell>
                             </ff-data-table-row>
-                            <ff-data-table-row v-else :data-el="`builder-row-${entry.row.path}`">
+                            <ff-data-table-row v-else :data-el="`builder-row-${entry.row.path}`" v-bind="reorderRow(entry)">
+                                <ff-data-table-cell v-if="!readOnly" class="schema-builder__drag-cell">
+                                    <ff-drag-handle v-if="entry.row.pointer" data-action="builder-drag" v-bind="reorder.handle(entry.holder, entry.index)" />
+                                </ff-data-table-cell>
                                 <ff-data-table-cell class="schema-builder__field-cell">
                                     <div class="schema-builder__field" :style="{ '--depth': entry.row.depth }">
                                         <span v-for="level in entry.row.depth" :key="level" class="schema-builder__guide" />
@@ -100,10 +103,12 @@ import { computed, nextTick, onDeactivated, ref, watch } from 'vue'
 
 import FieldEditPanel from './FieldEditPanel.vue'
 import { type FieldRow, type OtherFields, builderRows, fieldTrail, fieldsHolder, focusedHolder, otherFields, propertiesOf, rootNotes, schemaAt } from './builder'
-import { addField, deleteField, moveField, nestedPaths, removeField, setOtherFieldsAllowed, splitPointer } from './builderEdits'
+import { addField, deleteField, moveField, moveFieldTo, nestedPaths, removeField, setOtherFieldsAllowed, splitPointer } from './builderEdits'
+import { pointerFor } from './pointer'
 import type { Schema } from './schemaTypes'
 
 import Dialog from '@/services/dialog.js'
+import { useDragReorder } from '@/ui-components/composables/useDragReorder.js'
 
 defineOptions({ name: 'SchemaBuilder' })
 
@@ -111,6 +116,7 @@ const props = defineProps<{ schema: Schema | null, readOnly: boolean }>()
 const emit = defineEmits<{ 'edit-json': [], 'update:schemaText': [text: string] }>()
 
 const columns = computed(() => [
+    ...(props.readOnly ? [] : [{ label: '', key: 'drag', class: ['w-8'] }]),
     { label: 'Field', key: 'name', class: ['w-1/5'] },
     { label: 'Type', key: 'type', class: ['w-40'] },
     { label: 'Required', key: 'required', class: ['w-28'] },
@@ -170,7 +176,7 @@ const holderPointer = computed(() => holder.value ? focus.value + holder.value.s
 const editing = ref<string | null>(null)
 const added = ref<string | null>(null)
 
-type RowEntry = { kind: 'field' | 'panel', key: string, row: FieldRow, first?: boolean, last?: boolean }
+type RowEntry = { kind: 'field' | 'panel', key: string, row: FieldRow, holder?: string, index?: number, first?: boolean, last?: boolean }
 type AddEntry = { kind: 'add', key: string, holder: string, path: string, name: string, depth: number }
 type Entry = RowEntry | AddEntry
 
@@ -199,7 +205,8 @@ const entries = computed<Entry[]>(() => {
         closeTo(row.depth)
         const names = row.pointer ? namesOf(splitPointer(row.pointer).holder) : []
         const name = row.pointer ? splitPointer(row.pointer).name : ''
-        list.push({ kind: 'field', key: row.pointer, row, first: names[0] === name, last: names.at(-1) === name })
+        const holder = row.pointer ? splitPointer(row.pointer).holder : ''
+        list.push({ kind: 'field', key: row.pointer, row, holder, index: names.indexOf(name), first: names[0] === name, last: names.at(-1) === name })
         if (editing.value === row.pointer) {
             list.push({ kind: 'panel', key: `panel:${row.pointer}`, row })
         }
@@ -239,6 +246,21 @@ function cancelEdit () {
 
 function move (pointer: string, offset: -1 | 1) {
     write(moveField(props.schema!, pointer, offset))
+}
+
+// Dragging reorders the fields of one object, which is the group a row is dragged within
+const reorder = useDragReorder({
+    onMove ({ group, from, to }) {
+        const name = Object.keys(propertiesOf(schemaAt(props.schema!, group)!))[from]
+        write(moveFieldTo(props.schema!, pointerFor(group, name), to))
+    }
+})
+
+function reorderRow (entry: RowEntry) {
+    if (props.readOnly || !entry.row.pointer) {
+        return {}
+    }
+    return reorder.row(entry.holder!, entry.index!)
 }
 
 const NESTED_SHOWN = 10
@@ -342,6 +364,10 @@ function setOtherFields (allowed: boolean) {
         border-left: 1px solid var(--ff-color-border-strong);
         margin-left: 0.5rem;
         margin-right: -0.5rem;
+    }
+
+    &__drag-cell {
+        padding-right: 0;
     }
 
     &__toggle {

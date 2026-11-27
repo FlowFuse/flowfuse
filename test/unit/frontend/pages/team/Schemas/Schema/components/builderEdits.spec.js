@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { addField, allowedValuesFor, applyForm, deleteField, formFor, formProblem, moveField, nestedPaths, removeField, setOtherFieldsAllowed } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builderEdits.ts'
+import { addField, allowedValuesFor, applyForm, deleteField, formFor, formProblem, moveField, moveFieldTo, nestedPaths, removeField, setOtherFieldsAllowed } from '../../../../../../../../frontend/src/pages/team/Schemas/Schema/components/builderEdits.ts'
 
 const SCHEMA = () => ({
     type: 'object',
@@ -190,6 +190,15 @@ describe('builder edits', () => {
         expect(Object.keys(moveField(SCHEMA(), '/properties/unit', -1).properties)).toEqual(['unit', 'value', 'fault_code', 'sensor', 'tags'])
         expect(Object.keys(moveField(SCHEMA(), '/properties/unit', 1).properties)).toEqual(['value', 'fault_code', 'unit', 'sensor', 'tags'])
         expect(Object.keys(moveField(SCHEMA(), '/properties/value', -1).properties)).toEqual(['value', 'unit', 'fault_code', 'sensor', 'tags'])
+    })
+
+    test('moves a field to an index among the fields of its object, leaving required alone', () => {
+        const moved = moveFieldTo(SCHEMA(), '/properties/value', 3)
+        expect(Object.keys(moved.properties)).toEqual(['unit', 'fault_code', 'sensor', 'value', 'tags'])
+        expect(moved.required).toEqual(['value', 'unit'])
+        expect(Object.keys(moveFieldTo(SCHEMA(), '/properties/tags', 0).properties)).toEqual(['tags', 'value', 'unit', 'fault_code', 'sensor'])
+        expect(Object.keys(moveFieldTo(SCHEMA(), '/properties/sensor/properties/id', 0).properties.sensor.properties)).toEqual(['id'])
+        expect(Object.keys(moveFieldTo(SCHEMA(), '/properties/value', 9).properties)).toEqual(['value', 'unit', 'fault_code', 'sensor', 'tags'])
     })
 
     test('deletes a field, taking it off the required list', () => {
