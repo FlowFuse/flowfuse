@@ -1,5 +1,5 @@
 <template>
-    <div class="field-panel" data-el="field-panel">
+    <div ref="panel" class="field-panel" data-el="field-panel">
         <div class="field-panel__grid">
             <label class="field-panel__item">
                 <span class="field-panel__label">Name</span>
@@ -8,7 +8,7 @@
             <div class="field-panel__item">
                 <span class="field-panel__label">Type</span>
                 <ff-listbox v-model="form.type" :options="typeOptions" data-form="field-type" />
-                <ff-checkbox v-if="form.type !== 'null'" v-model="form.nullable" data-form="field-nullable">Also allow null</ff-checkbox>
+                <ff-checkbox v-if="form.type !== ANY_TYPE && form.type !== 'null'" v-model="form.nullable" data-form="field-nullable">Also allow null</ff-checkbox>
             </div>
             <div v-if="form.type === 'array'" class="field-panel__item">
                 <span class="field-panel__label">Item type</span>
@@ -61,9 +61,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
-import { FIELD_TYPES, ITEM_TYPES, STRING_FORMATS, applyForm, formFor, formProblem } from './builderEdits'
+import { ANY_TYPE, FIELD_TYPES, ITEM_TYPES, STRING_FORMATS, applyForm, formFor, formProblem } from './builderEdits'
 import type { Schema } from './schemaTypes'
 
 defineOptions({ name: 'FieldEditPanel' })
@@ -73,8 +73,12 @@ const emit = defineEmits<{ apply: [result: { root: Schema, pointer: string }], c
 
 const form = ref(formFor(props.root, props.pointer))
 const allowedValues = ref<{ commit: () => void } | null>(null)
+const panel = ref<HTMLElement | null>(null)
 
-const typeOptions = FIELD_TYPES.map(type => ({ value: type, label: type }))
+onMounted(() => panel.value?.scrollIntoView?.({ block: 'nearest' }))
+
+// a field that states no type takes any value, and can be left that way
+const typeOptions = [...(form.value.type === ANY_TYPE ? [{ value: ANY_TYPE, label: ANY_TYPE }] : []), ...FIELD_TYPES.map(type => ({ value: type, label: type }))]
 const itemOptions = [{ value: '', label: 'Any' }, ...ITEM_TYPES.map(type => ({ value: type, label: type }))]
 const formatOptions = [{ value: '', label: 'Any' }, ...STRING_FORMATS.map(format => ({ value: format, label: format }))]
 

@@ -65,7 +65,7 @@
                                 </ff-data-table-cell>
                                 <ff-data-table-cell v-if="!readOnly">
                                     <ff-kebab-menu v-if="!entry.row.jsonOnly && entry.row.pointer">
-                                        <ff-kebab-item label="Edit" @click="editing = entry.row.pointer" />
+                                        <ff-kebab-item label="Edit" @click="edit(entry.row.pointer)" />
                                     </ff-kebab-menu>
                                 </ff-data-table-cell>
                             </ff-data-table-row>
@@ -93,7 +93,7 @@
 <script setup lang="ts">
 import { ArrowRightCircleIcon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/vue/20/solid'
 import { PlusIcon } from '@heroicons/vue/24/outline'
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onDeactivated, ref, watch } from 'vue'
 
 import FieldEditPanel from './FieldEditPanel.vue'
 import { type FieldRow, type OtherFields, builderRows, fieldTrail, fieldsHolder, focusedHolder, otherFields, rootNotes, schemaAt } from './builder'
@@ -208,7 +208,8 @@ function applied (pointer: string, result: { root: Schema, pointer: string }) {
 }
 
 function add (holderPointer: string) {
-    const result = addField(props.schema!, holderPointer)
+    const pending = editing.value && editing.value === added.value ? editing.value : null
+    const result = addField(pending ? removeField(props.schema!, pending) : props.schema!, holderPointer)
     write(result.root)
     editing.value = result.pointer
     added.value = result.pointer
@@ -221,6 +222,17 @@ function cancelEdit () {
     editing.value = null
     added.value = null
 }
+
+function edit (pointer: string) {
+    if (pointer !== editing.value) {
+        cancelEdit()
+    }
+    editing.value = pointer
+}
+
+// The builder is kept while the JSON is on screen. A panel left open would come back holding what the field
+// was before the JSON was changed, so it is closed as cancelled.
+onDeactivated(cancelEdit)
 
 function setOtherFields (allowed: boolean) {
     write(setOtherFieldsAllowed(props.schema!, holderPointer.value, allowed))
