@@ -32,6 +32,21 @@ describe('Schema builder', () => {
         expect(paths(builder)).toEqual(['/location', '/calibration'])
     })
 
+    test('says what the top level of the schema has that it cannot show, with a way to the JSON', async () => {
+        expect(mountBuilder().find('[data-el="builder-root-notes"]').exists()).toBe(false)
+        const builder = mountBuilder(JSON.stringify({ ...SCHEMA, anyOf: [{ required: ['location'] }] }))
+        expect(builder.find('[data-el="builder-root-notes"]').text()).toContain('anyOf at its top level')
+        await builder.find('[data-action="builder-root-to-json"]').trigger('click')
+        expect(builder.emitted('edit-json')).toHaveLength(1)
+    })
+
+    test('keeps room for a toggle on a field that has none, so names line up', () => {
+        const builder = mountBuilder()
+        const row = builder.find('[data-el="builder-row-/calibration"]')
+        expect(row.find('[data-action="builder-toggle"]').exists()).toBe(false)
+        expect(row.find('span.ff-icon-sm[aria-hidden="true"]').exists()).toBe(true)
+    })
+
     test('sends a field it cannot show to the JSON view', async () => {
         const builder = mountBuilder()
         await builder.find('[data-action="builder-edit-in-json"]').trigger('click')

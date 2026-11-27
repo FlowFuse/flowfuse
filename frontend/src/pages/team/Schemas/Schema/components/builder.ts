@@ -100,6 +100,26 @@ export function referenceProblem (schema: Schema, isRoot = false): string {
     return isObject(schema.items) ? referenceProblem(schema.items) : ''
 }
 
+/**
+ * What the builder can't show of a root that lists fields: keywords of the root itself, which a field's row has no place for.
+ * A root that is not an object has a row of its own that says so instead.
+ */
+export function rootNotes (root: Schema): string[] {
+    if (fieldsHolder(root)?.suffix !== '') {
+        return []
+    }
+    const notes: string[] = []
+    const problem = referenceProblem(root, true)
+    if (problem) {
+        notes.push(`${problem}, at the top level of the schema.`)
+    }
+    const keywords = JSON_ONLY_KEYWORDS.filter(keyword => Object.hasOwn(root, keyword))
+    if (keywords.length) {
+        notes.push(`The schema also uses ${keywords.join(', ')} at its top level, which the builder can't show.`)
+    }
+    return notes
+}
+
 const short = (value: unknown) => typeof value === 'string' ? value : JSON.stringify(value)
 
 export function constraintsSummary (schema: Schema): string {
