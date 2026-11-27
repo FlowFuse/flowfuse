@@ -29,6 +29,7 @@ function mountPage ({ schema = { id: 'abc' }, answer = async () => VERSION } = {
         global: {
             plugins: [pinia],
             stubs: {
+                'ff-button': { props: ['to'], template: '<button :data-to="to && to.name"><slot /></button>' },
                 'router-link': { props: ['to'], template: '<a :data-to="to.name"><slot /></a>' },
                 StatusBadge: { props: ['text'], template: '<span>{{ text }}</span>' },
                 JsonEditor: { props: ['modelValue', 'readOnly'], template: '<pre data-el="json-editor" :data-read-only="readOnly">{{ modelValue }}</pre>' }
@@ -52,6 +53,18 @@ describe('Schema version page', () => {
         expect(page.find('[data-el="json-editor"]').attributes('data-read-only')).toBe('true')
         expect(page.find('[data-el="version-notes"]').text()).toContain('adds unit')
         expect(page.find('[data-action="back-to-versions"]').attributes('data-to')).toBe('team-schema-versions')
+    })
+
+    test('copies the version\'s JSON to the clipboard', async () => {
+        const writeText = vi.fn().mockResolvedValue()
+        vi.stubGlobal('navigator', { clipboard: { writeText } })
+        const { page } = mountPage()
+        await flushPromises()
+        await page.find('[data-action="copy-json"]').trigger('click')
+        await flushPromises()
+        expect(JSON.parse(writeText.mock.calls[0][0])).toEqual({ type: 'object' })
+        expect(Alerts.emit).toHaveBeenCalledWith('Copied to Clipboard.', 'confirmation')
+        vi.unstubAllGlobals()
     })
 
     test('says when the version is deprecated', async () => {
