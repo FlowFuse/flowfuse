@@ -1,5 +1,6 @@
 <template>
-    <div class="flex flex-col gap-6" data-el="schema-editor">
+    <!-- fills the page and no more: the schema and the version notes share its height and each scrolls within itself -->
+    <div class="flex min-h-0 flex-1 flex-col gap-6" data-el="schema-editor">
         <TabToolbar>
             <ToggleButtonGroup v-model="view" :buttons="views" :uses-links="false" title="View" visually-hide-title />
             <template #tools>
@@ -7,6 +8,7 @@
                     <ExclamationCircleIcon class="ff-icon-sm" />
                     {{ problemCount }} {{ problemCount === 1 ? 'problem' : 'problems' }}
                 </span>
+                <span v-if="view === 'builder' && rootType" class="schema-root-type" data-el="builder-root-type">Root type <span class="font-mono">{{ rootType }}</span></span>
                 <template v-if="view === 'json'">
                     <ff-button v-if="canChangeText" kind="secondary" data-action="format-json" @click="jsonEditor?.format()">Format</ff-button>
                     <ff-button v-if="clipboardSupported" kind="secondary" data-action="copy-json" @click="copy">Copy</ff-button>
@@ -17,25 +19,32 @@
                 </template>
             </template>
         </TabToolbar>
-        <JsonEditor v-show="view === 'json'" ref="jsonEditor" v-model="schemaText" v-model:problems="editorProblems" :markers="markers" :read-only="jsonReadOnly" />
-        <div v-if="draft" class="schema-notes" data-el="schema-notes">
-            <label for="schema-version-notes" class="schema-notes__label">
-                <DocumentTextIcon class="ff-icon" />
-                Version notes
-            </label>
-            <textarea id="schema-version-notes" v-model="notes" class="mt-2 w-full" rows="3" :disabled="readOnly" />
-        </div>
-        <FfAccordion v-else-if="latestPublished?.notes" class="schema-notes" variant="bare" data-el="schema-notes">
-            <template #label>
-                <p class="schema-notes__label">
+        <!-- kept while the JSON is on screen, so what was expanded or opened in the builder is still so on coming back -->
+        <KeepAlive>
+            <SchemaBuilder v-if="view === 'builder'" class="min-h-0" :schema="schema" @edit-json="view = 'json'" />
+        </KeepAlive>
+        <JsonEditor v-show="view === 'json'" ref="jsonEditor" v-model="schemaText" v-model:problems="editorProblems" fit :markers="markers" :read-only="jsonReadOnly" />
+        <!-- the notes take what they need, up to half the height, and the schema above has the rest -->
+        <div v-if="draft || latestPublished?.notes" class="flex max-h-1/2 shrink-0 flex-col">
+            <div v-if="draft" class="schema-notes" data-el="schema-notes">
+                <label for="schema-version-notes" class="schema-notes__label">
                     <DocumentTextIcon class="ff-icon" />
                     Version notes
-                </p>
-            </template>
-            <template #content>
-                <p class="schema-notes__text">{{ latestPublished.notes }}</p>
-            </template>
-        </FfAccordion>
+                </label>
+                <textarea id="schema-version-notes" v-model="notes" class="mt-2 w-full" rows="3" :disabled="readOnly" />
+            </div>
+            <FfAccordion v-else-if="latestPublished?.notes" class="schema-notes" variant="bare" data-el="schema-notes">
+                <template #label>
+                    <p class="schema-notes__label">
+                        <DocumentTextIcon class="ff-icon" />
+                        Version notes
+                    </p>
+                </template>
+                <template #content>
+                    <p class="schema-notes__text">{{ latestPublished.notes }}</p>
+                </template>
+            </FfAccordion>
+        </div>
     </div>
 </template>
 
@@ -43,8 +52,11 @@
 import { DocumentTextIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import { computed, ref } from 'vue'
 
+import SchemaBuilder from './components/SchemaBuilder.vue'
 import TabToolbar from './components/TabToolbar.vue'
+import { parseSchema } from './components/builder'
 import type { ReferenceProblem } from './components/referenceProblems'
+import { typeLabel } from './components/schemaTypes'
 
 import FfAccordion from '@/components/Accordion.vue'
 import JsonEditor from '@/components/JsonEditor.vue'
@@ -71,9 +83,12 @@ const views = [
     { title: 'Builder', value: 'builder' },
     { title: 'JSON', value: 'json' }
 ]
-const view = ref('json')
+const view = ref('builder')
 const jsonEditor = ref<InstanceType<typeof JsonEditor> | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
+
+const schema = computed(() => parseSchema(schemaText.value))
+const rootType = computed(() => schema.value ? typeLabel(schema.value) : '')
 
 const jsonReadOnly = computed(() => props.readOnly || !props.draft)
 // Format and Import work through the editor, so they are no use when it failed to load
@@ -100,7 +115,21 @@ async function importFile (event: Event) {
 </script>
 
 <style scoped lang="scss">
+.schema-root-type {
+    font-size: 0.875rem;
+    color: var(--ff-color-text-subtle);
+
+    .font-mono {
+        color: var(--ff-color-text);
+    }
+}
+
 .schema-notes {
+    // a column that can be shorter than the notes, which then scroll under their label
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+
     &__label {
         display: flex;
         align-items: center;
@@ -117,6 +146,8 @@ async function importFile (event: Event) {
     }
 
     & > :deep(.ff-accordion--content) {
+        min-height: 0;
+        overflow-y: auto;
         padding: 12px 16px;
         border: 1px solid var(--ff-color-border);
         border-radius: 0.625rem;

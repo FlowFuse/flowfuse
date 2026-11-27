@@ -1,6 +1,6 @@
 <template>
     <p v-if="loadFailed" class="json-editor json-editor--failed" data-el="json-editor-error">The editor failed to load. Reload the page to try again.</p>
-    <div v-else ref="container" class="json-editor" :style="{ height: `${contentHeight}px` }" data-el="json-editor" />
+    <div v-else ref="container" class="json-editor" :class="{ 'json-editor--fit': fit }" :style="{ height: `${contentHeight}px` }" data-el="json-editor" />
 </template>
 
 <script setup lang="ts">
@@ -14,8 +14,10 @@ defineOptions({ name: 'JsonEditor' })
 const props = withDefaults(defineProps<{
     readOnly: boolean
     markers?: { offset: number, length: number, message: string }[]
+    fit?: boolean
 }>(), {
-    markers: () => []
+    markers: () => [],
+    fit: false
 })
 
 const text = defineModel<string>({ required: true })
@@ -167,5 +169,9 @@ defineExpose({ format, replace, loadFailed })
     border: 1px solid var(--ff-color-border);
     border-radius: 6px;
     overflow: hidden;
+}
+
+.json-editor--fit {
+    max-height: none;
 }
 </style>
