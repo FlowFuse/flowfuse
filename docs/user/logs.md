@@ -16,7 +16,7 @@ They will contain information such as nodes being added and errors relating to y
 
 The log information is kept back to the last time the instance container was restarted, you can view older information on the `Load earlier...` link at the top of the log.
 
-<img src="images/projectlog.png" width="500" />
+<img alt="Node-RED log for an instance" src="images/projectlog.png" width="500" />
 
 Node-RED logs can also be output from the Containers/Pods that run Instances on Docker or Kubernetes. This is enabled by the `forge.logPassthrough` option. More details can be found in the [Configuration](../install/configuration.md) documentation.
 
@@ -34,7 +34,7 @@ The events include:
 
 This log contains all events since the instance was created. You can view older data using the `Load More...` link at the bottom of the log.
 
-<img src="images/projectactivity.png" width="500" />
+<img alt="Instance audit log listing instance events" src="images/projectactivity.png" width="500" />
 
 ### Resource utilization warnings
 
@@ -51,7 +51,7 @@ This includes:
 
 This log contains all events since the team was created. Tou can view older data using the `Load More...` link at the bottom of the log.
 
-<img src="images/teamauditlog.png" width="500" />
+<img alt="Team audit log listing team events" src="images/teamauditlog.png" width="500" />
 
 ### AI Agents and API Activity
 
