@@ -351,6 +351,16 @@ describe('data-farm-schemas store', () => {
             expect(store.groupSchemas.g1.nextCursor).toBeUndefined()
         })
 
+        it('offers no more once everything is loaded, even when the last page was full and came with a cursor', async () => {
+            schemasApi.listGrouped.mockResolvedValue(grouped(page(['a', 'b'], 4, 'b'), page([]), page([])))
+            schemasApi.listSchemas.mockResolvedValue(page(['c', 'd'], 4, 'd'))
+            const store = useDataFarmSchemasStore()
+            await store.loadList()
+            await store.loadMoreOfGroup('g1')
+            expect(store.groupSchemas.g1.schemas).toHaveLength(4)
+            expect(store.groupSchemas.g1.nextCursor).toBeUndefined()
+        })
+
         it('searches in the same one request, and keeps searching when more of a group is loaded', async () => {
             schemasApi.listGrouped.mockResolvedValue(grouped(page(['a'], 2, 'a'), page([]), page(['c'])))
             schemasApi.listSchemas.mockResolvedValue(page(['b'], 2))
