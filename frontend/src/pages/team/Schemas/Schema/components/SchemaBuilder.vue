@@ -107,8 +107,8 @@ import { addField, deleteField, moveField, moveFieldTo, nestedPaths, removeField
 import { pointerFor } from './pointer'
 import type { Schema } from './schemaTypes'
 
+import { useDragReorder } from '@/composables/DragReorder.js'
 import Dialog from '@/services/dialog.js'
-import { useDragReorder } from '@/ui-components/composables/useDragReorder.js'
 
 defineOptions({ name: 'SchemaBuilder' })
 

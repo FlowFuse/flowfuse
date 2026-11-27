@@ -2,8 +2,8 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, test, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 
+import { useDragReorder } from '../../../../../../frontend/src/composables/DragReorder.js'
 import FfDragHandle from '../../../../../../frontend/src/ui-components/components/DragHandle.vue'
-import { useDragReorder } from '../../../../../../frontend/src/ui-components/composables/useDragReorder.js'
 
 const dataTransfer = () => ({ setData: vi.fn(), setDragImage: vi.fn(), effectAllowed: '', dropEffect: '' })
 
