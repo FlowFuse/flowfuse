@@ -101,7 +101,7 @@ function apply () {
     gap: 1rem;
     padding: 1rem;
     background: var(--ff-color-bg-surface);
-    border-top: 1px solid var(--ff-color-border);
+    box-shadow: inset 0 6px 6px -6px rgba(0, 0, 0, 0.18);
 
     &__grid {
         display: grid;

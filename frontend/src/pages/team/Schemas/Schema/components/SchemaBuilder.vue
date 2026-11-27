@@ -35,7 +35,7 @@
                                 </ff-data-table-cell>
                             </ff-data-table-row>
                             <ff-data-table-row v-else-if="entry.kind === 'panel'" data-el="builder-editing">
-                                <ff-data-table-cell class="schema-builder__panel-cell" :colspan="columns.length">
+                                <ff-data-table-cell class="p-0!" :colspan="columns.length">
                                     <FieldEditPanel :root="schema" :pointer="entry.row.pointer" @apply="applied(entry.row.pointer, $event)" @cancel="cancelEdit" />
                                 </ff-data-table-cell>
                             </ff-data-table-row>
@@ -297,10 +297,6 @@ function setOtherFields (allowed: boolean) {
 
     &__yes {
         color: var(--ff-color-status-success-text);
-    }
-
-    &__panel-cell {
-        padding: 0;
     }
 
     &__link {
