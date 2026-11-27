@@ -36,16 +36,16 @@ export function typeLabel (schema: Schema): string {
     if (!isObject(schema)) {
         return ''
     }
-    const combinator = COMBINATORS.find(keyword => Array.isArray(schema[keyword]))
-    if (combinator) {
-        return `${combinator} (${(schema[combinator] as unknown[]).length})`
-    }
     if (Object.hasOwn(schema, 'const')) {
         return 'const'
     }
     const types = typesOf(schema)
     if (!types.length) {
-        return isObject(schema.properties) ? 'object' : 'any'
+        if (isObject(schema.properties)) {
+            return 'object'
+        }
+        const combinator = COMBINATORS.find(keyword => Array.isArray(schema[keyword]))
+        return combinator ? `${combinator} (${(schema[combinator] as unknown[]).length})` : 'any'
     }
     return types.map(type => {
         if (type === 'array' && isObject(schema.items) && schema.items.type) {
