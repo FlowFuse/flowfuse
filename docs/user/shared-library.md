@@ -38,7 +38,7 @@ To import flows within the Node-RED editor:
 4. Click Import
 5. Place the imported nodes within your flows
 
-![](./images/shared-lib-import.png)
+![Node-RED Import nodes dialog with the Team Library tab open, showing saved flows](./images/shared-lib-import.png)
 
 ### Viewing Team Library
 
