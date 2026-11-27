@@ -31,7 +31,7 @@ For a single Remote Instance, or small batch of Remote Instances, you can manual
 1. Go to your team's **Remote Instances** page.
 2. Click the **Add Remote Instance** button.
 3. You will be prompted to give the Remote Instance a **Name**, an optional **Type** and to choose which **Application**, if any, the Instance should be assigned to.
-   * <img src="images/add_remote_instance.png" width=500 />
+   * <img alt="Add Remote Instance dialog with Name, Type and Application fields" src="images/add_remote_instance.png" width=500 />
    * The **Type** field can be used to record additional meta information about the Remote Instance.
    * If you do not wish to assign the Remote Instance to an **Application** at this time, you can do so later.
 4. Click **Add**
@@ -45,7 +45,7 @@ contains all the information needed to connect your hardware to the FlowFuse pla
 
 By default, you are offered the [Setup command](#quick-connect) method that was introduced in FlowFuse V2.1, and provides a one-time passcode to automatically connect the hardware to FlowFuse.
 
-<img src="images/config_yml1.png" width="500px" />
+<img alt="Device Configuration dialog with the one-time setup command for the Device Agent" src="images/config_yml1.png" width="500px" />
 
 Running this command on hardware with the Device Agent installed will automatically configure it and connect it to FlowFuse.
 
@@ -109,11 +109,11 @@ The Quick Connect method was introduced in FlowFuse v2.1. This is the fastest wa
 
 When registering your hardware you would have been presented the following dialog, with a one-time-passcode that the Device Agent can use to retrieve its configuration:
 
-<img src="images/config_yml1.png" width="500px" style="margin: auto;" />
+<img alt="Device Configuration dialog with the one-time setup command for the Device Agent" src="images/config_yml1.png" width="500px" style="margin: auto;" />
 
 If you're no longer able to see that dialog, you can regenerate the configuration by following the [Regenerating Configurations](#regenerating-configurations) steps, or clicking **"Finish Setup"** on the Remote Instance's page:
 
-<img src="images/finish-setup.png" width="750px" style="margin: auto; margin-bottom: 12px;" />
+<img alt="Remote Instance overview page with the Finish Setup button" src="images/finish-setup.png" width="750px" style="margin: auto; margin-bottom: 12px;" />
 
 When the quick connect command has been run, the terminal window will report that the Remote Instance has connected to the platform and 
 will output a new `command` for you to use to start the Remote Instance agent with the new configuration.
@@ -124,7 +124,7 @@ NOTES
 
 #### Device Agent Web UI
 
-<img src="images/device_gui.png" width="550px" style="margin: auto; margin-bottom: 12px;" />
+<img alt="Device Agent web UI showing agent information and the configuration editor" src="images/device_gui.png" width="550px" style="margin: auto; margin-bottom: 12px;" />
 
 If the Device Agent is running [with the Web UI enabled](./running.md#device-agent-command-line-options), you can download the
 configuration file to the Remote Instance using the Web UI. This is useful if you don't
