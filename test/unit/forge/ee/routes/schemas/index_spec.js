@@ -271,6 +271,38 @@ describe('Data Schemas API', function () {
                 body.schemas.map(s => s.name).should.eql(['Meter reading', 'Press status'])
             })
 
+            describe('search with characters that are special to LIKE', function () {
+                let odd
+                const names = async (query) => (await list(`?query=${encodeURIComponent(query)}`)).json().schemas.map(s => s.name)
+
+                beforeEach(async function () {
+                    odd = await app.db.models.DataSchema.create({ name: "50% of line_a's \\ load", TeamId: listTeam.id })
+                })
+
+                afterEach(async function () {
+                    await odd.destroy()
+                })
+
+                it('matches % as itself', async function () {
+                    ;(await names('%')).should.eql([odd.name])
+                })
+
+                it('matches _ as itself', async function () {
+                    ;(await names('_')).should.eql([odd.name])
+                    ;(await names('line_a')).should.eql([odd.name])
+                    ;(await names('press_status')).should.eql([])
+                })
+
+                it('matches \\ as itself', async function () {
+                    ;(await names('\\')).should.eql([odd.name])
+                })
+
+                it('matches a quote as itself without breaking out of the query', async function () {
+                    ;(await names("a's \\ l")).should.eql([odd.name])
+                    ;(await names("x' OR '1'='1")).should.eql([])
+                })
+            })
+
             it('filters by exact name', async function () {
                 ;(await list('?name=Alarm')).json().schemas.map(s => s.name).should.eql(['Alarm'])
                 ;(await list('?name=alarm')).json().schemas.should.have.length(0)

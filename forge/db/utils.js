@@ -2,7 +2,7 @@ const crypto = require('crypto')
 
 const bcrypt = require('bcrypt')
 const Hashids = require('hashids/cjs')
-const { Op, fn, col, where } = require('sequelize')
+const { Op, fn, col, literal, where } = require('sequelize')
 
 const hashids = {}
 
@@ -20,6 +20,25 @@ let randomWords
 (async () => {
     randomWords = (await import('random-words'))
 })()
+
+/**
+ * Escape `%`, `_` and `\` so a LIKE pattern takes them as themselves
+ * @param {String} text the text to look for
+ * @returns {String} the text, ready to be put in a pattern that has `ESCAPE '\'`
+ */
+const escapeLike = (text) => text.replace(/[\\%_]/g, '\\$&')
+
+/**
+ * A literal to compare a column with using `Op.like`, matching values that contain `text`
+ * @param {import('sequelize').Sequelize} sequelize the instance whose dialect quotes the pattern
+ * @param {String} text the text to look for
+ */
+const likeContaining = (sequelize, text) => {
+    // A NUL is dropped first: PostgreSQL rejects it and sequelize would write it as `\0`, an escaped zero to LIKE
+    const pattern = `%${escapeLike(text.replace(/\0/g, ''))}%`
+    // Sequelize has no ESCAPE option for Op.like, and SQLite only honours the backslashes when told to
+    return literal(`${sequelize.escape(pattern)} ESCAPE '\\'`)
+}
 
 /**
  * Generate a properly formed where-object for sequelize findAll, that applies
@@ -61,7 +80,7 @@ const buildPaginationSearchClause = (params, whereClause = {}, columns = [], fil
         }
     }
     if (params.query && columns.length) {
-        const searchTerm = `%${params.query.toLowerCase()}%`
+        const searchTerm = likeContaining(app.db.sequelize, params.query.toLowerCase())
         const searchClauses = columns.map(colName => {
             return where(fn('lower', col(colName)), { [Op.like]: searchTerm })
         })
@@ -362,6 +381,8 @@ module.exports = {
         return hashids[type]
     },
     buildPaginationSearchClause,
+    escapeLike,
+    likeContaining,
     getCanonicalEmail,
     randomStrings,
     randomPhrase,
