@@ -148,7 +148,9 @@ module.exports = {
                  * @param {{ limit?: number, query?: string }} options
                  */
                 groupedForTeam: async (teamId, options = {}) => {
-                    const limit = Math.min(parseInt(options.limit) || 20, 100)
+                    // anything that is not a positive number gets the default
+                    const asked = parseInt(options.limit)
+                    const limit = asked > 0 ? Math.min(asked, 100) : 20
                     const query = (options.query || '').toLowerCase()
                     const groups = await M.DataSchemaGroup.forTeam(teamId)
                     const conditions = ['"TeamId" = :teamId']
