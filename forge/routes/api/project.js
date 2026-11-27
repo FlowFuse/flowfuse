@@ -194,6 +194,9 @@ module.exports = async function (app) {
                 reply.code(400).send({ code: 'invalid_source_project', error: 'Source Project Not Found' })
                 return
             }
+            if (!request.session.User.admin && !app.hasPermission(request.teamMembership, 'project:create', { application: sourceProject.Application })) {
+                return reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
+            }
         }
         let flows
         if (request.body.flows) {
@@ -336,7 +339,6 @@ module.exports = async function (app) {
             body: {
                 type: 'object',
                 properties: {
-                    name: { type: 'string' },
                     hostname: { type: 'string' },
                     settings: { type: 'object' },
                     launcherSettings: { type: 'object' },
@@ -380,6 +382,9 @@ module.exports = async function (app) {
                 reply.code(403).send('Source Project and Target not in same team')
                 return
             }
+            if (!request.session.User?.admin && !app.hasPermission(request.teamMembership, 'project:edit', { application: sourceProject.Application })) {
+                return reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
+            }
 
             await app.db.controllers.Project.setInflightState(request.project, 'importing')
             await app.db.controllers.Project.setInDeploy(request.project)
@@ -400,23 +405,10 @@ module.exports = async function (app) {
 
         // Name
         const reqName = request.body.name?.trim()
-        const reqSafeName = reqName?.toLowerCase()
         const projectName = request.project.name?.trim()
         if (reqName && projectName !== reqName) {
-            if (app.db.models.Project.BANNED_NAME_LIST.includes(reqSafeName)) {
-                reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name not allowed' })
-                return
-            }
-            if (app.db.models.Project.NAME_PATTERN.test(reqSafeName) === false) {
-                reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name not allowed' })
-                return
-            }
-            if (await app.db.models.Project.isNameUsed(reqSafeName)) {
-                reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name in use' })
-                return
-            }
-
-            changesToPersist.name = { from: projectName, to: reqName }
+            reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'changing name not allowed' })
+            return
         }
 
         // Settings
@@ -541,7 +533,7 @@ module.exports = async function (app) {
         /// Persist the changes
         const updates = new app.auditLog.formatters.UpdatesCollection()
         const transaction = await app.db.sequelize.transaction() // start a transaction
-        const changesToProjectDefinition = (changesToPersist.stack || changesToPersist.projectType || changesToPersist.name) && !changesToPersist.projectType?.firstUpdate
+        const changesToProjectDefinition = (changesToPersist.stack || changesToPersist.projectType) && !changesToPersist.projectType?.firstUpdate
         let repliedEarly = false
         try {
             let resumeProject, targetState
@@ -558,13 +550,6 @@ module.exports = async function (app) {
                 const result = await suspendProject(request.project, suspendOptions)
                 resumeProject = result.resumeProject
                 targetState = result.targetState
-            }
-
-            if (changesToPersist.name) {
-                request.project.name = changesToPersist.name.to
-                await request.project.save({ transaction })
-
-                updates.push('name', changesToPersist.name.from, changesToPersist.name.to)
             }
 
             if (changesToPersist.settings) {

@@ -94,6 +94,7 @@ import FormRow from '../../components/FormRow.vue'
 
 import TeamTypeTile from '../../components/TeamTypeTile.vue'
 import { useHubspotHelper } from '../../composables/Hubspot.js'
+import Alerts from '../../services/alerts.js'
 import slugify from '../../utils/slugify.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
@@ -271,6 +272,10 @@ export default {
                 if (err.response.data) {
                     if (/slug/.test(err.response.data.error)) {
                         this.input.slugError = 'Slug already in use'
+                    } else if (err.response.data.error === 'Error: license limit reached') {
+                        Alerts.emit('Creating Team would exceed license limits', 'warning')
+                    } else {
+                        Alerts.emit(`Failed to create Team - ${err.response.data.error}`, 'warning')
                     }
                 }
             }).finally(() => {
