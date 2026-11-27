@@ -83,6 +83,18 @@ describe('Validate a message page', () => {
         expect(schemas.validateMessage).toHaveBeenCalledWith('1.0.0', {})
     })
 
+    test('keeps the older version on offer after another target is picked, so it can be gone back to', async () => {
+        const { page } = mountPage({ query: { against: '1.0.0' } })
+        await flushPromises()
+        // what picking the latest published version does to the address
+        route.query.against = '1.1.0'
+        await flushPromises()
+        expect(page.findAll('[data-target]').map(button => button.text())).toEqual(['Draft', 'Published 1.1.0', '1.0.0'])
+        expect(page.find('[data-el="validate-against"]').attributes('data-value')).toBe('1.1.0')
+        await page.find('[data-target="1.0.0"]').trigger('click')
+        expect(router.replace).toHaveBeenLastCalledWith({ query: { against: '1.0.0' } })
+    })
+
     test('shows each field\'s result and a banner with the problem count', async () => {
         const { page, schemas } = mountPage()
         schemas.validateMessage.mockResolvedValue({ valid: false, errors: [{ path: '/value', keyword: 'required', message: 'must have required property \'value\'', params: {} }] })
