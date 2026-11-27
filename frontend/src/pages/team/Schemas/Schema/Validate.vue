@@ -1,15 +1,16 @@
 <template>
-    <div class="flex flex-col gap-4" data-el="schema-validate">
-        <div class="flex flex-wrap items-center justify-between gap-4">
+    <div class="flex flex-col gap-6" data-el="schema-validate">
+        <TabToolbar>
+            <ff-button kind="tertiary" data-action="back-to-editing" :to="{ name: 'team-schema-editor' }">
+                <template #icon-left><ChevronLeftIcon /></template>
+                Back to editing
+            </ff-button>
             <p class="schema-validate__intro">See how a message lines up against the schema, field by field.</p>
-            <div class="flex items-center gap-3">
-                <template v-if="targets.length">
-                    <span class="schema-validate__label">Check against</span>
-                    <ToggleButtonGroup :model-value="against" :buttons="targets" :uses-links="false" size="small" title="Check against" visually-hide-title data-el="validate-against" @update:model-value="pick" />
-                </template>
-                <ff-button kind="secondary" size="small" data-action="back-to-editing" :to="{ name: 'team-schema-editor' }">Back to editing</ff-button>
-            </div>
-        </div>
+            <template v-if="targets.length" #tools>
+                <span class="schema-validate__label">Check against</span>
+                <ToggleButtonGroup :model-value="against" :buttons="targets" :uses-links="false" title="Check against" visually-hide-title data-el="validate-against" @update:model-value="pick" />
+            </template>
+        </TabToolbar>
 
         <p v-if="!targets.length" class="schema-validate__empty" data-el="validate-unavailable">This schema has no draft or published version to check a message against yet.</p>
         <template v-else>
@@ -51,11 +52,12 @@
 </template>
 
 <script setup lang="ts">
-import { CheckCircleIcon, InformationCircleIcon, MinusCircleIcon, XCircleIcon } from '@heroicons/vue/24/outline'
+import { CheckCircleIcon, ChevronLeftIcon, InformationCircleIcon, MinusCircleIcon, XCircleIcon } from '@heroicons/vue/24/outline'
 import { storeToRefs } from 'pinia'
 import { computed, markRaw, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+import TabToolbar from './components/TabToolbar.vue'
 import { type ValidationRow, exampleFromSchema, validationRows } from './components/validation'
 
 import type { ValidationError } from '@/api/schemas'
@@ -87,13 +89,19 @@ const router = useRouter()
 const schemasStore = useDataFarmSchemasStore()
 const { activeSchema: schema, activeDraft: draft, activeLatestPublished: latestPublished } = storeToRefs(schemasStore)
 
+// The older version the page was asked to check against. The draft and the latest published version are always
+// on offer; this one stays on offer too after another target is picked, so it can be gone back to.
+const openedFor = ref<string>()
+watch(() => route.query.against as string | undefined, (asked) => {
+    if (asked && asked !== 'draft' && asked !== latestPublished.value?.version) openedFor.value = asked
+}, { immediate: true })
+
 const targets = computed(() => {
     const list: { title: string, value: string }[] = []
     if (draft.value) list.push({ title: 'Draft', value: 'draft' })
     if (latestPublished.value?.version) list.push({ title: `Published ${latestPublished.value.version}`, value: latestPublished.value.version })
-    const asked = route.query.against as string | undefined
-    const known = schema.value?.versions.some(entry => entry.version === asked)
-    if (asked && asked !== 'draft' && known && !list.some(target => target.value === asked)) list.push({ title: asked, value: asked })
+    const known = schema.value?.versions.some(entry => entry.version === openedFor.value)
+    if (openedFor.value && known && !list.some(target => target.value === openedFor.value)) list.push({ title: openedFor.value, value: openedFor.value })
     return list
 })
 // The draft is what is being worked on, so it is checked unless a version was asked for
@@ -193,13 +201,13 @@ function fillExample () {
 <style scoped lang="scss">
 .schema-validate {
     &__intro,
-    &__empty {
+    &__label {
         margin: 0;
-        font-size: 0.875rem;
         color: var(--ff-color-text-subtle);
     }
 
-    &__label {
+    &__empty {
+        margin: 0;
         font-size: 0.875rem;
         color: var(--ff-color-text-subtle);
     }
