@@ -230,6 +230,27 @@ function edit (pointer: string) {
     editing.value = pointer
 }
 
+// The table scrolls inside its box, where a panel may open below what is in view. Its buttons are brought into view,
+// and the row of the field it edits too when the box has room for both.
+watch(editing, async (pointer) => {
+    await nextTick()
+    const panel = fieldsRegion.value?.querySelector<HTMLElement>('[data-el="field-panel"]')
+    if (!pointer || !panel?.scrollIntoView) {
+        return
+    }
+    panel.scrollIntoView({ block: 'nearest' })
+    const box = panel.closest<HTMLElement>('.overflow-auto')
+    const row = panel.closest('tr')?.previousElementSibling as HTMLElement | null
+    const head = box?.querySelector('thead')
+    if (!box || !row || !head) {
+        return
+    }
+    const top = row.offsetTop - head.offsetHeight
+    if (box.scrollTop > top && head.offsetHeight + row.offsetHeight + panel.offsetHeight <= box.clientHeight) {
+        box.scrollTop = top
+    }
+})
+
 // The builder is kept while the JSON is on screen. A panel left open would come back holding what the field
 // was before the JSON was changed, so it is closed as cancelled.
 onDeactivated(cancelEdit)
@@ -308,6 +329,18 @@ function setOtherFields (allowed: boolean) {
 
         :deep(tbody tr:last-of-type td) {
             border-bottom: none;
+        }
+
+        // Where there is no room for its columns the table scrolls sideways inside its box. The edit panel keeps to
+        // the width of the box and stays put, so all of it can be reached without that scroll.
+        & > :deep(.overflow-auto) {
+            container-type: inline-size;
+        }
+
+        :deep(.field-panel) {
+            position: sticky;
+            left: 0;
+            width: 100cqi;
         }
     }
 

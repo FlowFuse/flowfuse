@@ -1,5 +1,5 @@
 <template>
-    <div ref="panel" class="field-panel" data-el="field-panel">
+    <div class="field-panel" data-el="field-panel">
         <div class="field-panel__grid">
             <label class="field-panel__item">
                 <span class="field-panel__label">Name</span>
@@ -12,7 +12,7 @@
             </div>
             <div v-if="form.type === 'array'" class="field-panel__item">
                 <span class="field-panel__label">Item type</span>
-                <ff-listbox v-model="form.itemType" :options="itemOptions" data-form="field-item-type" />
+                <ff-listbox v-model="itemType" :options="itemOptions" data-form="field-item-type" />
             </div>
             <div class="field-panel__item">
                 <span class="field-panel__label">Required</span>
@@ -36,7 +36,7 @@
                 <label class="field-panel__item"><span class="field-panel__label">Pattern</span><ff-text-input v-model="form.pattern" class="font-mono" placeholder="^TS-\d{4}$" data-form="field-pattern" /></label>
                 <div class="field-panel__item">
                     <span class="field-panel__label">Format</span>
-                    <ff-listbox v-model="form.format" :options="formatOptions" data-form="field-format" />
+                    <ff-listbox v-model="format" :options="formatOptions" data-form="field-format" />
                 </div>
             </template>
             <template v-if="form.type === 'array'">
@@ -61,9 +61,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
-import { ANY_TYPE, FIELD_TYPES, ITEM_TYPES, STRING_FORMATS, applyForm, formFor, formProblem } from './builderEdits'
+import { ANY_TYPE, FIELD_TYPES, ITEM_TYPES, STRING_FORMATS, allowedValuesFor, applyForm, formFor, formProblem } from './builderEdits'
 import type { Schema } from './schemaTypes'
 
 defineOptions({ name: 'FieldEditPanel' })
@@ -73,14 +73,26 @@ const emit = defineEmits<{ apply: [result: { root: Schema, pointer: string }], c
 
 const form = ref(formFor(props.root, props.pointer))
 const allowedValues = ref<{ commit: () => void } | null>(null)
-const panel = ref<HTMLElement | null>(null)
 
-onMounted(() => panel.value?.scrollIntoView?.({ block: 'nearest' }))
+// Allowed values are dropped with the other constraints a new type doesn't take: text can't be a number's value
+watch(() => form.value.type, type => {
+    form.value.allowedValues = allowedValuesFor(type, form.value.allowedValues)
+})
 
 // a field that states no type takes any value, and can be left that way
 const typeOptions = [...(form.value.type === ANY_TYPE ? [{ value: ANY_TYPE, label: ANY_TYPE }] : []), ...FIELD_TYPES.map(type => ({ value: type, label: type }))]
-const itemOptions = [{ value: '', label: 'Any' }, ...ITEM_TYPES.map(type => ({ value: type, label: type }))]
-const formatOptions = [{ value: '', label: 'Any' }, ...STRING_FORMATS.map(format => ({ value: format, label: format }))]
+// The pickers take "any" as a choice like the others. The form has it as '', which a picker shows as nothing picked.
+const ANY = 'any'
+const orAny = (key: 'itemType' | 'format') => computed({
+    get: () => form.value[key] || ANY,
+    set: (value: string) => { form.value[key] = value === ANY ? '' : value }
+})
+const itemType = orAny('itemType')
+const format = orAny('format')
+// a format or item type the lists don't have is offered too, so the picker shows what the field has
+const withCurrent = (values: readonly string[], current: string) => current && !values.includes(current) ? [...values, current] : values
+const itemOptions = [{ value: ANY, label: 'Any' }, ...withCurrent(ITEM_TYPES, form.value.itemType).map(type => ({ value: type, label: type }))]
+const formatOptions = [{ value: ANY, label: 'Any' }, ...withCurrent(STRING_FORMATS, form.value.format).map(format => ({ value: format, label: format }))]
 
 const takesAllowedValues = computed(() => ['string', 'number', 'integer'].includes(form.value.type))
 const problem = computed(() => formProblem(props.root, props.pointer, form.value))
