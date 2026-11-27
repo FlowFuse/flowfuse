@@ -318,6 +318,15 @@ describe('Data Schemas API', function () {
                     more.schemas.map(s => s.name).should.eql(['Alarm'])
                 })
 
+                it('falls back to the default for a limit that is not a positive number', async function () {
+                    for (const limit of ['0', '-5']) {
+                        const [energy, ungrouped] = (await list(`/grouped?limit=${limit}`)).json().sections
+                        energy.count.should.equal(1)
+                        ungrouped.count.should.equal(2)
+                        ungrouped.schemas.should.have.length(2)
+                    }
+                })
+
                 it('searches names and descriptions within each section, keeping the sections nothing matched in', async function () {
                     const body = (await list('/grouped?query=PRESS')).json()
                     body.count.should.equal(1)
