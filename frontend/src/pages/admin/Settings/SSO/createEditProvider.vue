@@ -139,7 +139,11 @@
                         <FormRow v-model="input.options.groupAdmin" type="checkbox">Manage Admin roles using group assertions</FormRow>
                         <FormRow v-if="input.options.groupAdmin" v-model="input.options.groupAdminName" :error="groupAdminNameError" class="pl-4">Admin Users SAML Group name</FormRow>
                     </div>
-                    <FormRow v-if="input.type === 'saml'" v-model="input.options.sendIdpHint" type="checkbox">Send hostname as hint to IDP (KeyCloak only)</FormRow>
+                    KeyCloak IDP Hint
+                    <div class="pl-4 space-y-6">
+                        <FormRow v-if="input.type === 'saml'" v-model="input.options.sendIdpHint" type="checkbox">Send instance full hostname as hint to IDP</FormRow>
+                        <FormRow v-if="input.type === 'saml'" v-model="input.options.sendIdpHintShort" type="checkbox" :disabled="!input.options.sendIdpHint">Send only instance name as hint to IDP</FormRow>
+                    </div>
                     <FormRow v-model="input.options.provisionNewUsers" type="checkbox">Allow Provisioning of New Users on first login</FormRow>
                     <FormRow v-model="input.options.sessionExpiry" :error="sessionExpiryError" type="number">
                         Custom Session Expiry (hours)
@@ -199,6 +203,7 @@ export default {
                     groupSuffixLength: 0,
                     groupIdMap: '',
                     sendIdpHint: false,
+                    sendIdpHintShort: false,
                     debugEnabled: false
                 }
             },
@@ -340,11 +345,15 @@ export default {
                         delete opts.options.groupAdminName
                     }
                 }
+                if (!opts.options.sendIdpHint) {
+                    opts.options.sendIdpHintShort = false
+                }
                 if (opts.type === 'ldap') {
                     if (!opts.options.tls) {
                         delete opts.options.tls
                         delete opts.options.tlsVerifyServer
                         delete opts.options.sendIdpHint
+                        delete opts.options.sendIdpHintShort
                     }
                     // if (opts.options.provisionNewUsers) {
                     //     delete opts.options.provisionNewUsers
@@ -383,6 +392,7 @@ export default {
                     groupPrefixLength: 0,
                     groupSuffixLength: 0,
                     sendIdpHint: false,
+                    sendIdpHintShort: false,
                     debugEnabled: false
                 }
             } else {
@@ -421,6 +431,7 @@ export default {
                 }
                 this.input.options.groupPrefixLength = this.input.options.groupPrefixLength ?? 0
                 this.input.options.sendIdpHint = this.input.options.sendIdpHint ?? false
+                this.input.options.sendIdpHintShort = this.input.options.sendIdpHintShort ?? false
                 this.input.options.debugEnabled = this.input.options.debugEnabled ?? false
             } else {
                 // eslint-disable-next-line no-template-curly-in-string

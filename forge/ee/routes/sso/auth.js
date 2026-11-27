@@ -5,6 +5,31 @@ const fp = require('fastify-plugin')
 const { localPath } = require('../../../lib/redirect')
 const { generateUsernameFromEmail, generatePassword, completeSSOSignIn, completeUserSignup } = require('../../../lib/userTeam')
 
+/**
+ * Work out where to send a user after a successful SSO login.
+ * A redirect requested in the RelayState takes priority. Otherwise a newly
+ * provisioned user goes to their account settings, and everyone else to '/'.
+ * @param {string} [relayState] the RelayState returned by the IdP
+ * @param {boolean} isNewUser whether the user was provisioned by this login
+ * @param {object} [log] logger used to report a malformed RelayState
+ */
+function getLoginRedirect (relayState, isNewUser, log) {
+    let state = {}
+    if (relayState) {
+        try {
+            state = JSON.parse(relayState)
+        } catch (err) {
+            // The session is already established at this point, so fall back
+            // to the default redirect rather than failing the login
+            log?.warn(`SAML Login: ignoring malformed RelayState: ${err.toString()}`)
+        }
+    }
+    if (state?.redirectTo) {
+        return localPath(state.redirectTo)
+    }
+    return isNewUser ? '/account/settings' : '/'
+}
+
 module.exports = fp(async function (app, opts) {
     app.addHook('onRequest', async (request, reply) => {
         if (!request.session) {
@@ -62,7 +87,8 @@ module.exports = fp(async function (app, opts) {
                     if (opts) {
                         request.query.RelayState = JSON.stringify({
                             provider: providerId,
-                            redirectTo: decodeURIComponent(request.query.r || '/')
+                            // Only set if a target was requested - otherwise the callback picks the default
+                            redirectTo: request.query.r ? decodeURIComponent(request.query.r) : undefined
                         })
                         done(null, opts)
                         return
@@ -76,15 +102,20 @@ module.exports = fp(async function (app, opts) {
                     if (opts) {
                         request.query.RelayState = JSON.stringify({
                             provider: providerId,
-                            redirectTo: decodeURIComponent(request.query.r || '/')
+                            // Only set if a target was requested - otherwise the callback picks the default
+                            redirectTo: request.query.r ? decodeURIComponent(request.query.r) : undefined
                         })
 
                         if (opts.sendIdpHint && request.query.t) {
                             const target = await app.db.models.OAuthSession.getAndRemoveById(request.query.t, false)
                             try {
                                 const redirect = new URL(target.redirect_uri)
+                                let hostname = redirect.host
+                                if (opts.sendIdpHintShort) {
+                                    hostname = redirect.host.split('.')[0]
+                                }
                                 opts.additionalAuthorizeParams = {
-                                    kc_idp_hint: redirect.host
+                                    kc_idp_hint: hostname
                                 }
                             } catch (err) {
                                 // ignore error in parsing URL and send no hint
@@ -226,16 +257,9 @@ module.exports = fp(async function (app, opts) {
             if (result.cookie) {
                 // Valid session
                 reply.setCookie('sid', result.cookie.value, result.cookie.options)
-                let redirectTo = '/'
-                if (request.body?.RelayState) {
-                    const state = JSON.parse(request.body.RelayState)
-                    redirectTo = localPath(state.redirectTo)
-                }
-                if (request.session.newSSOUser) {
-                    delete request.session.newSSOUser
-                    redirectTo = '/account/settings'
-                }
-                reply.redirect(redirectTo)
+                const isNewUser = !!request.session.newSSOUser
+                delete request.session.newSSOUser
+                reply.redirect(getLoginRedirect(request.body?.RelayState, isNewUser, app.log))
                 return
             } else {
                 // Invalid session - user is suspended or similar
@@ -246,3 +270,5 @@ module.exports = fp(async function (app, opts) {
         throw new Error('Invalid SAML response')
     })
 }, { name: 'app.ee.routes.sso.auth' })
+
+module.exports.getLoginRedirect = getLoginRedirect
