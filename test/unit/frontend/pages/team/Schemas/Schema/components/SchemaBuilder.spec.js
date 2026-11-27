@@ -142,6 +142,18 @@ describe('Schema builder', () => {
             expect(builder.emitted('update:schemaText')).toHaveLength(emits)
         })
 
+        test('drops a field that was added and not applied when another field is edited or added instead', async () => {
+            const builder = mountBuilder(undefined, false)
+            await builder.find('[data-action="builder-add-root-field"]').trigger('click')
+            expect(Object.keys(text(builder).properties)).toEqual(['location', 'calibration', 'new_field'])
+            await builder.find('[data-el="builder-row-/location"] [data-item="Edit"]').trigger('click')
+            expect(Object.keys(text(builder).properties)).toEqual(['location', 'calibration'])
+            expect(builder.find('[data-el="panel"]').attributes('data-pointer')).toBe('/properties/location')
+            await builder.find('[data-action="builder-add-root-field"]').trigger('click')
+            await builder.find('[data-action="builder-add-root-field"]').trigger('click')
+            expect(Object.keys(text(builder).properties)).toEqual(['location', 'calibration', 'new_field'])
+        })
+
         test('allows fields the schema does not list, or not', async () => {
             const builder = mountBuilder(undefined, false)
             await builder.find('[data-action="builder-other-fields"]').setValue(true)
