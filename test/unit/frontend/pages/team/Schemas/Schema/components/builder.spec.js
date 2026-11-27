@@ -63,6 +63,12 @@ describe('builder rows', () => {
         expect(constraintsSummary({ type: 'object', properties: { a: {} } })).toBe('1 field')
     })
 
+    test('leaves a field of several types to the JSON, as the builder shows one type', () => {
+        const [several, nullable] = builderRows({ type: 'object', properties: { a: { type: ['string', 'number', 'null'] }, b: { type: ['string', 'null'] } } }, new Set())
+        expect(several).toMatchObject({ jsonOnly: true, constraints: 'Not editable in the builder' })
+        expect(nullable.jsonOnly).toBe(false)
+    })
+
     test('labels types', () => {
         expect(typeLabel({ type: 'array', items: { type: ['string', 'null'] } })).toBe('array of string | null')
         expect(typeLabel({ properties: {} })).toBe('object')

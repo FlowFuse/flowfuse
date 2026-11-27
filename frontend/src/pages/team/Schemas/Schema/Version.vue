@@ -17,7 +17,7 @@
                 <DocumentTextIcon class="ff-icon" />
                 Version notes
             </p>
-            <p class="schema-version__notes min-h-0 overflow-y-auto">{{ version.notes }}</p>
+            <ff-well class="schema-version__notes min-h-0 overflow-y-auto">{{ version.notes }}</ff-well>
         </div>
     </div>
 </template>
@@ -109,8 +109,6 @@ const published = computed(() => {
     }
 
     &__notes {
-        margin: 0;
-        font-size: 0.875rem;
         white-space: pre-line;
     }
 }

@@ -405,6 +405,47 @@ li.ff-kebab-item {
   }
 }
 
+.ff-tag-input {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $ff-unit-sm;
+  min-height: 32px;
+  padding: 2px $ff-unit-sm;
+  border: 1px solid var(--ff-color-border-strong);
+  border-radius: $ff-unit-sm;
+  background-color: var(--ff-color-bg-app);
+  &:focus-within {
+    border-color: var(--ff-color-link);
+  }
+  &__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    border: 1px solid var(--ff-color-border-strong);
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.8125rem;
+    color: var(--ff-color-text);
+    button {
+      display: flex;
+      color: var(--ff-color-text-subtle);
+    }
+  }
+  input {
+    flex: 1;
+    min-width: 8rem;
+    border: none;
+    background: transparent;
+    color: var(--ff-color-text);
+    box-shadow: none;
+    &:focus-visible {
+      outline: none;
+    }
+  }
+}
+
 .ff-input--error {
   &.ff-text-input {
     border-color: var(--ff-color-danger);

@@ -11,6 +11,7 @@ import FFNotificationPill from './components/NotificationPill.vue'
 import FFNotificationToast from './components/NotificationToast.vue'
 import FFPopover from './components/Popover.vue'
 import FFSpinner from './components/Spinner.vue'
+import FFWell from './components/Well.vue'
 import FFDataTable from './components/data-table/DataTable.vue'
 import FFDataTableCell from './components/data-table/DataTableCell.vue'
 import FFDataTableRow from './components/data-table/DataTableRow.vue'
@@ -24,6 +25,7 @@ import FFDropdownOption from './components/form/DropdownOption.vue'
 import FFListbox from './components/form/ListBox.vue'
 import FFRadioButton from './components/form/RadioButton.vue'
 import FFRadioGroup from './components/form/RadioGroup.vue'
+import FFTagInput from './components/form/TagInput.vue'
 import FFTextInput from './components/form/TextInput.vue'
 import FFTileSelection from './components/form/TileSelection.vue'
 import FFTileSelectionOption from './components/form/TileSelectionOption.vue'
@@ -50,6 +52,7 @@ export default {
     FFCheck,
     FFMarkdownViewer,
     FFSpinner,
+    FFWell,
     // Data Table
     FFDataTable,
     FFDataTableRow,
@@ -57,6 +60,7 @@ export default {
     FFPagination,
     // Form Elements
     FFTextInput,
+    FFTagInput,
     FFDropdown,
     FFListbox,
     FFCombobox,
