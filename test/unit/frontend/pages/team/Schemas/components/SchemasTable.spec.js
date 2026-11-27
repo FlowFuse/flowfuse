@@ -114,4 +114,12 @@ describe('Schemas table', () => {
         expect(sectionNames(table)).toEqual([])
         expect(table.find('[data-el="schemas-no-results"]').text()).toBe('No schemas or groups match "nope"')
     })
+
+    test('offers Edit details on every schema to those who can edit, and says which schema', async () => {
+        const table = mountTable({ canEdit: true })
+        expect(table.findAll('[data-item="Edit details"]')).toHaveLength(3)
+        await table.find('[data-el="schema-row-b"] [data-item="Edit details"]').trigger('click')
+        expect(table.emitted('edit-schema')[0][0]).toMatchObject({ id: 'b' })
+        expect(mountTable().find('[data-item="Edit details"]').exists()).toBe(false)
+    })
 })

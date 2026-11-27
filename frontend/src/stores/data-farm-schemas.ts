@@ -146,6 +146,25 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         return schemasApi.createSchema(teamId(), { name, ...(description && { description }), ...(groupId && { groupId }) })
     }
 
+    // The groups a schema can be put in, for where the list is not on screen to have them
+    async function fetchGroups (): Promise<DataSchemaGroup[]> {
+        return (await schemasApi.listGroups(teamId())).groups
+    }
+
+    // Renames a schema, edits its description or moves it to another group (an empty `groupId` is no group).
+    // Only what differs from `schema` is sent. The open schema and the list are each brought up to date when on screen.
+    async function updateSchema (schema: Pick<DataSchemaSummary, 'id' | 'name' | 'description' | 'group'>, values: { name: string, description: string, groupId: string }): Promise<DataSchema> {
+        const token = loadToken
+        const updated = await schemasApi.updateSchema(teamId(), schema.id, {
+            ...(values.name !== schema.name && { name: values.name }),
+            ...(values.description !== schema.description && { description: values.description }),
+            ...(values.groupId !== (schema.group?.id ?? '') && { groupId: values.groupId || null })
+        })
+        if (token === loadToken && activeSchema.value?.id === schema.id) activeSchema.value = updated
+        if (listHydrated.value) await reloadList()
+        return updated
+    }
+
     // The draft actions below answer for the schema that was open when they were called.
     // If another schema was opened or the page was left before they answer (the load token moved on),
     // their answer is not written here, as it would land on the wrong schema.
@@ -253,6 +272,8 @@ export const useDataFarmSchemasStore = defineStore('data-farm-schemas', () => {
         resetList,
         loadActiveSchema,
         createSchema,
+        updateSchema,
+        fetchGroups,
         saveDraft,
         createDraft,
         discardDraft,

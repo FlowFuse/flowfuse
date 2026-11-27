@@ -13,6 +13,8 @@ vi.mock('@/api/schemas', () => ({
         renameGroup: vi.fn(),
         deleteGroup: vi.fn(),
         createSchema: vi.fn(),
+        updateSchema: vi.fn(),
+        listGroups: vi.fn(),
         getSchema: vi.fn(),
         getVersion: vi.fn(),
         getDraft: vi.fn(),
@@ -183,6 +185,60 @@ describe('data-farm-schemas store', () => {
         await store.loadActiveSchema('abc')
         await expect(store.publishDraft({ version: '1.0.0', notes: '' })).rejects.toThrow('schema_has_problems')
         expect(schemasApi.getSchema).toHaveBeenCalledTimes(1)
+    })
+
+    describe('editing a schema\'s details', () => {
+        const SCHEMA = { id: 'abc', name: 'Temperature', description: 'Old', group: { id: 'g1', name: 'Energy' } }
+
+        it('sends only what changed', async () => {
+            schemasApi.updateSchema.mockResolvedValue({ ...SCHEMA, name: 'Temp' })
+            const store = useDataFarmSchemasStore()
+            await store.updateSchema(SCHEMA, { name: 'Temp', description: 'Old', groupId: 'g1' })
+            expect(schemasApi.updateSchema).toHaveBeenLastCalledWith('team-1', 'abc', { name: 'Temp' })
+            await store.updateSchema(SCHEMA, { name: 'Temperature', description: 'New', groupId: 'g2' })
+            expect(schemasApi.updateSchema).toHaveBeenLastCalledWith('team-1', 'abc', { description: 'New', groupId: 'g2' })
+        })
+
+        it('takes a schema out of its group with a null group', async () => {
+            schemasApi.updateSchema.mockResolvedValue({ ...SCHEMA, group: null })
+            await useDataFarmSchemasStore().updateSchema(SCHEMA, { name: 'Temperature', description: 'Old', groupId: '' })
+            expect(schemasApi.updateSchema).toHaveBeenCalledWith('team-1', 'abc', { groupId: null })
+        })
+
+        it('brings the open schema up to date, and leaves a list that is not on screen alone', async () => {
+            schemasApi.getSchema.mockResolvedValue(schemaWith([PUBLISHED], false))
+            schemasApi.updateSchema.mockResolvedValue({ ...schemaWith([PUBLISHED], false), name: 'Temp' })
+            const store = useDataFarmSchemasStore()
+            await store.loadActiveSchema('abc')
+            await store.updateSchema(store.activeSchema, { name: 'Temp', description: '', groupId: '' })
+            expect(store.activeSchema.name).toBe('Temp')
+            expect(schemasApi.listGrouped).not.toHaveBeenCalled()
+        })
+
+        it('loads the list again, with the search that is on, when the list is on screen', async () => {
+            schemasApi.listGrouped.mockResolvedValue({ count: 0, sections: [] })
+            schemasApi.updateSchema.mockResolvedValue({ ...SCHEMA, name: 'Temp' })
+            const store = useDataFarmSchemasStore()
+            await store.loadList('temp')
+            await store.updateSchema(SCHEMA, { name: 'Temp', description: 'Old', groupId: 'g1' })
+            expect(schemasApi.listGrouped).toHaveBeenCalledTimes(2)
+            expect(schemasApi.listGrouped).toHaveBeenLastCalledWith('team-1', { query: 'temp', limit: 20 })
+            expect(store.activeSchema).toBeNull()
+        })
+
+        it('saves and only warns when the list on screen could not be loaded again', async () => {
+            schemasApi.listGrouped.mockResolvedValueOnce({ count: 0, sections: [] }).mockRejectedValueOnce(new Error('offline'))
+            schemasApi.updateSchema.mockResolvedValue({ ...SCHEMA, name: 'Temp' })
+            const store = useDataFarmSchemasStore()
+            await store.loadList()
+            expect(await store.updateSchema(SCHEMA, { name: 'Temp', description: 'Old', groupId: 'g1' })).toEqual({ ...SCHEMA, name: 'Temp' })
+            expect(Alerts.emit).toHaveBeenCalledWith('Failed to reload the schemas.', 'warning')
+        })
+
+        it('fetches the team\'s groups for the picker', async () => {
+            schemasApi.listGroups.mockResolvedValue({ count: 1, groups: [{ id: 'g1', name: 'Energy' }] })
+            expect(await useDataFarmSchemasStore().fetchGroups()).toEqual([{ id: 'g1', name: 'Energy' }])
+        })
     })
 
     it('creates a schema for the active team', async () => {

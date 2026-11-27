@@ -25,7 +25,7 @@ vi.mock('../../../../../frontend/src/services/alerts.js', () => ({
     default: { emit: vi.fn() }
 }))
 
-const SchemasTableStub = { name: 'SchemasTable', props: ['groups', 'groupSchemas', 'query', 'canRename', 'canDelete'], emits: ['load-more', 'rename-group', 'delete-group'], template: '<div data-el="schemas-table" />' }
+const SchemasTableStub = { name: 'SchemasTable', props: ['groups', 'groupSchemas', 'query', 'canEdit', 'canRename', 'canDelete'], emits: ['load-more', 'edit-schema', 'rename-group', 'delete-group'], template: '<div data-el="schemas-table" />' }
 
 // `list` is what the store holds once the list has loaded; without it the page is still loading
 // `loadError` makes the first try at loading the list fail
@@ -42,6 +42,7 @@ function mountPage ({ enabled = true, role = Roles.Member, teamId, list, loadErr
     store.createGroup.mockResolvedValue()
     store.renameGroup.mockResolvedValue()
     store.deleteGroup.mockResolvedValue()
+    store.updateSchema.mockResolvedValue({ name: 'Temp' })
     if (list) {
         store.groups = list.groups ?? []
         store.groupSchemas = list.groupSchemas ?? {}
@@ -111,12 +112,26 @@ describe('Team Schemas page', () => {
 
     test('hands a name conflict to the dialog and stays put', async () => {
         const { page, schemas, dialogStore } = mountPage()
-        schemas.createSchema.mockRejectedValue({ response: { data: { error: 'The name is already in use in this team' } } })
+        schemas.createSchema.mockRejectedValue({ response: { data: { code: 'name_conflict', error: 'The name is already in use in this team' } } })
         const { onConfirm } = await openCreateDialog(page, 'Temp')
         await onConfirm()
         expect(dialogStore.updateDialogPayload).toHaveBeenCalledWith({ error: 'The name is already in use in this team' })
         expect(Dialog.close).not.toHaveBeenCalled()
         expect(router.push).not.toHaveBeenCalled()
+    })
+
+    test('shows an error that is not about the name as a toast, and leaves the dialog as it is', async () => {
+        const { page, schemas, dialogStore } = mountPage()
+        const { onConfirm } = await openCreateDialog(page, 'Temp')
+        for (const data of [{ code: 'invalid_group', error: 'The schema group does not exist in this team' }, { code: 'not_found', error: 'Not Found' }, {}]) {
+            schemas.createSchema.mockRejectedValueOnce({ response: { data } })
+            await onConfirm()
+        }
+        expect(Alerts.emit.mock.calls).toEqual([['The schema group does not exist in this team', 'warning'], ['Not Found', 'warning'], ['Failed to create the schema.', 'warning']])
+        expect(dialogStore.updateDialogPayload).not.toHaveBeenCalledWith(expect.objectContaining({ error: expect.stringMatching(/./) }))
+        expect(Dialog.close).not.toHaveBeenCalled()
+        // and the dialog can be confirmed again
+        expect(dialogStore.updateDialogPayload).toHaveBeenLastCalledWith({ busy: false })
     })
 
     test('ignores a second confirm while the schema is being created', async () => {
@@ -150,10 +165,10 @@ describe('Team Schemas page', () => {
         const { onConfirm, onCancel } = await openCreateDialog(page, 'Temp')
         const creating = onConfirm()
         onCancel()
-        fail({ response: { data: { error: 'The name is already in use in this team' } } })
+        fail({ response: { data: { code: 'name_conflict', error: 'The name is already in use in this team' } } })
         await creating
         expect(Alerts.emit).toHaveBeenCalledWith('The name is already in use in this team', 'warning')
-        expect(dialogStore.updateDialogPayload).not.toHaveBeenCalledWith({ error: 'The name is already in use in this team' })
+        expect(dialogStore.updateDialogPayload).not.toHaveBeenCalledWith(expect.objectContaining({ error: 'The name is already in use in this team' }))
     })
 
     describe('groups', () => {
@@ -175,7 +190,7 @@ describe('Team Schemas page', () => {
 
         test('keeps the dialog open with the server\'s message when the name is taken', async () => {
             const { page, schemas, dialogStore } = mountPage()
-            schemas.createGroup.mockRejectedValue({ response: { data: { error: 'The name is already in use in this team' } } })
+            schemas.createGroup.mockRejectedValue({ response: { data: { code: 'name_conflict', error: 'The name is already in use in this team' } } })
             await page.find('[data-action="new-schema-group"]').trigger('click')
             const [options, onConfirm] = lastDialog()
             options.is.on.change('Energy')
@@ -229,6 +244,38 @@ describe('Team Schemas page', () => {
             const viewer = mountPage({ teamId: 'team-1', role: Roles.Viewer, list: LIST }).page
             expect(viewer.find('[data-action="new-schema-group"]').exists()).toBe(false)
             expect(viewer.findComponent(SchemasTableStub).props()).toMatchObject({ canRename: false, canDelete: false })
+        })
+    })
+
+    describe('editing a schema', () => {
+        const SCHEMA = { id: 'abc', name: 'Temperature', description: 'Old', group: { id: 'g1', name: 'Energy' } }
+        const LIST = { groups: [{ id: 'g1', name: 'Energy', schemaCount: 1 }], groupSchemas: { g1: { schemas: [SCHEMA], count: 1 }, none: { schemas: [], count: 0 } } }
+
+        test('opens the details of the schema the table names, with the team\'s groups, and saves the changes', async () => {
+            const { page, schemas } = mountPage({ teamId: 'team-1', list: LIST })
+            await page.findComponent(SchemasTableStub).vm.$emit('edit-schema', SCHEMA)
+            const [options, onConfirm] = Dialog.show.mock.calls.at(-1)
+            expect(options.header).toBe('Edit details')
+            expect(options.is.payload).toMatchObject({ schema: SCHEMA, groups: LIST.groups })
+            options.is.on.change({ name: 'Temp', description: 'Old', groupId: '' })
+            await onConfirm()
+            expect(schemas.updateSchema).toHaveBeenCalledWith(SCHEMA, { name: 'Temp', description: 'Old', groupId: '' })
+            expect(Dialog.close).toHaveBeenCalled()
+            expect(Alerts.emit).toHaveBeenCalledWith('Schema Temp updated.', 'confirmation')
+        })
+
+        test('keeps the dialog open with the server\'s message when the name is taken', async () => {
+            const { page, schemas, dialogStore } = mountPage({ teamId: 'team-1', list: LIST })
+            schemas.updateSchema.mockRejectedValue({ response: { data: { code: 'name_conflict', error: 'The name is already in use in this team' } } })
+            await page.findComponent(SchemasTableStub).vm.$emit('edit-schema', SCHEMA)
+            await Dialog.show.mock.calls.at(-1)[1]()
+            expect(dialogStore.updateDialogPayload).toHaveBeenCalledWith({ error: 'The name is already in use in this team' })
+            expect(Dialog.close).not.toHaveBeenCalled()
+        })
+
+        test('lets a Member edit and a Viewer not', () => {
+            expect(mountPage({ teamId: 'team-1', list: LIST }).page.findComponent(SchemasTableStub).props('canEdit')).toBe(true)
+            expect(mountPage({ teamId: 'team-1', role: Roles.Viewer, list: LIST }).page.findComponent(SchemasTableStub).props('canEdit')).toBe(false)
         })
     })
 

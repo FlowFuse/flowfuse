@@ -53,6 +53,8 @@
                     :query="listQuery"
                     :can-rename="hasPermission('team:schema:edit')"
                     :can-delete="hasPermission('team:schema:delete')"
+                    :can-edit="hasPermission('team:schema:edit')"
+                    @edit-schema="showEditSchemaDialog($event, groups)"
                     @rename-group="showRenameGroupDialog"
                     @delete-group="showDeleteGroupDialog"
                     @load-more="schemasStore.loadMoreOfGroup($event).catch(failed('Failed to load more schemas.'))"
@@ -65,13 +67,14 @@
 <script setup lang="ts">
 import { MagnifyingGlassIcon, PlusIcon } from '@heroicons/vue/24/outline'
 import { storeToRefs } from 'pinia'
-import { type Component, computed, markRaw, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import SchemasEmptyIllustration from './components/SchemasEmptyIllustration.vue'
 import SchemasTable from './components/SchemasTable.vue'
-import CreateSchemaDialog from './dialogs/CreateSchemaDialog.vue'
+import { showEditSchemaDialog, showFormDialog } from './composables/schemaDialogs'
 import GroupDialog from './dialogs/GroupDialog.vue'
+import SchemaDetailsDialog from './dialogs/SchemaDetailsDialog.vue'
 
 import EmptyState from '@/components/EmptyState.vue'
 import usePermissions from '@/composables/Permissions.js'
@@ -80,7 +83,6 @@ import Dialog from '@/services/dialog.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { UNGROUPED, useDataFarmSchemasStore } from '@/stores/data-farm-schemas'
-import { useUxDialogStore } from '@/stores/ux-dialog.js'
 import { useUxLoadingStore } from '@/stores/ux-loading.js'
 import type { DataSchemaGroup } from '@/types'
 import { debounce } from '@/utils/eventHandling'
@@ -89,7 +91,6 @@ defineOptions({ name: 'TeamSchemas' })
 
 const router = useRouter()
 const schemasStore = useDataFarmSchemasStore()
-const dialogStore = useUxDialogStore()
 const { featuresCheck } = storeToRefs(useAccountSettingsStore())
 const { team } = storeToRefs(useContextStore())
 const { hasPermission } = usePermissions()
@@ -150,58 +151,11 @@ const summary = computed(() => listQuery.value
     ? pluralize('result', schemaCount.value)
     : `${pluralize('schema', schemaCount.value)} in ${pluralize('group', groups.value.length)}`)
 
-// Opens a form in the platform dialog, which stays open until `submit` has worked. An error from the server shows on the form.
-// `done` is told when the dialog was cancelled while the request was still out. That can't be taken back, so the outcome is a toast.
-function showFormDialog<Values, Result> ({ header, confirmLabel, component, payload = {}, values, submit, done, failure }: {
-    header: string
-    confirmLabel: string
-    component: Component
-    payload?: Record<string, unknown>
-    values: Values
-    submit: (values: Values) => Promise<Result>
-    done: (result: Result, cancelled: boolean) => void
-    failure: string
-}) {
-    let busy = false
-    let cancelled = false
-    Dialog.show({
-        header,
-        confirmLabel,
-        closeOnConfirm: false,
-        is: {
-            component: markRaw(component),
-            payload: { ...payload, error: '', busy: false },
-            on: {
-                change: (value: Values) => {
-                    values = value
-                    dialogStore.updateDialogPayload({ error: '' })
-                }
-            }
-        }
-    }, async () => {
-        if (busy) return
-        busy = true
-        dialogStore.updateDialogPayload({ busy: true })
-        try {
-            const result = await submit(values)
-            if (!cancelled) Dialog.close()
-            done(result, cancelled)
-        } catch (err) {
-            const message = err.response?.data?.error || failure
-            if (cancelled) return Alerts.emit(message, 'warning')
-            dialogStore.updateDialogPayload({ error: message })
-        } finally {
-            busy = false
-            if (!cancelled) dialogStore.updateDialogPayload({ busy: false })
-        }
-    }, () => { cancelled = true })
-}
-
 function showCreateDialog () {
     showFormDialog({
         header: 'Create schema',
         confirmLabel: 'Create',
-        component: CreateSchemaDialog,
+        component: SchemaDetailsDialog,
         payload: { groups: groups.value },
         values: { name: '', description: '', groupId: '' },
         submit: (details) => schemasStore.createSchema(details),

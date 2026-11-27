@@ -567,4 +567,34 @@ describe('Team Schema page', () => {
         expect(await routeGuard.update({ params: { schemaId: 'xyz' } }, { params: { schemaId: 'abc' } })).toBe(true)
         expect(Dialog.showAsync).not.toHaveBeenCalled()
     })
+
+    describe('editing the details', () => {
+        test('opens the schema\'s details with the team\'s groups, and saves the changes', async () => {
+            const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+            schemas.fetchGroups.mockResolvedValue([{ id: 'g1', name: 'Energy' }])
+            schemas.updateSchema.mockResolvedValue({ name: 'Temp' })
+            await page.find('[data-action="edit-schema-details"]').trigger('click')
+            await flushPromises()
+            const [options, onConfirm] = Dialog.show.mock.calls.at(-1)
+            expect(options.header).toBe('Edit details')
+            expect(options.is.payload).toMatchObject({ schema: { id: 'abc', name: 'Temperature' }, groups: [{ id: 'g1', name: 'Energy' }] })
+            options.is.on.change({ name: 'Temp', description: '', groupId: 'g1' })
+            await onConfirm()
+            expect(schemas.updateSchema).toHaveBeenCalledWith(expect.objectContaining({ id: 'abc' }), { name: 'Temp', description: '', groupId: 'g1' })
+            expect(Alerts.emit).toHaveBeenCalledWith('Schema Temp updated.', 'confirmation')
+        })
+
+        test('says so, and opens nothing, when the groups can\'t be loaded', async () => {
+            const { page, schemas } = mountPage(Roles.Member, { draft: DRAFT })
+            schemas.fetchGroups.mockRejectedValue({ response: { data: { error: 'Not Found' } } })
+            await page.find('[data-action="edit-schema-details"]').trigger('click')
+            await flushPromises()
+            expect(Dialog.show).not.toHaveBeenCalled()
+            expect(Alerts.emit).toHaveBeenCalledWith('Not Found', 'warning')
+        })
+
+        test('is not offered to a Viewer', () => {
+            expect(mountPage(Roles.Viewer, { draft: DRAFT }).page.find('[data-action="edit-schema-details"]').exists()).toBe(false)
+        })
+    })
 })
