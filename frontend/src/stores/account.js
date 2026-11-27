@@ -7,6 +7,7 @@ import product from '@/services/product.js'
 import { useContextStore } from '@/stores/context.js'
 import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
 import { useDataFarmHostedInstancesStore } from '@/stores/data-farm-hosted-instances'
+import { useDataFarmSchemasStore } from '@/stores/data-farm-schemas'
 import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 import { useUxStore } from '@/stores/ux.js'
@@ -135,6 +136,7 @@ export const useAccountStore = defineStore('account', {
             useProductTablesStore().clearState()
             useDataFarmApplicationsStore().reset()
             useDataFarmHostedInstancesStore().reset()
+            useDataFarmSchemasStore().reset()
         }
     }
 })
